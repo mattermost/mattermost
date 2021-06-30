@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP sunucusu zorunludur"
+    "translation": "SMTP sunucusunun yazılması zorunludur"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -97,11 +97,11 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - E-posta Ayarları Sınanıyor"
+    "translation": "Mattermost - E-posta ayarları sınanıyor"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Klasörü zorunludur"
+    "translation": "S3 klasörünün yazılması zorunludur"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Geçerli kanal güncellenirken sorun çıktı."
+    "translation": "Kanal başlığı güncellenirken sorun çıktı."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Geçerli kanal güncellenirken sorun çıktı."
+    "translation": "Kanal amacı güncellenirken sorun çıktı."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -985,33 +985,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
     "translation": "Toplu e-posta gönderimi sistem yöneticisi tarafından devre dışı bırakılmış."
-  },
-  {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Şu kullanıcıdan doğrudan ileti: "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "İletiye Git"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Şu gruptan ileti: "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Şuradan bildirim: "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Bir yeni bildiriminiz var.",
-      "other": "{{.Count}} yeni bildiriminiz var."
-    }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -1743,10 +1716,6 @@
     "translation": "Takım simgesinin kodu çözülemedi."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Takım simgesi üst verisinin kodu çözülemedi."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Takım simgesi kodlanamadı."
   },
@@ -1912,7 +1881,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "İletiye Git"
+    "translation": "İletiyi Görüntüle"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2297,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Profil görselinin kodu çözülemedi."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Profil görseli kaydedilemedi. Dosya geçerli bir görsel gibi görünmüyor."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2943,62 +2908,6 @@
     "translation": "Kullanıcının Takım Üyeliğinde takım adı eksik."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Yeni bir Doğrudan İletiniz var."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "@{{.SenderName}} tarafından gönderilen yeni bir Doğrudan İletiniz var"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Yeni bir Grup İletiniz var."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "@{{.SenderName}} tarafından gönderilen yeni bir Grup İletiniz var"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Yeni bir bildiriminiz var."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "@{{.SenderName}} tarafından gönderilen yeni bir bildiriminiz var"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}], {{ .SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir Doğrudan İleti gönderildi"
   },
@@ -3123,10 +3032,6 @@
     "translation": "Görsel verilerinin kodu çözülemedi."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Görsel üst verileri alınamadı."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Görsel verileri PNG biçimine dönüştürülemedi. Lütfen yeniden deneyin."
   },
@@ -3137,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Görsel dosyası kullandığınız dosya depolaması üzerine yazılamadı. Lütfen bağlantınızı denetleyip yeniden deneyin."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Görsel dosyası okunamadı. Görsel boyutunun 2MB değerinden küçük olduğundan emin olun ve yeniden deneyin."
   },
   {
     "id": "cli.license.critical",
@@ -5115,8 +5016,8 @@
     "translation": "Bleve dizine ekleme görevi yürütülemedi: İşleyici devre dışı."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Veritabanından en eski ileti alınamadı."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Veritabanından en eski varlık (kullanıcı, kanal ya da ileti) alınamadı."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
@@ -6747,10 +6648,6 @@
     "translation": "Rol alınamadı."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Rollerin tümü alınamadı."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Rol alınamadı."
   },
@@ -6901,10 +6798,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "İleti dışa aktarma görevinde Toplu İşlem Boyutu değeri çözümlenemedi."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Sunucu ile bağlantı kurulurken bir sorun çıktı."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -8171,14 +8064,6 @@
     "translation": "Klasör değeri geçersiz."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "İçe aktarılamadı: Dosya ayıklanamadı."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "İçe aktarılamadı: Geçici klasör oluşturulamadı."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "İçe aktarılamadı: Dosya açılamadı."
   },
@@ -8563,10 +8448,6 @@
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Bu özellik henüz geliştirme aşamasında olduğundan yalnız işaret olarak görüntülenir."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "İstek içeriği işlenemedi."
   },
@@ -8660,7 +8541,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Tebrikler - {{.WorkSpace}} çalışma alanınız kullanılmaya hazır!"
+    "translation": "14 gün süreyle kullanabileceğiniz {{.WorkSpace}} çalışma alanınız hazır!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8759,10 +8640,6 @@
     "translation": "Alan JSON olarak kodlanamadı"
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Kopya gecikme sorgularının sayısı, yapılandırılmış kopya sayısından fazla. Kopya sayısından küçük ya da eşit olmalıdır."
-  },
-  {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "Mağazada ilk yönetici ziyareti durum bilgisi kaydedilirken sorun çıktı."
   },
@@ -8780,7 +8657,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Kümeler arası iletişim için uzak Mattermost kümelerini çağırın."
+    "translation": "Mattermost kopyaları arasında iletişim kurmak için uzak güvenli bağlantıları çağırın."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -8788,11 +8665,11 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Uzak küme {{.RemoteId}} {{.Result}}."
+    "translation": "Güvenli bağlantı {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Uzak küme eklenemedi: {{.Error}}"
+    "translation": "Güvenli bağlantı eklenemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -8800,7 +8677,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Uzak bir kümeden gelen bir çağrıyı kabul et"
+    "translation": "Bir dış Mattermost kopyasından gelen bir çağrıyı kabul et"
   },
   {
     "id": "api.command_remote.accept_invitation",
@@ -8812,11 +8689,11 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Bir uzak kümeyi geçerli paylaşılan kanala çağırır"
+    "translation": "Bir dış Mattermost kopyasını geçerli paylaşılmış kanala çağırır"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "`{{.Name}} {{.SiteURL}}` üzerine kanal çağrısı gönderildi."
+    "translation": "`{{.Name}} {{.SiteURL}}` üzerine paylaşılmış kanal çağrısı gönderildi."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -8828,27 +8705,19 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Uzak durumlar alınamadı: {{.Error}}."
+    "translation": "Güvenli bağlantıların durumları alınamadı: {{.Error}}."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Uzak kümeler alınırken sorun çıktı: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - isteğe bağlı"
+    "translation": "Güvenli bağlantılar alınırken sorun çıktı: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Geçerli kanalı bir uzak Mattermost kopyası ile paylaşır."
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Çağrı açıklaması"
+    "translation": "Geçerli kanalı bir dış Mattermost kopyası ile paylaşır."
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
-    "translation": "`{{.RemoteId}}` çağrılamadı: {{.Error}}"
+    "translation": "`{{.RemoteId}}` çağrısı geri alınamadı: {{.Error}}"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
@@ -8868,47 +8737,15 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Bu kanal için `{{.RemoteId}}` paylaşılan kanal uzak kodu bulunamadı."
-  },
-  {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - varsayılan kanal amacı"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Uzak kopyalara iletilen kanal amacı"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - varsayılan kanal adı"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Uzak kümelere iletilen kanal adı"
+    "translation": "Bu kanal için `{{.RemoteId}}` paylaşılan kanal güvenli bağlantısı bulunamadı."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Uzak küme, kaynağüı başka bir yerde bulunan paylaşılmış bir kanala çağrılamaz."
+    "translation": "Güvenli bağlantı, kaynağı başka bir yerde bulunan bir paylaşılmış kanala çağrılamaz."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "`{{.Name}}` bu kanala çağrılırken sorun çıktı: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - varsayılan kanal üst bilgileri"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Uzak kopyalara iletilecek kanal üst bilgileri"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - varsayılan görüntülenecek kanal adı"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Uzak kopyalara iletilecek kanal görüntülenme adı"
   },
   {
     "id": "api.command_share.available_actions",
@@ -8920,63 +8757,63 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Tüm uzak kümelerin durumunu görüntüler"
+    "translation": "Tüm güvenli bağlantıların durumunu görüntüler"
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Site adresi ayarlanmamış. Lütfen sistem panosundan ayarlayın."
+    "translation": "Site adresi ayarlanmamış. Lütfen Sistem Panosu > Ortam > Web Sunucusu bölümünden ayarlayın."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Uzak Küme hizmeti etkinleştirilmemiş."
+    "translation": "Güvenli Bağlantı Hizmeti etkinleştirilmemiş."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Uzak Küme Hizmeti devre dışı bırakılmış."
+    "translation": "Güvenli Bağlantı Hizmeti devre dışı bırakılmış."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Silinecek uzak kümenin kodu"
+    "translation": "Silinecek güvenli bağlantının kodu."
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Uzak küme silinemedi: {{.Error}}"
+    "translation": "Güvenli bağlantı silinemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Aşağıdaki şifreli (AES256 + Base64) veri yığınını parola ile uzak site yöneticisine gönderin. `{{.Command}}` bölü komutunu kullanarak çağrıyı kabul edebilir.\n\n```\n{{.Invitation}}\n```\n\n**Sizin kümenizden uzak siteye ** {{.SiteURL}} adresi ile erişilebildiğinden emin olun"
+    "translation": "Aşağıdaki şifreli (AES256 + Base64) veri yığınını parola ile dış Mattermost yöneticisine gönderin. `{{.Command}}` bölü komutunu kullanarak çağrıyı kabul edebilir.\n\n```\n{{.Invitation}}\n```\n\n**Güvenli bağlantının sizin Mattermost kopyanıza ** {{.SiteURL}} adresi ile erişilebildiğinden emin olun"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Uzak küme ekleme ve silme. Yapılabilecek işlemler: {{.Actions}}"
+    "translation": "Güvenli bağlantı ekleme ve silme. Yapılabilecek işlemler: {{.Actions}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Bir uzak kümeyi siler"
+    "translation": "Bir güvenli bağlantıyı siler"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Herhangi bir uzak küme bulunamadı."
+    "translation": "Herhangi bir güvenli bağlantı bulunamadı."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Ad| Site Adresi  | Uzak Kod   | Çağrı Onaylandı | Çevrimiçi | Son İletişim  |"
+    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kodu | Site adresi | Çağrı onaylandı | Çevrimiçi | Son iletişim |"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Uzak kümeleri yönetebilmek için `{{.Permission}}` izniniz bulunmalı."
+    "translation": "Güvenli bağlantıları yönetebilmek için `{{.Permission}}` izniniz bulunmalı."
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Uzak kümenin görüntülenecek adı"
+    "translation": "Güvenli bağlantı için tekil ad"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Uzak kümenin adı"
+    "translation": "Güvenli bağlantı adı"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "uzak"
+    "translation": "guvenli-baglanti"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -8996,7 +8833,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Bir uzak kümeyi çağır"
+    "translation": "Güvenli bir bağlantı çağır"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -9004,11 +8841,11 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "Uzak bir kümeden şifrelenmiş çağrı"
+    "translation": "Güvenli bir bağlantıdan şifrelenmiş çağrı"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Uzak kümeden çağrı"
+    "translation": "Güvenli bağlantıdan çağrı"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -9020,6 +8857,393 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Uzak kümeler alınamadı: {{.Error}}"
+    "translation": "Güvenli bağlantılar alınamadı: {{.Error}}"
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Bu iletide, diğer sitelerdeki kullanıcıların göremeyebileceği başka kanalların bağlantıları var."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Çevrimdışı olduğundan, bir ya da daha fazla ileti {{.Remote}} uzak kümesine aktarılamadı. İletiler site yeniden çevrimiçi olduğunda aktarılacak."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "İlke geçersiz."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "İstenilen işlem yapılırken bir sorun çıktı."
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Doğrudan paylaşılmış bir kanal eklenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Deneme süresi sona eriyor bildirim e-postası gönderilemedi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "14 günlük Mattermost deneme süreniz yakında sona erecek"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud deneme süresi sona eriyor"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Ödeme yöntemi ekle"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Aynı adresi kullanan bir güvenli bağlantı zaten var."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Güvenli bağlantı güncellenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Uzak küme hizmeti etkinleştirilmemiş."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Güvenli bağlantı zaten eklenmiş."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Güvenli bağlantı kaydedilirken bir sorun çıktı."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Konu geçersiz."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Kod geçersiz."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Bir güvenli bağlantı alınırken bir sorun çıktı."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Güvenli bağlantı silinirken bir sorun çıktı."
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Eklemeye çalıştığınız görevin görev türü geçersiz"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Almaya çalıştığınız bir görevin görev türlerinde izinler bulunmuyor"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Amazon S3 klasörünüzün kullanılabilir olduğundan emin olduktan sonra klasör izinlerinizi denetleyin."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "S3 bağlantısı kurulamadı. Amazon S3 bağlantı kimlik doğrulama parametrelerinizi ve kimlik doğrulama ayarlarınızı denetleyin."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Güvenli bağlantı kodu eksik."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Güvenli bağlantı kodu eşleşmiyor."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "{{.RemoteId}} güvenli bağlantı kodu bulunamadı."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "JSON kodlanırken sorun çıktı."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Çağrının süresi dolmuş."
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Bu kanal paylaşımdan kaldırılamadı: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Bu kanal artık paylaşılmıyor."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' ya da 'N'.  Varsayılan 'N'"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Kanal salt okunur kipte paylaşılacak"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Bu kanal paylaşılamadı: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Paylaşılmış Kanallar Hizmeti devre dışı bırakılmış."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Güvenli bağlantı | Site adresi | Salt okunur| Çağrı onaylandı | Çevrimiçi | Son eşitleme |"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "Güvenli bağlantı kodu geçersiz: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Geçerli kanalı paylaşımdan kaldırır"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "`{{.Action}}` işlemi bilinmiyor. Yapılabilecek işlemler: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Çağırmaktan vazgeçilecek güvenli bağlantı kodu."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Bu paylaşılmış kanalda bir güvenli bağlantıyı çağırmaktan vazgeçer"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "`{{.RemoteId}}` güvenli bağlantı çağrısından vazgeçildi."
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Çağrılmaktan vazgeçilecek geçerli bir güvenli bağlantı kodu belirtilmelidir"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Var olan bir güvenli bağlantının kodu. Bir güvenli bağlantı eklemek için `secure-connection` komutuna bakın."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Güvenli bağlantı zaten çağrılmış."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Paylaşılmış kanalları yönetebilmek için `{{.Permission}}` izninizin olması gereklidir."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Paylaşılmamış bir kanal paylaşımdan kaldırılamaz."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Bu kanala herhangi bir güvenli bağlantı çağrılmamış."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "kanal-paylas"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Çağrılacak geçerli bir güvenli bağlantı kodu belirtilmelidir."
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Güvenli bağlantı için görüntülenecek ad"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Güvenli bağlantının görüntülenecek adı"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kimlik doğrulama verileri alanı e-posta olarak sıfırlanamadı."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Kullanıcının otomatik yanıtı gönderilemedi."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Deneme süresi sonu bildirimi gönderilemedi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "14 günlük Mattermost deneme süreniz bugün sona erdi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost Cloud deneme süresi sona erdi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Aboneliği başlat"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Destek E-posta Adresinizi Yazın"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal amacı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal başlığı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Lütfen **Sistem Panosu > Site Yapılandırması > Özelleştirme** bölümüne giderek [Destek E-posta Adresi](https://docs.mattermost.com/administration/config-settings.html#support-email) olarak kuruluşunuzun iç BT destek ekibi e-posta adresini yazın. Böylece son kullanıcı geri bildirimleri, e-posta bilgilerimleri ve destek istekleri alınabilir."
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Bildirim ayarlarınızı değiştirmek ister misiniz?"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Mattermost Oturumu Aç"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " ve Hesap Ayarları > Bildirimler bölümüne gidin"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} bir iletide sizi andı"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} sizi {{.ChannelName}} kanalında anmış."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} size ileti gönderdi"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} grubunuza ileti göndermiş."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} size ileti gönderdi"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} size doğrudan ileti göndermiş."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} size yeni bir ileti göndermiş",
+      "other": "{{ .SenderName }} ve {{.Count}} diğer kişi size yeni iletiler göndermiş"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Aşağıda yeni iletilerinizin özetini görebilirsiniz."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Bu iletiyi görüntüle"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Mattermost Uygulamasını Aç"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Otomatik olarak yönlendirilmezseniz, <a href='{{.Link}}'>buraya tıklayın</a>"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Yapılandırma farkları belirlenemedi"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Yapılandırma farkları belirlenemedi"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Ortak takım kodları alınamadı."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Ortak bir takımları olmadığından bu kullanıcılar arasında doğrudan bir kanal oluşturulamadı."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Parola geçersiz"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Bulut hesabının sınırları aşıldığından daha fazla kullanıcı etkinleştirilemedi."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Bulut denetimi sınırda veya üzerinde olduğundan yapılamadı."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Sistem"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Yönetici listesi boş."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Yönetici listesi boş."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Kullanıcı işlemi üyeliği bulunamadı"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kullanıcı işlemi üyeliği alınamadı"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Mattermost Enterprise sürümünün deneme süresi sona ermiş olduğundan artık kullanılamaz. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Deneme süresi başlatılmış mı öğrenilemedi"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Veri saklama görevi yürütülemedi."
   }
 ]

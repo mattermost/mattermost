@@ -149,7 +149,7 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "이 기본 채널은 전용 채널로 변환할 수 없습니다."
+    "translation": "기본 채널은 비공개 채널로 변환할 수 없습니다."
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "기본 채널은 삭제할 수 없습니다 {{.Channel}}"
+    "translation": "기본 채널인 {{.Channel}} 채널은 삭제할 수 없습니다."
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -986,32 +986,6 @@
     "translation": "시스템 관리자가 전자우편 배치 기능을 비활성화했습니다."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "로부터 직접 메시지"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "글로 이동하기"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "로부터 그룹 메세지"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "로부터 공지"
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "other": "새 알림이 있습니다.{{.Count}}개의 새 알림이 있습니다."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "other": "[{{.SiteName}}] (으)로부터 {{.Month}} {{.Day}}, {{.Year}} 에 새 알림이 왔습니다[{{.SiteName}}] (으)로부터 {{.Month}} {{.Day}}, {{.Year}} 에 새 알림들이 왔습니다"
@@ -1715,7 +1689,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "본 채널은 %v에 의해 해당 팀으로 이동되었습니다. "
+    "translation": "본 채널은 %v 팀에서 이 팀으로 이동되었습니다."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1736,10 +1710,6 @@
   {
     "id": "api.team.set_team_icon.decode.app_error",
     "translation": "팀 아이콘을 decode할 수 없습니다."
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "팀 아이콘 메타데이터를 decode할 수 없습니다."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -2292,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "프로필 이미지를 불러올 수 없습니다."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2938,62 +2904,6 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "한개의 신규 메시지가 있습니다."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 개인 메시지 알림이 왔습니다."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "한개의 신규 메시지가 있습니다."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 알림이 있습니다."
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "한개의 신규 메시지가 있습니다."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 알림이 있습니다."
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "채널 : {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "채널 : {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}일"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] {{.SenderDisplayName}} (으)로부터 {{.Month}} {{.Day}}일, {{.Year}} 에 새로운 개인 메시지가 왔습니다."
   },
@@ -3118,10 +3028,6 @@
     "translation": "Unable to decode the image data."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Unable to convert the image data to PNG format. Please try again."
   },
@@ -3132,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",
@@ -5310,10 +5212,6 @@
     "translation": "Bleve 색인 프로세스가 종료 시간을 구문 분석하지 못했습니다."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "데이터베이스에서 가장 오래된 게시물을 조회 할 수 없습니다"
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -6702,10 +6600,6 @@
     "translation": "역할을 가져올 수 없습니다."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "모든 역할을 가져올 수 없습니다."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "역할을 가져올 수 없습니다."
   },
@@ -6812,10 +6706,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Could not parse message export job BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server"
   },
   {
     "id": "ent.cluster.404.app_error",

@@ -988,34 +988,6 @@
     "translation": "Administrarea de sistem a dezactivat lotul prin e-mail."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Mesaj direct din "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Du-te la"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Mesaj de grup "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notificare de la "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "Ai {{.Count}} notificări noi.",
-      "one": "Ai o nouă notificare.",
-      "other": "Au {{.Count}} notificări noi."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "[{{.SiteName}}] Notificări noi pentru {{.Month}} {{.Day}}, {{.Year}}",
@@ -1748,10 +1720,6 @@
     "translation": "Nu s-a putut decoda pictograma echipei."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Nu s-au putut decoda metadatele pictogramei echipei."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Pictograma echipei nu a putut fi codificată."
   },
@@ -2302,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Nu s-a putut decoda imaginea de profil."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Ar putea salva imaginea de profil. Fişier nu pare a fi o imagine validă."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2948,62 +2912,6 @@
     "translation": "Numele echipei lipsesc de la utilizator de membru de echipa."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Ai un mesaj nou."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Aveţi un nou mesaj Direct la @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Ai un mesaj nou."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Aveţi un mesaj nou de grupa la @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Ai o noua notificare."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Ai o noua notificare la @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Mesaj direct nou de la @{{.SenderDisplayName}} pe {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3128,10 +3036,6 @@
     "translation": "Imposibil de decodat datele imaginii."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Imposibilitatea de a obţine imaginea metadate."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Imposibilitatea de a converti datele imagine PNG format. Vă rugăm să încercaţi din nou."
   },
@@ -3142,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Imposibil de scris fișierul imagine în memoria de stocare a fișierelor. Verificați conexiunea și încercați din nou."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Imposibil de citit fișierul imagine. Asigurați-vă că dimensiunea imaginii este mai mică de 2 MB și încercați din nou."
   },
   {
     "id": "cli.license.critical",
@@ -5320,8 +5220,8 @@
     "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de sfârșit."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Cea mai veche postare nu a putut fi preluată din baza de date."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Cea mai veche entitate (utilizator, canal sau postare) nu a putut fi recuperată din baza de date."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6760,10 +6660,6 @@
     "translation": "Imposibil de a primi rol."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Imposibil de obținut toate rolurile."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Imposibil de a primi rol."
   },
@@ -6918,10 +6814,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Ar putea analiza mesaj export job BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Am întâmpinat o eroare la conectarea la server."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -8084,10 +7976,6 @@
     "translation": "Am întâmpinat o eroare la găsirea contului."
   },
   {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Imposibil de procesat importul: nu s-a putut crea directorul temporar."
-  },
-  {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "Nu se poate procesa importul: fișierul nu există."
   },
@@ -8102,10 +7990,6 @@
   {
     "id": "api.upload.get_upload.forbidden.app_error",
     "translation": "Încărcarea nu a reușit."
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Nu s-a putut procesa importul: nu s-a putut dezarhiva fișierul."
   },
   {
     "id": "import_process.worker.do_job.missing_file",
@@ -8612,10 +8496,6 @@
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Această caracteristică este în curs de dezvoltare și este disponibilă numai utilizând un semnalizator de caracteristici."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
   },
@@ -8738,14 +8618,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Nu a reușit să codifice câmpul în JSON"
-  },
-  {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Numărul de interogări de întârziere a replicilor este mai mare decât numărul de replici configurate. Trebuie să fie mai mic sau egal cu numărul de replici."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Descriere invalidă."
   },
   {
     "id": "ent.cloud.subscription.error",
@@ -8952,14 +8824,6 @@
     "translation": "Invitația a expirat."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "\"Y\" sau \"N"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Ești sigur? Acest canal va fi neîmpărtășit și toate instanțele de la distanță vor fi neinvitate"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Dezarhivează canalul curent"
   },
@@ -8984,20 +8848,12 @@
     "translation": "Acest canal nu mai este partajat."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Canalul partajat nu a fost șters: `{{.Arg}}` trebuie să fie `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - \"Y\" sau \"N\".  Valoarea implicită este \"N\""
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Canalul va fi partajat în modul doar pentru citire"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Partajați canalul curent"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9080,14 +8936,6 @@
     "translation": "Eroare la preluarea clusterelor de la distanță: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[descriere] - opțional"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Descriere pentru invitație"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Partajează canalul curent cu o instanță Mattermost de la distanță."
   },
@@ -9116,44 +8964,12 @@
     "translation": "ID-ul de la distanță al canalului partajat `{{.RemoteId}}` nu există pentru acest canal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[scop] - implicit scopul canalului"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Scopul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - implicit la numele canalului"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Numele canalului furnizat instanțelor la distanță"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Nu se poate invita un cluster la distanță la un canal partajat care provine din altă parte."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Eroare la invitarea lui `{{.Name}}` pe acest canal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - implicit la antetul canalelor"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Antetul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[nume de afișare] - implicit la numele de afișare al canalului"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Numele de afișare a canalului furnizat instanțelor la distanță"
   },
   {
     "id": "api.command_share.available_actions",
@@ -9206,5 +9022,93 @@
   {
     "id": "api.command_remote.permission_required",
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Nu a reușit să trimită un e-mail de avertizare privind încheierea procesului"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie în curând"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Username}}, versiunea de încercare de 14 zile a Mattermost Cloud Professional se încheie în 3 zile, pe {{.TrialEnd}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud trial se încheie"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Adăugați metoda de plată"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Asigurați-vă că bucket-ul Amazon S3 este disponibil și verificați permisiunile bucket-ului."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Nu se poate conecta la S3. Verificați parametrii de autorizare a conexiunii Amazon S3 și setările de autentificare."
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Un nume de afișare pentru clusterul la distanță"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Numele de afișare al clusterului la distanță"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Nu s-a reușit resetarea câmpului AuthData la Email."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Politica nu este valabilă."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Am întâmpinat o eroare la efectuarea operațiunii solicitate."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Nu se poate trimite un răspuns automat de la utilizator."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Nu a reușit să trimită e-mailul de încheiere a procesului"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie astăzi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, versiunea de încercare gratuită de 14 zile a Mattermost Cloud Professional se încheie astăzi {{.TodayDate}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Procesul Mattermost cloud s-a încheiat"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Începeți abonamentul"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Vă rugăm să accesați **System Console > Site Configuration > Customization** pentru a seta [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) ca adresă de e-mail a biroului de asistență IT intern al organizației dumneavoastră pentru feedback-ul utilizatorului final, notificări prin e-mail și cereri de asistență."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Setați adresa de e-mail de asistență"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Textul introdus depășește limita de caractere. Scopul canalului este limitat la {{.MaxLength}} caractere."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   }
 ]

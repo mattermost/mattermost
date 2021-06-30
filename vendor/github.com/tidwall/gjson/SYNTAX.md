@@ -77,13 +77,20 @@ Special purpose characters, such as `.`, `*`, and `?` can be escaped with `\`.
 fav\.movie             "Deer Hunter"
 ```
 
-You'll also need to make sure that the `\` character is correctly escaped when hardcoding a path in source code.
+You'll also need to make sure that the `\` character is correctly escaped when hardcoding a path in you source code.
 
 ```go
-res := gjson.Get(json, "fav\\.movie")  // must escape the slash
-res := gjson.Get(json, `fav\.movie`)   // no need to escape the slash 
-
+// Go
+val := gjson.Get(json, "fav\\.movie")  // must escape the slash
+val := gjson.Get(json, `fav\.movie`)   // no need to escape the slash 
 ```
+
+```rust
+// Rust
+let val = gjson::get(json, "fav\\.movie")     // must escape the slash
+let val = gjson::get(json, r#"fav\.movie"#)   // no need to escape the slash 
+```
+
 
 ### Arrays
 
@@ -247,6 +254,8 @@ gjson.AddModifier("case", func(json, arg string) string {
 "children.@case:upper"             ["SARA","ALEX","JACK"]
 "children.@case:lower.@reverse"    ["jack","alex","sara"]
 ```
+
+*Note: Custom modifiers are not yet available in the Rust version*
 
 ### Multipaths
 

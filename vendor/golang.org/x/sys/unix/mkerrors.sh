@@ -56,6 +56,7 @@ includes_Darwin='
 #define _DARWIN_C_SOURCE
 #define KERNEL
 #define _DARWIN_USE_64_BIT_INODE
+#define __APPLE_USE_RFC_3542
 #include <stdint.h>
 #include <sys/attr.h>
 #include <sys/clonefile.h>
@@ -238,6 +239,7 @@ struct ltchars {
 #include <linux/netfilter/nfnetlink.h>
 #include <linux/netlink.h>
 #include <linux/net_namespace.h>
+#include <linux/nfc.h>
 #include <linux/nsfs.h>
 #include <linux/perf_event.h>
 #include <linux/pps.h>
@@ -257,6 +259,7 @@ struct ltchars {
 #include <linux/watchdog.h>
 
 #include <mtd/ubi-user.h>
+#include <mtd/mtd-user.h>
 #include <net/route.h>
 
 #if defined(__sparc__)
@@ -404,10 +407,11 @@ includes_SunOS='
 #include <net/if_arp.h>
 #include <net/if_types.h>
 #include <net/route.h>
+#include <netinet/icmp6.h>
 #include <netinet/in.h>
-#include <termios.h>
 #include <netinet/ip.h>
 #include <netinet/ip_mroute.h>
+#include <termios.h>
 '
 
 
@@ -498,10 +502,13 @@ ccflags="$@"
 		$2 ~ /^LOCK_(SH|EX|NB|UN)$/ ||
 		$2 ~ /^LO_(KEY|NAME)_SIZE$/ ||
 		$2 ~ /^LOOP_(CLR|CTL|GET|SET)_/ ||
-		$2 ~ /^(AF|SOCK|SO|SOL|IPPROTO|IP|IPV6|ICMP6|TCP|MCAST|EVFILT|NOTE|SHUT|PROT|MAP|MFD|T?PACKET|MSG|SCM|MCL|DT|MADV|PR|LOCAL)_/ ||
+		$2 ~ /^(AF|SOCK|SO|SOL|IPPROTO|IP|IPV6|TCP|MCAST|EVFILT|NOTE|SHUT|PROT|MAP|MFD|T?PACKET|MSG|SCM|MCL|DT|MADV|PR|LOCAL)_/ ||
+		$2 ~ /^NFC_(GENL|PROTO|COMM|RF|SE|DIRECTION|LLCP|SOCKPROTO)_/ ||
+		$2 ~ /^NFC_.*_(MAX)?SIZE$/ ||
+		$2 ~ /^RAW_PAYLOAD_/ ||
 		$2 ~ /^TP_STATUS_/ ||
 		$2 ~ /^FALLOC_/ ||
-		$2 ~ /^ICMP(V6)?_FILTER$/ ||
+		$2 ~ /^ICMPV?6?_(FILTER|SEC)/ ||
 		$2 == "SOMAXCONN" ||
 		$2 == "NAME_MAX" ||
 		$2 == "IFNAMSIZ" ||
@@ -556,6 +563,7 @@ ccflags="$@"
 		$2 ~ /^KEYCTL_/ ||
 		$2 ~ /^PERF_/ ||
 		$2 ~ /^SECCOMP_MODE_/ ||
+		$2 ~ /^SEEK_/ ||
 		$2 ~ /^SPLICE_/ ||
 		$2 ~ /^SYNC_FILE_RANGE_/ ||
 		$2 !~ /^AUDIT_RECORD_MAGIC/ &&
@@ -591,6 +599,9 @@ ccflags="$@"
 		$2 == "HID_MAX_DESCRIPTOR_SIZE" ||
 		$2 ~ /^_?HIDIOC/ ||
 		$2 ~ /^BUS_(USB|HIL|BLUETOOTH|VIRTUAL)$/ ||
+		$2 ~ /^MTD/ ||
+		$2 ~ /^OTP/ ||
+		$2 ~ /^MEM/ ||
 		$2 ~ /^BLK[A-Z]*(GET$|SET$|BUF$|PART$|SIZE)/ {printf("\t%s = C.%s\n", $2, $2)}
 		$2 ~ /^__WCOREFLAG$/ {next}
 		$2 ~ /^__W[A-Z0-9]+$/ {printf("\t%s = C.%s\n", substr($2,3), $2)}

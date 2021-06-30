@@ -76,7 +76,7 @@ func TestCreateUploadSession(t *testing.T) {
 
 	t.Run("deleted channel", func(t *testing.T) {
 		ch := th.CreateChannel(th.BasicTeam)
-		th.App.DeleteChannel(ch, th.BasicUser.Id)
+		th.App.DeleteChannel(th.Context, ch, th.BasicUser.Id)
 		us.ChannelId = ch.Id
 		u, err := th.App.CreateUploadSession(us)
 		require.NotNil(t, err)
@@ -125,7 +125,7 @@ func TestUploadData(t *testing.T) {
 
 		u := *us
 		u.Path = ""
-		info, appErr := th.App.UploadData(&u, rd)
+		info, appErr := th.App.UploadData(th.Context, &u, rd)
 		require.Nil(t, info)
 		require.NotNil(t, appErr)
 		require.NotEqual(t, "app.upload.upload_data.first_part_too_small.app_error", appErr.Id)
@@ -141,7 +141,7 @@ func TestUploadData(t *testing.T) {
 		require.False(t, ok)
 		require.Nil(t, appErr)
 
-		info, appErr := th.App.UploadData(us, rd)
+		info, appErr := th.App.UploadData(th.Context, us, rd)
 		require.Nil(t, info)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.upload.upload_data.first_part_too_small.app_error", appErr.Id)
@@ -156,7 +156,7 @@ func TestUploadData(t *testing.T) {
 			R: bytes.NewReader(data),
 			N: 5 * 1024 * 1024,
 		}
-		info, appErr := th.App.UploadData(us, rd)
+		info, appErr := th.App.UploadData(th.Context, us, rd)
 		require.Nil(t, info)
 		require.Nil(t, appErr)
 
@@ -164,7 +164,7 @@ func TestUploadData(t *testing.T) {
 			R: bytes.NewReader(data[5*1024*1024:]),
 			N: 3 * 1024 * 1024,
 		}
-		info, appErr = th.App.UploadData(us, rd)
+		info, appErr = th.App.UploadData(th.Context, us, rd)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, info)
 
@@ -180,7 +180,7 @@ func TestUploadData(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
 
-		info, appErr := th.App.UploadData(us, bytes.NewReader(data))
+		info, appErr := th.App.UploadData(th.Context, us, bytes.NewReader(data))
 		require.Nil(t, appErr)
 		require.NotEmpty(t, info)
 
@@ -201,7 +201,7 @@ func TestUploadData(t *testing.T) {
 			R: bytes.NewReader(data),
 			N: 1024 * 1024,
 		}
-		info, appErr := th.App.UploadData(us, rd)
+		info, appErr := th.App.UploadData(th.Context, us, rd)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, info)
 
@@ -224,7 +224,7 @@ func TestUploadData(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
 
-		info, appErr := th.App.UploadData(us, bytes.NewReader(data))
+		info, appErr := th.App.UploadData(th.Context, us, bytes.NewReader(data))
 		require.Nil(t, appErr)
 		require.NotEmpty(t, info)
 		require.NotZero(t, info.Width)
@@ -269,7 +269,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 				N: 5 * 1024 * 1024,
 			}
 			u := *us
-			_, err := th.App.UploadData(&u, rd)
+			_, err := th.App.UploadData(th.Context, &u, rd)
 			if err != nil && err.Id == "app.upload.upload_data.concurrent.app_error" {
 				atomic.AddInt32(&nErrs, 1)
 			}
@@ -293,7 +293,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 			}
 			u := *us
 			u.FileOffset = 5 * 1024 * 1024
-			_, err := th.App.UploadData(&u, rd)
+			_, err := th.App.UploadData(th.Context, &u, rd)
 			if err != nil && err.Id == "app.upload.upload_data.concurrent.app_error" {
 				atomic.AddInt32(&nErrs, 1)
 			}

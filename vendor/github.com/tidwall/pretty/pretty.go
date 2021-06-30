@@ -1,7 +1,10 @@
 package pretty
 
 import (
+	"bytes"
+	"encoding/json"
 	"sort"
+	"strconv"
 )
 
 // Options is Pretty options
@@ -84,6 +87,14 @@ func ugly(dst, src []byte) []byte {
 	return dst
 }
 
+func isNaNOrInf(src []byte) bool {
+	return src[0] == 'i' || //Inf
+		src[0] == 'I' || // inf
+		src[0] == '+' || // +Inf
+		src[0] == 'N' || // Nan
+		(src[0] == 'n' && len(src) > 1 && src[1] != 'u') // nan
+}
+
 func appendPrettyAny(buf, json []byte, i int, pretty bool, width int, prefix, indent string, sortkeys bool, tabs, nl, max int) ([]byte, int, int, bool) {
 	for ; i < len(json); i++ {
 		if json[i] <= ' ' {
@@ -92,7 +103,8 @@ func appendPrettyAny(buf, json []byte, i int, pretty bool, width int, prefix, in
 		if json[i] == '"' {
 			return appendPrettyString(buf, json, i, nl)
 		}
-		if (json[i] >= '0' && json[i] <= '9') || json[i] == '-' {
+
+		if (json[i] >= '0' && json[i] <= '9') || json[i] == '-' || isNaNOrInf(json[i:]) {
 			return appendPrettyNumber(buf, json, i, nl)
 		}
 		if json[i] == '{' {
@@ -121,6 +133,7 @@ type pair struct {
 type byKeyVal struct {
 	sorted bool
 	json   []byte
+	buf    []byte
 	pairs  []pair
 }
 
@@ -128,19 +141,108 @@ func (arr *byKeyVal) Len() int {
 	return len(arr.pairs)
 }
 func (arr *byKeyVal) Less(i, j int) bool {
-	key1 := arr.json[arr.pairs[i].kstart+1 : arr.pairs[i].kend-1]
-	key2 := arr.json[arr.pairs[j].kstart+1 : arr.pairs[j].kend-1]
-	if string(key1) < string(key2) {
+	if arr.isLess(i, j, byKey) {
 		return true
 	}
-	if string(key1) > string(key2) {
+	if arr.isLess(j, i, byKey) {
 		return false
 	}
-	return arr.pairs[i].vstart < arr.pairs[j].vstart
+	return arr.isLess(i, j, byVal)
 }
 func (arr *byKeyVal) Swap(i, j int) {
 	arr.pairs[i], arr.pairs[j] = arr.pairs[j], arr.pairs[i]
 	arr.sorted = true
+}
+
+type byKind int
+
+const (
+	byKey byKind = 0
+	byVal byKind = 1
+)
+
+type jtype int
+
+const (
+	jnull jtype = iota
+	jfalse
+	jnumber
+	jstring
+	jtrue
+	jjson
+)
+
+func getjtype(v []byte) jtype {
+	if len(v) == 0 {
+		return jnull
+	}
+	switch v[0] {
+	case '"':
+		return jstring
+	case 'f':
+		return jfalse
+	case 't':
+		return jtrue
+	case 'n':
+		return jnull
+	case '[', '{':
+		return jjson
+	default:
+		return jnumber
+	}
+}
+
+func (arr *byKeyVal) isLess(i, j int, kind byKind) bool {
+	k1 := arr.json[arr.pairs[i].kstart:arr.pairs[i].kend]
+	k2 := arr.json[arr.pairs[j].kstart:arr.pairs[j].kend]
+	var v1, v2 []byte
+	if kind == byKey {
+		v1 = k1
+		v2 = k2
+	} else {
+		v1 = bytes.TrimSpace(arr.buf[arr.pairs[i].vstart:arr.pairs[i].vend])
+		v2 = bytes.TrimSpace(arr.buf[arr.pairs[j].vstart:arr.pairs[j].vend])
+		if len(v1) >= len(k1)+1 {
+			v1 = bytes.TrimSpace(v1[len(k1)+1:])
+		}
+		if len(v2) >= len(k2)+1 {
+			v2 = bytes.TrimSpace(v2[len(k2)+1:])
+		}
+	}
+	t1 := getjtype(v1)
+	t2 := getjtype(v2)
+	if t1 < t2 {
+		return true
+	}
+	if t1 > t2 {
+		return false
+	}
+	if t1 == jstring {
+		s1 := parsestr(v1)
+		s2 := parsestr(v2)
+		return string(s1) < string(s2)
+	}
+	if t1 == jnumber {
+		n1, _ := strconv.ParseFloat(string(v1), 64)
+		n2, _ := strconv.ParseFloat(string(v2), 64)
+		return n1 < n2
+	}
+	return string(v1) < string(v2)
+
+}
+
+func parsestr(s []byte) []byte {
+	for i := 1; i < len(s); i++ {
+		if s[i] == '\\' {
+			var str string
+			json.Unmarshal(s, &str)
+			return []byte(str)
+		}
+		if s[i] == '"' {
+			return s[1:i]
+		}
+	}
+	return nil
 }
 
 func appendPrettyObject(buf, json []byte, i int, open, close byte, pretty bool, width int, prefix, indent string, sortkeys bool, tabs, nl, max int) ([]byte, int, int, bool) {
@@ -249,7 +351,7 @@ func sortPairs(json, buf []byte, pairs []pair) []byte {
 	}
 	vstart := pairs[0].vstart
 	vend := pairs[len(pairs)-1].vend
-	arr := byKeyVal{false, json, pairs}
+	arr := byKeyVal{false, json, buf, pairs}
 	sort.Stable(&arr)
 	if !arr.sorted {
 		return buf
@@ -446,7 +548,7 @@ func Color(src []byte, style *Style) []byte {
 			dst = apnd(dst, src[i])
 		} else {
 			var kind byte
-			if (src[i] >= '0' && src[i] <= '9') || src[i] == '-' {
+			if (src[i] >= '0' && src[i] <= '9') || src[i] == '-' || isNaNOrInf(src[i:]) {
 				kind = '0'
 				dst = append(dst, style.Number[0]...)
 			} else if src[i] == 't' {

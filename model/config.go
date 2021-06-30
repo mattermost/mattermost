@@ -129,12 +129,12 @@ const (
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
-	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://about.mattermost.com/default-terms/"
-	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK   = "https://about.mattermost.com/default-privacy-policy/"
+	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://mattermost.com/terms-of-service/"
+	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK   = "https://mattermost.com/privacy-policy/"
 	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK            = "https://about.mattermost.com/default-about/"
 	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
 	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
-	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
+	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = ""
 	SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD  = 365
 
 	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE         = ""
@@ -206,6 +206,7 @@ const (
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
+	DATA_RETENTION_SETTINGS_DEFAULT_BATCH_SIZE              = 3000
 
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
@@ -827,22 +828,22 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type ClusterSettings struct {
-	Enable                             *bool   `access:"environment_high_availability,write_restrictable"`
-	ClusterName                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	OverrideHostname                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	NetworkInterface                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	BindAddress                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	AdvertiseAddress                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	UseIpAddress                       *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	UseExperimentalGossip              *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableGossipCompression            *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableExperimentalGossipEncryption *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	ReadOnlyConfig                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	GossipPort                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	StreamingPort                      *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConns                       *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConnsPerHost                *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	IdleConnTimeoutMilliseconds        *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	Enable                                      *bool   `access:"environment_high_availability,write_restrictable"`
+	ClusterName                                 *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	OverrideHostname                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	NetworkInterface                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	BindAddress                                 *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	AdvertiseAddress                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	UseIpAddress                                *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	DEPRECATED_DO_NOT_USE_UseExperimentalGossip *bool   `json:"UseExperimentalGossip" access:"environment_high_availability,write_restrictable,cloud_restrictable"` // Deprecated: do not use
+	EnableGossipCompression                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	EnableExperimentalGossipEncryption          *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	ReadOnlyConfig                              *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	GossipPort                                  *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	StreamingPort                               *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	MaxIdleConns                                *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	MaxIdleConnsPerHost                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	IdleConnTimeoutMilliseconds                 *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -874,8 +875,8 @@ func (s *ClusterSettings) SetDefaults() {
 		s.UseIpAddress = NewBool(true)
 	}
 
-	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(true)
+	if s.DEPRECATED_DO_NOT_USE_UseExperimentalGossip == nil {
+		s.DEPRECATED_DO_NOT_USE_UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
@@ -2301,6 +2302,7 @@ type ComplianceSettings struct {
 	Enable      *bool   `access:"compliance_compliance_monitoring"`
 	Directory   *string `access:"compliance_compliance_monitoring"` // telemetry: none
 	EnableDaily *bool   `access:"compliance_compliance_monitoring"`
+	BatchSize   *int    `access:"compliance_compliance_monitoring"` // telemetry: none
 }
 
 func (s *ComplianceSettings) SetDefaults() {
@@ -2314,6 +2316,10 @@ func (s *ComplianceSettings) SetDefaults() {
 
 	if s.EnableDaily == nil {
 		s.EnableDaily = NewBool(false)
+	}
+
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(30000)
 	}
 }
 
@@ -2695,6 +2701,7 @@ type DataRetentionSettings struct {
 	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
+	BatchSize             *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2716,6 +2723,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.DeletionJobStartTime == nil {
 		s.DeletionJobStartTime = NewString(DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME)
+	}
+
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(DATA_RETENTION_SETTINGS_DEFAULT_BATCH_SIZE)
 	}
 }
 
@@ -3138,7 +3149,7 @@ type Config struct {
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings  // telemetry: none
-	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"` // telemetry: none
+	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
 }
@@ -3394,10 +3405,6 @@ func (s *SqlSettings) isValid() *AppError {
 
 	if *s.MaxOpenConns <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(s.ReplicaLagSettings) > len(s.DataSourceReplicas) {
-		return NewAppError("Config.IsValid", "model.config.is_valid.replica_mismatch.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

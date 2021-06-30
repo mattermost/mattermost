@@ -181,7 +181,7 @@ type State struct {
 // gRPC to add new methods to this interface.
 type ClientConn interface {
 	// UpdateState updates the state of the ClientConn appropriately.
-	UpdateState(State)
+	UpdateState(State) error
 	// ReportError notifies the ClientConn that the Resolver encountered an
 	// error.  The ClientConn will notify the load balancer and begin calling
 	// ResolveNow on the Resolver with exponential backoff.

@@ -7,10 +7,12 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -27,13 +29,13 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Status").SetMaxSize(32)
 		table.ColMap("ActiveChannel").SetMaxSize(26)
+		table.ColMap("PrevStatus").SetMaxSize(32)
 	}
 
 	return s
 }
 
 func (s SqlStatusStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_status_user_id", "Status", "UserId")
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }
 
@@ -88,6 +90,119 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	for rows.Next() {
 		var status model.Status
 		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt); err != nil {
+			return nil, errors.Wrap(err, "unable to scan from rows")
+		}
+		statuses = append(statuses, &status)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed while iterating over rows")
+	}
+
+	return statuses, nil
+}
+
+// MySQL doesn't have support for RETURNING clause, so we use a transaction to get the updated rows.
+func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Status, error) {
+	var statuses []*model.Status
+	currUnixTime := time.Now().UTC().Unix()
+	selectQuery, selectParams, err := s.getQueryBuilder().
+		Select("*").
+		From("Status").
+		Where(
+			sq.And{
+				sq.Eq{"Status": model.STATUS_DND},
+				sq.Gt{"DNDEndTime": 0},
+				sq.LtOrEq{"DNDEndTime": currUnixTime},
+			},
+		).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
+	_, err = t.Select(&statuses, selectQuery, selectParams...)
+	if err != nil {
+		return nil, errors.Wrap(err, "updateExpiredStatusesT: failed to get expired dnd statuses")
+	}
+	updateQuery, args, err := s.getQueryBuilder().
+		Update("Status").
+		Where(
+			sq.And{
+				sq.Eq{"Status": model.STATUS_DND},
+				sq.Gt{"DNDEndTime": 0},
+				sq.LtOrEq{"DNDEndTime": currUnixTime},
+			},
+		).
+		Set("Status", sq.Expr("PrevStatus")).
+		Set("PrevStatus", model.STATUS_DND).
+		Set("DNDEndTime", 0).
+		Set("Manual", false).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
+
+	if _, err := t.Exec(updateQuery, args...); err != nil {
+		return nil, errors.Wrapf(err, "updateExpiredStatusesT: failed to update statuses")
+	}
+
+	return statuses, nil
+}
+
+func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: begin_transaction")
+		}
+		defer finalizeTransaction(transaction)
+		statuses, err := s.updateExpiredStatuses(transaction)
+		if err != nil {
+			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: updateExpiredDNDStatusesT")
+		}
+		if err := transaction.Commit(); err != nil {
+			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: commit_transaction")
+		}
+
+		for _, status := range statuses {
+			status.Status = status.PrevStatus
+			status.PrevStatus = model.STATUS_DND
+			status.DNDEndTime = 0
+			status.Manual = false
+		}
+
+		return statuses, nil
+	}
+
+	queryString, args, err := s.getQueryBuilder().
+		Update("Status").
+		Where(
+			sq.And{
+				sq.Eq{"Status": model.STATUS_DND},
+				sq.Gt{"DNDEndTime": 0},
+				sq.LtOrEq{"DNDEndTime": time.Now().UTC().Unix()},
+			},
+		).
+		Set("Status", sq.Expr("PrevStatus")).
+		Set("PrevStatus", model.STATUS_DND).
+		Set("DNDEndTime", 0).
+		Set("Manual", false).
+		Suffix("RETURNING *").
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
+
+	rows, err := s.GetMaster().Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Statuses")
+	}
+	defer rows.Close()
+	var statuses []*model.Status
+	for rows.Next() {
+		var status model.Status
+		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt,
+			&status.DNDEndTime, &status.PrevStatus); err != nil {
 			return nil, errors.Wrap(err, "unable to scan from rows")
 		}
 		statuses = append(statuses, &status)

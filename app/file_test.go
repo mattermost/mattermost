@@ -50,7 +50,7 @@ func TestDoUploadFile(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
@@ -60,7 +60,7 @@ func TestDoUploadFile(t *testing.T) {
 	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info1.Id, filename)
 	assert.Equal(t, value, info1.Path, "stored file at incorrect path")
 
-	info2, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info2.Id)
@@ -70,7 +70,7 @@ func TestDoUploadFile(t *testing.T) {
 	value = fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info2.Id, filename)
 	assert.Equal(t, value, info2.Path, "stored file at incorrect path")
 
-	info3, err := th.App.DoUploadFile(time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info3.Id)
@@ -80,7 +80,7 @@ func TestDoUploadFile(t *testing.T) {
 	value = fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info3.Id, filename)
 	assert.Equal(t, value, info3.Path, "stored file at incorrect path")
 
-	info4, err := th.App.DoUploadFile(time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data)
+	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info4.Id)
@@ -99,14 +99,15 @@ func TestUploadFile(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.UploadFile(data, "wrong", filename)
+	info1, err := th.App.UploadFile(th.Context, data, "wrong", filename)
 	require.NotNil(t, err, "Wrong Channel ID.")
 	require.Nil(t, info1, "Channel ID does not exist.")
 
-	info1, err = th.App.UploadFile(data, "", filename)
+	info1, err = th.App.UploadFile(th.Context, data, "", filename)
 	require.Nil(t, err, "empty channel IDs should be valid")
+	require.NotNil(t, info1)
 
-	info1, err = th.App.UploadFile(data, channelID, filename)
+	info1, err = th.App.UploadFile(th.Context, data, channelID, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
@@ -233,7 +234,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	teamID := th.App.findTeamIdForFilename(th.BasicPost, "someid", "somefile.png")
 	assert.Equal(t, th.BasicTeam.Id, teamID)
 
-	_, err := th.App.CreateTeamWithUser(&model.Team{Email: th.BasicUser.Email, Name: "zz" + model.NewId(), DisplayName: "Joram's Test Team", Type: model.TEAM_OPEN}, th.BasicUser.Id)
+	_, err := th.App.CreateTeamWithUser(th.Context, &model.Team{Email: th.BasicUser.Email, Name: "zz" + model.NewId(), DisplayName: "Joram's Test Team", Type: model.TEAM_OPEN}, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	teamID = th.App.findTeamIdForFilename(th.BasicPost, "someid", "somefile.png")
@@ -261,13 +262,13 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileID)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
+	rpost, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
+	rpost, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
@@ -302,7 +303,7 @@ func TestCopyFileInfos(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
@@ -398,7 +399,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -419,7 +420,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -450,7 +451,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -479,7 +480,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -504,7 +505,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -537,7 +538,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)

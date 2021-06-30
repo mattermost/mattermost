@@ -165,6 +165,46 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	return histories, nil
 }
 
+// PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
+// the global or a granular retention policy.
+// See `genericPermanentDeleteBatchForRetentionPolicies` for details.
+func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("ChannelMemberHistory.ChannelId, ChannelMemberHistory.UserId, ChannelMemberHistory.JoinTime").
+		From("ChannelMemberHistory")
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "ChannelMemberHistory",
+		TimeColumn:          "LeaveTime",
+		PrimaryKeys:         []string{"ChannelId", "UserId", "JoinTime"},
+		ChannelIDTable:      "ChannelMemberHistory",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
+}
+
+// DeleteOrphanedRows removes entries from ChannelMemberHistory when a corresponding channel no longer exists.
+func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const query = `
+	DELETE FROM ChannelMemberHistory WHERE (ChannelId, UserId, JoinTime) IN (
+		SELECT * FROM (
+			SELECT ChannelId, UserId, JoinTime FROM ChannelMemberHistory
+			LEFT JOIN Channels ON ChannelMemberHistory.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(query, props)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	return
+}
+
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var (
 		query string

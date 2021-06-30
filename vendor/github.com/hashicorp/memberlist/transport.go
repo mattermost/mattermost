@@ -82,16 +82,18 @@ func (a *Address) String() string {
 	return a.Addr
 }
 
+// IngestionAwareTransport is not used.
+//
+// Deprecated: IngestionAwareTransport is not used and may be removed in a future
+// version. Define the interface locally instead of referencing this exported
+// interface.
 type IngestionAwareTransport interface {
-	Transport
-	// IngestPacket pulls a single packet off the conn, and only closes it if shouldClose is true.
 	IngestPacket(conn net.Conn, addr net.Addr, now time.Time, shouldClose bool) error
-	// IngestStream hands off the conn to the transport and doesn't close it.
 	IngestStream(conn net.Conn) error
 }
 
 type NodeAwareTransport interface {
-	IngestionAwareTransport
+	Transport
 	WriteToAddress(b []byte, addr Address) (time.Time, error)
 	DialAddressTimeout(addr Address, timeout time.Duration) (net.Conn, error)
 }
@@ -101,22 +103,6 @@ type shimNodeAwareTransport struct {
 }
 
 var _ NodeAwareTransport = (*shimNodeAwareTransport)(nil)
-
-func (t *shimNodeAwareTransport) IngestPacket(conn net.Conn, addr net.Addr, now time.Time, shouldClose bool) error {
-	iat, ok := t.Transport.(IngestionAwareTransport)
-	if !ok {
-		panic("shimNodeAwareTransport does not support IngestPacket")
-	}
-	return iat.IngestPacket(conn, addr, now, shouldClose)
-}
-
-func (t *shimNodeAwareTransport) IngestStream(conn net.Conn) error {
-	iat, ok := t.Transport.(IngestionAwareTransport)
-	if !ok {
-		panic("shimNodeAwareTransport does not support IngestStream")
-	}
-	return iat.IngestStream(conn)
-}
 
 func (t *shimNodeAwareTransport) WriteToAddress(b []byte, addr Address) (time.Time, error) {
 	return t.WriteTo(b, addr.Addr)

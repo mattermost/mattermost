@@ -5,10 +5,6 @@ package app
 
 import (
 	"bytes"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	"image/png"
 	"mime/multipart"
 	"net/http"
 	"time"
@@ -32,28 +28,17 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	}
 	defer file.Close()
 
-	// Decode image config first to check dimensions before loading the whole thing into memory later on
-	config, _, err := image.DecodeConfig(file)
-	if err != nil {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
+	if err = checkImageLimits(file); err != nil {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.check_image_limits.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	// This casting is done to prevent overflow on 32 bit systems (not needed
-	// in 64 bits systems because images can't have more than 32 bits height or
-	// width)
-	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.too_large.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	file.Seek(0, 0)
-
-	img, _, err := image.Decode(file)
+	img, _, err := a.srv.imgDecoder.Decode(file)
 	if err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	buf := new(bytes.Buffer)
-	err = png.Encode(buf, img)
+	err = a.srv.imgEncoder.EncodePNG(buf, img)
 	if err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

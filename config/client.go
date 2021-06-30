@@ -101,6 +101,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableLegacySidebar"] = strconv.FormatBool(*c.ServiceSettings.EnableLegacySidebar)
 
+	props["EnableReliableWebSockets"] = strconv.FormatBool(*c.ServiceSettings.EnableReliableWebSockets)
+
 	// Set default values for all options that require a license.
 	props["ExperimentalHideTownSquareinLHS"] = "false"
 	props["ExperimentalTownSquareIsReadOnly"] = "false"
@@ -351,7 +353,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		}
 	}
 
-	for key, value := range featureFlagsToMap(c.FeatureFlags) {
+	for key, value := range c.FeatureFlags.ToMap() {
 		props["FeatureFlag"+key] = value
 	}
 

@@ -987,33 +987,6 @@
     "translation": "L'envoi d'e-mails par lot a été désactivé par l'administrateur système."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Message personnel de "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Aller au message"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Message de groupe de "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notification de "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Vous avez une nouvelle notification.",
-      "other": "Vous avez {{.Count}} nouvelles notifications."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] New Notification for {{.Day}} {{.Month}}, {{.Year}}",
@@ -1743,10 +1716,6 @@
     "translation": "Impossible de décoder l'icône d'équipe."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Impossible de décoder les métadonnées de l'icône d'équipe"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Impossible d'encoder l'icône d'équipe"
   },
@@ -1920,7 +1889,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Vous avez demandez la réinitialisation de votre mot de passe"
+    "translation": "Vous avez demander la réinitialisation de votre mot de passe"
   },
   {
     "id": "api.templates.reset_subject",
@@ -2297,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Impossible de décoder la photo de profil"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossible de sauvegarder l'image de profil. Le fichier ne semble pas être un fichier d'image valide."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2943,62 +2908,6 @@
     "translation": "Le nom d'équipe est manquant de la liste des canaux de l'utilisateur."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Vous avez reçu un nouveau message personnel."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Vous avez reçu un nouveau message personnel de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Vous avez reçu un nouveau message de groupe."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Vous avez reçu un nouveau message de groupe de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Vous avez une nouvelle notification."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Vous avez reçu une nouvelle notification de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canal : {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canal : {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nouveau message personnel de @{{.SenderDisplayName}} du {{.Day}}/{{.Month}}/{{.Year}}"
   },
@@ -3123,10 +3032,6 @@
     "translation": "Impossible de décoder les données de l'image."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Impossible de récupérer les métadonnées de l'image."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Impossible de convertir l'image en format PNG. Veuillez réessayer. "
   },
@@ -3137,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Impossible d'enregistrer l'image dans le stockage de fichiers. Veuillez vérifier votre connexion et réessayez."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Impossible de lire l'image. Veuillez vous assurer que la taille de l'image fasse moins que 2 Mio et réessayez."
   },
   {
     "id": "cli.license.critical",
@@ -5315,10 +5216,6 @@
     "translation": "Le système d’agrégation Elasticsearch n'a pas pu interpréter l'heure de fin"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Impossible de récupérer le message le plus ancien de la base de données."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -6503,10 +6400,6 @@
     "translation": "Impossible de récupérer le rôle."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossible de récupérer tous les rôles."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Impossible de récupérer le rôle."
   },
@@ -6617,10 +6510,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Impossible d'interpréter le paramètre BatchSize de la tâche d'exportation de messages."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Une erreur s'est produite lors de la connexion au serveur"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -6740,7 +6629,7 @@
   },
   {
     "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
+    "translation": "Commencer l'essai"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7243,10 +7132,6 @@
     "translation": "Impossible d'analyser le corps de la demande."
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Cette fonctionnalité est en cours de développement. Elle n'est disponible qu'en activant la fonctionnalité."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Impossible d'analyser le corps de la demande."
   },
@@ -7284,7 +7169,7 @@
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": "L'url de redirection renseignée est invalide."
+    "translation": "L'url de redirection renseignée est invalide"
   },
   {
     "id": "api.file.write_file.app_error",
@@ -7564,19 +7449,19 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Affiche les statuts de tous les clusters distants"
+    "translation": "Affiche les statuts de toutes les connexions sécurisées"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Impossible de supprimer le cluster distant : {{.Error}}"
+    "translation": "Impossible de supprimer la connexion sécurisée : {{.Error}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Supprime un cluster distant"
+    "translation": "Supprime une connexion sécurisée"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Aucun cluster distant trouvé."
+    "translation": "Aucune connexion sécurisée trouvée."
   },
   {
     "id": "api.command_remote.remote_table_header",
@@ -7588,11 +7473,11 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Ajouter/retirer des clusters distants. Actions disponibles : {{.Actions}}"
+    "translation": "Ajouter/retirer des connexions sécurisées. Actions disponibles : {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Vous nécessitez de permission `{{.Permission}}` pour gérer les clusters distants."
+    "translation": "Vous nécessitez de permission `{{.Permission}}` pour gérer les connexions sécurisées."
   },
   {
     "id": "api.command_remote.name.hint",
@@ -7604,7 +7489,7 @@
   },
   {
     "id": "api.command_remote.name",
-    "translation": "distant"
+    "translation": "secure-connection"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -7616,7 +7501,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Inviter un cluster distant"
+    "translation": "Inviter une connexion sécurisée"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -7624,7 +7509,7 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "L'invitation chiffrée d'un cluster distant"
+    "translation": "L'invitation chiffrée d'une connexion sécurisée"
   },
   {
     "id": "api.command_remote.invitation.help",
@@ -7648,10 +7533,86 @@
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Impossible d'ajouter cluster distant : {{.Error}}"
+    "translation": "Impossible d'ajouter la connexion sécurisée : {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Cluster distant {{.RemoteId}} {{.Result}}."
+    "translation": "Connexion sécurisée {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Afficher le statut pour ce canal partagé"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Ce canal est maintenant partagé."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "La connexion sécurisée pour canal partagé `{{.RemoteID}}` n'existe pas pour ce canal."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Service de connexion sécurisé désactivé."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Le service de connexion sécurisée est désactivé."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "ID de la connexion sécurisée à retirer."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Un projet implique souvent des personnes venant de l'organisation, mais aussi de l'extérieur. Avec les comptes invités, vous pouvez amener des partenaires extérieurs à votre instance Mattermost et spécifier avec qui ils peuvent travailler et ce qu'ils peuvent voir.\n\n[En apprendre plus sur l'activation des comptes invités (en anglais)](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nEn cliquant sur « Nous contacter », vous partagerez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisor)."
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Envoyez l'invitation suivante, chiffrée en AES 256 bits, à l'administrateur système externe avec le mot de passe. Il utilisera la commande slash `{{.Command}}` pour accepter l'invitation.\n\n```\n{{.Invitation}}\n```\n\n**Assurez-vous que la connexion sécurisée peut accéder à votre instance Mattermost via** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Mot de passe à utiliser pour chiffrer l'invitation"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Impossible d'accepter l'invitation : {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Invitation acceptée et confirmée.\nSiteURL : {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Accepter une invitation d'une instance Mattermost externe"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Le texte saisi dépasse la limite de caractères. L'en-tête du canal est limité à {{.MaxLength}} caractères."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Le texte saisi dépasse la limite de caractères. L'en-tête du canal est limité à {{.MaxLength}} caractères."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Erreur d'invalidation du cache"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "La clé de licence d'essai pour Mattermost Version Entreprise a expiré et n'est plus valide. Si vous voulez étendre votre période d'essai, veuillez [contacter notre équipe des ventes](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Impossible de vérifier si un essai peut être commencé"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Vérifiez que votre bucket Amazon S3 est disponible, et vérifiez-en les permissions."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Impossible de se connecter à S3. Vérifiez les paramètres d'autorisation et d'authentification à la connexion Amazon S3."
   }
 ]

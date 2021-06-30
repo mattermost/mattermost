@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -211,7 +212,7 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 		CreatorId:   "",
 	}
 
-	createdChannel, errCreatedChannel := a.CreateChannel(channel, false)
+	createdChannel, errCreatedChannel := a.CreateChannel(&request.Context{}, channel, false)
 	if errCreatedChannel != nil {
 		return errCreatedChannel
 	}
@@ -265,7 +266,7 @@ func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User,
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := a.RemoveUserFromChannel(user.Id, "", channel); err != nil {
+	if err := a.RemoveUserFromChannel(&request.Context{}, user.Id, "", channel); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 		return
 	}
@@ -427,7 +428,7 @@ func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *mod
 		return err
 	}
 
-	if err := a.MoveChannel(team, channel, user); err != nil {
+	if err := a.MoveChannel(&request.Context{}, team, channel, user); err != nil {
 		return err
 	}
 
@@ -565,7 +566,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 		return fmt.Errorf("Unable to find user: '%v'", username)
 	}
 
-	updatedChannel, errUpdate := a.UpdateChannelPrivacy(channel, user)
+	updatedChannel, errUpdate := a.UpdateChannelPrivacy(&request.Context{}, channel, user)
 	if errUpdate != nil {
 		return errors.Wrapf(err, "Failed to update channel ('%s') privacy", args[0])
 	}
