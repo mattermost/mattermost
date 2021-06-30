@@ -1,4 +1,4 @@
-package gziphandler // import "github.com/NYTimes/gziphandler"
+package gziphandler // import "github.com/mattermost/gziphandler"
 
 import (
 	"bufio"
@@ -94,7 +94,7 @@ type GzipResponseWriterWithCloseNotify struct {
 }
 
 func (w GzipResponseWriterWithCloseNotify) CloseNotify() <-chan bool {
-	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
+	return w.ResponseWriter.(http.CloseNotifier).CloseNotify() //nolint:staticcheck
 }
 
 // Write appends data to the gzip writer.
@@ -332,7 +332,7 @@ func GzipHandlerWithOpts(opts ...option) (func(http.Handler) http.Handler, error
 				}
 				defer gw.Close()
 
-				if _, ok := w.(http.CloseNotifier); ok {
+				if _, ok := w.(http.CloseNotifier); ok { //nolint:staticcheck
 					gwcn := GzipResponseWriterWithCloseNotify{gw}
 					h.ServeHTTP(gwcn, r)
 				} else {

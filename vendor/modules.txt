@@ -13,9 +13,6 @@ github.com/Masterminds/semver/v3
 # github.com/Masterminds/squirrel v1.5.0
 ## explicit
 github.com/Masterminds/squirrel
-# github.com/NYTimes/gziphandler v1.1.1 => github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745
-## explicit
-github.com/NYTimes/gziphandler
 # github.com/PuerkitoBio/goquery v1.7.0
 ## explicit
 github.com/PuerkitoBio/goquery
@@ -343,7 +340,6 @@ github.com/josharian/intern
 # github.com/json-iterator/go v1.1.11
 github.com/json-iterator/go
 # github.com/klauspost/compress v1.13.1
-## explicit
 github.com/klauspost/compress/flate
 github.com/klauspost/compress/fse
 github.com/klauspost/compress/gzip
@@ -394,6 +390,9 @@ github.com/mattermost/gorp
 github.com/mattermost/gosaml2
 github.com/mattermost/gosaml2/types
 github.com/mattermost/gosaml2/uuid
+# github.com/mattermost/gziphandler v0.0.1
+## explicit
+github.com/mattermost/gziphandler
 # github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 ## explicit
 github.com/mattermost/ldap
