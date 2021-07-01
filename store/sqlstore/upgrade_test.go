@@ -322,15 +322,6 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		cm2, err = ss.Channel().UpdateMember(cm2)
 		require.NoError(t, err)
 
-		// Update Thread with bad data, as we might expect because
-		// of previous bugs or changed behaviour
-		badThread1 := *goodThread1
-		badThread1.ReplyCount = 3
-		badThread1.LastReplyAt = 30
-		badThread1.Participants = badThread1.Participants.Remove(uId1)
-		_, err = ss.Thread().Update(&badThread1)
-		require.NoError(t, err)
-
 		// Update ThreadMembership with bad data, as we might expect because
 		// of previous bugs or changed behaviour
 		badThreadMembership1 := *goodThreadMembership1
@@ -341,13 +332,6 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 
 		// Run migration to fix threads and memberships
 		fixCRTThreadCountsAndUnreads(sqlStore)
-
-		// Check bad thread is fixed
-		fixedThread1, err := ss.Thread().Get(rootPost1.Id)
-		require.NoError(t, err)
-		require.EqualValues(t, goodThread1.ReplyCount, fixedThread1.ReplyCount)
-		require.EqualValues(t, goodThread1.LastReplyAt, fixedThread1.LastReplyAt)
-		require.ElementsMatch(t, goodThread1.Participants, fixedThread1.Participants)
 
 		// Check bad threadMemberships is fixed
 		fixedThreadMembership1, err := ss.Thread().GetMembershipForUser(uId1, rootPost1.Id)
