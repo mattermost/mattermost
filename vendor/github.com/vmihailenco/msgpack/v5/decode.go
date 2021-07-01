@@ -444,6 +444,7 @@ func (d *Decoder) DecodeInterface() (interface{}, error) {
 //   - int8, int16, and int32 are converted to int64,
 //   - uint8, uint16, and uint32 are converted to uint64,
 //   - float32 is converted to float64.
+//   - []byte is converted to string.
 func (d *Decoder) DecodeInterfaceLoose() (interface{}, error) {
 	c, err := d.readCode()
 	if err != nil {
@@ -478,9 +479,8 @@ func (d *Decoder) DecodeInterfaceLoose() (interface{}, error) {
 		return d.uint(c)
 	case msgpcode.Int8, msgpcode.Int16, msgpcode.Int32, msgpcode.Int64:
 		return d.int(c)
-	case msgpcode.Bin8, msgpcode.Bin16, msgpcode.Bin32:
-		return d.bytes(c, nil)
-	case msgpcode.Str8, msgpcode.Str16, msgpcode.Str32:
+	case msgpcode.Str8, msgpcode.Str16, msgpcode.Str32,
+		msgpcode.Bin8, msgpcode.Bin16, msgpcode.Bin32:
 		return d.string(c)
 	case msgpcode.Array16, msgpcode.Array32:
 		return d.decodeSlice(c)

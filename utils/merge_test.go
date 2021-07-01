@@ -854,7 +854,7 @@ type simple struct {
 	I   int
 	f   float64
 	fp  *float64
-	Ip  *int
+	IP  *int
 	B   *bool
 	Sli []int
 	Msi map[string]int
@@ -981,8 +981,8 @@ func TestMergeWithSimpleStruct(t *testing.T) {
 		assert.NotEqual(t, *t1.S2.S, *t2.S2.S)
 
 		// changes in merged (on pointers that were cloned from base or patch) do not affect base or patch
-		*merged.Ip = 0
-		assert.Equal(t, 99, *t1.Ip)
+		*merged.IP = 0
+		assert.Equal(t, 99, *t1.IP)
 		*merged.S2.S = "testMERGED"
 		assert.NotEqual(t, *t2.S2.S, *merged.S2.S)
 	})
@@ -1096,7 +1096,7 @@ func TestMergeWithVeryComplexStruct(t *testing.T) {
 
 		base.F = 1342.12
 		base.Struct1.Pi = newInt(937)
-		base.Struct1p.Ui = 734
+		base.Struct1p.UI = 734
 		base.Struct1.Struct2.Sli = []int{123123, 1243123}
 
 		merged, err := mergeTestStructs(base, patch)
@@ -1203,11 +1203,11 @@ type testStruct struct {
 	F        float64
 	F32      float32
 	S        string
-	Ui       uint
-	Ui8      uint8
-	Ui16     uint32
-	Ui32     uint32
-	Ui64     uint64
+	UI       uint
+	UI8      uint8
+	UI16     uint32
+	UI32     uint32
+	UI64     uint64
 	Pi       *int
 	Pi8      *int8
 	Pi16     *int16
@@ -1241,11 +1241,11 @@ type testStructEmbed struct {
 	F        float64
 	F32      float32
 	S        string
-	Ui       uint
-	Ui8      uint8
-	Ui16     uint32
-	Ui32     uint32
-	Ui64     uint64
+	UI       uint
+	UI8      uint8
+	UI16     uint32
+	UI32     uint32
+	UI64     uint64
 	Pi       *int
 	Pi8      *int8
 	Pi16     *int16
@@ -1279,11 +1279,11 @@ type testStructEmbed2 struct {
 	F     float64
 	F32   float32
 	S     string
-	Ui    uint
-	Ui8   uint8
-	Ui16  uint32
-	Ui32  uint32
-	Ui64  uint64
+	UI    uint
+	UI8   uint8
+	UI16  uint32
+	UI32  uint32
+	UI64  uint64
 	Pi    *int
 	Pi8   *int8
 	Pi16  *int16

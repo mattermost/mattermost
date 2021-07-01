@@ -21,31 +21,31 @@ func TestChannelMemberJson(t *testing.T) {
 func TestChannelMemberIsValid(t *testing.T) {
 	o := ChannelMember{}
 
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.ChannelId = NewId()
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.NotifyProps = GetDefaultChannelNotifyProps()
 	o.UserId = NewId()
 
 	o.NotifyProps["desktop"] = "junk"
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.NotifyProps["desktop"] = "123456789012345678901"
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.NotifyProps["desktop"] = CHANNEL_NOTIFY_ALL
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Nil(t, o.IsValid(), "should be valid")
 
 	o.NotifyProps["mark_unread"] = "123456789012345678901"
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.NotifyProps["mark_unread"] = CHANNEL_MARK_UNREAD_ALL
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Nil(t, o.IsValid(), "should be valid")
 
 	o.Roles = ""
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Nil(t, o.IsValid(), "should be invalid")
 }
 
 func TestChannelUnreadJson(t *testing.T) {

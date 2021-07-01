@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
@@ -62,6 +63,8 @@ func TestNoticeValidation(t *testing.T) {
 		notice               *model.ProductNotice
 		dbmsName             string
 		dbmsVer              string
+		searchEngineName     string
+		searchEngineVer      string
 	}
 	messages := map[string]model.NoticeMessageInternal{
 		"en": {
@@ -610,6 +613,23 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  false,
 		},
+		{
+			name: "notice on deprecating elasticsearch, server has unsupported search engine",
+			args: args{
+				searchEngineName: "elasticsearch",
+				searchEngineVer:  "6.4.1",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "elasticsearch",
+							MinimumVersion: "7",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -635,6 +655,8 @@ func TestNoticeValidation(t *testing.T) {
 				tt.args.sku,
 				tt.args.dbmsName,
 				tt.args.dbmsVer,
+				tt.args.searchEngineName,
+				tt.args.searchEngineVer,
 				tt.args.notice,
 			); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
@@ -697,7 +719,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them for specified user
-	messages, appErr := th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr := th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 1)
 
@@ -706,7 +728,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, see that none are returned
-	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr = th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
@@ -725,7 +747,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, since conditions don't match we should be zero
-	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr = th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 

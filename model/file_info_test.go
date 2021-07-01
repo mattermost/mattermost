@@ -77,13 +77,13 @@ func TestGetInfoForFile(t *testing.T) {
 	fakeFile := make([]byte, 1000)
 
 	pngFile, err := ioutil.ReadFile("../tests/test.png")
-	require.Nilf(t, err, "Failed to load test.png")
+	require.NoError(t, err, "Failed to load test.png")
 
 	// base 64 encoded version of handtinywhite.gif from http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
 	gifFile, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
 
 	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
-	require.Nilf(t, err, "Failed to load testgif.gif")
+	require.NoError(t, err, "Failed to load testgif.gif")
 
 	var ttc = []struct {
 		testName                string

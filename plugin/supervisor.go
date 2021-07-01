@@ -15,8 +15,8 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type supervisor struct {
@@ -27,7 +27,7 @@ type supervisor struct {
 	pid         int
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{}
 	defer func() {
 		if retErr != nil {
@@ -44,8 +44,9 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
-			log:     wrappedLogger,
-			apiImpl: &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
+			log:        wrappedLogger,
+			driverImpl: driver,
+			apiImpl:    &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
 
@@ -122,8 +123,7 @@ func (sup *supervisor) PerformHealthCheck() error {
 			}
 		}
 		if pingErr != nil {
-			mlog.Debug("Error pinging plugin", mlog.Err(pingErr))
-			return fmt.Errorf("Plugin RPC connection is not responding")
+			return fmt.Errorf("plugin RPC connection is not responding")
 		}
 	}
 

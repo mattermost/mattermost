@@ -9,8 +9,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -27,7 +27,8 @@ type Worker struct {
 }
 
 func init() {
-	app.RegisterJobsActiveUsersInterface(func(a *app.App) tjobs.ActiveUsersJobInterface {
+	app.RegisterJobsActiveUsersInterface(func(s *app.Server) tjobs.ActiveUsersJobInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ActiveUsersJobInterfaceImpl{a}
 	})
 }

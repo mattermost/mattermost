@@ -90,7 +90,7 @@ const (
 )
 
 var ignoredHeaders = rules{
-	blacklist{
+	excludeList{
 		mapRule{
 			authorizationHeader: struct{}{},
 			"User-Agent":        struct{}{},
@@ -99,9 +99,9 @@ var ignoredHeaders = rules{
 	},
 }
 
-// requiredSignedHeaders is a whitelist for build canonical headers.
+// requiredSignedHeaders is a allow list for build canonical headers.
 var requiredSignedHeaders = rules{
-	whitelist{
+	allowList{
 		mapRule{
 			"Cache-Control":                         struct{}{},
 			"Content-Disposition":                   struct{}{},
@@ -145,12 +145,13 @@ var requiredSignedHeaders = rules{
 		},
 	},
 	patterns{"X-Amz-Meta-"},
+	patterns{"X-Amz-Object-Lock-"},
 }
 
-// allowedHoisting is a whitelist for build query headers. The boolean value
+// allowedHoisting is a allow list for build query headers. The boolean value
 // represents whether or not it is a pattern.
 var allowedQueryHoisting = inclusiveRules{
-	blacklist{requiredSignedHeaders},
+	excludeList{requiredSignedHeaders},
 	patterns{"X-Amz-"},
 }
 
@@ -689,9 +690,12 @@ func (ctx *signingCtx) buildBodyDigest() error {
 	if hash == "" {
 		includeSHA256Header := ctx.unsignedPayload ||
 			ctx.ServiceName == "s3" ||
+			ctx.ServiceName == "s3-object-lambda" ||
 			ctx.ServiceName == "glacier"
 
-		s3Presign := ctx.isPresign && ctx.ServiceName == "s3"
+		s3Presign := ctx.isPresign &&
+			(ctx.ServiceName == "s3" ||
+				ctx.ServiceName == "s3-object-lambda")
 
 		if ctx.unsignedPayload || s3Presign {
 			hash = "UNSIGNED-PAYLOAD"

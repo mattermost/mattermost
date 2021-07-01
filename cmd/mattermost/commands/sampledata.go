@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -373,7 +374,8 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		}
 
 		var importErr *model.AppError
-		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
+
+		importErr, lineNumber := a.BulkImport(&request.Context{}, bulkFile, nil, false, workers)
 		if importErr != nil {
 			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}

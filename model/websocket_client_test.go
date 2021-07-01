@@ -22,7 +22,7 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 			WriteBufferSize: 1024,
 		}
 		conn, err := upgrader.Upgrade(w, req, nil)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		var buf []byte
 		for {
 			_, buf, err = conn.ReadMessage()

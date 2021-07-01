@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.11.0
+
+- feat(transports): Category-based Rate Limiting ([#354](https://github.com/getsentry/sentry-go/pull/354))
+- feat(transports): Report User-Agent identifying SDK ([#357](https://github.com/getsentry/sentry-go/pull/357))
+- fix(scope): Include event processors in clone ([#349](https://github.com/getsentry/sentry-go/pull/349))
+- Improvements to `go doc` documentation ([#344](https://github.com/getsentry/sentry-go/pull/344), [#350](https://github.com/getsentry/sentry-go/pull/350), [#351](https://github.com/getsentry/sentry-go/pull/351))
+- Miscellaneous changes to our testing infrastructure with GitHub Actions
+  ([57123a40](https://github.com/getsentry/sentry-go/commit/57123a409be55f61b1d5a6da93c176c55a399ad0), [#128](https://github.com/getsentry/sentry-go/pull/128), [#338](https://github.com/getsentry/sentry-go/pull/338), [#345](https://github.com/getsentry/sentry-go/pull/345), [#346](https://github.com/getsentry/sentry-go/pull/346), [#352](https://github.com/getsentry/sentry-go/pull/352), [#353](https://github.com/getsentry/sentry-go/pull/353), [#355](https://github.com/getsentry/sentry-go/pull/355))
+
+_NOTE:_
+This version drops support for Go 1.13. The currently supported Go versions are the last 3 stable releases: 1.14, 1.15 and 1.16.
+Users of the tracing functionality (`StartSpan`, etc) should upgrade to this version to benefit from separate rate limits for errors and transactions.
+There are no breaking changes and upgrading should be a smooth experience for all users.
+
+## v0.10.0
+
+- feat: Debug connection reuse (#323)
+- fix: Send root span data as `Event.Extra` (#329)
+- fix: Do not double sample transactions (#328)
+- fix: Do not override trace context of transactions (#327)
+- fix: Drain and close API response bodies (#322)
+- ci: Run tests against Go tip (#319)
+- ci: Move away from Travis in favor of GitHub Actions (#314) (#321)
+
 ## v0.9.0
 
 - feat: Initial tracing and performance monitoring support (#285)
@@ -81,11 +105,11 @@ allocated.
   Before the SDK accepted a concrete value of type `*http.Transport` in
   `ClientOptions`, now it accepts any value implementing the `http.RoundTripper`
   interface. Note that `*http.Transport` implements `http.RoundTripper`, so most
-  code bases will continue to work unchanged.  
+  code bases will continue to work unchanged.
   Users of custom transport gain the ability to pass in other implementations of
   `http.RoundTripper` and may be able to simplify their code bases.
 - fix: Do not panic when scope event processor drops event (#192)
-- **[breaking]** fix: Use time.Time for timestamps (#191)  
+- **[breaking]** fix: Use time.Time for timestamps (#191)
   Users of sentry-go typically do not need to manipulate timestamps manually.
   For those who do, the field type changed from `int64` to `time.Time`, which
   should be more convenient to use. The recommended way to get the current time
@@ -94,7 +118,7 @@ allocated.
 - feat: Add Exception.ThreadID field (#183)
 - ci: Test against Go 1.14, drop 1.11 (#170)
 - feat: Limit reading bytes from request bodies (#168)
-- **[breaking]** fix: Rename fasthttp integration package sentryhttp => sentryfasthttp  
+- **[breaking]** fix: Rename fasthttp integration package sentryhttp => sentryfasthttp
   The current recommendation is to use a named import, in which case existing
   code should not require any change:
   ```go

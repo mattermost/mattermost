@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,22 +15,25 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type PluginAPI struct {
 	id       string
 	app      *App
+	ctx      *request.Context
 	logger   *mlog.SugarLogger
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
+		ctx:      c,
 		app:      a,
 		logger:   a.Log().With(mlog.String("plugin_id", manifest.Id)).Sugar(),
 	}
@@ -76,17 +80,17 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 	if appErr != nil {
 		return nil, appErr
 	}
-	commandArgs.T = utils.GetUserTranslations(user.Locale)
+	commandArgs.T = i18n.GetUserTranslations(user.Locale)
 	commandArgs.SiteURL = api.app.GetSiteURL()
-	response, appErr := api.app.ExecuteCommand(commandArgs)
+	response, appErr := api.app.ExecuteCommand(api.ctx, commandArgs)
 	if appErr != nil {
 		return response, appErr
 	}
 	return response, nil
 }
 
-func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {
-	session, err := api.app.GetSessionById(sessionId)
+func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	session, err := api.app.GetSessionById(sessionID)
 
 	if err != nil {
 		return nil, err
@@ -105,7 +109,8 @@ func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
 }
 
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
-	return api.app.SaveConfig(config, true)
+	_, _, err := api.app.SaveConfig(config, true)
+	return err
 }
 
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
@@ -119,7 +124,8 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
-	return api.app.SaveConfig(cfg, true)
+	_, _, err := api.app.SaveConfig(cfg, true)
+	return err
 }
 
 func (api *PluginAPI) GetBundlePath() (string, error) {
@@ -152,7 +158,7 @@ func (api *PluginAPI) GetTelemetryId() string {
 }
 
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	return api.app.CreateTeam(team)
+	return api.app.CreateTeam(api.ctx, team)
 }
 
 func (api *PluginAPI) DeleteTeam(teamID string) *model.AppError {
@@ -189,11 +195,11 @@ func (api *PluginAPI) GetTeamsForUser(userID string) ([]*model.Team, *model.AppE
 }
 
 func (api *PluginAPI) CreateTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return api.app.AddTeamMember(teamID, userID)
+	return api.app.AddTeamMember(api.ctx, teamID, userID)
 }
 
 func (api *PluginAPI) CreateTeamMembers(teamID string, userIDs []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
-	members, err := api.app.AddTeamMembers(teamID, userIDs, requestorId, false)
+	members, err := api.app.AddTeamMembers(api.ctx, teamID, userIDs, requestorId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -201,11 +207,11 @@ func (api *PluginAPI) CreateTeamMembers(teamID string, userIDs []string, request
 }
 
 func (api *PluginAPI) CreateTeamMembersGracefully(teamID string, userIDs []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
-	return api.app.AddTeamMembers(teamID, userIDs, requestorId, true)
+	return api.app.AddTeamMembers(api.ctx, teamID, userIDs, requestorId, true)
 }
 
 func (api *PluginAPI) DeleteTeamMember(teamID, userID, requestorId string) *model.AppError {
-	return api.app.RemoveUserFromTeam(teamID, userID, requestorId)
+	return api.app.RemoveUserFromTeam(api.ctx, teamID, userID, requestorId)
 }
 
 func (api *PluginAPI) GetTeamMembers(teamID string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
@@ -229,7 +235,7 @@ func (api *PluginAPI) GetTeamStats(teamID string) (*model.TeamStats, *model.AppE
 }
 
 func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {
-	return api.app.CreateUser(user)
+	return api.app.CreateUser(api.ctx, user)
 }
 
 func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
@@ -237,7 +243,7 @@ func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	_, err = api.app.UpdateActive(user, false)
+	_, err = api.app.UpdateActive(api.ctx, user, false)
 	return err
 }
 
@@ -283,7 +289,7 @@ func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError
 }
 
 func (api *PluginAPI) UpdateUserActive(userID string, active bool) *model.AppError {
-	return api.app.UpdateUserActive(userID, active)
+	return api.app.UpdateUserActive(api.ctx, userID, active)
 }
 
 func (api *PluginAPI) GetUserStatus(userID string) (*model.Status, *model.AppError) {
@@ -311,17 +317,25 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 	return api.app.GetStatus(userID)
 }
 
-func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*model.Status, *model.AppError) {
+	// read-after-write bug which will fail if there are replicas.
+	// it works for now because we have a cache in between.
+	// FIXME: make SetStatusDoNotDisturbTimed return updated status
+	api.app.SetStatusDoNotDisturbTimed(userID, endTime)
+	return api.app.GetStatus(userID)
+}
+
+func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
 	case model.CHANNEL_SORT_BY_USERNAME:
 		return api.app.GetUsersInChannel(&model.UserGetOptions{
-			InChannelId: channelId,
+			InChannelId: channelID,
 			Page:        page,
 			PerPage:     perPage,
 		})
 	case model.CHANNEL_SORT_BY_STATUS:
 		return api.app.GetUsersInChannelByStatus(&model.UserGetOptions{
-			InChannelId: channelId,
+			InChannelId: channelID,
 			Page:        page,
 			PerPage:     perPage,
 		})
@@ -354,15 +368,15 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 }
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	return api.app.CreateChannel(channel, false)
+	return api.app.CreateChannel(api.ctx, channel, false)
 }
 
-func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
-	channel, err := api.app.GetChannel(channelId)
+func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
+	channel, err := api.app.GetChannel(channelID)
 	if err != nil {
 		return err
 	}
-	return api.app.DeleteChannel(channel, "")
+	return api.app.DeleteChannel(api.ctx, channel, "")
 }
 
 func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError) {
@@ -373,8 +387,8 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 	return *channels, err
 }
 
-func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppError) {
-	return api.app.GetChannel(channelId)
+func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
+	return api.app.GetChannel(channelID)
 }
 
 func (api *PluginAPI) GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
@@ -393,20 +407,20 @@ func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDe
 	return *channels, err
 }
 
-func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
-	memberCount, err := api.app.GetChannelMemberCount(channelId)
+func (api *PluginAPI) GetChannelStats(channelID string) (*model.ChannelStats, *model.AppError) {
+	memberCount, err := api.app.GetChannelMemberCount(channelID)
 	if err != nil {
 		return nil, err
 	}
-	guestCount, err := api.app.GetChannelMemberCount(channelId)
+	guestCount, err := api.app.GetChannelMemberCount(channelID)
 	if err != nil {
 		return nil, err
 	}
-	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount, GuestCount: guestCount}, nil
+	return &model.ChannelStats{ChannelId: channelID, MemberCount: memberCount, GuestCount: guestCount}, nil
 }
 
 func (api *PluginAPI) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return api.app.GetOrCreateDirectChannel(userID1, userID2)
+	return api.app.GetOrCreateDirectChannel(api.ctx, userID1, userID2)
 }
 
 func (api *PluginAPI) GetGroupChannel(userIDs []string) (*model.Channel, *model.AppError) {
@@ -423,6 +437,18 @@ func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Chann
 		return nil, err
 	}
 	return *channels, err
+}
+
+func (api *PluginAPI) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return api.app.CreateSidebarCategory(userID, teamID, newCategory)
+}
+
+func (api *PluginAPI) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	return api.app.GetSidebarCategories(userID, teamID)
+}
+
+func (api *PluginAPI) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	return api.app.UpdateSidebarCategories(userID, teamID, categories)
 }
 
 func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
@@ -473,59 +499,59 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	return api.app.SearchPostsInTeamForUser(terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	return api.app.SearchPostsInTeamForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 }
 
-func (api *PluginAPI) AddChannelMember(channelId, userID string) (*model.ChannelMember, *model.AppError) {
-	// For now, don't allow overriding these via the plugin API.
-	userRequestorId := ""
-	postRootId := ""
-
-	channel, err := api.GetChannel(channelId)
+func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
+	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, userRequestorId, postRootId)
+	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
+		// For now, don't allow overriding these via the plugin API.
+		UserRequestorID: "",
+		PostRootID:      "",
+	})
 }
 
-func (api *PluginAPI) AddUserToChannel(channelId, userID, asUserId string) (*model.ChannelMember, *model.AppError) {
-	postRootId := ""
-
-	channel, err := api.GetChannel(channelId)
+func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
+	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, asUserId, postRootId)
+	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
+		UserRequestorID: asUserID,
+	})
 }
 
-func (api *PluginAPI) GetChannelMember(channelId, userID string) (*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMember(channelId, userID)
+func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
+	return api.app.GetChannelMember(context.Background(), channelID, userID)
 }
 
-func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
-	return api.app.GetChannelMembersPage(channelId, page, perPage)
+func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersPage(channelID, page, perPage)
 }
 
-func (api *PluginAPI) GetChannelMembersByIds(channelId string, userIDs []string) (*model.ChannelMembers, *model.AppError) {
-	return api.app.GetChannelMembersByIds(channelId, userIDs)
+func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersByIds(channelID, userIDs)
 }
 
 func (api *PluginAPI) GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	return api.app.GetChannelMembersForUserWithPagination(teamID, userID, page, perPage)
 }
 
-func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
-	return api.app.UpdateChannelMemberRoles(channelId, userID, newRoles)
+func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
+	return api.app.UpdateChannelMemberRoles(channelID, userID, newRoles)
 }
 
-func (api *PluginAPI) UpdateChannelMemberNotifications(channelId, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
-	return api.app.UpdateChannelMemberNotifyProps(notifications, channelId, userID)
+func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+	return api.app.UpdateChannelMemberNotifyProps(notifications, channelID, userID)
 }
 
-func (api *PluginAPI) DeleteChannelMember(channelId, userID string) *model.AppError {
-	return api.app.LeaveChannel(channelId, userID)
+func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
+	return api.app.LeaveChannel(api.ctx, channelID, userID)
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
@@ -536,24 +562,34 @@ func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError
 	return api.app.GetGroupByName(name, model.GroupSearchOpts{})
 }
 
+func (api *PluginAPI) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
+	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage)
+
+	return users, err
+}
+
+func (api *PluginAPI) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	return api.app.GetGroupsBySource(groupSource)
+}
+
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
 	return api.app.GetGroupsByUserId(userID)
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	return api.app.CreatePostMissingChannel(post, true)
+	return api.app.CreatePostMissingChannel(api.ctx, post, true)
 }
 
 func (api *PluginAPI) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	return api.app.SaveReactionForPost(reaction)
+	return api.app.SaveReactionForPost(api.ctx, reaction)
 }
 
 func (api *PluginAPI) RemoveReaction(reaction *model.Reaction) *model.AppError {
-	return api.app.DeleteReactionForPost(reaction)
+	return api.app.DeleteReactionForPost(api.ctx, reaction)
 }
 
-func (api *PluginAPI) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
-	return api.app.GetReactionsForPost(postId)
+func (api *PluginAPI) GetReactions(postID string) ([]*model.Reaction, *model.AppError) {
+	return api.app.GetReactionsForPost(postID)
 }
 
 func (api *PluginAPI) SendEphemeralPost(userID string, post *model.Post) *model.Post {
@@ -564,41 +600,41 @@ func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *mode
 	return api.app.UpdateEphemeralPost(userID, post)
 }
 
-func (api *PluginAPI) DeleteEphemeralPost(userID, postId string) {
-	api.app.DeleteEphemeralPost(userID, postId)
+func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
+	api.app.DeleteEphemeralPost(userID, postID)
 }
 
-func (api *PluginAPI) DeletePost(postId string) *model.AppError {
-	_, err := api.app.DeletePost(postId, api.id)
+func (api *PluginAPI) DeletePost(postID string) *model.AppError {
+	_, err := api.app.DeletePost(postID, api.id)
 	return err
 }
 
-func (api *PluginAPI) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postId, false, false, false)
+func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
+	return api.app.GetPostThread(postID, false, false, false, "")
 }
 
-func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
-	return api.app.GetSinglePost(postId)
+func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
+	return api.app.GetSinglePost(postID)
 }
 
-func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: time})
+func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 }
 
-func (api *PluginAPI) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 }
 
-func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 }
 
-func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	return api.app.UpdatePost(post, false)
+	return api.app.UpdatePost(api.ctx, post, false)
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
@@ -632,24 +668,24 @@ func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 	return api.app.GetEmoji(emojiId)
 }
 
-func (api *PluginAPI) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
-	return api.app.CopyFileInfos(userID, fileIds)
+func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
+	return api.app.CopyFileInfos(userID, fileIDs)
 }
 
-func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfo(fileId)
+func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	return api.app.GetFileInfo(fileID)
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfos(page, perPage, opt)
 }
 
-func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
+func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
 	if !*api.app.Config().FileSettings.EnablePublicLink {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	info, err := api.app.GetFileInfo(fileId)
+	info, err := api.app.GetFileInfo(fileID)
 	if err != nil {
 		return "", err
 	}
@@ -665,12 +701,12 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
 }
 
-func (api *PluginAPI) GetFile(fileId string) ([]byte, *model.AppError) {
-	return api.app.GetFile(fileId)
+func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
+	return api.app.GetFile(fileID)
 }
 
-func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
-	return api.app.UploadFile(data, channelId, filename)
+func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+	return api.app.UploadFile(api.ctx, data, channelID, filename)
 }
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
@@ -836,8 +872,8 @@ func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *mod
 	return api.app.HasPermissionToTeam(userID, teamID, permission)
 }
 
-func (api *PluginAPI) HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool {
-	return api.app.HasPermissionToChannel(userID, channelId, permission)
+func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
+	return api.app.HasPermissionToChannel(userID, channelID, permission)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
@@ -866,7 +902,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		}
 	}
 
-	return api.app.CreateBot(bot)
+	return api.app.CreateBot(api.ctx, bot)
 }
 
 func (api *PluginAPI) PatchBot(userID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
@@ -884,7 +920,7 @@ func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *mode
 }
 
 func (api *PluginAPI) UpdateBotActive(userID string, active bool) (*model.Bot, *model.AppError) {
-	return api.app.UpdateBotActive(userID, active)
+	return api.app.UpdateBotActive(api.ctx, userID, active)
 }
 
 func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
@@ -915,8 +951,8 @@ func (api *PluginAPI) DeleteBotIconImage(userID string) *model.AppError {
 	return api.app.DeleteBotIconImage(userID)
 }
 
-func (api *PluginAPI) PublishUserTyping(userID, channelId, parentId string) *model.AppError {
-	return api.app.PublishUserTyping(userID, channelId, parentId)
+func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
+	return api.app.PublishUserTyping(userID, channelID, parentId)
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
@@ -1007,7 +1043,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 	seen := make(map[string]bool)
 
 	for _, value := range commandProviders {
-		if cmd := value.GetCommand(api.app, utils.T); cmd != nil {
+		if cmd := value.GetCommand(api.app, i18n.T); cmd != nil {
 			cpy := *cmd
 			if cpy.AutoComplete && !seen[cpy.Trigger] {
 				cpy.Sanitize()
@@ -1051,4 +1087,72 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 	}
 
 	return nil
+}
+
+// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
+// the calling plugin.
+func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
+	opts model.PluginClusterEventSendOptions) error {
+	if api.app.Cluster() == nil {
+		return nil
+	}
+
+	msg := &model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_PLUGIN_EVENT,
+		SendType:         opts.SendType,
+		WaitForAllToSend: false,
+		Props: map[string]string{
+			"PluginID": api.id,
+			"EventID":  ev.Id,
+		},
+		Data: string(ev.Data),
+	}
+
+	// If TargetId is empty we broadcast to all other cluster nodes.
+	if opts.TargetId == "" {
+		api.app.Cluster().SendClusterMessage(msg)
+	} else {
+		if err := api.app.Cluster().SendClusterMessageToNode(opts.TargetId, msg); err != nil {
+			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.TargetId, err)
+		}
+	}
+
+	return nil
+}
+
+// RequestTrialLicense requests a trial license and installs it in the server
+func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	if *api.app.Config().ExperimentalSettings.RestrictSystemAdmin {
+		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	}
+
+	if !termsAccepted {
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
+	}
+
+	if users == 0 {
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+	}
+
+	requester, err := api.app.GetUser(requesterID)
+	if err != nil {
+		return err
+	}
+
+	trialLicenseRequest := &model.TrialLicenseRequest{
+		ServerID:              api.app.TelemetryId(),
+		Name:                  requester.GetDisplayName(model.SHOW_FULLNAME),
+		Email:                 requester.Email,
+		SiteName:              *api.app.Config().TeamSettings.SiteName,
+		SiteURL:               *api.app.Config().ServiceSettings.SiteURL,
+		Users:                 users,
+		TermsAccepted:         termsAccepted,
+		ReceiveEmailsAccepted: receiveEmailsAccepted,
+	}
+
+	if trialLicenseRequest.SiteURL == "" {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return api.app.Srv().RequestTrialLicense(trialLicenseRequest)
 }

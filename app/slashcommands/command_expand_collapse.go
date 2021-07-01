@@ -6,10 +6,10 @@ package slashcommands
 import (
 	"strconv"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type ExpandProvider struct {
@@ -36,7 +36,7 @@ func (*CollapseProvider) GetTrigger() string {
 	return CmdCollapse
 }
 
-func (*ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*ExpandProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdExpand,
 		AutoComplete:     true,
@@ -45,7 +45,7 @@ func (*ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*CollapseProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CollapseProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdCollapse,
 		AutoComplete:     true,
@@ -54,11 +54,11 @@ func (*CollapseProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 	}
 }
 
-func (*ExpandProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ExpandProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(a, args, false)
 }
 
-func (*CollapseProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CollapseProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(a, args, true)
 }
 
