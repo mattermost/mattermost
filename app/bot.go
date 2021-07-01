@@ -23,7 +23,7 @@ import (
 func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
 
 	vErr := bot.IsValidCreate()
-	if vErr != nil{
+	if vErr != nil {
 		return nil, vErr
 	}
 
