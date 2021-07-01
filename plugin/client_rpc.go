@@ -62,9 +62,8 @@ type apiRPCClient struct {
 }
 
 type apiRPCServer struct {
-	impl         API
-	muxBroker    *plugin.MuxBroker
-	apiRPCClient *apiRPCClient
+	impl      API
+	muxBroker *plugin.MuxBroker
 }
 
 // ErrorString is a fallback for sending unregistered implementations of the error interface across
@@ -243,10 +242,10 @@ func (g *apiRPCClient) LoadPluginConfiguration(dest interface{}) error {
 	_args := &Z_LoadPluginConfigurationArgsArgs{}
 	_returns := &Z_LoadPluginConfigurationArgsReturns{}
 	if err := g.client.Call("Plugin.LoadPluginConfiguration", _args, _returns); err != nil {
-		g.LogError("RPC call to LoadPluginConfiguration API failed: ", err.Error())
+		g.LogError("RPC call to LoadPluginConfiguration API failed", "error", err.Error())
 	}
 	if err := json.Unmarshal(_returns.A, dest); err != nil {
-		g.LogError("LoadPluginConfiguration API failed to unmarshal: ", err.Error())
+		g.LogError("LoadPluginConfiguration API failed to unmarshal", "error", err.Error())
 	}
 	return nil
 }
@@ -397,7 +396,7 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		g.LogError("RPC call to PluginHTTP API failed: ", err.Error())
+		g.LogError("RPC call to PluginHTTP API failed", "error", err.Error())
 		return nil
 	}
 	request.Body.Close()
@@ -410,7 +409,7 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 
 	_returns := &Z_PluginHTTPReturns{}
 	if err := g.client.Call("Plugin.PluginHTTP", _args, _returns); err != nil {
-		g.LogError("RPC call to PluginHTTP API failed: ", err.Error())
+		g.LogError("RPC call to PluginHTTP API failed", "error", err.Error())
 		return nil
 	}
 
@@ -624,7 +623,7 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogDebugArgs{msg, stringifiedPairs}
 	_returns := &Z_LogDebugReturns{}
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
-		g.LogError("RPC call to LogDebug API failed: ", err.Error())
+		g.LogError("RPC call to LogDebug API failed", "error", err.Error())
 	}
 
 }
@@ -653,7 +652,7 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogInfoArgs{msg, stringifiedPairs}
 	_returns := &Z_LogInfoReturns{}
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
-		g.LogError("RPC call to LogInfo API failed: ", err.Error())
+		g.LogError("RPC call to LogInfo API failed", "error", err.Error())
 	}
 
 }
@@ -682,7 +681,7 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogWarnArgs{msg, stringifiedPairs}
 	_returns := &Z_LogWarnReturns{}
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
-		g.LogError("RPC call to LogWarn API failed: ", err.Error())
+		g.LogError("RPC call to LogWarn API failed", "error", err.Error())
 	}
 
 }
@@ -711,7 +710,7 @@ func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogErrorArgs{msg, stringifiedPairs}
 	_returns := &Z_LogErrorReturns{}
 	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {
-		g.LogError("RPC call to LogError API failed: ", err.Error())
+		g.LogError("RPC call to LogError API failed", "error", err.Error())
 	}
 }
 
@@ -742,7 +741,7 @@ func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manif
 	go func() {
 		uploadPluginConnection, err := g.muxBroker.Accept(pluginStreamID)
 		if err != nil {
-			g.LogError("Plugin failed to upload plugin. MuxBroker could not Accept connection", err.Error())
+			g.LogError("Plugin failed to upload plugin. MuxBroker could not Accept connection", "error", err.Error())
 			return
 		}
 		defer uploadPluginConnection.Close()
@@ -752,7 +751,7 @@ func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manif
 	_args := &Z_InstallPluginArgs{pluginStreamID, replace}
 	_returns := &Z_InstallPluginReturns{}
 	if err := g.client.Call("Plugin.InstallPlugin", _args, _returns); err != nil {
-		g.LogError("RPC call InstallPlugin to plugin failed.", err.Error())
+		g.LogError("RPC call InstallPlugin to plugin failed.", "error", err.Error())
 	}
 
 	return _returns.A, _returns.B
@@ -768,7 +767,7 @@ func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 
 	receivePluginConnection, err := s.muxBroker.Dial(args.PluginStreamID)
 	if err != nil {
-		s.apiRPCClient.LogError("Can't connect to remote plugin stream", "error", err.Error())
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote plugin stream, error: %v", err.Error())
 		return err
 	}
 	pluginReader := connectIOReader(receivePluginConnection)
