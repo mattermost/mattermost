@@ -35,7 +35,7 @@ func (de *documentExtractor) Extract(filename string, r io.ReadSeeker) (out stri
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""
-			outErr = errors.New("error extracting pdf text")
+			outErr = errors.New("error extracting document text")
 		}
 	}()
 
