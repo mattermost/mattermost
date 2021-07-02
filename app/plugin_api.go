@@ -1098,6 +1098,15 @@ func (api *PluginAPI) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppErro
 	return api.app.GetOAuthApp(appID)
 }
 
+func (api *PluginAPI) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	oldApp, err := api.GetOAuthApp(app.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.app.UpdateOauthApp(oldApp, app)
+}
+
 func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
 	return api.app.DeleteOAuthApp(appID)
 }

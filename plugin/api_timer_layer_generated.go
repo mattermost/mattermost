@@ -1149,6 +1149,13 @@ func (api *apiTimerLayer) GetOAuthApp(appID string) (*model.OAuthApp, *model.App
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateOAuthApp(app)
+	api.recordTime(startTime, "UpdateOAuthApp", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) DeleteOAuthApp(appID string) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeleteOAuthApp(appID)

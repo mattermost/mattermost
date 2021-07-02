@@ -1079,6 +1079,12 @@ type API interface {
 	// Minimum server version: 5.38
 	GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError)
 
+	// UpdateOAuthApp updates an existing OAuth App.
+	//
+	// @tag OAuth
+	// Minimum server version: 5.38
+	UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+
 	// DeleteOAuthApp deletes an existing OAuth App by id.
 	//
 	// @tag OAuth

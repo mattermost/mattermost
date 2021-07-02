@@ -5086,6 +5086,35 @@ func (s *apiRPCServer) GetOAuthApp(args *Z_GetOAuthAppArgs, returns *Z_GetOAuthA
 	return nil
 }
 
+type Z_UpdateOAuthAppArgs struct {
+	A *model.OAuthApp
+}
+
+type Z_UpdateOAuthAppReturns struct {
+	A *model.OAuthApp
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	_args := &Z_UpdateOAuthAppArgs{app}
+	_returns := &Z_UpdateOAuthAppReturns{}
+	if err := g.client.Call("Plugin.UpdateOAuthApp", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateOAuthApp API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateOAuthApp(args *Z_UpdateOAuthAppArgs, returns *Z_UpdateOAuthAppReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateOAuthApp(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateOAuthApp called but not implemented."))
+	}
+	return nil
+}
+
 type Z_DeleteOAuthAppArgs struct {
 	A string
 }
