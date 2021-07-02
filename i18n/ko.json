@@ -149,7 +149,7 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "이 기본 채널은 전용 채널로 변환할 수 없습니다."
+    "translation": "기본 채널은 비공개 채널로 변환할 수 없습니다."
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "기본 채널은 삭제할 수 없습니다 {{.Channel}}"
+    "translation": "기본 채널인 {{.Channel}} 채널은 삭제할 수 없습니다."
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -1689,7 +1689,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "본 채널은 %v에 의해 해당 팀으로 이동되었습니다. "
+    "translation": "본 채널은 %v 팀에서 이 팀으로 이동되었습니다."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1710,10 +1710,6 @@
   {
     "id": "api.team.set_team_icon.decode.app_error",
     "translation": "팀 아이콘을 decode할 수 없습니다."
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "팀 아이콘 메타데이터를 decode할 수 없습니다."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -2266,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "프로필 이미지를 불러올 수 없습니다."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3036,10 +3028,6 @@
     "translation": "Unable to decode the image data."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Unable to convert the image data to PNG format. Please try again."
   },
@@ -3050,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",

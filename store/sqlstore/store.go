@@ -179,6 +179,23 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
+	if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		ver, err := store.GetDbVersion(true)
+		if err != nil {
+			mlog.Critical("Cannot get DB version.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		intVer, err := strconv.Atoi(ver)
+		if err != nil {
+			mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		if intVer < MinimumRequiredPostgresVersion {
+			mlog.Critical("Minimum Postgres version requirements not met.", mlog.String("Found", VersionString(intVer)), mlog.String("Wanted", VersionString(MinimumRequiredPostgresVersion)))
+			os.Exit(ExitGenericFailure)
+		}
+	}
+
 	err := store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
@@ -909,7 +926,23 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	return true
 }
 
-func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
+func (ss *SqlStore) RemoveDefaultIfColumnExists(tableName, columnName string) bool {
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
+
+	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
+	if err != nil {
+		mlog.Critical("Failed to drop column default", mlog.String("table", tableName), mlog.String("column", columnName), mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(ExitGenericFailure)
+		return false
+	}
+
+	return true
+}
+
+func (ss *SqlStore) AlterDefaultIfColumnExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
 	if !ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -938,15 +971,14 @@ func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName stri
 		return false
 	}
 
-	var err error
 	if defaultValue == "" {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
-	} else {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue)
+		defaultValue = "''"
 	}
 
+	query := "ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue
+	_, err := ss.GetMaster().ExecNoTimeout(query)
 	if err != nil {
-		mlog.Critical("Failed to alter column", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
+		mlog.Critical("Failed to alter column default", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(ExitGenericFailure)
 		return false
@@ -1507,6 +1539,10 @@ func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, err
 		config, err := mysql.ParseDSN(dataSource)
 		if err != nil {
 			return "", err
+		}
+
+		if config.Params == nil {
+			config.Params = map[string]string{}
 		}
 
 		config.Params["multiStatements"] = "true"

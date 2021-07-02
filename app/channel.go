@@ -710,6 +710,21 @@ func (a *App) UpdateChannelPrivacy(c *request.Context, oldChannel *model.Channel
 }
 
 func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
+	var authorId string
+	var authorUsername string
+	if user != nil {
+		authorId = user.Id
+		authorUsername = user.Username
+	} else {
+		systemBot, err := a.GetSystemBot()
+		if err != nil {
+			return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		authorId = systemBot.UserId
+		authorUsername = systemBot.Username
+	}
+
 	message := (map[string]string{
 		model.CHANNEL_OPEN:    i18n.T("api.channel.change_channel_privacy.private_to_public"),
 		model.CHANNEL_PRIVATE: i18n.T("api.channel.change_channel_privacy.public_to_private"),
@@ -718,9 +733,9 @@ func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, ch
 		ChannelId: channel.Id,
 		Message:   message,
 		Type:      model.POST_CHANGE_CHANNEL_PRIVACY,
-		UserId:    user.Id,
+		UserId:    authorId,
 		Props: model.StringInterface{
-			"username": user.Username,
+			"username": authorUsername,
 		},
 	}
 
@@ -746,14 +761,18 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
 
-	user, nErr := a.Srv().Store.User().Get(context.Background(), userID)
-	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("RestoreChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("RestoreChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	var user *model.User
+	if userID != "" {
+		var nErr error
+		user, nErr = a.Srv().Store.User().Get(context.Background(), userID)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("RestoreChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("RestoreChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
@@ -773,6 +792,28 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 		if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
 			mlog.Warn("Failed to post unarchive message", mlog.Err(err))
 		}
+	} else {
+		a.Srv().Go(func() {
+			systemBot, err := a.GetSystemBot()
+			if err != nil {
+				mlog.Error("Failed to post unarchive message", mlog.Err(err))
+				return
+			}
+
+			post := &model.Post{
+				ChannelId: channel.Id,
+				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": systemBot.Username}),
+				Type:      model.POST_CHANNEL_RESTORED,
+				UserId:    systemBot.UserId,
+				Props: model.StringInterface{
+					"username": systemBot.Username,
+				},
+			}
+
+			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+				mlog.Error("Failed to post unarchive message", mlog.Err(err))
+			}
+		})
 	}
 
 	return channel, nil
@@ -1297,6 +1338,28 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 		if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
 			mlog.Warn("Failed to post archive message", mlog.Err(err))
 		}
+	} else {
+		a.Srv().Go(func() {
+			systemBot, err := a.GetSystemBot()
+			if err != nil {
+				mlog.Error("Failed to post archive message", mlog.Err(err))
+				return
+			}
+
+			post := &model.Post{
+				ChannelId: channel.Id,
+				Message:   fmt.Sprintf(i18n.T("api.channel.delete_channel.archived"), systemBot.Username),
+				Type:      model.POST_CHANNEL_DELETED,
+				UserId:    systemBot.UserId,
+				Props: model.StringInterface{
+					"username": systemBot.Username,
+				},
+			}
+
+			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+				mlog.Error("Failed to post archive message", mlog.Err(err))
+			}
+		})
 	}
 
 	now := model.GetMillis()
@@ -1468,7 +1531,9 @@ func (a *App) AddChannelMember(c *request.Context, userID string, channel *model
 	}
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
-		a.postJoinChannelMessage(c, user, channel)
+		if err := a.postJoinChannelMessage(c, user, channel); err != nil {
+			mlog.Error("Failed to post join channel message", mlog.Err(err))
+		}
 	} else {
 		a.Srv().Go(func() {
 			a.PostAddToChannelMessage(c, userRequestor, user, channel, opts.PostRootID)
@@ -2179,6 +2244,16 @@ func (a *App) postAddToTeamMessage(c *request.Context, user *model.User, addedUs
 }
 
 func (a *App) postRemoveFromChannelMessage(c *request.Context, removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
+	messageUserId := removerUserId
+	if messageUserId == "" {
+		systemBot, err := a.GetSystemBot()
+		if err != nil {
+			return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		messageUserId = systemBot.UserId
+	}
+
 	post := &model.Post{
 		ChannelId: channel.Id,
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
@@ -2186,7 +2261,7 @@ func (a *App) postRemoveFromChannelMessage(c *request.Context, removerUserId str
 		// The client renders its own system message, ignoring this value altogether.
 		Message: fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
 		Type:    model.POST_REMOVE_FROM_CHANNEL,
-		UserId:  removerUserId,
+		UserId:  messageUserId,
 		Props: model.StringInterface{
 			"removedUserId":   removedUser.Id,
 			"removedUsername": removedUser.Username,
@@ -2308,7 +2383,9 @@ func (a *App) RemoveUserFromChannel(c *request.Context, userIDToRemove string, r
 		}
 	} else {
 		a.Srv().Go(func() {
-			a.postRemoveFromChannelMessage(c, removerUserId, user, channel)
+			if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
+				mlog.Error("Failed to post user removal message", mlog.Err(err))
+			}
 		})
 	}
 
@@ -2377,9 +2454,21 @@ func (a *App) UpdateChannelLastViewedAt(channelIDs []string, userID string) *mod
 	return nil
 }
 
+func (a *App) isCRTEnabledForUser(userID string) bool {
+	if *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DISABLED {
+		return false
+	}
+	threadsEnabled := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+	// check if a participant has overridden collapsed threads settings
+	if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+		threadsEnabled = preference.Value == "on"
+	}
+	return threadsEnabled
+}
+
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
-	if !collapsedThreadsSupported {
+func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported, followThread bool) (*model.ChannelUnreadAt, *model.AppError) {
+	if !collapsedThreadsSupported || !a.isCRTEnabledForUser(userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(postID, userID)
 	}
 	post, err := a.GetSinglePost(postID)
@@ -2399,17 +2488,34 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 
 	// if auto-follow is on
 	// if threadmembership does not exists we create one and update
-	if *a.Config().ServiceSettings.ThreadAutoFollow && collapsedThreadsSupported {
+	if *a.Config().ServiceSettings.ThreadAutoFollow {
 		threadId := post.RootId
 		if post.RootId == "" {
 			threadId = post.Id
 		}
 
-		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		var nfErr *store.ErrNotFound
+		threadMembership, storeErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		if storeErr != nil && !errors.As(storeErr, &nfErr) {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+		}
 		// if this post was not followed before, create thread membership and update mention count
 		if threadMembership == nil {
-			threadMembership, _ = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, true, true, true, false)
-			threadData, _ := a.Srv().Store.Thread().Get(threadId)
+			opts := store.ThreadMembershipOpts{
+				Following:             followThread,
+				IncrementMentions:     false,
+				UpdateFollowing:       true,
+				UpdateViewedTimestamp: true,
+				UpdateParticipants:    false,
+			}
+			threadMembership, storeErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
+			if storeErr != nil && !errors.As(storeErr, &nfErr) {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			}
+			threadData, storeErr2 := a.Srv().Store.Thread().Get(threadId)
+			if storeErr2 != nil && !errors.As(storeErr2, &nfErr) {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			}
 			if threadData != nil && threadMembership != nil && threadMembership.Following {
 				channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
 				if nErr != nil {
@@ -2423,20 +2529,26 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				if nErr != nil {
 					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				}
-				thread, _ := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
+				thread, nErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+				if nErr != nil {
+					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				}
 				a.sanitizeProfiles(thread.Participants, false)
 				thread.Post.SanitizeProps()
 
 				payload := thread.ToJson()
-				sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
-				if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-					sendEvent = preference.Value == "on"
-				}
-				if sendEvent {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
-					message.Add("thread", payload)
-					a.Publish(message)
-				}
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
+				message.Add("thread", payload)
+				a.Publish(message)
+			}
+		} else if !threadMembership.Following && followThread {
+			opts := store.ThreadMembershipOpts{
+				Following:       true,
+				UpdateFollowing: true,
+			}
+			_, storeErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
+			if storeErr != nil && !errors.As(storeErr, &nfErr) {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
@@ -2509,7 +2621,14 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	}
 	// Follow thread if we're not already following it
 	if threadMembership == nil {
-		threadMembership, nErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, false, true, false, false)
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		threadMembership, nErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
 		if nErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -2521,11 +2640,11 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	if err != nil {
 		return nil, err
 	}
-	_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+	threadMembership, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
 	if nErr != nil {
 		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	thread, nErr := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
+	thread, nErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
 	if nErr != nil {
 		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -2533,11 +2652,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	thread.Post.SanitizeProps()
 
 	payload := thread.ToJson()
-	sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
-	if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-		sendEvent = preference.Value == "on"
-	}
-	if sendEvent {
+	if a.isCRTEnabledForUser(userID) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
 		message.Add("thread", payload)
 		a.Publish(message)
@@ -2741,18 +2856,12 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID)
 	}
 
-	if !collapsedThreadsSupported {
-		// for compatibility with old clients, when channel is viewed - mark all threads in that channel as read
-		threadsEnabled := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
-		// check if a participant has overridden collapsed threads settings
-		if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-			threadsEnabled = preference.Value == "on"
+	if !collapsedThreadsSupported || !a.isCRTEnabledForUser(userID) {
+		if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		if threadsEnabled {
-			if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
-				return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
 
+		if a.isCRTEnabledForUser(userID) {
 			timestamp := model.GetMillis()
 			for _, channelID := range channelIDs {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", channelID, userID, nil)

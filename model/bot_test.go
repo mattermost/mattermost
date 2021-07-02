@@ -491,6 +491,40 @@ func TestBotPatch(t *testing.T) {
 	}
 }
 
+func TestBotWouldPatch(t *testing.T) {
+	b := &Bot{
+		UserId: NewId(),
+	}
+
+	t.Run("nil patch", func(t *testing.T) {
+		ok := b.WouldPatch(nil)
+		require.False(t, ok)
+	})
+
+	t.Run("nil patch fields", func(t *testing.T) {
+		patch := &BotPatch{}
+		ok := b.WouldPatch(patch)
+		require.False(t, ok)
+	})
+
+	t.Run("patch", func(t *testing.T) {
+		patch := &BotPatch{
+			DisplayName: NewString("BotName"),
+		}
+		ok := b.WouldPatch(patch)
+		require.True(t, ok)
+	})
+
+	t.Run("no patch", func(t *testing.T) {
+		patch := &BotPatch{
+			DisplayName: NewString("BotName"),
+		}
+		b.Patch(patch)
+		ok := b.WouldPatch(patch)
+		require.False(t, ok)
+	})
+}
+
 func TestBotPatchToAndFromJson(t *testing.T) {
 	botPatch1 := &BotPatch{
 		Username:    sToP("username"),

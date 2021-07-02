@@ -31,9 +31,13 @@ type FeatureFlags struct {
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
 	PluginApps               string `plugin_id:"com.mattermost.apps"`
+	PluginFocalboard         string `plugin_id:"focalboard"`
 
 	// Control support for custom data retention policies
 	CustomDataRetentionEnabled bool
+
+	// Enable timed dnd support for user status
+	TimedDND bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -44,9 +48,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
 
-	f.PluginIncidentManagement = "1.9.3"
+	f.PluginIncidentManagement = "1.12.0"
 	f.PluginApps = ""
+	f.PluginFocalboard = ""
 	f.CustomDataRetentionEnabled = false
+	f.TimedDND = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

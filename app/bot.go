@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/app/imaging"
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -90,7 +91,65 @@ func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.
 }
 
 //nolint:golint,unused,deadcode
-func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
+	perPage := 1
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+
+	sysAdminList, err := a.GetUsers(userOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sysAdminList) == 0 {
+		return nil, model.NewAppError("GetWarnMetricsBot", "app.bot.get_warn_metrics_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
+	warnMetricsBot := &model.Bot{
+		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
+		DisplayName: T("app.system.warn_metric.bot_displayname"),
+		Description: "",
+		OwnerId:     sysAdminList[0].Id,
+	}
+
+	return a.getOrCreateBot(warnMetricsBot)
+}
+
+func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
+	perPage := 1
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+
+	sysAdminList, err := a.GetUsers(userOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sysAdminList) == 0 {
+		return nil, model.NewAppError("GetSystemBot", "app.bot.get_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
+	systemBot := &model.Bot{
+		Username:    model.BOT_SYSTEM_BOT_USERNAME,
+		DisplayName: T("app.system.system_bot.bot_displayname"),
+		Description: "",
+		OwnerId:     sysAdminList[0].Id,
+	}
+
+	return a.getOrCreateBot(systemBot)
+}
+
+func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
@@ -115,9 +174,9 @@ func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.A
 				default:
 					code = "app.user.save.existing.app_error"
 				}
-				return nil, model.NewAppError("getOrCreateWarnMetricsBot", code, nil, invErr.Error(), http.StatusBadRequest)
+				return nil, model.NewAppError("getOrCreateBot", code, nil, invErr.Error(), http.StatusBadRequest)
 			default:
-				return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getOrCreateBot", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 		}
 		botDef.UserId = user.Id
@@ -131,14 +190,14 @@ func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.A
 			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
 				return nil, nAppErr
 			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getOrCreateBot", "app.bot.createbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 		}
 		return savedBot, nil
 	}
 
 	if botUser == nil {
-		return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("getOrCreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
 	}
 
 	//return the bot for this user
@@ -155,6 +214,10 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	bot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return nil, err
+	}
+
+	if !bot.WouldPatch(botPatch) {
+		return bot, nil
 	}
 
 	bot.Patch(botPatch)
@@ -526,7 +589,7 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		return err
 	}
 
-	if _, err := parseSVG(file); err != nil {
+	if _, err := imaging.ParseSVG(file); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 

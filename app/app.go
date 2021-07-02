@@ -237,6 +237,17 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 
 //nolint:golint,unused,deadcode
 func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId string, isE0Edition bool) *model.AppError {
+	// get warn metrics bot
+	warnMetricsBot, err := a.GetWarnMetricsBot()
+	if err != nil {
+		return err
+	}
+
+	warnMetric, ok := model.WarnMetricsTable[warnMetricId]
+	if !ok {
+		return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	perPage := 25
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -264,30 +275,12 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 		}
 	}
 
-	T := i18n.GetUserTranslations(sysAdmins[0].Locale)
-	warnMetricsBot := &model.Bot{
-		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
-		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: "",
-		OwnerId:     sysAdmins[0].Id,
-	}
-
-	bot, err := a.getOrCreateWarnMetricsBot(warnMetricsBot)
-	if err != nil {
-		return err
-	}
-
-	warnMetric, ok := model.WarnMetricsTable[warnMetricId]
-	if !ok {
-		return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
-	}
-
 	for _, sysAdmin := range sysAdmins {
 		T := i18n.GetUserTranslations(sysAdmin.Locale)
-		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
-		bot.Description = T("app.system.warn_metric.bot_description")
+		warnMetricsBot.DisplayName = T("app.system.warn_metric.bot_displayname")
+		warnMetricsBot.Description = T("app.system.warn_metric.bot_description")
 
-		channel, appErr := a.GetOrCreateDirectChannel(c, bot.UserId, sysAdmin.Id)
+		channel, appErr := a.GetOrCreateDirectChannel(c, warnMetricsBot.UserId, sysAdmin.Id)
 		if appErr != nil {
 			return appErr
 		}
@@ -298,7 +291,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 		}
 
 		botPost := &model.Post{
-			UserId:    bot.UserId,
+			UserId:    warnMetricsBot.UserId,
 			ChannelId: channel.Id,
 			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
 			Message:   "",
@@ -334,7 +327,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 				},
 				Integration: &model.PostActionIntegration{
 					Context: model.StringInterface{
-						"bot_user_id": bot.UserId,
+						"bot_user_id": warnMetricsBot.UserId,
 						"force_ack":   false,
 					},
 					URL: postActionUrl,
@@ -575,6 +568,14 @@ func (a *App) dbHealthCheckKey() string {
 	return fmt.Sprintf("health_check_%s", a.GetClusterId())
 }
 
+func (a *App) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	return a.Srv().Store.CheckIntegrity()
+}
+
 func (a *App) SetServer(srv *Server) {
 	a.srv = srv
+}
+
+func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
 }

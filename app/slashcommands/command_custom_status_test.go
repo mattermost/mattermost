@@ -21,8 +21,8 @@ func TestGetCustomStatus(t *testing.T) {
 		"👙Swimming":                {Emoji: model.DefaultCustomStatusEmoji, Text: "👙Swimming"},
 		"👍🏿 Okay":                  {Emoji: "+1_dark_skin_tone", Text: "Okay"},
 		"🤴🏾 Dark king":             {Emoji: "prince_medium_dark_skin_tone", Text: "Dark king"},
-		"⛹🏾‍♀️ Playing basketball": {Emoji: "basketball_woman", Text: "Playing basketball"},
-		"🏋🏿‍♀️ Weightlifting":      {Emoji: "weight_lifting_woman", Text: "Weightlifting"},
+		"⛹🏾‍♀️ Playing basketball": {Emoji: "basketball_woman_medium_dark_skin_tone", Text: "Playing basketball"},
+		"🏋🏿‍♀️ Weightlifting":      {Emoji: "weight_lifting_woman_dark_skin_tone", Text: "Weightlifting"},
 		"🏄 Surfing":                {Emoji: "surfer", Text: "Surfing"},
 		"👨‍👨‍👦‍👦 Family":           {Emoji: "family_man_man_boy_boy", Text: "Family"},
 	} {

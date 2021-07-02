@@ -1716,10 +1716,6 @@
     "translation": "Não foi possível ler o ícone da equipe."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Não foi possível ler os metadados do ícone da equipe."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Não foi possível codificar o ícone da equipe."
   },
@@ -2270,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Não foi possível decodificar a imagem do perfil."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Não foi possível salvar a imagem. Arquivo não parecer ser de uma imagem valida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3040,10 +3032,6 @@
     "translation": "Não é possível ler os dados da imagem."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Não é possível obter os metadados da imagem."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Não é possível converter os dados da imagem para PNG. Por favor tente novamente."
   },
@@ -3054,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Não é possível gravar o arquivo de imagem no seu armazenamento de arquivos. Por favor verifique sua conexão e tente novamente."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Não é possível ler o arquivo de imagem. Verifique se o tamanho da imagem é menor que 2 MB e tente novamente."
   },
   {
     "id": "cli.license.critical",
@@ -8018,14 +8002,6 @@
   {
     "id": "model.config.is_valid.import.directory.app_error",
     "translation": "Valor inválido para Diretório."
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Não foi possível processar a importação: falha ao descompactar o arquivo."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Impossível processar importação: falha ao criar diretório temporário."
   },
   {
     "id": "import_process.worker.do_job.open_file",

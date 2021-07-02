@@ -143,11 +143,11 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := New(ServerConnector(s)).GetSession(token)
-		defer ReturnSessionToPool(session)
+		defer s.userService.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false
 
-		if err == nil && cookieAuth && r.Method != "GET" {
+		if session != nil && err == nil && cookieAuth && r.Method != "GET" {
 			sentToken := ""
 
 			if r.Header.Get(model.HEADER_CSRF_TOKEN) == "" {
@@ -172,7 +172,7 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 				sid := ""
 				userID := ""
 
-				if session != nil {
+				if session.Id != "" {
 					sid = session.Id
 					userID = session.UserId
 				}

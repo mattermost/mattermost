@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP sunucusu zorunludur"
+    "translation": "SMTP sunucusunun yazılması zorunludur"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -97,11 +97,11 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - E-posta Ayarları Sınanıyor"
+    "translation": "Mattermost - E-posta ayarları sınanıyor"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Klasörü zorunludur"
+    "translation": "S3 klasörünün yazılması zorunludur"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -1716,10 +1716,6 @@
     "translation": "Takım simgesinin kodu çözülemedi."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Takım simgesi üst verisinin kodu çözülemedi."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Takım simgesi kodlanamadı."
   },
@@ -2270,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Profil görselinin kodu çözülemedi."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Profil görseli kaydedilemedi. Dosya geçerli bir görsel gibi görünmüyor."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3040,10 +3032,6 @@
     "translation": "Görsel verilerinin kodu çözülemedi."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Görsel üst verileri alınamadı."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Görsel verileri PNG biçimine dönüştürülemedi. Lütfen yeniden deneyin."
   },
@@ -3054,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Görsel dosyası kullandığınız dosya depolaması üzerine yazılamadı. Lütfen bağlantınızı denetleyip yeniden deneyin."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Görsel dosyası okunamadı. Görsel boyutunun 2MB değerinden küçük olduğundan emin olun ve yeniden deneyin."
   },
   {
     "id": "cli.license.critical",
@@ -8080,14 +8064,6 @@
     "translation": "Klasör değeri geçersiz."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "İçe aktarılamadı: Dosya ayıklanamadı."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "İçe aktarılamadı: Geçici klasör oluşturulamadı."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "İçe aktarılamadı: Dosya açılamadı."
   },
@@ -9213,5 +9189,61 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Ortak bir takımları olmadığından bu kullanıcılar arasında doğrudan bir kanal oluşturulamadı."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Parola geçersiz"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Bulut hesabının sınırları aşıldığından daha fazla kullanıcı etkinleştirilemedi."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Bulut denetimi sınırda veya üzerinde olduğundan yapılamadı."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Sistem"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Yönetici listesi boş."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Yönetici listesi boş."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Kullanıcı işlemi üyeliği bulunamadı"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kullanıcı işlemi üyeliği alınamadı"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Mattermost Enterprise sürümünün deneme süresi sona ermiş olduğundan artık kullanılamaz. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Deneme süresi başlatılmış mı öğrenilemedi"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Veri saklama görevi yürütülemedi."
   }
 ]

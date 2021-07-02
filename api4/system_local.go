@@ -25,7 +25,7 @@ func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	var results []model.IntegrityCheckResult
-	resultsChan := c.App.Srv().Store.CheckIntegrity()
+	resultsChan := c.App.CheckIntegrity()
 	for result := range resultsChan {
 		results = append(results, result)
 	}
