@@ -118,6 +118,7 @@ type SqlStoreStores struct {
 	token                store.TokenStore
 	emoji                store.EmojiStore
 	status               store.StatusStore
+	statusSchedule       store.StatusScheduleStore
 	fileInfo             store.FileInfoStore
 	uploadSession        store.UploadSessionStore
 	reaction             store.ReactionStore

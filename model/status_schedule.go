@@ -25,9 +25,11 @@ type StatusSchedule struct {
 	SundayStart    string `json:"sunday_start"`
 	SundayEnd      string `json:"sunday_end"`
 	Mode           int64  `json:"mode"`
+}
 
 func (o *StatusSchedule) ToJson() string {
-	b, _ := json.Marshal(o)
+	oCopy := *o
+	b, _ := json.Marshal(oCopy)
 	return string(b)
 }
 

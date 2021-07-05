@@ -439,7 +439,7 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 
 func (a *App) SaveStatusSchedule(statusSchedule *model.StatusSchedule) {
 	if err := a.Srv().Store.StatusSchedule().SaveOrUpdate(statusSchedule); err != nil {
-		mlog.Warn("Failed to save status schedule", mlog.String("user_id", status.UserId), mlog.Err(err))
+		mlog.Warn("Failed to save status schedule", mlog.String("user_id", statusSchedule.UserId), mlog.Err(err))
 	}
 }
 
