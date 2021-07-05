@@ -247,7 +247,39 @@ func (a *App) SetStatusOffline(userID string, manual bool) {
 		return // manually set status always overrides non-manual one
 	}
 
-	status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: "", MondayStart: status.MondayStart, MondayEnd: status.MondayEnd, TuesdayStart: status.TuesdayStart, TuesdayEnd: status.TuesdayEnd, WednesdayStart: status.WednesdayStart, WednesdayEnd: status.WednesdayEnd, ThursdayStart: status.ThursdayStart, ThursdayEnd: status.ThursdayEnd, FridayStart: status.FridayStart, FridayEnd: status.FridayEnd, SaturdayStart: status.SaturdayStart, SaturdayEnd: status.SaturdayEnd, SundayStart: status.SundayStart, SundayEnd: status.SundayEnd, Mode: status.Mode}
+	var MONS = status.MondayStart
+	var MONE = status.MondayEnd
+	var TUES = status.TuesdayStart
+	var TUEE = status.TuesdayEnd
+	var WEDS = status.WednesdayStart
+	var WEDE = status.WednesdayEnd
+	var THUS = status.ThursdayStart
+	var THUE = status.ThursdayEnd
+	var FRIS = status.FridayStart
+	var FRIE = status.FridayEnd
+	var SATS = status.SaturdayStart
+	var SATE = status.SaturdayEnd
+	var SUNS = status.SundayStart
+	var SUNE = status.SundayEnd
+	var MODE = status.Mode
+
+	status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	status.MondayStart = MONS
+	status.MondayEnd = MONE
+	status.TuesdayStart = TUES
+	status.TuesdayEnd = TUEE
+	status.WednesdayStart = WEDS
+	status.WednesdayEnd = WEDE
+	status.ThursdayStart = THUS
+	status.ThursdayEnd = THUE
+	status.FridayStart = FRIS
+	status.FridayEnd = FRIE
+	status.SaturdayStart = SATS
+	status.SaturdayEnd = SATE
+	status.SundayStart = SUNS
+	status.SundayEnd = SUNE
+	status.Mode = MODE
+
 	a.SaveAndBroadcastStatus(status)
 }
 
