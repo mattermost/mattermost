@@ -42,6 +42,7 @@ type Store interface {
 	Token() TokenStore
 	Emoji() EmojiStore
 	Status() StatusStore
+	StatusSchedule() StatusScheduleStore
 	FileInfo() FileInfoStore
 	UploadSession() UploadSessionStore
 	Reaction() ReactionStore
@@ -601,6 +602,11 @@ type StatusStore interface {
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userID string, lastActivityAt int64) error
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
+}
+
+type StatusScheduleStore interface {
+	SaveOrUpdate(status *model.Status) error
+	Get(userID string) (*model.Status, error)
 }
 
 type FileInfoStore interface {

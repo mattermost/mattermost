@@ -247,7 +247,7 @@ func (a *App) SetStatusOffline(userID string, manual bool) {
 		return // manually set status always overrides non-manual one
 	}
 
-	status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: "", MondayStart: status.MondayStart, MondayEnd: status.MondayEnd, TuesdayStart: status.TuesdayStart, TuesdayEnd: status.TuesdayEnd, WednesdayStart: status.WednesdayStart, WednesdayEnd: status.WednesdayEnd, ThursdayStart: status.ThursdayStart, ThursdayEnd: status.ThursdayEnd, FridayStart: status.FridayStart, FridayEnd: status.FridayEnd, SaturdayStart: status.SaturdayStart, SaturdayEnd: status.SaturdayEnd, SundayStart: status.SundayStart, SundayEnd: status.SundayEnd, Mode: status.Mode}
+	status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	a.SaveAndBroadcastStatus(status)
 }
 
@@ -284,7 +284,7 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 }
 
 func (a *App) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime string) {
-	currentStatus, err := a.GetStatus(userId)
+	statusSchedule, err := a.GetStatusSchedule(userId)
 
 	if err != nil {
 		return
@@ -294,26 +294,26 @@ func (a *App) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, current
 
 	switch currentDayOfTheWeek {
 	case "Mon":
-		startTime = currentStatus.MondayStart
-		endTime = currentStatus.MondayEnd
+		startTime = statusSchedule.MondayStart
+		endTime = statusSchedule.MondayEnd
 	case "Tue":
-		startTime = currentStatus.TuesdayStart
-		endTime = currentStatus.TuesdayEnd
+		startTime = statusSchedule.TuesdayStart
+		endTime = statusSchedule.TuesdayEnd
 	case "Wed":
-		startTime = currentStatus.WednesdayStart
-		endTime = currentStatus.WednesdayEnd
+		startTime = statusSchedule.WednesdayStart
+		endTime = statusSchedule.WednesdayEnd
 	case "Thu":
-		startTime = currentStatus.ThursdayStart
-		endTime = currentStatus.ThursdayEnd
+		startTime = statusSchedule.ThursdayStart
+		endTime = statusSchedule.ThursdayEnd
 	case "Fri":
-		startTime = currentStatus.FridayStart
-		endTime = currentStatus.FridayEnd
+		startTime = statusSchedule.FridayStart
+		endTime = statusSchedule.FridayEnd
 	case "Sat":
-		startTime = currentStatus.SaturdayStart
-		endTime = currentStatus.SaturdayEnd
+		startTime = statusSchedule.SaturdayStart
+		endTime = statusSchedule.SaturdayEnd
 	case "Sun":
-		startTime = currentStatus.SundayStart
-		endTime = currentStatus.SundayEnd
+		startTime = statusSchedule.SundayStart
+		endTime = statusSchedule.SundayEnd
 	}
 
 	if startTime == "" && endTime == "" {
@@ -346,29 +346,29 @@ func (a *App) SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tu
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
-	status, err := a.GetStatus(userId)
+	statusSchedule, err := a.GetStatusSchedule(userId)
 
 	if err != nil {
 		return
 	}
 
-	status.MondayStart = mondayStart
-	status.MondayEnd = mondayEnd
-	status.TuesdayStart = tuesdayStart
-	status.TuesdayEnd = tuesdayEnd
-	status.WednesdayStart = wednesdayStart
-	status.WednesdayEnd = wednesdayEnd
-	status.ThursdayStart = thursdayStart
-	status.ThursdayEnd = thursdayEnd
-	status.FridayStart = fridayStart
-	status.FridayEnd = fridayEnd
-	status.SaturdayStart = saturdayStart
-	status.SaturdayEnd = saturdayEnd
-	status.SundayStart = sundayStart
-	status.SundayEnd = sundayEnd
-	status.Mode = mode
+	statusSchedule.MondayStart = mondayStart
+	statusSchedule.MondayEnd = mondayEnd
+	statusSchedule.TuesdayStart = tuesdayStart
+	statusSchedule.TuesdayEnd = tuesdayEnd
+	statusSchedule.WednesdayStart = wednesdayStart
+	statusSchedule.WednesdayEnd = wednesdayEnd
+	statusSchedule.ThursdayStart = thursdayStart
+	statusSchedule.ThursdayEnd = thursdayEnd
+	statusSchedule.FridayStart = fridayStart
+	statusSchedule.FridayEnd = fridayEnd
+	statusSchedule.SaturdayStart = saturdayStart
+	statusSchedule.SaturdayEnd = saturdayEnd
+	statusSchedule.SundayStart = sundayStart
+	statusSchedule.SundayEnd = sundayEnd
+	statusSchedule.Mode = mode
 
-	a.SaveAndBroadcastStatus(status)
+	a.SaveStatusSchedule(statusSchedule)
 }
 
 func (a *App) SetStatusDoNotDisturbScheduled(userID string) {
@@ -437,6 +437,12 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.BroadcastStatus(status)
 }
 
+func (a *App) SaveStatusSchedule(statusSchedule *model.StatusSchedule) {
+	if err := a.Srv().Store.StatusSchedule().SaveOrUpdate(statusSchedule); err != nil {
+		mlog.Warn("Failed to save status schedule", mlog.String("user_id", status.UserId), mlog.Err(err))
+	}
+}
+
 func (a *App) SetStatusOutOfOffice(userID string) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
@@ -487,6 +493,18 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 	}
 
 	return status, nil
+}
+
+func (a *App) GetStatusSchedule(userID string) (*model.StatusSchedule, *model.AppError) {
+
+	statusSchedule, err := a.Srv().Store.StatusSchedule().Get(userID)
+
+	if err != nil {
+		mlog.Warn("Failed get status schedule from store", mlog.String("err", err.Error()))
+		return nil, err
+	}
+
+	return statusSchedule, nil
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {
