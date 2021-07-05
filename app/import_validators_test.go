@@ -1341,7 +1341,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 func TestImportValidateEmojiImportData(t *testing.T) {
 	data := EmojiImportData{
-		Name:  ptrStr("parrot"),
+		Name:  ptrStr("parrot2"),
 		Image: ptrStr("/path/to/image"),
 	}
 

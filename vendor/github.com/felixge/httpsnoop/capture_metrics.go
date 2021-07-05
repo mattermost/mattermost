@@ -3,7 +3,6 @@ package httpsnoop
 import (
 	"io"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -40,13 +39,11 @@ func CaptureMetricsFn(w http.ResponseWriter, fn func(http.ResponseWriter)) Metri
 		start         = time.Now()
 		m             = Metrics{Code: http.StatusOK}
 		headerWritten bool
-		lock          sync.Mutex
 		hooks         = Hooks{
 			WriteHeader: func(next WriteHeaderFunc) WriteHeaderFunc {
 				return func(code int) {
 					next(code)
-					lock.Lock()
-					defer lock.Unlock()
+
 					if !headerWritten {
 						m.Code = code
 						headerWritten = true
@@ -57,8 +54,7 @@ func CaptureMetricsFn(w http.ResponseWriter, fn func(http.ResponseWriter)) Metri
 			Write: func(next WriteFunc) WriteFunc {
 				return func(p []byte) (int, error) {
 					n, err := next(p)
-					lock.Lock()
-					defer lock.Unlock()
+
 					m.Written += int64(n)
 					headerWritten = true
 					return n, err
@@ -68,8 +64,7 @@ func CaptureMetricsFn(w http.ResponseWriter, fn func(http.ResponseWriter)) Metri
 			ReadFrom: func(next ReadFromFunc) ReadFromFunc {
 				return func(src io.Reader) (int64, error) {
 					n, err := next(src)
-					lock.Lock()
-					defer lock.Unlock()
+
 					headerWritten = true
 					m.Written += n
 					return n, err

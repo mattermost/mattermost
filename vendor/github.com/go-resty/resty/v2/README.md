@@ -4,7 +4,7 @@
 <p align="center"><a href="#features">Features</a> section describes in detail about Resty capabilities</p>
 </p>
 <p align="center">
-<p align="center"><a href="https://travis-ci.org/go-resty/resty"><img src="https://travis-ci.org/go-resty/resty.svg?branch=master" alt="Build Status"></a> <a href="https://codecov.io/gh/go-resty/resty/branch/master"><img src="https://codecov.io/gh/go-resty/resty/branch/master/graph/badge.svg" alt="Code Coverage"></a> <a href="https://goreportcard.com/report/go-resty/resty"><img src="https://goreportcard.com/badge/go-resty/resty" alt="Go Report Card"></a> <a href="https://github.com/go-resty/resty/releases/latest"><img src="https://img.shields.io/badge/version-2.5.0-blue.svg" alt="Release Version"></a> <a href="https://pkg.go.dev/github.com/go-resty/resty/v2"><img src="https://godoc.org/github.com/go-resty/resty?status.svg" alt="GoDoc"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/go-resty/resty.svg" alt="License"></a> <a href="https://github.com/avelino/awesome-go"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go"></a></p>
+<p align="center"><a href="https://travis-ci.org/go-resty/resty"><img src="https://travis-ci.org/go-resty/resty.svg?branch=master" alt="Build Status"></a> <a href="https://codecov.io/gh/go-resty/resty/branch/master"><img src="https://codecov.io/gh/go-resty/resty/branch/master/graph/badge.svg" alt="Code Coverage"></a> <a href="https://goreportcard.com/report/go-resty/resty"><img src="https://goreportcard.com/badge/go-resty/resty" alt="Go Report Card"></a> <a href="https://github.com/go-resty/resty/releases/latest"><img src="https://img.shields.io/badge/version-2.6.0-blue.svg" alt="Release Version"></a> <a href="https://pkg.go.dev/github.com/go-resty/resty/v2"><img src="https://pkg.go.dev/badge/github.com/go-resty/resty" alt="GoDoc"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/go-resty/resty.svg" alt="License"></a> <a href="https://github.com/avelino/awesome-go"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go"></a></p>
 </p>
 <p align="center">
 <h4 align="center">Resty Communication Channels</h4>
@@ -13,7 +13,7 @@
 
 ## News
 
-  * v2.5.0 [released](https://github.com/go-resty/resty/releases/tag/v2.5.0) and tagged on Feb 11, 2021.
+  * v2.6.0 [released](https://github.com/go-resty/resty/releases/tag/v2.6.0) and tagged on Apr 09, 2021.
   * v2.0.0 [released](https://github.com/go-resty/resty/releases/tag/v2.0.0) and tagged on Jul 16, 2019.
   * v1.12.0 [released](https://github.com/go-resty/resty/releases/tag/v1.12.0) and tagged on Feb 27, 2019.
   * v1.0 released and tagged on Sep 25, 2017. - Resty's first version was released on Sep 15, 2015 then it grew gradually as a very handy and helpful library. Its been a two years since first release. I'm very thankful to Resty users and its [contributors](https://github.com/go-resty/resty/graphs/contributors).
@@ -22,34 +22,34 @@
 
   * GET, POST, PUT, DELETE, HEAD, PATCH, OPTIONS, etc.
   * Simple and chainable methods for settings and request
-  * [Request](https://godoc.org/github.com/go-resty/resty#Request) Body can be `string`, `[]byte`, `struct`, `map`, `slice` and `io.Reader` too
+  * [Request](https://pkg.go.dev/github.com/go-resty/resty/v2#Request) Body can be `string`, `[]byte`, `struct`, `map`, `slice` and `io.Reader` too
     * Auto detects `Content-Type`
     * Buffer less processing for `io.Reader`
     * Native `*http.Request` instance may be accessed during middleware and request execution via `Request.RawRequest`
     * Request Body can be read multiple times via `Request.RawRequest.GetBody()`
-  * [Response](https://godoc.org/github.com/go-resty/resty#Response) object gives you more possibility
+  * [Response](https://pkg.go.dev/github.com/go-resty/resty/v2#Response) object gives you more possibility
     * Access as `[]byte` array - `response.Body()` OR Access as `string` - `response.String()`
     * Know your `response.Time()` and when we `response.ReceivedAt()`
   * Automatic marshal and unmarshal for `JSON` and `XML` content type
     * Default is `JSON`, if you supply `struct/map` without header `Content-Type`
     * For auto-unmarshal, refer to -
-        - Success scenario [Request.SetResult()](https://godoc.org/github.com/go-resty/resty#Request.SetResult) and [Response.Result()](https://godoc.org/github.com/go-resty/resty#Response.Result).
-        - Error scenario [Request.SetError()](https://godoc.org/github.com/go-resty/resty#Request.SetError) and [Response.Error()](https://godoc.org/github.com/go-resty/resty#Response.Error).
+        - Success scenario [Request.SetResult()](https://pkg.go.dev/github.com/go-resty/resty/v2#Request.SetResult) and [Response.Result()](https://pkg.go.dev/github.com/go-resty/resty/v2#Response.Result).
+        - Error scenario [Request.SetError()](https://pkg.go.dev/github.com/go-resty/resty/v2#Request.SetError) and [Response.Error()](https://pkg.go.dev/github.com/go-resty/resty/v2#Response.Error).
         - Supports [RFC7807](https://tools.ietf.org/html/rfc7807) - `application/problem+json` & `application/problem+xml`
   * Easy to upload one or more file(s) via `multipart/form-data`
     * Auto detects file content type
-  * Request URL [Path Params (aka URI Params)](https://godoc.org/github.com/go-resty/resty#Request.SetPathParams)
+  * Request URL [Path Params (aka URI Params)](https://pkg.go.dev/github.com/go-resty/resty/v2#Request.SetPathParams)
   * Backoff Retry Mechanism with retry condition function [reference](retry_test.go)
-  * Resty client HTTP & REST [Request](https://godoc.org/github.com/go-resty/resty#Client.OnBeforeRequest) and [Response](https://godoc.org/github.com/go-resty/resty#Client.OnAfterResponse) middlewares
+  * Resty client HTTP & REST [Request](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.OnBeforeRequest) and [Response](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.OnAfterResponse) middlewares
   * `Request.SetContext` supported
   * Authorization option of `BasicAuth` and `Bearer` token
   * Set request `ContentLength` value for all request or particular request
-  * Custom [Root Certificates](https://godoc.org/github.com/go-resty/resty#Client.SetRootCertificate) and Client [Certificates](https://godoc.org/github.com/go-resty/resty#Client.SetCertificates)
-  * Download/Save HTTP response directly into File, like `curl -o` flag. See [SetOutputDirectory](https://godoc.org/github.com/go-resty/resty#Client.SetOutputDirectory) & [SetOutput](https://godoc.org/github.com/go-resty/resty#Request.SetOutput).
+  * Custom [Root Certificates](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.SetRootCertificate) and Client [Certificates](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.SetCertificates)
+  * Download/Save HTTP response directly into File, like `curl -o` flag. See [SetOutputDirectory](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.SetOutputDirectory) & [SetOutput](https://pkg.go.dev/github.com/go-resty/resty/v2#Request.SetOutput).
   * Cookies for your request and CookieJar support
   * SRV Record based request instead of Host URL
   * Client settings like `Timeout`, `RedirectPolicy`, `Proxy`, `TLSClientConfig`, `Transport`, etc.
-  * Optionally allows GET request with payload, see [SetAllowGetMethodPayload](https://godoc.org/github.com/go-resty/resty#Client.SetAllowGetMethodPayload)
+  * Optionally allows GET request with payload, see [SetAllowGetMethodPayload](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.SetAllowGetMethodPayload)
   * Supports registering external JSON library into resty, see [how to use](https://github.com/go-resty/resty/issues/76#issuecomment-314015250)
   * Exposes Response reader without reading response (no auto-unmarshaling) if need be, see [how to use](https://github.com/go-resty/resty/issues/87#issuecomment-322100604)
   * Option to specify expected `Content-Type` when response `Content-Type` header missing. Refer to [#92](https://github.com/go-resty/resty/issues/92)
@@ -57,9 +57,9 @@
     * Have client level settings & options and also override at Request level if you want to
     * Request and Response middleware
     * Create Multiple clients if you want to `resty.New()`
-    * Supports `http.RoundTripper` implementation, see [SetTransport](https://godoc.org/github.com/go-resty/resty#Client.SetTransport)
+    * Supports `http.RoundTripper` implementation, see [SetTransport](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.SetTransport)
     * goroutine concurrent safe
-    * Resty Client trace, see [Client.EnableTrace](https://godoc.org/github.com/go-resty/resty#Client.EnableTrace) and [Request.EnableTrace](https://godoc.org/github.com/go-resty/resty#Request.EnableTrace)
+    * Resty Client trace, see [Client.EnableTrace](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.EnableTrace) and [Request.EnableTrace](https://pkg.go.dev/github.com/go-resty/resty/v2#Request.EnableTrace)
       * Since v2.4.0, trace info contains a `RequestAttempt` value, and the `Request` object contains an `Attempt` attribute
     * Debug mode - clean and informative logging presentation
     * Gzip - Go does it automatically also resty has fallback handling too
@@ -78,6 +78,7 @@
   * Retry Mechanism [how to use](#retries)
     * Backoff Retry
     * Conditional Retry
+    * Since v2.6.0, Retry Hooks - [Client](https://pkg.go.dev/github.com/go-resty/resty/v2#Client.AddRetryHook), [Request](https://pkg.go.dev/github.com/go-resty/resty/v2#Request.AddRetryHook)
   * SRV Record based request instead of Host URL [how to use](resty_test.go#L1412)
   * etc (upcoming - throw your idea's [here](https://github.com/go-resty/resty/issues)).
 

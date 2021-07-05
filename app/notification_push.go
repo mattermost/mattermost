@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type notificationType string
@@ -55,7 +56,13 @@ type PushNotification struct {
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
 	cfg := a.Config()
-	msg, err := a.BuildPushNotificationMessage(
+	message, err := utils.StripMarkdown(post.Message)
+	if err != nil {
+		mlog.Warn("Failed parse to markdown", mlog.String("post_id", post.Id), mlog.Err(err))
+	} else {
+		post.Message = message
+	}
+	msg, appErr := a.BuildPushNotificationMessage(
 		*cfg.EmailSettings.PushNotificationContents,
 		post,
 		user,
@@ -66,8 +73,8 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		channelWideMention,
 		replyToThreadType,
 	)
-	if err != nil {
-		return err
+	if appErr != nil {
+		return appErr
 	}
 
 	return a.sendPushNotificationToAllSessions(msg, user.Id, "")
@@ -262,13 +269,9 @@ func (a *App) UpdateMobileAppBadge(userID string) {
 
 func (s *Server) createPushNotificationsHub() {
 	buffer := *s.Config().EmailSettings.PushNotificationBuffer
-	// XXX: This can be _almost_ removed except that there is a dependency with
-	// a.ClearSessionCacheForUser(session.UserId) which invalidates caches,
-	// which then takes to web_hub code. It's a bit complicated, so leaving as is for now.
-	fakeApp := New(ServerConnector(s))
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, buffer),
-		app:               fakeApp,
+		app:               New(ServerConnector(s)),
 		wg:                new(sync.WaitGroup),
 		semaWg:            new(sync.WaitGroup),
 		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
@@ -581,9 +584,10 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		msg.FromWebhook = fw
 	}
 
+	postMessage := post.Message
 	for _, attachment := range post.Attachments() {
 		if attachment.Fallback != "" {
-			post.Message += "\n" + attachment.Fallback
+			postMessage += "\n" + attachment.Fallback
 		}
 	}
 
@@ -592,7 +596,7 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 
 	msg.Message = a.getPushNotificationMessage(
 		contentsConfig,
-		post.Message,
+		postMessage,
 		explicitMention,
 		channelWideMention,
 		hasFiles,

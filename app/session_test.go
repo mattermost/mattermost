@@ -8,50 +8,12 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
-
-func TestCache(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	session := &model.Session{
-		Id:     model.NewId(),
-		Token:  model.NewId(),
-		UserId: model.NewId(),
-	}
-
-	session2 := &model.Session{
-		Id:     model.NewId(),
-		Token:  model.NewId(),
-		UserId: model.NewId(),
-	}
-
-	th.App.Srv().sessionCache.SetWithExpiry(session.Token, session, 5*time.Minute)
-	th.App.Srv().sessionCache.SetWithExpiry(session2.Token, session2, 5*time.Minute)
-
-	keys, err := th.App.Srv().sessionCache.Keys()
-	require.NoError(t, err)
-	require.NotEmpty(t, keys)
-
-	th.App.ClearSessionCacheForUser(session.UserId)
-
-	rkeys, err := th.App.Srv().sessionCache.Keys()
-	require.NoError(t, err)
-	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
-	require.NotEmpty(t, rkeys)
-
-	th.App.ClearSessionCacheForAllUsers()
-
-	rkeys, err = th.App.Srv().sessionCache.Keys()
-	require.NoError(t, err)
-	require.Empty(t, rkeys)
-}
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	th := Setup(t)
@@ -355,8 +317,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.False(t, session.IsExpired())
 
 			// check cache was updated
-			var cachedSession *model.Session
-			errGet := th.App.Srv().sessionCache.Get(session.Token, &cachedSession)
+			cachedSession, errGet := th.App.srv.userService.GetSession(session.Token)
 			require.NoError(t, errGet)
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
@@ -364,58 +325,6 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			storedSession, nErr := th.App.Srv().Store.Session().Get(context.Background(), session.Token)
 			require.NoError(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
-		})
-	}
-}
-
-const (
-	dayInMillis = 86400000
-	grace       = 5 * 1000
-	thirtyDays  = dayInMillis * 30
-)
-
-func TestApp_SetSessionExpireInDays(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	now := model.GetMillis()
-	createAt := now - (dayInMillis * 20)
-
-	tests := []struct {
-		name   string
-		extend bool
-		create bool
-		days   int
-		want   int64
-	}{
-		{name: "zero days, extend", extend: true, create: true, days: 0, want: now},
-		{name: "zero days, extend", extend: true, create: false, days: 0, want: now},
-		{name: "zero days, no extend", extend: false, create: true, days: 0, want: createAt},
-		{name: "zero days, no extend", extend: false, create: false, days: 0, want: now},
-		{name: "thirty days, extend", extend: true, create: true, days: 30, want: now + thirtyDays},
-		{name: "thirty days, extend", extend: true, create: false, days: 30, want: now + thirtyDays},
-		{name: "thirty days, no extend", extend: false, create: true, days: 30, want: createAt + thirtyDays},
-		{name: "thirty days, no extend", extend: false, create: false, days: 30, want: now + thirtyDays},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.ExtendSessionLengthWithActivity = tt.extend
-			})
-			var create int64
-			if tt.create {
-				create = createAt
-			}
-
-			session := &model.Session{
-				CreateAt:  create,
-				ExpiresAt: model.GetMillis() + dayInMillis,
-			}
-			th.App.SetSessionExpireInDays(session, tt.days)
-
-			// must be within 5 seconds of expected time.
-			require.GreaterOrEqual(t, session.ExpiresAt, tt.want-grace)
-			require.LessOrEqual(t, session.ExpiresAt, tt.want+grace)
 		})
 	}
 }

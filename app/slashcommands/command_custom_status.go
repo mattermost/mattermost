@@ -4,7 +4,9 @@
 package slashcommands
 
 import (
+	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/app/request"
@@ -19,8 +21,6 @@ type CustomStatusProvider struct {
 const (
 	CmdCustomStatus      = app.CmdCustomStatusTrigger
 	CmdCustomStatusClear = "clear"
-
-	DefaultCustomStatusEmoji = "speech_balloon"
 )
 
 func init() {
@@ -49,7 +49,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *mod
 	message = strings.TrimSpace(message)
 	if message == CmdCustomStatusClear {
 		if err := a.RemoveCustomStatus(args.UserId); err != nil {
-			mlog.Error(err.Error())
+			mlog.Debug(err.Error())
 			return &model.CommandResponse{Text: args.T("api.command_custom_status.clear.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 
@@ -59,20 +59,10 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *mod
 		}
 	}
 
-	customStatus := &model.CustomStatus{
-		Emoji: DefaultCustomStatusEmoji,
-		Text:  message,
-	}
-	firstEmojiLocations := model.ALL_EMOJI_PATTERN.FindIndex([]byte(message))
-	if len(firstEmojiLocations) > 0 && firstEmojiLocations[0] == 0 {
-		// emoji found at starting index
-		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]
-		customStatus.Text = strings.TrimSpace(message[firstEmojiLocations[1]:])
-	}
-
-	customStatus.TrimMessage()
+	customStatus := GetCustomStatus(message)
+	customStatus.PreSave()
 	if err := a.SetCustomStatus(args.UserId, customStatus); err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_custom_status.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
@@ -83,4 +73,68 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *mod
 			"StatusMessage": customStatus.Text,
 		}),
 	}
+}
+
+func GetCustomStatus(message string) *model.CustomStatus {
+	customStatus := &model.CustomStatus{
+		Emoji: model.DefaultCustomStatusEmoji,
+		Text:  message,
+	}
+
+	firstEmojiLocations := model.EMOJI_PATTERN.FindIndex([]byte(message))
+	if len(firstEmojiLocations) > 0 && firstEmojiLocations[0] == 0 {
+		// emoji found at starting index
+		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]
+		customStatus.Text = strings.TrimSpace(message[firstEmojiLocations[1]:])
+		return customStatus
+	}
+
+	if message == "" {
+		return customStatus
+	}
+
+	spaceSeparatedMessage := strings.Fields(message)
+	if len(spaceSeparatedMessage) == 0 {
+		return customStatus
+	}
+
+	emojiString := spaceSeparatedMessage[0]
+	var unicode []string
+	for utf8.RuneCountInString(emojiString) >= 1 {
+		codepoint, size := utf8.DecodeRuneInString(emojiString)
+		code := model.RuneToHexadecimalString(codepoint)
+		unicode = append(unicode, code)
+		emojiString = emojiString[size:]
+	}
+
+	unicodeString := removeUnicodeSkinTone(strings.Join(unicode, "-"))
+	emoji, count := model.GetEmojiNameFromUnicode(unicodeString)
+	if count > 0 {
+		customStatus.Emoji = emoji
+		textString := strings.Join(spaceSeparatedMessage[1:], " ")
+		customStatus.Text = strings.TrimSpace(textString)
+	}
+
+	return customStatus
+}
+
+func removeUnicodeSkinTone(unicodeString string) string {
+	skinToneDetectorRegex := regexp.MustCompile("-(1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)")
+	skinToneLocations := skinToneDetectorRegex.FindIndex([]byte(unicodeString))
+
+	if len(skinToneLocations) == 0 {
+		return unicodeString
+	}
+	if _, count := model.GetEmojiNameFromUnicode(unicodeString); count > 0 {
+		return unicodeString
+	}
+	unicodeWithRemovedSkinTone := unicodeString[:skinToneLocations[0]] + unicodeString[skinToneLocations[1]:]
+	unicodeWithVariationSelector := unicodeString[:skinToneLocations[0]] + "-fe0f" + unicodeString[skinToneLocations[1]:]
+	if _, count := model.GetEmojiNameFromUnicode(unicodeWithRemovedSkinTone); count > 0 {
+		unicodeString = unicodeWithRemovedSkinTone
+	} else if _, count := model.GetEmojiNameFromUnicode(unicodeWithVariationSelector); count > 0 {
+		unicodeString = unicodeWithVariationSelector
+	}
+
+	return unicodeString
 }

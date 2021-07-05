@@ -298,7 +298,7 @@ func (es *EmailService) SendCloudTrialEndWarningEmail(userEmail, name, trialEndD
 	data.Props["Title"] = T("api.templates.cloud_trial_ending_email.title")
 	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Name": name, "TrialEnd": trialEndDate})
 	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription?action=show_purchase_modal", siteURL)
 	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
@@ -628,6 +628,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			embeddedFiles := make(map[string]io.Reader)
 			if message != "" {
 				if senderProfileImage != nil {
+					data.Props["SenderPhoto"] = "user-avatar.png"
 					embeddedFiles = map[string]io.Reader{
 						"user-avatar.png": bytes.NewReader(senderProfileImage),
 					}

@@ -581,6 +581,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.FailedAttempts = 0
 	u.MfaActive = false
 	u.MfaSecret = ""
+	u.Email = strings.TrimSpace(u.Email)
 }
 
 func (u *User) ClearNonProfileFields() {
@@ -854,6 +855,7 @@ func HashPassword(password string) string {
 }
 
 // ComparePassword compares the hash
+// This function is deprecated and will be removed in a future release.
 func ComparePassword(hash string, password string) bool {
 
 	if password == "" || hash == "" {

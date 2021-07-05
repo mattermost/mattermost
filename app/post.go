@@ -88,7 +88,7 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
 	if !fromWebhook && !fromBot {
-		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
+		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
@@ -648,6 +648,11 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	}
 
 	rpost = a.PreparePostForClient(rpost, false, true)
+
+	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
+	// and we don't want to have to populate it for every single user and broadcast to each
+	// individually.
+	rpost.IsFollowing = nil
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
 	message.Add("post", rpost.ToJson())

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"image"
 	"mime/multipart"
 	"regexp"
 	"strings"
@@ -39,7 +40,13 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 		GeneratePreviewImage:   a.generatePreviewImage,
 		InvalidateAllCaches:    func() { a.srv.InvalidateAllCaches() },
 		MaxPostSize:            func() int { return a.srv.MaxPostSize() },
-		PrepareImage:           prepareImage,
+		PrepareImage: func(fileData []byte) (image.Image, func(), error) {
+			img, release, err := prepareImage(a.srv.imgDecoder, bytes.NewReader(fileData))
+			if err != nil {
+				return nil, nil, err
+			}
+			return img, release, err
+		},
 	}
 
 	importer := slackimport.New(a.srv.Store, actions, a.Config())

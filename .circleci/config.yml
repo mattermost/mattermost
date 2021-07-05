@@ -17,7 +17,7 @@ jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: mattermost/mattermost-build-webapp:20200829_node-10.22
+      - image: mattermost/mattermost-build-webapp:20210524_node-16
     resource_class: xlarge
     steps:
       - checkout
@@ -638,9 +638,4 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
-      - test-schema:
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-migrations
+      # test-schema for master run in .gitlab-ci.yml

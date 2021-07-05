@@ -109,7 +109,8 @@ func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
 }
 
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
-	return api.app.SaveConfig(config, true)
+	_, _, err := api.app.SaveConfig(config, true)
+	return err
 }
 
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
@@ -123,7 +124,8 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
-	return api.app.SaveConfig(cfg, true)
+	_, _, err := api.app.SaveConfig(cfg, true)
+	return err
 }
 
 func (api *PluginAPI) GetBundlePath() (string, error) {
@@ -435,6 +437,18 @@ func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Chann
 		return nil, err
 	}
 	return *channels, err
+}
+
+func (api *PluginAPI) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return api.app.CreateSidebarCategory(userID, teamID, newCategory)
+}
+
+func (api *PluginAPI) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	return api.app.GetSidebarCategories(userID, teamID)
+}
+
+func (api *PluginAPI) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	return api.app.UpdateSidebarCategories(userID, teamID, categories)
 }
 
 func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {

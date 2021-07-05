@@ -367,6 +367,52 @@ func TestOAuthAccessToken(t *testing.T) {
 	ApiClient.ClearOAuthToken()
 }
 
+func TestMobileLoginWithOAuth(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	c := &Context{
+		App:        th.App,
+		AppContext: &request.Context{},
+		Params: &Params{
+			Service: "gitlab",
+		},
+	}
+
+	var siteURL = "http://localhost:8065"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = siteURL })
+
+	translationFunc := i18n.GetUserTranslations("en")
+	c.AppContext.SetT(translationFunc)
+	buffer := &bytes.Buffer{}
+	c.Logger = mlog.NewTestingLogger(t, buffer)
+	provider := &MattermostTestProvider{}
+	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
+
+	t.Run("Should include redirect URL in the output when valid URL Scheme is passed", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.Contains(t, responseWriter.Body.String(), "randomScheme://")
+		assert.NotContains(t, responseWriter.Body.String(), siteURL)
+	})
+
+	t.Run("Should not include the redirect URL consisting of javascript protocol", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.NotContains(t, responseWriter.Body.String(), "javascript:alert('hello')")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
+	})
+
+	t.Run("Should not include the redirect URL consisting of javascript protocol in mixed case", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.NotContains(t, responseWriter.Body.String(), "JaVasCript:alert('hello')")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
+	})
+}
+
 func TestOAuthComplete(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
@@ -616,6 +662,10 @@ func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service st
 
 func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, error) {
 	return nil, nil
+}
+
+func (m *MattermostTestProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+	return dbUser.AuthData == oauthUser.AuthData
 }
 
 func GenerateTestAppName() string {

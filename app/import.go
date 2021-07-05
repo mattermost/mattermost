@@ -4,9 +4,11 @@
 package app
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -123,16 +125,20 @@ func (a *App) bulkImportWorker(c *request.Context, dryRun bool, wg *sync.WaitGro
 	wg.Done()
 }
 
-func (a *App) BulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
-	return a.bulkImport(c, fileReader, dryRun, workers, "")
+func (a *App) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
+	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
-	return a.bulkImport(c, fileReader, dryRun, workers, importPath)
+func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
 }
 
-func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
-	scanner := bufio.NewScanner(fileReader)
+// bulkImport will extract attachments from attachmentsReader if it is
+// not nil. If it is nil, it will look for attachments on the
+// filesystem in the locations specified by the JSONL file according
+// to the older behavior
+func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
 
@@ -146,6 +152,14 @@ func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, 
 	var linesChan chan LineImportWorkerData
 	lastLineType := ""
 
+	var attachedFiles map[string]*zip.File
+	if attachmentsReader != nil {
+		attachedFiles = make(map[string]*zip.File, len(attachmentsReader.File))
+		for _, fi := range attachmentsReader.File {
+			attachedFiles[fi.Name] = fi
+		}
+	}
+
 	for scanner.Scan() {
 		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
 		lineNumber++
@@ -153,6 +167,16 @@ func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, 
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
+		}
+
+		if len(attachedFiles) > 0 && line.Post != nil && line.Post.Attachments != nil {
+			for i, attachment := range *line.Post.Attachments {
+				var ok bool
+				path := *attachment.Path
+				if (*line.Post.Attachments)[i].Data, ok = attachedFiles[path]; !ok {
+					return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, fmt.Sprintf("attachment '%s' not found in map", path), http.StatusBadRequest), lineNumber
+				}
+			}
 		}
 
 		if importPath != "" {

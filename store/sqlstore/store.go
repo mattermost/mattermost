@@ -179,6 +179,23 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
+	if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		ver, err := store.GetDbVersion(true)
+		if err != nil {
+			mlog.Critical("Cannot get DB version.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		intVer, err := strconv.Atoi(ver)
+		if err != nil {
+			mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		if intVer < MinimumRequiredPostgresVersion {
+			mlog.Critical("Minimum Postgres version requirements not met.", mlog.String("Found", VersionString(intVer)), mlog.String("Wanted", VersionString(MinimumRequiredPostgresVersion)))
+			os.Exit(ExitGenericFailure)
+		}
+	}
+
 	err := store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
@@ -321,25 +338,39 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
-	var dbmap *gorp.DbMap
+	dbMap := getDBMap(settings, db)
 
+	return dbMap
+}
+
+func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
-
-	if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
-	} else if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
-	} else {
+	var dbMap *gorp.DbMap
+	switch *settings.DriverName {
+	case model.DATABASE_DRIVER_MYSQL:
+		dbMap = &gorp.DbMap{
+			Db:            db,
+			TypeConverter: mattermConverter{},
+			Dialect:       gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"},
+			QueryTimeout:  connectionTimeout,
+		}
+	case model.DATABASE_DRIVER_POSTGRES:
+		dbMap = &gorp.DbMap{
+			Db:            db,
+			TypeConverter: mattermConverter{},
+			Dialect:       gorp.PostgresDialect{},
+			QueryTimeout:  connectionTimeout,
+		}
+	default:
 		mlog.Critical("Failed to create dialect specific driver")
 		time.Sleep(time.Second)
 		os.Exit(ExitNoDriver)
+		return nil
 	}
-
 	if settings.Trace != nil && *settings.Trace {
-		dbmap.TraceOn("sql-trace:", &TraceOnAdapter{})
+		dbMap.TraceOn("sql-trace:", &TraceOnAdapter{})
 	}
-
-	return dbmap
+	return dbMap
 }
 
 func (ss *SqlStore) SetContext(context context.Context) {
@@ -351,7 +382,20 @@ func (ss *SqlStore) Context() context.Context {
 }
 
 func (ss *SqlStore) initConnection() {
-	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
+	dataSource := *ss.settings.DataSource
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// TODO: We ignore the readTimeout datasource parameter for MySQL since QueryTimeout
+		// covers that already. Ideally we'd like to do this only for the upgrade
+		// step. To be reviewed in MM-35789.
+		var err error
+		dataSource, err = resetReadTimeout(dataSource)
+		if err != nil {
+			mlog.Critical("Failed to reset read timeout from datasource.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+	}
+
+	ss.master = setupConnection("master", dataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
@@ -882,7 +926,23 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	return true
 }
 
-func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
+func (ss *SqlStore) RemoveDefaultIfColumnExists(tableName, columnName string) bool {
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
+
+	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
+	if err != nil {
+		mlog.Critical("Failed to drop column default", mlog.String("table", tableName), mlog.String("column", columnName), mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(ExitGenericFailure)
+		return false
+	}
+
+	return true
+}
+
+func (ss *SqlStore) AlterDefaultIfColumnExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
 	if !ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -911,15 +971,14 @@ func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName stri
 		return false
 	}
 
-	var err error
 	if defaultValue == "" {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
-	} else {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue)
+		defaultValue = "''"
 	}
 
+	query := "ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue
+	_, err := ss.GetMaster().ExecNoTimeout(query)
 	if err != nil {
-		mlog.Critical("Failed to alter column", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
+		mlog.Critical("Failed to alter column default", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(ExitGenericFailure)
 		return false
@@ -1482,11 +1541,24 @@ func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, err
 			return "", err
 		}
 
+		if config.Params == nil {
+			config.Params = map[string]string{}
+		}
+
 		config.Params["multiStatements"] = "true"
 		return config.FormatDSN(), nil
 	}
 
 	return dataSource, nil
+}
+
+func resetReadTimeout(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+	config.ReadTimeout = 0
+	return config.FormatDSN(), nil
 }
 
 type mattermConverter struct{}

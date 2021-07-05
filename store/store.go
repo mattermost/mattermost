@@ -90,6 +90,7 @@ type RetentionPolicyStore interface {
 	GetTeamsCount(policyId string) (int64, error)
 	AddTeams(policyId string, teamIds []string) error
 	RemoveTeams(policyId string, teamIds []string) error
+	DeleteOrphanedRows(limit int) (int64, error)
 	GetTeamPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForTeam, error)
 	GetTeamPoliciesCountForUser(userID string) (int64, error)
 	GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error)
@@ -150,6 +151,10 @@ type TeamStore interface {
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
 	GroupSyncedTeamCount() (int64, error)
+
+	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
+	// users belong.
+	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 }
 
 type ChannelStore interface {
@@ -212,7 +217,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByUser(userID string) error
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userID string, updateThreads bool) (map[string]int64, error)
-	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool) (*model.ChannelUnreadAt, error)
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
 	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
 	IncrementMentionCount(channelID string, userID string, updateThreads, isRoot bool) error
 	AnalyticsTypeCount(teamID string, channelType string) (int64, error)
@@ -269,6 +274,8 @@ type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userID string, channelID string, joinTime int64) error
 	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error)
+	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
+	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 type ThreadStore interface {
@@ -279,11 +286,12 @@ type ThreadStore interface {
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error)
-	GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, error)
+	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
 	Delete(postID string) error
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
 	MarkAllAsRead(userID, teamID string) error
+	MarkAllAsReadInChannels(userID string, channelIDs []string) error
 	MarkAsRead(userID, threadID string, timestamp int64) error
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
@@ -291,9 +299,12 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postID string) error
-	MaintainMembership(userID, postID string, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants bool) (*model.ThreadMembership, error)
+	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
+	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
+	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
+	DeleteOrphanedRows(limit int) (deleted int64, err error)
 }
 
 type PostStore interface {
@@ -328,6 +339,8 @@ type PostStore interface {
 	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error)
+	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
+	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
@@ -337,7 +350,7 @@ type PostStore interface {
 	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
-	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error)
+	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 }
 
 type UserStore interface {
@@ -567,12 +580,14 @@ type PreferenceStore interface {
 	DeleteCategory(userID string, category string) error
 	DeleteCategoryAndName(category string, name string) error
 	PermanentDeleteByUser(userID string) error
+	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	CleanupFlagsBatch(limit int64) (int64, error)
 }
 
 type LicenseStore interface {
 	Save(license *model.LicenseRecord) (*model.LicenseRecord, error)
 	Get(id string) (*model.LicenseRecord, error)
+	GetAll() ([]*model.LicenseRecord, error)
 }
 
 type TokenStore interface {
@@ -640,8 +655,9 @@ type ReactionStore interface {
 	GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error)
 	GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error)
 	DeleteAllWithEmojiName(emojiName string) error
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
+	DeleteOrphanedRows(limit int) (int64, error)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 
 type JobStore interface {
@@ -849,13 +865,15 @@ type SharedChannelStore interface {
 	GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
-	UpdateRemoteNextSyncAt(id string, syncTime int64) error
+	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	DeleteRemote(remoteId string) (bool, error)
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
-	GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
-	UpdateUserLastSyncAt(id string, syncTime int64) error
+	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
+	GetUsersForUser(userID string) ([]*model.SharedChannelUser, error)
+	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
+	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
 
 	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
 	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
@@ -905,4 +923,22 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+// ThreadMembershipOpts defines some properties to be passed to
+// ThreadStore.MaintainMembership()
+type ThreadMembershipOpts struct {
+	// Following indicates whether or not the user is following the thread.
+	Following bool
+	// IncrementMentions indicates whether or not the mentions count for
+	// the thread should be incremented.
+	IncrementMentions bool
+	// UpdateFollowing indicates whether or not a membership update should be forced.
+	UpdateFollowing bool
+	// UpdateViewedTimestamp indicates whether or not the LastViewed field of the
+	// membership should be updated.
+	UpdateViewedTimestamp bool
+	// UpdateParticipants indicates whether or not the thread's participants list
+	// should be updated.
+	UpdateParticipants bool
 }

@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Erro ao atualizar o canal atual."
+    "translation": "Erro ao atualizar o cabeçalho do canal."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Erro ao atualizar o canal atual."
+    "translation": "Erro ao atualizar o propósito do canal."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -1716,10 +1716,6 @@
     "translation": "Não foi possível ler o ícone da equipe."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Não foi possível ler os metadados do ícone da equipe."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Não foi possível codificar o ícone da equipe."
   },
@@ -1845,7 +1841,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Você foi convidado"
+    "translation": "{{ .SenderName }} convidou-o para a equipe: {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -2270,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Não foi possível decodificar a imagem do perfil."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Não foi possível salvar a imagem. Arquivo não parecer ser de uma imagem valida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3040,10 +3032,6 @@
     "translation": "Não é possível ler os dados da imagem."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Não é possível obter os metadados da imagem."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Não é possível converter os dados da imagem para PNG. Por favor tente novamente."
   },
@@ -3054,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Não é possível gravar o arquivo de imagem no seu armazenamento de arquivos. Por favor verifique sua conexão e tente novamente."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Não é possível ler o arquivo de imagem. Verifique se o tamanho da imagem é menor que 2 MB e tente novamente."
   },
   {
     "id": "cli.license.critical",
@@ -4429,35 +4413,35 @@
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
-    "translation": "Nomes dos arquivos inválidos"
+    "translation": "Nomes de arquivo inválidos"
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
-    "translation": "Hashtags inválidas"
+    "translation": "Hashtags inválidos."
   },
   {
     "id": "model.post.is_valid.id.app_error",
-    "translation": "ID inválida"
+    "translation": "ID inválida."
   },
   {
     "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mensagem inválida"
+    "translation": "Mensagem inválida."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
-    "translation": "Id original inválida"
+    "translation": "Id original inválida."
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id pai inválido"
+    "translation": "Id pai inválido."
   },
   {
     "id": "model.post.is_valid.props.app_error",
-    "translation": "Props inválido"
+    "translation": "Props inválido."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
-    "translation": "Id raiz inválida"
+    "translation": "Id raiz inválido."
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
@@ -8020,14 +8004,6 @@
     "translation": "Valor inválido para Diretório."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Não foi possível processar a importação: falha ao descompactar o arquivo."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Impossível processar importação: falha ao criar diretório temporário."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Impossível processar importação: falha ao abrir o arquivo."
   },
@@ -8533,11 +8509,11 @@
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Erro ao buscar clusters remotos: {{.Error}}"
+    "translation": "Erro ao buscar conexões seguras: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Compartilha o canal atual com uma instância remota do Mattermost."
+    "translation": "Compartilha o canal atual com uma instância externa do Mattermost."
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -8549,7 +8525,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Status para id do canal `{{.ChannelId}}`"
+    "translation": "Status para ID do canal `{{.ChannelId}}`"
   },
   {
     "id": "api.command_share.channel_status.help",
@@ -8561,11 +8537,11 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "O id remoto do canal compartilhado `{{.RemoteId}}` não existe para este canal."
+    "translation": "A conexão segura de canal compartilhado `{{.RemoteId}}` não existe para este canal."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Não é possível convidar cluster remoto para um canal compartilhado originado em outro lugar."
+    "translation": "Não é possível convidar uma conexão segura para um canal compartilhado originado em outro lugar."
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -8581,59 +8557,59 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Exibe o status de todos os clusters remotos"
+    "translation": "Exibe o status de todas as conexões seguras"
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SiteURL não definido. Defina isso por meio do console do sistema."
+    "translation": "URL do site não definido. Defina isso em Console do Sistema > Ambiente > Servidor da web."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Serviço de Cluster Remoto não habilitado."
+    "translation": "Serviço de conexão segura não habilitado."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "O Serviço de Cluster Remoto está desabilitado."
+    "translation": "O serviço de conexão segura está desativado."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id de remoção de cluster remoto"
+    "translation": "ID da conexão segura a ser removida."
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Não foi possível remover o cluster remoto: {{.Error}}"
+    "translation": "Não foi possível remover a conexão segura: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Remove um cluster remoto"
+    "translation": "Remove uma conexão segura"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Nenhum cluster remoto encontrado."
+    "translation": "Nenhuma conexão segura encontrada."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Nome | SiteURL | RemoteId | Convite Aceito | Online | Último Ping |"
+    "translation": "| Conexão segura | Nome de exibição | ID de conexão | URL do site | Convite aceito | Online | Último ping |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Adicionar/remover clusters remotos. Ações disponíveis: {{.Actions}}"
+    "translation": "Adicionar/remover conexões seguras. Ações disponíveis: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Você requer permissão de `{{.Permission}}` para gerenciar clusters remotos."
+    "translation": "Você requer permissão de `{{.Permission}}` para gerenciar conexões seguras."
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Um nome de exibição para o cluster remoto"
+    "translation": "Um nome exclusivo para a conexão segura"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Nome do cluster remoto"
+    "translation": "Nome da conexão segura"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "remoto"
+    "translation": "conexão-segura"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -8645,7 +8621,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Envie o seguinte blob criptografado (AES256 + Base64) ao administrador do site remoto junto com a senha. Eles usarão o comando de barra `{{.Command}}` para aceitar o convite.\n\n```\n{{.Invitation}}\n```\n\n**Certifique-se de que o site remoto pode acessar seu cluster via** {{.SiteURL}}"
+    "translation": "Envie o seguinte convite criptografado AES de 256 bits para o Mattermost System Admin externo junto com a senha. Eles usarão o comando de barra `{{.Command}}` para aceitar o convite.\n\n```\n{{.Invitation}}\n```\n\n**Certifique-se de que a conexão segura pode acessar sua instância Mattermost via** {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -8657,7 +8633,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Convide um cluster remoto"
+    "translation": "Convide uma conexão segura"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -8665,11 +8641,11 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "O convite criptografado de um cluster remoto"
+    "translation": "O convite criptografado de uma conexão segura"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Convite de cluster remoto"
+    "translation": "Convite de conexão segura"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -8681,7 +8657,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Não foi possível buscar clusters remotos: {{.Error}}"
+    "translation": "Não foi possível buscar conexões seguras: {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -8689,7 +8665,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Convide clusters remotos do Mattermost para comunicação entre clusters."
+    "translation": "Convide conexões seguras para comunicação entre as instâncias do Mattermost."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -8697,11 +8673,11 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Cluster remoto {{.RemoteId}} {{.Result}}."
+    "translation": "Conexão segura {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Não foi possível adicionar cluster remoto: {{.Error}}"
+    "translation": "Não foi possível adicionar conexão segura: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -8713,7 +8689,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Aceite um convite de um cluster remoto"
+    "translation": "Aceite um convite de uma instância externa do Mattermost"
   },
   {
     "id": "api.cloud.get_subscription.error",
@@ -9010,5 +8986,29 @@
   {
     "id": "api.command_share.invitation_sent",
     "translation": "O convite do canal foi enviado para `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Um nome de exibição para a conexão segura"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Nome de exibição da conexão segura"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "O texto inserido excede o limite de caracteres. O propósito do canal é limitado a {{.MaxLength}} caracteres."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "O texto inserido excede o limite de caracteres. O cabeçalho do canal é limitado a {{.MaxLength}} caracteres."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Um canal direto não pode ser criado entre esses usuários porque eles não compartilham uma equipe em comum."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
   }
 ]

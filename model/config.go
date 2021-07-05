@@ -129,8 +129,8 @@ const (
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
-	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://about.mattermost.com/default-terms/"
-	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK   = "https://about.mattermost.com/default-privacy-policy/"
+	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://mattermost.com/terms-of-service/"
+	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK   = "https://mattermost.com/privacy-policy/"
 	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK            = "https://about.mattermost.com/default-about/"
 	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
 	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
@@ -206,6 +206,7 @@ const (
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
+	DATA_RETENTION_SETTINGS_DEFAULT_BATCH_SIZE              = 3000
 
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
@@ -2700,6 +2701,7 @@ type DataRetentionSettings struct {
 	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
+	BatchSize             *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2721,6 +2723,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.DeletionJobStartTime == nil {
 		s.DeletionJobStartTime = NewString(DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME)
+	}
+
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(DATA_RETENTION_SETTINGS_DEFAULT_BATCH_SIZE)
 	}
 }
 
