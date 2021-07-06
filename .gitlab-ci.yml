@@ -126,6 +126,8 @@ test-schema-mysql:
     - k8s-memory
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "cloud"'
+    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
 
 test-schema-postgres:
   stage: test
@@ -148,3 +150,5 @@ test-schema-postgres:
     - k8s-memory
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "cloud"'
+    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
