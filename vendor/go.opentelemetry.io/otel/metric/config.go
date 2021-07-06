@@ -15,28 +15,44 @@
 package metric // import "go.opentelemetry.io/otel/metric"
 
 import (
-	"go.opentelemetry.io/otel/unit"
+	"go.opentelemetry.io/otel/metric/unit"
 )
 
 // InstrumentConfig contains options for metric instrument descriptors.
 type InstrumentConfig struct {
-	// Description describes the instrument in human-readable terms.
-	Description string
-	// Unit describes the measurement unit for a instrument.
-	Unit unit.Unit
-	// InstrumentationName is the name of the library providing
-	// instrumentation.
-	InstrumentationName string
-	// InstrumentationVersion is the version of the library providing
-	// instrumentation.
-	InstrumentationVersion string
+	description            string
+	unit                   unit.Unit
+	instrumentationName    string
+	instrumentationVersion string
+}
+
+// Description describes the instrument in human-readable terms.
+func (cfg InstrumentConfig) Description() string {
+	return cfg.description
+}
+
+// Unit describes the measurement unit for a instrument.
+func (cfg InstrumentConfig) Unit() unit.Unit {
+	return cfg.unit
+}
+
+// InstrumentationName is the name of the library providing
+// instrumentation.
+func (cfg InstrumentConfig) InstrumentationName() string {
+	return cfg.instrumentationName
+}
+
+// InstrumentationVersion is the version of the library providing
+// instrumentation.
+func (cfg InstrumentConfig) InstrumentationVersion() string {
+	return cfg.instrumentationVersion
 }
 
 // InstrumentOption is an interface for applying metric instrument options.
 type InstrumentOption interface {
 	// ApplyMeter is used to set a InstrumentOption value of a
 	// InstrumentConfig.
-	ApplyInstrument(*InstrumentConfig)
+	applyInstrument(*InstrumentConfig)
 }
 
 // NewInstrumentConfig creates a new InstrumentConfig
@@ -44,55 +60,52 @@ type InstrumentOption interface {
 func NewInstrumentConfig(opts ...InstrumentOption) InstrumentConfig {
 	var config InstrumentConfig
 	for _, o := range opts {
-		o.ApplyInstrument(&config)
+		o.applyInstrument(&config)
 	}
 	return config
 }
 
-// WithDescription applies provided description.
-func WithDescription(desc string) InstrumentOption {
-	return descriptionOption(desc)
+type instrumentOptionFunc func(*InstrumentConfig)
+
+func (fn instrumentOptionFunc) applyInstrument(cfg *InstrumentConfig) {
+	fn(cfg)
 }
 
-type descriptionOption string
-
-func (d descriptionOption) ApplyInstrument(config *InstrumentConfig) {
-	config.Description = string(d)
+// WithDescription applies provided description.
+func WithDescription(desc string) InstrumentOption {
+	return instrumentOptionFunc(func(cfg *InstrumentConfig) {
+		cfg.description = desc
+	})
 }
 
 // WithUnit applies provided unit.
 func WithUnit(unit unit.Unit) InstrumentOption {
-	return unitOption(unit)
-}
-
-type unitOption unit.Unit
-
-func (u unitOption) ApplyInstrument(config *InstrumentConfig) {
-	config.Unit = unit.Unit(u)
+	return instrumentOptionFunc(func(cfg *InstrumentConfig) {
+		cfg.unit = unit
+	})
 }
 
 // WithInstrumentationName sets the instrumentation name.
 func WithInstrumentationName(name string) InstrumentOption {
-	return instrumentationNameOption(name)
-}
-
-type instrumentationNameOption string
-
-func (i instrumentationNameOption) ApplyInstrument(config *InstrumentConfig) {
-	config.InstrumentationName = string(i)
+	return instrumentOptionFunc(func(cfg *InstrumentConfig) {
+		cfg.instrumentationName = name
+	})
 }
 
 // MeterConfig contains options for Meters.
 type MeterConfig struct {
-	// InstrumentationVersion is the version of the library providing
-	// instrumentation.
-	InstrumentationVersion string
+	instrumentationVersion string
+}
+
+// InstrumentationVersion is the version of the library providing instrumentation.
+func (cfg MeterConfig) InstrumentationVersion() string {
+	return cfg.instrumentationVersion
 }
 
 // MeterOption is an interface for applying Meter options.
 type MeterOption interface {
 	// ApplyMeter is used to set a MeterOption value of a MeterConfig.
-	ApplyMeter(*MeterConfig)
+	applyMeter(*MeterConfig)
 }
 
 // NewMeterConfig creates a new MeterConfig and applies
@@ -100,29 +113,29 @@ type MeterOption interface {
 func NewMeterConfig(opts ...MeterOption) MeterConfig {
 	var config MeterConfig
 	for _, o := range opts {
-		o.ApplyMeter(&config)
+		o.applyMeter(&config)
 	}
 	return config
 }
 
-// InstrumentationOption is an interface for applying instrumentation specific
-// options.
-type InstrumentationOption interface {
+// InstrumentMeterOption are options that can be used as both an InstrumentOption
+// and MeterOption
+type InstrumentMeterOption interface {
 	InstrumentOption
 	MeterOption
 }
 
 // WithInstrumentationVersion sets the instrumentation version.
-func WithInstrumentationVersion(version string) InstrumentationOption {
+func WithInstrumentationVersion(version string) InstrumentMeterOption {
 	return instrumentationVersionOption(version)
 }
 
 type instrumentationVersionOption string
 
-func (i instrumentationVersionOption) ApplyMeter(config *MeterConfig) {
-	config.InstrumentationVersion = string(i)
+func (i instrumentationVersionOption) applyMeter(config *MeterConfig) {
+	config.instrumentationVersion = string(i)
 }
 
-func (i instrumentationVersionOption) ApplyInstrument(config *InstrumentConfig) {
-	config.InstrumentationVersion = string(i)
+func (i instrumentationVersionOption) applyInstrument(config *InstrumentConfig) {
+	config.instrumentationVersion = string(i)
 }
