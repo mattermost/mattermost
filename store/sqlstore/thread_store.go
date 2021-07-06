@@ -137,7 +137,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
 	if !opts.Deleted {
-		fetchConditions = sq.And{fetchConditions, sq.Eq{"Posts.DeleteAt": 0}}
+		fetchConditions = sq.And{
+			fetchConditions,
+			sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0},
+		}
 	}
 
 	pageSize := uint64(30)
@@ -217,7 +220,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		}
 		var threads []*JoinedThread
 		query, args, _ := s.getQueryBuilder().
-			Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions").
+			Select(`Threads.*,
+				` + postSliceCoalesceQuery() + `,
+				ThreadMemberships.LastViewed as LastViewedAt,
+				ThreadMemberships.UnreadMentions as UnreadMentions`).
 			From("Threads").
 			Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
 			LeftJoin("Posts ON Posts.Id = Threads.PostId").
@@ -309,7 +315,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			UnreadReplies:  thread.UnreadReplies,
 			UnreadMentions: thread.UnreadMentions,
 			Participants:   participants,
-			Post:           &thread.Post,
+			Post:           thread.Post.ToNilIfInvalid(),
 		})
 	}
 
@@ -401,7 +407,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
 		Participants:   users,
-		Post:           &thread.Post,
+		Post:           thread.Post.ToNilIfInvalid(),
 	}
 
 	return result, nil
@@ -690,4 +696,87 @@ func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, 
 		return nil, errors.Wrap(err, "failed to fetch thread posts")
 	}
 	return result, nil
+}
+
+// PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
+// the global or a granular retention policy.
+// See `genericPermanentDeleteBatchForRetentionPolicies` for details.
+func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("Threads.PostId").
+		From("Threads")
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "Threads",
+		TimeColumn:          "LastReplyAt",
+		PrimaryKeys:         []string{"PostId"},
+		ChannelIDTable:      "Threads",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
+}
+
+// PermanentDeleteBatchThreadMembershipsForRetentionPolicies deletes a batch of records
+// which are affected by the global or a granular retention policy.
+// See `genericPermanentDeleteBatchForRetentionPolicies` for details.
+func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("ThreadMemberships.PostId").
+		From("ThreadMemberships").
+		InnerJoin("Threads ON ThreadMemberships.PostId = Threads.PostId")
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "ThreadMemberships",
+		TimeColumn:          "LastUpdated",
+		PrimaryKeys:         []string{"PostId"},
+		ChannelIDTable:      "Threads",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
+}
+
+// DeleteOrphanedRows removes orphaned rows from Threads and ThreadMemberships
+func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const threadsQuery = `
+	DELETE FROM Threads WHERE PostId IN (
+		SELECT * FROM (
+			SELECT Threads.PostId FROM Threads
+			LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	// We only delete a thread membership if the entire thread no longer exists,
+	// not if the root post has been deleted
+	const threadMembershipsQuery = `
+	DELETE FROM ThreadMemberships WHERE PostId IN (
+		SELECT * FROM (
+			SELECT ThreadMemberships.PostId FROM ThreadMemberships
+			LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+			WHERE Threads.PostId IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(threadsQuery, props)
+	if err != nil {
+		return
+	}
+	rpcDeleted, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	result, err = s.GetMaster().Exec(threadMembershipsQuery, props)
+	if err != nil {
+		return
+	}
+	rptDeleted, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	deleted = rpcDeleted + rptDeleted
+	return
 }
