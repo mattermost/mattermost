@@ -217,6 +217,43 @@ func (c *ChannelService) UpdateChannelMemberNotifications(channelID, userID stri
 	return channelMember, normalizeAppErr(appErr)
 }
 
+// CreateSidebarCategory creates a new sidebar category for a set of channels.
+//
+// Minimum server version: 5.37
+func (c *ChannelService) CreateSidebarCategory(
+	userID, teamID string, newCategory *model.SidebarCategoryWithChannels) error {
+	category, appErr := c.api.CreateChannelSidebarCategory(userID, teamID, newCategory)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
+	*newCategory = *category
+
+	return nil
+}
+
+// GetSidebarCategories returns sidebar categories.
+//
+// Minimum server version: 5.37
+func (c *ChannelService) GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, error) {
+	categories, appErr := c.api.GetChannelSidebarCategories(userID, teamID)
+
+	return categories, normalizeAppErr(appErr)
+}
+
+// UpdateSidebarCategories updates the channel sidebar categories.
+//
+// Minimum server version: 5.37
+func (c *ChannelService) UpdateSidebarCategories(
+	userID, teamID string, categories []*model.SidebarCategoryWithChannels) error {
+	updatedCategories, appErr := c.api.UpdateChannelSidebarCategories(userID, teamID, categories)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
+	copy(categories, updatedCategories)
+
+	return nil
+}
+
 func (c *ChannelService) waitForChannelCreation(channelID string) error {
 	if len(c.api.GetConfig().SqlSettings.DataSourceReplicas) == 0 {
 		return nil
