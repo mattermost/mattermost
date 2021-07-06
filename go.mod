@@ -144,8 +144,6 @@ require (
 	willnorris.com/go/imageproxy v0.10.0
 )
 
-replace github.com/dyatlov/go-opengraph => github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627
-
 // Hack to prevent the willf/bitset module from being upgraded to 1.2.0.
 // They changed the module path from github.com/willf/bitset to
 // github.com/bits-and-blooms/bitset and a couple of dependent repos are yet
