@@ -10,18 +10,9 @@ type Permalink struct {
 }
 
 type PreviewPost struct {
-	Id        string `json:"id"`
-	CreateAt  int64  `json:"create_at"`
-	UpdateAt  int64  `json:"update_at"`
-	ChannelId string `json:"channel_id"`
-	Message   string `json:"message"`
-	Type      string `json:"type"`
-	UserID    string `json:"user_id"`
-
-	TeamName string `json:"team_name"`
-
-	ChannelName        string `json:"channel_name"`
-	ChannelType        string `json:"channel_type"`
+	PostID             string `json:"post_id"`
+	Post               *Post  `json:"post"`
+	TeamName           string `json:"team_name"`
 	ChannelDisplayName string `json:"channel_display_name"`
 }
 
@@ -30,16 +21,9 @@ func PreviewPostFromPost(post *Post, team *Team, channel *Channel) *PreviewPost 
 		return nil
 	}
 	return &PreviewPost{
-		Id:                 post.Id,
-		CreateAt:           post.CreateAt,
-		UpdateAt:           post.UpdateAt,
-		ChannelId:          post.ChannelId,
-		Message:            post.Message,
-		Type:               post.Type,
-		UserID:             post.UserId,
+		PostID:             post.Id,
+		Post:               post,
 		TeamName:           team.Name,
-		ChannelName:        channel.Name,
-		ChannelType:        channel.Type,
 		ChannelDisplayName: channel.DisplayName,
 	}
 }

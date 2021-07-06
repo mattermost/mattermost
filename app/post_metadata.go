@@ -216,7 +216,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}
 
 		if permalink.PreviewPost != nil {
-			referencedChannel, err := a.GetChannel(permalink.PreviewPost.ChannelId)
+			referencedChannel, err := a.GetChannel(permalink.PreviewPost.Post.ChannelId)
 			if err != nil && err.StatusCode != http.StatusNotFound {
 				return nil, err
 			}

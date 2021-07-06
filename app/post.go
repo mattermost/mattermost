@@ -375,7 +375,7 @@ func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, error) {
 		if embed.Type == model.POST_EMBED_PERMALINK {
 			updatedPost := post.Clone()
 			if previewPost, ok := embed.Data.(*model.PreviewPost); ok {
-				updatedPost.AddProp(model.POST_PROPS_PREVIEWED_POST, previewPost.Id)
+				updatedPost.AddProp(model.POST_PROPS_PREVIEWED_POST, previewPost.PostID)
 				return a.Srv().Store.Post().Update(updatedPost, post)
 			}
 		}

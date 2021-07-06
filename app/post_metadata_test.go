@@ -576,7 +576,7 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost := th.App.PreparePostForClient(previewPost, false, false, th.BasicUser.Id)
 		firstEmbed := clientPost.Metadata.Embeds[0]
 		preview := firstEmbed.Data.(*model.PreviewPost)
-		require.Equal(t, referencedPost.Id, preview.Id)
+		require.Equal(t, referencedPost.Id, preview.PostID)
 	})
 }
 
