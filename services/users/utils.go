@@ -9,13 +9,38 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// checkUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
-func checkUserDomain(user *model.User, domains string) bool {
-	return checkEmailDomain(user.Email, domains)
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
-// checkEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
-func checkEmailDomain(email string, domains string) bool {
+func (us *UserService) IsFirstUserAccount() bool {
+	cachedSessions, err := us.sessionCache.Len()
+	if err != nil {
+		return false
+	}
+	if cachedSessions == 0 {
+		count, err := us.store.Count(model.UserCountOptions{IncludeDeleted: true})
+		if err != nil {
+			return false
+		}
+		if count <= 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
+func CheckUserDomain(user *model.User, domains string) bool {
+	return CheckEmailDomain(user.Email, domains)
+}
+
+// CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
+func CheckEmailDomain(email string, domains string) bool {
 	if domains == "" {
 		return true
 	}

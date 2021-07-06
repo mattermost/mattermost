@@ -1716,10 +1716,6 @@
     "translation": "Impossible de décoder l'icône d'équipe."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Impossible de décoder les métadonnées de l'icône d'équipe"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Impossible d'encoder l'icône d'équipe"
   },
@@ -1893,7 +1889,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Vous avez demandez la réinitialisation de votre mot de passe"
+    "translation": "Vous avez demander la réinitialisation de votre mot de passe"
   },
   {
     "id": "api.templates.reset_subject",
@@ -2270,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Impossible de décoder la photo de profil"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossible de sauvegarder l'image de profil. Le fichier ne semble pas être un fichier d'image valide."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3040,10 +3032,6 @@
     "translation": "Impossible de décoder les données de l'image."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Impossible de récupérer les métadonnées de l'image."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Impossible de convertir l'image en format PNG. Veuillez réessayer. "
   },
@@ -3054,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Impossible d'enregistrer l'image dans le stockage de fichiers. Veuillez vérifier votre connexion et réessayez."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Impossible de lire l'image. Veuillez vous assurer que la taille de l'image fasse moins que 2 Mio et réessayez."
   },
   {
     "id": "cli.license.critical",
@@ -7185,7 +7169,7 @@
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": "L'url de redirection renseignée est invalide."
+    "translation": "L'url de redirection renseignée est invalide"
   },
   {
     "id": "api.file.write_file.app_error",
@@ -7614,5 +7598,21 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Erreur d'invalidation du cache"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "La clé de licence d'essai pour Mattermost Version Entreprise a expiré et n'est plus valide. Si vous voulez étendre votre période d'essai, veuillez [contacter notre équipe des ventes](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Impossible de vérifier si un essai peut être commencé"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Vérifiez que votre bucket Amazon S3 est disponible, et vérifiez-en les permissions."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Impossible de se connecter à S3. Vérifiez les paramètres d'autorisation et d'authentification à la connexion Amazon S3."
   }
 ]

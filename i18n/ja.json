@@ -1712,10 +1712,6 @@
     "translation": "チームアイコンをデコードできませんでした。"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "チームアイコンメタデータをデコードできませんでした。"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "チームアイコンをエンコードできませんでした。"
   },
@@ -2266,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "プロフィール画像をデコードできませんでした。"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "プロフィール画像を保存できませんでした。ファイルは有効な画像として表示されません。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3036,10 +3028,6 @@
     "translation": "画像データをデコードできません。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "画像メタデータを取得できません。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "画像データをPNG形式に変換できません。再度実行してください。"
   },
@@ -3050,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "ファイルストレージに画像ファイルを書き込めません。接続を確認し、再度実行してください。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "画像ファイルを読み込み目線。画像サイズが2MB以下であることを確認し、再度実行してください。"
   },
   {
     "id": "cli.license.critical",
@@ -7808,14 +7792,6 @@
     "translation": "CollapsedThreads設定は、無効、デフォルトON、デフォルトOFFのいずれかでなければなりません"
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "インポートを処理できませんでした: ファイルをunzipできませんでした。"
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "インポートを処理できませんでした: 一時ディレクトリを作成できませんでした。"
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "インポートを処理できませんでした: ファイルを開けません。"
   },
@@ -8917,7 +8893,7 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "削除する安全な接続のID"
+    "translation": "削除する安全な接続のIDです。"
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -9200,5 +9176,69 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "これらのユーザーはチームを共有していないため、ダイレクトチャネルを作成することはできません。"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "パスワードが不正です"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "設定の差分を取得できませんでした"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "設定の差分を取得できませんでした"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "データ保持ジョブが失敗しました。"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "ユーザースレッドのメンバーシップが存在しません"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "ユーザースレッドのメンバーシップを取得できませんでした"
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "システム"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "管理者リストが空です。"
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "管理者リストが空です。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "クラウドアカウント数が制限を超えているため、これ以上ユーザーを増やすことはできません。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "クラウドチェックに失敗したか、制限を超えています。"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[セールスチームまでご連絡ください](https://mattermost.com/contact-us/)。"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "トライアルが開始可能か確認できませんでした"
   }
 ]

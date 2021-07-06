@@ -92,6 +92,21 @@ func TestCreateUser(t *testing.T) {
 		require.NotNil(t, err, "should have errored")
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		email := th.GenerateTestEmail()
+		user2 := &model.User{Email: email, Password: "Password1", Username: GenerateTestUsername(), EmailVerified: true}
+		_, resp := client.CreateUser(user2)
+		CheckNoError(t, resp)
+		_, appErr := th.App.GetUserByUsername(user2.Username)
+		require.Nil(t, appErr)
+
+		user3 := &model.User{Email: fmt.Sprintf(" %s  ", email), Password: "Password1", Username: GenerateTestUsername(), EmailVerified: true}
+		_, resp = client.CreateUser(user3)
+		CheckBadRequestStatus(t, resp)
+		_, appErr = th.App.GetUserByUsername(user3.Username)
+		require.NotNil(t, appErr)
+	}, "Should not be able to create two users with the same email but spaces in it")
 }
 
 func TestCreateUserInputFilter(t *testing.T) {
@@ -2104,6 +2119,48 @@ func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSoc
 }
 
 func TestUpdateUserActive(t *testing.T) {
+	t.Run("not activating more users when cloud license users at limit", func(t *testing.T) {
+		// create 5 active users
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		cloudMock := &mocks.CloudInterface{}
+		cloudMock.Mock.On(
+			"GetSubscription", mock.Anything,
+		).Return(&model.Subscription{
+			ID:         "MySubscriptionID",
+			CustomerID: "MyCustomer",
+			ProductID:  "SomeProductId",
+			AddOns:     []string{},
+			StartAt:    1000000000,
+			EndAt:      2000000000,
+			CreateAt:   1000000000,
+			Seats:      100,
+			DNS:        "some.dns.server",
+			IsPaidTier: "false",
+		}, nil)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.App.Srv().Cloud = cloudMock
+
+		user := th.BasicUser
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.EnableUserDeactivation = true
+			*cfg.ExperimentalSettings.CloudUserLimit = 4
+		})
+
+		// deactivate 5th user, now we have 4 active users and are at limit
+		pass, resp := th.SystemAdminClient.UpdateUserActive(user.Id, false)
+		CheckNoError(t, resp)
+		require.True(t, pass)
+
+		// try and reactivate 5th user, not allowed because it exceeds the set cloud user limit
+		pass, resp = th.SystemAdminClient.UpdateUserActive(user.Id, true)
+		CheckBadRequestStatus(t, resp)
+		require.False(t, pass)
+		require.Equal(t, resp.Error.Message, "Unable to activate more users as the cloud account is over capacity.")
+	})
 	t.Run("basic tests", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -5629,6 +5686,7 @@ func TestThreadSocketEvents(t *testing.T) {
 					if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED {
 						caught = true
 						require.Equal(t, ev.GetData()["state"], false)
+						require.Equal(t, ev.GetData()["reply_count"], float64(1))
 					}
 				case <-time.After(1 * time.Second):
 					return
@@ -5704,6 +5762,7 @@ func TestFollowThreads(t *testing.T) {
 		})
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, 1)
+		require.GreaterOrEqual(t, uss.Threads[0].LastViewedAt, uss.Threads[0].LastReplyAt)
 
 	})
 }

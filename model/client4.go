@@ -5805,7 +5805,7 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 
 // RequestTrialLicense will request a trial license and install it in the server
 func (c *Client4) RequestTrialLicense(users int) (bool, *Response) {
-	b, _ := json.Marshal(map[string]int{"users": users})
+	b, _ := json.Marshal(map[string]interface{}{"users": users, "terms_accepted": true})
 	r, err := c.DoApiPost("/trial-license", string(b))
 	if err != nil {
 		return false, BuildErrorResponse(r, err)

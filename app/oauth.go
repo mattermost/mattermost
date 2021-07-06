@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -369,7 +370,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
-	a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
+	a.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	session.AddProp(model.SESSION_PROP_PLATFORM, appName)
 	session.AddProp(model.SESSION_PROP_OS, "OAuth2")
 	session.AddProp(model.SESSION_PROP_BROWSER, "OAuth2")
@@ -379,7 +380,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	a.AddSessionToCache(session)
+	a.srv.userService.AddSessionToCache(session)
 
 	return session, nil
 }
@@ -518,30 +519,15 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 }
 
 func (a *App) RevokeAccessToken(token string) *model.AppError {
-	session, _ := a.GetSession(token)
-
-	defer ReturnSessionToPool(session)
-
-	schan := make(chan error, 1)
-	go func() {
-		schan <- a.Srv().Store.Session().Remove(token)
-		close(schan)
-	}()
-
-	if _, err := a.Srv().Store.OAuth().GetAccessData(token); err != nil {
-		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	if err := a.Srv().Store.OAuth().RemoveAccessData(token); err != nil {
-		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if err := <-schan; err != nil {
-		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if session != nil {
-		a.ClearSessionCacheForUser(session.UserId)
+	if err := a.srv.userService.RevokeAccessToken(token); err != nil {
+		switch {
+		case errors.Is(err, users.GetTokenError):
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, err.Error(), http.StatusBadRequest)
+		case errors.Is(err, users.DeleteTokenError):
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, err.Error(), http.StatusInternalServerError)
+		case errors.Is(err, users.DeleteSessionError):
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return nil
