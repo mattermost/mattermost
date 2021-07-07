@@ -295,8 +295,9 @@ func (c *clusterNodes) Close() error {
 
 func (c *clusterNodes) Addrs() ([]string, error) {
 	var addrs []string
+
 	c.mu.RLock()
-	closed := c.closed
+	closed := c.closed //nolint:ifshort
 	if !closed {
 		if len(c.activeAddrs) > 0 {
 			addrs = c.activeAddrs
@@ -649,14 +650,15 @@ func (c *clusterStateHolder) LazyReload() {
 
 func (c *clusterStateHolder) Get(ctx context.Context) (*clusterState, error) {
 	v := c.state.Load()
-	if v != nil {
-		state := v.(*clusterState)
-		if time.Since(state.createdAt) > 10*time.Second {
-			c.LazyReload()
-		}
-		return state, nil
+	if v == nil {
+		return c.Reload(ctx)
 	}
-	return c.Reload(ctx)
+
+	state := v.(*clusterState)
+	if time.Since(state.createdAt) > 10*time.Second {
+		c.LazyReload()
+	}
+	return state, nil
 }
 
 func (c *clusterStateHolder) ReloadOrGet(ctx context.Context) (*clusterState, error) {

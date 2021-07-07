@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Ошибка обновления текущего канала."
+    "translation": "Ошибка обновления заголовка канала."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Ошибка обновления текущего канала."
+    "translation": "Ошибка обновления цели канала."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -986,34 +986,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
     "translation": "Почтовые объединения отключены системным администратором."
-  },
-  {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Личное сообщение от "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Перейти к записи"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Групповое сообщение от "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Уведомление от "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "У вас {{.Count}} новых уведомления.",
-      "many": "У вас {{.Count}} новых уведомлений.",
-      "one": "У вас есть новое уведомление."
-    }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -1748,10 +1720,6 @@
     "translation": "Не удалось декодировать значок команды."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не удалось декодировать метаданные значка команды."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Не удалось закодировать значок команды."
   },
@@ -2302,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Не удалось декодировать изображение профиля."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Не удалось сохранить изображения профиля. Файл должен быть картинкой."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2948,62 +2912,6 @@
     "translation": "Пропущено имя команды в «Участие пользователей в команде»."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "У вас есть новое личное сообщение."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "У вас есть новое личное сообщение от @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "У вас есть новое групповое сообщение."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "У вас есть новое групповое сообщение от @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "У вас есть новое уведомление."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "У вас есть новое оповещение от @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Канал: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Канал: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Новое личное сообщение от @{{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3128,10 +3036,6 @@
     "translation": "Невозможно декодировать данные изображения."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Невозможно получить метаданные изображения."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Невозможно преобразовать данные изображения в формат PNG. Пожалуйста, попробуйте еще раз."
   },
@@ -3142,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Невозможно записать файл изображения в хранилище файлов. Пожалуйста, проверьте ваше соединение и попробуйте снова."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Невозможно прочитать файл изображения. Убедитесь, что размер изображения не превышает 2 МБ, и повторите попытку."
   },
   {
     "id": "cli.license.critical",
@@ -5220,10 +5120,6 @@
     "translation": "Не удалось проиндексировать пакет пользователей."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Более старые сообщения не могут быть извлечены из базы данных."
-  },
-  {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
     "translation": "Работнику индексирования Bleve не удалось проанализировать время начала."
   },
@@ -6752,10 +6648,6 @@
     "translation": "Невозможно получить роль."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Невозможно получить все роли."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Невозможно получить роль."
   },
@@ -6918,10 +6810,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Не удалось проанализировать задание экспорта сообщения BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Мы обнаружили ошибку при подключении к серверу."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7710,14 +7598,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "Невозможно обновить активный статус MFA для пользователя."
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Невозможно обработать импорт: не удалось распаковать файл."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Невозможно обработать импорт: не удалось создать временную директорию."
   },
   {
     "id": "import_process.worker.do_job.open_file",
@@ -8660,10 +8540,6 @@
     "translation": "Одно или несколько из разрешений, которые вы пытаетесь добавить или удалить, не предоставлено"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Эта функция находится в разработке и доступна только с включенным флагом функции."
-  },
-  {
     "id": "api.oauth.redirecting_back",
     "translation": "Перенаправление обратно в приложение."
   },
@@ -8764,10 +8640,6 @@
     "translation": "Ошибка при генерации пароля."
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Количество запросов с запаздыванием реплик больше, чем количество настроенных реплик. Должно быть меньше или равно количеству реплик."
-  },
-  {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Ошибка аннулирования кеша"
   },
@@ -8778,14 +8650,6 @@
   {
     "id": "api.error_get_first_admin_visit_marketplace_status",
     "translation": "Ошибка при попытке получить из магазина статус первого посещения рынка администратором."
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - опционально"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Описание приглашения"
   },
   {
     "id": "api.command_share.desc",
@@ -8816,44 +8680,12 @@
     "translation": "Удалённый id общего канала `{{.RemoteId}}` не существует для этого канала."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - назначение канала по умолчанию"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Назначение канала, предоставляемого удалённым инсталляциям"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - имя канала по умолчанию"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Имя канала, предоставляемое удалённым инсталляциям"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Невозможно пригласить удалённый кластер на общий канал, созданный где-то в другом месте."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Ошибка приглашения `{{.Name}}` в этот канал: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - заголовок канала по умолчанию"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Заголовок канала для удалённых инсталляций"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - по умолчанию отображаемое имя канала"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Отображаемое имя канала для удалённых инсталляций"
   },
   {
     "id": "api.command_share.available_actions",
@@ -8901,23 +8733,23 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Добавить/удалить удалённые кластеры. Доступные действия: {{.Actions}}"
+    "translation": "Добавить/удалить безопасные соединения. Доступные действия: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Для управления удалёнными кластерами требуется разрешение `{{.Permission}}`."
+    "translation": "Для управления безопасными соединениями требуется разрешение `{{.Permission}}`."
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Отображаемое имя для удаленного кластера"
+    "translation": "Уникальное имя для безопасного соединения"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Имя удаленного кластера"
+    "translation": "Имя защищенного соединения"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "удалённый"
+    "translation": "безопасное-соединение"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -8941,7 +8773,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Пригласить удалённый кластер"
+    "translation": "Создать защищенное соединение"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -8949,11 +8781,11 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "Зашифрованное приглашение от удаленного кластера"
+    "translation": "Зашифрованное приглашение от защищенного соединения"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Приглашение от удаленного кластера"
+    "translation": "Приглашение от защищенного соединения"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -8965,7 +8797,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Не удалось получить удалённые кластеры: {{.Error}}"
+    "translation": "Не удалось получить безопасные соединения: {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -8981,11 +8813,11 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Удалённый кластер {{.RemoteId}} {{.Result}}."
+    "translation": "Безопасное соединение {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Не удалось добавить удалённый кластер: {{.Error}}"
+    "translation": "Не удалось добавить безопасное соединение: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -9022,10 +8854,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "Одно или несколько сообщений не могут быть доставлены на удалённый сайт {{.Remote}}, так как он в оффлайне. Сообщения будут доставлены, когда сайт будет онлайн."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Некорректное описание."
   },
   {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
@@ -9088,14 +8916,6 @@
     "translation": "Приглашение истекло."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' или 'N'"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Вы уверены? Этот канал перестанет быть общим, и все удалённые инсталляции будут отключены"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Отменить свойство \"общий\" для текущего канала"
   },
@@ -9120,16 +8940,8 @@
     "translation": "Этот канал больше не общий."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Общий канал не был удален: `{{.Arg}}`должно быть `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.help",
     "translation": "Канал будет предоставлен в режиме только для чтения"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Поделиться текущим каналом"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9214,5 +9026,73 @@
   {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": "Невозможно подключиться к S3. Проверьте параметры авторизации и настройки аутентификации подключения Amazon S3."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Политика некорректна."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Мы столкнулись с ошибкой при выполнении запрошенной операции."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Не удалось отправить автоматический ответ от пользователя."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Не удалось отправить предупреждение по электронной почте об окончании пробного периода"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Ваша бесплатная 14-дневная пробная подписка на Mattermost скоро закончится"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Завершение пробной подписки на Mattermost cloud"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Добавить способ оплаты"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Отображаемое имя безопасного соединения"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Отображаемое имя безопасного соединения"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Не удалось сбросить поле AuthData в Email."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Не удалось отправить письмо об окончании пробной подписки"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Ваша бесплатная 14-дневная пробная версия Mattermost заканчивается сегодня"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Завершение пробной подписки на Mattermost cloud"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Начать подписку"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Установите email-адрес службы поддержки"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Введенный текст превышает лимит символов. Назначение канала ограничено {{.MaxLength}} символами."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Введенный текст превышает лимит символов. Заголовок канала ограничен {{.MaxLength}} символами."
   }
 ]

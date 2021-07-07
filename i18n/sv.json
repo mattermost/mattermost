@@ -1092,14 +1092,6 @@
     "translation": "Fel vid base64-avkodningen av trigger ID i den interaktiva dialogen."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Kunde inte hantera importen: kunde inte packa upp filen."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Kunde inte hantera importen: misslyckades med att skapa temporär mapp."
-  },
-  {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "Kunde inte spara exportfil."
   },
@@ -1124,10 +1116,6 @@
     "translation": "Funktionen kräver en uppgradering till Enterpriseversionen och tillhörande licensnyckel. Kontakta din systemadministratör."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Kunde inte läsa bildfilen. Kontrollera att bildstorleken är mindre än 2 MB och försök igen."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Kunde inte spara bildfilen på din lagringsyta. Kolla din uppkoppling och försök igen."
   },
@@ -1138,10 +1126,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Kunde inte konvertera bilddatat till PNG-format. Försök igen."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Kunde inte hämta bildmetadatat."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -1204,8 +1188,8 @@
     "translation": "Bleve:s indexeringsjobb kunde inte tolka sluttiden."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Det äldsta meddelandet kunde inte hämtas från databasen."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Det äldsta objektet (användare, kanal eller meddelande) kunde inte hämtas från databasen."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -2520,10 +2504,6 @@
     "translation": "Kunde inte hämta roll."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Kunde inte ta fram alla roller."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Kunde inte hämta roll."
   },
@@ -2722,62 +2702,6 @@
   {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nytt direktmeddelande från {{.SenderDisplayName}} den {{.Day}} {{.Month}}, {{.Year}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}.{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}.{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}.{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}.{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}.{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}.{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Du har en ny notifikation från {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Du har en ny notifikation."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Du har ett nytt gruppmeddelande från {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Du har ett nytt gruppmeddelande."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Du har ett nytt direktmeddelande från {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Du har ett nytt direktmeddelande."
   },
   {
     "id": "app.license.generate_renewal_token.no_license",
@@ -3486,10 +3410,6 @@
   {
     "id": "ent.cluster.save_config.error",
     "translation": "System Console är read-only när High Availability är aktiverad, om inte ReadOnlyConfig ar avaktiverad i konfigurationsfilen."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Ett fel uppstod vid anslutning till servern."
   },
   {
     "id": "ent.cluster.json_encode.error",
@@ -4760,10 +4680,6 @@
     "translation": "Kunde inte koda profilbilden."
   },
   {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Kunde inte spara profilbilden. Filen verkar inte vara en giltig bildfil."
-  },
-  {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Kunde inte avkoda profilbilden."
   },
@@ -5105,7 +5021,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Gå till inlägg"
+    "translation": "Visa meddelande"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -5534,10 +5450,6 @@
   {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Kunde inte koda teamikonen."
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Kunde inte avkoda teamikonens metadata."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -6759,33 +6671,6 @@
     }
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Du har en ny notifikation.",
-      "other": "Du har {{.Count}} nya notifikationer."
-    }
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notifikation från "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Gruppmeddelande från "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Gå till inlägg"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direktmeddelande från "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}.{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
     "translation": "Massbearbetning av e-post har inaktiverats av systemadministratören."
   },
@@ -7366,7 +7251,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Fel vid uppdatering av nuvarande kanal."
+    "translation": "Fel vid uppdatering av kanalens syfte."
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
@@ -7398,7 +7283,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Fel vid uppdatering av nuvarande kanal."
+    "translation": "Fel vid uppdatering av kanalhuvudet."
   },
   {
     "id": "api.command_channel_header.permission.app_error",
@@ -8607,10 +8492,6 @@
     "translation": "Mejla oss närsomhelst på "
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Funktionen är under utveckling och är endast tillgänglig med en funktionsflagga."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Kunde inte bearbeta förfrågan."
   },
@@ -8768,59 +8649,59 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Visa status för alla anslutna kluster"
+    "translation": "Visa status för alla säkra anslutningar"
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SajtURL är inte angiven. Gör detta via systemkonsolen."
+    "translation": "SajtURL är inte angiven. Gör detta i systemkonsolen > Inställningar > WebServer."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Tjänsten för andra kluster är inte aktiverad."
+    "translation": "Tjänsten säker anslutning är inte aktiverad."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Tjänsten för andra kluster är avaktiverad."
+    "translation": "Tjänsten säker anslutning är avaktiverad."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id på kluster att ta bort"
+    "translation": "Id på säker anslutning att ta bort"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Kunde inte ta bort annat kluster: {{.Error}}"
+    "translation": "Kunde inte ta bort säker anslutning: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Tar bort ett annat kluster"
+    "translation": "Tar bort en säker anslutning"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Inga andra kluster hittade."
+    "translation": "Inga säkra anslutningar hittade."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Namn | SajtURL  | RemoteId   | Inbjudan accepterad | Online | Senast Ping  |"
+    "translation": "| Säker anslutning | Visningsnamn | AnslutningsID | SajtURL | Inbjudan accepterad | Online | Senast ping  |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Lägg till/ta bort anslutning till andra kluster. Tillgängliga åtgärder: {{.Actions}}"
+    "translation": "Lägg till/ta bort säkra anslutningar. Tillgängliga åtgärder: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Du behöver behörigheten `{{.Permission}}` för att hantera anslutning av andra kluster."
+    "translation": "Du behöver behörigheten `{{.Permission}}` för att hantera säkra anslutningar."
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Ett unikt namn för det andra klustret"
+    "translation": "Ett unikt namn för säker anslutning"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Namn på annat kluster"
+    "translation": "Namn på säker anslutning"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "annat"
+    "translation": "säker anslutning"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -8832,7 +8713,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Skicka följande krypterade (AES256 + Base64) blob och lösenordet till administratören för det andra klustret. De använder sedan slash-kommandot `{{.Command}}` för att acceptera inbjudan.\n\n```\n{{.Invitation}}\n```\n\n**Säkerställ att det andra klustret kan nå ditt kluster på** {{.SiteURL}}"
+    "translation": "Skicka följande AES256-bit krypterade inbjudan till den extern Mattermostinstansens administratören tillsammans med lösenordet. De använder sedan slash-kommandot `{{.Command}}` för att acceptera inbjudan.\n\n```\n{{.Invitation}}\n```\n\n**Säkerställ att den extern Mattermostinstansens kan nå ditt kluster på** {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -8844,7 +8725,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Bjud in ett annat kluster"
+    "translation": "Bjud in till en säker anslutning"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -8852,11 +8733,11 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "En krypterad inbjudan från annat kluster"
+    "translation": "En krypterad inbjudan från en säker anslutning"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Inbjudan från annat kluster"
+    "translation": "Inbjudan från säker anslutning"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -8868,7 +8749,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Det gick inte att hämta andra kluster: {{.Error}}"
+    "translation": "Det gick inte att hämta säkra anslutningar: {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -8876,7 +8757,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Anslut annat Mattermost-kluster för att möjliggöra kommunikation mellan olika kluster."
+    "translation": "Bjud in till en säker anslutning för kommunikation mellan Mattermostinstanser."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -8884,11 +8765,11 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Det andra klustret {{.RemoteId}} {{.Result}}."
+    "translation": "Säker anslutning {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Kunde inte lägga till det andra klustret: {{.Error}}"
+    "translation": "Kunde inte lägga till säker anslutning: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -8900,7 +8781,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Acceptera en inbjudan från ett annat kluster"
+    "translation": "Acceptera en inbjudan från en extern Mattermostinstans"
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
@@ -8908,15 +8789,15 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Inga externa parter har blivit inbjudan till denna delade kanal."
+    "translation": "Inga säkra anslutningar har blivit inbjudna till denna kanal."
   },
   {
     "id": "api.command_share.name",
-    "translation": "dela"
+    "translation": "delad kanal"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Måste ange ett giltigt kluster-id för att bjuda in annat kluster."
+    "translation": "Måste ange ett giltigt id till en säker anslutning att bjuda in."
   },
   {
     "id": "api.command_share.missing_action",
@@ -8924,11 +8805,11 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Bjuder in en annan instans till den aktuella delade kanalen"
+    "translation": "Bjuder in en extern Mattermostinstans till den aktuella delade kanalen"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Inbjudan till kanalen har skickats till `{{.Name}} {{.SiteURL}}`."
+    "translation": "Inbjudan till den säkra kanalen har skickats till `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -8940,23 +8821,15 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Kunde inte hämta status för andra kluster: {{.Error}}."
+    "translation": "Kunde inte hämta status för säkra anslutningar: {{.Error}}."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Fel när annat kluster hämtades: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - valfri"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Beskriv inbjudan"
+    "translation": "Fel när säkra anslutningar hämtades: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Delar denna kanal med en annan Mattermost-instans."
+    "translation": "Delar denna kanal med en extern Mattermostinstans."
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -8980,39 +8853,15 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Remote id för den delade kanalen `{{.RemoteId}}` finns inte för denna kanal."
-  },
-  {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - kanalens syfte som standard"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Kanalens syfte till andra instanser"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - kanalens namn som standard"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Kanalnamn till andra instanser"
+    "translation": "Säker anslutning för delad kanal `{{.RemoteId}}` finns inte för denna kanal."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Kan inte bjuda in ett annat kluster till en delad kanal som kommer från annat ställe."
+    "translation": "Kan inte bjuda in en säker anslutning till en delad kanal som kommer från annat ställe."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Fel när `{{.Name}}` blev inbjuden till kanalen: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - kanalens visningsnamn som standard"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Kanalens visningsnamn som visas i andra anslutna instanser"
   },
   {
     "id": "api.command_share.available_actions",
@@ -9027,24 +8876,16 @@
     "translation": "En eller flera meddelanden kunde inte bli levereras till den andra sajten {{.Remote}} eftersom den är offline. Meddelanden kommer levereras när sajten är online."
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Antalet förfrågningar om replikfördröjning är fler än antal repliker som konfigurerats. Måste vara mindre än eller lika med antalet repliker."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Ogiltig beskrivning."
-  },
-  {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
     "translation": "Ett fel uppstod när en direkt delad kanal skapades."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Ett annat kluster med samma URL finns redan."
+    "translation": "En säker anslutning med samma URL finns redan."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "Ett fel uppstod vid uppdatering av det andra klustret."
+    "translation": "Ett fel uppstod vid uppdatering av den säkra anslutningen."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -9052,11 +8893,11 @@
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "Det andra klustret har redan lagts till."
+    "translation": "Det säkra anslutningen har redan lagts till."
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "Ett fel uppstod när uppgifterna om det andra klustret sparades."
+    "translation": "Ett fel uppstod när uppgifterna om säker anslutnings sparades."
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
@@ -9068,11 +8909,11 @@
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "Ett fel uppstod när det andra klustret skulle hämtas."
+    "translation": "Ett fel uppstod när den säkra anslutningen skulle hämtas."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "Ett fel uppstod när det andra klustret skulle raderas."
+    "translation": "Ett fel uppstod när den säkra anslutningen skulle raderas."
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -9092,15 +8933,15 @@
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Id för annat kluster saknas."
+    "translation": "Id för säker anslutning saknas."
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Id för annat kluster stämmer inte."
+    "translation": "Id för säker anslutning stämmer inte."
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Kunde inte hitta id {{.RemoteId}} för annat kluster ."
+    "translation": "Kunde inte hitta id {{.RemoteId}} för säker anslutning."
   },
   {
     "id": "api.context.json_encoding.app_error",
@@ -9109,14 +8950,6 @@
   {
     "id": "api.context.invitation_expired.error",
     "translation": "Inbjudan är inte längre giltig."
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' eller 'N'"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Är du säker? Den aktuella kanalen kommer sluta delas och alla andra inbjudna instanser kommer sluta vara anslutna"
   },
   {
     "id": "api.command_share.unshare_channel.help",
@@ -9128,11 +8961,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "ID på den andra instansen som inte ska vara inbjuden."
+    "translation": "Id på säker anslutning som inte ska vara inbjuden."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Ta bort en annan instans från den delade kanalen"
+    "translation": "Ta bort en säker anslutning från den delade kanalen"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -9143,20 +8976,12 @@
     "translation": "Kanalen är inte längre delad."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Delad kanal blev inte delad: `{{.Arg}}` måste vara `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' eller 'N'.  'N' som standard"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Kanalen kommer delas i läsläge"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Dela den aktuella kanalen"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9168,39 +8993,31 @@
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Annat kluster `{{.RemoteId}}` är inte längre inbjuden."
+    "translation": "Den säkra anslutningen `{{.RemoteId}}` är inte längre inbjuden."
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Annat | SiteURL | Beskrivning | ReadOnly | Inbjudan accepterad | Online | Senast synkroniserad |"
+    "translation": "| Säker anslutning | SiteURL | ReadOnly | Inbjudan accepterad | Online | Senast synkroniserad |"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Du måste ange en giltig annat kluster för att dra tillbaka inbjudan"
+    "translation": "Du måste ange en giltig id för säker anslutning för att dra tillbaka inbjudan"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "ID på annat kluster är felaktigt: {{.Error}}"
+    "translation": "Id till säker anslutning är felaktigt: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id på ett existerande annan instans. Se `remote`-kommandot för att lägga till en annan instans."
+    "translation": "Id till en existerande säker anslutning. Se `säker anslutning`-kommandot för att lägga till en säker anslutning."
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "Det andra klustret har redan blivit inbjudet."
+    "translation": "Det säkra anslutningen har redan blivit inbjudet."
   },
   {
     "id": "api.command_share.permission_required",
     "translation": "Du behöver ha behörigheten `{{.Permission}}` för att hantera delade kanaler."
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - kanalens huvud som standard"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Kanalhuvud som tillhandahålls till andra instanser"
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
@@ -9220,7 +9037,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, din 14 dagars testperiod av Mattermost Cloud Professional avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+    "translation": "{{.Name}}, din 14 dagars testperiod av Mattermost Cloud Professional avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9232,14 +9049,197 @@
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Visningsnamn för det andra klustret"
+    "translation": "Visningsnamn för säker anslutning"
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "Ett visningsnamn för det andra klustret"
+    "translation": "Ett visningsnamn för den säkra anslutningen"
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Kunde inte återställa AuthData-fältet till mejl."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Policyn är felaktig."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Ett fel uppstod när den begärda åtgärden skulle utföras."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Kunde inte skicka automatisk svar från användaren."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Misslyckades att skicka mejl om att testperioden avslutas"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Din kostnadsfria testperiod av Mattermost avslutas idag"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Professional avslutas idag, {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Din testperiod av Mattermost Cloud är slut"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Börja din prenumeration"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Gå till **Systemkonsolen > Sajtkonfiguration > Anpassa** för att ställa in [Support mejl](https://docs.mattermost.com/administration/config-settings.html#support-email) till organisationens interna e-postadress för it-support för återkoppling från slutanvändare, e-postmeddelanden och supportförfrågningar."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Konfigurera mejladress för support"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Angiven text överskrider max tillåtna tecken. Kanalens syfte är begränsat till {{.MaxLength}} tecken."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Angiven text överskrider max tillåtna tecken. Kanalhuvudet är begränsat till {{.MaxLength}} tecken."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} skickade ett nytt meddelande",
+      "other": "{{ .SenderName }} och {{.Count}} andra har skickat nya meddelanden"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Nedan finns en sammanfattning av dina nya meddelanden."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Visa detta meddelande"
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Vill du ändra dina inställningar för notifieringar?"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Logga in på Mattermost"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " och gå till Kontoinställningar > Notifieringar"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "Du blev omnämnd av {{.SenderName}} i ett meddelande"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Medan du var borta blev du omnämnd av {{.SenderName}} i kanalen {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} har skickat ett nytt meddelande till dig"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Medan du var borta skickade {{.SenderName}} ett meddelande till din grupp."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} har skickat ett nytt meddelande till dig"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Medan du var borta skickade {{.SenderName}} ett nytt direktmeddelande till dig."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Öppna Mattermost"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Om du inte blir omdirigerad automatiskt kan du klicka på <a href='{{.Link}}'>länken</a>"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Det gick inte att hämta några gemensamma team-IDn."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "En direktkanal kan inte skapas mellan användarna eftersom de inte delar ett team tillsammans."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Kunde inte identifiera konfigurationsförändringar"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Kunde inte identifiera konfigurationsförändringar"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Lösenordet är inte giltigt"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Det går inte att aktivera fler användare eftersom du nått gränsen för ditt Mattermost Cloud-konto."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Det gick inte att kontrollera gränsen för antalet tillåtna användare."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Listan med administratörer är tom."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Listan med administratörer är tom."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "System"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Användarens trådmedlemskap finns inte"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kunde inte få fram användarens trådmedlemskap"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Licensnyckeln för testperioden av Mattermost Enterprise Edition är inte längre giltig. [Kontakta Sales team] (https://mattermost.com/contact-us/) om du vill utöka testperionden."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Kunde inte kontrollera om en testperiod kan startas"
   }
 ]

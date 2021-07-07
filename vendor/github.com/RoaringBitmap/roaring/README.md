@@ -84,7 +84,7 @@ When the bitset approach is applicable, it can be orders of
 magnitude faster than other possible implementation of a set (e.g., as a hash set)
 while using several times less memory.
 
-However, a bitset, even a compressed one is not always applicable. For example, if the
+However, a bitset, even a compressed one is not always applicable. For example, if
 you have 1000 random-looking integers, then a simple array might be the best representation.
 We refer to this case as the "sparse" scenario.
 

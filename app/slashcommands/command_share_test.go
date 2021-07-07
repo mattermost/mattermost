@@ -37,15 +37,16 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(th.BasicTeam, WithShared(false))
+
 		args := &model.CommandArgs{
 			T:         func(s string, args ...interface{}) string { return s },
 			ChannelId: channel.Id,
 			UserId:    th.BasicUser.Id,
 			TeamId:    th.BasicTeam.Id,
-			Command:   "/share share_channel",
+			Command:   "/share-channel share",
 		}
 
-		response := commandProvider.DoCommand(th.App, args, "")
+		response := commandProvider.DoCommand(th.App, th.Context, args, "")
 		require.Equal(t, "##### "+args.T("api.command_share.channel_shared"), response.Text)
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
@@ -77,10 +78,10 @@ func TestShareProviderDoCommand(t *testing.T) {
 			ChannelId: channel.Id,
 			UserId:    th.BasicUser.Id,
 			TeamId:    th.BasicTeam.Id,
-			Command:   "/share unshare_channel --are_you_sure Y",
+			Command:   "/share-channel unshare",
 		}
 
-		response := commandProvider.DoCommand(th.App, args, "")
+		response := commandProvider.DoCommand(th.App, th.Context, args, "")
 		require.Equal(t, "##### "+args.T("api.command_share.shared_channel_unavailable"), response.Text)
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {

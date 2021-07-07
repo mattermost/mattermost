@@ -15,23 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-// postToAttachments returns the file attachments for a post that need to be synchronized.
-func (scs *Service) postToAttachments(post *model.Post, rc *model.RemoteCluster) ([]*model.FileInfo, error) {
-	infos := make([]*model.FileInfo, 0)
-
-	fis, err := scs.server.GetStore().FileInfo().GetForPost(post.Id, false, true, true)
-	if err != nil {
-		return nil, fmt.Errorf("could not get file info for attachment: %w", err)
-	}
-
-	for _, fi := range fis {
-		if scs.shouldSyncAttachment(fi, rc) {
-			infos = append(infos, fi)
-		}
-	}
-	return infos, nil
-}
-
 // postsToAttachments returns the file attachments for a slice of posts that need to be synchronized.
 func (scs *Service) shouldSyncAttachment(fi *model.FileInfo, rc *model.RemoteCluster) bool {
 	sca, err := scs.server.GetStore().SharedChannel().GetAttachment(fi.Id, rc.RemoteId)

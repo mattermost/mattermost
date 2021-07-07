@@ -752,6 +752,14 @@ func (u *User) IsRemote() bool {
 	return u.RemoteId != nil && *u.RemoteId != ""
 }
 
+// GetRemoteID returns the remote id for this user or "" if not a remote user.
+func (u *User) GetRemoteID() string {
+	if u.RemoteId != nil {
+		return *u.RemoteId
+	}
+	return ""
+}
+
 // GetProp fetches a prop value by name.
 func (u *User) GetProp(name string) (string, bool) {
 	val, ok := u.Props[name]
@@ -846,6 +854,7 @@ func HashPassword(password string) string {
 }
 
 // ComparePassword compares the hash
+// This function is deprecated and will be removed in a future release.
 func ComparePassword(hash string, password string) bool {
 
 	if password == "" || hash == "" {

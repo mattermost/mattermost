@@ -4,6 +4,7 @@
 package app
 
 import (
+	"archive/zip"
 	"context"
 	"io/ioutil"
 	"os"
@@ -99,42 +100,42 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, nErr := th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
+	role, nErr := th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
@@ -156,42 +157,42 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
@@ -286,42 +287,42 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, nErr := th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
+	role, nErr := th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
@@ -343,42 +344,42 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
@@ -413,7 +414,7 @@ func TestImportImportRole(t *testing.T) {
 	err := th.App.importRole(&data, true, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, nErr := th.App.Srv().Store.Role().GetByName(rid1)
+	_, nErr := th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
 	require.Error(t, nErr, "Should have failed to import.")
 
 	// Try importing the valid role in dryRun mode.
@@ -422,7 +423,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data, true, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	_, nErr = th.App.Srv().Store.Role().GetByName(rid1)
+	_, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
 	require.Error(t, nErr, "Role should not have imported as we are in dry run mode.")
 
 	// Try importing an invalid role.
@@ -431,7 +432,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data, false, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, nErr = th.App.Srv().Store.Role().GetByName(rid1)
+	_, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
 	require.Error(t, nErr, "Role should not have imported.")
 
 	// Try importing a valid role with all params set.
@@ -442,7 +443,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data, false, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	role, nErr := th.App.Srv().Store.Role().GetByName(rid1)
+	role, nErr := th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.Name, role.Name)
@@ -460,7 +461,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data, false, true)
 	require.Nil(t, err, "Should have succeeded. %v", err)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(rid1)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.Name, role.Name)
@@ -479,7 +480,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data2, false, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(rid1)
+	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data2.Name, role.Name)
@@ -505,7 +506,7 @@ func TestImportImportTeam(t *testing.T) {
 	scheme2 := th.SetupTeamScheme()
 
 	// Check how many teams are in the database.
-	teamsCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(false)
+	teamsCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(nil)
 	require.NoError(t, err, "Failed to get team count.")
 
 	data := TeamImportData{
@@ -518,12 +519,12 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Try importing an invalid team in dryRun mode.
-	err = th.App.importTeam(&data, true)
+	err = th.App.importTeam(th.Context, &data, true)
 	require.Error(t, err, "Should have received an error importing an invalid team.")
 
 	// Do a valid team in dry-run mode.
 	data.Type = ptrStr("O")
-	appErr := th.App.importTeam(&data, true)
+	appErr := th.App.importTeam(th.Context, &data, true)
 	require.Nil(t, appErr, "Received an error validating valid team.")
 
 	// Check that no more teams are in the DB.
@@ -531,7 +532,7 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Do an invalid team in apply mode, check db changes.
 	data.Type = ptrStr("XYZ")
-	err = th.App.importTeam(&data, false)
+	err = th.App.importTeam(th.Context, &data, false)
 	require.Error(t, err, "Import should have failed on invalid team.")
 
 	// Check that no more teams are in the DB.
@@ -539,7 +540,7 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Do a valid team in apply mode, check db changes.
 	data.Type = ptrStr("O")
-	appErr = th.App.importTeam(&data, false)
+	appErr = th.App.importTeam(th.Context, &data, false)
 	require.Nil(t, appErr, "Received an error importing valid team: %v", err)
 
 	// Check that one more team is in the DB.
@@ -564,7 +565,7 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Check that the original number of teams are again in the DB (because this query doesn't include deleted).
 	data.Type = ptrStr("O")
-	appErr = th.App.importTeam(&data, false)
+	appErr = th.App.importTeam(th.Context, &data, false)
 	require.Nil(t, appErr, "Received an error importing updated valid team.")
 
 	th.CheckTeamCount(t, teamsCount+1)
@@ -596,7 +597,7 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Import a Team.
 	teamName := model.NewRandomTeamName()
-	th.App.importTeam(&TeamImportData{
+	th.App.importTeam(th.Context, &TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
@@ -617,7 +618,7 @@ func TestImportImportChannel(t *testing.T) {
 		Purpose:     ptrStr("Channel Purpose"),
 		Scheme:      &scheme1.Name,
 	}
-	err = th.App.importChannel(&data, true)
+	err = th.App.importChannel(th.Context, &data, true)
 	require.NotNil(t, err, "Expected error due to invalid name.")
 
 	// Check that no more channels are in the DB.
@@ -626,7 +627,7 @@ func TestImportImportChannel(t *testing.T) {
 	// Do a valid channel with a nonexistent team in dry-run mode.
 	data.Name = ptrStr("channelname")
 	data.Team = ptrStr(model.NewId())
-	err = th.App.importChannel(&data, true)
+	err = th.App.importChannel(th.Context, &data, true)
 	require.Nil(t, err, "Expected success as cannot validate channel name in dry run mode.")
 
 	// Check that no more channels are in the DB.
@@ -634,7 +635,7 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Do a valid channel in dry-run mode.
 	data.Team = &teamName
-	err = th.App.importChannel(&data, true)
+	err = th.App.importChannel(th.Context, &data, true)
 	require.Nil(t, err, "Expected success as valid team.")
 
 	// Check that no more channels are in the DB.
@@ -642,7 +643,7 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Do an invalid channel in apply mode.
 	data.Name = nil
-	err = th.App.importChannel(&data, false)
+	err = th.App.importChannel(th.Context, &data, false)
 	require.NotNil(t, err, "Expected error due to invalid name (apply mode).")
 
 	// Check that no more channels are in the DB.
@@ -651,7 +652,7 @@ func TestImportImportChannel(t *testing.T) {
 	// Do a valid channel in apply mode with a non-existent team.
 	data.Name = ptrStr("channelname")
 	data.Team = ptrStr(model.NewId())
-	err = th.App.importChannel(&data, false)
+	err = th.App.importChannel(th.Context, &data, false)
 	require.NotNil(t, err, "Expected error due to non-existent team (apply mode).")
 
 	// Check that no more channels are in the DB.
@@ -659,7 +660,7 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Do a valid channel in apply mode.
 	data.Team = &teamName
-	err = th.App.importChannel(&data, false)
+	err = th.App.importChannel(th.Context, &data, false)
 	require.Nil(t, err, "Expected success in apply mode")
 
 	// Check that 1 more channel is in the DB.
@@ -682,7 +683,7 @@ func TestImportImportChannel(t *testing.T) {
 	data.Header = ptrStr("New Header")
 	data.Purpose = ptrStr("New Purpose")
 	data.Scheme = &scheme2.Name
-	err = th.App.importChannel(&data, false)
+	err = th.App.importChannel(th.Context, &data, false)
 	require.Nil(t, err, "Expected success in apply mode")
 
 	// Check channel count the same.
@@ -864,7 +865,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Test team and channel memberships
 	teamName := model.NewRandomTeamName()
-	th.App.importTeam(&TeamImportData{
+	th.App.importTeam(th.Context, &TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
@@ -873,7 +874,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	channelName := model.NewId()
-	th.App.importChannel(&ChannelImportData{
+	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
@@ -1386,7 +1387,7 @@ func TestImportImportUser(t *testing.T) {
 		AllowOpenInvite: ptrBool(true),
 		Scheme:          &teamScheme.Name,
 	}
-	appErr = th.App.importTeam(teamData, false)
+	appErr = th.App.importTeam(th.Context, teamData, false)
 	assert.Nil(t, appErr)
 	team, appErr = th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
@@ -1399,7 +1400,7 @@ func TestImportImportUser(t *testing.T) {
 		Header:      ptrStr("Channe Header"),
 		Purpose:     ptrStr("Channel Purpose"),
 	}
-	appErr = th.App.importChannel(channelData, false)
+	appErr = th.App.importChannel(th.Context, channelData, false)
 	assert.Nil(t, appErr)
 	channel, appErr = th.App.GetChannelByName(*channelData.Name, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database")
@@ -1928,7 +1929,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Create a Team.
 	teamName := model.NewRandomTeamName()
-	th.App.importTeam(&TeamImportData{
+	th.App.importTeam(th.Context, &TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
@@ -1938,7 +1939,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
-	th.App.importChannel(&ChannelImportData{
+	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
@@ -1971,7 +1972,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		25,
 	}
-	errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, true)
+	errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, true)
 	assert.NotNil(t, err)
 	assert.Equal(t, data.LineNumber, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -1989,7 +1990,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, true)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, true)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -2006,7 +2007,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		35,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
 	assert.Equal(t, data.LineNumber, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -2024,7 +2025,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		10,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
 	// Batch will fail when searching for teams, so no specific line
 	// is associated with the error
@@ -2044,7 +2045,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		7,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
 	// Batch will fail when searching for channels, so no specific
 	// line is associated with the error
@@ -2064,7 +2065,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		2,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
 	// Batch will fail when searching for users, so no specific line
 	// is associated with the error
@@ -2085,7 +2086,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
@@ -2113,7 +2114,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
@@ -2142,7 +2143,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 2, team.Id)
@@ -2160,7 +2161,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
@@ -2179,7 +2180,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
@@ -2222,7 +2223,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		1,
 	}
 
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
@@ -2261,7 +2262,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
@@ -2302,7 +2303,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
@@ -2348,7 +2349,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
@@ -2372,7 +2373,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
@@ -2396,7 +2397,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
@@ -2404,7 +2405,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Create another Team.
 	teamName2 := model.NewRandomTeamName()
-	th.App.importTeam(&TeamImportData{
+	th.App.importTeam(th.Context, &TeamImportData{
 		Name:        &teamName2,
 		DisplayName: ptrStr("Display Name 2"),
 		Type:        ptrStr("O"),
@@ -2413,7 +2414,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get team from database.")
 
 	// Create another Channel for the another team.
-	th.App.importChannel(&ChannelImportData{
+	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName2,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
@@ -2451,7 +2452,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data, data2}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data, data2}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 
@@ -2466,7 +2467,7 @@ func TestImportImportPost(t *testing.T) {
 
 	// Create a Team.
 	teamName := model.NewRandomTeamName()
-	th.App.importTeam(&TeamImportData{
+	th.App.importTeam(th.Context, &TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
@@ -2476,7 +2477,7 @@ func TestImportImportPost(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
-	th.App.importChannel(&ChannelImportData{
+	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
@@ -2522,7 +2523,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			12,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, true)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, true)
 		assert.NotNil(t, err)
 		assert.Equal(t, data.LineNumber, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -2541,7 +2542,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, true)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, true)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -2559,7 +2560,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			2,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
 		assert.Equal(t, data.LineNumber, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -2578,7 +2579,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			7,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -2597,7 +2598,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			8,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -2616,7 +2617,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			9,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
@@ -2635,7 +2636,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
@@ -2664,7 +2665,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
@@ -2694,7 +2695,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 2, team.Id)
@@ -2713,7 +2714,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
@@ -2732,7 +2733,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
@@ -2768,7 +2769,7 @@ func TestImportImportPost(t *testing.T) {
 			1,
 		}
 
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -2808,7 +2809,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -2848,7 +2849,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -2895,7 +2896,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -2920,7 +2921,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -2945,7 +2946,7 @@ func TestImportImportPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -3044,7 +3045,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Get the channel to check that the header was updated.
-	channel, appErr := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, channel.Header, *data.Header)
 
@@ -3115,7 +3116,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	appErr = th.App.importDirectChannel(&data, false)
 	require.Nil(t, appErr)
 
-	channel, appErr = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
 	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
@@ -3137,7 +3138,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Get the channel.
 	var directChannel *model.Channel
-	channel, appErr := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	require.NotEmpty(t, channel)
 	directChannel = channel
@@ -3162,7 +3163,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			7,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, true)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, true)
 		require.NotNil(t, err)
 		require.Equal(t, data.LineNumber, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
@@ -3183,7 +3184,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, true)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, true)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
@@ -3204,7 +3205,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			9,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.NotNil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
@@ -3225,7 +3226,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
@@ -3256,7 +3257,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
@@ -3287,7 +3288,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
@@ -3308,7 +3309,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
@@ -3329,7 +3330,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
@@ -3365,7 +3366,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			1,
 		}
 
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 
@@ -3424,7 +3425,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			4,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, true)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, true)
 		require.NotNil(t, err)
 		require.Equal(t, data.LineNumber, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
@@ -3446,7 +3447,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, true)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, true)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
@@ -3469,7 +3470,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			8,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.NotNil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
@@ -3491,7 +3492,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
@@ -3523,7 +3524,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
@@ -3555,7 +3556,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
@@ -3577,7 +3578,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
@@ -3599,7 +3600,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
@@ -3636,7 +3637,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			1,
 		}
 
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 
@@ -3675,7 +3676,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -3720,7 +3721,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -3772,7 +3773,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -3802,7 +3803,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -3832,7 +3833,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			1,
 		}
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -3891,14 +3892,14 @@ func TestImportAttachment(t *testing.T) {
 
 	userID := model.NewId()
 	data := AttachmentImportData{Path: &testImage}
-	_, err := th.App.importAttachment(&data, &model.Post{UserId: userID, ChannelId: "some-channel"}, "some-team")
+	_, err := th.App.importAttachment(th.Context, &data, &model.Post{UserId: userID, ChannelId: "some-channel"}, "some-team")
 	assert.Nil(t, err, "sample run without errors")
 
 	attachments := GetAttachments(userID, th, t)
 	assert.Len(t, attachments, 1)
 
 	data = AttachmentImportData{Path: &invalidPath}
-	_, err = th.App.importAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team")
+	_, err = th.App.importAttachment(th.Context, &data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team")
 	assert.NotNil(t, err, "should have failed when opening the file")
 	assert.Equal(t, err.Id, "app.import.attachment.bad_file.error")
 }
@@ -3909,7 +3910,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	// Create a Team.
 	teamName := model.NewRandomTeamName()
-	th.App.importTeam(&TeamImportData{
+	th.App.importTeam(th.Context, &TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
@@ -3919,7 +3920,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
-	th.App.importChannel(&ChannelImportData{
+	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
@@ -3936,6 +3937,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	}, false)
 	user3, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.NotNil(t, user3)
 
 	username2 := model.NewId()
 	th.App.importUser(&UserImportData{
@@ -3991,7 +3993,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	}
 
 	t.Run("import with attachment", func(t *testing.T) {
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 
@@ -4009,7 +4011,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	t.Run("import existing post with new attachment", func(t *testing.T) {
 		data.Post.Attachments = &[]AttachmentImportData{{Path: &testImage}}
-		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 
@@ -4024,7 +4026,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		AssertFileIdsInPost(attachments, th, t)
 	})
 
-	t.Run("Reply with Attachments in Direct Pos", func(t *testing.T) {
+	t.Run("Reply with Attachments in Direct Post", func(t *testing.T) {
 		directImportData := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
@@ -4046,7 +4048,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 			7,
 		}
 
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportData}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{directImportData}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -4107,7 +4109,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	}
 
 	t.Run("Regular import of attachment", func(t *testing.T) {
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportData}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{directImportData}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -4118,7 +4120,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	})
 
 	t.Run("Attempt to import again with same file entirely, should NOT add an attachment", func(t *testing.T) {
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportData}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{directImportData}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -4143,7 +4145,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 			2,
 		}
 
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportDataFake}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{directImportDataFake}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
@@ -4168,11 +4170,169 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 			2,
 		}
 
-		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportData2}, false)
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{directImportData2}, false)
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
 		attachments := GetAttachments(user1.Id, th, t)
 		require.Len(t, attachments, 3)
+	})
+}
+
+func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Create a Team.
+	teamName := model.NewRandomTeamName()
+	th.App.importTeam(th.Context, &TeamImportData{
+		Name:        &teamName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	team, appErr := th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr, "Failed to get team from database.")
+
+	// Create a Channel.
+	channelName := model.NewId()
+	th.App.importChannel(th.Context, &ChannelImportData{
+		Team:        &teamName,
+		Name:        &channelName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
+	require.Nil(t, appErr, "Failed to get channel from database.")
+
+	// Create users
+	username2 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username2,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user2, appErr := th.App.GetUserByUsername(username2)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+
+	// Create direct post users.
+	username3 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username3,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user3, appErr := th.App.GetUserByUsername(username3)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+
+	username4 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username4,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+
+	user4, appErr := th.App.GetUserByUsername(username4)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+
+	// Post with attachments
+	time := model.GetMillis()
+	attachmentsPostTime := time
+	attachmentsReplyTime := time + 1
+	testsDir, _ := fileutils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+	testZipFileName := filepath.Join(testsDir, "import_test.zip")
+	testZip, _ := os.Open(testZipFileName)
+
+	fi, err := testZip.Stat()
+	require.NoError(t, err, "failed to get file info")
+	testZipReader, err := zip.NewReader(testZip, fi.Size())
+	require.NoError(t, err, "failed to read test zip")
+
+	require.NotEmpty(t, testZipReader.File)
+	imageData := testZipReader.File[0]
+	require.NoError(t, err, "failed to copy test Image file into zip")
+
+	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
+	data := LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:        &teamName,
+				Channel:     &channelName,
+				User:        &username3,
+				Message:     ptrStr("Message with reply"),
+				CreateAt:    &attachmentsPostTime,
+				Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
+				Replies: &[]ReplyImportData{{
+					User:        &user4.Username,
+					Message:     ptrStr("Message reply"),
+					CreateAt:    &attachmentsReplyTime,
+					Attachments: &[]AttachmentImportData{{Path: &testImage, Data: imageData}},
+				}},
+			},
+		},
+		19,
+	}
+
+	t.Run("import with attachment", func(t *testing.T) {
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		attachments := GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 2)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		assert.Contains(t, attachments[1].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+
+		attachments = GetAttachments(user4.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+	})
+
+	t.Run("import existing post with new attachment", func(t *testing.T) {
+		data.Post.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		attachments := GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+
+		attachments = GetAttachments(user4.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+	})
+
+	t.Run("Reply with Attachments in Direct Post", func(t *testing.T) {
+		directImportData := LineImportWorkerData{
+			LineImportData{
+				DirectPost: &DirectPostImportData{
+					ChannelMembers: &[]string{
+						user3.Username,
+						user2.Username,
+					},
+					User:     &user3.Username,
+					Message:  ptrStr("Message with Replies"),
+					CreateAt: ptrInt64(model.GetMillis()),
+					Replies: &[]ReplyImportData{{
+						User:        &user2.Username,
+						Message:     ptrStr("Message reply with attachment"),
+						CreateAt:    ptrInt64(model.GetMillis()),
+						Attachments: &[]AttachmentImportData{{Path: &testImage}},
+					}},
+				},
+			},
+			7,
+		}
+
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{directImportData}, false)
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+
+		attachments := GetAttachments(user2.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, "noteam")
+		AssertFileIdsInPost(attachments, th, t)
 	})
 }

@@ -17,8 +17,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -368,7 +370,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
-	a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
+	a.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	session.AddProp(model.SESSION_PROP_PLATFORM, appName)
 	session.AddProp(model.SESSION_PROP_OS, "OAuth2")
 	session.AddProp(model.SESSION_PROP_BROWSER, "OAuth2")
@@ -378,7 +380,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	a.AddSessionToCache(session)
+	a.srv.userService.AddSessionToCache(session)
 
 	return session, nil
 }
@@ -517,51 +519,36 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 }
 
 func (a *App) RevokeAccessToken(token string) *model.AppError {
-	session, _ := a.GetSession(token)
-
-	defer ReturnSessionToPool(session)
-
-	schan := make(chan error, 1)
-	go func() {
-		schan <- a.Srv().Store.Session().Remove(token)
-		close(schan)
-	}()
-
-	if _, err := a.Srv().Store.OAuth().GetAccessData(token); err != nil {
-		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	if err := a.Srv().Store.OAuth().RemoveAccessData(token); err != nil {
-		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if err := <-schan; err != nil {
-		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if session != nil {
-		a.ClearSessionCacheForUser(session.UserId)
+	if err := a.srv.userService.RevokeAccessToken(token); err != nil {
+		switch {
+		case errors.Is(err, users.GetTokenError):
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, err.Error(), http.StatusBadRequest)
+		case errors.Is(err, users.DeleteTokenError):
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, err.Error(), http.StatusInternalServerError)
+		case errors.Is(err, users.DeleteSessionError):
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return nil
 }
 
-func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CompleteOAuth(c *request.Context, service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
 	defer body.Close()
 
 	action := props["action"]
 
 	switch action {
 	case model.OAUTH_ACTION_SIGNUP:
-		return a.CreateOAuthUser(service, body, teamID, tokenUser)
+		return a.CreateOAuthUser(c, service, body, teamID, tokenUser)
 	case model.OAUTH_ACTION_LOGIN:
-		return a.LoginByOAuth(service, body, teamID, tokenUser)
+		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
 	case model.OAUTH_ACTION_EMAIL_TO_SSO:
 		return a.CompleteSwitchWithOAuth(service, body, props["email"], tokenUser)
 	case model.OAUTH_ACTION_SSO_TO_EMAIL:
-		return a.LoginByOAuth(service, body, teamID, tokenUser)
+		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
 	default:
-		return a.LoginByOAuth(service, body, teamID, tokenUser)
+		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
 	}
 }
 
@@ -582,7 +569,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OauthProvider, *model.
 	return provider, nil
 }
 
-func (a *App) LoginByOAuth(service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) LoginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return nil, e
@@ -608,7 +595,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamID string, to
 	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
 	if err != nil {
 		if err.Id == MissingAuthAccountError {
-			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamID, tokenUser)
+			user, err = a.CreateOAuthUser(c, service, bytes.NewReader(buf.Bytes()), teamID, tokenUser)
 		} else {
 			return nil, err
 		}
@@ -624,7 +611,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamID string, to
 			return nil, err
 		}
 		if teamID != "" {
-			err = a.AddUserToTeamByTeamId(teamID, user)
+			err = a.AddUserToTeamByTeamId(c, teamID, user)
 		}
 	}
 
