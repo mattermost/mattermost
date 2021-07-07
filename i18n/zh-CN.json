@@ -8810,5 +8810,85 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "重置 AuthData 栏到邮件失败。"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "必须指定有效的安全连接 ID 才能取消邀请"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "无效的安全连接 ID：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "已邀请安全连接。"
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "您需要`{{.Permission}}`权限才能管理共享频道。"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "无法取消共享未共享的频道。"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "没有安全连接被邀请到该频道。"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "share-channel"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "必须指定有效的安全连接 ID 才能邀请。"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "缺少操作。可用操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "邀请外部 Mattermost 实例加入当前共享频道"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "共享频道邀请已发送至 `{{.Name}} {{.SiteURL}}`。"
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "'{{.Arg}}'的无效值：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "无法获取安全连接的状态：{{.Error}}。"
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "获取安全连接时出错：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "与外部 Mattermost 实例共享当前频道。"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "无法取消邀请`{{.RemoteId}}`：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "检查共享频道是否存在时出错：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "频道 ID `{{.ChannelId}}` 的状态"
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "共享频道安全连接 `{{.RemoteId}}` 不存在该频道。"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "无法邀请来自其他地方的共享频道到安全连接。"
   }
 ]

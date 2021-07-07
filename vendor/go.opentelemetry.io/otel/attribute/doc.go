@@ -14,7 +14,6 @@
 
 // package attribute provides key and value attributes.
 //
-// This package is currently in a pre-GA phase. Backwards incompatible changes
-// may be introduced in subsequent minor version releases as we work to track
-// the evolving OpenTelemetry specification and user feedback.
+// This package is currently in a Release Candidate phase. Backwards incompatible changes
+// may be introduced prior to v1.0.0, but we believe the current API is ready to stabilize.
 package attribute // import "go.opentelemetry.io/otel/attribute"
