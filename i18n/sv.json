@@ -9225,5 +9225,25 @@
   {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "System"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Användarens trådmedlemskap finns inte"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kunde inte få fram användarens trådmedlemskap"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Licensnyckeln för testperioden av Mattermost Enterprise Edition är inte längre giltig. [Kontakta Sales team] (https://mattermost.com/contact-us/) om du vill utöka testperionden."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Kunde inte kontrollera om en testperiod kan startas"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Datagallringsjobbet misslyckades."
   }
 ]
