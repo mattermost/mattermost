@@ -1334,7 +1334,7 @@ func hasMissingMigrationsVersion536(sqlStore *SqlStore) bool {
 }
 
 func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
+	if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
 	sqlStore.RemoveIndexIfExists("idx_posts_channel_id", "Posts")
 	sqlStore.RemoveIndexIfExists("idx_channels_name", "Channels")
 	sqlStore.RemoveIndexIfExists("idx_publicchannels_name", "PublicChannels")
@@ -1355,6 +1355,6 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 	sqlStore.RemoveIndexIfExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies")
 	sqlStore.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
 
-	// saveSchemaVersion(sqlStore, Version5370)
-	// }
+	saveSchemaVersion(sqlStore, Version5370)
+	}
 }
