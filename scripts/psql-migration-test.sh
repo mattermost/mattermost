@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 TMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'tmpConfigDir'`
 DUMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'dumpDir'`
 
@@ -21,6 +23,13 @@ make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhos
 
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
+
+for i in "ChannelMembers MentionCountRoot" "ChannelMembers MsgCountRoot" "Channels TotalMsgCountRoot"; do
+    a=( $i );
+    echo "Ignoring known Postgres mismatch: ${a[0]}.${a[1]}"
+    docker exec mattermost-postgres psql -U mmuser -d migrated -c "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
+    docker exec mattermost-postgres psql -U mmuser -d latest -c "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
+done
 
 echo "Generating dump"
 docker exec mattermost-postgres pg_dump --schema-only -d migrated -U mmuser > $DUMPDIR/migrated.sql

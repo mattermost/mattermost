@@ -27,7 +27,7 @@ func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -42,7 +42,7 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.MapFromJson(r.Body)
 	text := props["text"]
-	userId := c.App.Session().UserId
+	userId := c.AppContext.Session().UserId
 
 	if text == "" {
 		c.Err = model.NewAppError("Config.IsValid", "api.create_terms_of_service.empty_text.app_error", nil, "", http.StatusBadRequest)

@@ -13,6 +13,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/jobs"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -37,6 +38,26 @@ func (s *Server) LoadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
+		license, err := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr))
+		if err != nil {
+			mlog.Error("Failed to read license set in environment.", mlog.Err(err))
+			return
+		}
+
+		// skip the restrictions if license is a sanctioned trial
+		if !license.IsSanctionedTrial() && license.IsTrialLicense() {
+			canStartTrialLicense, err := s.LicenseManager.CanStartTrial()
+			if err != nil {
+				mlog.Info("Failed to validate trial eligibility.", mlog.Err(err))
+				return
+			}
+
+			if !canStartTrialLicense {
+				mlog.Info("Cannot start trial multiple times.")
+				return
+			}
+		}
+
 		if s.ValidateAndSetLicenseBytes([]byte(licenseStr)) {
 			mlog.Info("License key from ENV is valid, unlocking enterprise features.")
 		}
@@ -74,7 +95,7 @@ func (s *Server) LoadLicense() {
 }
 
 func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
-	success, licenseStr := utils.ValidateLicense(licenseBytes)
+	success, licenseStr := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if !success {
 		return nil, model.NewAppError("addLicense", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
 	}
@@ -124,14 +145,23 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	s.ReloadConfig()
 	s.InvalidateAllCaches()
 
-	// start job server if necessary - this handles the edge case where a license file is uploaded, but the job server
+	// restart job server workers - this handles the edge case where a license file is uploaded, but the job server
 	// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
 	// functioning as expected
-	if *s.Config().JobSettings.RunJobs && s.Jobs != nil && s.Jobs.Workers != nil {
-		s.Jobs.StartWorkers()
+	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+		if err := s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
+			mlog.Warn("Stopping job server workers failed", mlog.Err(err))
+		}
+		if err := s.Jobs.InitWorkers(); err != nil {
+			mlog.Error("Initializing job server workers failed", mlog.Err(err))
+		} else if err := s.Jobs.StartWorkers(); err != nil {
+			mlog.Error("Starting job server workers failed", mlog.Err(err))
+		}
 	}
-	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil && s.Jobs.Schedulers != nil {
-		s.Jobs.StartSchedulers()
+	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+		if err := s.Jobs.StartSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersRunning) {
+			mlog.Error("Starting job server schedulers failed", mlog.Err(err))
+		}
 	}
 
 	return license, nil
@@ -164,7 +194,7 @@ func (s *Server) SetLicense(license *model.License) bool {
 }
 
 func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
-	if success, licenseStr := utils.ValidateLicense(b); success {
+	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		s.SetLicense(license)
 		return true
@@ -218,22 +248,7 @@ func (s *Server) RemoveLicenseListener(id string) {
 }
 
 func (s *Server) GetSanitizedClientLicense() map[string]string {
-	sanitizedLicense := make(map[string]string)
-
-	for k, v := range s.ClientLicense() {
-		sanitizedLicense[k] = v
-	}
-
-	delete(sanitizedLicense, "Id")
-	delete(sanitizedLicense, "Name")
-	delete(sanitizedLicense, "Email")
-	delete(sanitizedLicense, "IssuedAt")
-	delete(sanitizedLicense, "StartsAt")
-	delete(sanitizedLicense, "ExpiresAt")
-	delete(sanitizedLicense, "SkuName")
-	delete(sanitizedLicense, "SkuShortName")
-
-	return sanitizedLicense
+	return utils.GetSanitizedClientLicense(s.ClientLicense())
 }
 
 // RequestTrialLicense request a trial license from the mattermost official license server

@@ -14,13 +14,13 @@ type BotStore struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: userId, includeDeleted
-func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) {
-	ret := _m.Called(userId, includeDeleted)
+// Get provides a mock function with given fields: userID, includeDeleted
+func (_m *BotStore) Get(userID string, includeDeleted bool) (*model.Bot, error) {
+	ret := _m.Called(userID, includeDeleted)
 
 	var r0 *model.Bot
 	if rf, ok := ret.Get(0).(func(string, bool) *model.Bot); ok {
-		r0 = rf(userId, includeDeleted)
+		r0 = rf(userID, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Bot)
@@ -29,7 +29,7 @@ func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(userId, includeDeleted)
+		r1 = rf(userID, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -60,13 +60,13 @@ func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	return r0, r1
 }
 
-// PermanentDelete provides a mock function with given fields: userId
-func (_m *BotStore) PermanentDelete(userId string) error {
-	ret := _m.Called(userId)
+// PermanentDelete provides a mock function with given fields: userID
+func (_m *BotStore) PermanentDelete(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}

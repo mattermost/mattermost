@@ -33,7 +33,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 		"More than 22 chars but less than 64": "",
 		strings.Repeat("12345", 13):           "api.command_channel_rename.too_long.app_error",
 	} {
-		actual := rp.DoCommand(th.App, args, msg).Text
+		actual := rp.DoCommand(th.App, th.Context, args, msg).Text
 		assert.Equal(t, expected, actual)
 	}
 
@@ -46,7 +46,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual := rp.DoCommand(th.App, args, "hello").Text
+	actual := rp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_rename.permission.app_error", actual)
 
 	// Try a private channel *with* permission.
@@ -60,7 +60,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, "hello").Text
+	actual = rp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "", actual)
 
 	// Try a private channel *without* permission.
@@ -72,7 +72,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, "hello").Text
+	actual = rp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_rename.permission.app_error", actual)
 
 	// Try a group channel *with* being a member.
@@ -87,7 +87,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, "hello").Text
+	actual = rp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_rename.direct_group.app_error", actual)
 
 	// Try a direct channel *with* being a member.
@@ -99,6 +99,6 @@ func TestRenameProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, "hello").Text
+	actual = rp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_rename.direct_group.app_error", actual)
 }

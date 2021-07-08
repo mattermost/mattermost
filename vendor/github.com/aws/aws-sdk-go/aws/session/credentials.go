@@ -101,13 +101,6 @@ func resolveCredsFromProfile(cfg *aws.Config,
 			sharedCfg.Creds,
 		)
 
-	case sharedCfg.hasSSOConfiguration():
-		creds, err = resolveSSOCredentials(cfg, sharedCfg, handlers)
-
-	case len(sharedCfg.CredentialProcess) != 0:
-		// Get credentials from CredentialProcess
-		creds = processcreds.NewCredentials(sharedCfg.CredentialProcess)
-
 	case len(sharedCfg.CredentialSource) != 0:
 		creds, err = resolveCredsFromSource(cfg, envCfg,
 			sharedCfg, handlers, sessOpts,
@@ -122,6 +115,13 @@ func resolveCredsFromProfile(cfg *aws.Config,
 			sharedCfg.RoleARN,
 			sharedCfg.RoleSessionName,
 		)
+
+	case sharedCfg.hasSSOConfiguration():
+		creds, err = resolveSSOCredentials(cfg, sharedCfg, handlers)
+
+	case len(sharedCfg.CredentialProcess) != 0:
+		// Get credentials from CredentialProcess
+		creds = processcreds.NewCredentials(sharedCfg.CredentialProcess)
 
 	default:
 		// Fallback to default credentials provider, include mock errors for

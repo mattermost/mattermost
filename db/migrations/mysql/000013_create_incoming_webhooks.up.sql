@@ -64,7 +64,7 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'Description'
     ) > 0,
-    'ALTER TABLE IncomingWebhooks MODIFY Description VARCHAR(500);',
+    'ALTER TABLE IncomingWebhooks MODIFY Description TEXT;',
     'SELECT 1'
 ));
 

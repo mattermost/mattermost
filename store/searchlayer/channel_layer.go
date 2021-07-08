@@ -114,8 +114,8 @@ func (c *SearchChannelStore) RemoveMembers(channelId string, userIds []string) e
 	return nil
 }
 
-func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
-	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser)
+func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser, channelOptions...)
 	if err == nil {
 		c.rootStore.indexUserFromID(user.Id)
 		c.rootStore.indexUserFromID(otherUser.Id)

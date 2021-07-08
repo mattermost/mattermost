@@ -8,7 +8,6 @@ import (
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -42,13 +41,17 @@ import (
 type migrationDirection string
 
 const (
-	IndexTypeFullText      = "full_text"
-	IndexTypeFullTextFunc  = "full_text_func"
-	IndexTypeDefault       = "default"
-	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
-	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
-	DBPingAttempts         = 18
-	DBPingTimeoutSecs      = 10
+	IndexTypeFullText                 = "full_text"
+	IndexTypeFullTextFunc             = "full_text_func"
+	IndexTypeDefault                  = "default"
+	PGDupTableErrorCode               = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
+	MySQLDupTableErrorCode            = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
+	PGForeignKeyViolationErrorCode    = "23503"
+	MySQLForeignKeyViolationErrorCode = 1452
+	PGDuplicateObjectErrorCode        = "42710"
+	MySQLDuplicateObjectErrorCode     = 1022
+	DBPingAttempts                    = 18
+	DBPingTimeoutSecs                 = 10
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
@@ -58,6 +61,8 @@ const (
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
+
+	replicaLagPrefix = "replica-lag"
 )
 
 const (
@@ -94,11 +99,13 @@ type SqlStoreStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
 	post                 store.PostStore
+	retentionPolicy      store.RetentionPolicyStore
 	thread               store.ThreadStore
 	user                 store.UserStore
 	bot                  store.BotStore
 	audit                store.AuditStore
 	cluster              store.ClusterDiscoveryStore
+	remoteCluster        store.RemoteClusterStore
 	compliance           store.ComplianceStore
 	session              store.SessionStore
 	oauth                store.OAuthStore
@@ -125,22 +132,25 @@ type SqlStoreStores struct {
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
+	sharedchannel        store.SharedChannelStore
 }
 
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
-	rrCounter      int64
-	srCounter      int64
-	master         *gorp.DbMap
-	Replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	stores         SqlStoreStores
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
+	rrCounter         int64
+	srCounter         int64
+	master            *gorp.DbMap
+	Replicas          []*gorp.DbMap
+	searchReplicas    []*gorp.DbMap
+	replicaLagHandles []*dbsql.DB
+	stores            SqlStoreStores
+	settings          *model.SqlSettings
+	lockedToMaster    bool
+	context           context.Context
+	license           *model.License
+	licenseMutex      sync.RWMutex
+	metrics           einterfaces.MetricsInterface
 }
 
 type TraceOnAdapter struct{}
@@ -164,9 +174,27 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		rrCounter: 0,
 		srCounter: 0,
 		settings:  &settings,
+		metrics:   metrics,
 	}
 
 	store.initConnection()
+
+	if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		ver, err := store.GetDbVersion(true)
+		if err != nil {
+			mlog.Critical("Cannot get DB version.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		intVer, err := strconv.Atoi(ver)
+		if err != nil {
+			mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		if intVer < MinimumRequiredPostgresVersion {
+			mlog.Critical("Minimum Postgres version requirements not met.", mlog.String("Found", VersionString(intVer)), mlog.String("Wanted", VersionString(MinimumRequiredPostgresVersion)))
+			os.Exit(ExitGenericFailure)
+		}
+	}
 
 	err := store.migrate(migrationsDirectionUp)
 	if err != nil {
@@ -177,10 +205,12 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.team = newSqlTeamStore(store)
 	store.stores.channel = newSqlChannelStore(store, metrics)
 	store.stores.post = newSqlPostStore(store, metrics)
+	store.stores.retentionPolicy = newSqlRetentionPolicyStore(store, metrics)
 	store.stores.user = newSqlUserStore(store, metrics)
 	store.stores.bot = newSqlBotStore(store, metrics)
 	store.stores.audit = newSqlAuditStore(store)
 	store.stores.cluster = newSqlClusterDiscoveryStore(store)
+	store.stores.remoteCluster = newSqlRemoteClusterStore(store)
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
@@ -203,6 +233,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.TermsOfService = newSqlTermsOfServiceStore(store, metrics)
 	store.stores.UserTermsOfService = newSqlUserTermsOfServiceStore(store)
 	store.stores.linkMetadata = newSqlLinkMetadataStore(store)
+	store.stores.sharedchannel = newSqlSharedChannelStore(store)
 	store.stores.reaction = newSqlReactionStore(store)
 	store.stores.role = newSqlRoleStore(store)
 	store.stores.scheme = newSqlSchemeStore(store)
@@ -227,22 +258,20 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	}
 
 	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
+	store.stores.retentionPolicy.(*SqlRetentionPolicyStore).createIndexesIfNotExists()
 	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	store.stores.user.(*SqlUserStore).createIndexesIfNotExists()
-	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
 	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
-	store.stores.preference.(*SqlPreferenceStore).createIndexesIfNotExists()
-	store.stores.token.(*SqlTokenStore).createIndexesIfNotExists()
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
-	store.stores.status.(*SqlStatusStore).createIndexesIfNotExists()
 	store.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()
 	store.stores.uploadSession.(*SqlUploadSessionStore).createIndexesIfNotExists()
 	store.stores.job.(*SqlJobStore).createIndexesIfNotExists()
-	store.stores.userAccessToken.(*SqlUserAccessTokenStore).createIndexesIfNotExists()
 	store.stores.plugin.(*SqlPluginStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
+	store.stores.sharedchannel.(*SqlSharedChannelStore).createIndexesIfNotExists()
+	store.stores.remoteCluster.(*sqlRemoteClusterStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
@@ -275,30 +304,56 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 		}
 	}
 
-	db.SetMaxIdleConns(*settings.MaxIdleConns)
-	db.SetMaxOpenConns(*settings.MaxOpenConns)
+	if strings.HasPrefix(connType, replicaLagPrefix) {
+		// If this is a replica lag connection, we just open one connection.
+		//
+		// Arguably, if the query doesn't require a special credential, it does take up
+		// one extra connection from the replica DB. But falling back to the replica
+		// data source when the replica lag data source is null implies an ordering constraint
+		// which makes things brittle and is not a good design.
+		// If connections are an overhead, it is advised to use a connection pool.
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+	} else {
+		db.SetMaxIdleConns(*settings.MaxIdleConns)
+		db.SetMaxOpenConns(*settings.MaxOpenConns)
+	}
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
-	var dbmap *gorp.DbMap
+	dbMap := getDBMap(settings, db)
 
+	return dbMap
+}
+
+func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
-
-	if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
-	} else if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
-	} else {
+	var dbMap *gorp.DbMap
+	switch *settings.DriverName {
+	case model.DATABASE_DRIVER_MYSQL:
+		dbMap = &gorp.DbMap{
+			Db:            db,
+			TypeConverter: mattermConverter{},
+			Dialect:       gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"},
+			QueryTimeout:  connectionTimeout,
+		}
+	case model.DATABASE_DRIVER_POSTGRES:
+		dbMap = &gorp.DbMap{
+			Db:            db,
+			TypeConverter: mattermConverter{},
+			Dialect:       gorp.PostgresDialect{},
+			QueryTimeout:  connectionTimeout,
+		}
+	default:
 		mlog.Critical("Failed to create dialect specific driver")
 		time.Sleep(time.Second)
 		os.Exit(ExitNoDriver)
+		return nil
 	}
-
 	if settings.Trace != nil && *settings.Trace {
-		dbmap.TraceOn("sql-trace:", &TraceOnAdapter{})
+		dbMap.TraceOn("sql-trace:", &TraceOnAdapter{})
 	}
-
-	return dbmap
+	return dbMap
 }
 
 func (ss *SqlStore) SetContext(context context.Context) {
@@ -310,7 +365,20 @@ func (ss *SqlStore) Context() context.Context {
 }
 
 func (ss *SqlStore) initConnection() {
-	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
+	dataSource := *ss.settings.DataSource
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// TODO: We ignore the readTimeout datasource parameter for MySQL since QueryTimeout
+		// covers that already. Ideally we'd like to do this only for the upgrade
+		// step. To be reviewed in MM-35789.
+		var err error
+		dataSource, err = resetReadTimeout(dataSource)
+		if err != nil {
+			mlog.Critical("Failed to reset read timeout from datasource.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+	}
+
+	ss.master = setupConnection("master", dataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
@@ -323,6 +391,17 @@ func (ss *SqlStore) initConnection() {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+		}
+	}
+
+	if len(ss.settings.ReplicaLagSettings) > 0 {
+		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		for i, src := range ss.settings.ReplicaLagSettings {
+			if src.DataSource == nil {
+				continue
+			}
+			gorpConn := setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = gorpConn.Db
 		}
 	}
 }
@@ -396,6 +475,44 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Db.Stats().OpenConnections
+}
+
+// ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagAbs() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryAbsoluteLag == nil || *item.QueryAbsoluteLag == "" {
+			continue
+		}
+		var binDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryAbsoluteLag).Scan(&node, &binDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagAbsolute(node, binDiff)
+	}
+	return nil
+}
+
+// ReplicaLagAbs queries all the replica databases to get the time-based replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagTime() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryTimeLag == nil || *item.QueryTimeLag == "" {
+			continue
+		}
+		var timeDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryTimeLag).Scan(&node, &timeDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagTime(node, timeDiff)
+	}
+	return nil
 }
 
 func (ss *SqlStore) TotalReadDbConnections() int {
@@ -792,7 +909,23 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	return true
 }
 
-func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
+func (ss *SqlStore) RemoveDefaultIfColumnExists(tableName, columnName string) bool {
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
+
+	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
+	if err != nil {
+		mlog.Critical("Failed to drop column default", mlog.String("table", tableName), mlog.String("column", columnName), mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(ExitGenericFailure)
+		return false
+	}
+
+	return true
+}
+
+func (ss *SqlStore) AlterDefaultIfColumnExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
 	if !ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -821,15 +954,14 @@ func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName stri
 		return false
 	}
 
-	var err error
 	if defaultValue == "" {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
-	} else {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue)
+		defaultValue = "''"
 	}
 
+	query := "ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue
+	_, err := ss.GetMaster().ExecNoTimeout(query)
 	if err != nil {
-		mlog.Critical("Failed to alter column", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
+		mlog.Critical("Failed to alter column default", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(ExitGenericFailure)
 		return false
@@ -993,6 +1125,30 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 	return true
 }
 
+func (ss *SqlStore) CreateForeignKeyIfNotExists(
+	tableName, columnName, refTableName, refColumnName string,
+	onDeleteCascade bool,
+) (err error) {
+	deleteClause := ""
+	if onDeleteCascade {
+		deleteClause = "ON DELETE CASCADE"
+	}
+	constraintName := "FK_" + tableName + "_" + refTableName
+	sQuery := `
+	ALTER TABLE ` + tableName + `
+	ADD CONSTRAINT ` + constraintName + `
+	FOREIGN KEY (` + columnName + `) REFERENCES ` + refTableName + ` (` + refColumnName + `)
+	` + deleteClause + `;`
+	_, err = ss.GetMaster().ExecNoTimeout(sQuery)
+	if IsConstraintAlreadyExistsError(err) {
+		err = nil
+	}
+	if err != nil {
+		mlog.Warn("Could not create foreign key: " + err.Error())
+	}
+	return
+}
+
 func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool {
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1036,6 +1192,20 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 	}
 
 	return true
+}
+
+func IsConstraintAlreadyExistsError(err error) bool {
+	switch dbErr := err.(type) {
+	case *pq.Error:
+		if dbErr.Code == PGDuplicateObjectErrorCode {
+			return true
+		}
+	case *mysql.MySQLError:
+		if dbErr.Number == MySQLDuplicateObjectErrorCode {
+			return true
+		}
+	}
+	return false
 }
 
 func IsUniqueConstraintError(err error, indexName []string) bool {
@@ -1114,6 +1284,10 @@ func (ss *SqlStore) Post() store.PostStore {
 	return ss.stores.post
 }
 
+func (ss *SqlStore) RetentionPolicy() store.RetentionPolicyStore {
+	return ss.stores.retentionPolicy
+}
+
 func (ss *SqlStore) User() store.UserStore {
 	return ss.stores.user
 }
@@ -1132,6 +1306,10 @@ func (ss *SqlStore) Audit() store.AuditStore {
 
 func (ss *SqlStore) ClusterDiscovery() store.ClusterDiscoveryStore {
 	return ss.stores.cluster
+}
+
+func (ss *SqlStore) RemoteCluster() store.RemoteClusterStore {
+	return ss.stores.remoteCluster
 }
 
 func (ss *SqlStore) Compliance() store.ComplianceStore {
@@ -1238,6 +1416,10 @@ func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
 }
 
+func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
+	return ss.stores.sharedchannel
+}
+
 func (ss *SqlStore) DropAllTables() {
 	ss.master.TruncateTables()
 }
@@ -1272,7 +1454,10 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 
 	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
 	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
-	dataSource := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+	dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+	if err != nil {
+		return err
+	}
 	conn := setupConnection("migrations", dataSource, ss.settings)
 	defer conn.Db.Close()
 
@@ -1330,22 +1515,33 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	return nil
 }
 
-func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) string {
+func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
 	// We need to tell the MySQL driver that we want to use multiStatements
 	// in order to make migrations work.
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		u, err := url.Parse(dataSource)
+		config, err := mysql.ParseDSN(dataSource)
 		if err != nil {
-			mlog.Critical("Invalid database url found", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
+			return "", err
 		}
-		q := u.Query()
-		q.Set("multiStatements", "true")
-		u.RawQuery = q.Encode()
-		return u.String()
+
+		if config.Params == nil {
+			config.Params = map[string]string{}
+		}
+
+		config.Params["multiStatements"] = "true"
+		return config.FormatDSN(), nil
 	}
 
-	return dataSource
+	return dataSource, nil
+}
+
+func resetReadTimeout(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+	config.ReadTimeout = 0
+	return config.FormatDSN(), nil
 }
 
 type mattermConverter struct{}
