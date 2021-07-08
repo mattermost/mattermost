@@ -197,13 +197,13 @@ func (_m *ChannelStore) CreateDirectChannel(userID *model.User, otherUserID *mod
 	return r0, r1
 }
 
-// CreateInitialSidebarCategories provides a mock function with given fields: userID, teamID
-func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(userID, teamID)
+// CreateInitialSidebarCategories provides a mock function with given fields: userId, teamID
+func (_m *ChannelStore) CreateInitialSidebarCategories(userId string, teamID string) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(userId, teamID)
 
 	var r0 *model.OrderedSidebarCategories
 	if rf, ok := ret.Get(0).(func(string, string) *model.OrderedSidebarCategories); ok {
-		r0 = rf(userID, teamID)
+		r0 = rf(userId, teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
@@ -212,7 +212,7 @@ func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, teamID str
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, teamID)
+		r1 = rf(userId, teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1188,13 +1188,13 @@ func (_m *ChannelStore) GetPublicChannelsForTeam(teamID string, offset int, limi
 	return r0, r1
 }
 
-// GetSidebarCategories provides a mock function with given fields: userID, teamID
-func (_m *ChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(userID, teamID)
+// GetSidebarCategories provides a mock function with given fields: userId, teamID
+func (_m *ChannelStore) GetSidebarCategories(userId string, teamID string) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(userId, teamID)
 
 	var r0 *model.OrderedSidebarCategories
 	if rf, ok := ret.Get(0).(func(string, string) *model.OrderedSidebarCategories); ok {
-		r0 = rf(userID, teamID)
+		r0 = rf(userId, teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
@@ -1203,7 +1203,7 @@ func (_m *ChannelStore) GetSidebarCategories(userID string, teamID string) (*mod
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, teamID)
+		r1 = rf(userId, teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
