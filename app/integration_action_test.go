@@ -112,13 +112,13 @@ func TestPostActionEmptyResponse(t *testing.T) {
 		}
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 
 		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
-		require.NoError(t, err)
+		require.Nil(t, err)
 	})
 }
 
