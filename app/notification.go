@@ -371,6 +371,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					replyToThreadType = model.COMMENTS_NOTIFY_ROOT
 				}
 
+				notification.Post = notification.Post.Clone()
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
@@ -403,6 +404,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				}
 
 				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
+					notification.Post = notification.Post.Clone()
 					a.sendPushNotification(
 						notification,
 						profileMap[id],
