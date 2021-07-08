@@ -102,7 +102,7 @@ type Post struct {
 	ReplyCount   int64         `json:"reply_count" db:"-"`
 	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
 	Participants []*User       `json:"participants" db:"-"`
-	IsFollowing  bool          `json:"is_following" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	IsFollowing  *bool         `json:"is_following,omitempty" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
@@ -207,6 +207,9 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.Participants = o.Participants
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
+	if o.IsFollowing != nil {
+		dst.IsFollowing = NewBool(*o.IsFollowing)
+	}
 	dst.RemoteId = o.RemoteId
 	return nil
 }
@@ -240,15 +243,15 @@ type GetPostsSinceOptions struct {
 	SortAscending            bool
 }
 
+type GetPostsSinceForSyncCursor struct {
+	LastPostUpdateAt int64
+	LastPostId       string
+}
+
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
-	Since           int64 // inclusive
-	Until           int64 // inclusive
-	SortDescending  bool
 	ExcludeRemoteId string
 	IncludeDeleted  bool
-	Limit           int
-	Offset          int
 }
 
 type GetPostsOptions struct {
@@ -368,6 +371,9 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 }
 
 func (o *Post) SanitizeProps() {
+	if o == nil {
+		return
+	}
 	membersToSanitize := []string{
 		PROPS_ADD_CHANNEL_MEMBER,
 	}
@@ -469,6 +475,14 @@ func (o *Post) IsSystemMessage() bool {
 // IsRemote returns true if the post originated on a remote cluster.
 func (o *Post) IsRemote() bool {
 	return o.RemoteId != nil && *o.RemoteId != ""
+}
+
+// GetRemoteID safely returns the remoteID or empty string if not remote.
+func (o *Post) GetRemoteID() string {
+	if o.RemoteId != nil {
+		return *o.RemoteId
+	}
+	return ""
 }
 
 func (o *Post) IsJoinLeaveMessage() bool {
@@ -716,4 +730,11 @@ func RewriteImageURLs(message string, f func(string) string) string {
 func (o *Post) IsFromOAuthBot() bool {
 	props := o.GetProps()
 	return props["from_webhook"] == "true" && props["override_username"] != ""
+}
+
+func (o *Post) ToNilIfInvalid() *Post {
+	if o.Id == "" {
+		return nil
+	}
+	return o
 }

@@ -235,6 +235,10 @@ type LoggerOptions struct {
 	// Include file and line information in each log line
 	IncludeLocation bool
 
+	// AdditionalLocationOffset is the number of additional stack levels to skip
+	// when finding the file and line information for the log line
+	AdditionalLocationOffset int
+
 	// The time format to use instead of the default
 	TimeFormat string
 

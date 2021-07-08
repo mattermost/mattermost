@@ -986,32 +986,6 @@
     "translation": "批次郵件已被系統管理員停用"
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "直接傳訊，來自："
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "前往發文"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "群組訊息，來自："
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "通知，來自："
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "other": "您有新通知。您有 {{.Count}} 個新通知。"
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "other": "[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知"
@@ -1738,10 +1712,6 @@
     "translation": "無法解碼團隊標誌"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "無法解碼團隊標誌資料"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "無法編碼團隊標誌"
   },
@@ -2292,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "無法解碼個人頭像"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "無法儲存個人資訊圖片。檔案不是有效圖片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2938,62 +2904,6 @@
     "translation": "使用者團隊資料中缺少團隊名字。"
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "您有 1 筆新的直接傳訊。"
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "您有 1 筆新的直接傳訊，來自@{{.SenderName}}。"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "您有 1 筆新的群組訊息。"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "您有 1 筆新的群組訊息，來自@{{.SenderName}}。"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "您有一筆新通知。"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "您有一筆新通知，來自 @{{.SenderName}}。"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "頻道：{{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "頻道：{{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] 來自 @{{.SenderDisplayName}} 的新直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
@@ -3118,10 +3028,6 @@
     "translation": "無法解碼圖片資料。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "無法取得圖片的中繼資料。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "無法轉換圖片至 PNG 格式。請重新嘗試。"
   },
@@ -3132,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "無法寫入圖片檔案至儲存空間。請檢查連線並重新嘗試。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "無法讀取圖片檔案。請確定圖片大小小於 2MB 並重新嘗試。"
   },
   {
     "id": "cli.license.critical",
@@ -5310,8 +5212,8 @@
     "translation": "Bleve 索引工作者解析中止時間時失敗。"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "無法從資料庫取得最老的訊息。"
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "無法從資料庫取得最老的實體 (使用者、頻道或訊息)。"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6726,10 +6628,6 @@
     "translation": "無法取得角色"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "無法取得角色"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "無法取得角色"
   },
@@ -6836,10 +6734,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "無法解析訊息匯出工作 BatchSize。"
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "連接伺服器時遇到錯誤"
   },
   {
     "id": "ent.cluster.404.app_error",

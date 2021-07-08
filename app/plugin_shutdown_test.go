@@ -57,7 +57,7 @@ func TestPluginShutdownTest(t *testing.T) {
 				plugin.ClientMain(&MyPlugin{})
 			}
 		`,
-		}, th.App, th.App.NewPluginAPI)
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	done := make(chan bool)

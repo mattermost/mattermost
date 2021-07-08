@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 TMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'tmpConfigDir'`
 DUMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'dumpDir'`
 

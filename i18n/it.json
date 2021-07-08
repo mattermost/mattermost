@@ -987,33 +987,6 @@
     "translation": "La spedizione di email programmata è stata disabilitata dall aministratore di sistema."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Messaggio Diretto da "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Vai alla pubblicazione"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Messaggio di Gruppo da "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notifica da "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Hai una nuova notifica.",
-      "other": "Hai {{.Count}} nuove notifiche."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Nuova notifica per {{.Day}} {{.Month}} {{.Year}}",
@@ -1743,10 +1716,6 @@
     "translation": "Impossibile decodificare l'icona del gruppo."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Impossibile decodificare i metadati dell'icona del gruppo."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Impossibile codificare l'icona del gruppo."
   },
@@ -2297,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Impossibile caricare l'immagine di profilo."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossibile salvare l'immagine profilo. Il file non sembra essere un'immagine valida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2943,62 +2908,6 @@
     "translation": "Nome gruppo mancante nelle iscrizioni al gruppo dell'utente."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Hai un nuovo messaggio diretto."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Hai un nuovo messaggio diretto da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Hai un nuovo messaggio di gruppo."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Hai un nuovo messaggio di gruppo da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Hai una nuova notifica."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Hai una nuova notifica da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}/{{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canale: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canale: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nuovo messaggio diretto da @{{.SenderDisplayName}} il {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3123,10 +3032,6 @@
     "translation": "Impossibile decodificare i dati dell'immagine."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Impossibile trovare i metadati dell'immagine."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Impossibile convertire l'immagine in PNG. Riprovare."
   },
@@ -3137,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Impossibile scrivere l'immagine nell'archivio file. Controllare la connessione e riprovare."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Impossibile leggere il file immagine. Assicurarsi che l'immagine sia più piccola di 2 MB e riprovare."
   },
   {
     "id": "cli.license.critical",
@@ -5083,10 +4984,6 @@
     "translation": "Impossibile indicizzare gli utenti in batch."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Il post più vecchio non può essere recuperato dal database."
-  },
-  {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
     "translation": "Il lavoro di indicizzazione di Bleve non è riuscito a calcolare l'ora d'inizio."
   },
@@ -6703,10 +6600,6 @@
     "translation": "Impossibile recuperare il ruolo"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossibile recuperare tutti i ruoli"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Impossibile recuperare il ruolo"
   },
@@ -6885,10 +6778,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "E' stato riscontrato un errore durante la connessione al server."
   },
   {
     "id": "ent.cluster.404.app_error",

@@ -83,7 +83,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	mentions := &ExplicitMentions{}
 	allActivityPushUserIds := []string{}
-
+	var allowChannelMentions bool
+	var keywords map[string][]string
 	if channel.Type == model.CHANNEL_DIRECT {
 		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 
@@ -96,8 +97,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentions.addMention(post.UserId, DMMention)
 		}
 	} else {
-		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
-		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
+		allowChannelMentions = a.allowChannelMentions(post, len(profileMap))
+		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
 		mentions = getExplicitMentions(post, keywords, groups)
 		// Add an implicit mention when a user is added to a channel
@@ -123,8 +124,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		// get users that have comment thread mentions enabled
 		if post.RootId != "" && parentPostList != nil {
-			rootPost := parentPostList.Posts[parentPostList.Order[0]]
-			mentions.merge(getExplicitMentions(rootPost, keywords, groups))
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
 				if profile == nil {
@@ -173,8 +172,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
+			if channel.Type != model.CHANNEL_DIRECT {
+				rootPost := parentPostList.Posts[parentPostList.Order[0]]
+				rootMentions = getExplicitMentions(rootPost, keywords, groups)
+				for id := range rootMentions.Mentions {
+					threadParticipants[id] = true
+				}
+			}
 		}
 		for id := range mentions.Mentions {
 			threadParticipants[id] = true
@@ -184,8 +191,33 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mac := make(chan *model.AppError, 1)
 			go func(userID string) {
 				defer close(mac)
-				_, incrementMentions := mentions.Mentions[userID]
-				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId)
+				mentionType, incrementMentions := mentions.Mentions[userID]
+				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
+				if !incrementMentions {
+					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
+					var nfErr *store.ErrNotFound
+
+					if err != nil && !errors.As(err, &nfErr) {
+						mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
+						return
+					}
+
+					if membership != nil && !membership.Following {
+						return
+					}
+				}
+				if mentionType == ThreadMention || mentionType == CommentMention {
+					incrementMentions = false
+				}
+
+				opts := store.ThreadMembershipOpts{
+					Following:             true,
+					IncrementMentions:     incrementMentions,
+					UpdateFollowing:       *a.Config().ServiceSettings.ThreadAutoFollow,
+					UpdateViewedTimestamp: userID == post.UserId,
+					UpdateParticipants:    userID == post.UserId,
+				}
+				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
@@ -232,8 +264,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
-				err := a.sendNotificationEmail(notification, profileMap[id], team)
+				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
+					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+				}
+				if err := a.sendNotificationEmail(notification, profileMap[id], team, senderProfileImage); err != nil {
 					mlog.Warn("Unable to send notification email.", mlog.Err(err))
 				}
 			}
@@ -427,11 +462,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// If this is a reply in a thread, notify participants
 	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
-		thread, err := a.Srv().Store.Thread().Get(post.RootId)
+		followers, err := a.Srv().Store.Thread().GetThreadFollowers(post.RootId)
 		if err != nil {
-			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
+			return nil, errors.Wrapf(err, "cannot get thread %q followers", post.RootId)
 		}
-		for _, uid := range thread.Participants {
+		for _, uid := range followers {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
 			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
@@ -439,9 +474,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				threadMembership, err := a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
 				if err != nil {
-					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", thread.PostId, uid)
+					return nil, errors.Wrapf(err, "cannot get thread membership %q for user %q", post.RootId, uid)
+				}
+				userThread, err := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+				if err != nil {
+					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
 					a.sanitizeProfiles(userThread.Participants, false)
@@ -753,12 +792,6 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 
 func (m *ExplicitMentions) addMentions(userIDs []string, mentionType MentionType) {
 	for _, userID := range userIDs {
-		m.addMention(userID, mentionType)
-	}
-}
-
-func (m *ExplicitMentions) merge(other *ExplicitMentions) {
-	for userID, mentionType := range other.Mentions {
 		m.addMention(userID, mentionType)
 	}
 }

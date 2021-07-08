@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -78,13 +79,59 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 	return nil
 }
 
-func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
+func (a *App) GetSubscriptionStats() (*model.SubscriptionStats, *model.AppError) {
+	if a.Srv().License() == nil || !*a.Srv().License().Features.Cloud {
+		return nil, model.NewAppError("app.GetSubscriptionStats", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
+	}
+
+	subscription, appErr := a.Cloud().GetSubscription("")
+	if appErr != nil {
+		return nil, model.NewAppError("app.GetSubscriptionStats", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		return nil, model.NewAppError("app.GetSubscriptionStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	cloudUserLimit := *a.Config().ExperimentalSettings.CloudUserLimit
+
+	s := cloudUserLimit - count
+
+	return &model.SubscriptionStats{
+		RemainingSeats: int(s),
+		IsPaidTier:     subscription.IsPaidTier,
+	}, nil
+}
+
+func (a *App) CheckCloudAccountAtLimit() (bool, *model.AppError) {
+	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
+		// Not cloud instance, so no at limit checks
+		return false, nil
+	}
+
+	stats, err := a.GetSubscriptionStats()
+	if err != nil {
+		return false, err
+	}
+
+	if stats.IsPaidTier == "true" {
+		return false, nil
+	}
+
+	if stats.RemainingSeats < 1 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (a *App) CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppError {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
 		// Not cloud instance, do nothing
 		return nil
 	}
 
-	subscription, err := a.Cloud().GetSubscription(a.Session().UserId)
+	subscription, err := a.Cloud().GetSubscription(c.Session().UserId)
 	if err != nil {
 		return model.NewAppError(
 			"app.CheckAndSendUserLimitWarningEmails",
@@ -186,7 +233,11 @@ func (a *App) SendCloudTrialEndWarningEmail(trialEndDate, siteURL string) *model
 	countNotOks := 0
 
 	for admin := range sysAdmins {
-		err := a.Srv().EmailService.SendCloudTrialEndWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Username, trialEndDate, sysAdmins[admin].Locale, siteURL)
+		name := sysAdmins[admin].FirstName
+		if name == "" {
+			name = sysAdmins[admin].Username
+		}
+		err := a.Srv().EmailService.SendCloudTrialEndWarningEmail(sysAdmins[admin].Email, name, trialEndDate, sysAdmins[admin].Locale, siteURL)
 		if err != nil {
 			a.Log().Error("Error sending trial ending warning to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
 			countNotOks++
@@ -196,6 +247,36 @@ func (a *App) SendCloudTrialEndWarningEmail(trialEndDate, siteURL string) *model
 	// if not even one admin got an email, we consider that this operation errored
 	if countNotOks == len(sysAdmins) {
 		return model.NewAppError("app.SendCloudTrialEndWarningEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) SendCloudTrialEndedEmail() *model.AppError {
+	sysAdmins, e := a.getSysAdminsEmailRecipients()
+	if e != nil {
+		return e
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for admin := range sysAdmins {
+		name := sysAdmins[admin].FirstName
+		if name == "" {
+			name = sysAdmins[admin].Username
+		}
+
+		err := a.Srv().EmailService.SendCloudTrialEndedEmail(sysAdmins[admin].Email, name, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			a.Log().Error("Error sending trial ended email to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(sysAdmins) {
+		return model.NewAppError("app.SendCloudTrialEndedEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	return nil

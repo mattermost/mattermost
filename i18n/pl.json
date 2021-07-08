@@ -988,34 +988,6 @@
     "translation": "Masowa wysyłka maili została wyłączona przez administratora systemu."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Wiadomość bezpośrednia od "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Do wiadomości"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Wiadomość grupowa od "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Powiadomienie od "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "Masz {{.Count}} nowe powiadomienia.",
-      "many": "",
-      "one": "Masz nowe powiadomienie."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
@@ -1748,10 +1720,6 @@
     "translation": "Nie udało się zdekodować ikony zespołu"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Nie można odszyfrować metadanych ikon zespołu"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Nie można zakodować ikony zespołu"
   },
@@ -2302,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Nie można było zdekodować obrazu profilu"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Nie można zapisać obrazka profilowego. Plik nie jest obrazem."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2948,62 +2912,6 @@
     "translation": "Brakuje nazwy zespołu w Członkostwie Zespołu Użytkownika."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Masz nową Wiadomość Bezpośrednią."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Masz nową Wiadomość Bezpośrednią od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Masz nową Wiadomość Grupową."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Masz nową Wiadomość Grupową od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Masz nowe powiadomienie."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Masz nowe powiadomienie od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanał: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanał: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nowa Wiadomość Bezpośrednia od @{{.SenderDisplayName}} z {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3128,10 +3036,6 @@
     "translation": "Nie można zdekodować danych obrazu."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Nie można pobrać metadanych obrazka."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Nie można przekonwertować danych obrazu na format PNG. Proszę spróbuj ponownie."
   },
@@ -3142,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Nie można zapisać pliku obrazu do magazynu plików. Proszę sprawdź swoje połączenie i spróbuj ponownie."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Nie można odczytać pliku obrazu. Upewnij się, że rozmiar obrazu jest mniejszy niż 2 MB i spróbuj ponownie."
   },
   {
     "id": "cli.license.critical",
@@ -5320,10 +5220,6 @@
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu zakończenia"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Najstarszego postu nie można było pobrać z bazy danych."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -6520,10 +6416,6 @@
     "translation": "Nie można uzyskać roli"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Nie udało się pobrać wszystkich ról"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Nie można uzyskać roli"
   },
@@ -6630,10 +6522,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Napotkano błąd podczas podłączania się do serwera"
   },
   {
     "id": "ent.cluster.404.app_error",

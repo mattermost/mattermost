@@ -34,6 +34,7 @@ import (
 
 	grpclbstate "google.golang.org/grpc/balancer/grpclb/state"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/internal/backoff"
 	"google.golang.org/grpc/internal/envconfig"
 	"google.golang.org/grpc/internal/grpcrand"
 	"google.golang.org/grpc/resolver"
@@ -45,6 +46,13 @@ import (
 var EnableSRVLookups = false
 
 var logger = grpclog.Component("dns")
+
+// Globals to stub out in tests. TODO: Perhaps these two can be combined into a
+// single variable for testing the resolver?
+var (
+	newTimer           = time.NewTimer
+	newTimerDNSResRate = time.NewTimer
+)
 
 func init() {
 	resolver.Register(NewBuilder())
@@ -143,7 +151,6 @@ func (b *dnsBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts 
 
 	d.wg.Add(1)
 	go d.watcher()
-	d.ResolveNow(resolver.ResolveNowOptions{})
 	return d, nil
 }
 
@@ -201,28 +208,38 @@ func (d *dnsResolver) Close() {
 
 func (d *dnsResolver) watcher() {
 	defer d.wg.Done()
+	backoffIndex := 1
 	for {
-		select {
-		case <-d.ctx.Done():
-			return
-		case <-d.rn:
-		}
-
 		state, err := d.lookup()
 		if err != nil {
+			// Report error to the underlying grpc.ClientConn.
 			d.cc.ReportError(err)
 		} else {
-			d.cc.UpdateState(*state)
+			err = d.cc.UpdateState(*state)
 		}
 
-		// Sleep to prevent excessive re-resolutions. Incoming resolution requests
-		// will be queued in d.rn.
-		t := time.NewTimer(minDNSResRate)
+		var timer *time.Timer
+		if err == nil {
+			// Success resolving, wait for the next ResolveNow. However, also wait 30 seconds at the very least
+			// to prevent constantly re-resolving.
+			backoffIndex = 1
+			timer = newTimerDNSResRate(minDNSResRate)
+			select {
+			case <-d.ctx.Done():
+				timer.Stop()
+				return
+			case <-d.rn:
+			}
+		} else {
+			// Poll on an error found in DNS Resolver or an error received from ClientConn.
+			timer = newTimer(backoff.DefaultExponential.Backoff(backoffIndex))
+			backoffIndex++
+		}
 		select {
-		case <-t.C:
 		case <-d.ctx.Done():
-			t.Stop()
+			timer.Stop()
 			return
+		case <-timer.C:
 		}
 	}
 }

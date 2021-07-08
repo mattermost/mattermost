@@ -272,6 +272,10 @@
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
   {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "A direct channel cannot be created between these users because they do not share a team in common."
+  },
+  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
@@ -629,7 +633,11 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "The text entered exceeds the character limit. The channel header is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -661,7 +669,11 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "The text entered exceeds the character limit. The channel purpose is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -1084,7 +1096,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Accept an invitation from a remote cluster"
+    "translation": "Accept an invitation from an external Mattermost instance"
   },
   {
     "id": "api.command_remote.accept_invitation",
@@ -1096,11 +1108,11 @@
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Could not add remote cluster: {{.Error}}"
+    "translation": "Could not add secure connection: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Remote cluster {{.RemoteId}} {{.Result}}."
+    "translation": "Secure connection {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -1108,15 +1120,15 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Invite remote Mattermost clusters for inter-cluster communication."
+    "translation": "Invite secure connections for communication across Mattermost instances."
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Remote cluster display name"
+    "translation": "Secure connection display name"
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "A display name for the remote cluster"
+    "translation": "A display name for the secure connection"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -1124,7 +1136,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Could not fetch remote clusters: {{.Error}}"
+    "translation": "Could not fetch secure connections: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -1136,11 +1148,11 @@
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Invitation from remote cluster"
+    "translation": "Invitation from secure connection"
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "The encrypted invitation from a remote cluster"
+    "translation": "The encrypted invitation from a secure connection"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -1148,7 +1160,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Invite a remote cluster"
+    "translation": "Invite a secure connection"
   },
   {
     "id": "api.command_remote.invite_password.help",
@@ -1160,7 +1172,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Send the following encrypted (AES256 + Base64) blob to the remote site administrator along with the password. They will use the `{{.Command}}` slash command to accept the invitation.\n\n```\n{{.Invitation}}\n```\n\n**Ensure the remote site can access your cluster via** {{.SiteURL}}"
+    "translation": "Send the following AES 256-bit encrypted invitation to the external Mattermost System Admin along with the password. They will use the `{{.Command}}` slash command to accept the invitation.\n\n```\n{{.Invitation}}\n```\n\n**Ensure the secure connection can access your Mattermost instance via** {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.missing_command",
@@ -1172,59 +1184,59 @@
   },
   {
     "id": "api.command_remote.name",
-    "translation": "remote"
+    "translation": "secure-connection"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Remote cluster name"
+    "translation": "Secure connection name"
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "A unique name for the remote cluster"
+    "translation": "A unique name for the secure connection"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "You require `{{.Permission}}` permission to manage remote clusters."
+    "translation": "You require `{{.Permission}}` permission to manage secure connections."
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Add/remove remote clusters. Available actions: {{.Actions}}"
+    "translation": "Add/remove secure connections. Available actions: {{.Actions}}"
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Name | SiteURL  | RemoteId   | Invite Accepted | Online | Last Ping  |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite accepted | Online | Last ping  |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "No remote clusters found."
+    "translation": "No secure connections found."
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Removes a remote cluster"
+    "translation": "Removes a secure connection"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Could not remove remote cluster: {{.Error}}"
+    "translation": "Could not remove secure connection: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id of remote cluster remove"
+    "translation": "ID of secure connection to remove."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Remote Cluster Service is disabled."
+    "translation": "Secure Connection Service is disabled."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Remote Cluster service not enabled."
+    "translation": "Secure Connection Service not enabled."
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SiteURL not set. Please set this via the system console."
+    "translation": "Site URL not set. Please set this in System Console > Environment > Web Server."
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Displays status for all remote clusters"
+    "translation": "Displays status for all secure connections"
   },
   {
     "id": "api.command_remote.unknown_action",
@@ -1299,48 +1311,16 @@
     "translation": "Available actions: {{.Actions}}"
   },
   {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Channel display name provided to remote instances"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - defaults to channel displayname"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Channel header provided to remote instances"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - defaults to channels header"
-  },
-  {
     "id": "api.command_share.channel_invite.error",
     "translation": "Error inviting `{{.Name}}` to this channel: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Cannot invite remote cluster to a shared channel originating somewhere else."
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Channel name provided to remote instances"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - defaults to channel name"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Channel purpose provided to remote instances"
-  },
-  {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - defaults to channel purpose"
+    "translation": "Cannot invite secure connection to a shared channel originating somewhere else."
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Shared channel remote id `{{.RemoteId}}` does not exist for this channel."
+    "translation": "Shared channel secure connection `{{.RemoteId}}` does not exist for this channel."
   },
   {
     "id": "api.command_share.channel_shared",
@@ -1352,7 +1332,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Status for channel Id `{{.ChannelId}}`"
+    "translation": "Status for channel ID `{{.ChannelId}}`"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
@@ -1364,23 +1344,15 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Shares the current channel with a remote Mattermost instance."
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Description for invite"
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - optional"
+    "translation": "Shares the current channel with an external Mattermost instance."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Error fetching remote clusters: {{.Error}}"
+    "translation": "Error fetching secure connections: {{.Error}}"
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Could not fetch status for remotes: {{.Error}}."
+    "translation": "Could not fetch status for secure connections: {{.Error}}."
   },
   {
     "id": "api.command_share.hint",
@@ -1392,11 +1364,11 @@
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Channel invitation has been sent to `{{.Name}} {{.SiteURL}}`."
+    "translation": "Shared channel invitation has been sent to `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Invites a remote instance to the current shared channel"
+    "translation": "Invites an external Mattermost instance to the current shared channel"
   },
   {
     "id": "api.command_share.missing_action",
@@ -1404,15 +1376,15 @@
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Must specify a valid remote cluster id to invite."
+    "translation": "Must specify a valid secure connection ID to invite."
   },
   {
     "id": "api.command_share.name",
-    "translation": "share"
+    "translation": "share-channel"
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "No remotes have been invited to this shared channel."
+    "translation": "No secure connections have been invited to this channel."
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
@@ -1424,27 +1396,27 @@
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "The remote cluster has already been invited."
+    "translation": "The secure connection has already been invited."
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id of an existing remote instance. See `remote` command to add a remote instance."
+    "translation": "ID of an existing secure connection. See `secure-connection` command to add a secure connection."
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Remote cluster id is invalid: {{.Error}}"
+    "translation": "Secure connection ID is invalid: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Must specify a valid remote cluster to uninvite"
+    "translation": "Must specify a valid secure connection ID to uninvite"
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Remote | SiteURL | Description | ReadOnly | InviteAccepted | Online | Last Sync |"
+    "translation": "| Secure connection | Site URL | Read only | Invite accepted | Online | Last sync |"
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Remote `{{.RemoteId}}` uninvited."
+    "translation": "Secure connection `{{.RemoteId}}` uninvited."
   },
   {
     "id": "api.command_share.service_disabled",
@@ -1455,20 +1427,12 @@
     "translation": "Cannot share this channel: {{.Error}}"
   },
   {
-    "id": "api.command_share.share_current",
-    "translation": "Share the current channel"
-  },
-  {
     "id": "api.command_share.share_read_only.help",
     "translation": "Channel will be shared in read-only mode"
   },
   {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' or 'N'.  Defaults to 'N'"
-  },
-  {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Shared channel was not deleted: `{{.Arg}}` must be `{{.Expected}}`."
   },
   {
     "id": "api.command_share.shared_channel_unavailable",
@@ -1480,11 +1444,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Uninvites a remote instance from this shared channel"
+    "translation": "Uninvites a secure connection from this shared channel"
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Id of remote instance to uninvite."
+    "translation": "ID of secure connection to uninvite."
   },
   {
     "id": "api.command_share.unknown_action",
@@ -1493,14 +1457,6 @@
   {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Unshares the current channel"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Are you sure? This channel will be unshared and all remote instances will be uninvited"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' or 'N'"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -1539,12 +1495,20 @@
     "translation": "Failed to migrate config store."
   },
   {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Failed to diff configs"
+  },
+  {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "Site URL cannot be cleared."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Failed to diff configs"
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
@@ -1600,15 +1564,15 @@
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Unable to find remote cluster id {{.RemoteId}}."
+    "translation": "Unable to find secure connectionID {{.RemoteId}}."
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Remote cluster id mismatch."
+    "translation": "Secure connection ID mismatch."
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Remote cluster id missing."
+    "translation": "Secure connection ID missing."
   },
   {
     "id": "api.context.server_busy.app_error",
@@ -1659,37 +1623,33 @@
     "translation": "Email batching has been disabled by the system administrator."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Open Mattermost"
   },
   {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direct Message from "
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "View this message"
   },
   {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Go to Post"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Group Message from "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notification from "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "You have a new notification.",
-      "other": "You have {{.Count}} new notifications."
-    }
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "See below for a summary of your new messages."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
       "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} sent you new message",
+      "other": "{{ .SenderName }} and {{.Count}} others sent you new messages"
     }
   },
   {
@@ -2017,6 +1977,14 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Could not check if a trial can be started"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "This trial license key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
     "id": "api.license.request_renewal_link.app_error",
     "translation": "Error getting the license renewal link"
   },
@@ -2059,6 +2027,10 @@
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "If you are not redirected automatically, please click the <a href='{{.Link}}'>link</a>"
   },
   {
     "id": "api.oauth.close_browser",
@@ -2295,10 +2267,6 @@
     "translation": "Unable to parse the request body."
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "This feature is in development, and is only available using a feature flag."
-  },
-  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -2424,11 +2392,11 @@
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "We encountered an error deleting the remote cluster."
+    "translation": "We encountered an error deleting the secure connection."
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "We encountered an error retrieving a remote cluster."
+    "translation": "We encountered an error retrieving a secure connection."
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -2440,11 +2408,11 @@
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "We encountered an error saving the remote cluster."
+    "translation": "We encountered an error saving the secure connection."
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "Remote cluster has already been added."
+    "translation": "Secure connection has already been added."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -2452,11 +2420,11 @@
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "We encountered an error updating the remote cluster."
+    "translation": "We encountered an error updating the secure connection."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Remote cluster with the same url already exists."
+    "translation": "Secure connection with the same url already exists."
   },
   {
     "id": "api.restricted_system_admin",
@@ -2755,6 +2723,14 @@
     "translation": "Getting Trial"
   },
   {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Set Your Support Email Address"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Please go to **System Console > Site Configuration > Customization** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organization's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
+  },
+  {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
   },
@@ -3043,12 +3019,12 @@
     "translation": "Empty array under 'image' in request."
   },
   {
-    "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Could not decode team icon."
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata."
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -3127,6 +3103,22 @@
     "translation": "You’ve reached the user limit for the free tier "
   },
   {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Start subscription"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost cloud trial has ended"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Your free 14-day trial of Mattermost has ended today"
+  },
+  {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
     "translation": "Add Payment method"
   },
@@ -3136,7 +3128,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -3516,7 +3508,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "View Message"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -3847,6 +3839,10 @@
     "translation": "Login failed because of invalid password."
   },
   {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Failed to send trial ended email"
+  },
+  {
     "id": "api.user.cloud_trial_ending_email.error",
     "translation": "Failed to send trial ending warning email"
   },
@@ -4147,6 +4143,14 @@
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
   },
   {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Unable to make cloud check for at or over the limit."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Unable to activate more users as the cloud account is over capacity."
+  },
+  {
     "id": "api.user.update_active.not_enable.app_error",
     "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
@@ -4211,12 +4215,12 @@
     "translation": "Empty array under 'image' in request."
   },
   {
-    "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "Could not decode profile image."
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "Could not decode profile image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -4369,6 +4373,14 @@
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
     "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "List of admins is empty."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "List of admins is empty."
   },
   {
     "id": "app.bot.getbot.internal_error",
@@ -5471,60 +5483,44 @@
     "translation": "No license present"
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "You have a new Direct Message."
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} sent you a new Direct Message."
   },
   {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new Direct Message from {{.SenderName}}"
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "You have a new Group Message."
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} sent you a new message"
   },
   {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "You have a new Group Message from {{.SenderName}}"
+    "id": "app.notification.body.group.subTitle",
+    "translation": "While you were away, {{.SenderName}} sent a message to your group."
   },
   {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "You have a new notification."
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} sent you a new message"
   },
   {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from {{.SenderName}}"
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "While you were away, {{.SenderName}} mentioned you in the {{.ChannelName}} channel."
   },
   {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.footer.info",
+    "translation": " and go to Account Settings > Notifications"
   },
   {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Login to Mattermost"
   },
   {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.footer.title",
+    "translation": "Want to change your notifications settings?"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -5919,10 +5915,6 @@
     "translation": "Unable to get role."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Unable to get all the roles."
-  },
-  {
     "id": "app.role.get_by_name.app_error",
     "translation": "Unable to get role."
   },
@@ -6043,6 +6035,10 @@
     "translation": "We encountered an error saving the system property."
   },
   {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "System"
+  },
+  {
     "id": "app.system.warn_metric.bot_description",
     "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
@@ -6065,14 +6061,6 @@
   {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Failed to parse installation date."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Unable to count the private teams."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Unable to count the public teams."
   },
   {
     "id": "app.team.analytics_team_count.app_error",
@@ -6103,10 +6091,6 @@
     "translation": "We could not get all private teams."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "We could not get all private teams in page."
-  },
-  {
     "id": "app.team.get_all_team_listing.app_error",
     "translation": "We could not get all teams."
   },
@@ -6125,6 +6109,10 @@
   {
     "id": "app.team.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Unable to get the common team IDs."
   },
   {
     "id": "app.team.get_member.app_error",
@@ -6375,6 +6363,14 @@
     "translation": "We encountered an error while finding the recently active users."
   },
   {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Unable to get user thread membership"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "User thread membership doesn't exist"
+  },
+  {
     "id": "app.user.get_threads_for_user.app_error",
     "translation": "Unable to get user threads"
   },
@@ -6429,6 +6425,10 @@
   {
     "id": "app.user.search.app_error",
     "translation": "Unable to find any user matching the search parameters."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Unable to send auto response from user."
   },
   {
     "id": "app.user.send_emails.app_error",
@@ -6529,6 +6529,10 @@
   {
     "id": "app.user_terms_of_service.save.app_error",
     "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Password is not valid"
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
@@ -6703,8 +6707,8 @@
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "The oldest entity (user, channel or post) could not be retrieved from the database."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
@@ -6775,12 +6779,12 @@
     "translation": "Failed to close user index."
   },
   {
-    "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Unable to decode the image data."
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "Unable to decode the image data."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
@@ -6793,10 +6797,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",
@@ -6841,10 +6841,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Error occurred while marshalling JSON request"
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -6947,12 +6943,24 @@
     "translation": "Your license does not support Data Retention."
   },
   {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "We encountered an error performing the requested operation."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Policy is invalid."
+  },
+  {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of posts."
   },
   {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Data retention job failed."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -7523,14 +7531,6 @@
     "translation": "Unable to process import: failed to open file."
   },
   {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Unable to process import: failed to create temporary directory."
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Unable to process import: failed to unzip file."
-  },
-  {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "Failed to decode base64 for trigger ID for interactive dialog."
   },
@@ -7705,10 +7705,6 @@
   {
     "id": "model.channel.is_valid.creator_id.app_error",
     "translation": "Invalid creator id."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Invalid description."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
