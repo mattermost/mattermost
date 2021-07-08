@@ -18,9 +18,8 @@ before_install:
 
 # go versions to test
 go:
-  - "1.10.x"
-  - "1.11.x"
-  - "1.12.x"
+  - "1.15.x"
+  - "1.16.x"
 
 # run tests w/ coverage
 script:

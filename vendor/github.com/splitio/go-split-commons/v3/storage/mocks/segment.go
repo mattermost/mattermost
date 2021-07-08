@@ -10,6 +10,7 @@ type MockSegmentStorage struct {
 	SegmentContainsKeyCall func(segmentName string, key string) (bool, error)
 	SetChangeNumberCall    func(segmentName string, till int64) error
 	CountRemovedKeysCall   func(segmentName string) int64
+	SegmentKeysCountCall   func() int64
 }
 
 // ChangeNumber mock
@@ -40,4 +41,8 @@ func (m MockSegmentStorage) SetChangeNumber(segmentName string, till int64) erro
 // CountRemovedKeys mock
 func (m MockSegmentStorage) CountRemovedKeys(segmentName string) int64 {
 	return m.CountRemovedKeysCall(segmentName)
+}
+
+func (m MockSegmentStorage) SegmentKeysCount() int64 {
+	return m.SegmentKeysCountCall()
 }

@@ -15,3 +15,5 @@ ALTER TABLE roles ADD COLUMN IF NOT EXISTS builtin boolean DEFAULT false;
 
 UPDATE Roles SET SchemeManaged = false
 WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin');
+
+ALTER TABLE roles ALTER COLUMN permissions TYPE TEXT;

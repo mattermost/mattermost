@@ -40,6 +40,7 @@ type Options struct {
 	tags                        []opentracing.Tag
 	injectors                   map[interface{}]jaeger.Injector
 	extractors                  map[interface{}]jaeger.Extractor
+	randomNumber                func() uint64
 }
 
 // Metrics creates an Option that initializes Metrics in the tracer,
@@ -144,6 +145,13 @@ func Injector(format interface{}, injector jaeger.Injector) Option {
 func Extractor(format interface{}, extractor jaeger.Extractor) Option {
 	return func(c *Options) {
 		c.extractors[format] = extractor
+	}
+}
+
+// WithRandomNumber supplies a random number generator function to the Tracer used to generate trace and span IDs.
+func WithRandomNumber(f func() uint64) Option {
+	return func(c *Options) {
+		c.randomNumber = f
 	}
 }
 

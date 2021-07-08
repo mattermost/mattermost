@@ -986,32 +986,6 @@
     "translation": "시스템 관리자가 전자우편 배치 기능을 비활성화했습니다."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "로부터 직접 메시지"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "글로 이동하기"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "로부터 그룹 메세지"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "로부터 공지"
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "other": "새 알림이 있습니다.{{.Count}}개의 새 알림이 있습니다."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "other": "[{{.SiteName}}] (으)로부터 {{.Month}} {{.Day}}, {{.Year}} 에 새 알림이 왔습니다[{{.SiteName}}] (으)로부터 {{.Month}} {{.Day}}, {{.Year}} 에 새 알림들이 왔습니다"
@@ -1738,10 +1712,6 @@
     "translation": "팀 아이콘을 decode할 수 없습니다."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "팀 아이콘 메타데이터를 decode할 수 없습니다."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "팀 아이콘을 encode할 수 없습니다."
   },
@@ -1979,7 +1949,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "최상의 경험을 위해 PC, Mac, iOS와 Android용 애플리케이션을 다운로드 받으세요."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1987,11 +1957,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "전자우편 주소를 검증하려면 클릭하세요."
+    "translation": "이 이메일 주소는 Mattermost 계정을 생성하는 데 사용되었습니다."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "{{ .ServerURL }}에 가입했습니다"
+    "translation": "팀에 가입하신 걸 환영합니다"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -2292,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "프로필 이미지를 불러올 수 없습니다."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2938,62 +2904,6 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "한개의 신규 메시지가 있습니다."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 개인 메시지 알림이 왔습니다."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "한개의 신규 메시지가 있습니다."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 알림이 있습니다."
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "한개의 신규 메시지가 있습니다."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 알림이 있습니다."
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "채널 : {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "채널 : {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}일"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] {{.SenderDisplayName}} (으)로부터 {{.Month}} {{.Day}}일, {{.Year}} 에 새로운 개인 메시지가 왔습니다."
   },
@@ -3118,10 +3028,6 @@
     "translation": "Unable to decode the image data."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Unable to convert the image data to PNG format. Please try again."
   },
@@ -3132,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",
@@ -4838,10 +4740,6 @@
     "translation": "We couldn't find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "This email is already taken. Please choose another."
-  },
-  {
     "id": "system.message.name",
     "translation": "시스템"
   },
@@ -5312,10 +5210,6 @@
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
     "translation": "Bleve 색인 프로세스가 종료 시간을 구문 분석하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "데이터베이스에서 가장 오래된 게시물을 조회 할 수 없습니다"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6706,10 +6600,6 @@
     "translation": "역할을 가져올 수 없습니다."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "모든 역할을 가져올 수 없습니다."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "역할을 가져올 수 없습니다."
   },
@@ -6816,10 +6706,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Could not parse message export job BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7032,14 +6918,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "팀의 갯수를 계산할 수 없습니다."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "공개 팀의 갯수를 계산할 수 없습니다."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "비공개 팀의 갯수를 계산할 수 없습니다."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -7326,10 +7204,6 @@
     "translation": "시간 구간 이후의 게시글을 가져올 수 없습니다."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "모든 비공개 팀을 페이지 형태로 가져오지 못했습니다."
-  },
-  {
     "id": "api.user.login_cws.license.error",
     "translation": "CWS 로그인이 금지되어 있습니다."
   },
@@ -7396,5 +7270,81 @@
   {
     "id": "ent.elasticsearch.delete_file.error",
     "translation": "파일을 삭제하지 못했습니다"
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "팀과 함께 Mattermost에서 협업을 시작하세요"
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Mattermost는 무엇인가요?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "더 알아보기"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "클라우드 구독 내역을 가져오는 도중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "상태가 “{{.EmojiName}} {{.StatusMessage}}”로 설정되었습니다. 채널 사이드바 상단의 상태 팝업에서 상태를 변경할 수 있습니다."
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] 또는 초기화"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "상태 설정 및 초기화"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "상태가 초기화되었습니다."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "상태 초기화 중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "상태"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "상태 설정 중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "시스템 관리자 이메일을 가져오는 도중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}}(으)로 돌아가기"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "가입해주셔서 감사합니다 "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Desktop과 mobile 애플리케이션을 다운로드 받으세요"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "zip 파일을 생성하는 동안 에러가 발생했습니다."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "다운로드"
   }
 ]

@@ -88,7 +88,7 @@ func (tcp *Tcp) getConn() (net.Conn, error) {
 		if err == nil {
 			tcp.conn = conn
 			tcp.monitor = make(chan struct{})
-			go monitor(tcp.conn, tcp.monitor)
+			go monitor(tcp.conn, tcp.monitor, Log)
 		}
 		ch <- result{conn: conn, err: err}
 	}(ctx, connChan)
@@ -221,13 +221,13 @@ func (tcp *Tcp) Write(rec *logr.LogRec) error {
 // This is needed because TCP target uses a write only socket and Linux systems
 // take a long time to detect a loss of connectivity on a socket when only writing;
 // the writes simply fail without an error returned.
-func monitor(conn net.Conn, done <-chan struct{}) {
+func monitor(conn net.Conn, done <-chan struct{}, logFunc LogFuncCustom) {
 	addy := conn.RemoteAddr().String()
-	defer Log(LvlTcpLogTarget, "monitor exiting", String("addy", addy))
+	defer logFunc(LvlTcpLogTarget, "monitor exiting", String("addy", addy))
 
 	buf := make([]byte, 1)
 	for {
-		Log(LvlTcpLogTarget, "monitor loop", String("addy", addy))
+		logFunc(LvlTcpLogTarget, "monitor loop", String("addy", addy))
 
 		select {
 		case <-done:
@@ -248,7 +248,7 @@ func monitor(conn net.Conn, done <-chan struct{}) {
 		}
 
 		// Any other error closes the connection, forcing a reconnect.
-		Log(LvlTcpLogTarget, "monitor closing connection", Err(err))
+		logFunc(LvlTcpLogTarget, "monitor closing connection", Err(err))
 		conn.Close()
 		return
 	}
