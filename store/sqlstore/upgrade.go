@@ -972,6 +972,7 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
+
 		saveSchemaVersion(sqlStore, Version5300)
 	}
 }
@@ -1203,6 +1204,9 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 	sqlStore.RemoveIndexIfExists("idx_sharedchannelusers_user_id", "SharedChannelUsers")
 	sqlStore.RemoveIndexIfExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies")
 	sqlStore.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
 
 	// saveSchemaVersion(sqlStore, Version5370)
 	// }

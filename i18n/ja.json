@@ -7792,14 +7792,6 @@
     "translation": "CollapsedThreads設定は、無効、デフォルトON、デフォルトOFFのいずれかでなければなりません"
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "インポートを処理できませんでした: ファイルをunzipできませんでした。"
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "インポートを処理できませんでした: 一時ディレクトリを作成できませんでした。"
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "インポートを処理できませんでした: ファイルを開けません。"
   },
@@ -9208,5 +9200,45 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "データ保持ジョブが失敗しました。"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "ユーザースレッドのメンバーシップが存在しません"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "ユーザースレッドのメンバーシップを取得できませんでした"
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "システム"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "管理者リストが空です。"
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "管理者リストが空です。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "クラウドアカウント数が制限を超えているため、これ以上ユーザーを増やすことはできません。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "クラウドチェックに失敗したか、制限を超えています。"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[セールスチームまでご連絡ください](https://mattermost.com/contact-us/)。"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "トライアルが開始可能か確認できませんでした"
   }
 ]

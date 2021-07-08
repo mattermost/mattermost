@@ -7976,10 +7976,6 @@
     "translation": "Am întâmpinat o eroare la găsirea contului."
   },
   {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Imposibil de procesat importul: nu s-a putut crea directorul temporar."
-  },
-  {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "Nu se poate procesa importul: fișierul nu există."
   },
@@ -7994,10 +7990,6 @@
   {
     "id": "api.upload.get_upload.forbidden.app_error",
     "translation": "Încărcarea nu a reușit."
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Nu s-a putut procesa importul: nu s-a putut dezarhiva fișierul."
   },
   {
     "id": "import_process.worker.do_job.missing_file",

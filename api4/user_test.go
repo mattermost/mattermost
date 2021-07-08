@@ -92,6 +92,21 @@ func TestCreateUser(t *testing.T) {
 		require.NotNil(t, err, "should have errored")
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		email := th.GenerateTestEmail()
+		user2 := &model.User{Email: email, Password: "Password1", Username: GenerateTestUsername(), EmailVerified: true}
+		_, resp := client.CreateUser(user2)
+		CheckNoError(t, resp)
+		_, appErr := th.App.GetUserByUsername(user2.Username)
+		require.Nil(t, appErr)
+
+		user3 := &model.User{Email: fmt.Sprintf(" %s  ", email), Password: "Password1", Username: GenerateTestUsername(), EmailVerified: true}
+		_, resp = client.CreateUser(user3)
+		CheckBadRequestStatus(t, resp)
+		_, appErr = th.App.GetUserByUsername(user3.Username)
+		require.NotNil(t, appErr)
+	}, "Should not be able to create two users with the same email but spaces in it")
 }
 
 func TestCreateUserInputFilter(t *testing.T) {

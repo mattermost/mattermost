@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP sunucusu zorunludur"
+    "translation": "SMTP sunucusunun yazılması zorunludur"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -97,11 +97,11 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - E-posta Ayarları Sınanıyor"
+    "translation": "Mattermost - E-posta ayarları sınanıyor"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Klasörü zorunludur"
+    "translation": "S3 klasörünün yazılması zorunludur"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -141,11 +141,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Bu kanal Herkese Açık Kanala dönüştürüldü ve isteyen her takım üyesi katılabilir."
+    "translation": "Bu kanal herkese açık kanala dönüştürüldü ve isteyen her takım üyesi katılabilir."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "Bu kanal Özel Kanala dönüştürüldü."
+    "translation": "Bu kanal özel kanala dönüştürüldü."
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -165,11 +165,11 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Konu Dışı"
+    "translation": "Konu dışı"
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Şehir Meydanı"
+    "translation": "Meydan"
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kanalda yalnız siz kaldınız. Kanaldan ayrılmak yerine Özel Kanalı kaldırmayı deneyin."
+    "translation": "Kanalda yalnız siz kaldınız. Kanaldan ayrılmak yerine özel kanalı kaldırmayı deneyin."
   },
   {
     "id": "api.channel.leave.left",
@@ -237,11 +237,11 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Kanal Görüntülenecek Ad alanı güncellenirken kullanıcı alınamadı"
+    "translation": "Kanalın görüntülenecek ad alanı güncellenirken kullanıcı alınamadı"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s görüntülenecek kanal adını %s yerine %s olarak değiştirdi"
+    "translation": "%s kanalın görüntülenecek adını %s yerine %s olarak değiştirdi"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Katılma/Ayrılma iletisi gönderilemedi"
+    "translation": "Katılma/ayrılma iletisi gönderilemedi"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "Belirtilen rol bir şema tarafından yönetildiğinden doğrudan bir Takım Üyesine uygulanamaz."
+    "translation": "Belirtilen rol bir şema tarafından yönetildiğinden doğrudan bir takım üyesine uygulanamaz."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Görsel bağlantıları varsayılan olarak daraltılmış olacak"
+    "translation": "Görsel bağlantıları varsayılan olarak daraltılacak"
   },
   {
     "id": "api.command_dnd.desc",
@@ -545,7 +545,7 @@
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Rahatsız Etmeyin kipi etkinleştirilmiş. Rahatsız Etmeyin kipini devre dışı bırakana kadar Masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
+    "translation": "Rahatsız etmeyin kipi etkinleştirilmiş. Rahatsız etmeyin kipini devre dışı bırakana kadar masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -581,7 +581,7 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Görsel bağlantıları varsayılan olarak genişletilmiş olacak"
+    "translation": "Görsel bağlantıları varsayılan olarak genişletilecek"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -589,7 +589,7 @@
   },
   {
     "id": "api.command_groupmsg.desc",
-    "translation": "Belirtilen kullanıcılara bir Grup İletisi gönderir"
+    "translation": "Belirtilen kullanıcılara bir grup iletisi gönderir"
   },
   {
     "id": "api.command_groupmsg.fail.app_error",
@@ -8064,14 +8064,6 @@
     "translation": "Klasör değeri geçersiz."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "İçe aktarılamadı: Dosya ayıklanamadı."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "İçe aktarılamadı: Geçici klasör oluşturulamadı."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "İçe aktarılamadı: Dosya açılamadı."
   },
@@ -8413,7 +8405,7 @@
   },
   {
     "id": "api.command_custom_status.hint",
-    "translation": "[:emoji_name:] [status_message] ya da temizleyin"
+    "translation": "[:emoji_name:] [status_message] ya da temizle"
   },
   {
     "id": "api.command_custom_status.desc",
@@ -9213,5 +9205,45 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Bulut hesabının sınırları aşıldığından daha fazla kullanıcı etkinleştirilemedi."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Bulut denetimi sınırda veya üzerinde olduğundan yapılamadı."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Sistem"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Yönetici listesi boş."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Yönetici listesi boş."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Kullanıcı işlemi üyeliği bulunamadı"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kullanıcı işlemi üyeliği alınamadı"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Mattermost Enterprise sürümünün deneme süresi sona ermiş olduğundan artık kullanılamaz. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Deneme süresi başlatılmış mı öğrenilemedi"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Veri saklama görevi yürütülemedi."
   }
 ]

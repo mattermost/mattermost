@@ -1877,7 +1877,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "转至发文"
+    "translation": "查看消息"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -6373,7 +6373,7 @@
   },
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "我们删除偏好设置时遇到错误。"
+    "translation": "我们在删除偏好设置时遇到错误。"
   },
   {
     "id": "app.preference.get_category.app_error",
@@ -7988,14 +7988,6 @@
     "translation": "CollapsedThreads设置必须为disabled，default_on或default_off"
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "无法处理导入：无法解压文件。"
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "无法处理导入：无法创建临时目录。"
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "无法处理导入：无法打开文件。"
   },
@@ -8533,7 +8525,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "恭喜，您的{{.WorkSpace}}工作区已准备就绪！"
+    "translation": "您的{{.WorkSpace}}工作区的 14 天试用已准备就绪！"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8637,11 +8629,11 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "未设置站点网址。请在系统控制台设置。"
+    "translation": "未设置站点网址。请在系统控制台 > 环境 > 网页服务器设置。"
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| 安全连接 | 显示名 | 连接 ID | 站点网址 | 已接受邀请 | 在线 | 上次 ping |"
+    "translation": "| 安全连接 | 显示名 | 连接 ID | 站点网址 | 已接受邀请 | 在线 | 最近 ping |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8677,11 +8669,11 @@
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "无法启用远程集群服务。"
+    "translation": "未启用安全连接服务。"
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "远程集群服务已停用。"
+    "translation": "安全连接服务已停用。"
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -8713,7 +8705,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "将以下加密的（AES256 + Base64）Blob 与密码一起发送给远程站点管理员。他们将使用 `{{.Command}}` 斜杠命令来接受邀请。\n\n```\n{{.Invitation}}\n```\n\n**确保远程站点可以通过 {{.SiteURL}} 访问您的集群**"
+    "translation": "将以下 AES 256-bit 加密的邀请与密码一起发送给外部 Mattermost 管理员。他们将使用 `{{.Command}}` 斜杠命令来接受邀请。\n\n```\n{{.Invitation}}\n```\n\n**确保远程站点可以通过 {{.SiteURL}} 访问您的 Mattermost 实例**"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -8725,7 +8717,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "创建安全连接"
+    "translation": "邀请安全连接"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -8761,7 +8753,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "邀请远程 Mattermost 集群进行集群间通信。"
+    "translation": "邀请安全连接以在 Mattermost 实例之间进行通信。"
   },
   {
     "id": "api.command_remote.accept.help",
@@ -8814,5 +8806,89 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "无法在这些用户之间创建直连频道因为他们不属于同一个团队。"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "重置 AuthData 栏到邮件失败。"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "必须指定有效的安全连接 ID 才能取消邀请"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "无效的安全连接 ID：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "已邀请安全连接。"
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "您需要`{{.Permission}}`权限才能管理共享频道。"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "无法取消共享未共享的频道。"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "没有安全连接被邀请到该频道。"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "share-channel"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "必须指定有效的安全连接 ID 才能邀请。"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "缺少操作。可用操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "邀请外部 Mattermost 实例加入当前共享频道"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "共享频道邀请已发送至 `{{.Name}} {{.SiteURL}}`。"
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "'{{.Arg}}'的无效值：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "无法获取安全连接的状态：{{.Error}}。"
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "获取安全连接时出错：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "与外部 Mattermost 实例共享当前频道。"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "无法取消邀请`{{.RemoteId}}`：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "检查共享频道是否存在时出错：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "频道 ID `{{.ChannelId}}` 的状态"
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "共享频道安全连接 `{{.RemoteId}}` 不存在该频道。"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "无法邀请来自其他地方的共享频道到安全连接。"
   }
 ]

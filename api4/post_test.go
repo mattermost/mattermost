@@ -2547,33 +2547,6 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 }
 
-func TestMarkUnreadCausesAutofollow(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
-	})
-
-	rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-	require.Nil(t, appErr)
-	replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-	require.Nil(t, appErr)
-	threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-	require.Nil(t, appErr)
-	require.Zero(t, threads.Total)
-
-	_, appErr = th.App.MarkChannelAsUnreadFromPost(replyPost.Id, th.BasicUser.Id, true)
-	require.Nil(t, appErr)
-
-	threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-	require.Nil(t, appErr)
-	require.NotZero(t, threads.Total)
-
-}
-
 func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
@@ -2621,7 +2594,9 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		//  MentionCountRoot should be zero so that supported clients don't show the channel as unread
 		require.Equal(t, channelUnread.MsgCountRoot, int64(0))
 
-		thread, err := th.App.GetThreadForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost1.Id, false)
+		threadMembership, err := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
+		require.Nil(t, err)
+		thread, err := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 		require.Nil(t, err)
 		require.Equal(t, int64(2), thread.UnreadMentions)
 		require.Equal(t, int64(3), thread.UnreadReplies)

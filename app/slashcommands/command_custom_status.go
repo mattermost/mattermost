@@ -81,7 +81,7 @@ func GetCustomStatus(message string) *model.CustomStatus {
 		Text:  message,
 	}
 
-	firstEmojiLocations := model.ALL_EMOJI_PATTERN.FindIndex([]byte(message))
+	firstEmojiLocations := model.EMOJI_PATTERN.FindIndex([]byte(message))
 	if len(firstEmojiLocations) > 0 && firstEmojiLocations[0] == 0 {
 		// emoji found at starting index
 		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]
@@ -125,7 +125,7 @@ func removeUnicodeSkinTone(unicodeString string) string {
 	if len(skinToneLocations) == 0 {
 		return unicodeString
 	}
-	if _, count := model.GetEmojiNameFromUnicode(unicodeString); count == 1 {
+	if _, count := model.GetEmojiNameFromUnicode(unicodeString); count > 0 {
 		return unicodeString
 	}
 	unicodeWithRemovedSkinTone := unicodeString[:skinToneLocations[0]] + unicodeString[skinToneLocations[1]:]

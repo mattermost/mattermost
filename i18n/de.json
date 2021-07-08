@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Fehler beim Aktualisieren des aktuellen Kanals."
+    "translation": "Fehler beim Aktualisieren der Kanalüberschrift."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Fehler beim Aktualisieren des aktuellen Kanals."
+    "translation": "Fehler beim Aktualisieren des Kanalzwecks."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -6982,5 +6982,692 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Zwischen diesen Nutzern kann keine Direktnachricht ausgetauscht werden, da sie nicht dem gleichen Team angehören."
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "Das /{{.Command}} Kommando hat das {{.PluginId}} Plugin zum Absturz gebracht. Bitte Kontaktieren Sie Ihren Systemadministrator."
+  },
+  {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Ungültige Plugin ID."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Verbindung zum SMTP Server konnte nicht hergestellt werden"
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "Keine LDAP Benutzer gefunden. Bitte überprüfen Sie Ihren Benutzerfilter und Zertifikate."
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "Erstellung des Schlüsselpaares fehlgeschlagen"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "Beim Laden der LDAP TLS-Schlüsseldatei ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "Beim Laden der LDAP TLS-Zertifikatsdatei ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Suche konnte nicht abgeschlossen werden"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Die Suche nach Dateien mit Elasticsearch ist auf diesem Server deaktiviert."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Konnte den Dateien-Stapel nicht zur Indexierung abrufen."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Die Suche nach Dateien ist auf diesem Server deaktiviert. Bitte kontaktieren Sie den Systemadministrator."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Ungültiges Thema."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Ungültige ID."
+  },
+  {
+    "id": "api.preference.update_preferences.update_sidebar.app_error",
+    "translation": "Die Seitenleiste konnte nicht mit den geänderten Einstellungen aktualisiert werden"
+  },
+  {
+    "id": "api.preference.delete_preferences.update_sidebar.app_error",
+    "translation": "Die Seitenleiste konnte nicht mit den gelöschten Einstellungen aktualisiert werden"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Sie werden zur App weitergeleitet."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Wenn Sie nicht automatisch weitergeleitet werden, klicken Sie bitte diesen <a href='{{.Link}}'>Link</a>"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Sie können das Browser Tab nun schließen."
+  },
+  {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "Die Anzahl der angeforderten Benutzer in ungültig."
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Ungültige Weiterleitungsadresse angegeben"
+  },
+  {
+    "id": "api.invalid_channel",
+    "translation": "Der in der Anfrage genannte Kanal gehört nicht dem Benutzer"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Die Datei konnte nicht geschrieben werden."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Hochladen der Datei nicht möglich. Falsche Kanal-ID: {{.channelId}}"
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Auf den Dateispeicher konnte nicht zugegriffen werden."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Die Datei konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Der Ordner konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Die Datei konnte nicht gelesen werden."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Die Datei konnte nicht verschoben werden."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Der Inhalt des Ordners konnte nicht geladen werden."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Die Größe der Datei konnte nicht ermittelt werden."
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Fehlendes Kommando. Verfügbare Aktionen: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Passwort für die Verschlüsslung der Einladung"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Einladung erstellt."
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[Aktion]"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Sichere Verbindung {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Es konnte keine sichere Verbindung hinzugefügt werden: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Einladung konnte nicht akzeptiert werden: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Einladung akzeptiert und bestätigt.\nAdresse: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Einladung einer externen Mattermost-Instanz akzeptieren"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "Status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Ihr Status wurde zurückgesetzt."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fehler beim Zurücksetzen des Status."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fehler beim Setzen des Status."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Der eingegebene Text ist zu lang. Die Kanalüberschrift darf nicht mehr als {{.MaxLength}} Zeichen enthalten."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Bei der Verarbeitung der Abfrage zum CWS ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Fehler beim Invalidieren des Cache"
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "Importieren nicht möglich: Datei konnte nicht geöffnet werden."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "Importieren nicht möglich: JSONL-Datei nicht vorhanden."
+  },
+  {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "Importieren nicht möglich: Datei nicht vorhanden."
+  },
+  {
+    "id": "error",
+    "translation": "Fehler"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Ein nicht geteilter Kanal kann nicht ungeteilt werden."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Keine sichere Verbindung wurde in diesen Kanal eingeladen."
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Muss eine gültige sichere Verbindungs-ID für die Einladung verwenden."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Fehlende Aktion. Verfügbare Aktionen: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Lädt eine externe Mattermost Instanz zum aktuellen geteilten Kanal ein"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Einladung für geteilten Kanal wurde an `{{.Name}} {{.SiteURL}}` gesendet."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Ungültiger Wert für '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Konnte den Status für die sicheren Verbindungen nicht abrufen: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Fehler beim Holen von sicheren Verbindungen: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Teilt den aktuellen Kanal mit einer externen Mattemost Instanz."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Konnte `{{.RemoteId}}`nicht ausladen: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Fehler während der Prüfung, ob der geteilte Kanal existiert: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Status für Kanal ID `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Status für diesen geteilten Kanal anzeigen"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Die Kanal ist jetzt geteilt."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Sichere Verbindung für den geteilte Kanal `{{.RemoteId}}` existiert nicht für diesen Kanal."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Kann keine sichere Verbindung zu einem geteilten Kanal einladen, der seinen Ursprung woanders hat."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Fehler beim Einladen von `{{.Name}}`in diesen Kanal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Verfügbare Aktionen: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Unbekannte Aktion `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Status für alle sicheren Verbindungen anzeigen"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "Seiten-URL ist nicht gesetzt. Bitte unter Systemkonsole > Umgebung > Webserver setzen."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Dienst für sichere Verbindungen ist nicht aktiviert."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Dienst für sichere Verbindungen ist deaktiviert."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "ID der zu löschenden sicheren Verbindung."
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Konnte sichere Verbindung nicht löschen: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Löscht eine sichere Verbindung"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Keine sicheren Verbindungen gefunden."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Sichere Verbindung | Anzeigename | Verbindungs-ID | Site URL | Einladung angenommen | Online | Letzter Ping |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Hinzufügen/Löschen von sicheren Verbindungen. Verfügbare Aktionen: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Sie benötigen`{{.Permission}}`Berechtigungen um sichere Verbindungen zu verwalten."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Ein eindeutiger Name für die sichere Verbindung"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Name der sicheren Verbindung"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "Sichere Verbindung"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Fehlendes order leeres `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Sende die folgende AES 256-bit verschlüsselte Einladung zu einem externen Mattermost Systemadministrator zusammen mit dem Passwort. Diese werden den `{{.Command}}` Slash-Befehl verwenden um die Einladung zu akzeptieren.\n\n```\n{{.Invitation}}\n```\n\n**Sicherstellen, dass die sichere Verbindung die Mattermost Instanz über {{.SiteURL}} erreicht. **"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Passwort für Einladung"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Sichere Verbindung einladen"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Die verschlüsselte Einladung von einer sicheren Verbindung"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Einladung von einer sicheren Verbindung"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Konnte Einladung nicht entschlüsseln. Falsches Passwort oder beschädigte Einladung: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Konnte keine sicheren Verbindungen holen: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Konnte Einladung nicht verschlüsseln: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Ein Anzeigenname für die sichere Verbindung"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Anzeigename der sicheren Verbindung"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Konnte Einladung nicht dekodieren: {{.Error}}"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Ihr Status ist auf “{{.EmojiName}} {{.StatusMessage}}” gesetzt. Sie können Ihren Status über das Status-Popover im Kopf der Kanalseitenleiste setzen."
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] oder leeren"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Status setzen oder löschen"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Der eingegebene Text ist zu lang. Der Kanalzweck ist auf {{.MaxLength}} Zeichen beschränkt."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Ihre Lizenz unterstützt keine Cloud Anfragen."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Fehler beim Abruf des Cloud-Abonnements."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Fehler beim Abruf der Email des Systemadmins."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Ein Webhook-Ereignis wurde nicht bearbeitet. Entweder fehlt es oder ist nicht gültig."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Interner Fehler während einer Cloud API Anfrage."
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Der Request Body kann nicht analysiert werden."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Der Request Body kann nicht analysiert werden."
+  },
+  {
+    "id": "api.post.error_get_post_id.pending",
+    "translation": "Die ausstehende Nachricht kann nicht abgerufen werden."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Authentifizierung vollständig"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "E10 oder E20 Lizenz wird benötigt um diesen Endpunkt zu benutzen."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Kann SAML nicht migrieren."
+  },
+  {
+    "id": "api.license.request_trial_license.no-site-url.app_error",
+    "translation": "Konnte keine Test-Lizenz anfragen. Bitte eine Seiten URL in der Webserver Sektion der Mattermost Systemkonsole konfigurieren."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Konnte keine Test-Lizenz holen. Bitte nochmal versuchen oder support@mattermost.com kontaktieren. Konnte die Anzahl der registrierten Benutzer nicht bestimmen."
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": "Konnte keine Test-Lizenz holen. Bitte nochmal versuchen oder support@mattermost.com kontaktieren."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Fehler beim Holen des Lizenz-Erneuerungslinks"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Dieser Test-Lizenzschlüssel für Mattermost Enterprise Edition ist abgelaufen und nicht mehr gültig. Wenn Sie Ihre Testphase verlängern wollen, kontaktieren Sie bitte [unser Vertriebsteam](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Konnte nicht prüfen, ob eine Testphase gestartet werden kann"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "Sie müssen das Mattermost Software Evaluation Agreement und die Privacy Policy akzeptieren um eine Lizenz anzufragen."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Der Job-Typ, den Sie versuchen runterzuladen, wird momentan nicht unterstützt"
+  },
+  {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Kann den Job nicht herunterladen"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Der Job-Typ des Jobs, den Sie versuchen anzulegen ist ungültig"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Die Job Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Ungültiges benutzerdefiniertes URL Schema wurde zur Verfügung gestellt"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Before und After Parameter für getThreadsForUser schließen sich gegenseitig aus"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Stellen Sie sicher, dass Ihr Amazon S3 Bucket verfügbar ist und prüfen Sie Ihre Bucket Berechtigungen."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Kann nicht zu S3 verbinden. Prüfen Sie Ihre Amazon S3 Autorisierungsparameter und Authentifizierungseinstellungen."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Kann keinen Dateileser bekommen."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht holen."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Kann nicht prüfen, ob die Datei existiert."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Kann keine Daten an die Datei anhängen."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Kann Exportdatei nicht finden."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Fehler beim Speichern des Status des ersten Administratorbesuchs im Store."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Fehler beim Abruf des Status des ersten Administratorbesuchs des Marktplatzes aus dem Store."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} sendete Ihnen neue Nachrichten",
+      "other": "{{ .SenderName }} und {{.Count}} andere sendeten Ihnen neue Nachrichten"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Unterhalb lesen Sie eine Zusammenfassung Ihrer neuen Nachrichten."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Mattermost öffnen"
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Fehler beim Löschen des letzten Status. Bitte zunächst den Status hinzufügen oder den Systemadministrator für Details kontaktieren."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Das Feature \"Benutzerdefinierter Status\" wurde deaktiviert. Bitte kontaktieren Sie Ihren Systemadministrator für Details."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "ID der sicheren Verbindung fehlt."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "ID der sicheren Verbindung stimmt nicht überein."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Kann die ID der sicheren Verbindung {{.RemoteId}} nicht finden."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Fehler beim JSON Kodieren."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Einladung ist abgelaufen."
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Ändern von {{.Name}} ist aus Sicherheitsgründen nicht erlaubt."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Fehler beim Vergleichen von Konfigurationen"
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Fehler beim Zusammenführen der gegeben Konfiguration."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Fehler beim Vergleichen von Konfigurationen"
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Konfigurationsspeicher konnte nicht migriert werden."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Angegebene Konfiguration konnte nicht zusammengeführt werden."
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Aktuellen Kanal nicht mehr teilen"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Unbekannte Aktion `{{.Action}}`. Verfügbare Aktionen: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "ID der sicheren Verbindung zum Ausladen."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Ausladen einer sicheren Verbindung von diesem geteilten Kanal"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Kann diesen Kanal nicht ungeteilt machen: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Dieser Kanal wird nicht länger geteilt."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' oder 'N'.  Standard ist 'N'"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Kanal wird im Nur-Lesen Modus geteilt"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Kann diesen Kanal nicht teilen: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Dienst für geteilte Kanäle ist deaktiviert."
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Sichere Verbindung `{{.RemoteId}}` ausgeladen."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Sichere Verbindung | Seiten-URL | Nur Lesen | Einladung akzeptiert | Online | Letzte Sync |"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Gültige ID einer sicheren Verbindung ist notwendig um auszuladen"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID der sicheren Verbindung ist ungültig: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "ID einer bestehenden sicheren Verbindung. Siehe `secure-connection` Befehl um eine sichere Verbindung hinzuzufügen."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Diese sichere Verbindung wurde schon eingeladen."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Sie benötigen `{{.Permission}}` Berechtigungen um geteilte Kanäle zu verwalten."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "share-channel"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Laden Sie zu sicheren Verbindungen zur Kommunikation über verschiedene Mattermost Instanzen ein."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Fehler das AuthData Feld auf Email zurückzusetzen."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Fehler beim Analysieren einer Multiform-Anfrage"
   }
 ]

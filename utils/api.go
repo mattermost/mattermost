@@ -101,6 +101,16 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 }
 
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
+	var link = redirectURL
+	var invalidSchemes = map[string]bool{
+		"data":       true,
+		"javascript": true,
+		"vbscript":   true,
+	}
+	u, redirectErr := url.Parse(redirectURL)
+	if redirectErr != nil || invalidSchemes[u.Scheme] {
+		link = *config.ServiceSettings.SiteURL
+	}
 	RenderMobileMessage(w, `
 		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" style="width: 64px; height: 64px; fill: #ccc">
 			<!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) -->
@@ -108,7 +118,7 @@ func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.A
 		</svg>
 		<h2> `+i18n.T("error")+` </h2>
 		<p> `+err.Message+` </p>
-		<a href="`+redirectURL+`">
+		<a href="`+link+`">
 			`+i18n.T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)

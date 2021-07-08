@@ -1889,7 +1889,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Vous avez demandez la réinitialisation de votre mot de passe"
+    "translation": "Vous avez demander la réinitialisation de votre mot de passe"
   },
   {
     "id": "api.templates.reset_subject",
@@ -7169,7 +7169,7 @@
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": "L'url de redirection renseignée est invalide."
+    "translation": "L'url de redirection renseignée est invalide"
   },
   {
     "id": "api.file.write_file.app_error",
@@ -7598,5 +7598,21 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Erreur d'invalidation du cache"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "La clé de licence d'essai pour Mattermost Version Entreprise a expiré et n'est plus valide. Si vous voulez étendre votre période d'essai, veuillez [contacter notre équipe des ventes](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Impossible de vérifier si un essai peut être commencé"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Vérifiez que votre bucket Amazon S3 est disponible, et vérifiez-en les permissions."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Impossible de se connecter à S3. Vérifiez les paramètres d'autorisation et d'authentification à la connexion Amazon S3."
   }
 ]

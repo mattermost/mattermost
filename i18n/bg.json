@@ -2644,14 +2644,6 @@
     "translation": "Неуспешно декодиране base64 за задействащо ID на интерактивен диалог."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Не можа да се обработи внасянето: неуспешно разархивиране на файла."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Не можа да се обработи внасянето: неуспешно създаване на временна директория."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Не можа да се обработи внасянето: неуспешно отваряне на файла."
   },
@@ -9201,5 +9193,57 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Паролата не е валидна"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Не мога да активирам повече потребители, тъй като капацитетът на профила в облака е надхвърлен."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Не е възможно да се извърши проверка на облака за превишаване на лимита."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Система"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Списъкът на администраторите е празен."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Списъкът на администраторите е празен."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Членството на потребител в разговор не съществува"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Неуспешно получаване членството на потребител в разговор"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Този лицензен ключ за пробен период на Mattermost Enterprise Edition е изтекъл и вече не е валиден. Ако желаете да удължите пробния си период, моля [свържете се с нашия екип по продажбите](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Не може да се провери възможността за започване на пробна версия"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Задачата по запазване на данни е неуспешна."
   }
 ]

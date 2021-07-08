@@ -191,7 +191,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mac := make(chan *model.AppError, 1)
 			go func(userID string) {
 				defer close(mac)
-				_, incrementMentions := mentions.Mentions[userID]
+				mentionType, incrementMentions := mentions.Mentions[userID]
 				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
 				if !incrementMentions {
 					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
@@ -206,8 +206,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						return
 					}
 				}
-				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId, userID == post.UserId)
+				if mentionType == ThreadMention || mentionType == CommentMention {
+					incrementMentions = false
+				}
 
+				opts := store.ThreadMembershipOpts{
+					Following:             true,
+					IncrementMentions:     incrementMentions,
+					UpdateFollowing:       *a.Config().ServiceSettings.ThreadAutoFollow,
+					UpdateViewedTimestamp: userID == post.UserId,
+					UpdateParticipants:    userID == post.UserId,
+				}
+				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
@@ -464,7 +474,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, post.RootId, true)
+				threadMembership, err := a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
+				if err != nil {
+					return nil, errors.Wrapf(err, "cannot get thread membership %q for user %q", post.RootId, uid)
+				}
+				userThread, err := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}

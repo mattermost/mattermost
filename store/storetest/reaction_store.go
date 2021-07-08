@@ -522,61 +522,72 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	post, err1 := ss.Post().Save(&model.Post{
-		ChannelId: model.NewId(),
-		UserId:    model.NewId(),
+	const limit = 1000
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
 	})
-	require.NoError(t, err1)
+	require.NoError(t, err)
+	channel, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}, -1)
+	require.NoError(t, err)
+	olderPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    model.NewId(),
+		CreateAt:  1000,
+	})
+	require.NoError(t, err)
+	newerPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    model.NewId(),
+		CreateAt:  3000,
+	})
+	require.NoError(t, err)
 
+	// Reactions will be deleted based on the timestamp of their post. So the time at
+	// which a reaction was created doesn't matter.
 	reactions := []*model.Reaction{
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
+			PostId:    olderPost.Id,
 			EmojiName: "sad",
-			CreateAt:  1000,
 		},
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
+			PostId:    olderPost.Id,
 			EmojiName: "sad",
-			CreateAt:  1500,
 		},
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
-			EmojiName: "sad",
-			CreateAt:  2000,
-		},
-		{
-			UserId:    model.NewId(),
-			PostId:    post.Id,
-			EmojiName: "sad",
-			CreateAt:  2000,
+			PostId:    newerPost.Id,
+			EmojiName: "smile",
 		},
 	}
 
-	// Need to hang on to a reaction to delete later in order to clear the cache, as "allowFromCache" isn't honoured any more.
-	var lastReaction *model.Reaction
 	for _, reaction := range reactions {
-		var nErr error
-		lastReaction, nErr = ss.Reaction().Save(reaction)
-		require.NoError(t, nErr)
+		_, err = ss.Reaction().Save(reaction)
+		require.NoError(t, err)
 	}
 
-	returned, err := ss.Reaction().GetForPost(post.Id, false)
-	require.NoError(t, err)
-	require.Len(t, returned, 4, "expected 4 reactions")
-
-	_, err = ss.Reaction().PermanentDeleteBatch(1800, 1000)
+	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 
-	// This is to force a clear of the cache.
-	_, err = ss.Reaction().Delete(lastReaction)
+	_, err = ss.Reaction().DeleteOrphanedRows(limit)
 	require.NoError(t, err)
 
-	returned, err = ss.Reaction().GetForPost(post.Id, false)
+	returned, err := ss.Reaction().GetForPost(olderPost.Id, false)
 	require.NoError(t, err)
-	require.Len(t, returned, 1, "expected 1 reaction. Got: %v", len(returned))
+	require.Len(t, returned, 0, "reactions for older post should have been deleted")
+
+	returned, err = ss.Reaction().GetForPost(newerPost.Id, false)
+	require.NoError(t, err)
+	require.Len(t, returned, 1, "reactions for newer post should not have been deleted")
 }
 
 func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {

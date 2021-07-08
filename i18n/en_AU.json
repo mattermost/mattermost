@@ -2980,14 +2980,6 @@
     "translation": "Failed to decode base64 for trigger ID for interactive dialog."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Unable to process import: failed to unzip file."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Unable to process import: failed to create temporary directory."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Unable to process import: failed to open file."
   },
@@ -9213,5 +9205,45 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Image limits check failed. Resolution is too high."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Unable to activate more users as the cloud account is over capacity."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Unable to make cloud check for at or over the limit."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "System"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "List of admins is empty."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "List of admins is empty."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "User thread membership doesn't exist"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Unable to get user thread membership"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "This trial licence key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "An error occurred while checking if a trial can be started"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Data retention job failed."
   }
 ]

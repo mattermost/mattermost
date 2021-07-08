@@ -12,7 +12,7 @@ import (
 )
 
 func TestStatus(t *testing.T) {
-	status := Status{NewId(), STATUS_ONLINE, true, 0, "123"}
+	status := Status{NewId(), STATUS_ONLINE, true, 0, "123", 0, ""}
 	json := status.ToJson()
 	status2 := StatusFromJson(strings.NewReader(json))
 
@@ -29,7 +29,7 @@ func TestStatus(t *testing.T) {
 }
 
 func TestStatusListToJson(t *testing.T) {
-	statuses := []*Status{{NewId(), STATUS_ONLINE, true, 0, "123"}, {NewId(), STATUS_OFFLINE, true, 0, ""}}
+	statuses := []*Status{{NewId(), STATUS_ONLINE, true, 0, "123", 0, ""}, {NewId(), STATUS_OFFLINE, true, 0, "", 0, ""}}
 	jsonStatuses := StatusListToJson(statuses)
 
 	var dat []map[string]interface{}

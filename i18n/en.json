@@ -1977,6 +1977,14 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Could not check if a trial can be started"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "This trial license key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
     "id": "api.license.request_renewal_link.app_error",
     "translation": "Error getting the license renewal link"
   },
@@ -2449,6 +2457,14 @@
   {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "Your license does not support update permissions schemes"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Failed to generate the license renewal link"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Failed to send license up for renewal emails"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -3311,6 +3327,26 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
   },
   {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Renew now"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Your license is up for renewal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Log in to your Customer Account to renew"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Your Mattermost subscription is up for renewal"
+  },
+  {
     "id": "api.templates.mfa_activated_body.info",
     "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
   },
@@ -4093,6 +4129,10 @@
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully"
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "Failed to send license up for renewal email"
   },
   {
     "id": "api.user.send_mfa_change_email.error",
@@ -6355,6 +6395,14 @@
     "translation": "We encountered an error while finding the recently active users."
   },
   {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Unable to get user thread membership"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "User thread membership doesn't exist"
+  },
+  {
     "id": "app.user.get_threads_for_user.app_error",
     "translation": "Unable to get user threads"
   },
@@ -6941,6 +6989,10 @@
   {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Data retention job failed."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",

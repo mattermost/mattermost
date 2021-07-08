@@ -298,7 +298,7 @@ func (es *EmailService) SendCloudTrialEndWarningEmail(userEmail, name, trialEndD
 	data.Props["Title"] = T("api.templates.cloud_trial_ending_email.title")
 	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Name": name, "TrialEnd": trialEndDate})
 	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription?action=show_purchase_modal", siteURL)
 	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
@@ -810,6 +810,33 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 
 	if err := es.sendMail(email, subject, body); err != nil {
 		return false, model.NewAppError("SendAtUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) (bool, *model.AppError) {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.license_up_for_renewal_subject")
+
+	data := es.newEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
+	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]interface{}{"UserName": name, "Days": daysToExpiration})
+	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
+	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	data.Props["Button"] = T("api.templates.license_up_for_renewal_renew_now")
+	data.Props["ButtonURL"] = renewalLink
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+
+	body, err := es.srv.TemplatesContainer().RenderToString("license_up_for_renewal", data)
+	if err != nil {
+		return false, model.NewAppError("SendLicenseUpForRenewalEmail", "api.user.send_license_up_for_renewal_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := es.sendMail(email, subject, body); err != nil {
+		return false, model.NewAppError("SendLicenseUpForRenewalEmail", "api.user.send_license_up_for_renewal_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil

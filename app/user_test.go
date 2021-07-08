@@ -8,8 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"image"
-	"image/color"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -26,34 +25,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
-
-func TestCheckUserDomain(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	user := th.BasicUser
-
-	cases := []struct {
-		domains string
-		matched bool
-	}{
-		{"simulator.amazonses.com", true},
-		{"gmail.com", false},
-		{"", true},
-		{"gmail.com simulator.amazonses.com", true},
-	}
-	for _, c := range cases {
-		matched := CheckUserDomain(user, c.domains)
-		if matched != c.matched {
-			if c.matched {
-				t.Logf("'%v' should have matched '%v'", user.Email, c.domains)
-			} else {
-				t.Logf("'%v' should not have matched '%v'", user.Email, c.domains)
-			}
-			t.FailNow()
-		}
-	}
-}
 
 func TestCreateOAuthUser(t *testing.T) {
 	th := Setup(t).InitBasic()
@@ -108,19 +79,6 @@ func TestCreateOAuthUser(t *testing.T) {
 		_, err := th.App.CreateOAuthUser(th.Context, model.USER_AUTH_SERVICE_GITLAB, strings.NewReader("{}"), th.BasicTeam.Id, nil)
 		require.NotNil(t, err, "should have failed - user creation disabled")
 	})
-}
-
-func TestCreateProfileImage(t *testing.T) {
-	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "nunito-bold.ttf")
-	require.Nil(t, err)
-
-	rdr := bytes.NewReader(b)
-	img, _, err2 := image.Decode(rdr)
-	require.NoError(t, err2)
-
-	colorful := color.RGBA{116, 49, 196, 255}
-
-	require.Equal(t, colorful, img.At(1, 1), "Failed to create correct color")
 }
 
 func TestSetDefaultProfileImage(t *testing.T) {
@@ -1502,5 +1460,38 @@ func TestPatchUser(t *testing.T) {
 		}, true)
 
 		require.Nil(t, err)
+	})
+}
+
+func TestUpdateThreadReadForUser(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	t.Run("Ensure thread membership is created and followed", func(t *testing.T) {
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+		replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+		threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.Nil(t, appErr)
+		require.Zero(t, threads.Total)
+
+		_, appErr = th.App.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
+		require.Nil(t, appErr)
+
+		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.Nil(t, appErr)
+		assert.NotZero(t, threads.Total)
+
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, threadMembership)
+		assert.True(t, threadMembership.Following)
 	})
 }
