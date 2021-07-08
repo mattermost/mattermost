@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -249,8 +250,15 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+
+	if len(respBytes) > 0 {
+		if err = json.Unmarshal(respBytes, &response); err != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	if response.Update != nil {
