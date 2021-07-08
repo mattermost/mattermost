@@ -82,6 +82,4 @@ func ExampleMarshal() {
 
 ## See also
 
-- [Fast and flexible HTTP router](https://github.com/vmihailenco/treemux)
-- [Golang PostgreSQL ORM](https://github.com/go-pg/pg)
-- [Golang message task queue](https://github.com/vmihailenco/taskq)
+- [Fast and flexible ORM for sql.DB](https://bun.uptrace.dev)

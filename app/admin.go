@@ -168,7 +168,7 @@ func (s *Server) InvalidateAllCaches() *model.AppError {
 
 func (s *Server) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	s.sessionCache.Purge()
+	s.userService.ClearAllUsersSessionCacheLocal()
 	s.statusCache.Purge()
 	s.Store.Team().ClearCaches()
 	s.Store.Channel().ClearCaches()
@@ -235,9 +235,9 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	return nil
 }
 
-// ServerBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
-func (a *App) ServerBusyStateChanged(sbs *model.ServerBusyState) {
-	a.Srv().Busy.ClusterEventChanged(sbs)
+// serverBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
+func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
+	s.Busy.ClusterEventChanged(sbs)
 	if sbs.Busy {
 		mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
 	} else {

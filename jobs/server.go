@@ -35,6 +35,7 @@ type JobServer struct {
 	ExportProcess           tjobs.ExportProcessInterface
 	ExportDelete            tjobs.ExportDeleteInterface
 	Cloud                   ejobs.CloudJobInterface
+	ResendInvitationEmails  ejobs.ResendInvitationEmailJobInterface
 
 	// mut is used to protect the following fields from concurrent access.
 	mut        sync.Mutex
@@ -106,6 +107,6 @@ func (srv *JobServer) HandleClusterLeaderChange(isLeader bool) {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()
 	if srv.schedulers != nil {
-		srv.schedulers.HandleClusterLeaderChange(isLeader)
+		srv.schedulers.handleClusterLeaderChange(isLeader)
 	}
 }

@@ -82,7 +82,7 @@ func TestCreateCommandPost(t *testing.T) {
 	}
 
 	skipSlackParsing := false
-	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp, skipSlackParsing)
+	_, err := th.App.CreateCommandPost(th.Context, post, th.BasicTeam.Id, resp, skipSlackParsing)
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.context.invalid_param.app_error")
 }
@@ -108,7 +108,7 @@ func TestExecuteCommand(t *testing.T) {
 				UserId:    th.BasicUser.Id,
 				T:         func(s string, args ...interface{}) string { return s },
 			}
-			resp, err := th.App.ExecuteCommand(args)
+			resp, err := th.App.ExecuteCommand(th.Context, args)
 			require.Nil(t, err)
 			require.NotNil(t, resp)
 
@@ -121,7 +121,7 @@ func TestExecuteCommand(t *testing.T) {
 			Command: "missing leading slash character",
 			T:       func(s string, args ...interface{}) string { return s },
 		}
-		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
+		_, err := th.App.ExecuteCommand(th.Context, argsMissingSlashCharacter)
 		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
 	})
 
@@ -130,7 +130,7 @@ func TestExecuteCommand(t *testing.T) {
 			Command: "",
 			T:       func(s string, args ...interface{}) string { return s },
 		}
-		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
+		_, err := th.App.ExecuteCommand(th.Context, argsMissingSlashCharacter)
 		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
 	})
 }
@@ -157,7 +157,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	builtIn := true
 
-	post, err := th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err := th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, args.ChannelId, post.ChannelId)
 	assert.Equal(t, args.RootId, post.RootId)
@@ -172,7 +172,8 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	// Command is not built in, so it is a bot command.
 	builtIn = false
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	assert.Nil(t, err)
 	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	builtIn = true
@@ -182,7 +183,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	resp.ChannelId = channel.Id
 	th.addUserToChannel(th.BasicUser, channel)
 
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, resp.ChannelId, post.ChannelId)
 	assert.NotEqual(t, args.ChannelId, post.ChannelId)
@@ -193,14 +194,14 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.Username = "Command username"
 	resp.Username = "Response username"
 
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Nil(t, post.GetProp("override_username"))
 
 	*th.App.Config().ServiceSettings.EnablePostUsernameOverride = true
 
 	// Override username config is turned on. Override username through command property.
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, command.Username, post.GetProp("override_username"))
 	assert.Equal(t, "true", post.GetProp("from_webhook"))
@@ -208,7 +209,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.Username = ""
 
 	// Override username through response property.
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, resp.Username, post.GetProp("override_username"))
 	assert.Equal(t, "true", post.GetProp("from_webhook"))
@@ -220,14 +221,14 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.IconURL = "Command icon url"
 	resp.IconURL = "Response icon url"
 
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Nil(t, post.GetProp("override_icon_url"))
 
 	*th.App.Config().ServiceSettings.EnablePostIconOverride = true
 
 	// Override icon url config is turned on. Override icon url through command property.
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, command.IconURL, post.GetProp("override_icon_url"))
 	assert.Equal(t, "true", post.GetProp("from_webhook"))
@@ -235,7 +236,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.IconURL = ""
 
 	// Override icon url through response property.
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, resp.IconURL, post.GetProp("override_icon_url"))
 	assert.Equal(t, "true", post.GetProp("from_webhook"))
@@ -243,7 +244,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
 
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@channel", post.Message)
 	assert.Equal(t, "true", post.GetProp("from_webhook"))
@@ -255,7 +256,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 		},
 	}
 
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@channel", post.Message)
 	if assert.Len(t, post.Attachments(), 1) {
@@ -266,7 +267,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	channel = th.createPrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.command.command_post.forbidden.app_error")
@@ -283,7 +284,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	// set and unset SkipSlackParsing here seems the nicest way as no separate response objects are created for every testcase.
 	resp.SkipSlackParsing = true
-	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	resp.SkipSlackParsing = false
 
 	assert.Nil(t, err)
@@ -310,7 +311,7 @@ func TestHandleCommandResponse(t *testing.T) {
 
 	builtIn := true
 
-	_, err := th.App.HandleCommandResponse(command, args, resp, builtIn)
+	_, err := th.App.HandleCommandResponse(th.Context, command, args, resp, builtIn)
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.command.execute_command.create_post_failed.app_error")
 
@@ -318,7 +319,7 @@ func TestHandleCommandResponse(t *testing.T) {
 		Text: "message 1",
 	}
 
-	_, err = th.App.HandleCommandResponse(command, args, resp, builtIn)
+	_, err = th.App.HandleCommandResponse(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 
 	resp = &model.CommandResponse{
@@ -334,7 +335,7 @@ func TestHandleCommandResponse(t *testing.T) {
 		},
 	}
 
-	_, err = th.App.HandleCommandResponse(command, args, resp, builtIn)
+	_, err = th.App.HandleCommandResponse(th.Context, command, args, resp, builtIn)
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.command.execute_command.create_post_failed.app_error")
 
@@ -345,7 +346,7 @@ func TestHandleCommandResponse(t *testing.T) {
 		},
 	}
 
-	_, err = th.App.HandleCommandResponse(command, args, resp, builtIn)
+	_, err = th.App.HandleCommandResponse(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 }
 

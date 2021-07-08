@@ -28,8 +28,6 @@ func TestLoggingBeforeInitialized(t *testing.T) {
 }
 
 func TestLoggingAfterInitialized(t *testing.T) {
-	t.Skip("Racy test:  MM-34271")
-
 	testCases := []struct {
 		Description         string
 		LoggerConfiguration *mlog.LoggerConfiguration
