@@ -823,7 +823,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableReliableWebSockets == nil {
-		s.EnableReliableWebSockets = NewBool(false)
+		s.EnableReliableWebSockets = NewBool(true)
 	}
 }
 
