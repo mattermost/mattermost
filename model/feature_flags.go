@@ -44,7 +44,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
-	f.CollapsedThreads = false
+	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
 
