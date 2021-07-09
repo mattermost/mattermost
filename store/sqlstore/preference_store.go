@@ -81,48 +81,28 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		return err
 	}
 
+	query := s.getQueryBuilder().
+		Insert("Preferences").
+		Columns("UserId", "Category", "Name", "Value").
+		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
+
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		queryString, args, err := s.getQueryBuilder().
-			Insert("Preferences").
-			Columns("UserId", "Category", "Name", "Value").
-			Values(preference.UserId, preference.Category, preference.Name, preference.Value).
-			SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value)).
-			ToSql()
-
-		if err != nil {
-			return errors.Wrap(err, "failed to generate sqlquery")
-		}
-
-		if _, err = transaction.Exec(queryString, args...); err != nil {
-			return errors.Wrap(err, "failed to save Preference")
-		}
-		return nil
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-
-		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
-		queryString, args, err := s.getQueryBuilder().
-			Select("count(0)").
-			From("Preferences").
-			Where(sq.Eq{"UserId": preference.UserId}).
-			Where(sq.Eq{"Category": preference.Category}).
-			Where(sq.Eq{"Name": preference.Name}).
-			ToSql()
-
-		if err != nil {
-			return errors.Wrap(err, "failed to generate sqlquery")
-		}
-
-		count, err := transaction.SelectInt(queryString, args...)
-		if err != nil {
-			return errors.Wrap(err, "failed to count Preferences")
-		}
-
-		if count == 1 {
-			return s.update(transaction, preference)
-		}
-		return s.insert(transaction, preference)
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
+	} else {
+		return store.NewErrNotImplemented("failed to update preference because of missing driver")
 	}
-	return store.NewErrNotImplemented("failed to update preference because of missing driver")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to generate sqlquery")
+	}
+
+	if _, err = transaction.Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "failed to save Preference")
+	}
+	return nil
 }
 
 func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) error {
