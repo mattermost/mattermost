@@ -3072,42 +3072,41 @@ const ConfigAccessTagType = "access"
 const ConfigAccessTagWriteRestrictable = "write_restrictable"
 const ConfigAccessTagCloudRestrictable = "cloud_restrictable"
 
-// Allows read access if any PERMISSION_SYSCONSOLE_READ_* is allowed
+// Allows read access if any PermissionSysconsoleRead* is allowed
 const ConfigAccessTagAnySysConsoleRead = "*_read"
 
 // Config fields support the 'access' tag with the following values corresponding to the suffix of the associated
-// PERMISSION_SYSCONSOLE_*_* permission Id: 'about', 'reporting', 'user_management_users',
+// PermissionSysconsole* permission Id: 'about', 'reporting', 'user_management_users',
 // 'user_management_groups', 'user_management_teams', 'user_management_channels',
 // 'user_management_permissions', 'environment_web_server', 'environment_database', 'environment_elasticsearch',
 // 'environment_file_storage', 'environment_image_proxy', 'environment_smtp', 'environment_push_notification_server',
 // 'environment_high_availability', 'environment_rate_limiting', 'environment_logging', 'environment_session_lengths',
 // 'environment_performance_monitoring', 'environment_developer', 'site', 'authentication', 'plugins',
 // 'integrations', 'compliance', 'plugins', and 'experimental'. They grant read and/or write access to the config field
-// to roles without PERMISSION_MANAGE_SYSTEM.
+// to roles without PermissionManageSystem.
 //
-// The 'access' tag '*_read' checks for any SYSCONSOLE read permission and grants access if any read permission is allowed.
+// The 'access' tag '*_read' checks for any Sysconsole read permission and grants access if any read permission is allowed.
 //
-// By default config values can be written with PERMISSION_MANAGE_SYSTEM, but if ExperimentalSettings.RestrictSystemAdmin is true
-// and the access tag contains the value 'write_restrictable', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
+// By default config values can be written with PermissionManageSystem, but if ExperimentalSettings.RestrictSystemAdmin is true
+// and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access.
 //
-// PERMISSION_MANAGE_SYSTEM always grants read access.
+// PermissionManageSystem always grants read access.
 //
 // Config values with the access tag 'cloud_restrictable' mean that are marked to be filtered when it's used in a cloud licensed
 // environment with ExperimentalSettings.RestrictedSystemAdmin set to true.
 //
 // Example:
 //  type HairSettings struct {
-//      // Colour is writeable with either PERMISSION_SYSCONSOLE_WRITE_REPORTING or PERMISSION_SYSCONSOLE_WRITE_USER_MANAGEMENT_GROUPS.
-//      // It is readable by PERMISSION_SYSCONSOLE_READ_REPORTING and PERMISSION_SYSCONSOLE_READ_USER_MANAGEMENT_GROUPS permissions.
-//      // PERMISSION_MANAGE_SYSTEM grants read and write access.
+//      // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUsermanagementGroups.
+//      // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUsermanagementGroups permissions.
+//      // PermissionManageSystem grants read and write access.
 //      Colour string `access:"reporting,user_management_groups"`
 //
-//
-//      // Length is only readable and writable via PERMISSION_MANAGE_SYSTEM.
+//      // Length is only readable and writable via PermissionManageSystem.
 //      Length string
 //
-//      // Product is only writeable by PERMISSION_MANAGE_SYSTEM if ExperimentalSettings.RestrictSystemAdmin is false.
-//      // PERMISSION_MANAGE_SYSTEM can always read the value.
+//      // Product is only writeable by PermissionManageSystem if ExperimentalSettings.RestrictSystemAdmin is false.
+//      // PermissionManageSystem can always read the value.
 //      Product bool `access:write_restrictable`
 //  }
 type Config struct {

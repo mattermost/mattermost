@@ -84,9 +84,9 @@ type SystemECDSAKey struct {
 
 // ServerBusyState provides serialization for app.Busy.
 type ServerBusyState struct {
-	Busy       bool   `json:"busy"`
-	Expires    int64  `json:"expires"`
-	Expires_ts string `json:"expires_ts,omitempty"`
+	Busy      bool   `json:"busy"`
+	Expires   int64  `json:"expires"`
+	ExpiresTS string `json:"expires_ts,omitempty"`
 }
 
 type SupportPacket struct {

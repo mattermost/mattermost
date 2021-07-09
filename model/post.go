@@ -22,14 +22,14 @@ const (
 	PostDefault              = ""
 	PostSlackAttachment      = "slack_attachment"
 	PostSystemGeneric        = "system_generic"
-	PostJoinLeave            = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
+	PostJoinLeave            = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
 	PostJoinChannel          = "system_join_channel"
 	PostGuestJoinChannel     = "system_guest_join_channel"
 	PostLeaveChannel         = "system_leave_channel"
 	PostJoinTeam             = "system_join_team"
 	PostLeaveTeam            = "system_leave_team"
 	PostAutoResponder        = "system_auto_responder"
-	PostAddRemove            = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
+	PostAddRemove            = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
 	PostAddToChannel         = "system_add_to_channel"
 	PostAddGuestToChannel    = "system_add_guest_to_chan"
 	PostRemoveFromChannel    = "system_remove_from_channel"

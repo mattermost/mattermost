@@ -778,19 +778,19 @@ func TestPostDisableMentionHighlights(t *testing.T) {
 			"",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @here",
 			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@here",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @channel",
 			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@channel",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @all",
 			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@all",
@@ -821,17 +821,17 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 			nil,
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @here",
 			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @channel",
 			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @all",
 			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
