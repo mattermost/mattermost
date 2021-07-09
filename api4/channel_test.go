@@ -2837,31 +2837,31 @@ func TestAddChannelMemberAddMyself(t *testing.T) {
 		ExpectedError            string
 	}{
 		{
-			"Add myself to a public channel with JOIN_PUBLIC_CHANNEL permission",
+			"Add myself to a public channel with JoinPublicChannel permission",
 			notMemberPublicChannel1,
 			true,
 			"",
 		},
 		{
-			"Try to add myself to a private channel with the JOIN_PUBLIC_CHANNEL permission",
+			"Try to add myself to a private channel with the JoinPublicChannel permission",
 			notMemberPrivateChannel,
 			true,
 			"api.context.permissions.app_error",
 		},
 		{
-			"Try to add myself to a public channel without the JOIN_PUBLIC_CHANNEL permission",
+			"Try to add myself to a public channel without the JoinPublicChannel permission",
 			notMemberPublicChannel2,
 			false,
 			"api.context.permissions.app_error",
 		},
 		{
-			"Add myself a public channel where I'm already a member, not having JOIN_PUBLIC_CHANNEL or MANAGE MEMBERS permission",
+			"Add myself a public channel where I'm already a member, not having JoinPublicChannel or ManageMembers permission",
 			memberPublicChannel,
 			false,
 			"",
 		},
 		{
-			"Add myself a private channel where I'm already a member, not having JOIN_PUBLIC_CHANNEL or MANAGE MEMBERS permission",
+			"Add myself a private channel where I'm already a member, not having JoinPublicChannel or ManageMembers permission",
 			memberPrivateChannel,
 			false,
 			"",

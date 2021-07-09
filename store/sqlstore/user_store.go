@@ -26,10 +26,10 @@ const (
 )
 
 var (
-	UserSearchTypeNames_NO_FULL_NAME = []string{"Username", "Nickname"}
-	UserSearchTypeNames              = []string{"Username", "FirstName", "LastName", "Nickname"}
-	UserSearchTypeAll_NO_FULL_NAME   = []string{"Username", "Nickname", "Email"}
-	UserSearchTypeAll                = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
+	UserSearchTypeNamesNoFullName = []string{"Username", "Nickname"}
+	UserSearchTypeNames           = []string{"Username", "FirstName", "LastName", "Nickname"}
+	UserSearchTypeAllNoFullName   = []string{"Username", "Nickname", "Email"}
+	UserSearchTypeAll             = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
 )
 
 type SqlUserStore struct {
@@ -95,9 +95,9 @@ func (us SqlUserStore) createIndexesIfNotExists() {
 	}
 
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(UserSearchTypeAll, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(UserSearchTypeAll_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(UserSearchTypeAllNoFullName, ", "))
 	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(UserSearchTypeNames, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(UserSearchTypeNames_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(UserSearchTypeNamesNoFullName, ", "))
 }
 
 func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
@@ -1465,13 +1465,13 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 		if options.AllowFullNames {
 			searchType = UserSearchTypeAll
 		} else {
-			searchType = UserSearchTypeAll_NO_FULL_NAME
+			searchType = UserSearchTypeAllNoFullName
 		}
 	} else {
 		if options.AllowFullNames {
 			searchType = UserSearchTypeNames
 		} else {
-			searchType = UserSearchTypeNames_NO_FULL_NAME
+			searchType = UserSearchTypeNamesNoFullName
 		}
 	}
 

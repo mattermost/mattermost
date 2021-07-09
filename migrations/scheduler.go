@@ -95,12 +95,12 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job) (*model.Job, *model.AppError) {
 	var lastDone string
 	if lastJob != nil {
-		lastDone = lastJob.Data[JobDataKeyMigration_LAST_DONE]
+		lastDone = lastJob.Data[JobDataKeyMigrationLastDone]
 	}
 
 	data := map[string]string{
-		JobDataKeyMigration:           migrationKey,
-		JobDataKeyMigration_LAST_DONE: lastDone,
+		JobDataKeyMigration:         migrationKey,
+		JobDataKeyMigrationLastDone: lastDone,
 	}
 
 	job, err := scheduler.srv.Jobs.CreateJob(model.JobTypeMigrations, data)

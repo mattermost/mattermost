@@ -613,7 +613,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	post := posts[0]
 	actual := post.GetProp(model.PostPropsDeleteBy)
 
-	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
+	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.PostPropsDeleteBy] to be %v but got %v.", deleteByID, actual)
 
 	r3, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
 	require.Error(t, err, "Missing id should have failed - PostList %v", r3)

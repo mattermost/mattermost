@@ -100,7 +100,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 			return
 
 		case <-time.After(TimeBetweenBatches * time.Millisecond):
-			done, progress, err := worker.runMigration(job.Data[JobDataKeyMigration], job.Data[JobDataKeyMigration_LAST_DONE])
+			done, progress, err := worker.runMigration(job.Data[JobDataKeyMigration], job.Data[JobDataKeyMigrationLastDone])
 			if err != nil {
 				mlog.Error("Worker: Failed to run migration", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 				worker.setJobError(job, err)
@@ -110,7 +110,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 				worker.setJobSuccess(job)
 				return
 			} else {
-				job.Data[JobDataKeyMigration_LAST_DONE] = progress
+				job.Data[JobDataKeyMigrationLastDone] = progress
 				if err := worker.srv.Jobs.UpdateInProgressJobData(job); err != nil {
 					mlog.Error("Worker: Failed to update migration status data for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 					worker.setJobError(job, err)

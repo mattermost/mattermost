@@ -17,8 +17,8 @@ const (
 	MigrationStateInProgress  = "in_progress"
 	MigrationStateCompleted   = "completed"
 
-	JobDataKeyMigration           = "migration_key"
-	JobDataKeyMigration_LAST_DONE = "last_done"
+	JobDataKeyMigration         = "migration_key"
+	JobDataKeyMigrationLastDone = "last_done"
 )
 
 type MigrationsJobInterfaceImpl struct {

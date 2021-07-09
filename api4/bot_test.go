@@ -547,7 +547,7 @@ func TestGetBot(t *testing.T) {
 		CheckEtag(t, bot, resp)
 	})
 
-	t.Run("get bot1 without READ_OTHERS_BOTS permission", func(t *testing.T) {
+	t.Run("get bot1 without PermissionReadOthersBots permission", func(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
@@ -560,7 +560,7 @@ func TestGetBot(t *testing.T) {
 		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
 	})
 
-	t.Run("get myBot without READ_BOTS OR READ_OTHERS_BOTS permissions", func(t *testing.T) {
+	t.Run("get myBot without ReadBots OR ReadOthersBots permissions", func(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)

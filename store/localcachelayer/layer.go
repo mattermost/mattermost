@@ -52,8 +52,8 @@ const (
 	UserProfileByIDCacheSize = 20000
 	UserProfileByIDSec       = 30 * 60
 
-	ProfilesInChannelCacheSize  = model.ChannelCacheSize
-	PROFILES_IN_ChannelCacheSec = 15 * 60
+	ProfilesInChannelCacheSize = model.ChannelCacheSize
+	ProfilesInChannelCacheSec  = 15 * 60
 
 	TeamCacheSize = 20000
 	TeamCacheSec  = 30 * 60
@@ -283,7 +283,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	if localCacheStore.profilesInChannelCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   ProfilesInChannelCacheSize,
 		Name:                   "ProfilesInChannel",
-		DefaultExpiry:          PROFILES_IN_ChannelCacheSec * time.Second,
+		DefaultExpiry:          ProfilesInChannelCacheSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForProfileInChannel,
 	}); err != nil {
 		return
