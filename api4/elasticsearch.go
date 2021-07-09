@@ -23,8 +23,8 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// PERMISSION_TEST_ELASTICSEARCH is an ancillary permission of PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH,
 	// which should prevent read-only managers from password sniffing
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_TEST_ELASTICSEARCH) {
-		c.SetPermissionError(model.PERMISSION_TEST_ELASTICSEARCH)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestElasticsearch) {
+		c.SetPermissionError(model.PermissionTestElasticsearch)
 		return
 	}
 
@@ -45,8 +45,8 @@ func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord("purgeElasticsearchIndexes", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES) {
-		c.SetPermissionError(model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPurgeElasticsearchIndexes) {
+		c.SetPermissionError(model.PermissionPurgeElasticsearchIndexes)
 		return
 	}
 

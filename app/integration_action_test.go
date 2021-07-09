@@ -109,7 +109,7 @@ func TestPostAction(t *testing.T) {
 				assert.Equal(t, request.UserName, th.BasicUser.Username)
 				assert.Equal(t, request.ChannelId, channel.Id)
 				assert.Equal(t, request.ChannelName, channel.Name)
-				if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+				if channel.Type == model.ChannelDirect || channel.Type == model.ChannelGroup {
 					assert.Empty(t, request.TeamId)
 					assert.Empty(t, request.TeamName)
 				} else {
@@ -117,7 +117,7 @@ func TestPostAction(t *testing.T) {
 					assert.Equal(t, request.TeamName, th.BasicTeam.Name)
 				}
 				assert.True(t, request.TriggerId != "")
-				if request.Type == model.POST_ACTION_TYPE_SELECT {
+				if request.Type == model.PostActionTypeSelect {
 					assert.Equal(t, request.DataSource, "some_source")
 					assert.Equal(t, request.Context["selected_option"], "selected")
 				} else {
@@ -185,7 +185,7 @@ func TestPostAction(t *testing.T) {
 										URL: ts.URL,
 									},
 									Name:       "action",
-									Type:       model.POST_ACTION_TYPE_SELECT,
+									Type:       model.PostActionTypeSelect,
 									DataSource: "some_source",
 								},
 							},

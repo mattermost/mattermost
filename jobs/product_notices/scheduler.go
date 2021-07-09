@@ -23,7 +23,7 @@ func (scheduler *Scheduler) Name() string {
 }
 
 func (scheduler *Scheduler) JobType() string {
-	return model.JOB_TYPE_PRODUCT_NOTICES
+	return model.JobTypeProductNotices
 }
 
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
@@ -39,7 +39,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	data := map[string]string{}
 
-	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JOB_TYPE_PRODUCT_NOTICES, data)
+	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JobTypeProductNotices, data)
 	if err != nil {
 		return nil, err
 	}

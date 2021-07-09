@@ -142,7 +142,7 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 // UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
 // at the given subpath instead of at the root. No changes are written unless necessary.
 func UpdateAssetsSubpath(subpath string) error {
-	return UpdateAssetsSubpathInDir(subpath, model.CLIENT_DIR)
+	return UpdateAssetsSubpathInDir(subpath, model.ClientDir)
 }
 
 // UpdateAssetsSubpathFromConfig uses UpdateAssetsSubpath and any path defined in the SiteURL.

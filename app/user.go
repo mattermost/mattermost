@@ -257,7 +257,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		a.sendUpdatedUserEvent(*nUser)
 	}
 
-	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
+	pref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
 	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
 		mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
 	}
@@ -265,7 +265,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
 
 	// This message goes to everyone, so the teamID, channelID and userID are irrelevant
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventNewUser, "", "", "", nil)
 	message.Add("user_id", ruser.Id)
 	a.Publish(message)
 
@@ -316,7 +316,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	userByEmail, _ := a.srv.userService.GetUserByEmail(user.Email)
 	if userByEmail != nil {
 		if userByEmail.AuthService == "" {
-			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.USER_AUTH_SERVICE_EMAIL}, "email="+user.Email, http.StatusBadRequest)
+			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
 		if provider.IsSameUser(userByEmail, user) {
 			if _, err := a.Srv().Store.User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
@@ -660,7 +660,7 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 		return appErr
 	}
 
-	if user.AuthService != "" && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+	if user.AuthService != "" && user.AuthService != model.UserAuthServiceLdap {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -734,7 +734,7 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 	options := a.Config().GetSanitizeOptions()
 	updatedUser.SanitizeProfile(options)
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
 	message.Add("user", updatedUser)
 	a.Publish(message)
 
@@ -925,7 +925,7 @@ func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 	a.Srv().Store.Channel().ClearCaches()
 	a.Srv().Store.User().ClearCaches()
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GUESTS_DEACTIVATED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventGuestsDeactivated, "", "", "", nil)
 	a.Publish(message)
 
 	return nil
@@ -1015,13 +1015,13 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 func (a *App) sendUpdatedUserEvent(user model.User) {
 	adminCopyOfUser := user.DeepCopy()
 	a.SanitizeProfile(adminCopyOfUser, true)
-	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
 	adminMessage.Add("user", adminCopyOfUser)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
 	message.Add("user", &user)
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
@@ -1404,7 +1404,7 @@ func (a *App) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWeb
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ROLE_UPDATED, "", "", user.Id, nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventUserRoleUpdated, "", "", user.Id, nil)
 		message.Add("user_id", user.Id)
 		message.Add("roles", newRoles)
 		a.Publish(message)
@@ -1415,7 +1415,7 @@ func (a *App) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWeb
 
 func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.AppError {
 	mlog.Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
-	if user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
+	if user.IsInRole(model.SystemAdminRoleId) {
 		mlog.Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
 	}
 
@@ -1958,7 +1958,7 @@ func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *
 }
 
 func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestrictions, *model.AppError) {
-	if a.HasPermissionTo(userID, model.PERMISSION_VIEW_MEMBERS) {
+	if a.HasPermissionTo(userID, model.PermissionViewMembers) {
 		return nil, nil
 	}
 
@@ -1969,7 +1969,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 
 	teamIDsWithPermission := []string{}
 	for _, teamID := range teamIDs {
-		if a.HasPermissionToTeam(userID, teamID, model.PERMISSION_VIEW_MEMBERS) {
+		if a.HasPermissionToTeam(userID, teamID, model.PermissionViewMembers) {
 			teamIDsWithPermission = append(teamIDsWithPermission, teamID)
 		}
 	}
@@ -2033,7 +2033,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		for _, member := range *channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
-			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
+			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
 			a.Publish(evt)
 		}
@@ -2074,7 +2074,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		for _, member := range *channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
-			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
+			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
 			a.Publish(evt)
 		}
@@ -2088,7 +2088,7 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[userID] = true
 
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelID, "", omitUsers)
+	event := model.NewWebSocketEvent(model.WebsocketEventTyping, "", channelID, "", omitUsers)
 	event.Add("parent_id", parentId)
 	event.Add("user_id", userID)
 	a.Publish(event)
@@ -2109,7 +2109,7 @@ func (a *App) invalidateUserCacheAndPublish(userID string) {
 	options := a.Config().GetSanitizeOptions()
 	user.SanitizeProfile(options)
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
 	message.Add("user", user)
 	a.Publish(message)
 }
@@ -2139,10 +2139,10 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 		}
 	}
 
-	if sysadmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
+	if sysadmin && !user.IsInRole(model.SystemAdminRoleId) {
 		_, appErr := a.UpdateUserRoles(
 			user.Id,
-			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
+			fmt.Sprintf("%s %s", user.Roles, model.SystemAdminRoleId),
 			false)
 		if appErr != nil {
 			return nil, appErr
@@ -2210,7 +2210,7 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil)
 	a.Publish(message)
 	return nil
 }
@@ -2235,7 +2235,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	if thread != nil {
 		replyCount = thread.ReplyCount
 	}
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED, teamID, "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadFollowChanged, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
 	message.Add("reply_count", replyCount)
@@ -2282,7 +2282,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("timestamp", timestamp)
 	message.Add("unread_mentions", membership.UnreadMentions)

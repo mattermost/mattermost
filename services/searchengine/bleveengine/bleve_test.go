@@ -47,7 +47,7 @@ func (s *BleveEngineTestSuite) setupIndexes() {
 func (s *BleveEngineTestSuite) setupStore() {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_POSTGRES
+		driverName = model.DatabaseDriverPostgres
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName, false)
 	s.SQLStore = sqlstore.New(*s.SQLSettings, nil)

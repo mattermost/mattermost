@@ -271,7 +271,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version320, Version330) {
 		if sqlStore.DoesColumnExist("Users", "ThemeProps") {
 			params := map[string]interface{}{
-				"Category": model.PREFERENCE_CATEGORY_THEME,
+				"Category": model.PreferenceCategoryTheme,
 				"Name":     "",
 			}
 
@@ -282,12 +282,12 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 			defer finalizeTransaction(transaction)
 
 			// increase size of Value column of Preferences table to match the size of the ThemeProps column
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 				if _, err := transaction.ExecNoTimeout("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
 					themeMigrationFailed(err)
 					return
 				}
-			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			} else if sqlStore.DriverName() == model.DatabaseDriverMysql {
 				if _, err := transaction.ExecNoTimeout("ALTER TABLE Preferences MODIFY Value text"); err != nil {
 					themeMigrationFailed(err)
 					return
@@ -299,7 +299,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 				`INSERT INTO
 					Preferences(UserId, Category, Name, Value)
 				SELECT
-					Id, '`+model.PREFERENCE_CATEGORY_THEME+`', '', ThemeProps
+					Id, '`+model.PreferenceCategoryTheme+`', '', ThemeProps
 				FROM
 					Users
 				WHERE
@@ -321,7 +321,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 
 			// rename solarized_* code themes to solarized-* to match client changes in 3.0
 			var data model.Preferences
-			if _, err := sqlStore.GetMaster().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PREFERENCE_CATEGORY_THEME+"' AND Value LIKE '%solarized_%'"); err == nil {
+			if _, err := sqlStore.GetMaster().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PreferenceCategoryTheme+"' AND Value LIKE '%solarized_%'"); err == nil {
 				for i := range data {
 					data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
 				}
@@ -416,7 +416,7 @@ func upgradeDatabaseToVersion38(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion39(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version380, Version390) {
-		sqlStore.CreateColumnIfNotExists("OAuthAccessData", "Scope", "varchar(128)", "varchar(128)", model.DEFAULT_SCOPE)
+		sqlStore.CreateColumnIfNotExists("OAuthAccessData", "Scope", "varchar(128)", "varchar(128)", model.DefaultScope)
 		sqlStore.RemoveTableIfExists("PasswordRecovery")
 
 		saveSchemaVersion(sqlStore, Version390)
@@ -633,7 +633,7 @@ func upgradeDatabaseToVersion56(sqlStore *SqlStore) {
 		// migrating user's accepted terms of service data into the new table
 		sqlStore.GetMaster().ExecNoTimeout("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
 
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
 			sqlStore.RemoveIndexIfExists("idx_users_username_lower", "lower(Username)")
 			sqlStore.RemoveIndexIfExists("idx_users_nickname_lower", "lower(Nickname)")
@@ -665,7 +665,7 @@ func upgradeDatabaseToVersion58(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
 		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
 		sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "Username")
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "IconURL")
 		}
 		sqlStore.AlterDefaultIfColumnExists("OutgoingWebhooks", "Username", model.NewString("NULL"), nil)
@@ -749,9 +749,9 @@ func upgradeDatabaseToVersion515(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5150, Version5160) {
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
-		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		} else if sqlStore.DriverName() == model.DatabaseDriverMysql {
 			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Tokens MODIFY Extra text")
 		}
 		saveSchemaVersion(sqlStore, Version5160)
@@ -950,7 +950,7 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
 
 		updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
 		}
 		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateThreadChannelsQuery); err != nil {
@@ -996,7 +996,7 @@ func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 		return true
 	}
 
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
 			return true
 		}
@@ -1025,7 +1025,7 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	if hasMissingMigrationsVersion532(sqlStore) {
 		// this migration was reverted on MySQL due to performance reasons. Doing
 		// it only on PostgreSQL for the time being.
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			// allow 10 files per post
 			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 		}
@@ -1071,7 +1071,7 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
 		}
 		uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
 			uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 		}
 		sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
@@ -1112,7 +1112,7 @@ func rootCountMigration(sqlStore *SqlStore) {
 			ChannelMembers.MentionCount > 0
 		SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
 	`
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 		updateMentionCountRootQuery = `
 			WITH q AS (` + mentionCountRootCTE + `)
 			UPDATE channelmembers
@@ -1135,7 +1135,7 @@ func rootCountMigration(sqlStore *SqlStore) {
 	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
 
 	forceIndex := ""
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
 		forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
 	}
 	totalMsgCountRootCTE := `
@@ -1156,7 +1156,7 @@ func rootCountMigration(sqlStore *SqlStore) {
 		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
 		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
 	`
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
 		updateChannels = `
 			UPDATE Channels
 			INNER Join (` + totalMsgCountRootCTE + `) as q

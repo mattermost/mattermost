@@ -245,9 +245,9 @@ func TestModifyTeam(t *testing.T) {
 
 	updatedTeam, _ := th.App.GetTeam(team.Id)
 
-	require.False(t, !updatedTeam.AllowOpenInvite && team.Type == model.TEAM_INVITE, "Failed modifying team's privacy to private")
+	require.False(t, !updatedTeam.AllowOpenInvite && team.Type == model.TeamInvite, "Failed modifying team's privacy to private")
 
 	th.CheckCommand(t, "team", "modify", team.Name, "--public")
 
-	require.False(t, updatedTeam.AllowOpenInvite && team.Type == model.TEAM_OPEN, "Failed modifying team's privacy to private")
+	require.False(t, updatedTeam.AllowOpenInvite && team.Type == model.TeamOpen, "Failed modifying team's privacy to private")
 }

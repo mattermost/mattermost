@@ -71,10 +71,10 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently, this endpoint only supports downloading the compliance report.
 	// If you need to download another job type, you will need to alter this section of the code to accommodate it.
-	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
-		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
+	if job.Type == model.JobTypeMessageExport && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
+		c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
 		return
-	} else if job.Type != model.JOB_TYPE_MESSAGE_EXPORT {
+	} else if job.Type != model.JobTypeMessageExport {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -141,7 +141,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var validJobTypes []string
-	for _, jobType := range model.ALL_JOB_TYPES {
+	for _, jobType := range model.AllJobTypes {
 		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jobType)
 		if permissionRequired == nil {
 			mlog.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jobType))

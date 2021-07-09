@@ -18,10 +18,10 @@ func TestSaveStatus(t *testing.T) {
 	user := th.BasicUser
 
 	for _, statusString := range []string{
-		model.STATUS_ONLINE,
-		model.STATUS_AWAY,
-		model.STATUS_DND,
-		model.STATUS_OFFLINE,
+		model.StatusOnline,
+		model.StatusAway,
+		model.StatusDnd,
+		model.StatusOffline,
 	} {
 		t.Run(statusString, func(t *testing.T) {
 			status := &model.Status{

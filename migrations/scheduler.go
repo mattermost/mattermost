@@ -29,7 +29,7 @@ func (scheduler *Scheduler) Name() string {
 }
 
 func (scheduler *Scheduler) JobType() string {
-	return model.JOB_TYPE_MIGRATIONS
+	return model.JobTypeMigrations
 }
 
 func (scheduler *Scheduler) Enabled(_ *model.Config) bool {
@@ -103,7 +103,7 @@ func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job) (
 		JobDataKeyMigration_LAST_DONE: lastDone,
 	}
 
-	job, err := scheduler.srv.Jobs.CreateJob(model.JOB_TYPE_MIGRATIONS, data)
+	job, err := scheduler.srv.Jobs.CreateJob(model.JobTypeMigrations, data)
 	if err != nil {
 		return nil, err
 	}

@@ -146,7 +146,7 @@ func Init(a app.AppIface, root *mux.Router) *API {
 	}
 
 	api.BaseRoutes.Root = root
-	api.BaseRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	api.BaseRoutes.ApiRoot = root.PathPrefix(model.ApiUrlSuffix).Subrouter()
 
 	api.BaseRoutes.Users = api.BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
@@ -305,7 +305,7 @@ func InitLocal(a app.AppIface, root *mux.Router) *API {
 	}
 
 	api.BaseRoutes.Root = root
-	api.BaseRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	api.BaseRoutes.ApiRoot = root.PathPrefix(model.ApiUrlSuffix).Subrouter()
 
 	api.BaseRoutes.Users = api.BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
