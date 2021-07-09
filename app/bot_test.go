@@ -87,7 +87,7 @@ func TestCreateBot(t *testing.T) {
 
 		postArray := posts.ToSlice()
 		assert.Len(t, postArray, 1)
-		assert.Equal(t, postArray[0].Type, model.PostAddBotTeamsChannels)
+		assert.Equal(t, postArray[0].Type, model.PostTypeAddBotTeamsChannels)
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {

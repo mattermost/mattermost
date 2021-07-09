@@ -10,7 +10,7 @@ import (
 const (
 	TokenSize          = 64
 	MaxTokenExipryTime = 1000 * 60 * 60 * 48 // 48 hour
-	TokenTypeOauth     = "oauth"
+	TokenTypeOAuth     = "oauth"
 )
 
 type Token struct {

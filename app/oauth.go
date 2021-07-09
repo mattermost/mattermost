@@ -28,8 +28,8 @@ import (
 )
 
 const (
-	OauthCookieMaxAgeSeconds = 30 * 60 // 30 minutes
-	CookieOauth              = "MMOAUTH"
+	OAuthCookieMaxAgeSeconds = 30 * 60 // 30 minutes
+	CookieOAuth              = "MMOAUTH"
 	OpenIDScope              = "openid"
 )
 
@@ -76,9 +76,9 @@ func (a *App) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 	return oauthApp, nil
 }
 
-func (a *App) UpdateOauthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
-		return nil, model.NewAppError("UpdateOauthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("UpdateOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	updatedApp.Id = oldApp.Id
@@ -94,9 +94,9 @@ func (a *App) UpdateOauthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateOauthApp", "app.oauth.update_app.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
 		default:
-			return nil, model.NewAppError("UpdateOauthApp", "app.oauth.update_app.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -215,7 +215,7 @@ func (a *App) AllowOAuthAppAccessToUser(userID string, authRequest *model.Author
 	// This saves the OAuth2 app as authorized
 	authorizedApp := model.Preference{
 		UserId:   userID,
-		Category: model.PreferenceCategoryAuthorizedOauthApp,
+		Category: model.PreferenceCategoryAuthorizedOAuthApp,
 		Name:     authRequest.ClientId,
 		Value:    authRequest.Scope,
 	}
@@ -436,7 +436,7 @@ func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, serv
 
 func (a *App) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamID string) (string, *model.AppError) {
 	stateProps := map[string]string{}
-	stateProps["action"] = model.OauthActionSignup
+	stateProps["action"] = model.OAuthActionSignup
 	if teamID != "" {
 		stateProps["team_id"] = teamID
 	}
@@ -489,7 +489,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError {
 	}
 
 	// Deauthorize the app
-	if err := a.Srv().Store.Preference().Delete(userID, model.PreferenceCategoryAuthorizedOauthApp, appID); err != nil {
+	if err := a.Srv().Store.Preference().Delete(userID, model.PreferenceCategoryAuthorizedOAuthApp, appID); err != nil {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -539,20 +539,20 @@ func (a *App) CompleteOAuth(c *request.Context, service string, body io.ReadClos
 	action := props["action"]
 
 	switch action {
-	case model.OauthActionSignup:
+	case model.OAuthActionSignup:
 		return a.CreateOAuthUser(c, service, body, teamID, tokenUser)
-	case model.OauthActionLogin:
+	case model.OAuthActionLogin:
 		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
-	case model.OauthActionEmailToSso:
+	case model.OAuthActionEmailToSSO:
 		return a.CompleteSwitchWithOAuth(service, body, props["email"], tokenUser)
-	case model.OauthActionSsoToEmail:
+	case model.OAuthActionSSOToEmail:
 		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
 	default:
 		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
 	}
 }
 
-func (a *App) getSSOProvider(service string) (einterfaces.OauthProvider, *model.AppError) {
+func (a *App) getSSOProvider(service string) (einterfaces.OAuthProvider, *model.AppError) {
 	sso := a.Config().GetSSOService(service)
 	if sso == nil || !*sso.Enable {
 		return nil, model.NewAppError("getSSOProvider", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
@@ -561,7 +561,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OauthProvider, *model.
 	if strings.Contains(*sso.Scope, OpenIDScope) {
 		providerType = model.ServiceOpenid
 	}
-	provider := einterfaces.GetOauthProvider(providerType)
+	provider := einterfaces.GetOAuthProvider(providerType)
 	if provider == nil {
 		return nil, model.NewAppError("getSSOProvider", "api.user.login_by_oauth.not_available.app_error",
 			map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
@@ -672,7 +672,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 }
 
 func (a *App) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError) {
-	token := model.NewToken(model.TokenTypeOauth, extra)
+	token := model.NewToken(model.TokenTypeOAuth, extra)
 
 	if err := a.Srv().Store.Token().Save(token); err != nil {
 		var appErr *model.AppError
@@ -693,7 +693,7 @@ func (a *App) GetOAuthStateToken(token string) (*model.Token, *model.AppError) {
 		return nil, model.NewAppError("GetOAuthStateToken", "api.oauth.invalid_state_token.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if mToken.Type != model.TokenTypeOauth {
+	if mToken.Type != model.TokenTypeOAuth {
 		return nil, model.NewAppError("GetOAuthStateToken", "api.oauth.invalid_state_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -719,12 +719,12 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	cookieValue := model.NewId()
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(OauthCookieMaxAgeSeconds), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(OAuthCookieMaxAgeSeconds), 0)
 	oauthCookie := &http.Cookie{
-		Name:     CookieOauth,
+		Name:     CookieOAuth,
 		Value:    cookieValue,
 		Path:     subpath,
-		MaxAge:   OauthCookieMaxAgeSeconds,
+		MaxAge:   OAuthCookieMaxAgeSeconds,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Secure:   secure,
@@ -791,11 +791,11 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	stateEmail := stateProps["email"]
 	stateAction := stateProps["action"]
-	if stateAction == model.OauthActionEmailToSso && stateEmail == "" {
+	if stateAction == model.OAuthActionEmailToSSO && stateEmail == "" {
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	cookie, cookieErr := r.Cookie(CookieOauth)
+	cookie, cookieErr := r.Cookie(CookieOAuth)
 	if cookieErr != nil {
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -813,7 +813,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	httpCookie := &http.Cookie{
-		Name:     CookieOauth,
+		Name:     CookieOAuth,
 		Value:    "",
 		Path:     subpath,
 		MaxAge:   -1,
@@ -919,11 +919,11 @@ func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, 
 	}
 
 	stateProps := map[string]string{}
-	stateProps["action"] = model.OauthActionEmailToSso
+	stateProps["action"] = model.OAuthActionEmailToSSO
 	stateProps["email"] = email
 
 	if service == model.UserAuthServiceSaml {
-		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OauthActionEmailToSso + "&email=" + utils.URLEncode(email), nil
+		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email=" + utils.URLEncode(email), nil
 	}
 
 	authUrl, err := a.GetAuthorizationCode(w, r, service, stateProps, "")

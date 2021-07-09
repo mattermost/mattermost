@@ -203,7 +203,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 		)
 		roles[model.SystemUserRoleId].Permissions = append(
 			roles[model.SystemUserRoleId].Permissions,
-			model.PermissionManageOauth.Id,
+			model.PermissionManageOAuth.Id,
 		)
 	}
 

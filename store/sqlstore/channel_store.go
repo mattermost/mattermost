@@ -2179,16 +2179,16 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, int, error) {
 	joinLeavePostTypes := []string{
 		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
-		model.PostJoinLeave,
-		model.PostAddRemove,
-		model.PostJoinChannel,
-		model.PostLeaveChannel,
-		model.PostJoinTeam,
-		model.PostLeaveTeam,
-		model.PostAddToChannel,
-		model.PostRemoveFromChannel,
-		model.PostAddToTeam,
-		model.PostRemoveFromTeam,
+		model.PostTypeJoinLeave,
+		model.PostTypeAddRemove,
+		model.PostTypeJoinChannel,
+		model.PostTypeLeaveChannel,
+		model.PostTypeJoinTeam,
+		model.PostTypeLeaveTeam,
+		model.PostTypeAddToChannel,
+		model.PostTypeRemoveFromChannel,
+		model.PostTypeAddToTeam,
+		model.PostTypeRemoveFromTeam,
 	}
 	query := s.getQueryBuilder().Select("count(*)").From("Posts").Where(sq.Eq{"ChannelId": channelId}).Where(sq.Gt{"CreateAt": timestamp}).Where(sq.NotEq{"Type": joinLeavePostTypes}).Where(sq.Eq{"DeleteAt": 0})
 

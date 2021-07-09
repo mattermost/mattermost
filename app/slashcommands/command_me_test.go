@@ -22,6 +22,6 @@ func TestMeProviderDoCommand(t *testing.T) {
 	resp := mp.DoCommand(th.App, th.Context, &model.CommandArgs{}, msg)
 
 	assert.Equal(t, model.CommandResponseTypeInChannel, resp.ResponseType)
-	assert.Equal(t, model.PostMe, resp.Type)
+	assert.Equal(t, model.PostTypeMe, resp.Type)
 	assert.Equal(t, "*"+msg+"*", resp.Text)
 }

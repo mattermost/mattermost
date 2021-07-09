@@ -21,7 +21,7 @@ func responsef(format string, args ...interface{}) *model.CommandResponse {
 	return &model.CommandResponse{
 		ResponseType: model.CommandResponseTypeEphemeral,
 		Text:         fmt.Sprintf(format, args...),
-		Type:         model.PostDefault,
+		Type:         model.PostTypeDefault,
 	}
 }
 

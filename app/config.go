@@ -116,7 +116,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 
 	var secret *model.SystemPostActionCookieSecret
 
-	value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretTODOBEN)
+	value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
@@ -134,7 +134,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		}
 
 		system := &model.System{
-			Name: model.SystemPostActionCookieSecretTODOBEN,
+			Name: model.SystemPostActionCookieSecretKey,
 		}
 		v, err := json.Marshal(newSecret)
 		if err != nil {
@@ -152,7 +152,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if secret == nil {
-		value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretTODOBEN)
+		value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
 		if err != nil {
 			return err
 		}
@@ -175,7 +175,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 
 	var key *model.SystemAsymmetricSigningKey
 
-	value, err := s.Store.System().GetByName(model.SystemAsymmetricSigningKeyTODOBEN)
+	value, err := s.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
@@ -197,7 +197,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 			},
 		}
 		system := &model.System{
-			Name: model.SystemAsymmetricSigningKeyTODOBEN,
+			Name: model.SystemAsymmetricSigningKeyKey,
 		}
 		v, err := json.Marshal(newKey)
 		if err != nil {
@@ -215,7 +215,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if key == nil {
-		value, err := s.Store.System().GetByName(model.SystemAsymmetricSigningKeyTODOBEN)
+		value, err := s.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
 		if err != nil {
 			return err
 		}

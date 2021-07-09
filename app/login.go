@@ -172,7 +172,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceID, IsOAuth: false, Props: map[string]string{
 		model.UserAuthServiceIsMobile: strconv.FormatBool(isMobile),
 		model.UserAuthServiceIsSaml:   strconv.FormatBool(isSaml),
-		model.UserAuthServiceIsOauth:  strconv.FormatBool(isOAuthUser),
+		model.UserAuthServiceIsOAuth:  strconv.FormatBool(isOAuthUser),
 	}}
 	session.GenerateCSRF()
 

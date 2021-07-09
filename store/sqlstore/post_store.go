@@ -1052,7 +1052,7 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 		"ChannelId": options.ChannelId,
 		"Time":      options.Time,
 		"UserId":    userId,
-		"Type":      model.PostAutoResponder,
+		"Type":      model.PostTypeAutoResponder,
 	})
 
 	if err != nil {

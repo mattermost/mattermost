@@ -73,7 +73,7 @@ func (a *App) SendAutoResponse(c *request.Context, channel *model.Channel, recei
 		ChannelId: channel.Id,
 		Message:   message,
 		RootId:    rootID,
-		Type:      model.PostAutoResponder,
+		Type:      model.PostTypeAutoResponder,
 		UserId:    receiver.Id,
 	}
 

@@ -293,7 +293,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 		botPost := &model.Post{
 			UserId:    warnMetricsBot.UserId,
 			ChannelId: channel.Id,
-			Type:      model.PostSystemWarnMetricStatus,
+			Type:      model.PostTypeSystemWarnMetricStatus,
 			Message:   "",
 		}
 

@@ -76,7 +76,7 @@ func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.
 
 		T := i18n.GetUserTranslations(ownerUser.Locale)
 		botAddPost := &model.Post{
-			Type:      model.PostAddBotTeamsChannels,
+			Type:      model.PostTypeAddBotTeamsChannels,
 			UserId:    savedBot.UserId,
 			ChannelId: channel.Id,
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
@@ -515,7 +515,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID stri
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
 			Message:   a.getDisableBotSysadminMessage(user, userBots),
-			Type:      model.PostSystemGeneric,
+			Type:      model.PostTypeSystemGeneric,
 		}
 
 		_, appErr = a.CreatePost(c, post, channel, false, true)

@@ -55,10 +55,10 @@ func TestCreateOAuthUser(t *testing.T) {
 
 		// mock oAuth Provider, return data
 		mockUser := &model.User{Id: "abcdef", AuthData: model.NewString("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
-		providerMock := &mocks.OauthProvider{}
+		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.Anything, mock.Anything).Return(true)
 		providerMock.On("GetUserFromJson", mock.Anything, mock.Anything).Return(mockUser, nil)
-		einterfaces.RegisterOauthProvider(model.ServiceOffice365, providerMock)
+		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
 		s, er2 := th.App.Srv().Store.User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewString("e711000764be43d898404a7e9c26b710"), "", false)
@@ -249,7 +249,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.GitLabSettings.Enable = true
 	})
-	gitlabProvider := einterfaces.GetOauthProvider("gitlab")
+	gitlabProvider := einterfaces.GetOAuthProvider("gitlab")
 
 	username := "user" + id
 	username2 := "user" + id2

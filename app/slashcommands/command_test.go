@@ -74,7 +74,7 @@ func TestCreateCommandPost(t *testing.T) {
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
-		Type:      model.PostSystemGeneric,
+		Type:      model.PostTypeSystemGeneric,
 	}
 
 	resp := &model.CommandResponse{
@@ -149,7 +149,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	}
 
 	resp := &model.CommandResponse{
-		Type:         model.PostDefault,
+		Type:         model.PostTypeDefault,
 		ResponseType: model.CommandResponseTypeInChannel,
 		Props:        model.StringInterface{"some_key": "some value"},
 		Text:         "some message",
@@ -306,7 +306,7 @@ func TestHandleCommandResponse(t *testing.T) {
 
 	resp := &model.CommandResponse{
 		Text: "message 1",
-		Type: model.PostSystemGeneric,
+		Type: model.PostTypeSystemGeneric,
 	}
 
 	builtIn := true
@@ -329,7 +329,7 @@ func TestHandleCommandResponse(t *testing.T) {
 				Text: "message 2",
 			},
 			{
-				Type: model.PostSystemGeneric,
+				Type: model.PostTypeSystemGeneric,
 				Text: "message 3",
 			},
 		},

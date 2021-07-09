@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	OauthActionSignup     = "signup"
-	OauthActionLogin      = "login"
-	OauthActionEmailToSso = "email_to_sso"
-	OauthActionSsoToEmail = "sso_to_email"
-	OauthActionMobile     = "mobile"
+	OAuthActionSignup     = "signup"
+	OAuthActionLogin      = "login"
+	OAuthActionEmailToSSO = "email_to_sso"
+	OAuthActionSSOToEmail = "sso_to_email"
+	OAuthActionMobile     = "mobile"
 )
 
 type OAuthApp struct {

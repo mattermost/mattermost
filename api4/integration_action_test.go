@@ -106,7 +106,7 @@ func TestPostActionCookies(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			post := &model.Post{
 				Id:        model.NewId(),
-				Type:      model.PostEphemeralTODOBEN,
+				Type:      model.PostTypeEphemeral,
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				CreateAt:  model.GetMillis(),

@@ -186,7 +186,7 @@ func (s *Session) IsSaml() bool {
 }
 
 func (s *Session) IsOAuthUser() bool {
-	val, ok := s.Props[UserAuthServiceIsOauth]
+	val, ok := s.Props[UserAuthServiceIsOAuth]
 	if !ok {
 		return false
 	}

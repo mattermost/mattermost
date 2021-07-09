@@ -1514,7 +1514,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
-			Type:      model.PostAddToChannel,
+			Type:      model.PostTypeAddToChannel,
 			Props: map[string]interface{}{
 				model.PostPropsAddedUserId: model.NewId(),
 			},
@@ -1524,7 +1524,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test2",
-			Type:      model.PostAddToChannel,
+			Type:      model.PostTypeAddToChannel,
 			Props: map[string]interface{}{
 				model.PostPropsAddedUserId: user2.Id,
 			},
@@ -1534,7 +1534,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
-			Type:      model.PostAddToChannel,
+			Type:      model.PostTypeAddToChannel,
 			Props: map[string]interface{}{
 				model.PostPropsAddedUserId: user2.Id,
 			},

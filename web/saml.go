@@ -35,7 +35,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
-	isMobile := action == model.OauthActionMobile
+	isMobile := action == model.OAuthActionMobile
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 	relayProps := map[string]string{}
 	relayState := ""
@@ -43,7 +43,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if action != "" {
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
-		if action == model.OauthActionEmailToSso {
+		if action == model.OAuthActionEmailToSSO {
 			relayProps["email"] = r.URL.Query().Get("email")
 		}
 	}
@@ -103,7 +103,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := relayProps["action"]
 	auditRec.AddMeta("action", action)
 
-	isMobile := action == model.OauthActionMobile
+	isMobile := action == model.OAuthActionMobile
 	redirectURL := ""
 	hasRedirectURL := false
 	if val, ok := relayProps["redirect_to"]; ok {
@@ -136,7 +136,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch action {
-	case model.OauthActionSignup:
+	case model.OAuthActionSignup:
 		if teamId := relayProps["team_id"]; teamId != "" {
 			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
 				c.LogErrorByCode(err)
@@ -144,7 +144,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			c.App.AddDirectChannels(teamId, user)
 		}
-	case model.OauthActionEmailToSso:
+	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(user.Id); err != nil {
 			c.Err = err
 			return
@@ -192,9 +192,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	// Mobile clients with web view implementation
-	case model.OauthActionMobile:
+	case model.OAuthActionMobile:
 		ReturnStatusOK(w)
-	case model.OauthActionEmailToSso:
+	case model.OAuthActionEmailToSSO:
 		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=signin_change", http.StatusFound)
 	default:
 		http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)

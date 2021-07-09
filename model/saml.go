@@ -15,7 +15,7 @@ const (
 	UserAuthServiceSamlText = "SAML"
 	UserAuthServiceIsSaml   = "isSaml"
 	UserAuthServiceIsMobile = "isMobile"
-	UserAuthServiceIsOauth  = "isOAuthUser"
+	UserAuthServiceIsOAuth  = "isOAuthUser"
 )
 
 type SamlAuthRequest struct {

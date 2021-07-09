@@ -323,7 +323,7 @@ func (as SqlOAuthStore) deleteAppExtras(transaction *gorp.Transaction, clientId 
 			Preferences
 		WHERE
 			Category = :Category
-			AND Name = :Name`, map[string]interface{}{"Category": model.PreferenceCategoryAuthorizedOauthApp, "Name": clientId}); err != nil {
+			AND Name = :Name`, map[string]interface{}{"Category": model.PreferenceCategoryAuthorizedOAuthApp, "Name": clientId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Preferences with name=%s", clientId)
 	}
 

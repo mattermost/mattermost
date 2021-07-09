@@ -167,7 +167,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 		if cookie != "" {
 			request.AddCookie(&http.Cookie{
-				Name:  CookieOauth,
+				Name:  CookieOAuth,
 				Value: cookie,
 			})
 		}
@@ -229,7 +229,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		email := ""
-		action := model.OauthActionEmailToSso
+		action := model.OAuthActionEmailToSSO
 		cookie := model.NewId()
 
 		token, err := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra(email, action, cookie))

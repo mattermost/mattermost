@@ -692,7 +692,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props["attachments"] = req.Attachments
-		webhookType = model.PostSlackAttachment
+		webhookType = model.PostTypeSlackAttachment
 	}
 
 	var channel *model.Channel

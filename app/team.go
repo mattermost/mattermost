@@ -1289,7 +1289,7 @@ func (a *App) postLeaveTeamMessage(c *request.Context, user *model.User, channel
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.leave.left"), user.Username),
-		Type:      model.PostLeaveTeam,
+		Type:      model.PostTypeLeaveTeam,
 		UserId:    user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
@@ -1307,7 +1307,7 @@ func (a *App) postRemoveFromTeamMessage(c *request.Context, user *model.User, ch
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.remove_user_from_team.removed"), user.Username),
-		Type:      model.PostRemoveFromTeam,
+		Type:      model.PostTypeRemoveFromTeam,
 		UserId:    user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,

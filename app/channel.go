@@ -732,7 +732,7 @@ func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, ch
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   message,
-		Type:      model.PostChangeChannelPrivacy,
+		Type:      model.PostTypeChangeChannelPrivacy,
 		UserId:    authorId,
 		Props: model.StringInterface{
 			"username": authorUsername,
@@ -782,7 +782,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 		post := &model.Post{
 			ChannelId: channel.Id,
 			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
-			Type:      model.PostChannelRestored,
+			Type:      model.PostTypeChannelRestored,
 			UserId:    userID,
 			Props: model.StringInterface{
 				"username": user.Username,
@@ -803,7 +803,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 			post := &model.Post{
 				ChannelId: channel.Id,
 				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": systemBot.Username}),
-				Type:      model.PostChannelRestored,
+				Type:      model.PostTypeChannelRestored,
 				UserId:    systemBot.UserId,
 				Props: model.StringInterface{
 					"username": systemBot.Username,
@@ -1328,7 +1328,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 		post := &model.Post{
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf(T("api.channel.delete_channel.archived"), user.Username),
-			Type:      model.PostChannelDeleted,
+			Type:      model.PostTypeChannelDeleted,
 			UserId:    userID,
 			Props: model.StringInterface{
 				"username": user.Username,
@@ -1349,7 +1349,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 			post := &model.Post{
 				ChannelId: channel.Id,
 				Message:   fmt.Sprintf(i18n.T("api.channel.delete_channel.archived"), systemBot.Username),
-				Type:      model.PostChannelDeleted,
+				Type:      model.PostTypeChannelDeleted,
 				UserId:    systemBot.UserId,
 				Props: model.StringInterface{
 					"username": systemBot.Username,
@@ -1597,7 +1597,7 @@ func (a *App) PostUpdateChannelHeaderMessage(c *request.Context, userID string, 
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   message,
-		Type:      model.PostHeaderChange,
+		Type:      model.PostTypeHeaderChange,
 		UserId:    userID,
 		Props: model.StringInterface{
 			"username":   user.Username,
@@ -1631,7 +1631,7 @@ func (a *App) PostUpdateChannelPurposeMessage(c *request.Context, userID string,
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   message,
-		Type:      model.PostPurposeChange,
+		Type:      model.PostTypePurposeChange,
 		UserId:    userID,
 		Props: model.StringInterface{
 			"username":    user.Username,
@@ -1657,7 +1657,7 @@ func (a *App) PostUpdateChannelDisplayNameMessage(c *request.Context, userID str
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   message,
-		Type:      model.PostDisplaynameChange,
+		Type:      model.PostTypeDisplaynameChange,
 		UserId:    userID,
 		Props: model.StringInterface{
 			"username":        user.Username,
@@ -2052,11 +2052,11 @@ func (a *App) JoinChannel(c *request.Context, channel *model.Channel, userID str
 
 func (a *App) postJoinChannelMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
 	message := fmt.Sprintf(i18n.T("api.channel.join_channel.post_and_forget"), user.Username)
-	postType := model.PostJoinChannel
+	postType := model.PostTypeJoinChannel
 
 	if user.IsGuest() {
 		message = fmt.Sprintf(i18n.T("api.channel.guest_join_channel.post_and_forget"), user.Username)
-		postType = model.PostGuestJoinChannel
+		postType = model.PostTypeGuestJoinChannel
 	}
 
 	post := &model.Post{
@@ -2080,7 +2080,7 @@ func (a *App) postJoinTeamMessage(c *request.Context, user *model.User, channel 
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.join_team.post_and_forget"), user.Username),
-		Type:      model.PostJoinTeam,
+		Type:      model.PostTypeJoinTeam,
 		UserId:    user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
@@ -2177,7 +2177,7 @@ func (a *App) postLeaveChannelMessage(c *request.Context, user *model.User, chan
 		// treat this as a username mention even though the user has now left the channel.
 		// The client renders its own system message, ignoring this value altogether.
 		Message: fmt.Sprintf(i18n.T("api.channel.leave.left"), fmt.Sprintf("@%s", user.Username)),
-		Type:    model.PostLeaveChannel,
+		Type:    model.PostTypeLeaveChannel,
 		UserId:  user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
@@ -2193,11 +2193,11 @@ func (a *App) postLeaveChannelMessage(c *request.Context, user *model.User, chan
 
 func (a *App) PostAddToChannelMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
 	message := fmt.Sprintf(i18n.T("api.channel.add_member.added"), addedUser.Username, user.Username)
-	postType := model.PostAddToChannel
+	postType := model.PostTypeAddToChannel
 
 	if addedUser.IsGuest() {
 		message = fmt.Sprintf(i18n.T("api.channel.add_guest.added"), addedUser.Username, user.Username)
-		postType = model.PostAddGuestToChannel
+		postType = model.PostTypeAddGuestToChannel
 	}
 
 	post := &model.Post{
@@ -2225,7 +2225,7 @@ func (a *App) postAddToTeamMessage(c *request.Context, user *model.User, addedUs
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
-		Type:      model.PostAddToTeam,
+		Type:      model.PostTypeAddToTeam,
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{
@@ -2260,7 +2260,7 @@ func (a *App) postRemoveFromChannelMessage(c *request.Context, removerUserId str
 		// treat this as a username mention even though the user has now left the channel.
 		// The client renders its own system message, ignoring this value altogether.
 		Message: fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
-		Type:    model.PostRemoveFromChannel,
+		Type:    model.PostTypeRemoveFromChannel,
 		UserId:  messageUserId,
 		Props: model.StringInterface{
 			"removedUserId":   removedUser.Id,
@@ -3045,7 +3045,7 @@ func (a *App) postChannelMoveMessage(c *request.Context, user *model.User, chann
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.move_channel.success"), previousTeam.Name),
-		Type:      model.PostMoveChannel,
+		Type:      model.PostTypeMoveChannel,
 		UserId:    user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,

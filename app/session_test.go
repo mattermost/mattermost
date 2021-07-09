@@ -204,7 +204,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.UserAuthServiceIsOauth: "true",
+				model.UserAuthServiceIsOAuth: "true",
 			},
 		}
 		session, err := th.App.CreateSession(session)

@@ -180,7 +180,7 @@ func TestCreatePost(t *testing.T) {
 
 	post.RootId = ""
 	post.ParentId = ""
-	post.Type = model.PostSystemGeneric
+	post.Type = model.PostTypeSystemGeneric
 	_, resp = Client.CreatePost(post)
 	CheckBadRequestStatus(t, resp)
 
@@ -732,7 +732,7 @@ func TestUpdatePost(t *testing.T) {
 		rpost2, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
-			Type:      model.PostJoinLeave,
+			Type:      model.PostTypeJoinLeave,
 			UserId:    th.BasicUser.Id,
 		}, channel, false, true)
 		require.Nil(t, err)

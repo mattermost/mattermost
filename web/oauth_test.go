@@ -213,8 +213,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOauth.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOauth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:         "TestApp5" + model.NewId(),
@@ -386,7 +386,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	c.Logger = mlog.NewTestingLogger(t, buffer)
 	provider := &MattermostTestProvider{}
-	einterfaces.RegisterOauthProvider(model.ServiceGitlab, provider)
+	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
 	t.Run("Should include redirect URL in the output when valid URL Scheme is passed", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
@@ -452,7 +452,7 @@ func TestOAuthComplete(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = model.NewId() })
 
 	stateProps := map[string]string{}
-	stateProps["action"] = model.OauthActionLogin
+	stateProps["action"] = model.OAuthActionLogin
 	stateProps["team_id"] = th.BasicTeam.Id
 	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
 
@@ -474,8 +474,8 @@ func TestOAuthComplete(t *testing.T) {
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOauth.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOauth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:        "TestApp5" + model.NewId(),
@@ -512,7 +512,7 @@ func TestOAuthComplete(t *testing.T) {
 	rurl, _ := url.Parse(redirect)
 
 	code := rurl.Query().Get("code")
-	stateProps["action"] = model.OauthActionEmailToSso
+	stateProps["action"] = model.OAuthActionEmailToSSO
 	delete(stateProps, "team_id")
 	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
 	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
@@ -523,7 +523,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	einterfaces.RegisterOauthProvider(model.ServiceGitlab, provider)
+	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
@@ -544,7 +544,7 @@ func TestOAuthComplete(t *testing.T) {
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
-	stateProps["action"] = model.OauthActionLogin
+	stateProps["action"] = model.OAuthActionLogin
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(ApiClient.Url+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false); err == nil {
 		closeBody(r)
@@ -566,7 +566,7 @@ func TestOAuthComplete(t *testing.T) {
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
-	stateProps["action"] = model.OauthActionSignup
+	stateProps["action"] = model.OAuthActionSignup
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(ApiClient.Url+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false); err == nil {
 		closeBody(r)
@@ -591,7 +591,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	provider := &MattermostTestProvider{}
-	einterfaces.RegisterOauthProvider(model.ServiceGitlab, provider)
+	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
 	responseWriter := httptest.NewRecorder()
 
@@ -603,7 +603,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 
 	// Renders for mobile app with redirect url
 	stateProps := map[string]string{}
-	stateProps["action"] = model.OauthActionMobile
+	stateProps["action"] = model.OAuthActionMobile
 	stateProps["redirect_to"] = th.App.Config().NativeAppSettings.AppCustomURLSchemes[0]
 	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), nil)

@@ -4098,7 +4098,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1001,
-			Type:      model.PostJoinChannel,
+			Type:      model.PostTypeJoinChannel,
 		})
 		require.NoError(t, err)
 
@@ -4106,7 +4106,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1002,
-			Type:      model.PostRemoveFromChannel,
+			Type:      model.PostTypeRemoveFromChannel,
 		})
 		require.NoError(t, err)
 
@@ -4114,7 +4114,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1003,
-			Type:      model.PostLeaveTeam,
+			Type:      model.PostTypeLeaveTeam,
 		})
 		require.NoError(t, err)
 
@@ -4122,7 +4122,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1004,
-			Type:      model.PostHeaderChange,
+			Type:      model.PostTypeHeaderChange,
 		})
 		require.NoError(t, err)
 

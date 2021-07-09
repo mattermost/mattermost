@@ -300,14 +300,14 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.PostSlackAttachment, "")
+	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 
 	assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
 	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
 	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
 
-	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostSystemGeneric, "")
+	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "")
 	require.NotNil(t, err, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
@@ -318,7 +318,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.PostSlackAttachment, "")
+	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -330,7 +330,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.PostSlackAttachment, "")
+	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -358,7 +358,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.PostSlackAttachment, "")
+	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 }

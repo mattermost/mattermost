@@ -156,7 +156,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isAuthorized := false
 
-	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext.Session().UserId, model.PreferenceCategoryAuthorizedOauthApp, authRequest.ClientId); err == nil {
+	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext.Session().UserId, model.PreferenceCategoryAuthorizedOAuthApp, authRequest.ClientId); err == nil {
 		// when we support scopes we should check if the scopes match
 		isAuthorized = true
 	}
@@ -280,7 +280,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectURL := ""
 	if props != nil {
 		action = props["action"]
-		isMobile = action == model.OauthActionMobile
+		isMobile = action == model.OAuthActionMobile
 		if val, ok := props["redirect_to"]; ok {
 			redirectURL = val
 			hasRedirectURL = redirectURL != ""
@@ -310,9 +310,9 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if action == model.OauthActionEmailToSso {
+	if action == model.OAuthActionEmailToSSO {
 		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"
-	} else if action == model.OauthActionSsoToEmail {
+	} else if action == model.OAuthActionSSOToEmail {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
 		err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
@@ -370,7 +370,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OauthActionLogin, redirectURL, loginHint, false)
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -399,7 +399,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OauthActionMobile, redirectURL, "", true)
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true)
 	if err != nil {
 		c.Err = err
 		return

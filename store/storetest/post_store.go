@@ -377,12 +377,12 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should update by 1")
 
 	o1.Id = ""
-	o1.Type = model.PostAddToTeam
+	o1.Type = model.PostTypeAddToTeam
 	_, err = ss.Post().Save(&o1)
 	require.NoError(t, err)
 
 	o1.Id = ""
-	o1.Type = model.PostRemoveFromTeam
+	o1.Type = model.PostTypeRemoveFromTeam
 	_, err = ss.Post().Save(&o1)
 	require.NoError(t, err)
 
@@ -1572,7 +1572,7 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 
 	o1 := &model.Post{}
 	o1.ChannelId = channelId
-	o1.Type = model.PostJoinChannel
+	o1.Type = model.PostTypeJoinChannel
 	o1.UserId = model.NewId()
 	o1.Message = "system_join_channel message"
 	_, err = ss.Post().Save(o1)
@@ -3165,7 +3165,7 @@ func testHasAutoResponsePostByUserSince(t *testing.T, ss store.Store) {
 			ChannelId: channelId,
 			UserId:    userId,
 			Message:   "auto response message",
-			Type:      model.PostAutoResponder,
+			Type:      model.PostTypeAutoResponder,
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)

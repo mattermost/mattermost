@@ -44,7 +44,7 @@ const (
 	TrackConfigEmail             = "config_email"
 	TrackConfigPrivacy           = "config_privacy"
 	TrackConfigTheme             = "config_theme"
-	TrackConfigOauth             = "config_oauth"
+	TrackConfigOAuth             = "config_oauth"
 	TrackConfigLDAP              = "config_ldap"
 	TrackConfigCompliance        = "config_compliance"
 	TrackConfigLocalization      = "config_localization"
@@ -609,7 +609,7 @@ func (ts *TelemetryService) trackConfig() {
 		"allowed_themes":          len(cfg.ThemeSettings.AllowedThemes),
 	})
 
-	ts.sendTelemetry(TrackConfigOauth, map[string]interface{}{
+	ts.sendTelemetry(TrackConfigOAuth, map[string]interface{}{
 		"enable_gitlab":    cfg.GitLabSettings.Enable,
 		"openid_gitlab":    *cfg.GitLabSettings.Enable && strings.Contains(*cfg.GitLabSettings.Scope, model.ServiceOpenid),
 		"enable_google":    cfg.GoogleSettings.Enable,

@@ -378,7 +378,7 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 				ChannelId: channel.Id,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
 				Message:   sPost.Text,
-				Type:      model.PostSlackAttachment,
+				Type:      model.PostTypeSlackAttachment,
 			}
 
 			postId := si.oldImportIncomingWebhookPost(post, props)
@@ -398,9 +398,9 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 
 			var postType string
 			if sPost.SubType == "channel_join" {
-				postType = model.PostJoinChannel
+				postType = model.PostTypeJoinChannel
 			} else {
-				postType = model.PostLeaveChannel
+				postType = model.PostTypeLeaveChannel
 			}
 
 			newPost := model.Post{
@@ -448,7 +448,7 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 				ChannelId: channel.Id,
 				Message:   sPost.Text,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
-				Type:      model.PostHeaderChange,
+				Type:      model.PostTypeHeaderChange,
 			}
 			si.oldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_purpose":
@@ -465,7 +465,7 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 				ChannelId: channel.Id,
 				Message:   sPost.Text,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
-				Type:      model.PostPurposeChange,
+				Type:      model.PostTypePurposeChange,
 			}
 			si.oldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_name":
@@ -482,7 +482,7 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 				ChannelId: channel.Id,
 				Message:   sPost.Text,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
-				Type:      model.PostDisplaynameChange,
+				Type:      model.PostTypeDisplaynameChange,
 			}
 			si.oldImportPost(&newPost)
 		default:

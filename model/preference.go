@@ -32,7 +32,7 @@ const (
 	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id
 
-	PreferenceCategoryAuthorizedOauthApp = "oauth_app"
+	PreferenceCategoryAuthorizedOAuthApp = "oauth_app"
 	// the name for oauth_app is the client_id and value is the current scope
 
 	PreferenceCategoryLast    = "last"

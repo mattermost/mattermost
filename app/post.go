@@ -460,7 +460,7 @@ func (a *App) handlePostEvents(c *request.Context, post *model.Post, user *model
 		return err
 	}
 
-	if post.Type != model.PostAutoResponder { // don't respond to an auto-responder
+	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(c, channel, user, post)
 			if err != nil {
@@ -481,7 +481,7 @@ func (a *App) handlePostEvents(c *request.Context, post *model.Post, user *model
 }
 
 func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
-	post.Type = model.PostEphemeralTODOBEN
+	post.Type = model.PostTypeEphemeral
 
 	// fill in fields which haven't been specified which have sensible defaults
 	if post.Id == "" {
@@ -505,7 +505,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 }
 
 func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
-	post.Type = model.PostEphemeralTODOBEN
+	post.Type = model.PostTypeEphemeral
 
 	post.UpdateAt = model.GetMillis()
 	if post.GetProps() == nil {
@@ -526,7 +526,7 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	post := &model.Post{
 		Id:       postID,
 		UserId:   userID,
-		Type:     model.PostEphemeralTODOBEN,
+		Type:     model.PostTypeEphemeral,
 		DeleteAt: model.GetMillis(),
 		UpdateAt: model.GetMillis(),
 	}
@@ -1538,7 +1538,7 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	}
 
 	// Check for mentions caused by being added to the channel
-	if post.Type == model.PostAddToChannel {
+	if post.Type == model.PostTypeAddToChannel {
 		if addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string); ok && addedUserId == user.Id {
 			return true
 		}

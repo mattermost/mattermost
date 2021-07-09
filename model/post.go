@@ -18,44 +18,47 @@ import (
 )
 
 const (
-	PostSystemMessagePrefix  = "system_"
-	PostDefault              = ""
-	PostSlackAttachment      = "slack_attachment"
-	PostSystemGeneric        = "system_generic"
-	PostJoinLeave            = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
-	PostJoinChannel          = "system_join_channel"
-	PostGuestJoinChannel     = "system_guest_join_channel"
-	PostLeaveChannel         = "system_leave_channel"
-	PostJoinTeam             = "system_join_team"
-	PostLeaveTeam            = "system_leave_team"
-	PostAutoResponder        = "system_auto_responder"
-	PostAddRemove            = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
-	PostAddToChannel         = "system_add_to_channel"
-	PostAddGuestToChannel    = "system_add_guest_to_chan"
-	PostRemoveFromChannel    = "system_remove_from_channel"
-	PostMoveChannel          = "system_move_channel"
-	PostAddToTeam            = "system_add_to_team"
-	PostRemoveFromTeam       = "system_remove_from_team"
-	PostHeaderChange         = "system_header_change"
-	PostDisplaynameChange    = "system_displayname_change"
-	PostConvertChannel       = "system_convert_channel"
-	PostPurposeChange        = "system_purpose_change"
-	PostChannelDeleted       = "system_channel_deleted"
-	PostChannelRestored      = "system_channel_restored"
-	PostEphemeralTODOBEN     = "system_ephemeral"
-	PostChangeChannelPrivacy = "system_change_chan_privacy"
-	PostAddBotTeamsChannels  = "add_bot_teams_channels"
-	PostFileidsMaxRunes      = 300
-	PostFilenamesMaxRunes    = 4000
-	PostHashtagsMaxRunes     = 1000
-	PostMessageMaxRunesV1    = 4000
-	PostMessageMaxBytesV2    = 65535                     // Maximum size of a TEXT column in MySQL
-	PostMessageMaxRunesV2    = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
-	PostPropsMaxRunes        = 8000
-	PostPropsMaxUserRunes    = PostPropsMaxRunes - 400 // Leave some room for system / pre-save modifications
-	PostCustomTypePrefix     = "custom_"
-	PostMe                   = "me"
-	PropsAddChannelMember    = "add_channel_member"
+	PostSystemMessagePrefix        = "system_"
+	PostTypeDefault                = ""
+	PostTypeSlackAttachment        = "slack_attachment"
+	PostTypeSystemGeneric          = "system_generic"
+	PostTypeJoinLeave              = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
+	PostTypeJoinChannel            = "system_join_channel"
+	PostTypeGuestJoinChannel       = "system_guest_join_channel"
+	PostTypeLeaveChannel           = "system_leave_channel"
+	PostTypeJoinTeam               = "system_join_team"
+	PostTypeLeaveTeam              = "system_leave_team"
+	PostTypeAutoResponder          = "system_auto_responder"
+	PostTypeAddRemove              = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
+	PostTypeAddToChannel           = "system_add_to_channel"
+	PostTypeAddGuestToChannel      = "system_add_guest_to_chan"
+	PostTypeRemoveFromChannel      = "system_remove_from_channel"
+	PostTypeMoveChannel            = "system_move_channel"
+	PostTypeAddToTeam              = "system_add_to_team"
+	PostTypeRemoveFromTeam         = "system_remove_from_team"
+	PostTypeHeaderChange           = "system_header_change"
+	PostTypeDisplaynameChange      = "system_displayname_change"
+	PostTypeConvertChannel         = "system_convert_channel"
+	PostTypePurposeChange          = "system_purpose_change"
+	PostTypeChannelDeleted         = "system_channel_deleted"
+	PostTypeChannelRestored        = "system_channel_restored"
+	PostTypeEphemeral              = "system_ephemeral"
+	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
+	PostTypeSystemWarnMetricStatus = "warn_metric_status"
+	PostTypeMe                     = "me"
+	PostCustomTypePrefix           = "custom_"
+
+	PostFileidsMaxRunes   = 300
+	PostFilenamesMaxRunes = 4000
+	PostHashtagsMaxRunes  = 1000
+	PostMessageMaxRunesV1 = 4000
+	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
+	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
+	PostPropsMaxRunes     = 8000
+	PostPropsMaxUserRunes = PostPropsMaxRunes - 400 // Leave some room for system / pre-save modifications
+
+	PropsAddChannelMember = "add_channel_member"
 
 	PostPropsAddedUserId       = "addedUserId"
 	PostPropsDeleteBy          = "deleteBy"
@@ -64,7 +67,6 @@ const (
 
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
-	PostSystemWarnMetricStatus        = "warn_metric_status"
 )
 
 var AtMentionPatten = regexp.MustCompile(`\B@`)
@@ -322,33 +324,33 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 
 	switch o.Type {
 	case
-		PostDefault,
-		PostSystemGeneric,
-		PostJoinLeave,
-		PostAutoResponder,
-		PostAddRemove,
-		PostJoinChannel,
-		PostGuestJoinChannel,
-		PostLeaveChannel,
-		PostJoinTeam,
-		PostLeaveTeam,
-		PostAddToChannel,
-		PostAddGuestToChannel,
-		PostRemoveFromChannel,
-		PostMoveChannel,
-		PostAddToTeam,
-		PostRemoveFromTeam,
-		PostSlackAttachment,
-		PostHeaderChange,
-		PostPurposeChange,
-		PostDisplaynameChange,
-		PostConvertChannel,
-		PostChannelDeleted,
-		PostChannelRestored,
-		PostChangeChannelPrivacy,
-		PostMe,
-		PostAddBotTeamsChannels,
-		PostSystemWarnMetricStatus:
+		PostTypeDefault,
+		PostTypeSystemGeneric,
+		PostTypeJoinLeave,
+		PostTypeAutoResponder,
+		PostTypeAddRemove,
+		PostTypeJoinChannel,
+		PostTypeGuestJoinChannel,
+		PostTypeLeaveChannel,
+		PostTypeJoinTeam,
+		PostTypeLeaveTeam,
+		PostTypeAddToChannel,
+		PostTypeAddGuestToChannel,
+		PostTypeRemoveFromChannel,
+		PostTypeMoveChannel,
+		PostTypeAddToTeam,
+		PostTypeRemoveFromTeam,
+		PostTypeSlackAttachment,
+		PostTypeHeaderChange,
+		PostTypePurposeChange,
+		PostTypeDisplaynameChange,
+		PostTypeConvertChannel,
+		PostTypeChannelDeleted,
+		PostTypeChannelRestored,
+		PostTypeChangeChannelPrivacy,
+		PostTypeAddBotTeamsChannels,
+		PostTypeSystemWarnMetricStatus,
+		PostTypeMe:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -486,16 +488,16 @@ func (o *Post) GetRemoteID() string {
 }
 
 func (o *Post) IsJoinLeaveMessage() bool {
-	return o.Type == PostJoinLeave ||
-		o.Type == PostAddRemove ||
-		o.Type == PostJoinChannel ||
-		o.Type == PostLeaveChannel ||
-		o.Type == PostJoinTeam ||
-		o.Type == PostLeaveTeam ||
-		o.Type == PostAddToChannel ||
-		o.Type == PostRemoveFromChannel ||
-		o.Type == PostAddToTeam ||
-		o.Type == PostRemoveFromTeam
+	return o.Type == PostTypeJoinLeave ||
+		o.Type == PostTypeAddRemove ||
+		o.Type == PostTypeJoinChannel ||
+		o.Type == PostTypeLeaveChannel ||
+		o.Type == PostTypeJoinTeam ||
+		o.Type == PostTypeLeaveTeam ||
+		o.Type == PostTypeAddToChannel ||
+		o.Type == PostTypeRemoveFromChannel ||
+		o.Type == PostTypeAddToTeam ||
+		o.Type == PostTypeRemoveFromTeam
 }
 
 func (o *Post) Patch(patch *PostPatch) {

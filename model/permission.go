@@ -60,8 +60,8 @@ var PermissionManageIncomingWebhooks *Permission
 var PermissionManageOutgoingWebhooks *Permission
 var PermissionManageOthersIncomingWebhooks *Permission
 var PermissionManageOthersOutgoingWebhooks *Permission
-var PermissionManageOauth *Permission
-var PermissionManageSystemWideOauth *Permission
+var PermissionManageOAuth *Permission
+var PermissionManageSystemWideOAuth *Permission
 var PermissionManageEmojis *Permission
 var PermissionManageOthersEmojis *Permission
 var PermissionCreateEmojis *Permission
@@ -619,13 +619,13 @@ func initializePermissions() {
 		"authentication.permissions.manage_others_outgoing_webhooks.description",
 		PermissionScopeTeam,
 	}
-	PermissionManageOauth = &Permission{
+	PermissionManageOAuth = &Permission{
 		"manage_oauth",
 		"authentication.permissions.manage_oauth.name",
 		"authentication.permissions.manage_oauth.description",
 		PermissionScopeSystem,
 	}
-	PermissionManageSystemWideOauth = &Permission{
+	PermissionManageSystemWideOAuth = &Permission{
 		"manage_system_wide_oauth",
 		"authentication.permissions.manage_system_wide_oauth.name",
 		"authentication.permissions.manage_system_wide_oauth.description",
@@ -2022,8 +2022,8 @@ func initializePermissions() {
 		PermissionEditOtherUsers,
 		PermissionReadOtherUsersTeams,
 		PermissionGetPublicLink,
-		PermissionManageOauth,
-		PermissionManageSystemWideOauth,
+		PermissionManageOAuth,
+		PermissionManageSystemWideOAuth,
 		PermissionCreateTeam,
 		PermissionListUsersWithoutTeam,
 		PermissionCreateUserAccessToken,

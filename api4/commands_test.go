@@ -314,7 +314,7 @@ func TestMeCommand(t *testing.T) {
 	require.Len(t, p1.Order, 2, "Command failed to send")
 
 	pt := p1.Posts[p1.Order[0]].Type
-	require.Equal(t, model.PostMe, pt, "invalid post type")
+	require.Equal(t, model.PostTypeMe, pt, "invalid post type")
 
 	msg := p1.Posts[p1.Order[0]].Message
 	want := "*hello*"

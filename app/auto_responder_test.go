@@ -268,7 +268,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 
 	autoResponderPostFound := false
 	for _, post := range list.Posts {
-		if post.Type == model.PostAutoResponder {
+		if post.Type == model.PostTypeAutoResponder {
 			autoResponderPostFound = true
 			assert.Equal(t, savedPost.Id, post.RootId)
 			assert.Equal(t, savedPost.Id, post.ParentId)
@@ -318,7 +318,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 
 	autoResponderPostFound := false
 	for _, post := range list.Posts {
-		if post.Type == model.PostAutoResponder {
+		if post.Type == model.PostTypeAutoResponder {
 			autoResponderPostFound = true
 			assert.Equal(t, savedPost.RootId, post.RootId)
 			assert.Equal(t, savedPost.ParentId, post.ParentId)
@@ -359,7 +359,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	} else {
 		autoResponderPostFound := false
 		for _, post := range list.Posts {
-			if post.Type == model.PostAutoResponder {
+			if post.Type == model.PostTypeAutoResponder {
 				autoResponderPostFound = true
 			}
 		}

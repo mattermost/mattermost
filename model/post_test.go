@@ -107,7 +107,7 @@ func TestPostIsSystemMessage(t *testing.T) {
 
 	require.False(t, post1.IsSystemMessage())
 
-	post2 := Post{Message: "test_2", Type: PostJoinLeave}
+	post2 := Post{Message: "test_2", Type: PostTypeJoinLeave}
 	post2.PreSave()
 
 	require.True(t, post2.IsSystemMessage())

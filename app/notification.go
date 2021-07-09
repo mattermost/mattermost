@@ -103,7 +103,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		mentions = getExplicitMentions(post, keywords, groups)
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
-		if post.Type == model.PostAddToChannel {
+		if post.Type == model.PostTypeAddToChannel {
 			addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string)
 			if ok {
 				mentions.addMention(addedUserId, KeywordMention)
@@ -523,7 +523,7 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 		}
 	}
 
-	autoResponderRelated := status.Status == model.StatusOutOfOffice || post.Type == model.PostAutoResponder
+	autoResponderRelated := status.Status == model.StatusOutOfOffice || post.Type == model.PostTypeAutoResponder
 	emailNotificationsAllowedForStatus := status.Status != model.StatusOnline && status.Status != model.StatusDnd
 
 	return userAllowsEmails && emailNotificationsAllowedForStatus && user.DeleteAt == 0 && !autoResponderRelated
@@ -848,7 +848,7 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 		return false
 	}
 
-	if post.Type == model.PostHeaderChange || post.Type == model.PostPurposeChange {
+	if post.Type == model.PostTypeHeaderChange || post.Type == model.PostTypePurposeChange {
 		return false
 	}
 
@@ -869,7 +869,7 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 		return false
 	}
 
-	if post.Type == model.PostHeaderChange || post.Type == model.PostPurposeChange {
+	if post.Type == model.PostTypeHeaderChange || post.Type == model.PostTypePurposeChange {
 		return false
 	}
 

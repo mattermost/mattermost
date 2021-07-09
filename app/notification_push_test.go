@@ -337,7 +337,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			user.NotifyProps[model.PushNotifyProp] = tc.userNotifySetting
 			post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
 			if tc.withSystemPost {
-				post.Type = model.PostJoinChannel
+				post.Type = model.PostTypeJoinChannel
 			}
 
 			channelNotifyProps := make(map[string]string)

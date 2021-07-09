@@ -605,7 +605,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	if assert.Len(t, postList.Order, 1) {
 		post := postList.Posts[postList.Order[0]]
 
-		assert.Equal(t, model.PostJoinChannel, post.Type)
+		assert.Equal(t, model.PostTypeJoinChannel, post.Type)
 		assert.Equal(t, user.Id, post.UserId)
 		assert.Equal(t, user.Username, post.GetProp("username"))
 	}
