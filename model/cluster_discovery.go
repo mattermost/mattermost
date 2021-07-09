@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	CDS_OFFLINE_AFTER_MILLIS = 1000 * 60 * 30 // 30 minutes
-	CDS_TYPE_APP             = "mattermost_app"
+	CdsOfflineAfterMillis = 1000 * 60 * 30 // 30 minutes
+	CdsTypeApp            = "mattermost_app"
 )
 
 type ClusterDiscovery struct {

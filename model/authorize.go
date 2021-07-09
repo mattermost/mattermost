@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	AUTHCODE_EXPIRE_TIME   = 60 * 10 // 10 minutes
-	AUTHCODE_RESPONSE_TYPE = "code"
-	IMPLICIT_RESPONSE_TYPE = "token"
-	DEFAULT_SCOPE          = "user"
+	AuthcodeExpireTime   = 60 * 10 // 10 minutes
+	AuthcodeResponseType = "code"
+	ImplicitResponseType = "token"
+	DefaultScope         = "user"
 )
 
 type AuthData struct {
@@ -103,7 +103,7 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 
 func (ad *AuthData) PreSave() {
 	if ad.ExpiresIn == 0 {
-		ad.ExpiresIn = AUTHCODE_EXPIRE_TIME
+		ad.ExpiresIn = AuthcodeExpireTime
 	}
 
 	if ad.CreateAt == 0 {
@@ -111,7 +111,7 @@ func (ad *AuthData) PreSave() {
 	}
 
 	if ad.Scope == "" {
-		ad.Scope = DEFAULT_SCOPE
+		ad.Scope = DefaultScope
 	}
 }
 

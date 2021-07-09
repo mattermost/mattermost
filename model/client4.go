@@ -19,35 +19,35 @@ import (
 )
 
 const (
-	HEADER_REQUEST_ID          = "X-Request-ID"
-	HEADER_VERSION_ID          = "X-Version-ID"
-	HEADER_CLUSTER_ID          = "X-Cluster-ID"
-	HEADER_ETAG_SERVER         = "ETag"
-	HEADER_ETAG_CLIENT         = "If-None-Match"
-	HEADER_FORWARDED           = "X-Forwarded-For"
-	HEADER_REAL_IP             = "X-Real-IP"
-	HEADER_FORWARDED_PROTO     = "X-Forwarded-Proto"
-	HEADER_TOKEN               = "token"
-	HEADER_CSRF_TOKEN          = "X-CSRF-Token"
-	HEADER_BEARER              = "BEARER"
-	HEADER_AUTH                = "Authorization"
-	HEADER_CLOUD_TOKEN         = "X-Cloud-Token"
-	HEADER_REMOTECLUSTER_TOKEN = "X-RemoteCluster-Token"
-	HEADER_REMOTECLUSTER_ID    = "X-RemoteCluster-Id"
-	HEADER_REQUESTED_WITH      = "X-Requested-With"
-	HEADER_REQUESTED_WITH_XML  = "XMLHttpRequest"
-	HEADER_RANGE               = "Range"
-	STATUS                     = "status"
-	STATUS_OK                  = "OK"
-	STATUS_FAIL                = "FAIL"
-	STATUS_UNHEALTHY           = "UNHEALTHY"
-	STATUS_REMOVE              = "REMOVE"
+	HeaderRequestId          = "X-Request-ID"
+	HeaderVersionId          = "X-Version-ID"
+	HeaderClusterId          = "X-Cluster-ID"
+	HeaderEtagServer         = "ETag"
+	HeaderEtagClient         = "If-None-Match"
+	HeaderForwarded          = "X-Forwarded-For"
+	HeaderRealIp             = "X-Real-IP"
+	HeaderForwardedProto     = "X-Forwarded-Proto"
+	HeaderToken              = "token"
+	HeaderCsrfToken          = "X-CSRF-Token"
+	HeaderBearer             = "BEARER"
+	HeaderAuth               = "Authorization"
+	HeaderCloudToken         = "X-Cloud-Token"
+	HeaderRemoteclusterToken = "X-RemoteCluster-Token"
+	HeaderRemoteclusterId    = "X-RemoteCluster-Id"
+	HeaderRequestedWith      = "X-Requested-With"
+	HeaderRequestedWithXml   = "XMLHttpRequest"
+	HeaderRange              = "Range"
+	STATUS                   = "status"
+	StatusOk                 = "OK"
+	StatusFail               = "FAIL"
+	StatusUnhealthy          = "UNHEALTHY"
+	StatusRemove             = "REMOVE"
 
-	CLIENT_DIR = "client"
+	ClientDir = "client"
 
-	API_URL_SUFFIX_V1 = "/api/v1"
-	API_URL_SUFFIX_V4 = "/api/v4"
-	API_URL_SUFFIX    = API_URL_SUFFIX_V4
+	ApiUrlSuffixV1 = "/api/v1"
+	ApiUrlSuffixV4 = "/api/v4"
+	ApiUrlSuffix   = ApiUrlSuffixV4
 )
 
 type Response struct {
@@ -120,7 +120,7 @@ func (c *Client4) Must(result interface{}, resp *Response) interface{} {
 
 func NewAPIv4Client(url string) *Client4 {
 	url = strings.TrimRight(url, "/")
-	return &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", "", map[string]string{}, "", ""}
+	return &Client4{url, url + ApiUrlSuffix, &http.Client{}, "", "", map[string]string{}, "", ""}
 }
 
 func NewAPIv4SocketClient(socketPath string) *Client4 {
@@ -157,16 +157,16 @@ func BuildErrorResponse(r *http.Response, err *AppError) *Response {
 func BuildResponse(r *http.Response) *Response {
 	return &Response{
 		StatusCode:    r.StatusCode,
-		RequestId:     r.Header.Get(HEADER_REQUEST_ID),
-		Etag:          r.Header.Get(HEADER_ETAG_SERVER),
-		ServerVersion: r.Header.Get(HEADER_VERSION_ID),
+		RequestId:     r.Header.Get(HeaderRequestId),
+		Etag:          r.Header.Get(HeaderEtagServer),
+		ServerVersion: r.Header.Get(HeaderVersionId),
 		Header:        r.Header,
 	}
 }
 
 func (c *Client4) SetToken(token string) {
 	c.AuthToken = token
-	c.AuthType = HEADER_BEARER
+	c.AuthType = HeaderBearer
 }
 
 // MockSession is deprecated in favour of SetToken
@@ -176,12 +176,12 @@ func (c *Client4) MockSession(token string) {
 
 func (c *Client4) SetOAuthToken(token string) {
 	c.AuthToken = token
-	c.AuthType = HEADER_TOKEN
+	c.AuthType = HeaderToken
 }
 
 func (c *Client4) ClearOAuthToken() {
 	c.AuthToken = ""
-	c.AuthType = HEADER_BEARER
+	c.AuthType = HeaderBearer
 }
 
 func (c *Client4) GetUsersRoute() string {
@@ -610,7 +610,7 @@ func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 }
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
-	return c.doApiRequestReader(method, url, strings.NewReader(data), map[string]string{HEADER_ETAG_CLIENT: etag})
+	return c.doApiRequestReader(method, url, strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
 func (c *Client4) DoApiRequestWithHeaders(method, url, data string, headers map[string]string) (*http.Response, *AppError) {
@@ -618,7 +618,7 @@ func (c *Client4) DoApiRequestWithHeaders(method, url, data string, headers map[
 }
 
 func (c *Client4) doApiRequestBytes(method, url string, data []byte, etag string) (*http.Response, *AppError) {
-	return c.doApiRequestReader(method, url, bytes.NewReader(data), map[string]string{HEADER_ETAG_CLIENT: etag})
+	return c.doApiRequestReader(method, url, bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
 func (c *Client4) doApiRequestReader(method, url string, data io.Reader, headers map[string]string) (*http.Response, *AppError) {
@@ -632,7 +632,7 @@ func (c *Client4) doApiRequestReader(method, url string, data io.Reader, headers
 	}
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	if c.HttpHeader != nil && len(c.HttpHeader) > 0 {
@@ -673,7 +673,7 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 	rq.Header.Set("Content-Type", contentType)
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -697,7 +697,7 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 	rq.Header.Set("Content-Type", contentType)
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -721,7 +721,7 @@ func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string
 	rq.Header.Set("Content-Type", contentType)
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -743,7 +743,7 @@ func CheckStatusOK(r *http.Response) bool {
 	m := MapFromJson(r.Body)
 	defer closeBody(r)
 
-	if m != nil && m[STATUS] == STATUS_OK {
+	if m != nil && m[STATUS] == StatusOk {
 		return true
 	}
 
@@ -804,8 +804,8 @@ func (c *Client4) login(m map[string]string) (*User, *Response) {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	c.AuthToken = r.Header.Get(HEADER_TOKEN)
-	c.AuthType = HEADER_BEARER
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
 	return UserFromJson(r.Body), BuildResponse(r)
 }
 
@@ -817,7 +817,7 @@ func (c *Client4) Logout() (bool, *Response) {
 	}
 	defer closeBody(r)
 	c.AuthToken = ""
-	c.AuthType = HEADER_BEARER
+	c.AuthType = HeaderBearer
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
@@ -1534,7 +1534,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -1783,7 +1783,7 @@ func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Respons
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -2329,7 +2329,7 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -3376,7 +3376,7 @@ func (c *Client4) GetPing() (string, *Response) {
 	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
-		return STATUS_UNHEALTHY, BuildErrorResponse(r, err)
+		return StatusUnhealthy, BuildErrorResponse(r, err)
 	}
 	if err != nil {
 		return "", BuildErrorResponse(r, err)
@@ -3391,7 +3391,7 @@ func (c *Client4) GetPingWithServerStatus() (string, *Response) {
 	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping?get_server_status="+c.boolString(true), "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
-		return STATUS_UNHEALTHY, BuildErrorResponse(r, err)
+		return StatusUnhealthy, BuildErrorResponse(r, err)
 	}
 	if err != nil {
 		return "", BuildErrorResponse(r, err)
@@ -3406,7 +3406,7 @@ func (c *Client4) GetPingWithFullServerStatus() (map[string]string, *Response) {
 	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping?get_server_status="+c.boolString(true), "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
-		return map[string]string{"status": STATUS_UNHEALTHY}, BuildErrorResponse(r, err)
+		return map[string]string{"status": StatusUnhealthy}, BuildErrorResponse(r, err)
 	}
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -3569,7 +3569,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -3998,7 +3998,7 @@ func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) 
 	}
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, "BEARER "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -4264,7 +4264,7 @@ func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]
 
 // UploadLdapPublicCertificate will upload a public certificate for LDAP and set the config to use it.
 func (c *Client4) UploadLdapPublicCertificate(data []byte) (bool, *Response) {
-	body, writer, err := fileToMultipart(data, LDAP_PUBLIC_CERTIFICATE_NAME)
+	body, writer, err := fileToMultipart(data, LdapPublicCertificateName)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4275,7 +4275,7 @@ func (c *Client4) UploadLdapPublicCertificate(data []byte) (bool, *Response) {
 
 // UploadLdapPrivateCertificate will upload a private key for LDAP and set the config to use it.
 func (c *Client4) UploadLdapPrivateCertificate(data []byte) (bool, *Response) {
-	body, writer, err := fileToMultipart(data, LDAP_PRIVATE_KEY_NAME)
+	body, writer, err := fileToMultipart(data, LdapPrivateKeyName)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadLdapPrivateCertificate", "model.client.upload_Ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4373,7 +4373,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -4528,7 +4528,7 @@ func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Respon
 	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -5389,7 +5389,7 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if c.AuthToken != "" {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	rp, err := c.HttpClient.Do(rq)
@@ -6165,7 +6165,7 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 	var headers map[string]string
 	if offset > 0 {
 		headers = map[string]string{
-			HEADER_RANGE: fmt.Sprintf("bytes=%d-", offset),
+			HeaderRange: fmt.Sprintf("bytes=%d-", offset),
 		}
 	}
 	r, appErr := c.DoApiRequestWithHeaders(http.MethodGet, c.ApiUrl+c.GetExportRoute(name), "", headers)

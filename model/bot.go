@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	BOT_DISPLAY_NAME_MAX_RUNES   = USER_FIRST_NAME_MAX_RUNES
-	BOT_DESCRIPTION_MAX_RUNES    = 1024
-	BOT_CREATOR_ID_MAX_RUNES     = KEY_VALUE_PLUGIN_ID_MAX_RUNES // UserId or PluginId
-	BOT_WARN_METRIC_BOT_USERNAME = "mattermost-advisor"
-	BOT_SYSTEM_BOT_USERNAME      = "system-bot"
+	BotDisplayNameMaxRunes   = UserFirstNameMaxRunes
+	BotDescriptionMaxRunes   = 1024
+	BotCreatorIdMaxRunes     = KeyValuePluginIdMaxRunes // UserId or PluginId
+	BotWarnMetricBotUsername = "mattermost-advisor"
+	BotSystemBotUsername     = "system-bot"
 )
 
 // Bot is a special type of User meant for programmatic interactions.
@@ -75,15 +75,15 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.username.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(b.DisplayName) > BOT_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(b.DisplayName) > BotDisplayNameMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(b.Description) > BOT_DESCRIPTION_MAX_RUNES {
+	if utf8.RuneCountInString(b.Description) > BotDescriptionMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.description.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if b.OwnerId == "" || utf8.RuneCountInString(b.OwnerId) > BOT_CREATOR_ID_MAX_RUNES {
+	if b.OwnerId == "" || utf8.RuneCountInString(b.OwnerId) > BotCreatorIdMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
@@ -191,7 +191,7 @@ func UserFromBot(b *Bot) *User {
 		Username:  b.Username,
 		Email:     NormalizeEmail(fmt.Sprintf("%s@localhost", b.Username)),
 		FirstName: b.DisplayName,
-		Roles:     SYSTEM_USER_ROLE_ID,
+		Roles:     SystemUserRoleId,
 	}
 }
 
@@ -201,7 +201,7 @@ func BotFromUser(u *User) *Bot {
 		OwnerId:     u.Id,
 		UserId:      u.Id,
 		Username:    u.Username,
-		DisplayName: u.GetDisplayName(SHOW_USERNAME),
+		DisplayName: u.GetDisplayName(ShowUsername),
 	}
 }
 
@@ -242,7 +242,7 @@ func MakeBotNotFoundError(userId string) *AppError {
 }
 
 func IsBotDMChannel(channel *Channel, botUserID string) bool {
-	if channel.Type != CHANNEL_DIRECT {
+	if channel.Type != ChannelDirect {
 		return false
 	}
 

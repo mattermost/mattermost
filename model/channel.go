@@ -15,22 +15,22 @@ import (
 )
 
 const (
-	CHANNEL_OPEN                   = "O"
-	CHANNEL_PRIVATE                = "P"
-	CHANNEL_DIRECT                 = "D"
-	CHANNEL_GROUP                  = "G"
-	CHANNEL_GROUP_MAX_USERS        = 8
-	CHANNEL_GROUP_MIN_USERS        = 3
-	DEFAULT_CHANNEL                = "town-square"
-	CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
-	CHANNEL_NAME_MIN_LENGTH        = 2
-	CHANNEL_NAME_MAX_LENGTH        = 64
-	CHANNEL_HEADER_MAX_RUNES       = 1024
-	CHANNEL_PURPOSE_MAX_RUNES      = 250
-	CHANNEL_CACHE_SIZE             = 25000
+	ChannelOpen                = "O"
+	ChannelPrivate             = "P"
+	ChannelDirect              = "D"
+	ChannelGroup               = "G"
+	ChannelGroupMaxUsers       = 8
+	ChannelGroupMinUsers       = 3
+	DefaultChannel             = "town-square"
+	ChannelDisplayNameMaxRunes = 64
+	ChannelNameMinLength       = 2
+	ChannelNameMaxLength       = 64
+	ChannelHeaderMaxRunes      = 1024
+	ChannelPurposeMaxRunes     = 250
+	ChannelCacheSize           = 25000
 
-	CHANNEL_SORT_BY_USERNAME = "username"
-	CHANNEL_SORT_BY_STATUS   = "status"
+	ChannelSortByUsername = "username"
+	ChannelSortByStatus   = "status"
 )
 
 type Channel struct {
@@ -230,7 +230,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.DisplayName) > CHANNEL_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(o.DisplayName) > ChannelDisplayNameMaxRunes {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -238,15 +238,15 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == CHANNEL_OPEN || o.Type == CHANNEL_PRIVATE || o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP) {
+	if !(o.Type == ChannelOpen || o.Type == ChannelPrivate || o.Type == ChannelDirect || o.Type == ChannelGroup) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.Header) > CHANNEL_HEADER_MAX_RUNES {
+	if utf8.RuneCountInString(o.Header) > ChannelHeaderMaxRunes {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.header.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.Purpose) > CHANNEL_PURPOSE_MAX_RUNES {
+	if utf8.RuneCountInString(o.Purpose) > ChannelPurposeMaxRunes {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.purpose.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -255,7 +255,7 @@ func (o *Channel) IsValid() *AppError {
 	}
 
 	userIds := strings.Split(o.Name, "__")
-	if o.Type != CHANNEL_DIRECT && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
+	if o.Type != ChannelDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -282,11 +282,11 @@ func (o *Channel) PreUpdate() {
 }
 
 func (o *Channel) IsGroupOrDirect() bool {
-	return o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP
+	return o.Type == ChannelDirect || o.Type == ChannelGroup
 }
 
 func (o *Channel) IsOpen() bool {
-	return o.Type == CHANNEL_OPEN
+	return o.Type == ChannelOpen
 }
 
 func (o *Channel) Patch(patch *ChannelPatch) {
@@ -332,7 +332,7 @@ func (o *Channel) IsShared() bool {
 }
 
 func (o *Channel) GetOtherUserIdForDM(userId string) string {
-	if o.Type != CHANNEL_DIRECT {
+	if o.Type != ChannelDirect {
 		return ""
 	}
 
@@ -368,8 +368,8 @@ func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 
 	name := strings.Join(usernames, ", ")
 
-	if truncate && len(name) > CHANNEL_NAME_MAX_LENGTH {
-		name = name[:CHANNEL_NAME_MAX_LENGTH]
+	if truncate && len(name) > ChannelNameMaxLength {
+		name = name[:ChannelNameMaxLength]
 	}
 
 	return name
