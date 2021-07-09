@@ -570,8 +570,8 @@ func (r *Role) GetChannelModeratedPermissions(channelType string) map[string]boo
 			if moderated == permission {
 				// Special case where the channel moderated permission for `manage_members` is different depending on whether the channel is private or public
 				if moderated == PermissionManagePublicChannelMembers.Id || moderated == PermissionManagePrivateChannelMembers.Id {
-					canManagePublic := channelType == ChannelOpen && moderated == PermissionManagePublicChannelMembers.Id
-					canManagePrivate := channelType == ChannelPrivate && moderated == PermissionManagePrivateChannelMembers.Id
+					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionManagePublicChannelMembers.Id
+					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionManagePrivateChannelMembers.Id
 					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
 				} else {
 					moderatedPermissions[moderatedPermissionValue] = true

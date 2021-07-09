@@ -148,7 +148,7 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		channel := model.Channel{}
 		channel.Name = "zz" + model.NewId() + "b"
 		channel.DisplayName = "zz" + model.NewId() + "b"
-		channel.Type = model.ChannelOpen
+		channel.Type = model.ChannelTypeOpen
 
 		_, err := ss.Channel().Save(&channel, 100)
 		require.NoError(t, err)
@@ -328,7 +328,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		channel := model.Channel{}
 		channel.Name = "zz" + model.NewId() + "b"
 		channel.DisplayName = "zz" + model.NewId() + "b"
-		channel.Type = model.ChannelOpen
+		channel.Type = model.ChannelTypeOpen
 
 		_, err := ss.Channel().Save(&channel, 100)
 		require.NoError(t, err)
@@ -360,7 +360,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
-	c1 := &model.Channel{Name: model.NewId(), DisplayName: "posttestchannel", Type: model.ChannelOpen}
+	c1 := &model.Channel{Name: model.NewId(), DisplayName: "posttestchannel", Type: model.ChannelTypeOpen}
 	_, err := ss.Channel().Save(c1, 1000000)
 	require.NoError(t, err)
 
@@ -1675,7 +1675,7 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.ChannelOpen
+	c1.Type = model.ChannelTypeOpen
 	c1, nErr := ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -1734,7 +1734,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.ChannelOpen
+	c1.Type = model.ChannelTypeOpen
 	c1, nErr := ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -1863,7 +1863,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.ChannelOpen
+	c1.Type = model.ChannelTypeOpen
 	c1, err := ss.Channel().Save(c1, -1)
 	require.NoError(t, err)
 
@@ -1903,7 +1903,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 	c2 := &model.Channel{}
 	c2.DisplayName = "DMChannel1"
 	c2.Name = "zz" + model.NewId() + "b"
-	c2.Type = model.ChannelDirect
+	c2.Type = model.ChannelTypeDirect
 
 	m1 := &model.ChannelMember{}
 	m1.ChannelId = c2.Id
@@ -2533,14 +2533,14 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.ChannelOpen
+	c1.Type = model.ChannelTypeOpen
 	c1, _ = ss.Channel().Save(c1, -1)
 
 	c2 := &model.Channel{}
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
-	c2.Type = model.ChannelOpen
+	c2.Type = model.ChannelTypeOpen
 	c2, _ = ss.Channel().Save(c2, -1)
 
 	o1 := &model.Post{}
@@ -2597,7 +2597,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 
@@ -2730,14 +2730,14 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		c1.TeamId = model.NewId()
 		c1.DisplayName = "Channel1"
 		c1.Name = "zz" + model.NewId() + "b"
-		c1.Type = model.ChannelOpen
+		c1.Type = model.ChannelTypeOpen
 		c1, _ = ss.Channel().Save(c1, -1)
 
 		c2 := &model.Channel{}
 		c2.TeamId = model.NewId()
 		c2.DisplayName = "Channel2"
 		c2.Name = "zz" + model.NewId() + "b"
-		c2.Type = model.ChannelOpen
+		c2.Type = model.ChannelTypeOpen
 		c2, _ = ss.Channel().Save(c2, -1)
 
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
@@ -2840,7 +2840,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.ChannelOpen
+	c1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
 
@@ -2889,7 +2889,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.ChannelOpen
+	c1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
 
@@ -2951,7 +2951,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.ChannelDirect
+	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
@@ -3005,7 +3005,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.ChannelDirect
+	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
 	u1.DeleteAt = 1
@@ -3071,7 +3071,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.ChannelDirect
+	o1.Type = model.ChannelTypeDirect
 
 	var postIds []string
 	for i := 0; i < 150; i++ {

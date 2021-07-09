@@ -1018,7 +1018,7 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
 		From("Users u").
 		Join("ChannelMembers cm ON u.Id = cm.UserId").
 		Join("Channels c ON cm.ChannelId = c.Id").
-		Where(sq.Eq{"c.Type": model.ChannelGroup, "cm.ChannelId": channelIds}).
+		Where(sq.Eq{"c.Type": model.ChannelTypeGroup, "cm.ChannelId": channelIds}).
 		Where(isMemberQuery).
 		Where(sq.NotEq{"u.Id": userId}).
 		OrderBy("u.Username ASC")

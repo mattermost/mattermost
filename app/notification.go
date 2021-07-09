@@ -85,7 +85,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	allActivityPushUserIds := []string{}
 	var allowChannelMentions bool
 	var keywords map[string][]string
-	if channel.Type == model.ChannelDirect {
+	if channel.Type == model.ChannelTypeDirect {
 		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 
 		_, ok := profileMap[otherUserId]
@@ -175,7 +175,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
-			if channel.Type != model.ChannelDirect {
+			if channel.Type != model.ChannelTypeDirect {
 				rootPost := parentPostList.Posts[parentPostList.Order[0]]
 				rootMentions = getExplicitMentions(rootPost, keywords, groups)
 				for id := range rootMentions.Mentions {
@@ -577,7 +577,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 		return nil, nil, nil
 	}
 
-	if channel.TeamId == "" || channel.Type == model.ChannelDirect || channel.Type == model.ChannelGroup {
+	if channel.TeamId == "" || channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		return nil, nil, nil
 	}
 
@@ -1025,9 +1025,9 @@ type PostNotification struct {
 // channel, with an option to exclude the recipient of the message from that list.
 func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) string {
 	switch n.Channel.Type {
-	case model.ChannelDirect:
+	case model.ChannelTypeDirect:
 		return n.Sender.GetDisplayNameWithPrefix(userNameFormat, "@")
-	case model.ChannelGroup:
+	case model.ChannelTypeGroup:
 		names := []string{}
 		for _, user := range n.ProfileMap {
 			if user.Id != excludeId {
@@ -1050,7 +1050,7 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 		return i18n.T("system.message.name")
 	}
 
-	if overridesAllowed && n.Channel.Type != model.ChannelDirect {
+	if overridesAllowed && n.Channel.Type != model.ChannelTypeDirect {
 		if value, ok := n.Post.GetProps()["override_username"]; ok && n.Post.GetProp("from_webhook") == "true" {
 			return value.(string)
 		}

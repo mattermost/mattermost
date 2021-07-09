@@ -31,7 +31,7 @@ func (a *App) handleWebhookEvents(c *request.Context, post *model.Post, team *mo
 		return nil
 	}
 
-	if channel.Type != model.ChannelOpen {
+	if channel.Type != model.ChannelTypeOpen {
 		return nil
 	}
 
@@ -459,11 +459,11 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 			}
 		}
 
-		if channel.Type != model.ChannelOpen {
+		if channel.Type != model.ChannelTypeOpen {
 			return nil, model.NewAppError("CreateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusForbidden)
 		}
 
-		if channel.Type != model.ChannelOpen || channel.TeamId != hook.TeamId {
+		if channel.Type != model.ChannelTypeOpen || channel.TeamId != hook.TeamId {
 			return nil, model.NewAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.permissions.app_error", nil, "", http.StatusForbidden)
 		}
 	} else if len(hook.TriggerWords) == 0 {
@@ -511,7 +511,7 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 			return nil, err
 		}
 
-		if channel.Type != model.ChannelOpen {
+		if channel.Type != model.ChannelTypeOpen {
 			return nil, model.NewAppError("UpdateOutgoingWebhook", "api.webhook.create_outgoing.not_open.app_error", nil, "", http.StatusForbidden)
 		}
 
@@ -768,7 +768,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 		return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
-	if channel.Type != model.ChannelOpen && !a.HasPermissionToChannel(hook.UserId, channel.Id, model.PermissionReadChannel) {
+	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(hook.UserId, channel.Id, model.PermissionReadChannel) {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 

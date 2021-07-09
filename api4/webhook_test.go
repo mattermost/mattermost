@@ -127,7 +127,7 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	team.AllowOpenInvite = false
 	th.Client.UpdateTeam(team)
 	th.SystemAdminClient.RemoveTeamMember(team.Id, th.BasicUser.Id)
-	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelOpen, team.Id)
+	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook = &model.IncomingWebhook{ChannelId: channel.Id}
 	rhook, resp = th.Client.CreateIncomingWebhook(hook)
@@ -912,7 +912,7 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	team.AllowOpenInvite = false
 	th.Client.UpdateTeam(team)
 	th.SystemAdminClient.RemoveTeamMember(team.Id, th.BasicUser.Id)
-	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelOpen, team.Id)
+	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook2 := &model.IncomingWebhook{Id: rhook.Id, ChannelId: channel.Id}
 	rhook, resp = th.Client.UpdateIncomingWebhook(hook2)
@@ -1168,7 +1168,7 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 	team.AllowOpenInvite = false
 	th.Client.UpdateTeam(team)
 	th.SystemAdminClient.RemoveTeamMember(team.Id, th.BasicUser.Id)
-	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelOpen, team.Id)
+	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook2 := &model.OutgoingWebhook{Id: rhook.Id, ChannelId: channel.Id}
 	rhook, resp = th.Client.UpdateOutgoingWebhook(hook2)

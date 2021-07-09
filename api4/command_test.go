@@ -875,7 +875,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	require.Nil(t, err, "failed to create post command")
 
 	// make a channel on that team, ensuring that our test user isn't in it
-	channel2 := th.CreateChannelWithClientAndTeam(client, model.ChannelOpen, team2.Id)
+	channel2 := th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, team2.Id)
 	success, _ := client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id)
 	require.True(t, success, "Failed to remove user from channel")
 

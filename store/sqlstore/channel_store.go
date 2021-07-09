@@ -477,7 +477,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 		Purpose:     channel.Purpose,
 	}
 
-	if channel.Type != model.ChannelOpen {
+	if channel.Type != model.ChannelTypeOpen {
 		if _, err := transaction.Delete(publicChannel); err != nil {
 			return errors.Wrap(err, "failed to delete public channel")
 		}
@@ -535,7 +535,7 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
 
-	if channel.Type == model.ChannelDirect {
+	if channel.Type == model.ChannelTypeDirect {
 		return nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
 	}
 
@@ -575,7 +575,7 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 	channel.Name = model.GetDMNameFromIds(otherUser.Id, user.Id)
 
 	channel.Header = ""
-	channel.Type = model.ChannelDirect
+	channel.Type = model.ChannelTypeDirect
 	channel.Shared = model.NewBool(user.IsRemote() || otherUser.IsRemote())
 	channel.CreatorId = user.Id
 
@@ -600,7 +600,7 @@ func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directChannel.DeleteAt)
 	}
 
-	if directChannel.Type != model.ChannelDirect {
+	if directChannel.Type != model.ChannelTypeDirect {
 		return nil, store.NewErrInvalidInput("Channel", "Type", directChannel.Type)
 	}
 
@@ -647,7 +647,7 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 		return nil, err // we just pass through the error as-is for now.
 	}
 
-	if channel.Type != model.ChannelDirect && channel.Type != model.ChannelGroup && maxChannelsPerTeam >= 0 {
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && maxChannelsPerTeam >= 0 {
 		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
 			return nil, errors.Wrapf(err, "save_channel_count: teamId=%s", channel.TeamId)
 		} else if count >= maxChannelsPerTeam {
@@ -1041,7 +1041,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("Channels AS c").
-		Where(sq.Eq{"c.Type": []string{model.ChannelPrivate, model.ChannelOpen}})
+		Where(sq.Eq{"c.Type": []string{model.ChannelTypePrivate, model.ChannelTypeOpen}})
 
 	if !forCount {
 		query = query.Join("Teams ON Teams.Id = c.TeamId")
@@ -1117,7 +1117,7 @@ func (s SqlChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, li
 	builder := s.getQueryBuilder().
 		Select("*").
 		From("Channels").
-		Where(sq.Eq{"Type": model.ChannelPrivate, "TeamId": teamId, "DeleteAt": 0}).
+		Where(sq.Eq{"Type": model.ChannelTypePrivate, "TeamId": teamId, "DeleteAt": 0}).
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
@@ -2762,11 +2762,11 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	if opts.Public && !opts.Private {
 		query = query.InnerJoin("PublicChannels ON c.Id = PublicChannels.Id")
 	} else if opts.Private && !opts.Public {
-		query = query.Where(sq.Eq{"c.Type": model.ChannelPrivate})
+		query = query.Where(sq.Eq{"c.Type": model.ChannelTypePrivate})
 	} else {
 		query = query.Where(sq.Or{
-			sq.Eq{"c.Type": model.ChannelOpen},
-			sq.Eq{"c.Type": model.ChannelPrivate},
+			sq.Eq{"c.Type": model.ChannelTypeOpen},
+			sq.Eq{"c.Type": model.ChannelTypePrivate},
 		})
 	}
 

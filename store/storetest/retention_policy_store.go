@@ -116,7 +116,7 @@ func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, teamId strin
 			TeamId:      teamId,
 			DisplayName: "Channel " + name,
 			Name:        name,
-			Type:        model.ChannelOpen,
+			Type:        model.ChannelTypeOpen,
 		}
 		channel, err := ss.Channel().Save(channel, -1)
 		require.NoError(t, err)

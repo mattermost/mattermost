@@ -40,7 +40,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		TeamId:      singersTeam.Id,
 		DisplayName: "Practices",
 		Name:        model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	if err != nil {
 		t.Errorf("test channel not created: %s", err.Error())
@@ -50,7 +50,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		TeamId:      singersTeam.Id,
 		DisplayName: "Experiments",
 		Name:        model.NewId(),
-		Type:        model.ChannelPrivate,
+		Type:        model.ChannelTypePrivate,
 	}, false)
 	if err != nil {
 		t.Errorf("test channel not created: %s", err.Error())
@@ -356,7 +356,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			TeamId:      restrictedTeam.Id,
 			DisplayName: "Restricted",
 			Name:        "restricted" + model.NewId(),
-			Type:        model.ChannelOpen,
+			Type:        model.ChannelTypeOpen,
 		}, false)
 		require.Nil(t, err)
 		_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(scienceGroup.Id, restrictedChannel.Id, true))

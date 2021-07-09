@@ -399,7 +399,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
 		Name:        model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	channel1, errCh := th.App.Srv().Store.Channel().Save(channel1, 1000000)
@@ -422,7 +422,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		TeamId:      model.NewId(),
 		DisplayName: "B Name",
 		Name:        model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &scheme1.Id,
 	}
 	channel2, nErr := th.App.Srv().Store.Channel().Save(channel2, 1000000)
@@ -694,7 +694,7 @@ func TestDeleteScheme(t *testing.T) {
 			TeamId:      model.NewId(),
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
-			Type:        model.ChannelOpen,
+			Type:        model.ChannelTypeOpen,
 			SchemeId:    &s1.Id,
 		}, -1)
 		assert.NoError(t, err)
@@ -783,14 +783,14 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 
 		th.LoginBasic()
 
-		_, resp := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelOpen, TeamId: team.Id})
+		_, resp := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
 		require.Nil(t, resp.Error)
 
 		team.SchemeId = &teamScheme.Id
 		team, err = th.App.UpdateTeamScheme(team)
 		require.Nil(t, err)
 
-		_, resp = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelOpen, TeamId: team.Id})
+		_, resp = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
 		require.NotNil(t, resp.Error)
 	})
 }

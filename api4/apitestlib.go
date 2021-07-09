@@ -629,11 +629,11 @@ func (th *TestHelper) SetupSamlConfig() {
 }
 
 func (th *TestHelper) CreatePublicChannel() *model.Channel {
-	return th.CreateChannelWithClient(th.Client, model.ChannelOpen)
+	return th.CreateChannelWithClient(th.Client, model.ChannelTypeOpen)
 }
 
 func (th *TestHelper) CreatePrivateChannel() *model.Channel {
-	return th.CreateChannelWithClient(th.Client, model.ChannelPrivate)
+	return th.CreateChannelWithClient(th.Client, model.ChannelTypePrivate)
 }
 
 func (th *TestHelper) CreateChannelWithClient(client *model.Client4, channelType string) *model.Channel {

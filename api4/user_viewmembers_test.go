@@ -35,11 +35,11 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 	team2, err := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
 	require.Nil(t, err)
 
-	channel1, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
+	channel1, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
 	require.Nil(t, err)
-	channel2, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
+	channel2, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
 	require.Nil(t, err)
-	channel3, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelOpen, TeamId: team2.Id, CreatorId: model.NewId()}, false)
+	channel3, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team2.Id, CreatorId: model.NewId()}, false)
 	require.Nil(t, err)
 
 	th.LinkUserToTeam(user1, team1)

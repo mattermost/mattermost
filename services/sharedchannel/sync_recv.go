@@ -99,7 +99,7 @@ func (scs *Service) processSyncMessage(syncMsg *syncMsg, rc *model.RemoteCluster
 			continue
 		}
 
-		if channel.Type != model.ChannelDirect && team == nil {
+		if channel.Type != model.ChannelTypeDirect && team == nil {
 			var err2 error
 			team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(syncMsg.ChannelId)
 			if err2 != nil {

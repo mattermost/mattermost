@@ -427,7 +427,7 @@ func TestShouldProcessMessage(t *testing.T) {
 	t.Run("should not process as the post is sent to another channel", func(t *testing.T) {
 		channelID := "channel-id"
 		api := setupAPI()
-		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelGroup}, nil)
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelTypeGroup}, nil)
 		p.API = api
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 
@@ -455,7 +455,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		channelID := "1"
 		channel := model.Channel{
 			Name: "user1__" + expectedBotID,
-			Type: model.ChannelOpen,
+			Type: model.ChannelTypeOpen,
 		}
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&channel, nil)
@@ -496,7 +496,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		channel := model.Channel{
 			Name: "user1__" + expectedBotID,
-			Type: model.ChannelDirect,
+			Type: model.ChannelTypeDirect,
 		}
 		api.On("GetChannel", channelID).Return(&channel, nil)
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
@@ -511,7 +511,7 @@ func TestShouldProcessMessage(t *testing.T) {
 	t.Run("should not process the message which have from_webhook", func(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
-		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelGroup}, nil)
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelTypeGroup}, nil)
 		p.API = api
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 
@@ -524,7 +524,7 @@ func TestShouldProcessMessage(t *testing.T) {
 	t.Run("should process the message which have from_webhook with allow webhook plugin", func(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
-		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelGroup}, nil)
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelTypeGroup}, nil)
 		p.API = api
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 
@@ -537,7 +537,7 @@ func TestShouldProcessMessage(t *testing.T) {
 	t.Run("should process the message where from_webhook is not set", func(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
-		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelGroup}, nil)
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelTypeGroup}, nil)
 		p.API = api
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 
@@ -550,7 +550,7 @@ func TestShouldProcessMessage(t *testing.T) {
 	t.Run("should process the message which have from_webhook false", func(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
-		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelGroup}, nil)
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelTypeGroup}, nil)
 		p.API = api
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 
@@ -564,7 +564,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		userID := "user-id"
 		channelID := "1"
 		api := setupAPI()
-		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelGroup}, nil)
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.ChannelTypeGroup}, nil)
 		p.API = api
 		api.On("GetUser", userID).Return(&model.User{IsBot: false}, nil)
 

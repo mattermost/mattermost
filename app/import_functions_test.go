@@ -606,7 +606,7 @@ func TestImportImportChannel(t *testing.T) {
 	require.Nil(t, err, "Failed to get team from database.")
 
 	// Check how many channels are in the database.
-	channelCount, nErr := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelOpen)
+	channelCount, nErr := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 	require.NoError(t, nErr, "Failed to get team count.")
 
 	// Do an invalid channel in dry-run mode.
@@ -679,7 +679,7 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Alter all the fields of that channel.
 	data.DisplayName = ptrStr("Chaned Disp Name")
-	data.Type = ptrStr(model.ChannelPrivate)
+	data.Type = ptrStr(model.ChannelTypePrivate)
 	data.Header = ptrStr("New Header")
 	data.Purpose = ptrStr("New Purpose")
 	data.Scheme = &scheme2.Name
@@ -2959,10 +2959,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many channels are in the database.
-	directChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelDirect)
+	directChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
 	require.NoError(t, err, "Failed to get direct channel count.")
 
-	groupChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelGroup)
+	groupChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeGroup)
 	require.NoError(t, err, "Failed to get group channel count.")
 
 	// Do an invalid channel in dry-run mode.
@@ -2976,8 +2976,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Error(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid DIRECT channel with a nonexistent member in dry-run mode.
 	data.Members = &[]string{
@@ -2988,8 +2988,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid GROUP channel with a nonexistent member in dry-run mode.
 	data.Members = &[]string{
@@ -3001,8 +3001,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do an invalid channel in apply mode.
 	data.Members = &[]string{
@@ -3012,8 +3012,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Error(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid DIRECT channel.
 	data.Members = &[]string{
@@ -3024,16 +3024,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that one more DIRECT channel is in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do the same DIRECT channel again.
 	appErr = th.App.importDirectChannel(&data, false)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 2")
@@ -3041,8 +3041,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Get the channel to check that the header was updated.
 	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
@@ -3061,8 +3061,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.NotNil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid GROUP channel.
 	data.Members = &[]string{
@@ -3074,16 +3074,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that one more GROUP channel is in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 	// Do the same DIRECT channel again.
 	appErr = th.App.importDirectChannel(&data, false)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 3")
@@ -3091,8 +3091,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelGroup, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 	// Get the channel to check that the header was updated.
 	userIDs := []string{

@@ -76,14 +76,14 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 	}
 
 	switch channel.Type {
-	case model.ChannelOpen:
+	case model.ChannelTypeOpen:
 		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePublicChannelMembers) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
-	case model.ChannelPrivate:
+	case model.ChannelTypePrivate:
 		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePrivateChannelMembers) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),

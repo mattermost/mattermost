@@ -166,7 +166,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			ChannelId:            model.NewId(),
 			TeamId:               model.NewId(),
 			ReadOnly:             false,
-			Type:                 model.ChannelDirect,
+			Type:                 model.ChannelTypeDirect,
 			DirectParticipantIDs: []string{model.NewId(), model.NewId()},
 		}
 		payload, err := json.Marshal(invitation)

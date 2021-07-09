@@ -30,7 +30,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
 	require.NoError(t, err)
@@ -56,7 +56,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
 	require.NoError(t, err)
@@ -85,7 +85,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(ch, -1)
 	require.NoError(t, err)
@@ -181,7 +181,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
 	require.NoError(t, err)
@@ -293,7 +293,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
 	require.NoError(t, err)
@@ -360,7 +360,7 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 	userID := model.NewId()

@@ -1579,7 +1579,7 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
 
-	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelOpen)
+	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 	if err2 != nil {
 		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
 	}

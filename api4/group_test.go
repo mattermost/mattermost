@@ -691,7 +691,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelPrivate)
+	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 
 	_, _, response := th.Client.GetGroupsByChannel(privateChannel.Id, opts)
 	CheckForbiddenStatus(t, response)
@@ -1102,7 +1102,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	channel := &model.Channel{
 		DisplayName:      "dn_" + id,
 		Name:             "name" + id,
-		Type:             model.ChannelPrivate,
+		Type:             model.ChannelTypePrivate,
 		TeamId:           team.Id,
 		GroupConstrained: model.NewBool(true),
 	}

@@ -412,7 +412,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 		}
 
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.ChannelOpen {
+			if mentioned.Type == model.ChannelTypeOpen {
 				team, err := a.Srv().Store.Team().Get(mentioned.TeamId)
 				if err != nil {
 					mlog.Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
@@ -1368,7 +1368,7 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 
 	count := 0
 
-	if channel.Type == model.ChannelDirect {
+	if channel.Type == model.ChannelTypeDirect {
 		// In a DM channel, every post made by the other user is a mention
 		otherId := channel.GetOtherUserIdForDM(user.Id)
 		for _, p := range posts {
@@ -1414,7 +1414,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, in
 		return 0, 0, err
 	}
 
-	if channel.Type == model.ChannelDirect {
+	if channel.Type == model.ChannelTypeDirect {
 		// In a DM channel, every post made by the other user is a mention
 		count, countRoot, nErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 		if nErr != nil {

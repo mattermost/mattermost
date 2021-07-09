@@ -156,7 +156,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 
 	th.App.JoinUserToTeam(th.Context, team, user, "")
 
-	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelOpen, TeamId: team.Id, CreatorId: user.Id}, true)
+	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id, CreatorId: user.Id}, true)
 
 	th.BasicUser = user
 	th.BasicChannel = channel

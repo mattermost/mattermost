@@ -47,7 +47,7 @@ func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	}
 
 	switch channel.Type {
-	case model.ChannelOpen:
+	case model.ChannelTypeOpen:
 		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),
@@ -55,7 +55,7 @@ func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 			}
 		}
 
-	case model.ChannelPrivate:
+	case model.ChannelTypePrivate:
 		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),
@@ -63,7 +63,7 @@ func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 			}
 		}
 
-	case model.ChannelGroup, model.ChannelDirect:
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
 		var channelMember *model.ChannelMember
 		channelMember, err = a.GetChannelMember(context.Background(), args.ChannelId, args.UserId)

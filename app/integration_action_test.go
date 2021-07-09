@@ -109,7 +109,7 @@ func TestPostAction(t *testing.T) {
 				assert.Equal(t, request.UserName, th.BasicUser.Username)
 				assert.Equal(t, request.ChannelId, channel.Id)
 				assert.Equal(t, request.ChannelName, channel.Name)
-				if channel.Type == model.ChannelDirect || channel.Type == model.ChannelGroup {
+				if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 					assert.Empty(t, request.TeamId)
 					assert.Empty(t, request.TeamName)
 				} else {

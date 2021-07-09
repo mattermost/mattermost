@@ -31,7 +31,7 @@ func (a *App) CreateDefaultChannels(c *request.Context, teamID string) ([]*model
 	defaultChannelNames := a.DefaultChannelNames()
 	for _, name := range defaultChannelNames {
 		displayName := i18n.TDefault(displayNames[name], name)
-		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelOpen, TeamId: teamID}
+		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
 		if _, err := a.CreateChannel(c, channel, false); err != nil {
 			return nil, err
 		}
@@ -96,7 +96,7 @@ func (a *App) JoinDefaultChannels(c *request.Context, teamID string, user *model
 			continue
 		}
 
-		if channel.Type != model.ChannelOpen {
+		if channel.Type != model.ChannelTypeOpen {
 			continue
 		}
 
@@ -215,11 +215,11 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 
 // RenameChannel is used to rename the channel Name and the DisplayName fields
 func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
-	if channel.Type == model.ChannelDirect {
+	if channel.Type == model.ChannelTypeDirect {
 		return nil, model.NewAppError("RenameChannel", "api.channel.rename_channel.cant_rename_direct_messages.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if channel.Type == model.ChannelGroup {
+	if channel.Type == model.ChannelTypeGroup {
 		return nil, model.NewAppError("RenameChannel", "api.channel.rename_channel.cant_rename_group_messages.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -533,7 +533,7 @@ func (a *App) createGroupChannel(userIDs []string) (*model.Channel, *model.AppEr
 	group := &model.Channel{
 		Name:        model.GetGroupNameFromUserIds(userIDs),
 		DisplayName: model.GetGroupDisplayNameFromUsers(users, true),
-		Type:        model.ChannelGroup,
+		Type:        model.ChannelTypeGroup,
 	}
 
 	channel, nErr := a.Srv().Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
@@ -690,10 +690,10 @@ func (a *App) UpdateChannelPrivacy(c *request.Context, oldChannel *model.Channel
 	}
 
 	if err := a.postChannelPrivacyMessage(c, user, channel); err != nil {
-		if channel.Type == model.ChannelOpen {
-			channel.Type = model.ChannelPrivate
+		if channel.Type == model.ChannelTypeOpen {
+			channel.Type = model.ChannelTypePrivate
 		} else {
-			channel.Type = model.ChannelOpen
+			channel.Type = model.ChannelTypeOpen
 		}
 		// revert to previous channel privacy
 		a.UpdateChannel(channel)
@@ -726,8 +726,8 @@ func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, ch
 	}
 
 	message := (map[string]string{
-		model.ChannelOpen:    i18n.T("api.channel.change_channel_privacy.private_to_public"),
-		model.ChannelPrivate: i18n.T("api.channel.change_channel_privacy.public_to_private"),
+		model.ChannelTypeOpen:    i18n.T("api.channel.change_channel_privacy.private_to_public"),
+		model.ChannelTypePrivate: i18n.T("api.channel.change_channel_privacy.public_to_private"),
 	})[channel.Type]
 	post := &model.Post{
 		ChannelId: channel.Id,
@@ -1392,7 +1392,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 }
 
 func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	if channel.Type != model.ChannelOpen && channel.Type != model.ChannelPrivate {
+	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2024,7 +2024,7 @@ func (a *App) JoinChannel(c *request.Context, channel *model.Channel, userID str
 
 	user := uresult.Data.(*model.User)
 
-	if channel.Type != model.ChannelOpen {
+	if channel.Type != model.ChannelTypeOpen {
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2150,7 +2150,7 @@ func (a *App) LeaveChannel(c *request.Context, channelID string, userID string) 
 		return err
 	}
 
-	if channel.Type == model.ChannelPrivate && membersCount == 1 {
+	if channel.Type == model.ChannelTypePrivate && membersCount == 1 {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.last_member.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 		return err
 	}
@@ -2825,7 +2825,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelID)
 					}
 				}
-			} else if notify == model.UserNotifyMention || channel.Type == model.ChannelDirect {
+			} else if notify == model.UserNotifyMention || channel.Type == model.ChannelTypeDirect {
 				if count, err := a.Srv().Store.User().GetUnreadCountForChannel(userID, channelID); err == nil {
 					if count > 0 {
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelID)
@@ -3231,7 +3231,7 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 				channelMentionsProp := make(map[string]interface{}, len(channelMentions[channel]))
 				for _, channelMention := range channelMentions[channel] {
 					if mentioned, ok := mentionedChannelsByName[channelMention]; ok {
-						if mentioned.Type == model.ChannelOpen {
+						if mentioned.Type == model.ChannelTypeOpen {
 							channelMentionsProp[mentioned.Name] = map[string]interface{}{
 								"display_name": mentioned.DisplayName,
 							}

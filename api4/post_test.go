@@ -1293,7 +1293,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	CheckNoError(t, resp)
 	require.Empty(t, rpl.Posts)
 
-	channel4 := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelPrivate)
+	channel4 := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 	post5 := th.CreatePostWithClient(th.SystemAdminClient, channel4)
 
 	preference.Name = post5.Id

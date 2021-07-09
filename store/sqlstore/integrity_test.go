@@ -29,7 +29,7 @@ func createChannel(ss store.Store, teamId, creatorId string) *model.Channel {
 	m.CreatorId = creatorId
 	m.DisplayName = "Name"
 	m.Name = "zz" + model.NewId() + "b"
-	m.Type = model.ChannelOpen
+	m.Type = model.ChannelTypeOpen
 	c, _ := ss.Channel().Save(&m, -1)
 	return c
 }
@@ -41,7 +41,7 @@ func createChannelWithSchemeId(ss store.Store, schemeId *string) *model.Channel 
 	m.CreatorId = model.NewId()
 	m.DisplayName = "Name"
 	m.Name = "zz" + model.NewId() + "b"
-	m.Type = model.ChannelOpen
+	m.Type = model.ChannelTypeOpen
 	c, _ := ss.Channel().Save(&m, -1)
 	return c
 }

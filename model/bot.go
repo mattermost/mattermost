@@ -242,7 +242,7 @@ func MakeBotNotFoundError(userId string) *AppError {
 }
 
 func IsBotDMChannel(channel *Channel, botUserID string) bool {
-	if channel.Type != ChannelDirect {
+	if channel.Type != ChannelTypeDirect {
 		return false
 	}
 

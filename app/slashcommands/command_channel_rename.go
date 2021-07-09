@@ -48,14 +48,14 @@ func (*RenameProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	}
 
 	switch channel.Type {
-	case model.ChannelOpen:
+	case model.ChannelTypeOpen:
 		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
-	case model.ChannelPrivate:
+	case model.ChannelTypePrivate:
 		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),

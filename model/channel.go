@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	ChannelOpen                = "O"
-	ChannelPrivate             = "P"
-	ChannelDirect              = "D"
-	ChannelGroup               = "G"
+	ChannelTypeOpen    = "O"
+	ChannelTypePrivate = "P"
+	ChannelTypeDirect  = "D"
+	ChannelTypeGroup   = "G"
+
 	ChannelGroupMaxUsers       = 8
 	ChannelGroupMinUsers       = 3
 	DefaultChannel             = "town-square"
@@ -238,7 +239,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelOpen || o.Type == ChannelPrivate || o.Type == ChannelDirect || o.Type == ChannelGroup) {
+	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -255,7 +256,7 @@ func (o *Channel) IsValid() *AppError {
 	}
 
 	userIds := strings.Split(o.Name, "__")
-	if o.Type != ChannelDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
+	if o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -282,11 +283,11 @@ func (o *Channel) PreUpdate() {
 }
 
 func (o *Channel) IsGroupOrDirect() bool {
-	return o.Type == ChannelDirect || o.Type == ChannelGroup
+	return o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup
 }
 
 func (o *Channel) IsOpen() bool {
-	return o.Type == ChannelOpen
+	return o.Type == ChannelTypeOpen
 }
 
 func (o *Channel) Patch(patch *ChannelPatch) {
@@ -332,7 +333,7 @@ func (o *Channel) IsShared() bool {
 }
 
 func (o *Channel) GetOtherUserIdForDM(userId string) string {
-	if o.Type != ChannelDirect {
+	if o.Type != ChannelTypeDirect {
 		return ""
 	}
 

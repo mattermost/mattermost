@@ -413,7 +413,7 @@ func TestPostChannelMentions(t *testing.T) {
 	channelToMention, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "Mention Test",
 		Name:        "mention-test",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 	}, false)
 	require.Nil(t, err)

@@ -501,7 +501,7 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 
 	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", "invalid"))
 
-	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelOpen, newTeam.Id)
+	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, newTeam.Id)
 	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", channel.Name)
 
 	_, webhookErr := th.App.GetOutgoingWebhook(oldHook.Id)

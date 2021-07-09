@@ -22,7 +22,7 @@ func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (
 }
 
 func (a *App) SendAutoResponseIfNecessary(c *request.Context, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
-	if channel.Type != model.ChannelDirect {
+	if channel.Type != model.ChannelTypeDirect {
 		return false, nil
 	}
 

@@ -173,7 +173,7 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 
 	if data.Type == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.type_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.Type != model.ChannelOpen && *data.Type != model.ChannelPrivate {
+	} else if *data.Type != model.ChannelTypeOpen && *data.Type != model.ChannelTypePrivate {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.type_invalid.error", nil, "", http.StatusBadRequest)
 	}
 

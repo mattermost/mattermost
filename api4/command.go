@@ -315,7 +315,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.Type != model.ChannelDirect && channel.Type != model.ChannelGroup {
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
 		// if this isn't a DM or GM, the team id is implicitly taken from the channel so that slash commands created on
 		// some other team can't be run against this one
 		commandArgs.TeamId = channel.TeamId

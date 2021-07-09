@@ -2032,7 +2032,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		channel, err := th.App.CreateChannelWithUser(th.Context, &model.Channel{
 			DisplayName: "User Created Channel",
 			Name:        "user-created-channel",
-			Type:        model.ChannelOpen,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -4745,7 +4745,7 @@ func TestGetUsersByStatus(t *testing.T) {
 	channel, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      team.Id,
 		CreatorId:   model.NewId(),
 	}, false)
@@ -5171,7 +5171,7 @@ func TestGetKnownUsers(t *testing.T) {
 	c1, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      t1.Id,
 		CreatorId:   model.NewId(),
 	}, false)
@@ -5180,7 +5180,7 @@ func TestGetKnownUsers(t *testing.T) {
 	c2, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      t2.Id,
 		CreatorId:   model.NewId(),
 	}, false)
@@ -5189,7 +5189,7 @@ func TestGetKnownUsers(t *testing.T) {
 	c3, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      t3.Id,
 		CreatorId:   model.NewId(),
 	}, false)

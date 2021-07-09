@@ -60,19 +60,19 @@ func (th *SearchTestHelper) SetupBasicFixtures() error {
 	}
 
 	// Create channels
-	channelBasic, err := th.createChannel(team.Id, "channel-a", "ChannelA", "", model.ChannelOpen, false)
+	channelBasic, err := th.createChannel(team.Id, "channel-a", "ChannelA", "", model.ChannelTypeOpen, false)
 	if err != nil {
 		return err
 	}
-	channelPrivate, err := th.createChannel(team.Id, "channel-private", "ChannelPrivate", "", model.ChannelPrivate, false)
+	channelPrivate, err := th.createChannel(team.Id, "channel-private", "ChannelPrivate", "", model.ChannelTypePrivate, false)
 	if err != nil {
 		return err
 	}
-	channelDeleted, err := th.createChannel(team.Id, "channel-deleted", "ChannelA (deleted)", "", model.ChannelOpen, true)
+	channelDeleted, err := th.createChannel(team.Id, "channel-deleted", "ChannelA (deleted)", "", model.ChannelTypeOpen, true)
 	if err != nil {
 		return err
 	}
-	channelAnotherTeam, err := th.createChannel(anotherTeam.Id, "channel-a", "ChannelA", "", model.ChannelOpen, false)
+	channelAnotherTeam, err := th.createChannel(anotherTeam.Id, "channel-a", "ChannelA", "", model.ChannelTypeOpen, false)
 	if err != nil {
 		return err
 	}
@@ -266,7 +266,7 @@ func (th *SearchTestHelper) createDirectChannel(teamID, name, displayName string
 		TeamId:      teamID,
 		Name:        name,
 		DisplayName: displayName,
-		Type:        model.ChannelDirect,
+		Type:        model.ChannelTypeDirect,
 	}
 
 	m1 := &model.ChannelMember{}
@@ -296,7 +296,7 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 		TeamId:      teamID,
 		Name:        model.GetGroupNameFromUserIds(userIDS),
 		DisplayName: displayName,
-		Type:        model.ChannelGroup,
+		Type:        model.ChannelTypeGroup,
 	}
 
 	channel, err := th.Store.Channel().Save(group, 10000)

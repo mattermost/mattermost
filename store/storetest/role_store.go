@@ -430,7 +430,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		TeamId:      team1.Id,
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme1.Id,
 	}
 	channel1, nErr := ss.Channel().Save(channel1, -1)
@@ -441,7 +441,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		TeamId:      team2.Id,
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme2.Id,
 	}
 	channel2, nErr = ss.Channel().Save(channel2, -1)
@@ -553,7 +553,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 		TeamId:      team.Id,
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme.Id,
 	}
 	channel, nErr := ss.Channel().Save(channel, -1)

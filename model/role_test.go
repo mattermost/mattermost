@@ -237,13 +237,13 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 		{
 			"Filters non moderated permissions",
 			[]string{PermissionCreateBot.Id},
-			ChannelOpen,
+			ChannelTypeOpen,
 			map[string]bool{},
 		},
 		{
 			"Returns a map of moderated permissions",
 			[]string{PermissionCreatePost.Id, PermissionAddReaction.Id, PermissionRemoveReaction.Id, PermissionManagePublicChannelMembers.Id, PermissionManagePrivateChannelMembers.Id, PermissionUseChannelMentions.Id},
-			ChannelOpen,
+			ChannelTypeOpen,
 			map[string]bool{
 				ChannelModeratedPermissions[0]: true,
 				ChannelModeratedPermissions[1]: true,
@@ -254,7 +254,7 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 		{
 			"Returns a map of moderated permissions when non moderated present",
 			[]string{PermissionCreatePost.Id, PermissionCreateDirectChannel.Id},
-			ChannelOpen,
+			ChannelTypeOpen,
 			map[string]bool{
 				ChannelModeratedPermissions[0]: true,
 			},
@@ -262,7 +262,7 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 		{
 			"Returns a nothing when no permissions present",
 			[]string{},
-			ChannelOpen,
+			ChannelTypeOpen,
 			map[string]bool{},
 		},
 	}

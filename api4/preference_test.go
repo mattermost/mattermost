@@ -309,7 +309,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
 		require.Nil(t, resp.Error)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelOpen, team1.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
@@ -445,7 +445,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp = client2.GetSidebarCategoriesForTeamForUser(user2.Id, team1.Id, "")
 		require.Nil(t, resp.Error)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelOpen, team1.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 		th.AddUserToChannel(user2, channel)
 
@@ -638,7 +638,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
 		require.Nil(t, resp.Error)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelOpen, team1.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
@@ -772,7 +772,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp = client2.GetSidebarCategoriesForTeamForUser(user2.Id, team1.Id, "")
 		require.Nil(t, resp.Error)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelOpen, team1.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 		th.AddUserToChannel(user2, channel)
 

@@ -93,7 +93,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 
 	// Permissions Check
 	switch channelToJoin.Type {
-	case model.ChannelOpen:
+	case model.ChannelTypeOpen:
 		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PermissionManagePublicChannelMembers) {
 			return &model.CommandResponse{
 				Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{
@@ -103,7 +103,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
-	case model.ChannelPrivate:
+	case model.ChannelTypePrivate:
 		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PermissionManagePrivateChannelMembers) {
 			if _, err = a.GetChannelMember(context.Background(), channelToJoin.Id, args.UserId); err == nil {
 				// User doing the inviting is a member of the channel.

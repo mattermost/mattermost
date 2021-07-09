@@ -130,7 +130,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.ChannelOpen
+	c1.Type = model.ChannelTypeOpen
 	c1, nErr = ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -259,7 +259,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.ChannelOpen
+	c1.Type = model.ChannelTypeOpen
 	c1, nErr = ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -438,7 +438,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -542,7 +542,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Private Channel",
-		Type:        model.ChannelPrivate,
+		Type:        model.ChannelTypePrivate,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -740,7 +740,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	groupMessageChannel := &model.Channel{
 		TeamId: team.Id,
 		Name:   model.NewId(),
-		Type:   model.ChannelGroup,
+		Type:   model.ChannelTypeGroup,
 	}
 	groupMessageChannel, nErr = ss.Channel().Save(groupMessageChannel, -1)
 	require.NoError(t, nErr)
@@ -814,7 +814,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -906,7 +906,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -1017,7 +1017,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -1102,7 +1102,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)

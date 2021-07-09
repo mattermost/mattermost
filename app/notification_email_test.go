@@ -76,7 +76,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -107,7 +107,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelGroup,
+		Type:        model.ChannelTypeGroup,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -138,7 +138,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelPrivate,
+		Type:        model.ChannelTypePrivate,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -169,7 +169,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelDirect,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -204,7 +204,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelDirect,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -238,7 +238,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelDirect,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -291,7 +291,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelDirect,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -324,7 +324,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelDirect,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -354,7 +354,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -384,7 +384,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelGroup,
+		Type:        model.ChannelTypeGroup,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -414,7 +414,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelPrivate,
+		Type:        model.ChannelTypePrivate,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -444,7 +444,7 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelDirect,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -470,7 +470,7 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 
 	ch := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	recipient := &model.User{}
@@ -505,7 +505,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	ch := &model.Channel{
 		Name:        "channelname",
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	id := model.NewId()
 	recipient := &model.User{
@@ -551,7 +551,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnameone",
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention := "~" + ch.Name
 
@@ -559,7 +559,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnametwo",
 		DisplayName: "ChannelName2",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention2 := "~" + ch2.Name
 
@@ -567,7 +567,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnamethree",
 		DisplayName: "ChannelName3",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention3 := "~" + ch3.Name
 
@@ -620,7 +620,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	ch := &model.Channel{
 		Name:        "channelname",
 		DisplayName: "ChannelName",
-		Type:        model.ChannelPrivate,
+		Type:        model.ChannelTypePrivate,
 	}
 	id := model.NewId()
 	recipient := &model.User{
@@ -665,7 +665,7 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	ch := &model.Channel{
 		Name:        "channelname",
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	message := "This is the message "
 	mention := "~" + ch.Name
@@ -697,7 +697,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnameone",
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention := "~" + ch.Name
 
@@ -705,7 +705,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnametwo",
 		DisplayName: "ChannelName2",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention2 := "~" + ch2.Name
 
@@ -713,7 +713,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnamethree",
 		DisplayName: "ChannelName3",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention3 := "~" + ch3.Name
 
@@ -750,7 +750,7 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 	ch := &model.Channel{
 		Name:        "channelname",
 		DisplayName: "ChannelName",
-		Type:        model.ChannelPrivate,
+		Type:        model.ChannelTypePrivate,
 	}
 	message := "This is the message ~" + ch.Name
 
@@ -781,7 +781,7 @@ func TestLandingLink(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
@@ -811,7 +811,7 @@ func TestLandingLinkPermalink(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"

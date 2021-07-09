@@ -53,7 +53,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(post.ChannelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
-		if channel.Type == model.ChannelOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
+		if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
 			hasPermission = true
 		}
 	}
@@ -351,7 +351,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
-		if channel.Type == model.ChannelOpen {
+		if channel.Type == model.ChannelTypeOpen {
 			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
 				c.SetPermissionError(model.PermissionReadPublicChannel)
 				return
@@ -437,7 +437,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
-		if channel.Type == model.ChannelOpen {
+		if channel.Type == model.ChannelTypeOpen {
 			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
 				c.SetPermissionError(model.PermissionReadPublicChannel)
 				return

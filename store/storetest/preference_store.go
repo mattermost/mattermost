@@ -343,7 +343,7 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 	category := model.PreferenceCategoryFlaggedPost

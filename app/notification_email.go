@@ -87,9 +87,9 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	}
 
 	var subjectText string
-	if channel.Type == model.ChannelDirect {
+	if channel.Type == model.ChannelTypeDirect {
 		subjectText = getDirectMessageNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, senderName, useMilitaryTime)
-	} else if channel.Type == model.ChannelGroup {
+	} else if channel.Type == model.ChannelTypeGroup {
 		subjectText = getGroupMessageNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType, useMilitaryTime)
 	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
 		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channelName+")", useMilitaryTime)
@@ -226,11 +226,11 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	data.Props["NotificationFooterInfoLogin"] = translateFunc("app.notification.footer.infoLogin")
 	data.Props["NotificationFooterInfo"] = translateFunc("app.notification.footer.info")
 
-	if channel.Type == model.ChannelDirect {
+	if channel.Type == model.ChannelTypeDirect {
 		// Direct Messages
 		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]interface{}{"SenderName": senderName})
-	} else if channel.Type == model.ChannelGroup {
+	} else if channel.Type == model.ChannelTypeGroup {
 		// Group Messages
 		data.Props["Title"] = translateFunc("app.notification.body.group.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.group.subTitle", map[string]interface{}{"SenderName": senderName})
@@ -311,7 +311,7 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 
 	visited := make(map[string]bool)
 	for _, ch := range channels {
-		if !visited[ch.Id] && ch.Type == model.ChannelOpen {
+		if !visited[ch.Id] && ch.Type == model.ChannelTypeOpen {
 			channelURL := teamURL + "/channels/" + ch.Name
 			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
 			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)

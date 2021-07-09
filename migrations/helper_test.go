@@ -156,7 +156,7 @@ func (th *TestHelper) CreateUser() *model.User {
 }
 
 func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.ChannelOpen)
+	return th.createChannel(team, model.ChannelTypeOpen)
 }
 
 func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {

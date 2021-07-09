@@ -68,7 +68,7 @@ func (*MuteProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 	}
 
 	// Direct and Group messages won't have a nice channel title, omit it
-	if channel.Type == model.ChannelDirect || channel.Type == model.ChannelGroup {
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		if channelMember.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelNotifyMention {
 			return &model.CommandResponse{Text: args.T("api.command_mute.success_mute_direct_msg"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

@@ -145,7 +145,7 @@ func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastP
 	m.CreatorId = creatorId
 	m.DisplayName = "Name"
 	m.Name = "zz" + model.NewId() + "b"
-	m.Type = model.ChannelOpen
+	m.Type = model.ChannelTypeOpen
 	return ss.Channel().Save(&m, -1)
 }
 

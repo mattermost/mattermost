@@ -22,7 +22,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	publicChannel, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
@@ -30,7 +30,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	privateChannel, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "BB",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)

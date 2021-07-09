@@ -442,7 +442,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &d5.Id,
 	}
 	c5, nErr := ss.Channel().Save(c5, -1)

@@ -143,16 +143,16 @@ func (si *SlackImporter) SlackImport(fileData multipart.File, fileSize int64, te
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
 		}
 		if file.Name == "channels.json" {
-			publicChannels, _ = slackParseChannels(reader, model.ChannelOpen)
+			publicChannels, _ = slackParseChannels(reader, model.ChannelTypeOpen)
 			channels = append(channels, publicChannels...)
 		} else if file.Name == "dms.json" {
-			directChannels, _ = slackParseChannels(reader, model.ChannelDirect)
+			directChannels, _ = slackParseChannels(reader, model.ChannelTypeDirect)
 			channels = append(channels, directChannels...)
 		} else if file.Name == "groups.json" {
-			privateChannels, _ = slackParseChannels(reader, model.ChannelPrivate)
+			privateChannels, _ = slackParseChannels(reader, model.ChannelTypePrivate)
 			channels = append(channels, privateChannels...)
 		} else if file.Name == "mpims.json" {
-			groupChannels, _ = slackParseChannels(reader, model.ChannelGroup)
+			groupChannels, _ = slackParseChannels(reader, model.ChannelTypeGroup)
 			channels = append(channels, groupChannels...)
 		} else if file.Name == "users.json" {
 			users, _ = slackParseUsers(reader)
@@ -582,7 +582,7 @@ func (si *SlackImporter) slackAddChannels(teamId string, slackchannels []slackCh
 		}
 
 		// Direct message channels in Slack don't have a name so we set the id as name or else the messages won't get imported.
-		if newChannel.Type == model.ChannelDirect {
+		if newChannel.Type == model.ChannelTypeDirect {
 			sChannel.Name = sChannel.Id
 		}
 
@@ -610,7 +610,7 @@ func (si *SlackImporter) slackAddChannels(teamId string, slackchannels []slackCh
 		}
 
 		// Members for direct and group channels are added during the creation of the channel in the oldImportChannel function
-		if sChannel.Type == model.ChannelOpen || sChannel.Type == model.ChannelPrivate {
+		if sChannel.Type == model.ChannelTypeOpen || sChannel.Type == model.ChannelTypePrivate {
 			si.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
 		}
 		importerLog.WriteString(newChannel.DisplayName + "\r\n")
@@ -704,7 +704,7 @@ func (si *SlackImporter) oldImportUser(team *model.Team, user *model.User) *mode
 
 func (si *SlackImporter) oldImportChannel(channel *model.Channel, sChannel slackChannel, users map[string]*model.User) *model.Channel {
 	switch {
-	case channel.Type == model.ChannelDirect:
+	case channel.Type == model.ChannelTypeDirect:
 		if len(sChannel.Members) < 2 {
 			return nil
 		}
@@ -721,7 +721,7 @@ func (si *SlackImporter) oldImportChannel(channel *model.Channel, sChannel slack
 
 		return sc
 	// check if direct channel has less than 8 members and if not import as private channel instead
-	case channel.Type == model.ChannelGroup && len(sChannel.Members) < 8:
+	case channel.Type == model.ChannelTypeGroup && len(sChannel.Members) < 8:
 		members := make([]string, len(sChannel.Members))
 
 		for i := range sChannel.Members {
@@ -743,8 +743,8 @@ func (si *SlackImporter) oldImportChannel(channel *model.Channel, sChannel slack
 		}
 
 		return sc
-	case channel.Type == model.ChannelGroup:
-		channel.Type = model.ChannelPrivate
+	case channel.Type == model.ChannelTypeGroup:
+		channel.Type = model.ChannelTypePrivate
 		sc, err := si.actions.CreateChannel(channel, false)
 		if err != nil {
 			return nil

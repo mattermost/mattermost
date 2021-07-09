@@ -391,13 +391,13 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 	}
 
 	sqlResult, err := s.GetMaster().Exec(`
-		UPDATE 
-			Reactions 
-		SET 
-			UpdateAt=:UpdateAt 
-		WHERE 
-			UserId = :UserId AND 
-			PostId = :PostId AND 
+		UPDATE
+			Reactions
+		SET
+			UpdateAt=:UpdateAt
+		WHERE
+			UserId = :UserId AND
+			PostId = :PostId AND
 			EmojiName = :EmojiName`, params,
 	)
 
@@ -534,7 +534,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 	olderPost, err := ss.Post().Save(&model.Post{

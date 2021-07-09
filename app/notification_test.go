@@ -263,7 +263,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	t.Run("should not return results for a direct message", func(t *testing.T) {
 		post := &model.Post{}
 		directChannel := &model.Channel{
-			Type: model.ChannelDirect,
+			Type: model.ChannelTypeDirect,
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
@@ -277,7 +277,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	t.Run("should not return results for a group message", func(t *testing.T) {
 		post := &model.Post{}
 		groupChannel := &model.Channel{
-			Type: model.ChannelGroup,
+			Type: model.ChannelTypeGroup,
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
@@ -1719,49 +1719,49 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		expected    string
 	}{
 		"regular channel": {
-			channel:  &model.Channel{Type: model.ChannelOpen, Name: "channel", DisplayName: "My Channel"},
+			channel:  &model.Channel{Type: model.ChannelTypeOpen, Name: "channel", DisplayName: "My Channel"},
 			expected: "My Channel",
 		},
 		"direct channel, unspecified": {
-			channel:  &model.Channel{Type: model.ChannelDirect},
+			channel:  &model.Channel{Type: model.ChannelTypeDirect},
 			expected: "@sender",
 		},
 		"direct channel, username": {
-			channel:    &model.Channel{Type: model.ChannelDirect},
+			channel:    &model.Channel{Type: model.ChannelTypeDirect},
 			nameFormat: model.ShowUsername,
 			expected:   "@sender",
 		},
 		"direct channel, full name": {
-			channel:    &model.Channel{Type: model.ChannelDirect},
+			channel:    &model.Channel{Type: model.ChannelTypeDirect},
 			nameFormat: model.ShowFullname,
 			expected:   "Sender Sender",
 		},
 		"direct channel, nickname": {
-			channel:    &model.Channel{Type: model.ChannelDirect},
+			channel:    &model.Channel{Type: model.ChannelTypeDirect},
 			nameFormat: model.ShowNicknameFullname,
 			expected:   "Sender",
 		},
 		"group channel, unspecified": {
-			channel:  &model.Channel{Type: model.ChannelGroup},
+			channel:  &model.Channel{Type: model.ChannelTypeGroup},
 			expected: "other, sender",
 		},
 		"group channel, username": {
-			channel:    &model.Channel{Type: model.ChannelGroup},
+			channel:    &model.Channel{Type: model.ChannelTypeGroup},
 			nameFormat: model.ShowUsername,
 			expected:   "other, sender",
 		},
 		"group channel, full name": {
-			channel:    &model.Channel{Type: model.ChannelGroup},
+			channel:    &model.Channel{Type: model.ChannelTypeGroup},
 			nameFormat: model.ShowFullname,
 			expected:   "Other Other, Sender Sender",
 		},
 		"group channel, nickname": {
-			channel:    &model.Channel{Type: model.ChannelGroup},
+			channel:    &model.Channel{Type: model.ChannelTypeGroup},
 			nameFormat: model.ShowNicknameFullname,
 			expected:   "Other, Sender",
 		},
 		"group channel, not excluding current user": {
-			channel:     &model.Channel{Type: model.ChannelGroup},
+			channel:     &model.Channel{Type: model.ChannelTypeGroup},
 			nameFormat:  model.ShowNicknameFullname,
 			expected:    "Other, Sender",
 			recipientId: "",
@@ -1788,7 +1788,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	defaultChannel := &model.Channel{Type: model.ChannelOpen}
+	defaultChannel := &model.Channel{Type: model.ChannelTypeOpen}
 	defaultPost := &model.Post{Props: model.StringInterface{}}
 	sender := &model.User{Id: model.NewId(), Username: "sender", FirstName: "Sender", LastName: "Sender", Nickname: "Sender"}
 
@@ -1831,7 +1831,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			expected:       overriddenPost.GetProp("override_username").(string),
 		},
 		"overridden username, direct channel": {
-			channel:        &model.Channel{Type: model.ChannelDirect},
+			channel:        &model.Channel{Type: model.ChannelTypeDirect},
 			post:           overriddenPost,
 			allowOverrides: true,
 			expected:       "@" + sender.Username,
@@ -2483,13 +2483,13 @@ func TestInsertGroupMentions(t *testing.T) {
 		mentions := &ExplicitMentions{}
 		emptyProfileMap := make(map[string]*model.User)
 
-		groupChannel := &model.Channel{Type: model.ChannelGroup}
+		groupChannel := &model.Channel{Type: model.ChannelTypeGroup}
 		usersMentioned, _ := th.App.insertGroupMentions(group, groupChannel, emptyProfileMap, mentions)
 		// Ensure group channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
 		require.Equal(t, len(mentions.Mentions), 0)
 
-		directChannel := &model.Channel{Type: model.ChannelDirect}
+		directChannel := &model.Channel{Type: model.ChannelTypeDirect}
 		usersMentioned, _ = th.App.insertGroupMentions(group, directChannel, emptyProfileMap, mentions)
 		// Ensure direct channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)

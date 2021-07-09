@@ -239,11 +239,11 @@ func WithShared(v bool) ChannelOption {
 }
 
 func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
-	return th.createChannel(team, model.ChannelOpen, options...)
+	return th.createChannel(team, model.ChannelTypeOpen, options...)
 }
 
 func (th *TestHelper) createPrivateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.ChannelPrivate)
+	return th.createChannel(team, model.ChannelTypePrivate)
 }
 
 func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {

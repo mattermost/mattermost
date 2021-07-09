@@ -101,14 +101,14 @@ func testJoinCommands(t *testing.T, alias string) {
 	team := th.BasicTeam
 	user2 := th.BasicUser2
 
-	channel0 := &model.Channel{DisplayName: "00", Name: "00" + model.NewId() + "a", Type: model.ChannelOpen, TeamId: team.Id}
+	channel0 := &model.Channel{DisplayName: "00", Name: "00" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel0 = Client.Must(Client.CreateChannel(channel0)).(*model.Channel)
 
-	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelOpen, TeamId: team.Id}
+	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).(*model.Channel)
 	Client.Must(Client.RemoveUserFromChannel(channel1.Id, th.BasicUser.Id))
 
-	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelOpen, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).(*model.Channel)
 	Client.Must(Client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id))
 
@@ -131,7 +131,7 @@ func testJoinCommands(t *testing.T, alias string) {
 	require.True(t, found, "did not join channel")
 
 	// test case insensitively
-	channel4 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelOpen, TeamId: team.Id}
+	channel4 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel4 = Client.Must(Client.CreateChannel(channel4)).(*model.Channel)
 	Client.Must(Client.RemoveUserFromChannel(channel4.Id, th.BasicUser.Id))
 	rs7 := Client.Must(Client.ExecuteCommand(channel0.Id, "/"+alias+" "+strings.ToUpper(channel4.Name))).(*model.CommandResponse)
@@ -250,11 +250,11 @@ func TestLeaveCommands(t *testing.T) {
 	team := th.BasicTeam
 	user2 := th.BasicUser2
 
-	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelOpen, TeamId: team.Id}
+	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).(*model.Channel)
 	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser.Id))
 
-	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelPrivate, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypePrivate, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).(*model.Channel)
 	Client.Must(Client.AddChannelMember(channel2.Id, th.BasicUser.Id))
 	Client.Must(Client.AddChannelMember(channel2.Id, user2.Id))

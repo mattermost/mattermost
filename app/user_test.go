@@ -526,7 +526,7 @@ func TestGetUsersByStatus(t *testing.T) {
 	channel, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
-		Type:        model.ChannelOpen,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      team.Id,
 		CreatorId:   model.NewId(),
 	}, false)

@@ -171,20 +171,20 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 
 	// If the post only has images then push an appropriate message
 	if postMessage == "" && hasFiles {
-		if channelType == model.ChannelDirect {
+		if channelType == model.ChannelTypeDirect {
 			return strings.Trim(userLocale("api.post.send_notifications_and_forget.push_image_only"), " ")
 		}
 		return senderName + userLocale("api.post.send_notifications_and_forget.push_image_only")
 	}
 
 	if contentsConfig == model.FullNotification {
-		if channelType == model.ChannelDirect {
+		if channelType == model.ChannelTypeDirect {
 			return model.ClearMentionTags(postMessage)
 		}
 		return senderName + ": " + model.ClearMentionTags(postMessage)
 	}
 
-	if channelType == model.ChannelDirect {
+	if channelType == model.ChannelTypeDirect {
 		return userLocale("api.post.send_notifications_and_forget.push_message")
 	}
 
@@ -566,7 +566,7 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	}
 
 	cfg := a.Config()
-	if contentsConfig != model.GenericNoChannelNotification || channel.Type == model.ChannelDirect {
+	if contentsConfig != model.GenericNoChannelNotification || channel.Type == model.ChannelTypeDirect {
 		msg.ChannelName = channelName
 	}
 

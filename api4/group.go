@@ -483,7 +483,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		}
 
 		var permission *model.Permission
-		if channel.Type == model.ChannelPrivate {
+		if channel.Type == model.ChannelTypePrivate {
 			permission = model.PermissionManagePrivateChannelMembers
 		} else {
 			permission = model.PermissionManagePublicChannelMembers
@@ -617,7 +617,7 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var permission *model.Permission
-	if channel.Type == model.ChannelPrivate {
+	if channel.Type == model.ChannelTypePrivate {
 		permission = model.PermissionReadPrivateChannelGroups
 	} else {
 		permission = model.PermissionReadPublicChannelGroups
@@ -779,7 +779,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var permission *model.Permission
-		if channel.Type == model.ChannelPrivate {
+		if channel.Type == model.ChannelTypePrivate {
 			permission = model.PermissionManagePrivateChannelMembers
 		} else {
 			permission = model.PermissionManagePublicChannelMembers
