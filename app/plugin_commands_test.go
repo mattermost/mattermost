@@ -78,7 +78,7 @@ func TestPluginCommand(t *testing.T) {
 
 			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				return &model.CommandResponse{
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					ResponseType: model.CommandResponseTypeEphemeral,
 					Text: "text",
 				}, nil
 			}
@@ -172,7 +172,7 @@ func TestPluginCommand(t *testing.T) {
 				p.API.LogInfo("ExecuteCommand, saved plugin config")
 
 				return &model.CommandResponse{
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					ResponseType: model.CommandResponseTypeEphemeral,
 					Text: "text",
 				}, nil
 			}
@@ -266,7 +266,7 @@ func TestPluginCommand(t *testing.T) {
 
 			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				return &model.CommandResponse{
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					ResponseType: model.CommandResponseTypeEphemeral,
 					Text: "text",
 				}, nil
 			}
