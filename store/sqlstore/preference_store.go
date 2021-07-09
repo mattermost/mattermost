@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -81,66 +79,27 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		return err
 	}
 
+	query := s.getQueryBuilder().
+		Insert("Preferences").
+		Columns("UserId", "Category", "Name", "Value").
+		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
+
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		queryString, args, err := s.getQueryBuilder().
-			Insert("Preferences").
-			Columns("UserId", "Category", "Name", "Value").
-			Values(preference.UserId, preference.Category, preference.Name, preference.Value).
-			SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value)).
-			ToSql()
-
-		if err != nil {
-			return errors.Wrap(err, "failed to generate sqlquery")
-		}
-
-		if _, err = transaction.Exec(queryString, args...); err != nil {
-			return errors.Wrap(err, "failed to save Preference")
-		}
-		return nil
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-
-		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
-		queryString, args, err := s.getQueryBuilder().
-			Select("count(0)").
-			From("Preferences").
-			Where(sq.Eq{"UserId": preference.UserId}).
-			Where(sq.Eq{"Category": preference.Category}).
-			Where(sq.Eq{"Name": preference.Name}).
-			ToSql()
-
-		if err != nil {
-			return errors.Wrap(err, "failed to generate sqlquery")
-		}
-
-		count, err := transaction.SelectInt(queryString, args...)
-		if err != nil {
-			return errors.Wrap(err, "failed to count Preferences")
-		}
-
-		if count == 1 {
-			return s.update(transaction, preference)
-		}
-		return s.insert(transaction, preference)
-	}
-	return store.NewErrNotImplemented("failed to update preference because of missing driver")
-}
-
-func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) error {
-	if err := transaction.Insert(preference); err != nil {
-		if IsUniqueConstraintError(err, []string{"UserId", "preferences_pkey"}) {
-			return store.NewErrInvalidInput("Preference", "<userId, category, name>", fmt.Sprintf("<%s, %s, %s>", preference.UserId, preference.Category, preference.Name))
-		}
-		return errors.Wrapf(err, "failed to save Preference with userId=%s, category=%s, name=%s", preference.UserId, preference.Category, preference.Name)
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
+	} else {
+		return store.NewErrNotImplemented("failed to update preference because of missing driver")
 	}
 
-	return nil
-}
-
-func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) error {
-	if _, err := transaction.Update(preference); err != nil {
-		return errors.Wrapf(err, "failed to update Preference with userId=%s, category=%s, name=%s", preference.UserId, preference.Category, preference.Name)
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to generate sqlquery")
 	}
 
+	if _, err = transaction.Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "failed to save Preference")
+	}
 	return nil
 }
 
