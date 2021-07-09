@@ -8974,24 +8974,6 @@ func (s *OpenTracingLayerThreadStore) Get(id string) (*model.Thread, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) GetAllThreadsNewerThanChannelLastViewedAt() ([]*model.ThreadsNewerThanChannelLastViewedAt, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetAllThreadsNewerThanChannelLastViewedAt")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.ThreadStore.GetAllThreadsNewerThanChannelLastViewedAt()
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
 func (s *OpenTracingLayerThreadStore) GetMembershipForUser(userId string, postID string) (*model.ThreadMembership, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetMembershipForUser")

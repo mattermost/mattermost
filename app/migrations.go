@@ -5,13 +5,11 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -326,85 +324,8 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
 	}
 }
 
-// DoCRTFixMentionCountsInThreadsMigration fixes mention counts in threads for users
-// who have newer replies in threads than the last time the user viewed the channel.
-func (a *App) DoCRTFixMentionCountsInThreadsMigration() {
-	// If the migration is already marked as completed, don't do it again.
-	if _, err := a.Srv().Store.System().GetByName(CRTThreadMentionCountsFixKey); err == nil {
-		return
-	}
-	newerThreadsInfo, err := a.Srv().Store.Thread().GetAllThreadsNewerThanChannelLastViewedAt()
-	var nfErr *store.ErrNotFound
-	if errors.As(err, &nfErr) {
-		mlog.Warn("Did not find any threads to fix", mlog.Err(err))
-		return
-	}
-	usersById := make(map[string]*model.User)
-	var user *model.User
-	var rootPost *model.Post
-	var appErr *model.AppError
-	var ok bool
-	var prevThreadId string
-	for _, t := range newerThreadsInfo {
-		// We could potentially have hundreds of thousands of threads
-		// GetAllThreadsNewerThanChannelLastViewedAt orders by ThreadId
-		// This way we don't have to fetch the root post for every iteration
-		// and we don't have to maintain a huge map of known root posts
-		if t.ThreadId != prevThreadId {
-			rootPost, appErr = a.GetSinglePost(t.ThreadId)
-			if appErr != nil {
-				mlog.Warn("Failed to get post", mlog.Err(appErr), mlog.String("userId", t.UserId))
-				continue
-			}
-		}
-		prevThreadId = t.ThreadId
-
-		if user, ok = usersById[t.UserId]; !ok {
-			user, appErr = a.GetUser(t.UserId)
-			if appErr != nil {
-				mlog.Warn("Failed to get user", mlog.Err(appErr), mlog.String("userId", t.UserId))
-				continue
-			}
-			usersById[t.UserId] = user
-		}
-
-		// get membership
-		membership, err := a.Srv().Store.Thread().GetMembershipForUser(t.UserId, t.ThreadId)
-		if err != nil {
-			mlog.Warn("Failed to get threadmembership", mlog.Err(err), mlog.String("threadId", t.ThreadId), mlog.String("userId", t.UserId))
-			continue
-		}
-
-		// update mentioncount
-		unreadMentions, appErr := a.countThreadMentions(user, rootPost, t.TeamId, t.LastViewedAt)
-		if appErr != nil {
-			mlog.Warn("Failed to calculate threadmembership mention counts", mlog.Err(err), mlog.String("threadId", t.ThreadId), mlog.String("userId", t.UserId), mlog.Int64("timestamp", t.LastViewedAt))
-			continue
-		}
-		membership.UnreadMentions = unreadMentions
-		// update lastviewed
-		membership.LastViewed = t.LastViewedAt
-		// set last updated to now
-		membership.LastUpdated = model.GetMillis()
-		_, err = a.Srv().Store.Thread().UpdateMembership(membership)
-		if err != nil {
-			mlog.Warn("Failed to update threadmembership", mlog.Err(err), mlog.String("threadId", t.ThreadId), mlog.String("userId", t.UserId))
-			continue
-		}
-	}
-	system := model.System{
-		Name:  CRTThreadMentionCountsFixKey,
-		Value: "true",
-	}
-
-	if err := a.Srv().Store.System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark CRT thread mention count fix migration as completed.", mlog.Err(err))
-	}
-}
-
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
-	a.DoCRTFixMentionCountsInThreadsMigration()
 }
 
 func (s *Server) doAppMigrations() {

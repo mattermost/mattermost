@@ -1211,7 +1211,6 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 
 	fixCRTThreadCountsAndUnreads(sqlStore)
 	fixCRTChannelMembershipCounts(sqlStore)
-	fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore)
 
 	// saveSchemaVersion(sqlStore, Version5370)
 	// }
@@ -1274,85 +1273,4 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().ExecNoTimeout(channelMembershipsCountsAndMentions); err != nil {
 		mlog.Error("Error updating counts and unreads for channelmemberships", mlog.Err(err))
 	}
-}
-
-// fixCRTChannelUnreadsForJoinLeaveMessages marks channels as read for users
-// if there are only system posts after the last time the user viewed the channel
-func fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore *SqlStore) {
-	now := fmt.Sprintf("%d", model.GetMillis())
-
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		systemMessagesFixQuery := `
-			WITH
-			cte1 AS (SELECT ChannelId, UserId, LastViewedAt FROM ChannelMembers INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id WHERE ChannelMembers.MsgCountRoot != Channels.TotalMsgCountRoot),
-			cte2 AS (SELECT ARRAY_AGG(DISTINCT Posts.Type) AS Typ, cte1.UserId, cte1.ChannelId FROM cte1 INNER JOIN Posts ON Posts.Channelid = cte1.ChannelId WHERE Posts.Createat > cte1.LastViewedAt GROUP BY cte1.UserId, cte1.ChannelId),
-			cte3 AS (SELECT cte2.*, TotalMsgCountRoot, TotalMsgCount FROM cte2 INNER JOIN Channels on cte2.ChannelId = Channels.Id)
-			UPDATE ChannelMembers SET MsgCountRoot = cte3.TotalMsgCountRoot, MsgCount = cte3.TotalMsgCount, LastUpdateAt = ` + now + `
-			FROM cte3 WHERE cte3.UserId = ChannelMembers.UserId AND ChannelMembers.ChannelId = cte3.ChannelId and '' != ALL (cte3.Typ)
-		`
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(systemMessagesFixQuery); err != nil {
-			mlog.Error("Error updating unreads caused by join leave messages", mlog.Err(err))
-		}
-		return
-	}
-
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		trans, err := sqlStore.GetMaster().Begin()
-		if err != nil {
-			mlog.Critical("Error starting transaction", mlog.Err(err))
-		}
-
-		defer func() {
-			trans.ExecNoTimeout(`DROP TEMPORARY TABLE cte1;`)
-			trans.ExecNoTimeout(`DROP TEMPORARY TABLE cte2;`)
-			trans.ExecNoTimeout(`DROP TEMPORARY TABLE cte3;`)
-			if trans.Commit() != nil {
-				mlog.Error("Error committing transaction", mlog.Err(err))
-			}
-		}()
-
-		cte1 := `
-		        CREATE TEMPORARY TABLE cte1
-			SELECT ChannelId, UserId, LastViewedAt
-			FROM ChannelMembers INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
-			WHERE ChannelMembers.MsgCountRoot != Channels.TotalMsgCountRoot;
-		`
-		if _, err = trans.ExecNoTimeout(cte1); err != nil {
-			mlog.Error("Error creating first temporary table", mlog.Err(err))
-			return
-		}
-
-		cte2 := `
-		        CREATE TEMPORARY TABLE cte2
-			SELECT GROUP_CONCAT(DISTINCT Posts.Type) AS Typ, cte1.UserId, cte1.ChannelId
-			FROM cte1 INNER JOIN Posts ON Posts.Channelid = cte1.ChannelId
-			WHERE Posts.Createat > cte1.LastViewedAt GROUP BY cte1.UserId, cte1.ChannelId;
-		`
-		if _, err = trans.ExecNoTimeout(cte2); err != nil {
-			mlog.Error("Error creating second temporary table", mlog.Err(err))
-			return
-		}
-
-		cte3 := `
-			CREATE TEMPORARY TABLE cte3
-			SELECT cte2.*, TotalMsgCountRoot, TotalMsgCount
-			FROM cte2 INNER JOIN Channels on cte2.ChannelId = Channels.Id;
-		`
-		if _, err = trans.ExecNoTimeout(cte3); err != nil {
-			mlog.Error("Error creating third temporary table", mlog.Err(err))
-			return
-		}
-
-		systemMessagesFixQuery := `
-			UPDATE ChannelMembers
-			INNER JOIN cte3 ON cte3.UserId = ChannelMembers.UserId AND ChannelMembers.ChannelId = cte3.ChannelId
-			SET MsgCountRoot = cte3.TotalMsgCountRoot, MsgCount = cte3.TotalMsgCount, LastUpdateAt = ` + now + `
-			WHERE FIND_IN_SET("", cte3.typ) = 0 && cte3.typ != '';
-		`
-		if _, err = trans.ExecNoTimeout(systemMessagesFixQuery); err != nil {
-			mlog.Error("Error updating unreads caused by join leave messages", mlog.Err(err))
-		}
-		return
-	}
-	mlog.Error("Error unknown DB type")
 }
