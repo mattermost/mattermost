@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -102,25 +100,6 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 	if _, err = transaction.Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to save Preference")
 	}
-	return nil
-}
-
-func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) error {
-	if err := transaction.Insert(preference); err != nil {
-		if IsUniqueConstraintError(err, []string{"UserId", "preferences_pkey"}) {
-			return store.NewErrInvalidInput("Preference", "<userId, category, name>", fmt.Sprintf("<%s, %s, %s>", preference.UserId, preference.Category, preference.Name))
-		}
-		return errors.Wrapf(err, "failed to save Preference with userId=%s, category=%s, name=%s", preference.UserId, preference.Category, preference.Name)
-	}
-
-	return nil
-}
-
-func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) error {
-	if _, err := transaction.Update(preference); err != nil {
-		return errors.Wrapf(err, "failed to update Preference with userId=%s, category=%s, name=%s", preference.UserId, preference.Category, preference.Name)
-	}
-
 	return nil
 }
 
