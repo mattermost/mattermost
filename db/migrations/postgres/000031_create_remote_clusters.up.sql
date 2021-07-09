@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS remoteclusters (
     PRIMARY KEY (remoteid, name)
 );
 
-CREATE UNIQUE INDEX remote_clusters_site_url_unique ON remoteclusters (remoteteamid, siteurl(168));
+CREATE UNIQUE INDEX remote_clusters_site_url_unique ON remoteclusters (remoteteamid, siteurl);
