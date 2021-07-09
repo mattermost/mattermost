@@ -14,6 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
+
 type sqlRemoteClusterStore struct {
 	*SqlStore
 }
