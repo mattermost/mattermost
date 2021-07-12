@@ -1255,7 +1255,7 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 		}
 	}
 
-	channel, nErr := a.Srv().Store.Channel().GetByName(team.Id, model.DefaultChannel, false)
+	channel, nErr := a.Srv().Store.Channel().GetByName(team.Id, model.DefaultChannelName, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

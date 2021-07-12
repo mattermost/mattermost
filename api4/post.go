@@ -701,7 +701,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 
 	if c.App.Srv().License() != nil &&
 		*c.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		channel.Name == model.DefaultChannel &&
+		channel.Name == model.DefaultChannelName &&
 		!c.App.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
 		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.save_is_pinned_post.town_square_read_only", nil, "", http.StatusForbidden)
 		return

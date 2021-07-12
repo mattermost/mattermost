@@ -179,9 +179,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldChannel.Name == model.DefaultChannel {
+	if oldChannel.Name == model.DefaultChannelName {
 		if channel.Name != "" && channel.Name != oldChannel.Name {
-			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DefaultChannel}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 			return
 		}
 	}
@@ -249,7 +249,7 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if oldPublicChannel.Name == model.DefaultChannel {
+	if oldPublicChannel.Name == model.DefaultChannelName {
 		c.Err = model.NewAppError("convertChannelToPrivate", "api.channel.convert_channel_to_private.default_channel_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -309,7 +309,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.Name == model.DefaultChannel && privacy == model.ChannelTypePrivate {
+	if channel.Name == model.DefaultChannelName && privacy == model.ChannelTypePrivate {
 		c.Err = model.NewAppError("updateChannelPrivacy", "api.channel.update_channel_privacy.default_channel_error", nil, "", http.StatusBadRequest)
 		return
 	}

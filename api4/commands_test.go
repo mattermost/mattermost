@@ -262,10 +262,10 @@ func TestLeaveCommands(t *testing.T) {
 	channel3 := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id, user2.Id)).(*model.Channel)
 
 	rs1 := Client.Must(Client.ExecuteCommand(channel1.Id, "/leave")).(*model.CommandResponse)
-	require.True(t, strings.HasSuffix(rs1.GotoLocation, "/"+team.Name+"/channels/"+model.DefaultChannel), "failed to leave open channel 1")
+	require.True(t, strings.HasSuffix(rs1.GotoLocation, "/"+team.Name+"/channels/"+model.DefaultChannelName), "failed to leave open channel 1")
 
 	rs2 := Client.Must(Client.ExecuteCommand(channel2.Id, "/leave")).(*model.CommandResponse)
-	require.True(t, strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+model.DefaultChannel), "failed to leave private channel 1")
+	require.True(t, strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+model.DefaultChannelName), "failed to leave private channel 1")
 
 	_, err := Client.ExecuteCommand(channel3.Id, "/leave")
 	require.NotNil(t, err, "should fail leaving direct channel")
@@ -281,7 +281,7 @@ func TestLeaveCommands(t *testing.T) {
 	require.False(t, found, "did not leave right channels")
 
 	for _, c := range cdata {
-		if c.Name == model.DefaultChannel {
+		if c.Name == model.DefaultChannelName {
 			_, err := Client.RemoveUserFromChannel(c.Id, th.BasicUser.Id)
 			require.NotNil(t, err, "should have errored on leaving default channel")
 			break

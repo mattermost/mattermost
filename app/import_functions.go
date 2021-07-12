@@ -780,7 +780,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			channels[team.Id] = append(channels[team.Id], *tdata.Channels...)
 		}
 		if !user.IsGuest() {
-			channels[team.Id] = append(channels[team.Id], UserChannelImportData{Name: model.NewString(model.DefaultChannel)})
+			channels[team.Id] = append(channels[team.Id], UserChannelImportData{Name: model.NewString(model.DefaultChannelName)})
 		}
 
 		teamsByID[team.Id] = team
@@ -886,7 +886,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 		if !ok {
 			return model.NewAppError("BulkImport", "app.import.import_user_channels.channel_not_found.error", nil, "", http.StatusInternalServerError)
 		}
-		if _, ok = channelsByID[channel.Id]; ok && *cdata.Name == model.DefaultChannel {
+		if _, ok = channelsByID[channel.Id]; ok && *cdata.Name == model.DefaultChannelName {
 			// town-square membership was in the import and added by the importer (skip the added by the importer)
 			continue
 		}

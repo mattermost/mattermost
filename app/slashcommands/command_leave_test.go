@@ -35,7 +35,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		CreatorId:   th.BasicUser.Id,
 	}, false)
 
-	defaultChannel, err := th.App.GetChannelByName(model.DefaultChannel, th.BasicTeam.Id, false)
+	defaultChannel, err := th.App.GetChannelByName(model.DefaultChannelName, th.BasicTeam.Id, false)
 	require.Nil(t, err)
 
 	guest := th.createGuest()
@@ -78,7 +78,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		}
 		actual := lp.DoCommand(th.App, th.Context, args, "")
 		assert.Equal(t, "", actual.Text)
-		assert.Equal(t, args.SiteURL+"/"+th.BasicTeam.Name+"/channels/"+model.DefaultChannel, actual.GotoLocation)
+		assert.Equal(t, args.SiteURL+"/"+th.BasicTeam.Name+"/channels/"+model.DefaultChannelName, actual.GotoLocation)
 		assert.Equal(t, "", actual.ResponseType)
 
 		_, err = th.App.GetChannelMember(context.Background(), publicChannel.Id, th.BasicUser.Id)

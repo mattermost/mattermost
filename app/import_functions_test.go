@@ -1640,7 +1640,7 @@ func TestImportUserTeams(t *testing.T) {
 					Name: &th.BasicTeam.Name,
 					Channels: &[]UserChannelImportData{
 						{
-							Name: ptrStr(model.DefaultChannel),
+							Name: ptrStr(model.DefaultChannelName),
 						},
 					},
 				},

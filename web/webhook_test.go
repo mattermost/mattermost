@@ -134,7 +134,7 @@ func TestIncomingWebhook(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
 		// Read only default channel should fail.
-		resp, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DefaultChannel)))
+		resp, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DefaultChannelName)))
 		require.NoError(t, err)
 		assert.True(t, resp.StatusCode != http.StatusOK)
 
@@ -148,7 +148,7 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Nil(t, appErr)
 		adminUrl := ApiClient.Url + "/hooks/" + adminHook.Id
 
-		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DefaultChannel)))
+		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DefaultChannelName)))
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 

@@ -22,7 +22,7 @@ const (
 
 	ChannelGroupMaxUsers       = 8
 	ChannelGroupMinUsers       = 3
-	DefaultChannel             = "town-square"
+	DefaultChannelName         = "town-square"
 	ChannelDisplayNameMaxRunes = 64
 	ChannelNameMinLength       = 2
 	ChannelNameMaxLength       = 64

@@ -1613,7 +1613,7 @@ func TestDeleteChannel(t *testing.T) {
 		CheckNoError(t, resp)
 
 		// default channel cannot be deleted.
-		defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannel, team.Id, false)
+		defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, team.Id, false)
 		pass, resp = client.DeleteChannel(defaultChannel.Id)
 		CheckBadRequestStatus(t, resp)
 		require.False(t, pass, "should have failed")
@@ -1785,7 +1785,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannel, th.BasicTeam.Id, false)
+	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, th.BasicTeam.Id, false)
 	_, resp := Client.ConvertChannelToPrivate(defaultChannel.Id)
 	CheckForbiddenStatus(t, resp)
 
@@ -1845,7 +1845,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannel, th.BasicTeam.Id, false)
+	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, th.BasicTeam.Id, false)
 
 	type testTable []struct {
 		name            string

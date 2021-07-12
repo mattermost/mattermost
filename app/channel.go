@@ -147,7 +147,7 @@ func (a *App) JoinDefaultChannels(c *request.Context, teamID string, user *model
 }
 
 func (a *App) postJoinMessageForDefaultChannel(c *request.Context, user *model.User, requestor *model.User, channel *model.Channel) *model.AppError {
-	if channel.Name == model.DefaultChannel {
+	if channel.Name == model.DefaultChannelName {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(c, user, channel); err != nil {
 				return err
@@ -1317,8 +1317,8 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 		return err
 	}
 
-	if channel.Name == model.DefaultChannel {
-		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]interface{}{"Channel": model.DefaultChannel}, "", http.StatusBadRequest)
+	if channel.Name == model.DefaultChannelName {
+		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 		return err
 	}
 
@@ -2159,7 +2159,7 @@ func (a *App) LeaveChannel(c *request.Context, channelID string, userID string) 
 		return err
 	}
 
-	if channel.Name == model.DefaultChannel && !*a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
+	if channel.Name == model.DefaultChannelName && !*a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		return nil
 	}
 
@@ -2288,9 +2288,9 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 	}
 	isGuest := user.IsGuest()
 
-	if channel.Name == model.DefaultChannel {
+	if channel.Name == model.DefaultChannelName {
 		if !isGuest {
-			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DefaultChannel}, "", http.StatusBadRequest)
+			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 		}
 	}
 

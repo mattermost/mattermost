@@ -211,7 +211,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
-		channel.Name == model.DefaultChannel &&
+		channel.Name == model.DefaultChannelName &&
 		!a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
 		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
