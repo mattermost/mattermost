@@ -11,8 +11,6 @@ import (
 	"unicode/utf8"
 )
 
-const TermsOfServiceCacheSize = 1
-
 type TermsOfService struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
