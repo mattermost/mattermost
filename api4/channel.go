@@ -697,8 +697,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissions := []*model.Permission{
-		model.PermissionSysconsoleReadUsermanagementGroups,
-		model.PermissionSysconsoleReadUsermanagementChannels,
+		model.PermissionSysconsoleReadUserManagementGroups,
+		model.PermissionSysconsoleReadUserManagementChannels,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
 		c.SetPermissionError(permissions...)
@@ -1028,8 +1028,8 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUsermanagementChannels) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUsermanagementChannels)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
@@ -1712,8 +1712,8 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		groupIDs = append(groupIDs, gid)
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUsermanagementChannels) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUsermanagementChannels)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
 
@@ -1784,8 +1784,8 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUsermanagementChannels) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUsermanagementChannels)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
 
@@ -1824,8 +1824,8 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec := c.MakeAuditRecord("patchChannelModerations", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUsermanagementChannels) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteUsermanagementChannels)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementChannels) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementChannels)
 		return
 	}
 

@@ -23,8 +23,8 @@ var allowedPermissions = []string{
 }
 
 var notAllowedPermissions = []string{
-	model.PermissionSysconsoleWriteUsermanagementSystemRoles.Id,
-	model.PermissionSysconsoleReadUsermanagementSystemRoles.Id,
+	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
+	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
 	model.PermissionManageRoles.Id,
 }
 
@@ -111,7 +111,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("role", oldRole)
 
 	// manage_system permission is required to patch system_admin
-	requiredPermission := model.PermissionSysconsoleWriteUsermanagementPermissions
+	requiredPermission := model.PermissionSysconsoleWriteUserManagementPermissions
 	specialProtectedSystemRoles := append(model.NewSystemRoleIDs, model.SystemAdminRoleId)
 	for _, roleID := range specialProtectedSystemRoles {
 		if oldRole.Name == roleID {
@@ -172,13 +172,13 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if oldRole.Name == model.TeamAdminRoleId || oldRole.Name == model.ChannelAdminRoleId || oldRole.Name == model.SystemUserRoleId || oldRole.Name == model.TeamUserRoleId || oldRole.Name == model.ChannelUserRoleId || oldRole.Name == model.SystemGuestRoleId || oldRole.Name == model.TeamGuestRoleId || oldRole.Name == model.ChannelGuestRoleId {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUsermanagementPermissions) {
-			c.SetPermissionError(model.PermissionSysconsoleWriteUsermanagementPermissions)
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUsermanagementSystemRoles) {
-			c.SetPermissionError(model.PermissionSysconsoleWriteUsermanagementSystemRoles)
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementSystemRoles) {
+			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementSystemRoles)
 			return
 		}
 	}

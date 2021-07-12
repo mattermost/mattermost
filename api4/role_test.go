@@ -194,14 +194,14 @@ func TestPatchRole(t *testing.T) {
 		defer th.App.Srv().Store.Job().Delete(systemManager.Id)
 
 		patchWriteSystemRoles := &model.RolePatch{
-			Permissions: &[]string{model.PermissionSysconsoleWriteUsermanagementSystemRoles.Id},
+			Permissions: &[]string{model.PermissionSysconsoleWriteUserManagementSystemRoles.Id},
 		}
 
 		_, resp = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
 		CheckNotImplementedStatus(t, resp)
 
 		patchReadSystemRoles := &model.RolePatch{
-			Permissions: &[]string{model.PermissionSysconsoleReadUsermanagementSystemRoles.Id},
+			Permissions: &[]string{model.PermissionSysconsoleReadUserManagementSystemRoles.Id},
 		}
 
 		_, resp = client.PatchRole(systemManager.Id, patchReadSystemRoles)

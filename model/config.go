@@ -3097,8 +3097,8 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 //
 // Example:
 //  type HairSettings struct {
-//      // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUsermanagementGroups.
-//      // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUsermanagementGroups permissions.
+//      // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUserManagementGroups.
+//      // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUserManagementGroups permissions.
 //      // PermissionManageSystem grants read and write access.
 //      Colour string `access:"reporting,user_management_groups"`
 //

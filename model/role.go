@@ -53,17 +53,17 @@ func init() {
 		PermissionSysconsoleWriteAboutEditionAndLicense.Id: {
 			PermissionManageLicenseInformation,
 		},
-		PermissionSysconsoleReadUsermanagementChannels.Id: {
+		PermissionSysconsoleReadUserManagementChannels.Id: {
 			PermissionReadPublicChannel,
 			PermissionReadChannel,
 			PermissionReadPublicChannelGroups,
 			PermissionReadPrivateChannelGroups,
 		},
-		PermissionSysconsoleReadUsermanagementUsers.Id: {
+		PermissionSysconsoleReadUserManagementUsers.Id: {
 			PermissionReadOtherUsersTeams,
 			PermissionGetAnalytics,
 		},
-		PermissionSysconsoleReadUsermanagementTeams.Id: {
+		PermissionSysconsoleReadUserManagementTeams.Id: {
 			PermissionListPrivateTeams,
 			PermissionListPublicTeams,
 			PermissionViewTeam,
@@ -101,12 +101,12 @@ func init() {
 		PermissionSysconsoleReadReportingTeamStatistics.Id: {
 			PermissionViewTeam,
 		},
-		PermissionSysconsoleWriteUsermanagementUsers.Id: {
+		PermissionSysconsoleWriteUserManagementUsers.Id: {
 			PermissionEditOtherUsers,
 			PermissionDemoteToGuest,
 			PermissionPromoteGuest,
 		},
-		PermissionSysconsoleWriteUsermanagementChannels.Id: {
+		PermissionSysconsoleWriteUserManagementChannels.Id: {
 			PermissionManageTeam,
 			PermissionManagePublicChannelProperties,
 			PermissionManagePrivateChannelProperties,
@@ -118,7 +118,7 @@ func init() {
 			PermissionConvertPublicChannelToPrivate,
 			PermissionConvertPrivateChannelToPublic,
 		},
-		PermissionSysconsoleWriteUsermanagementTeams.Id: {
+		PermissionSysconsoleWriteUserManagementTeams.Id: {
 			PermissionManageTeam,
 			PermissionManageTeamRoles,
 			PermissionRemoveUserFromTeam,
@@ -126,7 +126,7 @@ func init() {
 			PermissionJoinPublicTeams,
 			PermissionAddUserToTeam,
 		},
-		PermissionSysconsoleWriteUsermanagementGroups.Id: {
+		PermissionSysconsoleWriteUserManagementGroups.Id: {
 			PermissionManageTeam,
 			PermissionManagePrivateChannelMembers,
 			PermissionManagePublicChannelMembers,
@@ -184,13 +184,13 @@ func init() {
 	}
 
 	SystemUserManagerDefaultPermissions = []string{
-		PermissionSysconsoleReadUsermanagementGroups.Id,
-		PermissionSysconsoleReadUsermanagementTeams.Id,
-		PermissionSysconsoleReadUsermanagementChannels.Id,
-		PermissionSysconsoleReadUsermanagementPermissions.Id,
-		PermissionSysconsoleWriteUsermanagementGroups.Id,
-		PermissionSysconsoleWriteUsermanagementTeams.Id,
-		PermissionSysconsoleWriteUsermanagementChannels.Id,
+		PermissionSysconsoleReadUserManagementGroups.Id,
+		PermissionSysconsoleReadUserManagementTeams.Id,
+		PermissionSysconsoleReadUserManagementChannels.Id,
+		PermissionSysconsoleReadUserManagementPermissions.Id,
+		PermissionSysconsoleWriteUserManagementGroups.Id,
+		PermissionSysconsoleWriteUserManagementTeams.Id,
+		PermissionSysconsoleWriteUserManagementChannels.Id,
 		PermissionSysconsoleReadAuthenticationSignup.Id,
 		PermissionSysconsoleReadAuthenticationEmail.Id,
 		PermissionSysconsoleReadAuthenticationPassword.Id,
@@ -206,11 +206,11 @@ func init() {
 		PermissionSysconsoleReadReportingSiteStatistics.Id,
 		PermissionSysconsoleReadReportingTeamStatistics.Id,
 		PermissionSysconsoleReadReportingServerLogs.Id,
-		PermissionSysconsoleReadUsermanagementUsers.Id,
-		PermissionSysconsoleReadUsermanagementGroups.Id,
-		PermissionSysconsoleReadUsermanagementTeams.Id,
-		PermissionSysconsoleReadUsermanagementChannels.Id,
-		PermissionSysconsoleReadUsermanagementPermissions.Id,
+		PermissionSysconsoleReadUserManagementUsers.Id,
+		PermissionSysconsoleReadUserManagementGroups.Id,
+		PermissionSysconsoleReadUserManagementTeams.Id,
+		PermissionSysconsoleReadUserManagementChannels.Id,
+		PermissionSysconsoleReadUserManagementPermissions.Id,
 		PermissionSysconsoleReadEnvironmentWebServer.Id,
 		PermissionSysconsoleReadEnvironmentDatabase.Id,
 		PermissionSysconsoleReadEnvironmentElasticsearch.Id,
@@ -261,14 +261,14 @@ func init() {
 		PermissionSysconsoleReadReportingSiteStatistics.Id,
 		PermissionSysconsoleReadReportingTeamStatistics.Id,
 		PermissionSysconsoleReadReportingServerLogs.Id,
-		PermissionSysconsoleReadUsermanagementGroups.Id,
-		PermissionSysconsoleReadUsermanagementTeams.Id,
-		PermissionSysconsoleReadUsermanagementChannels.Id,
-		PermissionSysconsoleReadUsermanagementPermissions.Id,
-		PermissionSysconsoleWriteUsermanagementGroups.Id,
-		PermissionSysconsoleWriteUsermanagementTeams.Id,
-		PermissionSysconsoleWriteUsermanagementChannels.Id,
-		PermissionSysconsoleWriteUsermanagementPermissions.Id,
+		PermissionSysconsoleReadUserManagementGroups.Id,
+		PermissionSysconsoleReadUserManagementTeams.Id,
+		PermissionSysconsoleReadUserManagementChannels.Id,
+		PermissionSysconsoleReadUserManagementPermissions.Id,
+		PermissionSysconsoleWriteUserManagementGroups.Id,
+		PermissionSysconsoleWriteUserManagementTeams.Id,
+		PermissionSysconsoleWriteUserManagementChannels.Id,
+		PermissionSysconsoleWriteUserManagementPermissions.Id,
 		PermissionSysconsoleReadEnvironmentWebServer.Id,
 		PermissionSysconsoleReadEnvironmentDatabase.Id,
 		PermissionSysconsoleReadEnvironmentElasticsearch.Id,

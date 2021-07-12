@@ -503,7 +503,7 @@ func (a *App) getSystemRolesPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SystemAdminRoleId),
-			Add: []string{model.PermissionSysconsoleReadUsermanagementSystemRoles.Id, model.PermissionSysconsoleWriteUsermanagementSystemRoles.Id},
+			Add: []string{model.PermissionSysconsoleReadUserManagementSystemRoles.Id, model.PermissionSysconsoleWriteUserManagementSystemRoles.Id},
 		},
 	}, nil
 }
@@ -844,7 +844,7 @@ func (a *App) getAddReportingSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the ancillary permissions PERMISSION_GET_ANALYTICS to anyone with PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS or PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionOr(permissionExists(model.PermissionSysconsoleReadUsermanagementUsers.Id), permissionExists(model.PermissionSysconsoleReadReportingSiteStatistics.Id)),
+		On:  permissionOr(permissionExists(model.PermissionSysconsoleReadUserManagementUsers.Id), permissionExists(model.PermissionSysconsoleReadReportingSiteStatistics.Id)),
 		Add: []string{model.PermissionGetAnalytics.Id},
 	})
 

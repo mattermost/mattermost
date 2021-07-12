@@ -163,23 +163,23 @@ var PermissionSysconsoleWriteReportingTeamStatistics *Permission
 var PermissionSysconsoleReadReportingServerLogs *Permission
 var PermissionSysconsoleWriteReportingServerLogs *Permission
 
-var PermissionSysconsoleReadUsermanagementUsers *Permission
-var PermissionSysconsoleWriteUsermanagementUsers *Permission
+var PermissionSysconsoleReadUserManagementUsers *Permission
+var PermissionSysconsoleWriteUserManagementUsers *Permission
 
-var PermissionSysconsoleReadUsermanagementGroups *Permission
-var PermissionSysconsoleWriteUsermanagementGroups *Permission
+var PermissionSysconsoleReadUserManagementGroups *Permission
+var PermissionSysconsoleWriteUserManagementGroups *Permission
 
-var PermissionSysconsoleReadUsermanagementTeams *Permission
-var PermissionSysconsoleWriteUsermanagementTeams *Permission
+var PermissionSysconsoleReadUserManagementTeams *Permission
+var PermissionSysconsoleWriteUserManagementTeams *Permission
 
-var PermissionSysconsoleReadUsermanagementChannels *Permission
-var PermissionSysconsoleWriteUsermanagementChannels *Permission
+var PermissionSysconsoleReadUserManagementChannels *Permission
+var PermissionSysconsoleWriteUserManagementChannels *Permission
 
-var PermissionSysconsoleReadUsermanagementPermissions *Permission
-var PermissionSysconsoleWriteUsermanagementPermissions *Permission
+var PermissionSysconsoleReadUserManagementPermissions *Permission
+var PermissionSysconsoleWriteUserManagementPermissions *Permission
 
-var PermissionSysconsoleReadUsermanagementSystemRoles *Permission
-var PermissionSysconsoleWriteUsermanagementSystemRoles *Permission
+var PermissionSysconsoleReadUserManagementSystemRoles *Permission
+var PermissionSysconsoleWriteUserManagementSystemRoles *Permission
 
 // DEPRECATED
 var PermissionSysconsoleReadEnvironment *Permission
@@ -1220,73 +1220,73 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleReadUsermanagementUsers = &Permission{
+	PermissionSysconsoleReadUserManagementUsers = &Permission{
 		"sysconsole_read_user_management_users",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleWriteUsermanagementUsers = &Permission{
+	PermissionSysconsoleWriteUserManagementUsers = &Permission{
 		"sysconsole_write_user_management_users",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleReadUsermanagementGroups = &Permission{
+	PermissionSysconsoleReadUserManagementGroups = &Permission{
 		"sysconsole_read_user_management_groups",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleWriteUsermanagementGroups = &Permission{
+	PermissionSysconsoleWriteUserManagementGroups = &Permission{
 		"sysconsole_write_user_management_groups",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleReadUsermanagementTeams = &Permission{
+	PermissionSysconsoleReadUserManagementTeams = &Permission{
 		"sysconsole_read_user_management_teams",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleWriteUsermanagementTeams = &Permission{
+	PermissionSysconsoleWriteUserManagementTeams = &Permission{
 		"sysconsole_write_user_management_teams",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleReadUsermanagementChannels = &Permission{
+	PermissionSysconsoleReadUserManagementChannels = &Permission{
 		"sysconsole_read_user_management_channels",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleWriteUsermanagementChannels = &Permission{
+	PermissionSysconsoleWriteUserManagementChannels = &Permission{
 		"sysconsole_write_user_management_channels",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleReadUsermanagementPermissions = &Permission{
+	PermissionSysconsoleReadUserManagementPermissions = &Permission{
 		"sysconsole_read_user_management_permissions",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleWriteUsermanagementPermissions = &Permission{
+	PermissionSysconsoleWriteUserManagementPermissions = &Permission{
 		"sysconsole_write_user_management_permissions",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleReadUsermanagementSystemRoles = &Permission{
+	PermissionSysconsoleReadUserManagementSystemRoles = &Permission{
 		"sysconsole_read_user_management_system_roles",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleWriteUsermanagementSystemRoles = &Permission{
+	PermissionSysconsoleWriteUserManagementSystemRoles = &Permission{
 		"sysconsole_write_user_management_system_roles",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
@@ -1901,12 +1901,12 @@ func initializePermissions() {
 		PermissionSysconsoleReadReportingSiteStatistics,
 		PermissionSysconsoleReadReportingTeamStatistics,
 		PermissionSysconsoleReadReportingServerLogs,
-		PermissionSysconsoleReadUsermanagementUsers,
-		PermissionSysconsoleReadUsermanagementGroups,
-		PermissionSysconsoleReadUsermanagementTeams,
-		PermissionSysconsoleReadUsermanagementChannels,
-		PermissionSysconsoleReadUsermanagementPermissions,
-		PermissionSysconsoleReadUsermanagementSystemRoles,
+		PermissionSysconsoleReadUserManagementUsers,
+		PermissionSysconsoleReadUserManagementGroups,
+		PermissionSysconsoleReadUserManagementTeams,
+		PermissionSysconsoleReadUserManagementChannels,
+		PermissionSysconsoleReadUserManagementPermissions,
+		PermissionSysconsoleReadUserManagementSystemRoles,
 		PermissionSysconsoleReadEnvironmentWebServer,
 		PermissionSysconsoleReadEnvironmentDatabase,
 		PermissionSysconsoleReadEnvironmentElasticsearch,
@@ -1958,12 +1958,12 @@ func initializePermissions() {
 		PermissionSysconsoleWriteReportingSiteStatistics,
 		PermissionSysconsoleWriteReportingTeamStatistics,
 		PermissionSysconsoleWriteReportingServerLogs,
-		PermissionSysconsoleWriteUsermanagementUsers,
-		PermissionSysconsoleWriteUsermanagementGroups,
-		PermissionSysconsoleWriteUsermanagementTeams,
-		PermissionSysconsoleWriteUsermanagementChannels,
-		PermissionSysconsoleWriteUsermanagementPermissions,
-		PermissionSysconsoleWriteUsermanagementSystemRoles,
+		PermissionSysconsoleWriteUserManagementUsers,
+		PermissionSysconsoleWriteUserManagementGroups,
+		PermissionSysconsoleWriteUserManagementTeams,
+		PermissionSysconsoleWriteUserManagementChannels,
+		PermissionSysconsoleWriteUserManagementPermissions,
+		PermissionSysconsoleWriteUserManagementSystemRoles,
 		PermissionSysconsoleWriteEnvironmentWebServer,
 		PermissionSysconsoleWriteEnvironmentDatabase,
 		PermissionSysconsoleWriteEnvironmentElasticsearch,
