@@ -8114,5 +8114,9 @@
   {
     "id": "api.cloud.get_admins_emails.error",
     "translation": "Error obteniendo el email de los administradores del sistema."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "No se ha podido restablecer el campo AuthData a Email."
   }
 ]

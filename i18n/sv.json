@@ -9241,5 +9241,9 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "Kunde inte kontrollera om en testperiod kan startas"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Datagallringsjobbet misslyckades."
   }
 ]
