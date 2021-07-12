@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	ME                             = "me"
+	Me                             = "me"
 	UserNotifyAll                  = "all"
 	UserNotifyHere                 = "here"
 	UserNotifyMention              = "mention"

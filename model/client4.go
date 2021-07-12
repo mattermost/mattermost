@@ -879,7 +879,7 @@ func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *R
 
 // GetMe returns the logged in user.
 func (c *Client4) GetMe(etag string) (*User, *Response) {
-	r, err := c.DoApiGet(c.GetUserRoute(ME), etag)
+	r, err := c.DoApiGet(c.GetUserRoute(Me), etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}

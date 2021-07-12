@@ -298,7 +298,7 @@ func (c *Context) RequireUserId() *Context {
 		return c
 	}
 
-	if c.Params.UserId == model.ME {
+	if c.Params.UserId == model.Me {
 		c.Params.UserId = c.AppContext.Session().UserId
 	}
 
