@@ -535,7 +535,7 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	CheckNoError(t, resp)
 
 	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.AuthcodeResponseType,
+		ResponseType: model.AuthCodeResponseType,
 		ClientId:     rapp.Id,
 		RedirectUri:  rapp.CallbackUrls[0],
 		Scope:        "",

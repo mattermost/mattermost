@@ -199,7 +199,7 @@ func (a *App) AllowOAuthAppAccessToUser(userID string, authRequest *model.Author
 	var redirectURI string
 	var err *model.AppError
 	switch authRequest.ResponseType {
-	case model.AuthcodeResponseType:
+	case model.AuthCodeResponseType:
 		redirectURI, err = a.GetOAuthCodeRedirect(userID, authRequest)
 	case model.ImplicitResponseType:
 		redirectURI, err = a.GetOAuthImplicitRedirect(userID, authRequest)

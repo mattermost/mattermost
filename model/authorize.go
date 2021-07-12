@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	AuthcodeExpireTime   = 60 * 10 // 10 minutes
-	AuthcodeResponseType = "code"
+	AuthCodeExpireTime   = 60 * 10 // 10 minutes
+	AuthCodeResponseType = "code"
 	ImplicitResponseType = "token"
 	DefaultScope         = "user"
 )
@@ -103,7 +103,7 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 
 func (ad *AuthData) PreSave() {
 	if ad.ExpiresIn == 0 {
-		ad.ExpiresIn = AuthcodeExpireTime
+		ad.ExpiresIn = AuthCodeExpireTime
 	}
 
 	if ad.CreateAt == 0 {

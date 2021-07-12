@@ -74,7 +74,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	require.Nil(t, appErr)
 
 	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.AuthcodeResponseType,
+		ResponseType: model.AuthCodeResponseType,
 		ClientId:     rapp.Id,
 		RedirectUri:  rapp.CallbackUrls[0],
 		Scope:        "",
@@ -125,7 +125,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckBadRequestStatus(t, resp)
 
-	authRequest.ResponseType = model.AuthcodeResponseType
+	authRequest.ResponseType = model.AuthCodeResponseType
 	authRequest.ClientId = ""
 	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckBadRequestStatus(t, resp)
@@ -168,7 +168,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	require.Nil(t, appErr)
 
 	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.AuthcodeResponseType,
+		ResponseType: model.AuthCodeResponseType,
 		ClientId:     rapp.Id,
 		RedirectUri:  rapp.CallbackUrls[0],
 		Scope:        "",
@@ -234,7 +234,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.AuthcodeResponseType,
+		ResponseType: model.AuthCodeResponseType,
 		ClientId:     oauthApp.Id,
 		RedirectUri:  oauthApp.CallbackUrls[0],
 		Scope:        "all",
@@ -500,7 +500,7 @@ func TestOAuthComplete(t *testing.T) {
 	provider := &MattermostTestProvider{}
 
 	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.AuthcodeResponseType,
+		ResponseType: model.AuthCodeResponseType,
 		ClientId:     oauthApp.Id,
 		RedirectUri:  oauthApp.CallbackUrls[0],
 		Scope:        "all",
