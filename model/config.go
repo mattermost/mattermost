@@ -61,8 +61,8 @@ const (
 	DirectMessageTeam = "team"
 
 	ShowUsername         = "username"
-	ShowNicknameFullname = "nickname_full_name"
-	ShowFullname         = "full_name"
+	ShowNicknameFullName = "nickname_full_name"
+	ShowFullName         = "full_name"
 
 	PermissionsAll          = "all"
 	PermissionsChannelAdmin = "channel_admin"
@@ -3214,7 +3214,7 @@ func (o *Config) SetDefaults() {
 		o.TeamSettings.TeammateNameDisplay = NewString(ShowUsername)
 
 		if *o.SamlSettings.Enable || *o.LdapSettings.Enable {
-			*o.TeamSettings.TeammateNameDisplay = ShowFullname
+			*o.TeamSettings.TeammateNameDisplay = ShowFullName
 		}
 	}
 
@@ -3362,7 +3362,7 @@ func (s *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(*s.TeammateNameDisplay == ShowFullname || *s.TeammateNameDisplay == ShowNicknameFullname || *s.TeammateNameDisplay == ShowUsername) {
+	if !(*s.TeammateNameDisplay == ShowFullName || *s.TeammateNameDisplay == ShowNicknameFullName || *s.TeammateNameDisplay == ShowUsername) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
 	}
 

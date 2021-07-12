@@ -1141,7 +1141,7 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              api.app.TelemetryId(),
-		Name:                  requester.GetDisplayName(model.ShowFullname),
+		Name:                  requester.GetDisplayName(model.ShowFullName),
 		Email:                 requester.Email,
 		SiteName:              *api.app.Config().TeamSettings.SiteName,
 		SiteURL:               *api.app.Config().ServiceSettings.SiteURL,

@@ -218,7 +218,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              c.App.TelemetryId(),
-		Name:                  currentUser.GetDisplayName(model.ShowFullname),
+		Name:                  currentUser.GetDisplayName(model.ShowFullName),
 		Email:                 currentUser.Email,
 		SiteName:              *c.App.Config().TeamSettings.SiteName,
 		SiteURL:               *c.App.Config().ServiceSettings.SiteURL,

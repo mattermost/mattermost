@@ -468,7 +468,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId st
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              a.TelemetryId(),
-		Name:                  currentUser.GetDisplayName(model.ShowFullname),
+		Name:                  currentUser.GetDisplayName(model.ShowFullName),
 		Email:                 currentUser.Email,
 		SiteName:              *a.Config().TeamSettings.SiteName,
 		SiteURL:               *a.Config().ServiceSettings.SiteURL,

@@ -1733,12 +1733,12 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		},
 		"direct channel, full name": {
 			channel:    &model.Channel{Type: model.ChannelTypeDirect},
-			nameFormat: model.ShowFullname,
+			nameFormat: model.ShowFullName,
 			expected:   "Sender Sender",
 		},
 		"direct channel, nickname": {
 			channel:    &model.Channel{Type: model.ChannelTypeDirect},
-			nameFormat: model.ShowNicknameFullname,
+			nameFormat: model.ShowNicknameFullName,
 			expected:   "Sender",
 		},
 		"group channel, unspecified": {
@@ -1752,17 +1752,17 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		},
 		"group channel, full name": {
 			channel:    &model.Channel{Type: model.ChannelTypeGroup},
-			nameFormat: model.ShowFullname,
+			nameFormat: model.ShowFullName,
 			expected:   "Other Other, Sender Sender",
 		},
 		"group channel, nickname": {
 			channel:    &model.Channel{Type: model.ChannelTypeGroup},
-			nameFormat: model.ShowNicknameFullname,
+			nameFormat: model.ShowNicknameFullName,
 			expected:   "Other, Sender",
 		},
 		"group channel, not excluding current user": {
 			channel:     &model.Channel{Type: model.ChannelTypeGroup},
-			nameFormat:  model.ShowNicknameFullname,
+			nameFormat:  model.ShowNicknameFullName,
 			expected:    "Other, Sender",
 			recipientId: "",
 		},
@@ -1814,11 +1814,11 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			expected:   "@" + sender.Username,
 		},
 		"name format full name": {
-			nameFormat: model.ShowFullname,
+			nameFormat: model.ShowFullName,
 			expected:   sender.FirstName + " " + sender.LastName,
 		},
 		"name format nickname": {
-			nameFormat: model.ShowNicknameFullname,
+			nameFormat: model.ShowNicknameFullName,
 			expected:   sender.Nickname,
 		},
 		"system message": {
@@ -2294,16 +2294,16 @@ func TestGetNotificationNameFormat(t *testing.T) {
 	t.Run("show full name on", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PrivacySettings.ShowFullName = true
-			*cfg.TeamSettings.TeammateNameDisplay = model.ShowFullname
+			*cfg.TeamSettings.TeammateNameDisplay = model.ShowFullName
 		})
 
-		assert.Equal(t, model.ShowFullname, th.App.GetNotificationNameFormat(th.BasicUser))
+		assert.Equal(t, model.ShowFullName, th.App.GetNotificationNameFormat(th.BasicUser))
 	})
 
 	t.Run("show full name off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PrivacySettings.ShowFullName = false
-			*cfg.TeamSettings.TeammateNameDisplay = model.ShowFullname
+			*cfg.TeamSettings.TeammateNameDisplay = model.ShowFullName
 		})
 
 		assert.Equal(t, model.ShowUsername, th.App.GetNotificationNameFormat(th.BasicUser))

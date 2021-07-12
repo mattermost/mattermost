@@ -1829,7 +1829,7 @@ func TestUserUnicodeNames(t *testing.T) {
 		_, _ = Client.Login(user.Email, user.Password)
 
 		require.Equal(t, "wiggin77", ruser.Username, "Bad Unicode not filtered from username")
-		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.ShowFullname), "Bad Unicode not filtered from displayname")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.ShowFullName), "Bad Unicode not filtered from displayname")
 		require.Equal(t, "Ender Wiggin", ruser.Nickname, "Bad Unicode not filtered from nickname")
 	})
 
@@ -1847,7 +1847,7 @@ func TestUserUnicodeNames(t *testing.T) {
 
 		require.Equal(t, "wiggin", ruser.Username, "bad unicode should be filtered from username")
 		require.Equal(t, "Ender Wiggin", ruser.Nickname, "bad unicode should be filtered from nickname")
-		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.ShowFullname), "bad unicode should be filtered from display name")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.ShowFullName), "bad unicode should be filtered from display name")
 	})
 
 	t.Run("patch user unicode", func(t *testing.T) {
@@ -1866,7 +1866,7 @@ func TestUserUnicodeNames(t *testing.T) {
 		require.Equal(t, "Ender Wiggin", ruser.Nickname, "Bad unicode should be filtered from nickname")
 		require.Equal(t, "Andrew", ruser.FirstName, "Bad unicode should be filtered from first name")
 		require.Equal(t, "Wiggin", ruser.LastName, "Bad unicode should be filtered from last name")
-		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.ShowFullname), "Bad unicode should be filtered from display name")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.ShowFullName), "Bad unicode should be filtered from display name")
 	})
 }
 

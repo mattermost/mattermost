@@ -642,13 +642,13 @@ func (u *User) GetFullName() string {
 func (u *User) getDisplayName(baseName, nameFormat string) string {
 	displayName := baseName
 
-	if nameFormat == ShowNicknameFullname {
+	if nameFormat == ShowNicknameFullName {
 		if u.Nickname != "" {
 			displayName = u.Nickname
 		} else if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
-	} else if nameFormat == ShowFullname {
+	} else if nameFormat == ShowFullName {
 		if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
