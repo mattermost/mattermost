@@ -19,8 +19,6 @@ const (
 )
 
 const (
-	SixtyDays                    = 60
-	FiftyEight                   = 58
 	LicenseUpForRenewalEmailSent = "LicenseUpForRenewalEmailSent"
 )
 
@@ -274,7 +272,7 @@ func (l *License) IsPastGracePeriod() bool {
 
 func (l *License) IsWithinExpirationPeriod() bool {
 	days := l.DaysToExpiration()
-	return days <= SixtyDays && days >= FiftyEight
+	return days <= 60 && days >= 58
 }
 
 func (l *License) DaysToExpiration() int {
