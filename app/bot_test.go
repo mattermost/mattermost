@@ -742,14 +742,22 @@ func TestConvertUserToBot(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
+		// create user to be converted to bot
+		user, err := th.App.CreateUser(th.Context, &model.User{
+			Email:    "user1@example.com",
+			Username: "user1_to_bot",
+			Nickname: "user1",
+			Password: "Password1",
+		})
+
 		bot, err := th.App.ConvertUserToBot(&model.User{
-			Username: "username",
-			Id:       th.BasicUser.Id,
+			Username: user.Username,
+			Id:       user.Id,
 		})
 		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
-		assert.Equal(t, "username", bot.Username)
-		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+		assert.Equal(t, "user1_to_bot", bot.Username)
+		assert.Equal(t, user.Id, bot.OwnerId)
 	})
 }
 
@@ -781,9 +789,11 @@ func TestSetBotIconImage(t *testing.T) {
 		require.NoError(t, fileErr)
 		require.NotNil(t, expectedData)
 
-		bot, err := th.App.ConvertUserToBot(&model.User{
-			Username: "username",
-			Id:       th.BasicUser.Id,
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			DisplayName: "bot",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
