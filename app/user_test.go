@@ -488,6 +488,48 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
 	})
+
+	t.Run("Only the last token works if verification is required", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		// we update the email a first time and update. The first
+		// token is sent with the email
+		user.Email = th.MakeEmail()
+		_, appErr := th.App.UpdateUser(user, true)
+		require.Nil(t, appErr)
+
+		tokens := []*model.Token{}
+		require.Eventually(t, func() bool {
+			var err error
+			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			return err == nil && len(tokens) == 1
+		}, 100*time.Millisecond, 10*time.Millisecond)
+
+		firstToken := tokens[0]
+
+		// without using the first token, we update the email a second
+		// time and another token gets sent. The first one should not
+		// work anymore and the second should work properly
+		user.Email = th.MakeEmail()
+		_, appErr = th.App.UpdateUser(user, true)
+		require.Nil(t, appErr)
+
+		require.Eventually(t, func() bool {
+			var err error
+			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			return err == nil && len(tokens) == 1
+		}, 100*time.Millisecond, 10*time.Millisecond)
+		secondToken := tokens[0]
+
+		_, err := th.App.Srv().Store.Token().GetByToken(firstToken.Token)
+		require.Error(t, err)
+
+		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
+		require.Nil(t, th.App.VerifyEmailFromToken(secondToken.Token))
+		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
+	})
 }
 
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {

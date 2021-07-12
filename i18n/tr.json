@@ -141,11 +141,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Bu kanal Herkese Açık Kanala dönüştürüldü ve isteyen her takım üyesi katılabilir."
+    "translation": "Bu kanal herkese açık kanala dönüştürüldü ve isteyen her takım üyesi katılabilir."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "Bu kanal Özel Kanala dönüştürüldü."
+    "translation": "Bu kanal özel kanala dönüştürüldü."
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -165,11 +165,11 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Konu Dışı"
+    "translation": "Konu dışı"
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Şehir Meydanı"
+    "translation": "Meydan"
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kanalda yalnız siz kaldınız. Kanaldan ayrılmak yerine Özel Kanalı kaldırmayı deneyin."
+    "translation": "Kanalda yalnız siz kaldınız. Kanaldan ayrılmak yerine özel kanalı kaldırmayı deneyin."
   },
   {
     "id": "api.channel.leave.left",
@@ -237,11 +237,11 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Kanal Görüntülenecek Ad alanı güncellenirken kullanıcı alınamadı"
+    "translation": "Kanalın görüntülenecek ad alanı güncellenirken kullanıcı alınamadı"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s görüntülenecek kanal adını %s yerine %s olarak değiştirdi"
+    "translation": "%s kanalın görüntülenecek adını %s yerine %s olarak değiştirdi"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Katılma/Ayrılma iletisi gönderilemedi"
+    "translation": "Katılma/ayrılma iletisi gönderilemedi"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "Belirtilen rol bir şema tarafından yönetildiğinden doğrudan bir Takım Üyesine uygulanamaz."
+    "translation": "Belirtilen rol bir şema tarafından yönetildiğinden doğrudan bir takım üyesine uygulanamaz."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Görsel bağlantıları varsayılan olarak daraltılmış olacak"
+    "translation": "Görsel bağlantıları varsayılan olarak daraltılacak"
   },
   {
     "id": "api.command_dnd.desc",
@@ -545,7 +545,7 @@
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Rahatsız Etmeyin kipi etkinleştirilmiş. Rahatsız Etmeyin kipini devre dışı bırakana kadar Masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
+    "translation": "Rahatsız etmeyin kipi etkinleştirilmiş. Rahatsız etmeyin kipini devre dışı bırakana kadar masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -581,7 +581,7 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Görsel bağlantıları varsayılan olarak genişletilmiş olacak"
+    "translation": "Görsel bağlantıları varsayılan olarak genişletilecek"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -589,7 +589,7 @@
   },
   {
     "id": "api.command_groupmsg.desc",
-    "translation": "Belirtilen kullanıcılara bir Grup İletisi gönderir"
+    "translation": "Belirtilen kullanıcılara bir grup iletisi gönderir"
   },
   {
     "id": "api.command_groupmsg.fail.app_error",
@@ -660,7 +660,7 @@
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Kullanıcı Adı ya da Kanal eksik."
+    "translation": "Kullanıcı adı ya da kanal eksik."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
@@ -8405,7 +8405,7 @@
   },
   {
     "id": "api.command_custom_status.hint",
-    "translation": "[:emoji_name:] [status_message] ya da temizleyin"
+    "translation": "[:emoji_name:] [status_message] ya da temizle"
   },
   {
     "id": "api.command_custom_status.desc",
@@ -8653,7 +8653,7 @@
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Çağrı kodlanamadı: {{.Error}}"
+    "translation": "Çağrı şifrelenemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.desc",
@@ -8733,7 +8733,7 @@
   },
   {
     "id": "api.command_share.channel_shared",
-    "translation": "Artık bu kanal paylaşılıyor."
+    "translation": "Bu kanal artık paylaşılıyor."
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
@@ -8761,15 +8761,15 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Site adresi ayarlanmamış. Lütfen Sistem Panosu > Ortam > Web Sunucusu bölümünden ayarlayın."
+    "translation": "Site adresi ayarlanmamış. Lütfen Sistem panosu > Ortam > Web sunucusu bölümünden ayarlayın."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Güvenli Bağlantı Hizmeti etkinleştirilmemiş."
+    "translation": "Güvenli bağlantı hizmeti etkinleştirilmemiş."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Güvenli Bağlantı Hizmeti devre dışı bırakılmış."
+    "translation": "Güvenli bağlantı hizmeti devre dışı bırakılmış."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
@@ -9245,5 +9245,49 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Veri saklama görevi yürütülemedi."
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "Lisans yenileme e-postası gönderilemedi"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Mattermost aboneliğinizin yenilenmesi gerekiyor"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Aboneliğinizi yenilemek için müşteri hesabınızla oturum açın"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, aboneliğiniz {{.Days}} gün içinde sona erecek. Mattermost tarafından sunulan esnek ve güvenli ekip çalışmasını deneyimlediğinizi umuyoruz. Ekibinizin bu özellikleri kullanmayı sürdürebilmesi için aboneliğinizi yenileyin."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Lisansınız yenilenmek üzere"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Şimdi yenile"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Yenileme e-postaları için lisans gönderilemedi"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Lisans yenileme bağlantısı oluşturulamadı"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "E-posta doğrulama kodları geçersiz kılınırken kod işlenemedi"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "E-posta doğrulama kodları geçersiz kılınırken kod silinemedi"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "E-posta doğrulama kodları geçersiz kılınırken kodlar türe göre alınamadı"
   }
 ]
