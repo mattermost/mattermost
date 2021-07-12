@@ -32,7 +32,6 @@ ALTER TABLE users ALTER COLUMN position TYPE VARCHAR(128);
 UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml';
 ALTER TABLE users ALTER COLUMN roles TYPE VARCHAR(256);
 
-CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE INDEX IF NOT EXISTS idx_users_update_at ON users (updateat);
 CREATE INDEX IF NOT EXISTS idx_users_create_at ON users (createat);
 CREATE INDEX IF NOT EXISTS idx_users_delete_at ON users (deleteat);
