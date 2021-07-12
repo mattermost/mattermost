@@ -9245,5 +9245,49 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Data retention job failed."
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "Failed to send licence up for renewal email"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Your Mattermost subscription is up for renewal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Log in to your Customer Account to renew"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Your licence is up for renewal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Renew now"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Failed to send licence up for renewal emails"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Failed to generate the licence renewal link"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating email verification tokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating email verification tokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating email verification tokens"
   }
 ]
