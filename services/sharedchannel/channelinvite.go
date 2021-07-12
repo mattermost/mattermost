@@ -180,7 +180,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 }
 
 func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, error) {
-	if invite.Type == model.CHANNEL_DIRECT {
+	if invite.Type == model.ChannelTypeDirect {
 		return scs.createDirectChannel(invite)
 	}
 

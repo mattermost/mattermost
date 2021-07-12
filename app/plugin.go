@@ -127,7 +127,7 @@ func (s *Server) syncPluginsActiveState() {
 
 				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
+					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					s.Publish(message)
 				}
@@ -803,7 +803,7 @@ func (s *Server) notifyPluginEnabled(manifest *model.Manifest) error {
 	}
 
 	// Notify all cluster peer clients.
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil)
 	message.Add("manifest", manifest.ClientManifest())
 	s.Publish(message)
 
@@ -823,7 +823,7 @@ func (s *Server) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pl
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 
 	fsPrefix := ""
-	if *s.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *s.Config().FileSettings.DriverName == model.ImageDriverS3 {
 		ptr := s.Config().FileSettings.AmazonS3PathPrefix
 		if ptr != nil && *ptr != "" {
 			fsPrefix = *ptr + "/"

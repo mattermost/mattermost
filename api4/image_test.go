@@ -35,7 +35,7 @@ func TestGetImage(t *testing.T) {
 
 		r, err := http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+url.QueryEscape(imageURL), nil)
 		require.NoError(t, err)
-		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
 		resp, err := th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
@@ -56,7 +56,7 @@ func TestGetImage(t *testing.T) {
 
 		r, err := http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+url.QueryEscape(imageURL), nil)
 		require.NoError(t, err)
-		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
 		resp, err := th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
@@ -83,7 +83,7 @@ func TestGetImage(t *testing.T) {
 
 		r, err := http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+url.QueryEscape(imageServer.URL+"/image.png"), nil)
 		require.NoError(t, err)
-		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
 		resp, err := th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestGetImage(t *testing.T) {
 		// local images should not be proxied, but forwarded
 		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url=/plugins/test/image.png", nil)
 		require.NoError(t, err)
-		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
 		resp, err = th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
@@ -108,7 +108,7 @@ func TestGetImage(t *testing.T) {
 		})
 		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+strings.TrimPrefix(imageServer.URL, "http:")+"/image.png", nil)
 		require.NoError(t, err)
-		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
 		resp, err = th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestGetImage(t *testing.T) {
 		// opaque URLs are not supported, should return an error
 		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url=mailto:test@example.com", nil)
 		require.NoError(t, err)
-		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
 		resp, err = th.Client.HttpClient.Do(r)
 		require.NoError(t, err)

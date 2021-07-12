@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-const CHANNEL_SEARCH_DEFAULT_LIMIT = 50
+const ChannelSearchDefaultLimit = 50
 
 type ChannelSearch struct {
 	Term                     string   `json:"term"`

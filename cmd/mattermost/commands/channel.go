@@ -192,9 +192,9 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 	purpose, _ := command.Flags().GetString("purpose")
 	useprivate, _ := command.Flags().GetBool("private")
 
-	channelType := model.CHANNEL_OPEN
+	channelType := model.ChannelTypeOpen
 	if useprivate {
-		channelType = model.CHANNEL_PRIVATE
+		channelType = model.ChannelTypePrivate
 	}
 
 	team := getTeamFromTeamArg(a, teamArg)
@@ -487,7 +487,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 				if channel.DeleteAt > 0 {
 					output += " (archived)"
 				}
-				if channel.Type == model.CHANNEL_PRIVATE {
+				if channel.Type == model.ChannelTypePrivate {
 					output += " (private)"
 				}
 				CommandPrettyPrintln(output)
@@ -552,13 +552,13 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
+	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
 		return errors.New("You can only change the type of public/private channels.")
 	}
 
-	channel.Type = model.CHANNEL_OPEN
+	channel.Type = model.ChannelTypeOpen
 	if private {
-		channel.Type = model.CHANNEL_PRIVATE
+		channel.Type = model.ChannelTypePrivate
 	}
 
 	user := getUserFromUserArg(a, username)
@@ -657,7 +657,7 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 	if channel.DeleteAt > 0 {
 		output += " (archived)"
 	}
-	if channel.Type == model.CHANNEL_PRIVATE {
+	if channel.Type == model.ChannelTypePrivate {
 		output += " (private)"
 	}
 	CommandPrettyPrintln(output)

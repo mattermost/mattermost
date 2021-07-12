@@ -50,9 +50,5 @@ issues:
       text: "should have|should be|should replace|stutters|underscore|annoying|error strings should not be capitalized"
 
     - linters:
-      - golint
-      path: "model/"
-
-    - linters:
       - misspell
       path: "shared/markdown/html_entities.go"

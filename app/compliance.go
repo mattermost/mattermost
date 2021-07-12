@@ -30,7 +30,7 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	job.Type = model.COMPLIANCE_TYPE_ADHOC
+	job.Type = model.ComplianceTypeAdhoc
 
 	job, err := a.Srv().Store.Compliance().Save(job)
 	if err != nil {

@@ -167,7 +167,7 @@ func TestSearchUserStore(t *testing.T, s store.Store, testEngine *SearchTestEngi
 func testGetAllUsersInChannelWithEmptyTerm(t *testing.T, th *SearchTestHelper) {
 	options := &model.UserSearchOptions{
 		AllowFullNames: true,
-		Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+		Limit:          model.UserSearchDefaultLimit,
 	}
 	users, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
 	require.NoError(t, err)
@@ -870,6 +870,6 @@ func createDefaultOptions(allowFullName, allowEmails, allowInactive bool) *model
 		AllowFullNames: allowFullName,
 		AllowEmails:    allowEmails,
 		AllowInactive:  allowInactive,
-		Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+		Limit:          model.UserSearchDefaultLimit,
 	}
 }

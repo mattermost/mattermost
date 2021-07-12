@@ -41,7 +41,7 @@ func TestMoveCommand(t *testing.T) {
 
 	command := &model.Command{}
 	command.CreatorId = model.NewId()
-	command.Method = model.COMMAND_METHOD_POST
+	command.Method = model.CommandMethodPost
 	command.TeamId = sourceTeam.Id
 	command.URL = "http://nowhere.com/"
 	command.Trigger = "trigger1"
@@ -74,7 +74,7 @@ func TestCreateCommandPost(t *testing.T) {
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
-		Type:      model.POST_SYSTEM_GENERIC,
+		Type:      model.PostTypeSystemGeneric,
 	}
 
 	resp := &model.CommandResponse{
@@ -149,8 +149,8 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	}
 
 	resp := &model.CommandResponse{
-		Type:         model.POST_DEFAULT,
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		Type:         model.PostTypeDefault,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Props:        model.StringInterface{"some_key": "some value"},
 		Text:         "some message",
 	}
@@ -306,7 +306,7 @@ func TestHandleCommandResponse(t *testing.T) {
 
 	resp := &model.CommandResponse{
 		Text: "message 1",
-		Type: model.POST_SYSTEM_GENERIC,
+		Type: model.PostTypeSystemGeneric,
 	}
 
 	builtIn := true
@@ -329,7 +329,7 @@ func TestHandleCommandResponse(t *testing.T) {
 				Text: "message 2",
 			},
 			{
-				Type: model.POST_SYSTEM_GENERIC,
+				Type: model.PostTypeSystemGeneric,
 				Text: "message 3",
 			},
 		},

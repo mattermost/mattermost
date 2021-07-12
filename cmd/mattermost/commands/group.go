@@ -129,7 +129,7 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	if channel.Type != model.CHANNEL_PRIVATE {
+	if channel.Type != model.ChannelTypePrivate {
 		return errors.New("Channel '" + args[0] + "' is not private. It cannot be group-constrained")
 	}
 

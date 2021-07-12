@@ -38,7 +38,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 				Data:      &PostImage{},
 			},
 			Expected: true,
@@ -48,7 +48,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_OPENGRAPH,
+				Type:      LinkMetadataTypeOpengraph,
 				Data:      &opengraph.OpenGraph{},
 			},
 			Expected: true,
@@ -58,7 +58,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_NONE,
+				Type:      LinkMetadataTypeNone,
 				Data:      nil,
 			},
 			Expected: true,
@@ -67,7 +67,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Name: "should be invalid because of empty URL",
 			Metadata: &LinkMetadata{
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 				Data:      &PostImage{},
 			},
 			Expected: false,
@@ -76,7 +76,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Name: "should be invalid because of empty timestamp",
 			Metadata: &LinkMetadata{
 				URL:  "http://example.com",
-				Type: LINK_METADATA_TYPE_IMAGE,
+				Type: LinkMetadataTypeImage,
 				Data: &PostImage{},
 			},
 			Expected: false,
@@ -86,7 +86,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800001,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 				Data:      &PostImage{},
 			},
 			Expected: false,
@@ -106,7 +106,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 			},
 			Expected: false,
 		},
@@ -115,7 +115,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 				Data:      &opengraph.OpenGraph{},
 			},
 			Expected: false,
@@ -125,7 +125,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_OPENGRAPH,
+				Type:      LinkMetadataTypeOpengraph,
 				Data:      &PostImage{},
 			},
 			Expected: false,
@@ -135,7 +135,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_OPENGRAPH,
+				Type:      LinkMetadataTypeOpengraph,
 				Data:      &Channel{},
 			},
 			Expected: false,
@@ -161,7 +161,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 		}
 
 		metadata := &LinkMetadata{
-			Type: LINK_METADATA_TYPE_IMAGE,
+			Type: LinkMetadataTypeImage,
 			Data: []byte(image.ToJson()),
 		}
 
@@ -190,7 +190,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 		require.NoError(t, err)
 
 		metadata := &LinkMetadata{
-			Type: LINK_METADATA_TYPE_OPENGRAPH,
+			Type: LinkMetadataTypeOpengraph,
 			Data: b,
 		}
 
@@ -205,7 +205,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 	t.Run("should ignore data of the correct type", func(t *testing.T) {
 		metadata := &LinkMetadata{
-			Type: LINK_METADATA_TYPE_OPENGRAPH,
+			Type: LinkMetadataTypeOpengraph,
 			Data: 1234,
 		}
 
@@ -227,7 +227,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 	t.Run("should return error for invalid data", func(t *testing.T) {
 		metadata := &LinkMetadata{
-			Type: LINK_METADATA_TYPE_IMAGE,
+			Type: LinkMetadataTypeImage,
 			Data: "garbage",
 		}
 
@@ -283,7 +283,7 @@ func TestFirstNImages(t *testing.T) {
 			sampleImage("fifth.ico"),
 			sampleImage("notme.tiff"),
 		}
-		assert.Len(t, firstNImages(six, -10), MAX_IMAGES, "On negative, go for defaults")
+		assert.Len(t, firstNImages(six, -10), LinkMetadataMaxImages, "On negative, go for defaults")
 	})
 
 }

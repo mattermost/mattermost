@@ -27,7 +27,7 @@ type GitLabUser struct {
 
 func init() {
 	provider := &GitLabProvider{}
-	einterfaces.RegisterOauthProvider(model.USER_AUTH_SERVICE_GITLAB, provider)
+	einterfaces.RegisterOAuthProvider(model.UserAuthServiceGitlab, provider)
 }
 
 func userFromGitLabUser(glu *GitLabUser) *model.User {
@@ -51,7 +51,7 @@ func userFromGitLabUser(glu *GitLabUser) *model.User {
 	user.Email = strings.ToLower(user.Email)
 	userId := glu.getAuthData()
 	user.AuthData = &userId
-	user.AuthService = model.USER_AUTH_SERVICE_GITLAB
+	user.AuthService = model.UserAuthServiceGitlab
 
 	return user
 }

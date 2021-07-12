@@ -23,7 +23,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsValidId(reaction.UserId) || !model.IsValidId(reaction.PostId) || reaction.EmojiName == "" || len(reaction.EmojiName) > model.EMOJI_NAME_MAX_LENGTH {
+	if !model.IsValidId(reaction.UserId) || !model.IsValidId(reaction.PostId) || reaction.EmojiName == "" || len(reaction.EmojiName) > model.EmojiNameMaxLength {
 		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.invalid.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -33,8 +33,8 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), reaction.PostId, model.PERMISSION_ADD_REACTION) {
-		c.SetPermissionError(model.PERMISSION_ADD_REACTION)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), reaction.PostId, model.PermissionAddReaction) {
+		c.SetPermissionError(model.PermissionAddReaction)
 		return
 	}
 
@@ -53,8 +53,8 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -83,13 +83,13 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PERMISSION_REMOVE_REACTION) {
-		c.SetPermissionError(model.PERMISSION_REMOVE_REACTION)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionRemoveReaction) {
+		c.SetPermissionError(model.PermissionRemoveReaction)
 		return
 	}
 
-	if c.Params.UserId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_REMOVE_OTHERS_REACTIONS) {
-		c.SetPermissionError(model.PERMISSION_REMOVE_OTHERS_REACTIONS)
+	if c.Params.UserId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveOthersReactions) {
+		c.SetPermissionError(model.PermissionRemoveOthersReactions)
 		return
 	}
 
@@ -111,8 +111,8 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 	postIds := model.ArrayFromJson(r.Body)
 	for _, postId := range postIds {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), postId, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), postId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 	}

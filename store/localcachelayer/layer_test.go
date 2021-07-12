@@ -76,13 +76,13 @@ func initStores() {
 	if os.Getenv("IS_CI") == "true" {
 		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
 		case "mysql":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DATABASE_DRIVER_MYSQL))
+			storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql))
 		case "postgres":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+			storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
 		}
 	} else {
-		storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DATABASE_DRIVER_MYSQL),
-			newStoreType("LocalCache+PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+		storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql),
+			newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
 	}
 
 	defer func() {

@@ -51,7 +51,7 @@ type LicenseValidatorImpl struct {
 func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
 	success, licenseStr := l.ValidateLicense(licenseBytes)
 	if !success {
-		return nil, model.NewAppError("LicenseFromBytes", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("LicenseFromBytes", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
 	}
 
 	license := model.LicenseFromJson(strings.NewReader(licenseStr))

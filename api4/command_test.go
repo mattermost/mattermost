@@ -32,7 +32,7 @@ func TestCreateCommand(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "trigger"}
 
 	_, resp := Client.CreateCommand(newCmd)
@@ -90,7 +90,7 @@ func TestUpdateCommand(t *testing.T) {
 		CreatorId: user.Id,
 		TeamId:    team.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "trigger1",
 	}
 
@@ -100,7 +100,7 @@ func TestUpdateCommand(t *testing.T) {
 		CreatorId: GenerateTestId(),
 		TeamId:    team.Id,
 		URL:       "http://nowhere.com/change",
-		Method:    model.COMMAND_METHOD_GET,
+		Method:    model.CommandMethodGet,
 		Trigger:   "trigger2",
 		Id:        cmd1.Id,
 		Token:     "tokenchange",
@@ -165,7 +165,7 @@ func TestMoveCommand(t *testing.T) {
 		CreatorId: user.Id,
 		TeamId:    team.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "trigger1",
 	}
 
@@ -192,7 +192,7 @@ func TestMoveCommand(t *testing.T) {
 		CreatorId: user.Id,
 		TeamId:    team.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "trigger2",
 	}
 
@@ -222,7 +222,7 @@ func TestDeleteCommand(t *testing.T) {
 		CreatorId: user.Id,
 		TeamId:    team.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "trigger1",
 	}
 
@@ -250,7 +250,7 @@ func TestDeleteCommand(t *testing.T) {
 		CreatorId: user.Id,
 		TeamId:    team.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "trigger2",
 	}
 
@@ -279,7 +279,7 @@ func TestListCommands(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "custom_command"}
 
 	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
@@ -363,7 +363,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "custom_command"}
 
 	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
@@ -430,7 +430,7 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "custom_command"}
 
 	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
@@ -525,7 +525,7 @@ func TestGetCommand(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "roger"}
 
 	newCmd, resp := th.SystemAdminClient.CreateCommand(newCmd)
@@ -585,7 +585,7 @@ func TestRegenToken(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "trigger"}
 
 	createdCmd, resp := th.SystemAdminClient.CreateCommand(newCmd)
@@ -629,7 +629,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       ts.URL,
-		Method:    model.COMMAND_METHOD_GET,
+		Method:    model.CommandMethodGet,
 		Trigger:   "getcommand",
 	}
 
@@ -683,7 +683,7 @@ func TestExecuteGetCommand(t *testing.T) {
 	token := model.NewId()
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test get command response",
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
 		Props:        map[string]interface{}{"someprop": "somevalue"},
 	}
@@ -707,7 +707,7 @@ func TestExecuteGetCommand(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       ts.URL + "/?cmd=ourCommand",
-		Method:    model.COMMAND_METHOD_GET,
+		Method:    model.CommandMethodGet,
 		Trigger:   "getcommand",
 		Token:     token,
 	}
@@ -743,7 +743,7 @@ func TestExecutePostCommand(t *testing.T) {
 	token := model.NewId()
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test post command response",
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
 		Props:        map[string]interface{}{"someprop": "somevalue"},
 	}
@@ -765,7 +765,7 @@ func TestExecutePostCommand(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       ts.URL,
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 		Token:     token,
 	}
@@ -802,7 +802,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test post command response",
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
 		Props:        map[string]interface{}{"someprop": "somevalue"},
 	}
@@ -819,7 +819,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
 		URL:       ts.URL,
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
 	_, err := th.App.CreateCommand(postCmd)
@@ -851,7 +851,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test post command response",
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
 		Props:        map[string]interface{}{"someprop": "somevalue"},
 	}
@@ -868,14 +868,14 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
 		URL:       ts.URL,
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
 	_, err := th.App.CreateCommand(postCmd)
 	require.Nil(t, err, "failed to create post command")
 
 	// make a channel on that team, ensuring that our test user isn't in it
-	channel2 := th.CreateChannelWithClientAndTeam(client, model.CHANNEL_OPEN, team2.Id)
+	channel2 := th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, team2.Id)
 	success, _ := client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id)
 	require.True(t, success, "Failed to remove user from channel")
 
@@ -907,7 +907,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test post command response",
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
 		Props:        map[string]interface{}{"someprop": "somevalue"},
 	}
@@ -924,7 +924,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
 		URL:       ts.URL,
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
 	_, err := th.App.CreateCommand(postCmd)
@@ -966,7 +966,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test post command response",
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
 		Props:        map[string]interface{}{"someprop": "somevalue"},
 	}
@@ -986,7 +986,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
 		URL:       ts.URL,
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
 	_, err := th.App.CreateCommand(postCmd)
