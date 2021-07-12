@@ -54,7 +54,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		return kv, nil
 	}
 
-	if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ps.DriverName() == model.DatabaseDriverPostgres {
 		// Unfortunately PostgreSQL pre-9.5 does not have an atomic upsert, so we use
 		// separate update and insert queries to accomplish our upsert
 		if rowsAffected, err := ps.GetMaster().Update(kv); err != nil {
@@ -65,7 +65,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 				return nil, errors.Wrap(err, "failed to save PluginKeyValue")
 			}
 		}
-	} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ps.DriverName() == model.DatabaseDriverMysql {
 		query := ps.getQueryBuilder().
 			Insert("PluginKeyValueStore").
 			Columns("PluginId", "PKey", "PValue", "ExpireAt").
@@ -153,7 +153,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			// Failed to update
 			return false, errors.Wrap(err, "unable to get rows affected")
 		} else if rowsAffected == 0 {
-			if ps.DriverName() == model.DATABASE_DRIVER_MYSQL && bytes.Equal(oldValue, kv.Value) {
+			if ps.DriverName() == model.DatabaseDriverMysql && bytes.Equal(oldValue, kv.Value) {
 				// ROW_COUNT on MySQL is zero even if the row existed but no changes to the row were required.
 				// Check if the row exists with the required value to distinguish this case. Strictly speaking,
 				// this isn't a good use of CompareAndSet anyway, since there's no corresponding guarantee of

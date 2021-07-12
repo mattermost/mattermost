@@ -37,5 +37,5 @@ func (*OnlineProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 func (*OnlineProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusOnline(args.UserId, true)
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_online.success")}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_online.success")}
 }

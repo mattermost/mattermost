@@ -68,7 +68,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 		return
 	}
 
-	resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, data)
+	resp := model.NewWebSocketResponse(model.StatusOk, r.Seq, data)
 	hub.SendMessage(conn, resp)
 }
 

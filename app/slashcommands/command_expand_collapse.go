@@ -65,16 +65,16 @@ func (*CollapseProvider) DoCommand(a *app.App, c *request.Context, args *model.C
 func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool) *model.CommandResponse {
 	pref := model.Preference{
 		UserId:   args.UserId,
-		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-		Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameCollapseSetting,
 		Value:    strconv.FormatBool(isCollapse),
 	}
 
 	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	socketMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", args.UserId, nil)
+	socketMessage := model.NewWebSocketEvent(model.WebsocketEventPreferenceChanged, "", "", args.UserId, nil)
 	socketMessage.Add("preference", pref.ToJson())
 	a.Publish(socketMessage)
 
@@ -85,5 +85,5 @@ func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool)
 	} else {
 		rmsg = args.T("api.command_expand.success")
 	}
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: rmsg}
 }

@@ -96,7 +96,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	updatedGroup, err := a.Srv().Store.Group().Update(group)
 
 	if err == nil {
-		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		messageWs.Add("group", updatedGroup.ToJson())
 		a.Publish(messageWs)
 	}
@@ -121,7 +121,7 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	deletedGroup, err := a.Srv().Store.Group().Delete(groupID)
 
 	if err == nil {
-		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		messageWs.Add("group", deletedGroup.ToJson())
 		a.Publish(messageWs)
 	}
@@ -287,9 +287,9 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 
 	var messageWs *model.WebSocketEvent
 	if gs.Type == model.GroupSyncableTypeTeam {
-		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToTeam, gs.SyncableId, "", "", nil)
 	} else {
-		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToChannel, "", gs.SyncableId, "", nil)
 	}
 	messageWs.Add("group_id", gs.GroupId)
 	a.Publish(messageWs)
@@ -388,9 +388,9 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 
 	var messageWs *model.WebSocketEvent
 	if gs.Type == model.GroupSyncableTypeTeam {
-		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupNotAssociatedToTeam, gs.SyncableId, "", "", nil)
 	} else {
-		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupNotAssociatedToChannel, "", gs.SyncableId, "", nil)
 	}
 
 	messageWs.Add("group_id", gs.GroupId)

@@ -63,29 +63,29 @@ func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.St
 	err := ss.System().SaveOrUpdateWithWarnMetricHandling(system)
 	require.NoError(t, err)
 
-	_, err = ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	_, err = ss.System().GetByName(model.SystemWarnMetricLastRunTimestampKey)
 	assert.Error(t, err)
 
 	system.Name = "warn_metric_number_of_active_users_100"
-	system.Value = model.WARN_METRIC_STATUS_RUNONCE
+	system.Value = model.WarnMetricStatusRunonce
 	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
 	require.NoError(t, err)
 
-	val1, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	val1, nerr := ss.System().GetByName(model.SystemWarnMetricLastRunTimestampKey)
 	assert.NoError(t, nerr)
 
 	system.Name = "warn_metric_number_of_active_users_100"
-	system.Value = model.WARN_METRIC_STATUS_ACK
+	system.Value = model.WarnMetricStatusAck
 	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
 	require.NoError(t, err)
 
-	val2, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	val2, nerr := ss.System().GetByName(model.SystemWarnMetricLastRunTimestampKey)
 	assert.NoError(t, nerr)
 	assert.Equal(t, val1, val2)
 }
 
 func testSystemStoreGetByNameNoEntries(t *testing.T, ss store.Store) {
-	res, nErr := ss.System().GetByName(model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE)
+	res, nErr := ss.System().GetByName(model.SystemFirstAdminVisitMarketplace)
 	_, ok := nErr.(*store.ErrNotFound)
 	require.Error(t, nErr)
 	assert.True(t, ok)
@@ -128,13 +128,13 @@ func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
 
 func testInsertIfExists(t *testing.T, ss store.Store) {
 	t.Run("Serial", func(t *testing.T) {
-		s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "somekey"}
+		s1 := &model.System{Name: model.SystemClusterEncryptionKey, Value: "somekey"}
 
 		s2, err := ss.System().InsertIfExists(s1)
 		require.NoError(t, err)
 		assert.Equal(t, s1.Value, s2.Value)
 
-		s1New := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "anotherKey"}
+		s1New := &model.System{Name: model.SystemClusterEncryptionKey, Value: "anotherKey"}
 
 		s3, err := ss.System().InsertIfExists(s1New)
 		require.NoError(t, err)
@@ -147,7 +147,7 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 		wg.Add(2)
 		go func() {
 			defer wg.Done()
-			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "firstKey"}
+			s1 := &model.System{Name: model.SystemClusterEncryptionKey, Value: "firstKey"}
 			var err error
 			s2, err = ss.System().InsertIfExists(s1)
 			require.NoError(t, err)
@@ -155,7 +155,7 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 
 		go func() {
 			defer wg.Done()
-			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "secondKey"}
+			s1 := &model.System{Name: model.SystemClusterEncryptionKey, Value: "secondKey"}
 			var err error
 			s3, err = ss.System().InsertIfExists(s1)
 			require.NoError(t, err)

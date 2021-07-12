@@ -85,7 +85,7 @@ func TestGenerateRenewalToken(t *testing.T) {
 		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, token)
-		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken)
 
 		customerEmail := th.App.Srv().License().Customer.Email
 		validToken, err := th.App.Srv().renewalTokenValid(token, customerEmail)
@@ -98,7 +98,7 @@ func TestGenerateRenewalToken(t *testing.T) {
 		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, token)
-		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken)
 
 		newToken, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
 		require.Nil(t, appErr)
@@ -116,7 +116,7 @@ func TestGenerateRenewalToken(t *testing.T) {
 		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, token)
-		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken)
 		setLicense(th, &model.Customer{
 			Name:  "another customer",
 			Email: "another@example.com",
@@ -131,7 +131,7 @@ func TestGenerateRenewalToken(t *testing.T) {
 		token, appErr := th.App.Srv().GenerateRenewalToken(1 * time.Second)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, token)
-		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken)
 		// The small time unit for expiration we're using is seconds
 		time.Sleep(1 * time.Second)
 		newToken, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)

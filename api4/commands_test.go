@@ -101,14 +101,14 @@ func testJoinCommands(t *testing.T, alias string) {
 	team := th.BasicTeam
 	user2 := th.BasicUser2
 
-	channel0 := &model.Channel{DisplayName: "00", Name: "00" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel0 := &model.Channel{DisplayName: "00", Name: "00" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel0 = Client.Must(Client.CreateChannel(channel0)).(*model.Channel)
 
-	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).(*model.Channel)
 	Client.Must(Client.RemoveUserFromChannel(channel1.Id, th.BasicUser.Id))
 
-	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).(*model.Channel)
 	Client.Must(Client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id))
 
@@ -131,7 +131,7 @@ func testJoinCommands(t *testing.T, alias string) {
 	require.True(t, found, "did not join channel")
 
 	// test case insensitively
-	channel4 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel4 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel4 = Client.Must(Client.CreateChannel(channel4)).(*model.Channel)
 	Client.Must(Client.RemoveUserFromChannel(channel4.Id, th.BasicUser.Id))
 	rs7 := Client.Must(Client.ExecuteCommand(channel0.Id, "/"+alias+" "+strings.ToUpper(channel4.Name))).(*model.CommandResponse)
@@ -250,11 +250,11 @@ func TestLeaveCommands(t *testing.T) {
 	team := th.BasicTeam
 	user2 := th.BasicUser2
 
-	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).(*model.Channel)
 	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser.Id))
 
-	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypePrivate, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).(*model.Channel)
 	Client.Must(Client.AddChannelMember(channel2.Id, th.BasicUser.Id))
 	Client.Must(Client.AddChannelMember(channel2.Id, user2.Id))
@@ -262,10 +262,10 @@ func TestLeaveCommands(t *testing.T) {
 	channel3 := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id, user2.Id)).(*model.Channel)
 
 	rs1 := Client.Must(Client.ExecuteCommand(channel1.Id, "/leave")).(*model.CommandResponse)
-	require.True(t, strings.HasSuffix(rs1.GotoLocation, "/"+team.Name+"/channels/"+model.DEFAULT_CHANNEL), "failed to leave open channel 1")
+	require.True(t, strings.HasSuffix(rs1.GotoLocation, "/"+team.Name+"/channels/"+model.DefaultChannelName), "failed to leave open channel 1")
 
 	rs2 := Client.Must(Client.ExecuteCommand(channel2.Id, "/leave")).(*model.CommandResponse)
-	require.True(t, strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+model.DEFAULT_CHANNEL), "failed to leave private channel 1")
+	require.True(t, strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+model.DefaultChannelName), "failed to leave private channel 1")
 
 	_, err := Client.ExecuteCommand(channel3.Id, "/leave")
 	require.NotNil(t, err, "should fail leaving direct channel")
@@ -281,7 +281,7 @@ func TestLeaveCommands(t *testing.T) {
 	require.False(t, found, "did not leave right channels")
 
 	for _, c := range cdata {
-		if c.Name == model.DEFAULT_CHANNEL {
+		if c.Name == model.DefaultChannelName {
 			_, err := Client.RemoveUserFromChannel(c.Id, th.BasicUser.Id)
 			require.NotNil(t, err, "should have errored on leaving default channel")
 			break
@@ -314,7 +314,7 @@ func TestMeCommand(t *testing.T) {
 	require.Len(t, p1.Order, 2, "Command failed to send")
 
 	pt := p1.Posts[p1.Order[0]].Type
-	require.Equal(t, model.POST_ME, pt, "invalid post type")
+	require.Equal(t, model.PostTypeMe, pt, "invalid post type")
 
 	msg := p1.Posts[p1.Order[0]].Message
 	want := "*hello*"

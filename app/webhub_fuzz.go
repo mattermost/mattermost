@@ -106,16 +106,16 @@ type actionData struct {
 func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionData {
 	// Some sample events
 	events := []string{
-		model.WEBSOCKET_EVENT_CHANNEL_CREATED,
-		model.WEBSOCKET_EVENT_CHANNEL_DELETED,
-		model.WEBSOCKET_EVENT_USER_ADDED,
-		model.WEBSOCKET_EVENT_USER_UPDATED,
-		model.WEBSOCKET_EVENT_STATUS_CHANGE,
-		model.WEBSOCKET_EVENT_HELLO,
-		model.WEBSOCKET_AUTHENTICATION_CHALLENGE,
-		model.WEBSOCKET_EVENT_REACTION_ADDED,
-		model.WEBSOCKET_EVENT_REACTION_REMOVED,
-		model.WEBSOCKET_EVENT_RESPONSE,
+		model.WebsocketEventChannelCreated,
+		model.WebsocketEventChannelDeleted,
+		model.WebsocketEventUserAdded,
+		model.WebsocketEventUserUpdated,
+		model.WebsocketEventStatusChange,
+		model.WebsocketEventHello,
+		model.WebsocketAuthenticationChallenge,
+		model.WebsocketEventReactionAdded,
+		model.WebsocketEventReactionRemoved,
+		model.WebsocketEventResponse,
 	}
 	// We need atleast 10 bytes to get all the data we need
 	if len(data) < 10 {

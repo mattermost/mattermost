@@ -691,7 +691,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 
 	_, _, response := th.Client.GetGroupsByChannel(privateChannel.Id, opts)
 	CheckForbiddenStatus(t, response)
@@ -980,7 +980,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
 	assert.Nil(t, err)
 	user1.Password = "test-password-1"
 	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
@@ -1064,7 +1064,7 @@ func TestGetGroupStats(t *testing.T) {
 		assert.Equal(t, stats.TotalMemberCount, int64(0))
 	})
 
-	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
 	assert.Nil(t, err)
 	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 	assert.Nil(t, err)
@@ -1102,7 +1102,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	channel := &model.Channel{
 		DisplayName:      "dn_" + id,
 		Name:             "name" + id,
-		Type:             model.CHANNEL_PRIVATE,
+		Type:             model.ChannelTypePrivate,
 		TeamId:           team.Id,
 		GroupConstrained: model.NewBool(true),
 	}

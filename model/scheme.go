@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	SCHEME_DISPLAY_NAME_MAX_LENGTH = 128
-	SCHEME_NAME_MAX_LENGTH         = 64
-	SCHEME_DESCRIPTION_MAX_LENGTH  = 1024
-	SCHEME_SCOPE_TEAM              = "team"
-	SCHEME_SCOPE_CHANNEL           = "channel"
+	SchemeDisplayNameMaxLength = 128
+	SchemeNameMaxLength        = 64
+	SchemeDescriptionMaxLength = 1024
+	SchemeScopeTeam            = "team"
+	SchemeScopeChannel         = "channel"
 )
 
 type Scheme struct {
@@ -114,7 +114,7 @@ func (scheme *Scheme) IsValid() bool {
 }
 
 func (scheme *Scheme) IsValidForCreate() bool {
-	if scheme.DisplayName == "" || len(scheme.DisplayName) > SCHEME_DISPLAY_NAME_MAX_LENGTH {
+	if scheme.DisplayName == "" || len(scheme.DisplayName) > SchemeDisplayNameMaxLength {
 		return false
 	}
 
@@ -122,12 +122,12 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		return false
 	}
 
-	if len(scheme.Description) > SCHEME_DESCRIPTION_MAX_LENGTH {
+	if len(scheme.Description) > SchemeDescriptionMaxLength {
 		return false
 	}
 
 	switch scheme.Scope {
-	case SCHEME_SCOPE_TEAM, SCHEME_SCOPE_CHANNEL:
+	case SchemeScopeTeam, SchemeScopeChannel:
 	default:
 		return false
 	}
@@ -144,7 +144,7 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		return false
 	}
 
-	if scheme.Scope == SCHEME_SCOPE_TEAM {
+	if scheme.Scope == SchemeScopeTeam {
 		if !IsValidRoleName(scheme.DefaultTeamAdminRole) {
 			return false
 		}
@@ -158,7 +158,7 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		}
 	}
 
-	if scheme.Scope == SCHEME_SCOPE_CHANNEL {
+	if scheme.Scope == SchemeScopeChannel {
 		if scheme.DefaultTeamAdminRole != "" {
 			return false
 		}
@@ -210,7 +210,7 @@ func (p *SchemeIDPatch) ToJson() string {
 }
 
 func IsValidSchemeName(name string) bool {
-	re := regexp.MustCompile(fmt.Sprintf("^[a-z0-9_]{2,%d}$", SCHEME_NAME_MAX_LENGTH))
+	re := regexp.MustCompile(fmt.Sprintf("^[a-z0-9_]{2,%d}$", SchemeNameMaxLength))
 	return re.MatchString(name)
 }
 

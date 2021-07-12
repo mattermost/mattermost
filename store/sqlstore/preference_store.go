@@ -41,7 +41,7 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	mlog.Debug("Deleting any unused pre-release features")
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
-		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS}).
+		Where(sq.Eq{"Category": model.PreferenceCategoryAdvancedSettings}).
 		Where(sq.Eq{"Value": "false"}).
 		Where(sq.Like{"Name": store.FeatureTogglePrefix + "%"}).ToSql()
 	if err != nil {
@@ -81,7 +81,7 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		return err
 	}
 
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		queryString, args, err := s.getQueryBuilder().
 			Insert("Preferences").
 			Columns("UserId", "Category", "Name", "Value").
@@ -97,7 +97,7 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 			return errors.Wrap(err, "failed to save Preference")
 		}
 		return nil
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
 
 		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
 		queryString, args, err := s.getQueryBuilder().
@@ -278,7 +278,7 @@ func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err e
 			LIMIT :Limit
 		) AS A
 	)`
-	props := map[string]interface{}{"Limit": limit, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}
+	props := map[string]interface{}{"Limit": limit, "Category": model.PreferenceCategoryFlaggedPost}
 	result, err := s.GetMaster().Exec(query, props)
 	if err != nil {
 		return
@@ -298,7 +298,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 			sq.Select("Preferences.Name").
 				From("Preferences").
 				LeftJoin("Posts ON Preferences.Name = Posts.Id").
-				Where(sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+				Where(sq.Eq{"Preferences.Category": model.PreferenceCategoryFlaggedPost}).
 				Where(sq.Eq{"Posts.Id": nil}).
 				Limit(uint64(limit)),
 			"t").
@@ -307,7 +307,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		return int64(0), errors.Wrap(err, "could not build nested sql query to delete preference")
 	}
 	query, args, err := s.getQueryBuilder().Delete("Preferences").
-		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+		Where(sq.Eq{"Category": model.PreferenceCategoryFlaggedPost}).
 		Where(sq.Expr("name IN ("+nameInQ+")", nameInArgs...)).
 		ToSql()
 

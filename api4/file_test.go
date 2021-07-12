@@ -68,7 +68,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	}
 	req.Header.Set("Content-Type", contentType)
 	if c.AuthToken != "" {
-		req.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		req.Header.Set(model.HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	resp, err := c.HttpClient.Do(req)

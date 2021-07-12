@@ -30,8 +30,8 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec := c.MakeAuditRecord("createComplianceReport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB) {
-		c.SetPermissionError(model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateComplianceExportJob) {
+		c.SetPermissionError(model.PermissionCreateComplianceExportJob)
 		return
 	}
 
@@ -53,8 +53,8 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB) {
-		c.SetPermissionError(model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadComplianceExportJob) {
+		c.SetPermissionError(model.PermissionReadComplianceExportJob)
 		return
 	}
 
@@ -80,8 +80,8 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getComplianceReport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB) {
-		c.SetPermissionError(model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadComplianceExportJob) {
+		c.SetPermissionError(model.PermissionReadComplianceExportJob)
 		return
 	}
 
@@ -108,8 +108,8 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("compliance_id", c.Params.ReportId)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
-		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
+		c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
 		return
 	}
 

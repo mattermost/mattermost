@@ -24,7 +24,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		th := setup(t).initBasic()
 		defer th.tearDown()
 
-		th.addPermissionToRole(model.PERMISSION_MANAGE_SHARED_CHANNELS.Id, th.BasicUser.Roles)
+		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
 
 		mockSyncService := app.NewMockSharedChannelService(nil)
 		th.Server.SetSharedChannelSyncService(mockSyncService)
@@ -51,7 +51,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
 			event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
-			return event != nil && event.EventType() == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED
+			return event != nil && event.EventType() == model.WebsocketEventChannelConverted
 		})
 		assert.Len(t, channelConvertedMessages, 1)
 	})
@@ -60,7 +60,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		th := setup(t).initBasic()
 		defer th.tearDown()
 
-		th.addPermissionToRole(model.PERMISSION_MANAGE_SHARED_CHANNELS.Id, th.BasicUser.Roles)
+		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
 
 		mockSyncService := app.NewMockSharedChannelService(nil)
 		th.Server.SetSharedChannelSyncService(mockSyncService)
@@ -86,7 +86,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
 			event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
-			return event != nil && event.EventType() == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED
+			return event != nil && event.EventType() == model.WebsocketEventChannelConverted
 		})
 		require.Len(t, channelConvertedMessages, 1)
 	})

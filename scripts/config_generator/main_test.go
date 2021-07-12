@@ -29,13 +29,13 @@ func TestDefaultsGenerator(t *testing.T) {
 	require.Equal(t, *config.SqlSettings.AtRestEncryptKey, "")
 	require.Equal(t, *config.FileSettings.PublicLinkSalt, "")
 
-	require.Equal(t, *config.Office365Settings.Scope, model.OFFICE365_SETTINGS_DEFAULT_SCOPE)
-	require.Equal(t, *config.Office365Settings.AuthEndpoint, model.OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
-	require.Equal(t, *config.Office365Settings.UserApiEndpoint, model.OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	require.Equal(t, *config.Office365Settings.TokenEndpoint, model.OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
+	require.Equal(t, *config.Office365Settings.Scope, model.Office365SettingsDefaultScope)
+	require.Equal(t, *config.Office365Settings.AuthEndpoint, model.Office365SettingsDefaultAuthEndpoint)
+	require.Equal(t, *config.Office365Settings.UserApiEndpoint, model.Office365SettingsDefaultUserApiEndpoint)
+	require.Equal(t, *config.Office365Settings.TokenEndpoint, model.Office365SettingsDefaultTokenEndpoint)
 
-	require.Equal(t, *config.GoogleSettings.Scope, model.GOOGLE_SETTINGS_DEFAULT_SCOPE)
-	require.Equal(t, *config.GoogleSettings.AuthEndpoint, model.GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT)
-	require.Equal(t, *config.GoogleSettings.UserApiEndpoint, model.GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	require.Equal(t, *config.GoogleSettings.TokenEndpoint, model.GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
+	require.Equal(t, *config.GoogleSettings.Scope, model.GoogleSettingsDefaultScope)
+	require.Equal(t, *config.GoogleSettings.AuthEndpoint, model.GoogleSettingsDefaultAuthEndpoint)
+	require.Equal(t, *config.GoogleSettings.UserApiEndpoint, model.GoogleSettingsDefaultUserApiEndpoint)
+	require.Equal(t, *config.GoogleSettings.TokenEndpoint, model.GoogleSettingsDefaultTokenEndpoint)
 }

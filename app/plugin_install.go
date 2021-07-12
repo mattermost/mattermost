@@ -170,7 +170,7 @@ func (s *Server) installPlugin(pluginFile, signature io.ReadSeeker, installation
 	}
 
 	s.notifyClusterPluginEvent(
-		model.CLUSTER_EVENT_INSTALL_PLUGIN,
+		model.ClusterEventInstallPlugin,
 		model.PluginEventData{
 			Id: manifest.Id,
 		},
@@ -444,7 +444,7 @@ func (s *Server) removePlugin(id string) *model.AppError {
 	}
 
 	s.notifyClusterPluginEvent(
-		model.CLUSTER_EVENT_REMOVE_PLUGIN,
+		model.ClusterEventRemovePlugin,
 		model.PluginEventData{
 			Id: id,
 		},

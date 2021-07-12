@@ -107,13 +107,13 @@ func (c *Context) LogErrorByCode(err *model.AppError) {
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM)
+	return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 }
 
 func (c *Context) SessionRequired() {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
-		c.AppContext.Session().Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN &&
-		c.AppContext.Session().Props[model.SESSION_PROP_IS_BOT] != model.SESSION_PROP_IS_BOT_VALUE {
+		c.AppContext.Session().Props[model.SessionPropType] == model.SessionTypeUserAccessToken &&
+		c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
 
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
@@ -126,14 +126,14 @@ func (c *Context) SessionRequired() {
 }
 
 func (c *Context) CloudKeyRequired() {
-	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.AppContext.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_CLOUD_KEY {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeCloudKey {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
 }
 
 func (c *Context) RemoteClusterTokenRequired() {
-	if license := c.App.Srv().License(); license == nil || !*license.Features.RemoteClusterService || c.AppContext.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_REMOTECLUSTER_TOKEN {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.RemoteClusterService || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeRemoteclusterToken {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
@@ -161,8 +161,8 @@ func (c *Context) MfaRequired() {
 	}
 	// Only required for email and ldap accounts
 	if user.AuthService != "" &&
-		user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
-		user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+		user.AuthService != model.UserAuthServiceEmail &&
+		user.AuthService != model.UserAuthServiceLdap {
 		return
 	}
 
@@ -195,7 +195,7 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 
 	cookie := &http.Cookie{
-		Name:     model.SESSION_COOKIE_TOKEN,
+		Name:     model.SessionCookieToken,
 		Value:    "",
 		Path:     subpath,
 		MaxAge:   -1,
@@ -235,9 +235,9 @@ func (c *Context) SetCommandNotFoundError() {
 
 func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
 	metrics := c.App.Metrics()
-	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); etag != "" {
+	if et := r.Header.Get(model.HeaderEtagClient); etag != "" {
 		if et == etag {
-			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+			w.Header().Set(model.HeaderEtagServer, etag)
 			w.WriteHeader(http.StatusNotModified)
 			if metrics != nil {
 				metrics.IncrementEtagHitCounter(routeName)
@@ -298,7 +298,7 @@ func (c *Context) RequireUserId() *Context {
 		return c
 	}
 
-	if c.Params.UserId == model.ME {
+	if c.Params.UserId == model.Me {
 		c.Params.UserId = c.AppContext.Session().UserId
 	}
 
@@ -579,7 +579,7 @@ func (c *Context) RequireEmojiName() *Context {
 
 	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
 
-	if c.Params.EmojiName == "" || len(c.Params.EmojiName) > model.EMOJI_NAME_MAX_LENGTH || !validName.MatchString(c.Params.EmojiName) {
+	if c.Params.EmojiName == "" || len(c.Params.EmojiName) > model.EmojiNameMaxLength || !validName.MatchString(c.Params.EmojiName) {
 		c.SetInvalidUrlParam("emoji_name")
 	}
 
@@ -733,5 +733,5 @@ func (c *Context) RequireInvoiceId() *Context {
 }
 
 func (c *Context) GetRemoteID(r *http.Request) string {
-	return r.Header.Get(model.HEADER_REMOTECLUSTER_ID)
+	return r.Header.Get(model.HeaderRemoteclusterId)
 }
