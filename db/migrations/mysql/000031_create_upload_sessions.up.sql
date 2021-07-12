@@ -55,3 +55,33 @@ SET @preparedStatement = (SELECT IF(
 PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'UploadSessions'
+        AND table_schema = DATABASE()
+        AND column_name = 'RemoteId'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE UploadSessions ADD RemoteId varchar(26) DEFAULT "";'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'UploadSessions'
+        AND table_schema = DATABASE()
+        AND column_name = 'ReqFileId'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE UploadSessions ADD ReqFileId varchar(26) DEFAULT "";'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;

@@ -923,8 +923,6 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 		// Shared channels support
 		sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
-		sqlStore.CreateColumnIfNotExists("UploadSessions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)", "")
-		sqlStore.CreateColumnIfNotExists("UploadSessions", "ReqFileId", "VARCHAR(26)", "VARCHAR(26)", "")
 		if _, err := sqlStore.GetMaster().ExecNoTimeout("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
 			mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
 		}
