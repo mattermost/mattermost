@@ -987,33 +987,6 @@
     "translation": "E-Mail-Stapelverarbeitung wurde vom Systemadministrator deaktiviert."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direktnachricht von "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Gehe zum Beitrag"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Gruppennachricht von "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Benachrichtigung von "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Sie haben eine neue Benachrichtigung.",
-      "other": "Sie haben {{.Count}} neue Benachrichtigungen."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Neue Benachrichtigung für {{.Day}}. {{.Month}} {{.Year}}",
@@ -1743,10 +1716,6 @@
     "translation": "Konnte das Teamsymbol nicht dekodieren"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Konnte Metadaten des Teamsymbols nicht dekodieren"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Konnte Teamsymbol nicht kodieren."
   },
@@ -1871,14 +1840,6 @@
     "translation": "Team beitreten"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nachdem Sie [[{{.TeamDisplayName}}]] beigetreten sind, können Sie sich bei ihrem neuen Team anmelden und auf all diese Funktionen von folgender Webadresse aus zugreifen:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Das Team {{.SenderStatus}} [[{{.SenderName}}]], hat Sie eingeladen, [[{{.TeamDisplayName}}]] beizutreten."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Sie wurden eingeladen"
   },
@@ -1925,14 +1886,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Passwort zurücksetzen"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Um ihr Passwort zu ändern, klicken Sie unten auf \"Passwort zurücksetzen\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Falls Sie ihr Passwort nicht ändern wollten, ignorieren Sie bitte die Mail und ihr Passwort wird nicht geändert. Der Passwort-Link verfällt in 24 Stunden."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2313,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Konnte Profilbild nicht dekodieren"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Konnte Profilbild nicht speichern. Datei scheint kein gültiges Bild zu sein."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2959,64 +2908,8 @@
     "translation": "Teamname fehlt in Teammitgliedschaft des Benutzers."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Sie haben eine neue Direktnachricht."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Sie haben eine neue Direktnachricht von @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Sie haben eine neue Gruppennachricht."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Sie haben eine neue Gruppennachricht von @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Sie haben eine neue Benachrichtigung."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Sie haben eine neue Benachrichtigung von @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Neue Direktnachricht von @{{.SenderDisplayName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{.SiteName}}] Neue Direktnachricht von {{.SenderDisplayName}} am {{.Day}}.{{.Month}}.{{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3139,10 +3032,6 @@
     "translation": "Konnte Bild-Daten nicht dekodieren."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Konnte Bild-Metadaten nicht abrufen."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Konnte das Bild nicht ins PNG-Format konvertieren. Bitte erneut versuchen."
   },
@@ -3153,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Konnte das Bild nicht auf ihrem Server speichern. Bitte überprüfen Sie ihre Verbindung und versuchen es erneut."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Konnte das Bild nicht lesen. Stellen Sie sicher, dass es kleiner als 2MB ist und versuchen es erneut."
   },
   {
     "id": "cli.license.critical",
@@ -4195,11 +4080,11 @@
     "translation": "Zeit zwischen Benutzereingabenaktualisierung sollte nicht weniger als 1000 Millisekunden betragen."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Ungültiger Wert für TLS-Zertifikatsdatei - Entweder LetsEncrypt verwenden oder Pfad zu bestehender Zertifikatsdatei verwenden."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Ungültiger Wert für TLS-Schlüsseldatei - Entweder LetsEncrypt verwenden oder Pfad zu bestehender Schlüsseldatei verwenden."
   },
   {
@@ -4859,10 +4744,6 @@
     "translation": "Konnte kein Konto mit den angegeben Zugangsdaten finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Diese E-Mail-Adresse wird bereits genutzt. Bitte eine andere wählen."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -5391,10 +5272,6 @@
     "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -5847,10 +5724,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} als Gast beizutreten"
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] hat Sie eingeladen, dem Team [[{{.TeamDisplayName}}]] als Gast beizutreten."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Ungültige Aktualisierung von Teammitglied: Ein Benutzer muss ein Gast oder ein Benutzer sein, aber nicht beides."
   },
@@ -6060,7 +5933,7 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "Ihre Lizenz unterstützt die Datenaufbewahrung nicht."
+    "translation": "Ihre Lizenz unterstützt die Moderation eines Kanals nicht"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -6547,10 +6420,6 @@
     "translation": "Konnte die Rolle nicht abrufen."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Konnte nicht alle Rollen abrufen."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Konnte die Rolle nicht abrufen."
   },
@@ -6661,10 +6530,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7075,10 +6940,6 @@
     "translation": "Konnte nicht alle Teams abrufen."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Konnte nicht alle privaten Teams abrufen."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Konnte nicht alle privaten Teams abrufen."
   },
@@ -7099,19 +6960,227 @@
     "translation": "Konnte die Anzahl der Teams nicht abrufen."
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Konnte die Anzahl der öffentlichen Teams nicht abrufen."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
-  },
-  {
     "id": "api.user.login_cws.license.error",
     "translation": "Bot-Anmeldung ist verboten."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
     "translation": "Kanäle tragen dazu bei, die Kommunikation zu verbessern, aber dass alle Benutzer in Mattermost Kanäle erstellen und Kanälen beitreten können, vergrößert das Problem der Übersichtlichkeit. Erweiterte Rechte ermöglichen Ihnen festzulegen, welche Benutzer oder Rollen bestimmte Aktionen durchführen dürfen, einschließlich der Verwaltung von Kanaleinstellungen und -mitgliedern, der Nutzung von @channel oder @here, um große Gruppen von Mitgliedern zu benachrichtigen, und der Erstellung von neuen Webhooks.\n\n[Mehr über erweiterte Rechte](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDurch Klicken auf \"Kontakt\" teilen Sie Ihre Daten mit Mattermost, Inc. [mehr](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Zurück zu {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP ist nicht verfügbar."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Nachricht ansehen"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Zwischen diesen Nutzern kann keine Direktnachricht ausgetauscht werden, da sie nicht dem gleichen Team angehören."
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "Das /{{.Command}} Kommando hat das {{.PluginId}} Plugin zum Absturz gebracht. Bitte Kontaktieren Sie Ihren Systemadministrator."
+  },
+  {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Ungültige Plugin ID."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Verbindung zum SMTP Server konnte nicht hergestellt werden"
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "Keine LDAP Benutzer gefunden. Bitte überprüfen Sie Ihren Benutzerfilter und Zertifikate."
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "Erstellung des Schlüsselpaares fehlgeschlagen"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "Beim Laden der LDAP TLS-Schlüsseldatei ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "Beim Laden der LDAP TLS-Zertifikatsdatei ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Suche konnte nicht abgeschlossen werden"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Die Suche nach Dateien mit Elasticsearch ist auf diesem Server deaktiviert."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Konnte den Dateien-Stapel nicht zur Indexierung abrufen."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Die Suche nach Dateien ist auf diesem Server deaktiviert. Bitte kontaktieren Sie den Systemadministrator."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Ungültiges Thema."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Ungültige ID."
+  },
+  {
+    "id": "api.preference.update_preferences.update_sidebar.app_error",
+    "translation": "Die Seitenleiste konnte nicht mit den geänderten Einstellungen aktualisiert werden"
+  },
+  {
+    "id": "api.preference.delete_preferences.update_sidebar.app_error",
+    "translation": "Die Seitenleiste konnte nicht mit den gelöschten Einstellungen aktualisiert werden"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Sie werden zur App weitergeleitet."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Wenn Sie nicht automatisch weitergeleitet werden, klicken Sie bitte diesen <a href='{{.Link}}'>Link</a>"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Sie können das Browser Tab nun schließen."
+  },
+  {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "Die Anzahl der angeforderten Benutzer in ungültig."
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Ungültige Weiterleitungsadresse angegeben"
+  },
+  {
+    "id": "api.invalid_channel",
+    "translation": "Der in der Anfrage genannte Kanal gehört nicht dem Benutzer"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Die Datei konnte nicht geschrieben werden."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Hochladen der Datei nicht möglich. Falsche Kanal-ID: {{.channelId}}"
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Auf den Dateispeicher konnte nicht zugegriffen werden."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Die Datei konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Der Ordner konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Die Datei konnte nicht gelesen werden."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Die Datei konnte nicht verschoben werden."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Der Inhalt des Ordners konnte nicht geladen werden."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Die Größe der Datei konnte nicht ermittelt werden."
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Fehlendes Kommando. Verfügbare Aktionen: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Passwort für die Verschlüsslung der Einladung"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Einladung erstellt."
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[Aktion]"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Sichere Verbindung {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Es konnte keine sichere Verbindung hinzugefügt werden: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Einladung konnte nicht akzeptiert werden: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Einladung akzeptiert und bestätigt.\nAdresse: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Einladung einer externen Mattermost-Instanz akzeptieren"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "Status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Ihr Status wurde zurückgesetzt."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fehler beim Zurücksetzen des Status."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fehler beim Setzen des Status."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Der eingegebene Text ist zu lang. Die Kanalüberschrift darf nicht mehr als {{.MaxLength}} Zeichen enthalten."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Bei der Verarbeitung der Abfrage zum CWS ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Fehler beim Invalidieren des Cache"
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "Importieren nicht möglich: Datei konnte nicht geöffnet werden."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "Importieren nicht möglich: JSONL-Datei nicht vorhanden."
+  },
+  {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "Importieren nicht möglich: Datei nicht vorhanden."
+  },
+  {
+    "id": "error",
+    "translation": "Fehler"
   }
 ]

@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -17,7 +17,7 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -37,7 +37,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -72,7 +72,7 @@ func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -92,7 +92,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -103,7 +103,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	categoryOrder := model.ArrayFromJson(r.Body)
 
 	for _, categoryId := range categoryOrder {
-		if !c.App.SessionHasPermissionToCategory(*c.App.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
+		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
 			c.SetInvalidParam("category")
 			return
 		}
@@ -125,7 +125,7 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionToCategory(*c.App.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
+	if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -145,7 +145,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -160,7 +160,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	for _, category := range categoriesUpdateRequest {
-		if !c.App.SessionHasPermissionToCategory(*c.App.Session(), c.Params.UserId, c.Params.TeamId, category.Id) {
+		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, category.Id) {
 			c.SetInvalidParam("category")
 			return
 		}
@@ -233,7 +233,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !c.App.SessionHasPermissionToCategory(*c.App.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
+	if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -270,7 +270,7 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !c.App.SessionHasPermissionToCategory(*c.App.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
+	if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

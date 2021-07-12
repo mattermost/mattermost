@@ -40,12 +40,6 @@ func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
 	return s
 }
 
-func (s SqlSchemeStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
-	s.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
-	s.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
-}
-
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	if scheme.Id == "" {
 		transaction, err := s.GetMaster().Begin()
@@ -269,7 +263,7 @@ func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	// Get the scheme
 	var scheme model.Scheme
-	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
+	if err := s.GetMaster().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}

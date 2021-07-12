@@ -87,6 +87,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 
 	var testResourcesToSetup = []testResourceDetails{
 		{root, "mattermost-server", resourceTypeFolder, actionSymlink},
+		{"go.mod", "go.mod", resourceTypeFile, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},

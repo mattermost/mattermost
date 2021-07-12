@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type InvitePeopleProvider struct {
@@ -41,7 +42,7 @@ func (*InvitePeopleProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (*InvitePeopleProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*InvitePeopleProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PERMISSION_INVITE_USER) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

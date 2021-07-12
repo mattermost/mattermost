@@ -4,12 +4,14 @@
 package slashcommands
 
 import (
+	"context"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type RemoveProvider struct {
@@ -56,15 +58,15 @@ func (*KickProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*RemoveProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	return doCommand(a, args, message)
+func (*RemoveProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	return doCommand(a, c, args, message)
 }
 
-func (*KickProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	return doCommand(a, args, message)
+func (*KickProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	return doCommand(a, c, args, message)
 }
 
-func doCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
@@ -122,7 +124,7 @@ func doCommand(a *app.App, args *model.CommandArgs, message string) *model.Comma
 		}
 	}
 
-	_, err = a.GetChannelMember(args.ChannelId, userProfile.Id)
+	_, err = a.GetChannelMember(context.Background(), args.ChannelId, userProfile.Id)
 	if err != nil {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		return &model.CommandResponse{
@@ -133,7 +135,7 @@ func doCommand(a *app.App, args *model.CommandArgs, message string) *model.Comma
 		}
 	}
 
-	if err = a.RemoveUserFromChannel(userProfile.Id, args.UserId, channel); err != nil {
+	if err = a.RemoveUserFromChannel(c, userProfile.Id, args.UserId, channel); err != nil {
 		var text string
 		if err.Id == "api.channel.remove_members.denied" {
 			text = args.T("api.command_remove.group_constrained_user_denied")

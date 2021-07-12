@@ -17,13 +17,13 @@ func TestAssignRole(t *testing.T) {
 	th.CheckCommand(t, "roles", "system_admin", th.BasicUser.Email)
 
 	user, err := th.App.Srv().Store.User().GetByEmail(th.BasicUser.Email)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "system_user system_admin", user.Roles)
 
 	th.CheckCommand(t, "roles", "member", th.BasicUser.Email)
 
 	user, err = th.App.Srv().Store.User().GetByEmail(th.BasicUser.Email)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "system_user", user.Roles)
 
 }
