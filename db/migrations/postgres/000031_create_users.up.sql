@@ -53,3 +53,5 @@ DROP INDEX IF EXISTS idx_users_username_lower;
 DROP INDEX IF EXISTS idx_users_nickname_lower;
 DROP INDEX IF EXISTS idx_users_firstname_lower;
 DROP INDEX IF EXISTS idx_users_lastname_lower;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);
