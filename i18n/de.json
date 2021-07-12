@@ -7669,5 +7669,165 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Fehler beim Analysieren einer Multiform-Anfrage"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "Ihr Mattermost System hat Multi-Faktor Authentifizierung aktiviert, was Benutzern die Möglichkeit gibt ihre Konten mit über das Passwort hinausgehende Authentifizierung abzusichern. Um die Sicherheit im gesamten System zu erhöhen, können Sie bei alle Konten Multi-Faktor Authentifizierung erzwingen.\n\n[Lernen mehr über erzwungene Multi-Faktor Authentifizierung] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/privacy-policy/) und dem Empfang von Produkt-Emails zu."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "Ihr Mattermost System hat Multi-Faktor Authentifizierung aktiviert, was Benutzern die Möglichkeit gibt ihre Konten mit über das Passwort hinausgehende Authentifizierung abzusichern. Um die Sicherheit im gesamten System zu erhöhen, können Sie bei alle Konten Multi-Faktor Authentifizierung erzwingen.\n\n[Lernen mehr über erzwungene Multi-Faktor Authentifizierung] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nDurch das Anklicken von Kontaktieren Sie Uns, teilen Sie Daten mit Mattermost, Inc. [Erfahren Sie mehr](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Mattermost Kontaktieren Sie uns Anfrage. Ich bin daran interessiert mehr über erzwungene Multi-Faktor Authentifizierung zu erfahren.\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_us",
+    "translation": "Sende Sie uns eine Email"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Ihre Enterprise Test ist jetzt aktiv. Gehen Sie zu **System Konsole > Authentifizierung > Gastzugang** um Gastkonten zu aktivieren."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "Projekte involvieren häufig Personen innerhalb und außerhalb einer Organisation. Mit Gastkonten können Sie externe Partner in ihr Mattermost System einbinden und festlegen, mit wem diese arbeiten und was diese sehen dürfen.\n\n[Lernen Sie mehr über das Aktivieren von Gastkonten](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/privacy-policy/) und dem Empfang von Produkt-Emails zu."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Erzeuge Gastkonten"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Projekte involvieren häufig Personen innerhalb und außerhalb einer Organisation. Mit Gastkonten können Sie externe Partner in ihr Mattermost System einbinden und festlegen, mit wem diese arbeiten und was diese sehen dürfen.\n\n[Lernen Sie mehr über das Aktivieren von Gastkonten](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDurch das Anklicken von Kontaktieren Sie Uns, teilen Sie Daten mit Mattermost, Inc. [Erfahren Sie mehr](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Mattermost kontaktieren Anfrage. Ich bin daran interessiert, mehr über Gastkonten zu erfahren.\n"
+  },
+  {
+    "id": "api.server.warn_metric.contacting_us",
+    "translation": "Kontaktiert uns"
+  },
+  {
+    "id": "api.server.warn_metric.contact_us",
+    "translation": "Kontaktieren Sie uns"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Testlizenz konnte nicht empfangen werden. Besuchen Sie https://mattermost.com/trial/ um eine Lizenz anzufragen."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_success.message",
+    "translation": "Danke, dass Sie Mattermost kontaktiert habe. Wir setzen uns ins Kürze mit Ihnen in Verbindung."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_failure.message",
+    "translation": "Nachricht konnte nicht gesendet werden."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_failure.body",
+    "translation": "Bitte senden Sie uns eine Email."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_subject",
+    "translation": "Kontaktiere Mattermost Anfrage"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+    "translation": "Seiten URL: {{.SiteUrl}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+    "translation": "Gesamte aktive Benutzer: {{.NoRegisteredUsers}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_footer",
+    "translation": "Wenn Sie weitere Anliegen haben, kontaktieren Sie bitte support@mattermost.com"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+    "translation": "Kontakt: {{.Contact}}"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Eine oder mehrere der folgenden Berechtigungen, die Sie versuchen hinzuzufügen oder zu löschen, sind nicht erlaubt"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Eine sichere Verbindung mit der gleichen URL existiert schon."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Bei Aktualisieren der sicheren Verbindung trat ein Fehler auf."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Der \"Remote Cluster Dienst\" ist nicht aktiviert."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Die sichere Verbindung wurde bereits hinzugefügt."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Beim Speichern der sicheren Verbindung trat ein Fehler auf."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Beim Empfangen einer sichern Verbindung trat ein Fehler auf."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Beim Löschen der sicheren Verbindung trat ein Fehler auf."
+  },
+  {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Sitzung abgelaufen: Bitte anmelden um weiter Nachrichten zu erhalten. Sitzungen für {{.siteName}} sind vom System Adminstrator so konfiguriert, dass sie alle {{.daysCount}} Tage ablaufen."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
+    "translation": "Ihre Enterprise Test ist jetzt aktiv. Gehen Sie zu **System Konsole > Authentifizierung > SAML 2.0** um Ihren SAML 2.0 Provider zu integrieren."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "Ihr Mattermost System hat jetzt 200 Benutzer. Wenn Sie Mattermost an den Single-Sign-On Provider Ihrer Organisation anbinden, können Benutzer auf Mattermost zugreifen, ohne ihre Anmeldeinformationen erneut einzugeben. Wir empfehlen, dass Sie ihren SAML 2.0 Provider in Ihren Mattermost Server integrieren. [Lerne mehr über die SAML 2.0 Integration] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/privacy-policy/) und dem Empfang von Produkt-Emails zu."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+    "translation": "Skalieren mit Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+    "translation": "Ihr Mattermost System hat jetzt 200 Benutzer. Wenn Sie Mattermost an den Single-Sign-On Provider Ihrer Organisation anbinden, können Benutzer auf Mattermost zugreifen, ohne ihre Anmeldeinformationen erneut einzugeben. Wir empfehlen, dass Sie ihren SAML 2.0 Provider in Ihren Mattermost Server integrieren. [Lerne mehr über die SAML 2.0 Integration] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDurch das Anklicken von Kontaktieren Sie Uns, teilen Sie Daten mit Mattermost, Inc. [Erfahren Sie mehr](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermost Kontaktieren Sie uns Anfrage. Mein Team hat jetzt 200 Benutzer und ich überlege die Mattermost Enterprise Version einzusetzen.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
+    "translation": "Ihre Enterprise Test ist jetzt aktiv. Gehen Sie zu **System Konsole > Authentifizierung > AD/LDAP** um Ihren AD/LDAP Dienst zu integrieren."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
+    "translation": "Ihr Mattermost System hat über 100 Benutzer. Mit wachsender Benutzeranzahl, wird das Einrichten neuer Konten immer zeitaufwändiger. Wir empfehlen das Active Directory/LDAP Ihrer Organisation zu integrieren, was jedem mit einem Konto erlaubt auf Mattermost zuzugreifen.\n\n[Lernen mehr über die Integration von AD/LDAP] (https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap). \n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/privacy-policy/) und dem Empfang von Produkt-Emails zu."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Skalieren mit Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Ihr Mattermost System hat über 100 Benutzer. Mit wachsender Benutzeranzahl, wird das Einrichten neuer Konten immer zeitaufwändiger. Wir empfehlen das Active Directory/LDAP Ihrer Organisation zu integrieren, was jedem mit einem Konto erlaubt auf Mattermost zuzugreifen.\n\n[Lernen mehr über die Integration von AD/LDAP] (https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap). \n\nDurch das Anklicken von Kontaktieren Sie Uns, teilen Sie Daten mit Mattermost, Inc. [Erfahren Sie mehr](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermost Kontaktieren Sie uns Anfrage. Mein Team hat jetzt mehr als 100 Benutzer und ich überlege die Mattermost Enterprise Version einzusetzen.\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "Ihre Enterprise Test ist jetzt aktiv. Gehen Sie zu **System Konsole > Authentifizierung > MFA** um Multi-Faktor Authentifizierung zu erzwingen.."
   }
 ]
