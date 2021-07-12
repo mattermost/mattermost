@@ -318,7 +318,7 @@ func (scope *Scope) Clone() *Scope {
 	clone.transaction = scope.transaction
 	clone.request = scope.request
 	clone.requestBody = scope.requestBody
-
+	clone.eventProcessors = scope.eventProcessors
 	return clone
 }
 
@@ -364,6 +364,14 @@ func (scope *Scope) ApplyToEvent(event *Event, hint *EventHint) *Event {
 		}
 
 		for key, value := range scope.contexts {
+			if key == "trace" && event.Type == transactionType {
+				// Do not override trace context of
+				// transactions, otherwise it breaks the
+				// transaction event representation.
+				// For error events, the trace context is used
+				// to link errors and traces/spans in Sentry.
+				continue
+			}
 			event.Contexts[key] = value
 		}
 	}

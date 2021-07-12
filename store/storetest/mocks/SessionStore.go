@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -40,13 +42,13 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	_m.Called(expiryTime, batchSize)
 }
 
-// Get provides a mock function with given fields: sessionIDOrToken
-func (_m *SessionStore) Get(sessionIDOrToken string) (*model.Session, error) {
-	ret := _m.Called(sessionIDOrToken)
+// Get provides a mock function with given fields: ctx, sessionIDOrToken
+func (_m *SessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
+	ret := _m.Called(ctx, sessionIDOrToken)
 
 	var r0 *model.Session
-	if rf, ok := ret.Get(0).(func(string) *model.Session); ok {
-		r0 = rf(sessionIDOrToken)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Session); ok {
+		r0 = rf(ctx, sessionIDOrToken)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Session)
@@ -54,8 +56,8 @@ func (_m *SessionStore) Get(sessionIDOrToken string) (*model.Session, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(sessionIDOrToken)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, sessionIDOrToken)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -63,13 +65,13 @@ func (_m *SessionStore) Get(sessionIDOrToken string) (*model.Session, error) {
 	return r0, r1
 }
 
-// GetSessions provides a mock function with given fields: userId
-func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, error) {
-	ret := _m.Called(userId)
+// GetSessions provides a mock function with given fields: userID
+func (_m *SessionStore) GetSessions(userID string) ([]*model.Session, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.Session
 	if rf, ok := ret.Get(0).(func(string) []*model.Session); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Session)
@@ -78,7 +80,7 @@ func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -109,13 +111,13 @@ func (_m *SessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly boo
 	return r0, r1
 }
 
-// GetSessionsWithActiveDeviceIds provides a mock function with given fields: userId
-func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
-	ret := _m.Called(userId)
+// GetSessionsWithActiveDeviceIds provides a mock function with given fields: userID
+func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.Session
 	if rf, ok := ret.Get(0).(func(string) []*model.Session); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Session)
@@ -124,7 +126,7 @@ func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -274,20 +276,20 @@ func (_m *SessionStore) UpdateProps(session *model.Session) error {
 	return r0
 }
 
-// UpdateRoles provides a mock function with given fields: userId, roles
-func (_m *SessionStore) UpdateRoles(userId string, roles string) (string, error) {
-	ret := _m.Called(userId, roles)
+// UpdateRoles provides a mock function with given fields: userID, roles
+func (_m *SessionStore) UpdateRoles(userID string, roles string) (string, error) {
+	ret := _m.Called(userID, roles)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string, string) string); ok {
-		r0 = rf(userId, roles)
+		r0 = rf(userID, roles)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, roles)
+		r1 = rf(userID, roles)
 	} else {
 		r1 = ret.Error(1)
 	}

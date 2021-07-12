@@ -36,7 +36,7 @@ const (
 
 // ErrSharedConfigSourceCollision will be returned if a section contains both
 // source_profile and credential_source
-var ErrSharedConfigSourceCollision = awserr.New(ErrCodeSharedConfig, "only source profile or credential source can be specified, not both", nil)
+var ErrSharedConfigSourceCollision = awserr.New(ErrCodeSharedConfig, "only one credential type may be specified per profile: source profile, credential source, credential process, web identity token, or sso", nil)
 
 // ErrSharedConfigECSContainerEnvVarEmpty will be returned if the environment
 // variables are empty and Environment was set as the credential source
