@@ -145,14 +145,14 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("unable-to-create-reaction-without-permissions", func(t *testing.T) {
 		th.LoginBasic()
 
-		th.RemovePermissionFromRole(model.PERMISSION_ADD_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PermissionAddReaction.Id, model.ChannelUserRoleId)
 		_, resp := Client.SaveReaction(reaction)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 3, len(reactions), "should have not created a reactions")
-		th.AddPermissionToRole(model.PERMISSION_ADD_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionAddReaction.Id, model.ChannelUserRoleId)
 	})
 
 	t.Run("unable-to-react-in-read-only-town-square", func(t *testing.T) {
@@ -455,7 +455,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("unable-to-delete-reaction-without-permissions", func(t *testing.T) {
 		th.LoginBasic()
 
-		th.RemovePermissionFromRole(model.PERMISSION_REMOVE_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
 		th.App.SaveReactionForPost(th.Context, r1)
 
 		_, resp := Client.DeleteReaction(r1)
@@ -464,11 +464,11 @@ func TestDeleteReaction(t *testing.T) {
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
-		th.AddPermissionToRole(model.PERMISSION_REMOVE_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
 	})
 
 	t.Run("unable-to-delete-others-reactions-without-permissions", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id, model.SYSTEM_ADMIN_ROLE_ID)
+		th.RemovePermissionFromRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
 		th.App.SaveReactionForPost(th.Context, r1)
 
 		_, resp := th.SystemAdminClient.DeleteReaction(r1)
@@ -477,7 +477,7 @@ func TestDeleteReaction(t *testing.T) {
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
-		th.AddPermissionToRole(model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id, model.SYSTEM_ADMIN_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("unable-to-delete-reactions-in-read-only-town-square", func(t *testing.T) {

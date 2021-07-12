@@ -59,16 +59,16 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateEmojis) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_CREATE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionCreateEmojis) {
 				hasPermission = true
 				break
 			}
 		}
 		if !hasPermission {
-			c.SetPermissionError(model.PERMISSION_CREATE_EMOJIS)
+			c.SetPermissionError(model.PermissionCreateEmojis)
 			return
 		}
 	}
@@ -106,7 +106,7 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sort := r.URL.Query().Get("sort")
-	if sort != "" && sort != model.EMOJI_SORT_BY_NAME {
+	if sort != "" && sort != model.EmojiSortByName {
 		c.SetInvalidUrlParam("sort")
 		return
 	}
@@ -145,32 +145,32 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DELETE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDeleteEmojis) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_DELETE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionDeleteEmojis) {
 				hasPermission = true
 				break
 			}
 		}
 		if !hasPermission {
-			c.SetPermissionError(model.PERMISSION_DELETE_EMOJIS)
+			c.SetPermissionError(model.PermissionDeleteEmojis)
 			return
 		}
 	}
 
 	if c.AppContext.Session().UserId != emoji.CreatorId {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DELETE_OTHERS_EMOJIS) {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDeleteOthersEmojis) {
 			hasPermission := false
 			for _, membership := range memberships {
-				if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_DELETE_OTHERS_EMOJIS) {
+				if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionDeleteOthersEmojis) {
 					hasPermission = true
 					break
 				}
 			}
 
 			if !hasPermission {
-				c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_EMOJIS)
+				c.SetPermissionError(model.PermissionDeleteOthersEmojis)
 				return
 			}
 		}

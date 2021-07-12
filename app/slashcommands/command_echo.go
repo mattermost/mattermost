@@ -44,7 +44,7 @@ func (*EchoProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 
 func (*EchoProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
-		return &model.CommandResponse{Text: args.T("api.command_echo.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_echo.message.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	maxThreads := 100
@@ -66,7 +66,7 @@ func (*EchoProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 	}
 
 	if delay > 10000 {
-		return &model.CommandResponse{Text: args.T("api.command_echo.delay.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_echo.delay.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	if echoSem == nil {
@@ -75,7 +75,7 @@ func (*EchoProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 	}
 
 	if len(echoSem) >= maxThreads {
-		return &model.CommandResponse{Text: args.T("api.command_echo.high_volume.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_echo.high_volume.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	echoSem <- true

@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	POST_ACTION_TYPE_BUTTON                         = "button"
-	POST_ACTION_TYPE_SELECT                         = "select"
-	INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS = 3000
+	PostActionTypeButton                        = "button"
+	PostActionTypeSelect                        = "select"
+	InteractiveDialogTriggerTimeoutMilliseconds = 3000
 )
 
 var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
@@ -289,8 +289,8 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 	timestamp, _ := strconv.ParseInt(timestampStr, 10, 64)
 
 	now := GetMillis()
-	if now-timestamp > INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]interface{}{"Seconds": INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS / 1000}, "", http.StatusBadRequest)
+	if now-timestamp > InteractiveDialogTriggerTimeoutMilliseconds {
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]interface{}{"Seconds": InteractiveDialogTriggerTimeoutMilliseconds / 1000}, "", http.StatusBadRequest)
 	}
 
 	signature, err := base64.StdEncoding.DecodeString(split[3])

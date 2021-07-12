@@ -10,284 +10,284 @@ import (
 func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Config, isLicensed bool) map[string]*model.Role {
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation {
-		case model.PERMISSIONS_ALL:
-			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-				roles[model.TEAM_USER_ROLE_ID].Permissions,
-				model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
+		case model.PermissionsAll:
+			roles[model.TeamUserRoleId].Permissions = append(
+				roles[model.TeamUserRoleId].Permissions,
+				model.PermissionCreatePublicChannel.Id,
 			)
-		case model.PERMISSIONS_TEAM_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
+		case model.PermissionsTeamAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionCreatePublicChannel.Id,
 			)
 		}
 	} else {
-		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-			roles[model.TEAM_USER_ROLE_ID].Permissions,
-			model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
+		roles[model.TeamUserRoleId].Permissions = append(
+			roles[model.TeamUserRoleId].Permissions,
+			model.PermissionCreatePublicChannel.Id,
 		)
 	}
 
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement {
-		case model.PERMISSIONS_ALL:
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+		case model.PermissionsAll:
+			roles[model.ChannelUserRoleId].Permissions = append(
+				roles[model.ChannelUserRoleId].Permissions,
+				model.PermissionManagePublicChannelProperties.Id,
 			)
-		case model.PERMISSIONS_CHANNEL_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+		case model.PermissionsChannelAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionManagePublicChannelProperties.Id,
 			)
-			roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+			roles[model.ChannelAdminRoleId].Permissions = append(
+				roles[model.ChannelAdminRoleId].Permissions,
+				model.PermissionManagePublicChannelProperties.Id,
 			)
-		case model.PERMISSIONS_TEAM_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+		case model.PermissionsTeamAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionManagePublicChannelProperties.Id,
 			)
 		}
 	} else {
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+		roles[model.ChannelUserRoleId].Permissions = append(
+			roles[model.ChannelUserRoleId].Permissions,
+			model.PermissionManagePublicChannelProperties.Id,
 		)
 	}
 
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion {
-		case model.PERMISSIONS_ALL:
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+		case model.PermissionsAll:
+			roles[model.ChannelUserRoleId].Permissions = append(
+				roles[model.ChannelUserRoleId].Permissions,
+				model.PermissionDeletePublicChannel.Id,
 			)
-		case model.PERMISSIONS_CHANNEL_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+		case model.PermissionsChannelAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionDeletePublicChannel.Id,
 			)
-			roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+			roles[model.ChannelAdminRoleId].Permissions = append(
+				roles[model.ChannelAdminRoleId].Permissions,
+				model.PermissionDeletePublicChannel.Id,
 			)
-		case model.PERMISSIONS_TEAM_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+		case model.PermissionsTeamAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionDeletePublicChannel.Id,
 			)
 		}
 	} else {
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+		roles[model.ChannelUserRoleId].Permissions = append(
+			roles[model.ChannelUserRoleId].Permissions,
+			model.PermissionDeletePublicChannel.Id,
 		)
 	}
 
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation {
-		case model.PERMISSIONS_ALL:
-			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-				roles[model.TEAM_USER_ROLE_ID].Permissions,
-				model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
+		case model.PermissionsAll:
+			roles[model.TeamUserRoleId].Permissions = append(
+				roles[model.TeamUserRoleId].Permissions,
+				model.PermissionCreatePrivateChannel.Id,
 			)
-		case model.PERMISSIONS_TEAM_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
+		case model.PermissionsTeamAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionCreatePrivateChannel.Id,
 			)
 		}
 	} else {
-		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-			roles[model.TEAM_USER_ROLE_ID].Permissions,
-			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
+		roles[model.TeamUserRoleId].Permissions = append(
+			roles[model.TeamUserRoleId].Permissions,
+			model.PermissionCreatePrivateChannel.Id,
 		)
 	}
 
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement {
-		case model.PERMISSIONS_ALL:
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+		case model.PermissionsAll:
+			roles[model.ChannelUserRoleId].Permissions = append(
+				roles[model.ChannelUserRoleId].Permissions,
+				model.PermissionManagePrivateChannelProperties.Id,
 			)
-		case model.PERMISSIONS_CHANNEL_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+		case model.PermissionsChannelAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionManagePrivateChannelProperties.Id,
 			)
-			roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+			roles[model.ChannelAdminRoleId].Permissions = append(
+				roles[model.ChannelAdminRoleId].Permissions,
+				model.PermissionManagePrivateChannelProperties.Id,
 			)
-		case model.PERMISSIONS_TEAM_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+		case model.PermissionsTeamAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionManagePrivateChannelProperties.Id,
 			)
 		}
 	} else {
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+		roles[model.ChannelUserRoleId].Permissions = append(
+			roles[model.ChannelUserRoleId].Permissions,
+			model.PermissionManagePrivateChannelProperties.Id,
 		)
 	}
 
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion {
-		case model.PERMISSIONS_ALL:
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+		case model.PermissionsAll:
+			roles[model.ChannelUserRoleId].Permissions = append(
+				roles[model.ChannelUserRoleId].Permissions,
+				model.PermissionDeletePrivateChannel.Id,
 			)
-		case model.PERMISSIONS_CHANNEL_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+		case model.PermissionsChannelAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionDeletePrivateChannel.Id,
 			)
-			roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+			roles[model.ChannelAdminRoleId].Permissions = append(
+				roles[model.ChannelAdminRoleId].Permissions,
+				model.PermissionDeletePrivateChannel.Id,
 			)
-		case model.PERMISSIONS_TEAM_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+		case model.PermissionsTeamAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionDeletePrivateChannel.Id,
 			)
 		}
 	} else {
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+		roles[model.ChannelUserRoleId].Permissions = append(
+			roles[model.ChannelUserRoleId].Permissions,
+			model.PermissionDeletePrivateChannel.Id,
 		)
 	}
 
 	// Restrict permissions for Private Channel Manage Members
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers {
-		case model.PERMISSIONS_ALL:
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		case model.PermissionsAll:
+			roles[model.ChannelUserRoleId].Permissions = append(
+				roles[model.ChannelUserRoleId].Permissions,
+				model.PermissionManagePrivateChannelMembers.Id,
 			)
-		case model.PERMISSIONS_CHANNEL_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		case model.PermissionsChannelAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionManagePrivateChannelMembers.Id,
 			)
-			roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+			roles[model.ChannelAdminRoleId].Permissions = append(
+				roles[model.ChannelAdminRoleId].Permissions,
+				model.PermissionManagePrivateChannelMembers.Id,
 			)
-		case model.PERMISSIONS_TEAM_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		case model.PermissionsTeamAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionManagePrivateChannelMembers.Id,
 			)
 		}
 	} else {
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		roles[model.ChannelUserRoleId].Permissions = append(
+			roles[model.ChannelUserRoleId].Permissions,
+			model.PermissionManagePrivateChannelMembers.Id,
 		)
 	}
 
 	if !*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations {
-		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-			roles[model.TEAM_USER_ROLE_ID].Permissions,
-			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
-			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
-			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
+		roles[model.TeamUserRoleId].Permissions = append(
+			roles[model.TeamUserRoleId].Permissions,
+			model.PermissionManageIncomingWebhooks.Id,
+			model.PermissionManageOutgoingWebhooks.Id,
+			model.PermissionManageSlashCommands.Id,
 		)
-		roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(
-			roles[model.SYSTEM_USER_ROLE_ID].Permissions,
-			model.PERMISSION_MANAGE_OAUTH.Id,
+		roles[model.SystemUserRoleId].Permissions = append(
+			roles[model.SystemUserRoleId].Permissions,
+			model.PermissionManageOAuth.Id,
 		)
 	}
 
 	// Grant permissions for inviting and adding users to a team.
 	if isLicensed {
-		if *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_INVITE_USER.Id,
-				model.PERMISSION_ADD_USER_TO_TEAM.Id,
+		if *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite == model.PermissionsTeamAdmin {
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionInviteUser.Id,
+				model.PermissionAddUserToTeam.Id,
 			)
-		} else if *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite == model.PERMISSIONS_ALL {
-			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-				roles[model.TEAM_USER_ROLE_ID].Permissions,
-				model.PERMISSION_INVITE_USER.Id,
-				model.PERMISSION_ADD_USER_TO_TEAM.Id,
+		} else if *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite == model.PermissionsAll {
+			roles[model.TeamUserRoleId].Permissions = append(
+				roles[model.TeamUserRoleId].Permissions,
+				model.PermissionInviteUser.Id,
+				model.PermissionAddUserToTeam.Id,
 			)
 		}
 	} else {
-		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-			roles[model.TEAM_USER_ROLE_ID].Permissions,
-			model.PERMISSION_INVITE_USER.Id,
-			model.PERMISSION_ADD_USER_TO_TEAM.Id,
+		roles[model.TeamUserRoleId].Permissions = append(
+			roles[model.TeamUserRoleId].Permissions,
+			model.PermissionInviteUser.Id,
+			model.PermissionAddUserToTeam.Id,
 		)
 	}
 
 	if isLicensed {
 		switch *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictPostDelete {
-		case model.PERMISSIONS_DELETE_POST_ALL:
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_POST.Id,
+		case model.PermissionsDeletePostAll:
+			roles[model.ChannelUserRoleId].Permissions = append(
+				roles[model.ChannelUserRoleId].Permissions,
+				model.PermissionDeletePost.Id,
 			)
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_POST.Id,
-				model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionDeletePost.Id,
+				model.PermissionDeleteOthersPosts.Id,
 			)
-		case model.PERMISSIONS_DELETE_POST_TEAM_ADMIN:
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_POST.Id,
-				model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+		case model.PermissionsDeletePostTeamAdmin:
+			roles[model.TeamAdminRoleId].Permissions = append(
+				roles[model.TeamAdminRoleId].Permissions,
+				model.PermissionDeletePost.Id,
+				model.PermissionDeleteOthersPosts.Id,
 			)
 		}
 	} else {
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-			model.PERMISSION_DELETE_POST.Id,
+		roles[model.ChannelUserRoleId].Permissions = append(
+			roles[model.ChannelUserRoleId].Permissions,
+			model.PermissionDeletePost.Id,
 		)
-		roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-			roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-			model.PERMISSION_DELETE_POST.Id,
-			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+		roles[model.TeamAdminRoleId].Permissions = append(
+			roles[model.TeamAdminRoleId].Permissions,
+			model.PermissionDeletePost.Id,
+			model.PermissionDeleteOthersPosts.Id,
 		)
 	}
 
 	if *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_EnableTeamCreation {
-		roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(
-			roles[model.SYSTEM_USER_ROLE_ID].Permissions,
-			model.PERMISSION_CREATE_TEAM.Id,
+		roles[model.SystemUserRoleId].Permissions = append(
+			roles[model.SystemUserRoleId].Permissions,
+			model.PermissionCreateTeam.Id,
 		)
 	}
 
 	if isLicensed {
 		switch *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost {
-		case model.ALLOW_EDIT_POST_ALWAYS, model.ALLOW_EDIT_POST_TIME_LIMIT:
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-				model.PERMISSION_EDIT_POST.Id,
+		case model.AllowEditPostAlways, model.AllowEditPostTimeLimit:
+			roles[model.ChannelUserRoleId].Permissions = append(
+				roles[model.ChannelUserRoleId].Permissions,
+				model.PermissionEditPost.Id,
 			)
-			roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_EDIT_POST.Id,
+			roles[model.SystemAdminRoleId].Permissions = append(
+				roles[model.SystemAdminRoleId].Permissions,
+				model.PermissionEditPost.Id,
 			)
 		}
 	} else {
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-			model.PERMISSION_EDIT_POST.Id,
+		roles[model.ChannelUserRoleId].Permissions = append(
+			roles[model.ChannelUserRoleId].Permissions,
+			model.PermissionEditPost.Id,
 		)
-		roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions = append(
-			roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions,
-			model.PERMISSION_EDIT_POST.Id,
+		roles[model.SystemAdminRoleId].Permissions = append(
+			roles[model.SystemAdminRoleId].Permissions,
+			model.PermissionEditPost.Id,
 		)
 	}
 

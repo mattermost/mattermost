@@ -158,8 +158,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
-	w.Header().Set(model.HEADER_REQUEST_ID, c.AppContext.RequestId())
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
+	w.Header().Set(model.HeaderRequestId, c.AppContext.RequestId())
+	w.Header().Set(model.HeaderVersionId, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
@@ -336,7 +336,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHttpRequest()
 
-		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
+		if r.URL.Path != model.ApiUrlSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
@@ -350,11 +350,11 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 	csrfCheckPassed := false
 
 	if csrfCheckNeeded {
-		csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
+		csrfHeader := r.Header.Get(model.HeaderCsrfToken)
 
 		if csrfHeader == session.GetCSRF() {
 			csrfCheckPassed = true
-		} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+		} else if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXml {
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
 

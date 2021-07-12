@@ -56,7 +56,7 @@ func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID str
 
 	post.CreateAt = model.GetMillis()
 
-	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		err := model.NewAppError("CreateCommandPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
 		return nil, err
 	}
@@ -65,11 +65,11 @@ func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID str
 		model.ParseSlackAttachment(post, response.Attachments)
 	}
 
-	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
+	if response.ResponseType == model.CommandResponseTypeInChannel {
 		return a.CreatePostMissingChannel(c, post, true)
 	}
 
-	if (response.ResponseType == "" || response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL) && (response.Text != "" || response.Attachments != nil) {
+	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {
 		post.ParentId = ""
 		a.SendEphemeralPost(post.UserId, post)
 	}
@@ -477,7 +477,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	// Prepare the request
 	var req *http.Request
 	var err error
-	if cmd.Method == model.COMMAND_METHOD_GET {
+	if cmd.Method == model.CommandMethodGet {
 		req, err = http.NewRequest(http.MethodGet, cmd.URL, nil)
 	} else {
 		req, err = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
@@ -487,7 +487,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
 	}
 
-	if cmd.Method == model.COMMAND_METHOD_GET {
+	if cmd.Method == model.CommandMethodGet {
 		if req.URL.RawQuery != "" {
 			req.URL.RawQuery += "&"
 		}
@@ -496,7 +496,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Token "+cmd.Token)
-	if cmd.Method == model.COMMAND_METHOD_POST {
+	if cmd.Method == model.CommandMethodPost {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 

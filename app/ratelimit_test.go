@@ -73,7 +73,7 @@ func TestGenerateKey(t *testing.T) {
 		req := httptest.NewRequest("GET", "/", nil)
 		if tc.authTokenResult != "" {
 			req.AddCookie(&http.Cookie{
-				Name:  model.SESSION_COOKIE_TOKEN,
+				Name:  model.SessionCookieToken,
 				Value: tc.authTokenResult,
 			})
 		}

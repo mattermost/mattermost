@@ -57,7 +57,7 @@ func init() {
 			AtRestEncryptKey: model.NewString("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		FileSettings: model.FileSettings{
-			DriverName:     model.NewString(model.IMAGE_DRIVER_LOCAL),
+			DriverName:     model.NewString(model.ImageDriverLocal),
 			Directory:      model.NewString("/path/to/directory"),
 			PublicLinkSalt: model.NewString("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},

@@ -11,7 +11,7 @@ func (s *Server) notifyClusterPluginEvent(event string, data model.PluginEventDa
 	if s.Cluster != nil {
 		s.Cluster.SendClusterMessage(&model.ClusterMessage{
 			Event:            event,
-			SendType:         model.CLUSTER_SEND_RELIABLE,
+			SendType:         model.ClusterSendReliable,
 			WaitForAllToSend: true,
 			Data:             data.ToJson(),
 		})

@@ -181,14 +181,14 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		// get how long we need to wait to send notifications to the user
 		var interval int64
-		preference, err := job.service.store.Preference().Get(userID, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
+		preference, err := job.service.store.Preference().Get(userID, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval)
 		if err != nil {
 			// use the default batching interval if an error ocurrs while fetching user preferences
-			interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
+			interval, _ = strconv.ParseInt(model.PreferenceEmailIntervalBatchingSeconds, 10, 64)
 		} else {
 			if value, err := strconv.ParseInt(preference.Value, 10, 64); err != nil {
 				// // use the default batching interval if an error ocurrs while deserializing user preferences
-				interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
+				interval, _ = strconv.ParseInt(model.PreferenceEmailIntervalBatchingSeconds, 10, 64)
 			} else {
 				interval = value
 			}
@@ -220,12 +220,12 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 	postsData := make([]*postData, 0 /* len */, len(notifications) /* cap */)
 	embeddedFiles := make(map[string]io.Reader)
 
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	if license := es.license(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *es.config().EmailSettings.EmailNotificationContentsType
 	}
 
-	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		for i, notification := range notifications {
 			sender, errSender := es.userService.GetUser(notification.post.UserId)
 			if errSender != nil {

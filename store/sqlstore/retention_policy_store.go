@@ -793,7 +793,7 @@ func genericRetentionPoliciesDeletion(
 	if err != nil {
 		return 0, errors.Wrap(err, r.Table+"_tosql")
 	}
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
 		query = `
 		DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
