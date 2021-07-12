@@ -9268,5 +9268,17 @@
   {
     "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": "ライセンスの更新リンク生成に失敗しました"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "電子メール確認トークンを無効にする際にトークンを解析できませんでした"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "電子メール確認トークンを無効にする際にトークンを削除できませんでした"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "あなたのMattermostのサブスクリプションは更新が必要です"
   }
 ]
