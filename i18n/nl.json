@@ -9245,5 +9245,37 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Dataretentietaak mislukt."
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "Het is niet gelukt om de e-mail over de te vernieuwen licentie te verzenden"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Jouw Mattermost abonnement is aan vernieuwing toe"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Log in op jouw klantenaccount om te verlengen"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, jouw abonnement is ingesteld om te verlopen in {{.Days}} dagen. We hopen dat je de flexibele, veilige teamsamenwerking ervaart die Mattermost mogelijk maakt. Verleng snel jouw Mattermost abonnement om er zeker van te zijn dat jouw team kan blijven profiteren van deze voordelen."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Je licentie is aan vernieuwing toe"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Vernieuw nu"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Het is niet gelukt om de e-mails over de te vernieuwen licenties te verzenden"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Het is niet gelukt om de link voor licentieverlenging te genereren"
   }
 ]

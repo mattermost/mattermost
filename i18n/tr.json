@@ -660,7 +660,7 @@
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Kullanıcı Adı ya da Kanal eksik."
+    "translation": "Kullanıcı adı ya da kanal eksik."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
@@ -8653,7 +8653,7 @@
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Çağrı kodlanamadı: {{.Error}}"
+    "translation": "Çağrı şifrelenemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.desc",
@@ -8733,7 +8733,7 @@
   },
   {
     "id": "api.command_share.channel_shared",
-    "translation": "Artık bu kanal paylaşılıyor."
+    "translation": "Bu kanal artık paylaşılıyor."
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
@@ -8761,15 +8761,15 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Site adresi ayarlanmamış. Lütfen Sistem Panosu > Ortam > Web Sunucusu bölümünden ayarlayın."
+    "translation": "Site adresi ayarlanmamış. Lütfen Sistem panosu > Ortam > Web sunucusu bölümünden ayarlayın."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Güvenli Bağlantı Hizmeti etkinleştirilmemiş."
+    "translation": "Güvenli bağlantı hizmeti etkinleştirilmemiş."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Güvenli Bağlantı Hizmeti devre dışı bırakılmış."
+    "translation": "Güvenli bağlantı hizmeti devre dışı bırakılmış."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
@@ -9245,5 +9245,49 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Veri saklama görevi yürütülemedi."
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "Lisans yenileme e-postası gönderilemedi"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Mattermost aboneliğinizin yenilenmesi gerekiyor"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Aboneliğinizi yenilemek için müşteri hesabınızla oturum açın"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, aboneliğiniz {{.Days}} gün içinde sona erecek. Mattermost tarafından sunulan esnek ve güvenli ekip çalışmasını deneyimlediğinizi umuyoruz. Ekibinizin bu özellikleri kullanmayı sürdürebilmesi için aboneliğinizi yenileyin."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Lisansınız yenilenmek üzere"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Şimdi yenile"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Yenileme e-postaları için lisans gönderilemedi"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Lisans yenileme bağlantısı oluşturulamadı"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "E-posta doğrulama kodları geçersiz kılınırken kod işlenemedi"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "E-posta doğrulama kodları geçersiz kılınırken kod silinemedi"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "E-posta doğrulama kodları geçersiz kılınırken kodlar türe göre alınamadı"
   }
 ]
