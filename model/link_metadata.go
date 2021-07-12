@@ -19,7 +19,7 @@ const (
 	LinkMetadataTypeImage     LinkMetadataType = "image"
 	LinkMetadataTypeNone      LinkMetadataType = "none"
 	LinkMetadataTypeOpengraph LinkMetadataType = "opengraph"
-	MaxImages                 int              = 5
+	LinkMetadataMaxImages     int              = 5
 )
 
 type LinkMetadataType string
@@ -51,8 +51,8 @@ func truncateText(original string) string {
 }
 
 func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
-	if maxImages < 0 { // dont break stuff, if it's weird, go for sane defaults
-		maxImages = MaxImages
+	if maxImages < 0 { // don't break stuff, if it's weird, go for sane defaults
+		maxImages = LinkMetadataMaxImages
 	}
 	numImages := len(images)
 	if numImages > maxImages {
@@ -76,7 +76,7 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 		ogdata.Determiner = empty.Determiner
 		ogdata.Locale = empty.Locale
 		ogdata.LocalesAlternate = empty.LocalesAlternate
-		ogdata.Images = firstNImages(ogdata.Images, MaxImages)
+		ogdata.Images = firstNImages(ogdata.Images, LinkMetadataMaxImages)
 		ogdata.Audios = empty.Audios
 		ogdata.Videos = empty.Videos
 	}

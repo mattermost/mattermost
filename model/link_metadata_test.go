@@ -283,7 +283,7 @@ func TestFirstNImages(t *testing.T) {
 			sampleImage("fifth.ico"),
 			sampleImage("notme.tiff"),
 		}
-		assert.Len(t, firstNImages(six, -10), MaxImages, "On negative, go for defaults")
+		assert.Len(t, firstNImages(six, -10), LinkMetadataMaxImages, "On negative, go for defaults")
 	})
 
 }
