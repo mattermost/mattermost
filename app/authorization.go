@@ -106,7 +106,7 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 }
 
 func (a *App) SessionHasPermissionToCategory(session model.Session, userID, teamID, categoryId string) bool {
-	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
+	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
 		return true
 	}
 	category, err := a.GetSidebarCategory(categoryId)
@@ -125,7 +125,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 		return true
 	}
 
-	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
+	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
 		return true
 	}
 
@@ -212,7 +212,7 @@ func (a *App) HasPermissionToUser(askingUserId string, userID string) bool {
 		return true
 	}
 
-	if a.HasPermissionTo(askingUserId, model.PERMISSION_EDIT_OTHER_USERS) {
+	if a.HasPermissionTo(askingUserId, model.PermissionEditOtherUsers) {
 		return true
 	}
 
@@ -257,22 +257,22 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 	}
 
 	if existingBot.OwnerId == session.UserId {
-		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_BOTS) {
-			if !a.SessionHasPermissionTo(session, model.PERMISSION_READ_BOTS) {
+		if !a.SessionHasPermissionTo(session, model.PermissionManageBots) {
+			if !a.SessionHasPermissionTo(session, model.PermissionReadBots) {
 				// If the user doesn't have permission to read bots, pretend as if
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError(&session, []*model.Permission{model.PERMISSION_MANAGE_BOTS})
+			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
 		}
 	} else {
-		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
-			if !a.SessionHasPermissionTo(session, model.PERMISSION_READ_OTHERS_BOTS) {
+		if !a.SessionHasPermissionTo(session, model.PermissionManageOthersBots) {
+			if !a.SessionHasPermissionTo(session, model.PermissionReadOthersBots) {
 				// If the user doesn't have permission to read others' bots,
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError(&session, []*model.Permission{model.PERMISSION_MANAGE_OTHERS_BOTS})
+			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
 		}
 	}
 

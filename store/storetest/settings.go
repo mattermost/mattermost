@@ -161,9 +161,9 @@ func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 	var driver = *settings.DriverName
 
 	switch driver {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		dsn = mySQLRootDSN(*settings.DataSource)
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		dsn = postgreSQLRootDSN(*settings.DataSource)
 	default:
 		return fmt.Errorf("unsupported driver %s", driver)
@@ -196,7 +196,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	var dbName string
 
 	switch driver {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		settings = MySQLSettings(withReplica)
 		dbName = mySQLDSNDatabase(*settings.DataSource)
 		newDSRs := []string{}
@@ -204,7 +204,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 			newDSRs = append(newDSRs, replaceMySQLDatabaseName(dataSource, dbName))
 		}
 		settings.DataSourceReplicas = newDSRs
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		settings = PostgreSQLSettings()
 		dbName = postgreSQLDSNDatabase(*settings.DataSource)
 	default:
@@ -216,11 +216,11 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	}
 
 	switch driver {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		if err := execAsRoot(settings, "GRANT ALL PRIVILEGES ON "+dbName+".* TO 'mmuser'"); err != nil {
 			panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
 		}
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		if err := execAsRoot(settings, "GRANT ALL PRIVILEGES ON DATABASE \""+dbName+"\" TO mmuser"); err != nil {
 			panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
 		}
@@ -238,9 +238,9 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 	var dbName string
 
 	switch driver {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		dbName = mySQLDSNDatabase(*settings.DataSource)
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		dbName = postgreSQLDSNDatabase(*settings.DataSource)
 	default:
 		panic("unsupported driver " + driver)

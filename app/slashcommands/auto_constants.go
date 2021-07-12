@@ -10,11 +10,11 @@ import (
 
 const (
 	UserPassword         = "Usr@MMTest123"
-	ChannelType          = model.CHANNEL_OPEN
+	ChannelType          = model.ChannelTypeOpen
 	BTestTeamDisplayName = "TestTeam"
 	BTestTeamName        = "z-z-testdomaina"
 	BTestTeamEmail       = "test@nowhere.com"
-	BTestTeamType        = model.TEAM_OPEN
+	BTestTeamType        = model.TeamOpen
 	BTestUserName        = "Mr. Testing Tester"
 	BTestUserEmail       = "success+ttester@simulator.amazonses.com"
 	BTestUserPassword    = "passwd"

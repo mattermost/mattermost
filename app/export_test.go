@@ -52,26 +52,26 @@ func TestExportUserNotifyProps(t *testing.T) {
 	defer th.TearDown()
 
 	userNotifyProps := model.StringMap{
-		model.DESKTOP_NOTIFY_PROP:          model.USER_NOTIFY_ALL,
-		model.DESKTOP_SOUND_NOTIFY_PROP:    "true",
-		model.EMAIL_NOTIFY_PROP:            "true",
-		model.PUSH_NOTIFY_PROP:             model.USER_NOTIFY_ALL,
-		model.PUSH_STATUS_NOTIFY_PROP:      model.STATUS_ONLINE,
-		model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
-		model.COMMENTS_NOTIFY_PROP:         model.COMMENTS_NOTIFY_ROOT,
-		model.MENTION_KEYS_NOTIFY_PROP:     "valid,misc",
+		model.DesktopNotifyProp:         model.UserNotifyAll,
+		model.DesktopSoundNotifyProp:    "true",
+		model.EmailNotifyProp:           "true",
+		model.PushNotifyProp:            model.UserNotifyAll,
+		model.PushStatusNotifyProp:      model.StatusOnline,
+		model.ChannelMentionsNotifyProp: "true",
+		model.CommentsNotifyProp:        model.CommentsNotifyRoot,
+		model.MentionKeysNotifyProp:     "valid,misc",
 	}
 
 	exportNotifyProps := th.App.buildUserNotifyProps(userNotifyProps)
 
-	require.Equal(t, userNotifyProps[model.DESKTOP_NOTIFY_PROP], *exportNotifyProps.Desktop)
-	require.Equal(t, userNotifyProps[model.DESKTOP_SOUND_NOTIFY_PROP], *exportNotifyProps.DesktopSound)
-	require.Equal(t, userNotifyProps[model.EMAIL_NOTIFY_PROP], *exportNotifyProps.Email)
-	require.Equal(t, userNotifyProps[model.PUSH_NOTIFY_PROP], *exportNotifyProps.Mobile)
-	require.Equal(t, userNotifyProps[model.PUSH_STATUS_NOTIFY_PROP], *exportNotifyProps.MobilePushStatus)
-	require.Equal(t, userNotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP], *exportNotifyProps.ChannelTrigger)
-	require.Equal(t, userNotifyProps[model.COMMENTS_NOTIFY_PROP], *exportNotifyProps.CommentsTrigger)
-	require.Equal(t, userNotifyProps[model.MENTION_KEYS_NOTIFY_PROP], *exportNotifyProps.MentionKeys)
+	require.Equal(t, userNotifyProps[model.DesktopNotifyProp], *exportNotifyProps.Desktop)
+	require.Equal(t, userNotifyProps[model.DesktopSoundNotifyProp], *exportNotifyProps.DesktopSound)
+	require.Equal(t, userNotifyProps[model.EmailNotifyProp], *exportNotifyProps.Email)
+	require.Equal(t, userNotifyProps[model.PushNotifyProp], *exportNotifyProps.Mobile)
+	require.Equal(t, userNotifyProps[model.PushStatusNotifyProp], *exportNotifyProps.MobilePushStatus)
+	require.Equal(t, userNotifyProps[model.ChannelMentionsNotifyProp], *exportNotifyProps.ChannelTrigger)
+	require.Equal(t, userNotifyProps[model.CommentsNotifyProp], *exportNotifyProps.CommentsTrigger)
+	require.Equal(t, userNotifyProps[model.MentionKeysNotifyProp], *exportNotifyProps.MentionKeys)
 }
 
 func TestExportUserChannels(t *testing.T) {
@@ -82,12 +82,12 @@ func TestExportUserChannels(t *testing.T) {
 	team := th.BasicTeam
 	channelName := channel.Name
 	notifyProps := model.StringMap{
-		model.DESKTOP_NOTIFY_PROP: model.USER_NOTIFY_ALL,
-		model.PUSH_NOTIFY_PROP:    model.USER_NOTIFY_NONE,
+		model.DesktopNotifyProp: model.UserNotifyAll,
+		model.PushNotifyProp:    model.UserNotifyNone,
 	}
 	preference := model.Preference{
 		UserId:   user.Id,
-		Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+		Category: model.PreferenceCategoryFavoriteChannel,
 		Name:     channel.Id,
 		Value:    "true",
 	}

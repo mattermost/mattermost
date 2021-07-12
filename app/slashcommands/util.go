@@ -19,9 +19,9 @@ const (
 // responsef creates an ephemeral command response using printf syntax.
 func responsef(format string, args ...interface{}) *model.CommandResponse {
 	return &model.CommandResponse{
-		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		ResponseType: model.CommandResponseTypeEphemeral,
 		Text:         fmt.Sprintf(format, args...),
-		Type:         model.POST_DEFAULT,
+		Type:         model.PostTypeDefault,
 	}
 }
 

@@ -76,7 +76,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 	buffer := &bytes.Buffer{}
 	provider := cache.NewProvider()
 	cache, err := provider.NewCache(&cache.CacheOptions{
-		Size:           model.SESSION_CACHE_SIZE,
+		Size:           model.SessionCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
 	})

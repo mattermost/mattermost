@@ -654,7 +654,7 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID str
 	args := map[string]interface{}{"UserId": userID, "ChannelId": channelID, "RemoteId": remoteID}
 
 	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = `
 		UPDATE
 			SharedChannelUsers AS scu
@@ -665,7 +665,7 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID str
 		WHERE
 			Users.Id = scu.UserId AND scu.UserId = :UserId AND scu.ChannelId = :ChannelId AND scu.RemoteId = :RemoteId
 		`
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if s.DriverName() == model.DatabaseDriverMysql {
 		query = `
 		UPDATE
 			SharedChannelUsers AS scu
@@ -725,7 +725,7 @@ func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelA
 		"LastSyncAt": attachment.LastSyncAt,
 	}
 
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		if _, err := s.GetMaster().Exec(
 			`INSERT INTO
 				SharedChannelAttachments
@@ -736,7 +736,7 @@ func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelA
 				LastSyncAt = :LastSyncAt`, params); err != nil {
 			return "", err
 		}
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		if _, err := s.GetMaster().Exec(
 			`INSERT INTO
 				SharedChannelAttachments

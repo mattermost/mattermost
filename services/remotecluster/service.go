@@ -31,8 +31,8 @@ const (
 	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
 	InvitationTopic               = "invitation"
 	PingTopic                     = "ping"
-	ResponseStatusOK              = model.STATUS_OK
-	ResponseStatusFail            = model.STATUS_FAIL
+	ResponseStatusOK              = model.StatusOk
+	ResponseStatusFail            = model.StatusFail
 	InviteExpiresAfter            = time.Hour * 48
 )
 

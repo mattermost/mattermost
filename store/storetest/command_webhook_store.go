@@ -38,7 +38,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for missing id")
 
 	h2 := &model.CommandWebhook{}
-	h2.CreateAt = model.GetMillis() - 2*model.COMMAND_WEBHOOK_LIFETIME
+	h2.CreateAt = model.GetMillis() - 2*model.CommandWebhookLifetime
 	h2.CommandId = model.NewId()
 	h2.UserId = model.NewId()
 	h2.ChannelId = model.NewId()

@@ -148,8 +148,8 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteClu
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set(model.HEADER_REMOTECLUSTER_ID, rc.RemoteId)
-	req.Header.Set(model.HEADER_REMOTECLUSTER_TOKEN, rc.RemoteToken)
+	req.Header.Set(model.HeaderRemoteclusterId, rc.RemoteId)
+	req.Header.Set(model.HeaderRemoteclusterToken, rc.RemoteToken)
 
 	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
 	if metrics := rcs.server.GetMetrics(); metrics != nil {

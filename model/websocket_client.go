@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	SOCKET_MAX_MESSAGE_SIZE_KB  = 8 * 1024 // 8KB
-	PING_TIMEOUT_BUFFER_SECONDS = 5
+	SocketMaxMessageSizeKb   = 8 * 1024 // 8KB
+	PingTimeoutBufferSeconds = 5
 )
 
 type msgType int
@@ -66,15 +66,15 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 // NewWebSocketClientWithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer.
 func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := dialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
+	conn, _, err := dialer.Dial(url+ApiUrlSuffix+"/websocket", nil)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	client := &WebSocketClient{
 		Url:                url,
-		ApiUrl:             url + API_URL_SUFFIX,
-		ConnectUrl:         url + API_URL_SUFFIX + "/websocket",
+		ApiUrl:             url + ApiUrlSuffix,
+		ConnectUrl:         url + ApiUrlSuffix + "/websocket",
 		Conn:               conn,
 		AuthToken:          authToken,
 		Sequence:           1,
@@ -90,7 +90,7 @@ func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken strin
 	client.configurePingHandling()
 	go client.writer()
 
-	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
+	client.SendMessage(WebsocketAuthenticationChallenge, map[string]interface{}{"token": authToken})
 
 	return client, nil
 }
@@ -136,7 +136,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
 	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
 
-	wsc.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": wsc.AuthToken})
+	wsc.SendMessage(WebsocketAuthenticationChallenge, map[string]interface{}{"token": wsc.AuthToken})
 
 	return nil
 }
@@ -282,7 +282,7 @@ func (wsc *WebSocketClient) GetStatusesByIds(userIds []string) {
 
 func (wsc *WebSocketClient) configurePingHandling() {
 	wsc.Conn.SetPingHandler(wsc.pingHandler)
-	wsc.pingTimeoutTimer = time.NewTimer(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+	wsc.pingTimeoutTimer = time.NewTimer(time.Second * (60 + PingTimeoutBufferSeconds))
 	go wsc.pingWatchdog()
 }
 
@@ -309,11 +309,11 @@ func (wsc *WebSocketClient) pingWatchdog() {
 			if !wsc.pingTimeoutTimer.Stop() {
 				<-wsc.pingTimeoutTimer.C
 			}
-			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PingTimeoutBufferSeconds))
 
 		case <-wsc.pingTimeoutTimer.C:
 			wsc.PingTimeoutChannel <- true
-			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PingTimeoutBufferSeconds))
 		case <-wsc.quitPingWatchdog:
 			return
 		}

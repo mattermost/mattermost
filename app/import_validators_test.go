@@ -586,7 +586,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.Desktop = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
-	data.NotifyProps.Desktop = ptrStr(model.USER_NOTIFY_ALL)
+	data.NotifyProps.Desktop = ptrStr(model.UserNotifyAll)
 	data.NotifyProps.DesktopSound = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
@@ -598,11 +598,11 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.Mobile = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
-	data.NotifyProps.Mobile = ptrStr(model.USER_NOTIFY_ALL)
+	data.NotifyProps.Mobile = ptrStr(model.UserNotifyAll)
 	data.NotifyProps.MobilePushStatus = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
-	data.NotifyProps.MobilePushStatus = ptrStr(model.STATUS_ONLINE)
+	data.NotifyProps.MobilePushStatus = ptrStr(model.StatusOnline)
 	data.NotifyProps.ChannelTrigger = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
@@ -610,7 +610,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.CommentsTrigger = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
-	data.NotifyProps.CommentsTrigger = ptrStr(model.COMMENTS_NOTIFY_ROOT)
+	data.NotifyProps.CommentsTrigger = ptrStr(model.CommentsNotifyRoot)
 	data.NotifyProps.MentionKeys = ptrStr("valid")
 	checkNoError(t, validateUserImportData(&data))
 
@@ -1013,7 +1013,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 
 	t.Run("Test with props too large", func(t *testing.T) {
 		props := model.StringInterface{
-			"attachment": strings.Repeat("a", model.POST_PROPS_MAX_RUNES),
+			"attachment": strings.Repeat("a", model.PostPropsMaxRunes),
 		}
 
 		data := PostImportData{

@@ -89,12 +89,12 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
 	currentStatus, err := c.App.GetStatus(c.Params.UserId)
-	if err == nil && currentStatus.Status == model.STATUS_OUT_OF_OFFICE && status.Status != model.STATUS_OUT_OF_OFFICE {
+	if err == nil && currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
 		c.App.DisableAutoResponder(c.Params.UserId, c.IsSystemAdmin())
 	}
 
@@ -137,7 +137,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -163,7 +163,7 @@ func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -193,7 +193,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 

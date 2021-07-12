@@ -791,7 +791,7 @@ func createTestChannel(ss store.Store, name string) (*model.Channel, error) {
 func createSharedTestChannel(ss store.Store, name string, shared bool) (*model.Channel, error) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		Name:        name,
 		DisplayName: name + " display name",
 		Header:      name + " header",

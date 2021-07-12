@@ -41,7 +41,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 		return
 	}
 
-	lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
+	lastSecurityTime, _ := strconv.ParseInt(props[model.SystemLastSecurityTime], 10, 0)
 	currentTime := model.GetMillis()
 
 	if (currentTime - lastSecurityTime) > SecurityUpdatePeriod {
@@ -55,13 +55,13 @@ func (s *Server) DoSecurityUpdateCheck() {
 		v.Set(PropSecurityDatabase, *s.Config().SqlSettings.DriverName)
 		v.Set(PropSecurityOS, runtime.GOOS)
 
-		if props[model.SYSTEM_RAN_UNIT_TESTS] != "" {
+		if props[model.SystemRanUnitTests] != "" {
 			v.Set(PropSecurityUnitTests, "1")
 		} else {
 			v.Set(PropSecurityUnitTests, "0")
 		}
 
-		systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
+		systemSecurityLastTime := &model.System{Name: model.SystemLastSecurityTime, Value: strconv.FormatInt(currentTime, 10)}
 		if lastSecurityTime == 0 {
 			s.Store.System().Save(systemSecurityLastTime)
 		} else {

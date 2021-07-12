@@ -39,8 +39,8 @@ func (*CodeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 
 func (*CodeProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
-		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 	rmsg := "    " + strings.Join(strings.Split(message, "\n"), "\n    ")
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg, SkipSlackParsing: true}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeInChannel, Text: rmsg, SkipSlackParsing: true}
 }

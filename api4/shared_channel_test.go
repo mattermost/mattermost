@@ -35,7 +35,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 
 	// make some shared channels
 	for i := 0; i < pages*pageSize; i++ {
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.CHANNEL_OPEN, th.BasicTeam.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    channel.TeamId,

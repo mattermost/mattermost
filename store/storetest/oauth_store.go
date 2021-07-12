@@ -302,7 +302,7 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	// allow the app
 	p := model.Preference{}
 	p.UserId = a1.CreatorId
-	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
+	p.Category = model.PreferenceCategoryAuthorizedOAuthApp
 	p.Name = a1.Id
 	p.Value = "true"
 	nErr := ss.Preference().Save(&model.Preferences{p})
@@ -325,7 +325,7 @@ func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
 	// allow the app
 	p := model.Preference{}
 	p.UserId = a1.CreatorId
-	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
+	p.Category = model.PreferenceCategoryAuthorizedOAuthApp
 	p.Name = a1.Id
 	p.Value = "true"
 	nErr := ss.Preference().Save(&model.Preferences{p})

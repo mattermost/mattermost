@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	FILEINFO_SORT_BY_CREATED = "CreateAt"
-	FILEINFO_SORT_BY_SIZE    = "Size"
+	FileinfoSortByCreated = "CreateAt"
+	FileinfoSortBySize    = "Size"
 )
 
 // GetFileInfosOptions contains options for getting FileInfos

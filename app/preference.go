@@ -60,11 +60,11 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 		return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil)
 	// TODO this needs to be updated to include information on which categories changed
 	a.Publish(message)
 
-	message = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", userID, nil)
+	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", userID, nil)
 	message.Add("preferences", preferences.ToJson())
 	a.Publish(message)
 
@@ -90,11 +90,11 @@ func (a *App) DeletePreferences(userID string, preferences model.Preferences) *m
 		return model.NewAppError("DeletePreferences", "api.preference.delete_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil)
 	// TODO this needs to be updated to include information on which categories changed
 	a.Publish(message)
 
-	message = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_DELETED, "", "", userID, nil)
+	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesDeleted, "", "", userID, nil)
 	message.Add("preferences", preferences.ToJson())
 	a.Publish(message)
 

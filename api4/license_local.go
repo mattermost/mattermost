@@ -56,9 +56,9 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
 	if appErr != nil {
-		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
+		if appErr.Id == model.ExpiredLicenseError {
 			c.LogAudit("failed - expired or non-started license")
-		} else if appErr.Id == model.INVALID_LICENSE_ERROR {
+		} else if appErr.Id == model.InvalidLicenseError {
 			c.LogAudit("failed - invalid license")
 		} else {
 			c.LogAudit("failed - unable to save license")

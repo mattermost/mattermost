@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	ACCESS_TOKEN_GRANT_TYPE  = "authorization_code"
-	ACCESS_TOKEN_TYPE        = "bearer"
-	REFRESH_TOKEN_GRANT_TYPE = "refresh_token"
+	AccessTokenGrantType  = "authorization_code"
+	AccessTokenType       = "bearer"
+	RefreshTokenGrantType = "refresh_token"
 )
 
 type AccessData struct {
