@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5360
+	CurrentSchemaVersion   = Version5370
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
 	Version5350            = "5.35.0"
@@ -1184,35 +1184,32 @@ func rootCountMigration(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
-	sqlStore.RemoveIndexIfExists("idx_posts_channel_id", "Posts")
-	sqlStore.RemoveIndexIfExists("idx_channels_name", "Channels")
-	sqlStore.RemoveIndexIfExists("idx_publicchannels_name", "PublicChannels")
-	sqlStore.RemoveIndexIfExists("idx_channelmembers_channel_id", "ChannelMembers")
-	sqlStore.RemoveIndexIfExists("idx_emoji_name", "Emoji")
-	sqlStore.RemoveIndexIfExists("idx_oauthaccessdata_client_id", "OAuthAccessData")
-	sqlStore.RemoveIndexIfExists("idx_oauthauthdata_client_id", "OAuthAuthData")
-	sqlStore.RemoveIndexIfExists("idx_preferences_user_id", "Preferences")
-	sqlStore.RemoveIndexIfExists("idx_notice_views_user_id", "ProductNoticeViewState")
-	sqlStore.RemoveIndexIfExists("idx_notice_views_user_notice", "ProductNoticeViewState")
-	sqlStore.RemoveIndexIfExists("idx_status_user_id", "Status")
-	sqlStore.RemoveIndexIfExists("idx_teammembers_team_id", "TeamMembers")
-	sqlStore.RemoveIndexIfExists("idx_teams_name", "Teams")
-	sqlStore.RemoveIndexIfExists("idx_user_access_tokens_token", "UserAccessTokens")
-	sqlStore.RemoveIndexIfExists("idx_user_terms_of_service_user_id", "UserTermsOfService")
-	sqlStore.RemoveIndexIfExists("idx_users_email", "Users")
-	sqlStore.RemoveIndexIfExists("idx_sharedchannelusers_user_id", "SharedChannelUsers")
-	sqlStore.RemoveIndexIfExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies")
-	sqlStore.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
+	if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
+		sqlStore.RemoveIndexIfExists("idx_posts_channel_id", "Posts")
+		sqlStore.RemoveIndexIfExists("idx_channels_name", "Channels")
+		sqlStore.RemoveIndexIfExists("idx_publicchannels_name", "PublicChannels")
+		sqlStore.RemoveIndexIfExists("idx_channelmembers_channel_id", "ChannelMembers")
+		sqlStore.RemoveIndexIfExists("idx_emoji_name", "Emoji")
+		sqlStore.RemoveIndexIfExists("idx_oauthaccessdata_client_id", "OAuthAccessData")
+		sqlStore.RemoveIndexIfExists("idx_oauthauthdata_client_id", "OAuthAuthData")
+		sqlStore.RemoveIndexIfExists("idx_preferences_user_id", "Preferences")
+		sqlStore.RemoveIndexIfExists("idx_notice_views_user_id", "ProductNoticeViewState")
+		sqlStore.RemoveIndexIfExists("idx_notice_views_user_notice", "ProductNoticeViewState")
+		sqlStore.RemoveIndexIfExists("idx_status_user_id", "Status")
+		sqlStore.RemoveIndexIfExists("idx_teammembers_team_id", "TeamMembers")
+		sqlStore.RemoveIndexIfExists("idx_teams_name", "Teams")
+		sqlStore.RemoveIndexIfExists("idx_user_access_tokens_token", "UserAccessTokens")
+		sqlStore.RemoveIndexIfExists("idx_user_terms_of_service_user_id", "UserTermsOfService")
+		sqlStore.RemoveIndexIfExists("idx_users_email", "Users")
+		sqlStore.RemoveIndexIfExists("idx_sharedchannelusers_user_id", "SharedChannelUsers")
+		sqlStore.RemoveIndexIfExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies")
+		sqlStore.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
 
-	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "bigint", "bigint")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "bigint", "bigint")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
 
-	fixCRTThreadCountsAndUnreads(sqlStore)
-	fixCRTChannelMembershipCounts(sqlStore)
-
-	// saveSchemaVersion(sqlStore, Version5370)
-	// }
+		saveSchemaVersion(sqlStore, Version5370)
+	}
 }
 
 // fixCRTThreadCountsAndUnreads Marks threads as read for users where the last
