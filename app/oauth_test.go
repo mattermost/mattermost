@@ -35,7 +35,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	require.Nil(t, err)
 
 	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.IMPLICIT_RESPONSE_TYPE,
+		ResponseType: model.ImplicitResponseType,
 		ClientId:     oapp.Id,
 		RedirectUri:  oapp.CallbackUrls[0],
 		Scope:        "",
@@ -74,7 +74,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.CreateAt = model.GetMillis()
 	session.UserId = model.NewId()
 	session.Token = model.NewId()
-	session.Roles = model.SYSTEM_USER_ROLE_ID
+	session.Roles = model.SystemUserRoleId
 	th.App.SetSessionExpireInDays(session, 1)
 
 	var err *model.AppError
@@ -105,7 +105,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.CreateAt = model.GetMillis()
 	session.UserId = model.NewId()
 	session.Token = model.NewId()
-	session.Roles = model.SYSTEM_USER_ROLE_ID
+	session.Roles = model.SystemUserRoleId
 	session.IsOAuth = true
 	th.App.srv.userService.SetSessionExpireInDays(session, 1)
 
@@ -167,7 +167,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 		if cookie != "" {
 			request.AddCookie(&http.Cookie{
-				Name:  CookieOauth,
+				Name:  CookieOAuth,
 				Value: cookie,
 			})
 		}
@@ -179,7 +179,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		th := setup(t, false, true, true, "")
 		defer th.TearDown()
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", "", "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.ServiceGitlab, "", "", "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.unsupported.app_error", err.Id)
 	})
@@ -190,7 +190,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 		state := "!"
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", err.Id)
 	})
@@ -203,7 +203,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 			"token": model.NewId(),
 		})))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
 		assert.NotEqual(t, "", err.DetailedError)
@@ -218,7 +218,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 		state := makeState(token)
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
 		assert.Equal(t, "", err.DetailedError)
@@ -229,7 +229,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		email := ""
-		action := model.OAUTH_ACTION_EMAIL_TO_SSO
+		action := model.OAuthActionEmailToSSO
 		cookie := model.NewId()
 
 		token, err := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra(email, action, cookie))
@@ -241,7 +241,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 			"token":  token.Token,
 		})))
 
-		_, _, _, _, err = th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err = th.App.AuthorizeOAuthUser(nil, nil, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", err.Id)
 	})
@@ -254,7 +254,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest("")
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", err.Id)
 	})
@@ -271,7 +271,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(token)
 
-		_, _, _, _, err = th.App.AuthorizeOAuthUser(nil, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err = th.App.AuthorizeOAuthUser(nil, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", err.Id)
 	})
@@ -284,7 +284,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.token_failed.app_error", err.Id)
 	})
@@ -302,7 +302,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
 		assert.Contains(t, err.DetailedError, "status_code=418")
@@ -321,7 +321,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
 		assert.Contains(t, err.DetailedError, "response_body=invalid")
@@ -343,7 +343,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.bad_token.app_error", err.Id)
 	})
@@ -352,7 +352,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(&model.AccessResponse{
 				AccessToken: "",
-				TokenType:   model.ACCESS_TOKEN_TYPE,
+				TokenType:   model.AccessTokenType,
 			})
 		}))
 		defer server.Close()
@@ -364,7 +364,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.missing.app_error", err.Id)
 	})
@@ -373,7 +373,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(&model.AccessResponse{
 				AccessToken: model.NewId(),
-				TokenType:   model.ACCESS_TOKEN_TYPE,
+				TokenType:   model.AccessTokenType,
 			})
 		}))
 		defer server.Close()
@@ -385,7 +385,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.service.app_error", err.Id)
 	})
@@ -397,7 +397,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				t.Log("hit token")
 				json.NewEncoder(w).Encode(&model.AccessResponse{
 					AccessToken: model.NewId(),
-					TokenType:   model.ACCESS_TOKEN_TYPE,
+					TokenType:   model.AccessTokenType,
 				})
 			case "/user":
 				t.Log("hit user")
@@ -413,7 +413,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.response.app_error", err.Id)
 	})
@@ -425,7 +425,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				t.Log("hit token")
 				json.NewEncoder(w).Encode(&model.AccessResponse{
 					AccessToken: model.NewId(),
-					TokenType:   model.ACCESS_TOKEN_TYPE,
+					TokenType:   model.AccessTokenType,
 				})
 			case "/user":
 				t.Log("hit user")
@@ -442,7 +442,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
-		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "oauth.gitlab.tos.error", err.Id)
 	})
@@ -466,7 +466,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 					case "/token":
 						json.NewEncoder(w).Encode(&model.AccessResponse{
 							AccessToken: model.NewId(),
-							TokenType:   model.ACCESS_TOKEN_TYPE,
+							TokenType:   model.AccessTokenType,
 						})
 					case "/user":
 						w.WriteHeader(http.StatusOK)
@@ -492,7 +492,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 
 				recorder := httptest.ResponseRecorder{}
-				body, receivedTeamId, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(&recorder, request, model.SERVICE_GITLAB, "", state, "")
+				body, receivedTeamId, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(&recorder, request, model.ServiceGitlab, "", state, "")
 
 				require.NotNil(t, body)
 				bodyBytes, bodyErr := ioutil.ReadAll(body)
@@ -519,7 +519,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 			*cfg.GitLabSettings.Enable = false
 		})
 
-		_, err := th.App.GetAuthorizationCode(nil, nil, model.SERVICE_GITLAB, map[string]string{}, "")
+		_, err := th.App.GetAuthorizationCode(nil, nil, model.ServiceGitlab, map[string]string{}, "")
 		require.NotNil(t, err)
 
 		assert.Equal(t, "api.user.authorize_oauth_user.unsupported.app_error", err.Id)
@@ -556,7 +556,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 				}
 
 				recorder := httptest.ResponseRecorder{}
-				url, err := th.App.GetAuthorizationCode(&recorder, request, model.SERVICE_GITLAB, stateProps, "")
+				url, err := th.App.GetAuthorizationCode(&recorder, request, model.ServiceGitlab, stateProps, "")
 				require.Nil(t, err)
 				assert.NotEmpty(t, url)
 

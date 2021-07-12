@@ -66,7 +66,7 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 	for {
 		opts := model.GetFileInfosOptions{
 			Since:          since,
-			SortBy:         model.FILEINFO_SORT_BY_CREATED,
+			SortBy:         model.FileinfoSortByCreated,
 			IncludeDeleted: false,
 		}
 		fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(0, 1000, &opts)

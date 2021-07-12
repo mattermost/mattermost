@@ -21,7 +21,7 @@ func (api *API) InitExport() {
 
 func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -46,7 +46,7 @@ func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("export_name", c.Params.ExportName)
 
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -61,7 +61,7 @@ func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 

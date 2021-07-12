@@ -52,7 +52,7 @@ func ldapSyncCmdF(command *cobra.Command, args []string) error {
 
 	if ldapI := a.Ldap(); ldapI != nil {
 		job, err := ldapI.StartSynchronizeJob(true, includeRemovedMembers)
-		if err != nil || job.Status == model.JOB_STATUS_ERROR || job.Status == model.JOB_STATUS_CANCELED {
+		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: AD/LDAP Synchronization please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: AD/LDAP Synchronization Complete")

@@ -105,7 +105,7 @@ func TestWebSocketResponse(t *testing.T) {
 }
 
 func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
-	event := NewWebSocketEvent(WEBSOCKET_EVENT_POSTED, "foo", "bar", "baz", nil)
+	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil)
 	event = event.SetSequence(7)
 
 	before := event.ToJson()
@@ -118,7 +118,7 @@ func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
 var stringSink string
 
 func BenchmarkWebSocketEvent_ToJson(b *testing.B) {
-	event := NewWebSocketEvent(WEBSOCKET_EVENT_POSTED, "foo", "bar", "baz", nil)
+	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil)
 	for i := 0; i < 100; i++ {
 		event.GetData()[NewId()] = NewId()
 	}

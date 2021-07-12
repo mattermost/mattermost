@@ -84,8 +84,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
-		createPostPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_CREATE_POST.Id]
-		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_ADD_REACTION.Id]
+		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
+		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 		updateMap := model.ChannelModeratedRolesPatch{
 			Guests:  model.NewBool(false),
 			Members: model.NewBool(false),
@@ -166,7 +166,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			ChannelId:            model.NewId(),
 			TeamId:               model.NewId(),
 			ReadOnly:             false,
-			Type:                 model.CHANNEL_DIRECT,
+			Type:                 model.ChannelTypeDirect,
 			DirectParticipantIDs: []string{model.NewId(), model.NewId()},
 		}
 		payload, err := json.Marshal(invitation)

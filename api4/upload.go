@@ -43,12 +43,12 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
-			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
 		us.Type = model.UploadTypeAttachment
@@ -113,12 +113,12 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
 	} else {
-		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
-			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
+		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
 	}

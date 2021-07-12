@@ -61,7 +61,7 @@ func TestPostActionCookies(t *testing.T) {
 			Action: model.PostAction{
 				Id:   model.NewId(),
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
 					Context: map[string]interface{}{
@@ -76,7 +76,7 @@ func TestPostActionCookies(t *testing.T) {
 			Action: model.PostAction{
 				Id:   "someID",
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
 					Context: map[string]interface{}{
@@ -91,7 +91,7 @@ func TestPostActionCookies(t *testing.T) {
 			Action: model.PostAction{
 				Id:   "",
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
 					Context: map[string]interface{}{
@@ -106,7 +106,7 @@ func TestPostActionCookies(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			post := &model.Post{
 				Id:        model.NewId(),
-				Type:      model.POST_EPHEMERAL,
+				Type:      model.PostTypeEphemeral,
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				CreateAt:  model.GetMillis(),

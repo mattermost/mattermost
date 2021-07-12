@@ -81,7 +81,7 @@ type TestPluginSettings struct {
 }
 
 func getDsn(driver string, source string) string {
-	if driver == model.DATABASE_DRIVER_MYSQL {
+	if driver == model.DatabaseDriverMysql {
 		return driver + "://" + source
 	}
 	return source

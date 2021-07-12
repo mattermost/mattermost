@@ -76,7 +76,7 @@ func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.
 
 		T := i18n.GetUserTranslations(ownerUser.Locale)
 		botAddPost := &model.Post{
-			Type:      model.POST_ADD_BOT_TEAMS_CHANNELS,
+			Type:      model.PostTypeAddBotTeamsChannels,
 			UserId:    savedBot.UserId,
 			ChannelId: channel.Id,
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
@@ -96,7 +96,7 @@ func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 
@@ -111,7 +111,7 @@ func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
 
 	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
 	warnMetricsBot := &model.Bot{
-		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
+		Username:    model.BotWarnMetricBotUsername,
 		DisplayName: T("app.system.warn_metric.bot_displayname"),
 		Description: "",
 		OwnerId:     sysAdminList[0].Id,
@@ -125,7 +125,7 @@ func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 
@@ -140,7 +140,7 @@ func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
 
 	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
 	systemBot := &model.Bot{
-		Username:    model.BOT_SYSTEM_BOT_USERNAME,
+		Username:    model.BotSystemBotUsername,
 		DisplayName: T("app.system.system_bot.bot_displayname"),
 		Description: "",
 		OwnerId:     sysAdminList[0].Id,
@@ -478,7 +478,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID stri
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 	// get sysadmins
@@ -515,7 +515,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID stri
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
 			Message:   a.getDisableBotSysadminMessage(user, userBots),
-			Type:      model.POST_SYSTEM_GENERIC,
+			Type:      model.PostTypeSystemGeneric,
 		}
 
 		_, appErr = a.CreatePost(c, post, channel, false, true)

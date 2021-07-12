@@ -111,7 +111,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.CreateAt = model.GetMillis()
 	session.UserId = model.NewId()
 	session.Token = model.NewId()
-	session.Roles = model.SYSTEM_USER_ROLE_ID
+	session.Roles = model.SystemUserRoleId
 	th.service.SetSessionExpireInDays(session, 1)
 
 	session, _ = th.service.CreateSession(session)

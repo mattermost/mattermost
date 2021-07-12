@@ -762,14 +762,14 @@ func TestIsBotChannel(t *testing.T) {
 	}{
 		{
 			Name:     "not a direct channel",
-			Channel:  &Channel{Type: CHANNEL_OPEN},
+			Channel:  &Channel{Type: ChannelTypeOpen},
 			Expected: false,
 		},
 		{
 			Name: "a direct channel with another user",
 			Channel: &Channel{
 				Name: "user1__user2",
-				Type: CHANNEL_DIRECT,
+				Type: ChannelTypeDirect,
 			},
 			Expected: false,
 		},
@@ -777,7 +777,7 @@ func TestIsBotChannel(t *testing.T) {
 			Name: "a direct channel with the name containing the bot's ID first",
 			Channel: &Channel{
 				Name: "botUserID__user2",
-				Type: CHANNEL_DIRECT,
+				Type: ChannelTypeDirect,
 			},
 			Expected: true,
 		},
@@ -785,7 +785,7 @@ func TestIsBotChannel(t *testing.T) {
 			Name: "a direct channel with the name containing the bot's ID second",
 			Channel: &Channel{
 				Name: "user1__botUserID",
-				Type: CHANNEL_DIRECT,
+				Type: ChannelTypeDirect,
 			},
 			Expected: true,
 		},

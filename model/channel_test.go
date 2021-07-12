@@ -115,11 +115,11 @@ func TestGetGroupDisplayNameFromUsers(t *testing.T) {
 	users[3] = &User{Username: NewId()}
 
 	name := GetGroupDisplayNameFromUsers(users, true)
-	require.LessOrEqual(t, len(name), CHANNEL_NAME_MAX_LENGTH)
+	require.LessOrEqual(t, len(name), ChannelNameMaxLength)
 }
 
 func TestGetGroupNameFromUserIds(t *testing.T) {
 	name := GetGroupNameFromUserIds([]string{NewId(), NewId(), NewId(), NewId(), NewId()})
 
-	require.LessOrEqual(t, len(name), CHANNEL_NAME_MAX_LENGTH)
+	require.LessOrEqual(t, len(name), ChannelNameMaxLength)
 }

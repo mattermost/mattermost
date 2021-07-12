@@ -139,13 +139,13 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	preferences := model.Preferences{
 		{
 			UserId:   user.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Category: model.PreferenceCategoryDirectChannelShow,
 			Name:     name,
 			Value:    value,
 		},
 		{
 			UserId:   user.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Category: model.PreferenceCategoryDirectChannelShow,
 			Name:     model.NewId(),
 			Value:    model.NewId(),
 		},
@@ -153,7 +153,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 
 	Client.UpdatePreferences(user.Id, &preferences)
 
-	pref, resp := Client.GetPreferenceByCategoryAndName(user.Id, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, name)
+	pref, resp := Client.GetPreferenceByCategoryAndName(user.Id, model.PreferenceCategoryDirectChannelShow, name)
 	CheckNoError(t, resp)
 
 	require.Equal(t, preferences[0].UserId, pref.UserId, "UserId preference not saved")
@@ -250,7 +250,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	WebSocketClient.Listen()
 	time.Sleep(300 * time.Millisecond)
 	wsResp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, wsResp.Status, model.STATUS_OK, "expected OK from auth challenge")
+	require.Equal(t, wsResp.Status, model.StatusOk, "expected OK from auth challenge")
 
 	userId := th.BasicUser.Id
 	preferences := &model.Preferences{
@@ -275,7 +275,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() != model.WEBSOCKET_EVENT_PREFERENCES_CHANGED {
+			if event.EventType() != model.WebsocketEventPreferencesChanged {
 				// Ignore any other events
 				continue
 			}
@@ -309,7 +309,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
 		require.Nil(t, resp.Error)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.CHANNEL_OPEN, team1.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
@@ -324,7 +324,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
 			},
@@ -343,7 +343,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "false",
 			},
@@ -377,7 +377,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp := th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     dmChannel.Id,
 				Value:    "true",
 			},
@@ -403,7 +403,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     dmChannel.Id,
 				Value:    "false",
 			},
@@ -445,7 +445,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp = client2.GetSidebarCategoriesForTeamForUser(user2.Id, team1.Id, "")
 		require.Nil(t, resp.Error)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.CHANNEL_OPEN, team1.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 		th.AddUserToChannel(user2, channel)
 
@@ -468,7 +468,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
 			},
@@ -487,7 +487,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp = client2.UpdatePreferences(user2.Id, &model.Preferences{
 			{
 				UserId:   user2.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
 			},
@@ -506,7 +506,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "false",
 			},
@@ -538,7 +538,7 @@ func TestDeletePreferences(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		preference := model.Preference{
 			UserId:   th.BasicUser.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Category: model.PreferenceCategoryDirectChannelShow,
 			Name:     model.NewId(),
 		}
 		preferences = append(preferences, preference)
@@ -593,7 +593,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 
 	WebSocketClient.Listen()
 	wsResp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, model.STATUS_OK, wsResp.Status, "should have responded OK to authentication challenge")
+	require.Equal(t, model.StatusOk, wsResp.Status, "should have responded OK to authentication challenge")
 
 	_, resp = th.Client.DeletePreferences(userId, preferences)
 	CheckNoError(t, resp)
@@ -604,7 +604,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() != model.WEBSOCKET_EVENT_PREFERENCES_DELETED {
+			if event.EventType() != model.WebsocketEventPreferencesDeleted {
 				// Ignore any other events
 				continue
 			}
@@ -638,7 +638,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
 		require.Nil(t, resp.Error)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.CHANNEL_OPEN, team1.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
@@ -653,7 +653,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
 			},
@@ -672,7 +672,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.DeletePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 			},
 		})
@@ -705,7 +705,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp := th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     dmChannel.Id,
 				Value:    "true",
 			},
@@ -731,7 +731,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.DeletePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     dmChannel.Id,
 			},
 		})
@@ -772,7 +772,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp = client2.GetSidebarCategoriesForTeamForUser(user2.Id, team1.Id, "")
 		require.Nil(t, resp.Error)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.CHANNEL_OPEN, team1.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 		th.AddUserToChannel(user2, channel)
 
@@ -795,7 +795,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
 			},
@@ -805,7 +805,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp = client2.UpdatePreferences(user2.Id, &model.Preferences{
 			{
 				UserId:   user2.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
 			},
@@ -824,7 +824,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "false",
 			},

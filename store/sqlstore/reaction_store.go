@@ -260,7 +260,7 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transacti
 		"RemoteId":  reaction.RemoteId,
 	}
 
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		if _, err := transaction.Exec(
 			`INSERT INTO
 				Reactions
@@ -271,7 +271,7 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transacti
 				UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
 			return err
 		}
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		if _, err := transaction.Exec(
 			`INSERT INTO
 				Reactions

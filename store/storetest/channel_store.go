@@ -122,7 +122,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr, "couldn't save item", nErr)
@@ -136,7 +136,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 
 	o1.Id = ""
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_DIRECT
+	o1.Type = model.ChannelTypeDirect
 	_, nErr = ss.Channel().Save(&o1, -1)
 	require.Error(t, nErr, "should not be able to save direct channel")
 
@@ -144,7 +144,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 
 	_, nErr = ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr, "should have saved channel")
@@ -173,7 +173,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_DIRECT
+	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
@@ -228,7 +228,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	// Attempt to save a non-direct channel
 	o1.Id = ""
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 	require.Error(t, nErr, "Should not be able to save non-direct channel")
 
@@ -236,7 +236,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	o1.Id = ""
 	o1.DisplayName = "Myself"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_DIRECT
+	o1.Type = model.ChannelTypeDirect
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m1)
 	require.NoError(t, nErr, "couldn't save direct channel", nErr)
 
@@ -282,7 +282,7 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -291,7 +291,7 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 	o2.TeamId = o1.TeamId
 	o2.DisplayName = "Name"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -329,7 +329,7 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	notifyPropsModel := model.GetDefaultChannelNotifyProps()
 
 	// Setup Channel 1
-	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Downtown", Type: model.CHANNEL_OPEN, TotalMsgCount: 100, TotalMsgCountRoot: 99}
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Downtown", Type: model.ChannelTypeOpen, TotalMsgCount: 100, TotalMsgCountRoot: 99}
 	_, nErr = ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -338,7 +338,7 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Setup Channel 2
-	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Cultural", Type: model.CHANNEL_OPEN, TotalMsgCount: 100, TotalMsgCountRoot: 100}
+	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Cultural", Type: model.ChannelTypeOpen, TotalMsgCount: 100, TotalMsgCountRoot: 100}
 	_, nErr = ss.Channel().Save(c2, -1)
 	require.NoError(t, nErr)
 
@@ -372,7 +372,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -403,7 +403,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Direct Name"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_DIRECT
+	o2.Type = model.ChannelTypeDirect
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o2.Id
@@ -443,7 +443,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
 	o1.Name = "aa" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -467,13 +467,13 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Direct Name"
 	o2.Name = "bb" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_DIRECT
+	o2.Type = model.ChannelTypeDirect
 
 	o3 := model.Channel{}
 	o3.TeamId = model.NewId()
 	o3.DisplayName = "Deleted channel"
 	o3.Name = "cc" + model.NewId() + "b"
-	o3.Type = model.CHANNEL_OPEN
+	o3.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
 	nErr = ss.Channel().Delete(o3.Id, 123)
@@ -526,7 +526,7 @@ func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	o1, nErr := ss.Channel().Save(ch, -1)
 	require.NoError(t, nErr)
@@ -548,7 +548,7 @@ func testChannelStoreRestore(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -570,7 +570,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -578,7 +578,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	o2.TeamId = o1.TeamId
 	o2.DisplayName = "Channel2"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -586,7 +586,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	o3.TeamId = o1.TeamId
 	o3.DisplayName = "Channel3"
 	o3.Name = "zz" + model.NewId() + "b"
-	o3.Type = model.CHANNEL_OPEN
+	o3.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
 
@@ -594,7 +594,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	o4.TeamId = o1.TeamId
 	o4.DisplayName = "Channel4"
 	o4.Name = "zz" + model.NewId() + "b"
-	o4.Type = model.CHANNEL_OPEN
+	o4.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o4, -1)
 	require.NoError(t, nErr)
 
@@ -649,7 +649,7 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -681,7 +681,7 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -690,7 +690,7 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 		TeamId:      o1.TeamId,
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -736,7 +736,7 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(o1, -1)
 	require.NoError(t, nErr)
 
@@ -759,7 +759,7 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 
 	userId := model.NewId()
 
@@ -778,7 +778,7 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	o2.TeamId = o1.TeamId
 	o2.DisplayName = "Channel2"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -790,7 +790,7 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	o3.TeamId = o1.TeamId
 	o3.DisplayName = "Channel3"
 	o3.Name = "zz" + model.NewId() + "b"
-	o3.Type = model.CHANNEL_OPEN
+	o3.Type = model.ChannelTypeOpen
 
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
@@ -817,7 +817,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "NameName"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	c1, nErr := ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -930,7 +930,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		team, nErr := ss.Team().Save(team)
@@ -939,7 +939,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
 		channel, nErr = ss.Channel().Save(channel, -1)
@@ -1081,7 +1081,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_TEAM,
+			Scope:       model.SchemeScopeTeam,
 		}
 		ts, nErr := ss.Scheme().Save(ts)
 		require.NoError(t, nErr)
@@ -1090,7 +1090,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 			SchemeId:    &ts.Id,
 		}
 
@@ -1100,7 +1100,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
 		channel, nErr = ss.Channel().Save(channel, -1)
@@ -1242,7 +1242,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_CHANNEL,
+			Scope:       model.SchemeScopeChannel,
 		}
 		cs, nErr := ss.Scheme().Save(cs)
 		require.NoError(t, nErr)
@@ -1251,7 +1251,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		team, nErr = ss.Team().Save(team)
@@ -1260,7 +1260,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 			SchemeId:    &cs.Id,
 		}, -1)
@@ -1429,7 +1429,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		team, nErr := ss.Team().Save(team)
@@ -1438,7 +1438,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
 		channel, nErr = ss.Channel().Save(channel, -1)
@@ -1594,7 +1594,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_TEAM,
+			Scope:       model.SchemeScopeTeam,
 		}
 		ts, nErr := ss.Scheme().Save(ts)
 		require.NoError(t, nErr)
@@ -1603,7 +1603,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 			SchemeId:    &ts.Id,
 		}
 
@@ -1613,7 +1613,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
 		channel, nErr = ss.Channel().Save(channel, -1)
@@ -1769,7 +1769,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_CHANNEL,
+			Scope:       model.SchemeScopeChannel,
 		}
 		cs, nErr := ss.Scheme().Save(cs)
 		require.NoError(t, nErr)
@@ -1778,7 +1778,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		team, nErr = ss.Team().Save(team)
@@ -1787,7 +1787,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 			SchemeId:    &cs.Id,
 		}, -1)
@@ -1957,7 +1957,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		team, nErr := ss.Team().Save(team)
@@ -1966,7 +1966,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
 		channel, nErr = ss.Channel().Save(channel, -1)
@@ -2110,7 +2110,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_TEAM,
+			Scope:       model.SchemeScopeTeam,
 		}
 		ts, nErr := ss.Scheme().Save(ts)
 		require.NoError(t, nErr)
@@ -2119,7 +2119,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 			SchemeId:    &ts.Id,
 		}
 
@@ -2129,7 +2129,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
 		channel, nErr = ss.Channel().Save(channel, -1)
@@ -2273,7 +2273,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_CHANNEL,
+			Scope:       model.SchemeScopeChannel,
 		}
 		cs, nErr := ss.Scheme().Save(cs)
 		require.NoError(t, nErr)
@@ -2282,7 +2282,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		team, nErr = ss.Team().Save(team)
@@ -2291,7 +2291,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 			SchemeId:    &cs.Id,
 		}, -1)
@@ -2462,7 +2462,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		team, nErr := ss.Team().Save(team)
@@ -2471,7 +2471,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
 		channel, nErr = ss.Channel().Save(channel, -1)
@@ -2622,7 +2622,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_TEAM,
+			Scope:       model.SchemeScopeTeam,
 		}
 		ts, nErr := ss.Scheme().Save(ts)
 		require.NoError(t, nErr)
@@ -2631,7 +2631,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 			SchemeId:    &ts.Id,
 		}
 
@@ -2641,7 +2641,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
 		channel, nErr = ss.Channel().Save(channel, -1)
@@ -2792,7 +2792,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_CHANNEL,
+			Scope:       model.SchemeScopeChannel,
 		}
 		cs, nErr := ss.Scheme().Save(cs)
 		require.NoError(t, nErr)
@@ -2801,7 +2801,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			DisplayName: "Name",
 			Name:        "zz" + model.NewId(),
 			Email:       MakeEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		team, nErr = ss.Team().Save(team)
@@ -2810,7 +2810,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 			SchemeId:    &cs.Id,
 		}, -1)
@@ -3062,7 +3062,7 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "NameName"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	c1, nErr := ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -3127,7 +3127,7 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	o1.TeamId = team
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -3135,7 +3135,7 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	o2.TeamId = team
 	o2.DisplayName = "Channel2"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -3143,7 +3143,7 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	o3.TeamId = team
 	o3.DisplayName = "Channel3"
 	o3.Name = "zz" + model.NewId() + "b"
-	o3.Type = model.CHANNEL_OPEN
+	o3.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
 
@@ -3266,7 +3266,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t1.DisplayName = "Name"
 	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
@@ -3274,7 +3274,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t2.DisplayName = "Name2"
 	t2.Name = "zz" + model.NewId()
 	t2.Email = MakeEmail()
-	t2.Type = model.TEAM_OPEN
+	t2.Type = model.TeamOpen
 	_, err = ss.Team().Save(&t2)
 	require.NoError(t, err)
 
@@ -3282,7 +3282,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel1" + model.NewId()
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
 
@@ -3302,7 +3302,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	c2.TeamId = t1.Id
 	c2.DisplayName = "Channel2" + model.NewId()
 	c2.Name = "zz" + model.NewId() + "b"
-	c2.Type = model.CHANNEL_OPEN
+	c2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&c2, -1)
 	require.NoError(t, nErr)
 	c2.DeleteAt = model.GetMillis()
@@ -3314,7 +3314,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	c3.TeamId = t2.Id
 	c3.DisplayName = "Channel3" + model.NewId()
 	c3.Name = "zz" + model.NewId() + "b"
-	c3.Type = model.CHANNEL_PRIVATE
+	c3.Type = model.ChannelTypePrivate
 	_, nErr = ss.Channel().Save(&c3, -1)
 	require.NoError(t, nErr)
 
@@ -3329,7 +3329,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	c5.Name = model.GetGroupNameFromUserIds(userIds)
 	c5.DisplayName = "GroupChannel" + model.NewId()
 	c5.Name = "zz" + model.NewId() + "b"
-	c5.Type = model.CHANNEL_GROUP
+	c5.Type = model.ChannelTypeGroup
 	_, nErr = ss.Channel().Save(&c5, -1)
 	require.NoError(t, nErr)
 
@@ -3417,7 +3417,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Channel1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -3441,7 +3441,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		TeamId:      otherTeamId,
 		DisplayName: "Channel2",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -3459,7 +3459,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelA",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
@@ -3469,7 +3469,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelB",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o4, -1)
 	require.NoError(t, nErr)
@@ -3479,7 +3479,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelC",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o5, -1)
 	require.NoError(t, nErr)
@@ -3503,7 +3503,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelD",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o6, -1)
 	require.NoError(t, nErr)
@@ -3514,7 +3514,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelD",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o7, -1)
 	require.NoError(t, nErr)
@@ -3541,13 +3541,13 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
-		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.ChannelTypeOpen)
 		require.NoError(t, err)
 		require.EqualValues(t, 4, count)
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
-		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.ChannelTypePrivate)
 		require.NoError(t, err)
 		require.EqualValues(t, 2, count)
 	})
@@ -3561,7 +3561,7 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "PrivateChannel1Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr := ss.Channel().Save(&p1, -1)
 	require.NoError(t, nErr)
@@ -3571,7 +3571,7 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "PrivateChannel1Team2",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&p2, -1)
 	require.NoError(t, nErr)
@@ -3581,7 +3581,7 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "OpenChannel1Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -3597,7 +3597,7 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "PrivateChannel2Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&p3, -1)
 	require.NoError(t, nErr)
@@ -3607,7 +3607,7 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "PrivateChannel3Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&p4, -1)
 	require.NoError(t, nErr)
@@ -3633,13 +3633,13 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
-		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.ChannelTypePrivate)
 		require.NoError(t, err)
 		require.EqualValues(t, 3, count)
 	})
 
 	t.Run("verify analytics for open open channels", func(t *testing.T) {
-		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.ChannelTypeOpen)
 		require.NoError(t, err)
 		require.EqualValues(t, 1, count)
 	})
@@ -3653,7 +3653,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "OpenChannel1Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -3663,7 +3663,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "OpenChannel1Team2",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -3673,7 +3673,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "PrivateChannel1Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
@@ -3689,7 +3689,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "OpenChannel2Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o4, -1)
 	require.NoError(t, nErr)
@@ -3699,7 +3699,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "OpenChannel3Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o5, -1)
 	require.NoError(t, nErr)
@@ -3725,13 +3725,13 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
-		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.ChannelTypeOpen)
 		require.NoError(t, err)
 		require.EqualValues(t, 3, count)
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
-		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.ChannelTypePrivate)
 		require.NoError(t, err)
 		require.EqualValues(t, 1, count)
 	})
@@ -3745,7 +3745,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 		TeamId:      teamId,
 		DisplayName: "OpenChannel1Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&oc1, -1)
 	require.NoError(t, nErr)
@@ -3755,7 +3755,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 		TeamId:      model.NewId(),
 		DisplayName: "OpenChannel2TeamOther",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&oc2, -1)
 	require.NoError(t, nErr)
@@ -3765,7 +3765,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 		TeamId:      teamId,
 		DisplayName: "PrivateChannel3Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&pc3, -1)
 	require.NoError(t, nErr)
@@ -3787,7 +3787,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 		TeamId:      teamId,
 		DisplayName: "OpenChannel4Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&oc4, -1)
 	require.NoError(t, nErr)
@@ -3797,7 +3797,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 		TeamId:      teamId,
 		DisplayName: "OpenChannel4Team1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&oc5, -1)
 	require.NoError(t, nErr)
@@ -3824,7 +3824,7 @@ func testChannelStoreGetChannelCounts(t *testing.T, ss store.Store) {
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Channel2"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -3832,7 +3832,7 @@ func testChannelStoreGetChannelCounts(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -3868,7 +3868,7 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
@@ -3876,7 +3876,7 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	o1.TeamId = t1.Id
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -3884,7 +3884,7 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	o2.TeamId = o1.TeamId
 	o2.DisplayName = "Channel2"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -3936,7 +3936,7 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 		group := &model.Channel{
 			Name:        model.GetGroupNameFromUserIds(userIds),
 			DisplayName: "test",
-			Type:        model.CHANNEL_GROUP,
+			Type:        model.ChannelTypeGroup,
 		}
 		var channel *model.Channel
 		channel, nErr = ss.Channel().Save(group, 10000)
@@ -3965,7 +3965,7 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	t1.DisplayName = "Name"
 	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
@@ -3973,7 +3973,7 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	o1.TeamId = t1.Id
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -3981,7 +3981,7 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	o2.TeamId = o1.TeamId
 	o2.DisplayName = "Channel2"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -4098,7 +4098,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1001,
-			Type:      model.POST_JOIN_CHANNEL,
+			Type:      model.PostTypeJoinChannel,
 		})
 		require.NoError(t, err)
 
@@ -4106,7 +4106,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1002,
-			Type:      model.POST_REMOVE_FROM_CHANNEL,
+			Type:      model.PostTypeRemoveFromChannel,
 		})
 		require.NoError(t, err)
 
@@ -4114,7 +4114,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1003,
-			Type:      model.POST_LEAVE_TEAM,
+			Type:      model.PostTypeLeaveTeam,
 		})
 		require.NoError(t, err)
 
@@ -4122,7 +4122,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1004,
-			Type:      model.POST_HEADER_CHANGE,
+			Type:      model.PostTypeHeaderChange,
 		})
 		require.NoError(t, err)
 
@@ -4157,7 +4157,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	o1.TotalMsgCount = 25
 	o1.LastPostAt = 12345
 	_, nErr := ss.Channel().Save(&o1, -1)
@@ -4174,7 +4174,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Channel1"
 	o2.Name = "zz" + model.NewId() + "c"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	o2.TotalMsgCount = 26
 	o2.LastPostAt = 123456
 	_, nErr = ss.Channel().Save(&o2, -1)
@@ -4217,7 +4217,7 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	o1.TotalMsgCount = 25
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -4249,7 +4249,7 @@ func testUpdateChannelMember(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
@@ -4278,7 +4278,7 @@ func testGetMember(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
@@ -4287,7 +4287,7 @@ func testGetMember(t *testing.T, ss store.Store) {
 		TeamId:      c1.TeamId,
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(c2, -1)
 	require.NoError(t, nErr)
@@ -4340,7 +4340,7 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	o1, nErr := ss.Channel().Save(ch, -1)
@@ -4375,7 +4375,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Channel1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
@@ -4384,7 +4384,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Channel2",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&c2, -1)
 	require.NoError(t, nErr)
@@ -4492,7 +4492,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Channel1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
@@ -4695,7 +4695,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Channel1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
@@ -4704,7 +4704,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Channel2",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&c2, -1)
 	require.NoError(t, nErr)
@@ -4713,7 +4713,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		u1 := &model.User{
 			Email:    MakeEmail(),
 			DeleteAt: 0,
-			Roles:    model.SYSTEM_USER_ROLE_ID,
+			Roles:    model.SystemUserRoleId,
 		}
 		_, err := ss.User().Save(u1)
 		require.NoError(t, err)
@@ -4738,7 +4738,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		u2 := model.User{
 			Email:    MakeEmail(),
 			DeleteAt: 0,
-			Roles:    model.SYSTEM_GUEST_ROLE_ID,
+			Roles:    model.SystemGuestRoleId,
 		}
 		_, err := ss.User().Save(&u2)
 		require.NoError(t, err)
@@ -4763,7 +4763,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		u3 := model.User{
 			Email:    MakeEmail(),
 			DeleteAt: 0,
-			Roles:    model.SYSTEM_GUEST_ROLE_ID,
+			Roles:    model.SystemGuestRoleId,
 		}
 		_, err := ss.User().Save(&u3)
 		require.NoError(t, err)
@@ -4788,7 +4788,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		u4 := &model.User{
 			Email:    MakeEmail(),
 			DeleteAt: 10000,
-			Roles:    model.SYSTEM_GUEST_ROLE_ID,
+			Roles:    model.SystemGuestRoleId,
 		}
 		_, err := ss.User().Save(u4)
 		require.NoError(t, err)
@@ -4818,7 +4818,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelA",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -4843,7 +4843,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      otherTeamId,
 		DisplayName: "Channel2",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -4860,7 +4860,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelA",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
@@ -4869,7 +4869,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelB",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o4, -1)
 	require.NoError(t, nErr)
@@ -4878,7 +4878,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelC",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o5, -1)
 	require.NoError(t, nErr)
@@ -4887,7 +4887,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Off-Topic",
 		Name:        "off-topic",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o6, -1)
 	require.NoError(t, nErr)
@@ -4896,7 +4896,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Off-Set",
 		Name:        "off-set",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o7, -1)
 	require.NoError(t, nErr)
@@ -4905,7 +4905,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Off-Limit",
 		Name:        "off-limit",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o8, -1)
 	require.NoError(t, nErr)
@@ -4915,7 +4915,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		DisplayName: "Channel With Purpose",
 		Purpose:     "This can now be searchable!",
 		Name:        "with-purpose",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o9, -1)
 	require.NoError(t, nErr)
@@ -4924,7 +4924,7 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelA",
 		Name:        "channel-a-deleted",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o10, -1)
 	require.NoError(t, nErr)
@@ -5009,7 +5009,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelA",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -5018,7 +5018,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      otherTeamId,
 		DisplayName: "ChannelA",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -5051,7 +5051,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelA (alternate)",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
@@ -5060,7 +5060,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Channel B",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o4, -1)
 	require.NoError(t, nErr)
@@ -5069,7 +5069,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Channel C",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o5, -1)
 	require.NoError(t, nErr)
@@ -5078,7 +5078,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Off-Topic",
 		Name:        "off-topic",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o6, -1)
 	require.NoError(t, nErr)
@@ -5087,7 +5087,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Off-Set",
 		Name:        "off-set",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o7, -1)
 	require.NoError(t, nErr)
@@ -5096,7 +5096,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Off-Limit",
 		Name:        "off-limit",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o8, -1)
 	require.NoError(t, nErr)
@@ -5105,7 +5105,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Town Square",
 		Name:        "town-square",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o9, -1)
 	require.NoError(t, nErr)
@@ -5114,7 +5114,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "The",
 		Name:        "thename",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o10, -1)
 	require.NoError(t, nErr)
@@ -5123,7 +5123,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Native Mobile Apps",
 		Name:        "native-mobile-apps",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o11, -1)
 	require.NoError(t, nErr)
@@ -5133,7 +5133,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		DisplayName: "ChannelZ",
 		Purpose:     "This can now be searchable!",
 		Name:        "with-purpose",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o12, -1)
 	require.NoError(t, nErr)
@@ -5142,7 +5142,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "ChannelA (deleted)",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o13, -1)
 	require.NoError(t, nErr)
@@ -5202,7 +5202,7 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "test-dev-1",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -5211,7 +5211,7 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "test-dev-2",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -5220,7 +5220,7 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "dev-3",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
@@ -5229,7 +5229,7 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "dev-4",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o4, -1)
 	require.NoError(t, nErr)
@@ -5238,7 +5238,7 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 		TeamId:      otherTeamId,
 		DisplayName: "other-team-dev-5",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o5, -1)
 	require.NoError(t, nErr)
@@ -5305,7 +5305,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
@@ -5313,7 +5313,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t2.DisplayName = "Name2"
 	t2.Name = "zz" + model.NewId()
 	t2.Email = MakeEmail()
-	t2.Type = model.TEAM_OPEN
+	t2.Type = model.TeamOpen
 	_, err = ss.Team().Save(&t2)
 	require.NoError(t, err)
 
@@ -5321,7 +5321,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "A1 ChannelA",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -5330,7 +5330,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t2.Id,
 		DisplayName: "A2 ChannelA",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -5363,7 +5363,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "A3 ChannelA (alternate)",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
@@ -5372,7 +5372,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "A4 ChannelB",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o4, -1)
 	require.NoError(t, nErr)
@@ -5381,7 +5381,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:           t1.Id,
 		DisplayName:      "A5 ChannelC",
 		Name:             "zz" + model.NewId() + "b",
-		Type:             model.CHANNEL_PRIVATE,
+		Type:             model.ChannelTypePrivate,
 		GroupConstrained: model.NewBool(true),
 	}
 	_, nErr = ss.Channel().Save(&o5, -1)
@@ -5391,7 +5391,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "A6 Off-Topic",
 		Name:        "off-topic",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o6, -1)
 	require.NoError(t, nErr)
@@ -5400,7 +5400,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "A7 Off-Set",
 		Name:        "off-set",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o7, -1)
 	require.NoError(t, nErr)
@@ -5421,7 +5421,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "A8 Off-Limit",
 		Name:        "off-limit",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	_, nErr = ss.Channel().Save(&o8, -1)
 	require.NoError(t, nErr)
@@ -5430,7 +5430,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "A9 Town Square",
 		Name:        "town-square",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o9, -1)
 	require.NoError(t, nErr)
@@ -5439,7 +5439,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "B10 Which",
 		Name:        "which",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o10, -1)
 	require.NoError(t, nErr)
@@ -5448,7 +5448,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "B11 Native Mobile Apps",
 		Name:        "native-mobile-apps",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o11, -1)
 	require.NoError(t, nErr)
@@ -5458,7 +5458,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		DisplayName: "B12 ChannelZ",
 		Purpose:     "This can now be searchable!",
 		Name:        "with-purpose",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o12, -1)
 	require.NoError(t, nErr)
@@ -5467,7 +5467,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t1.Id,
 		DisplayName: "B13 ChannelA (deleted)",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o13, -1)
 	require.NoError(t, nErr)
@@ -5481,7 +5481,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		TeamId:      t2.Id,
 		DisplayName: "B14 FOOBARDISPLAYNAME",
 		Name:        "whatever",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o14, -1)
 	require.NoError(t, nErr)
@@ -5560,7 +5560,7 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "ChannelA"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -5596,7 +5596,7 @@ func testChannelStoreGetMembersByChannelIds(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 
@@ -5604,7 +5604,7 @@ func testChannelStoreGetMembersByChannelIds(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 
@@ -5681,7 +5681,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	gc1 := model.Channel{}
 	gc1.Name = model.GetGroupNameFromUserIds(userIds)
 	gc1.DisplayName = "GroupChannel" + model.NewId()
-	gc1.Type = model.CHANNEL_GROUP
+	gc1.Type = model.ChannelTypeGroup
 	_, nErr := ss.Channel().Save(&gc1, -1)
 	require.NoError(t, nErr)
 
@@ -5698,7 +5698,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	gc2 := model.Channel{}
 	gc2.Name = model.GetGroupNameFromUserIds(userIds)
 	gc2.DisplayName = "GroupChannel" + model.NewId()
-	gc2.Type = model.CHANNEL_GROUP
+	gc2.Type = model.ChannelTypeGroup
 	_, nErr = ss.Channel().Save(&gc2, -1)
 	require.NoError(t, nErr)
 
@@ -5715,7 +5715,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	gc3 := model.Channel{}
 	gc3.Name = model.GetGroupNameFromUserIds(userIds)
 	gc3.DisplayName = "GroupChannel" + model.NewId()
-	gc3.Type = model.CHANNEL_GROUP
+	gc3.Type = model.ChannelTypeGroup
 	_, nErr = ss.Channel().Save(&gc3, -1)
 	require.NoError(t, nErr)
 
@@ -5805,7 +5805,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "ChannelA"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
+	o1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -5813,7 +5813,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Channel2"
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -5821,7 +5821,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	p3.TeamId = model.NewId()
 	p3.DisplayName = "Channel3"
 	p3.Name = "zz" + model.NewId() + "b"
-	p3.Type = model.CHANNEL_PRIVATE
+	p3.Type = model.ChannelTypePrivate
 	_, nErr = ss.Channel().Save(&p3, -1)
 	require.NoError(t, nErr)
 
@@ -5885,7 +5885,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	o1, nErr := ss.Channel().Save(ch1, -1)
@@ -5907,7 +5907,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	o2, nErr := ss.Channel().Save(ch2, -1)
@@ -5971,7 +5971,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	o1, nErr := ss.Channel().Save(ch1, -1)
@@ -6001,7 +6001,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	o2, nErr := ss.Channel().Save(ch2, -1)
@@ -6031,7 +6031,7 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Channel",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(channel, 0)
 	assert.Error(t, nErr)
@@ -6049,14 +6049,14 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 
 	s2 := &model.Scheme{
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 
 	s1, err := ss.Scheme().Save(s1)
@@ -6069,7 +6069,7 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &s1.Id,
 	}
 
@@ -6077,7 +6077,7 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &s1.Id,
 	}
 
@@ -6085,7 +6085,7 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	_, _ = ss.Channel().Save(c1, 100)
@@ -6114,7 +6114,7 @@ func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &s1,
 	}
 	c1, _ = ss.Channel().Save(c1, 100)
@@ -6185,7 +6185,7 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 	s1, err := ss.Scheme().Save(s1)
 	require.NoError(t, err)
@@ -6194,7 +6194,7 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &s1.Id,
 	}
 
@@ -6202,7 +6202,7 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &s1.Id,
 	}
 
@@ -6227,7 +6227,7 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	c, _ = ss.Channel().Save(c, 100)
@@ -6295,7 +6295,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		TeamId:      teamId,
 		DisplayName: "Open Channel",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
@@ -6305,7 +6305,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		TeamId:      teamId,
 		DisplayName: "Open Channel 2",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
@@ -6336,7 +6336,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		require.Equal(t, &model.ChannelList{&o2}, channels)
 	})
 
-	o2.Type = model.CHANNEL_PRIVATE
+	o2.Type = model.ChannelTypePrivate
 	_, err := ss.Channel().Update(&o2)
 	require.NoError(t, err)
 
@@ -6346,7 +6346,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		require.Equal(t, &model.ChannelList{}, channels)
 	})
 
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, err = ss.Channel().Update(&o2)
 	require.NoError(t, err)
 
@@ -6362,7 +6362,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		TeamId:      teamId,
 		DisplayName: "Open Channel 3",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	_, execerr := s.GetMaster().ExecNoTimeout(`
@@ -6417,7 +6417,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		TeamId:      teamId,
 		DisplayName: "Open Channel 4",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	_, nErr = ss.Channel().Save(&o4, -1)
@@ -6449,7 +6449,7 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 	t1.DisplayName = "Name"
 	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
@@ -6457,7 +6457,7 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
 
@@ -6481,7 +6481,7 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
@@ -6489,7 +6489,7 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
 
@@ -6497,7 +6497,7 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
-	c2.Type = model.CHANNEL_OPEN
+	c2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(&c2, -1)
 	require.NoError(t, nErr)
 
@@ -6538,7 +6538,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	t1.DisplayName = "Name"
 	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
@@ -6546,7 +6546,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
 
@@ -6622,7 +6622,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	o1.TeamId = teamId
 	o1.DisplayName = "Name" + model.NewId()
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_DIRECT
+	o1.Type = model.ChannelTypeDirect
 
 	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
 
@@ -6630,7 +6630,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	o2.Name = model.GetGroupNameFromUserIds(userIds)
 	o2.DisplayName = "GroupChannel" + model.NewId()
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_GROUP
+	o2.Type = model.ChannelTypeGroup
 	_, nErr := ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -6679,13 +6679,13 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	o1.TeamId = teamId
 	o1.DisplayName = "The Direct Channel" + model.NewId()
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_DIRECT
+	o1.Type = model.ChannelTypeDirect
 
 	o2 := model.Channel{}
 	o2.TeamId = teamId
 	o2.DisplayName = "Channel2" + model.NewId()
 	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
+	o2.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -6693,7 +6693,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	o3.TeamId = teamId
 	o3.DisplayName = "Channel3" + model.NewId()
 	o3.Name = "zz" + model.NewId() + "b"
-	o3.Type = model.CHANNEL_PRIVATE
+	o3.Type = model.ChannelTypePrivate
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
 
@@ -6741,7 +6741,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	o1.TeamId = teamId
 	o1.DisplayName = "Different Name" + model.NewId()
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_DIRECT
+	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
@@ -6789,7 +6789,7 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	_, nErr := ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -6798,7 +6798,7 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	c2 := &model.Channel{}
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
-	c2.Type = model.CHANNEL_OPEN
+	c2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(c2, -1)
 	require.NoError(t, nErr)
 
@@ -6808,21 +6808,21 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	c3 := &model.Channel{}
 	c3.DisplayName = "Channel3"
 	c3.Name = "zz" + model.NewId() + "b"
-	c3.Type = model.CHANNEL_OPEN
+	c3.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(c3, -1)
 	require.NoError(t, nErr)
 
 	c4 := &model.Channel{}
 	c4.DisplayName = "Channel4"
 	c4.Name = "zz" + model.NewId() + "b"
-	c4.Type = model.CHANNEL_PRIVATE
+	c4.Type = model.ChannelTypePrivate
 	_, nErr = ss.Channel().Save(c4, -1)
 	require.NoError(t, nErr)
 
 	c5 := &model.Channel{}
 	c5.DisplayName = "Channel5"
 	c5.Name = "zz" + model.NewId() + "b"
-	c5.Type = model.CHANNEL_OPEN
+	c5.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(c5, -1)
 	require.NoError(t, nErr)
 
@@ -6831,7 +6831,7 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	c6 := &model.Channel{}
 	c6.DisplayName = "Channel6"
 	c6.Name = "zz" + model.NewId() + "b"
-	c6.Type = model.CHANNEL_OPEN
+	c6.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(c6, -1)
 	require.NoError(t, nErr)
 
@@ -6858,7 +6858,7 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	channel1, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName:      model.NewId(),
 		Name:             model.NewId(),
-		Type:             model.CHANNEL_PRIVATE,
+		Type:             model.ChannelTypePrivate,
 		GroupConstrained: model.NewBool(true),
 	}, 999)
 	require.NoError(t, nErr)
@@ -6868,7 +6868,7 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	channel2, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}, 999)
 	require.NoError(t, nErr)
 	require.False(t, channel2.IsGroupConstrained())
@@ -6893,7 +6893,7 @@ func testSetShared(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "test_share_flag",
 		Name:        "test_share_flag",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelSaved, err := ss.Channel().Save(channel, 999)
 	require.NoError(t, err)
@@ -6923,7 +6923,7 @@ func testGetTeamForChannel(t *testing.T, ss store.Store) {
 		Name:        "myteam",
 		DisplayName: "DisplayName",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 
@@ -6931,7 +6931,7 @@ func testGetTeamForChannel(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		DisplayName: "test_share_flag",
 		Name:        "test_share_flag",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelSaved, err := ss.Channel().Save(channel, 999)
 	require.NoError(t, err)

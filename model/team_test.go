@@ -52,7 +52,7 @@ func TestTeamIsValid(t *testing.T) {
 	require.NotNil(t, err, "should be invalid")
 
 	o.Name = "zzzzz"
-	o.Type = TEAM_OPEN
+	o.Type = TeamOpen
 	o.InviteId = NewId()
 	err = o.IsValid()
 	require.Nil(t, err, err)

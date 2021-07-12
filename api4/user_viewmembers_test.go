@@ -16,30 +16,30 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 	defer th.TearDown()
 
 	// Create first account for system admin
-	_, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user0", Password: "test-password-0", Username: "test-user-0", Roles: model.SYSTEM_USER_ROLE_ID})
+	_, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user0", Password: "test-password-0", Username: "test-user-0", Roles: model.SystemUserRoleId})
 	require.Nil(t, err)
 
-	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
 	require.Nil(t, err)
-	user2, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SYSTEM_USER_ROLE_ID})
+	user2, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
 	require.Nil(t, err)
-	user3, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user3", Password: "test-password-3", Username: "test-user-3", Roles: model.SYSTEM_USER_ROLE_ID})
+	user3, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user3", Password: "test-password-3", Username: "test-user-3", Roles: model.SystemUserRoleId})
 	require.Nil(t, err)
-	user4, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user4", Password: "test-password-4", Username: "test-user-4", Roles: model.SYSTEM_USER_ROLE_ID})
+	user4, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user4", Password: "test-password-4", Username: "test-user-4", Roles: model.SystemUserRoleId})
 	require.Nil(t, err)
-	user5, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user5", Password: "test-password-5", Username: "test-user-5", Roles: model.SYSTEM_USER_ROLE_ID})
-	require.Nil(t, err)
-
-	team1, err := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN})
-	require.Nil(t, err)
-	team2, err := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN})
+	user5, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user5", Password: "test-password-5", Username: "test-user-5", Roles: model.SystemUserRoleId})
 	require.Nil(t, err)
 
-	channel1, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.CHANNEL_OPEN, TeamId: team1.Id, CreatorId: model.NewId()}, false)
+	team1, err := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
 	require.Nil(t, err)
-	channel2, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.CHANNEL_OPEN, TeamId: team1.Id, CreatorId: model.NewId()}, false)
+	team2, err := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
 	require.Nil(t, err)
-	channel3, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.CHANNEL_OPEN, TeamId: team2.Id, CreatorId: model.NewId()}, false)
+
+	channel1, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
+	require.Nil(t, err)
+	channel2, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
+	require.Nil(t, err)
+	channel3, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team2.Id, CreatorId: model.NewId()}, false)
 	require.Nil(t, err)
 
 	th.LinkUserToTeam(user1, team1)
@@ -124,14 +124,14 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, resp := th.Client.GetUser(tc.UserId, "")
@@ -206,14 +206,14 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, resp := th.Client.GetUserByUsername(tc.Username, "")
@@ -288,14 +288,14 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, resp := th.Client.GetUserByEmail(tc.Email, "")
@@ -370,14 +370,14 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, resp := th.Client.GetDefaultProfileImage(tc.UserId)
@@ -452,14 +452,14 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
-					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, resp := th.Client.GetProfileImage(tc.UserId, "")

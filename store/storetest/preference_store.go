@@ -31,13 +31,13 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 	preferences := model.Preferences{
 		{
 			UserId:   id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Category: model.PreferenceCategoryDirectChannelShow,
 			Name:     model.NewId(),
 			Value:    "value1a",
 		},
 		{
 			UserId:   id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Category: model.PreferenceCategoryDirectChannelShow,
 			Name:     model.NewId(),
 			Value:    "value1b",
 		},
@@ -63,7 +63,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 
 func testPreferenceGet(t *testing.T, ss store.Store) {
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
 
 	preferences := model.Preferences{
@@ -103,7 +103,7 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 
 func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
 
 	preferences := model.Preferences{
@@ -152,7 +152,7 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 
 func testPreferenceGetAll(t *testing.T, ss store.Store) {
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
 
 	preferences := model.Preferences{
@@ -196,7 +196,7 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 
 func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
 
 	preferences := model.Preferences{
@@ -235,7 +235,7 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 func testPreferenceDelete(t *testing.T, ss store.Store) {
 	preference := model.Preference{
 		UserId:   model.NewId(),
-		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+		Category: model.PreferenceCategoryDirectChannelShow,
 		Name:     model.NewId(),
 		Value:    "value1a",
 	}
@@ -336,17 +336,17 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
-	category := model.PREFERENCE_CATEGORY_FLAGGED_POST
+	category := model.PreferenceCategoryFlaggedPost
 	userId := model.NewId()
 
 	olderPost, err := ss.Post().Save(&model.Post{

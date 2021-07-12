@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	EMOJI_NAME_MAX_LENGTH = 64
-	EMOJI_SORT_BY_NAME    = "name"
+	EmojiNameMaxLength = 64
+	EmojiSortByName    = "name"
 )
 
-var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
+var EmojiPattern = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
 
 var ReverseSystemEmojisMap = makeReverseEmojiMap()
 
@@ -80,7 +80,7 @@ func (emoji *Emoji) IsValid() *AppError {
 }
 
 func IsValidEmojiName(name string) *AppError {
-	if name == "" || len(name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscorePlus(name) || inSystemEmoji(name) {
+	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) || inSystemEmoji(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
