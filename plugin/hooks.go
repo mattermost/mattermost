@@ -35,6 +35,7 @@ const (
 	UserHasBeenCreatedID     = 17
 	ReactionHasBeenAddedID   = 18
 	ReactionHasBeenRemovedID = 19
+	OnPluginClusterEventID   = 20
 	TotalHooksID             = iota
 )
 
@@ -209,4 +210,13 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.30
 	ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
+
+	// OnPluginClusterEvent is invoked when an intra-cluster plugin event is received.
+	//
+	// This is used to allow communication between multiple instances of the same plugin
+	// that are running on separate nodes of the same High-Availability cluster.
+	// This hook receives events sent by a call to PublishPluginClusterEvent.
+	//
+	// Minimum server version: 5.36
+	OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
 }

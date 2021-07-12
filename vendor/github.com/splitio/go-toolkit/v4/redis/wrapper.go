@@ -20,17 +20,19 @@ type Result interface {
 	Multi() ([]string, error)
 	MultiInterface() ([]interface{}, error)
 	Err() error
+	MapStringString() (map[string]string, error)
 }
 
 // ResultImpl generic interface
 type ResultImpl struct {
-	value          int64
-	valueString    string
-	valueBool      bool
-	valueDuration  time.Duration
-	err            error
-	multi          []string
-	multiInterface []interface{}
+	value           int64
+	valueString     string
+	valueBool       bool
+	valueDuration   time.Duration
+	err             error
+	multi           []string
+	multiInterface  []interface{}
+	mapStringString map[string]string
 }
 
 // Int implementation
@@ -78,6 +80,11 @@ func (r *ResultImpl) MultiInterface() ([]interface{}, error) {
 	return r.multiInterface, r.err
 }
 
+// MapStringString implementation
+func (r *ResultImpl) MapStringString() (map[string]string, error) {
+	return r.mapStringString, r.err
+}
+
 // ====== Client
 
 // Client interface which specifies the currently used subset of redis operations
@@ -103,6 +110,8 @@ type Client interface {
 	MGet(keys []string) Result
 	SCard(key string) Result
 	Eval(script string, keys []string, args ...interface{}) Result
+	HIncrBy(key string, field string, value int64) Result
+	HGetAll(key string) Result
 }
 
 // ClientImpl wrapps redis client
@@ -153,6 +162,11 @@ func (c *ClientImpl) wrapResult(result interface{}) Result {
 	case *redis.Cmd:
 		return &ResultImpl{
 			err: v.Err(),
+		}
+	case *redis.StringStringMapCmd:
+		return &ResultImpl{
+			err:             v.Err(),
+			mapStringString: v.Val(),
 		}
 	default:
 		return nil
@@ -282,6 +296,18 @@ func (c *ClientImpl) SCard(key string) Result {
 // Eval implements Eval wrapper for redis
 func (c *ClientImpl) Eval(script string, keys []string, args ...interface{}) Result {
 	res := c.wrapped.Eval(context.TODO(), script, keys, args...)
+	return c.wrapResult(res)
+}
+
+// HIncrBy implements HIncrBy wrapper for redis
+func (c *ClientImpl) HIncrBy(key string, field string, value int64) Result {
+	res := c.wrapped.HIncrBy(context.TODO(), key, field, value)
+	return c.wrapResult(res)
+}
+
+// HGetAll implements HGetAll wrapper for redis
+func (c *ClientImpl) HGetAll(key string) Result {
+	res := c.wrapped.HGetAll(context.TODO(), key)
 	return c.wrapResult(res)
 }
 

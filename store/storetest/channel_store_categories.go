@@ -363,6 +363,22 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 }
 
 func testCreateSidebarCategory(t *testing.T, ss store.Store) {
+	t.Run("Creating category without initial categories should fail", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		// Create the category
+		created, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: model.NewId(),
+			},
+		})
+		require.Error(t, err)
+		var errNotFound *store.ErrNotFound
+		require.ErrorAs(t, err, &errNotFound)
+		require.Nil(t, created)
+	})
+
 	t.Run("should place the new category second if Favorites comes first", func(t *testing.T) {
 		userId := model.NewId()
 		teamId := model.NewId()

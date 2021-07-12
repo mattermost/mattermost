@@ -24,7 +24,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'FileIds'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Posts ADD FileIds varchar(150) DEFAULT \'[]\';'
+    'ALTER TABLE Posts ADD FileIds text;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
@@ -115,21 +115,6 @@ SET @preparedStatement = (SELECT IF(
     ) > 0,
     'SELECT 1',
     'CREATE INDEX idx_posts_delete_at ON Posts(DeleteAt);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Posts'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_posts_channel_id'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_posts_channel_id ON Posts(ChannelId);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
@@ -240,3 +225,18 @@ SET @preparedStatement = (SELECT IF(
 PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Posts'
+        AND table_schema = DATABASE()
+        AND column_name = 'RemoteId'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE Posts ADD RemoteId varchar(26);'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;

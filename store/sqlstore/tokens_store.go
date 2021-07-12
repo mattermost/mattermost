@@ -31,9 +31,6 @@ func newSqlTokenStore(sqlStore *SqlStore) store.TokenStore {
 	return s
 }
 
-func (s SqlTokenStore) createIndexesIfNotExists() {
-}
-
 func (s SqlTokenStore) Save(token *model.Token) error {
 	if err := token.IsValid(); err != nil {
 		return err

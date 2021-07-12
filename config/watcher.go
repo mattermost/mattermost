@@ -14,8 +14,6 @@ import (
 
 // watcher monitors a file for changes
 type watcher struct {
-	emitter
-
 	fsWatcher *fsnotify.Watcher
 	close     chan struct{}
 	closed    chan struct{}

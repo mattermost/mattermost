@@ -101,6 +101,9 @@ type SubConn interface {
 	// a new connection will be created.
 	//
 	// This will trigger a state transition for the SubConn.
+	//
+	// Deprecated: This method is now part of the ClientConn interface and will
+	// eventually be removed from here.
 	UpdateAddresses([]resolver.Address)
 	// Connect starts the connecting for this SubConn.
 	Connect()
@@ -143,6 +146,13 @@ type ClientConn interface {
 	// RemoveSubConn removes the SubConn from ClientConn.
 	// The SubConn will be shutdown.
 	RemoveSubConn(SubConn)
+	// UpdateAddresses updates the addresses used in the passed in SubConn.
+	// gRPC checks if the currently connected address is still in the new list.
+	// If so, the connection will be kept. Else, the connection will be
+	// gracefully closed, and a new connection will be created.
+	//
+	// This will trigger a state transition for the SubConn.
+	UpdateAddresses(SubConn, []resolver.Address)
 
 	// UpdateState notifies gRPC that the balancer's internal state has
 	// changed.

@@ -5,13 +5,17 @@ package api4
 
 import (
 	"net/http"
-	"runtime"
-	"time"
 
-	"github.com/gobwas/ws"
+	"github.com/gorilla/websocket"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+)
+
+const (
+	connectionIDParam   = "connection_id"
+	sequenceNumberParam = "sequence_number"
 )
 
 func (api *API) InitWebSocket() {
@@ -20,38 +24,49 @@ func (api *API) InitWebSocket() {
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
-	fn := c.App.OriginChecker()
-	if fn != nil && !fn(r) {
-		c.Err = model.NewAppError("origin_check", "api.web_socket.connect.check_origin.app_error", nil, "", http.StatusBadRequest)
-		return
+	upgrader := websocket.Upgrader{
+		ReadBufferSize:  model.SOCKET_MAX_MESSAGE_SIZE_KB,
+		WriteBufferSize: model.SOCKET_MAX_MESSAGE_SIZE_KB,
+		CheckOrigin:     c.App.OriginChecker(),
 	}
 
-	upgrader := ws.HTTPUpgrader{
-		Timeout: 5 * time.Second,
-	}
-
-	// Uprgade the HTTP version header to 1.1, if we detect a 1.0 header.
-	// This is a hack to work around a flaw in our proxy configs which sends the protocol version as 1.0.
-	// It will be removed in a future version.
-	if r.ProtoMajor == 1 && r.ProtoMinor == 0 {
-		r.ProtoMinor = 1
-		mlog.Warn("The HTTP version field was detected as 1.0 during WebSocket handshake. This is most probably due to an incorrect proxy configuration. Please upgrade your proxy config to set the header version to a minimum of 1.1.")
-	}
-
-	conn, _, _, err := upgrader.Upgrade(r, w)
+	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	wc := c.App.NewWebConn(conn, *c.App.Session(), c.App.T, "")
-	if c.App.Session().UserId != "" {
+	// We initialize webconn with all the necessary data.
+	// If the queues are empty, they are initialized in the constructor.
+	cfg := &app.WebConnConfig{
+		WebSocket: ws,
+		Session:   *c.AppContext.Session(),
+		TFunc:     c.AppContext.T,
+		Locale:    "",
+		Active:    true,
+	}
+
+	if *c.App.Config().ServiceSettings.EnableReliableWebSockets {
+		cfg.ConnectionID = r.URL.Query().Get(connectionIDParam)
+		if cfg.ConnectionID == "" || c.AppContext.Session().UserId == "" {
+			// If not present, we assume client is not capable yet, or it's a fresh connection.
+			// We just create a new ID.
+			cfg.ConnectionID = model.NewId()
+			// In case of fresh connection id, sequence number is already zero.
+		} else {
+			cfg, err = c.App.PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
+			if err != nil {
+				mlog.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
+				ws.Close()
+				return
+			}
+		}
+	}
+
+	wc := c.App.NewWebConn(cfg)
+	if c.AppContext.Session().UserId != "" {
 		c.App.HubRegister(wc)
 	}
 
-	if runtime.GOOS == "windows" {
-		wc.BlockingPump()
-	} else {
-		go wc.Pump()
-	}
+	wc.Pump()
 }

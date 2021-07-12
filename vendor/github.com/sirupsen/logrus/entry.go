@@ -261,7 +261,15 @@ func (entry *Entry) log(level Level, msg string) {
 }
 
 func (entry *Entry) fireHooks() {
-	err := entry.Logger.Hooks.Fire(entry.Level, entry)
+	var tmpHooks LevelHooks
+	entry.Logger.mu.Lock()
+	tmpHooks = make(LevelHooks, len(entry.Logger.Hooks))
+	for k, v := range entry.Logger.Hooks {
+		tmpHooks[k] = v
+	}
+	entry.Logger.mu.Unlock()
+
+	err := tmpHooks.Fire(entry.Level, entry)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to fire hook: %v\n", err)
 	}

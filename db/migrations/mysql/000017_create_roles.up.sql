@@ -29,3 +29,18 @@ DEALLOCATE PREPARE alterIfNotExists;
 
 UPDATE Roles SET SchemeManaged = 0
 WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin');
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Roles'
+        AND table_schema = DATABASE()
+        AND column_name = 'Permissions'
+    ) > 0,
+    'ALTER TABLE Roles MODIFY Permissions longtext;',
+    'SELECT 1'
+));
+
+PREPARE alterIfExists FROM @preparedStatement;
+EXECUTE alterIfExists;
+DEALLOCATE PREPARE alterIfExists;

@@ -46,6 +46,22 @@ type BalancerConfig struct {
 
 type intermediateBalancerConfig []map[string]json.RawMessage
 
+// MarshalJSON implements the json.Marshaler interface.
+//
+// It marshals the balancer and config into a length-1 slice
+// ([]map[string]config).
+func (bc *BalancerConfig) MarshalJSON() ([]byte, error) {
+	if bc.Config == nil {
+		// If config is nil, return empty config `{}`.
+		return []byte(fmt.Sprintf(`[{%q: %v}]`, bc.Name, "{}")), nil
+	}
+	c, err := json.Marshal(bc.Config)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(fmt.Sprintf(`[{%q: %s}]`, bc.Name, c)), nil
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface.
 //
 // ServiceConfig contains a list of loadBalancingConfigs, each with a name and

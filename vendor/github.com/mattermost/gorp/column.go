@@ -28,6 +28,10 @@ type ColumnMap struct {
 	// Not used elsewhere
 	Unique bool
 
+	// If not nil, " default 'value'" is added to the create table statements.
+	// Not used elsewhere
+	DefaultConstraint *string
+
 	// Query used for getting generated id after insert
 	GeneratedIdQuery string
 
@@ -79,5 +83,12 @@ func (c *ColumnMap) SetNotNull(nn bool) *ColumnMap {
 // to alter the generated type for "create table" statements
 func (c *ColumnMap) SetMaxSize(size int) *ColumnMap {
 	c.MaxSize = size
+	return c
+}
+
+// SetDefaultConstraint adds " default 'value'" to the create table statements for this
+// column, if value is not nil. Not used elsewhere
+func (c *ColumnMap) SetDefaultConstraint(value *string) *ColumnMap {
+	c.DefaultConstraint = value
 	return c
 }

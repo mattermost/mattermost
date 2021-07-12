@@ -45,7 +45,7 @@ func StoreOverride(override interface{}) Option {
 // config loaded from the dsn on top of the normal defaults
 func Config(dsn string, watch, readOnly bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
-		configStore, err := config.NewStore(dsn, watch, readOnly, configDefaults)
+		configStore, err := config.NewStoreFromDSN(dsn, watch, readOnly, configDefaults)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply Config option")
 		}
@@ -64,8 +64,8 @@ func ConfigStore(configStore *config.Store) Option {
 	}
 }
 
-func RunJobs(s *Server) error {
-	s.runjobs = true
+func RunEssentialJobs(s *Server) error {
+	s.runEssentialJobs = true
 
 	return nil
 }
@@ -91,6 +91,14 @@ func StartSearchEngine(s *Server) error {
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
 		s.Log = logger
+		return nil
+	}
+}
+
+func SkipPostInitializiation() Option {
+	return func(s *Server) error {
+		s.skipPostInit = true
+
 		return nil
 	}
 }
