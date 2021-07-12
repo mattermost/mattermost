@@ -749,6 +749,7 @@ func TestConvertUserToBot(t *testing.T) {
 			Nickname: "user1",
 			Password: "Password1",
 		})
+		require.Nil(t, err)
 
 		bot, err := th.App.ConvertUserToBot(&model.User{
 			Username: user.Username,
