@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"unicode"
@@ -23,7 +24,10 @@ import (
 
 const (
 	CmdCustomStatusTrigger = "status"
+	usernameSpecialChars   = ".-_"
 )
+
+var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
 
 type CommandProvider interface {
 	GetTrigger() string
@@ -233,7 +237,7 @@ func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 		Id   string
 	}
 
-	possibleMentions := model.PossibleAtMentions(message)
+	possibleMentions := possibleAtMentions(message)
 	mentionChan := make(chan *mentionMapItem, len(possibleMentions))
 
 	var wg sync.WaitGroup
@@ -252,8 +256,8 @@ func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 			// If it's a http.StatusNotFound error, check for usernames in substrings
 			// without trailing punctuation
 			if nErr != nil {
-				trimmed, ok := model.TrimUsernameSpecialChar(mention)
-				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
+				trimmed, ok := trimUsernameSpecialChar(mention)
+				for ; ok; trimmed, ok = trimUsernameSpecialChar(trimmed) {
 					userFromTrimmed, nErr := a.Srv().Store.User().GetByUsername(trimmed)
 					if nErr != nil && !errors.As(nErr, &nfErr) {
 						return
@@ -769,4 +773,38 @@ func (a *App) DeleteCommand(commandID string) *model.AppError {
 	}
 
 	return nil
+}
+
+// possibleAtMentions returns all substrings in message that look like valid @
+// mentions.
+func possibleAtMentions(message string) []string {
+	var names []string
+
+	if !strings.Contains(message, "@") {
+		return names
+	}
+
+	alreadyMentioned := make(map[string]bool)
+	for _, match := range atMentionRegexp.FindAllString(message, -1) {
+		name := model.NormalizeUsername(match[1:])
+		if !alreadyMentioned[name] && model.IsValidUsernameAllowRemote(name) {
+			names = append(names, name)
+			alreadyMentioned[name] = true
+		}
+	}
+
+	return names
+}
+
+// trimUsernameSpecialChar tries to remove the last character from word if it
+// is a special character for usernames (dot, dash or underscore). If not, it
+// returns the same string.
+func trimUsernameSpecialChar(word string) (string, bool) {
+	len := len(word)
+
+	if len > 0 && strings.LastIndexAny(word, usernameSpecialChars) == (len-1) {
+		return word[:len-1], true
+	}
+
+	return word, false
 }

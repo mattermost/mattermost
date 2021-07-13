@@ -18,8 +18,6 @@ const (
 
 var EmojiPattern = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
 
-var ReverseSystemEmojisMap = makeReverseEmojiMap()
-
 type Emoji struct {
 	Id        string `json:"id"`
 	CreateAt  int64  `json:"create_at"`
@@ -51,8 +49,10 @@ func makeReverseEmojiMap() map[string][]string {
 	return reverseEmojiMap
 }
 
+var reverseSystemEmojisMap = makeReverseEmojiMap()
+
 func GetEmojiNameFromUnicode(unicode string) (emojiName string, count int) {
-	if emojiNames, found := ReverseSystemEmojisMap[unicode]; found {
+	if emojiNames, found := reverseSystemEmojisMap[unicode]; found {
 		return emojiNames[0], len(emojiNames)
 	}
 
