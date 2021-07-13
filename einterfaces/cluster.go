@@ -21,7 +21,8 @@ type ClusterInterface interface {
 	HealthScore() int
 	GetMyClusterInfo() *model.ClusterInfo
 	GetClusterInfos() []*model.ClusterInfo
-	SendClusterMessage(cluster *model.ClusterMessage)
+	SendClusterMessage(msg *model.ClusterMessage)
+	SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error
 	NotifyMsg(buf []byte)
 	GetClusterStats() ([]*model.ClusterStats, *model.AppError)
 	GetLogs(page, perPage int) ([]string, *model.AppError)

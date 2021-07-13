@@ -67,7 +67,7 @@ func TestGroupMsgProvider(t *testing.T) {
 	th.removePermissionFromRole(model.PERMISSION_CREATE_GROUP_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
 
 	t.Run("Check without permission to create a GM channel.", func(t *testing.T) {
-		resp := cmd.DoCommand(th.App, &model.CommandArgs{
+		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 			T:       i18n.IdentityTfunc(),
 			SiteURL: "http://test.url",
 			TeamId:  team.Id,
@@ -83,7 +83,7 @@ func TestGroupMsgProvider(t *testing.T) {
 	t.Run("Check without permissions to view a user in the list.", func(t *testing.T) {
 		th.removePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
 		defer th.addPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-		resp := cmd.DoCommand(th.App, &model.CommandArgs{
+		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 			T:       i18n.IdentityTfunc(),
 			SiteURL: "http://test.url",
 			TeamId:  team.Id,
@@ -95,7 +95,7 @@ func TestGroupMsgProvider(t *testing.T) {
 	})
 
 	t.Run("Check with permission to create a GM channel.", func(t *testing.T) {
-		resp := cmd.DoCommand(th.App, &model.CommandArgs{
+		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 			T:       i18n.IdentityTfunc(),
 			SiteURL: "http://test.url",
 			TeamId:  team.Id,
@@ -108,7 +108,7 @@ func TestGroupMsgProvider(t *testing.T) {
 	})
 
 	t.Run("Check without permission to post to an existing GM channel.", func(t *testing.T) {
-		resp := cmd.DoCommand(th.App, &model.CommandArgs{
+		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 			T:       i18n.IdentityTfunc(),
 			SiteURL: "http://test.url",
 			TeamId:  team.Id,

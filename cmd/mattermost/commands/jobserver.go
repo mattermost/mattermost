@@ -41,7 +41,6 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	a.Srv().LoadLicense()
-	a.InitServer()
 
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")

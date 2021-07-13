@@ -4,7 +4,7 @@ go 1.11
 
 require (
 	github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403
-	github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad
+	github.com/envoyproxy/go-control-plane v0.9.9-0.20210217033140-668b12f5399d
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.5.0

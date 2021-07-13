@@ -57,11 +57,23 @@ var NamedErr = zap.NamedError
 var Bool = zap.Bool
 var Duration = zap.Duration
 
+type LoggerIFace interface {
+	IsLevelEnabled(LogLevel) bool
+	Debug(string, ...Field)
+	Info(string, ...Field)
+	Warn(string, ...Field)
+	Error(string, ...Field)
+	Critical(string, ...Field)
+	Log(LogLevel, string, ...Field)
+	LogM([]LogLevel, string, ...Field)
+}
+
 type TargetInfo logr.TargetInfo
 
 type LoggerConfiguration struct {
 	EnableConsole bool
 	ConsoleJson   bool
+	EnableColor   bool
 	ConsoleLevel  string
 	EnableFile    bool
 	FileJson      bool
@@ -92,12 +104,15 @@ func getZapLevel(level string) zapcore.Level {
 	}
 }
 
-func makeEncoder(json bool) zapcore.Encoder {
+func makeEncoder(json, color bool) zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	if json {
 		return zapcore.NewJSONEncoder(encoderConfig)
 	}
 
+	if color {
+		encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	}
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
@@ -113,7 +128,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 
 	if config.EnableConsole {
 		writer := zapcore.Lock(os.Stderr)
-		core := zapcore.NewCore(makeEncoder(config.ConsoleJson), writer, logger.consoleLevel)
+		core := zapcore.NewCore(makeEncoder(config.ConsoleJson, config.EnableColor), writer, logger.consoleLevel)
 		cores = append(cores, core)
 	}
 
@@ -142,7 +157,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 				Compress: true,
 			})
 
-			core := zapcore.NewCore(makeEncoder(config.FileJson), writer, logger.fileLevel)
+			core := zapcore.NewCore(makeEncoder(config.FileJson, false), writer, logger.fileLevel)
 			cores = append(cores, core)
 		}
 	}
@@ -205,6 +220,10 @@ func (l *Logger) Sugar() *SugarLogger {
 		wrappedLogger: l,
 		zapSugar:      l.zap.Sugar(),
 	}
+}
+
+func (l *Logger) IsLevelEnabled(level LogLevel) bool {
+	return isLevelEnabled(l.getLogger(), logr.Level(level))
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {
