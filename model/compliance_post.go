@@ -30,7 +30,6 @@ type CompliancePost struct {
 	PostUpdateAt   int64
 	PostDeleteAt   int64
 	PostRootId     string
-	PostParentId   string
 	PostOriginalId string
 	PostMessage    string
 	PostType       string
@@ -60,7 +59,6 @@ func CompliancePostHeader() []string {
 		"PostUpdateAt",
 		"PostDeleteAt",
 		"PostRootId",
-		"PostParentId",
 		"PostOriginalId",
 		"PostMessage",
 		"PostType",
@@ -113,7 +111,6 @@ func (cp *CompliancePost) Row() []string {
 		postDeleteAt,
 
 		cp.PostRootId,
-		cp.PostParentId,
 		cp.PostOriginalId,
 		cleanComplianceStrings(cp.PostMessage),
 		cp.PostType,

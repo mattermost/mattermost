@@ -1093,7 +1093,6 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		}
 		reply.UserId = user.Id
 		reply.ChannelId = post.ChannelId
-		reply.ParentId = post.Id
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt

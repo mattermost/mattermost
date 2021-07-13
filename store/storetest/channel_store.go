@@ -5949,7 +5949,6 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			ParentId:  post1.Id,
 			RootId:    post1.Id,
 			Message:   "message",
 			IsPinned:  true,

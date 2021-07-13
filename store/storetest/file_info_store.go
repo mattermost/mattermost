@@ -658,7 +658,6 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	o3 := &model.Post{}
 	o3.ChannelId = c1.Id
 	o3.UserId = model.NewId()
-	o3.ParentId = o1.Id
 	o3.RootId = o1.Id
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3, err = ss.Post().Save(o3)

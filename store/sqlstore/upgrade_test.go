@@ -125,13 +125,12 @@ func createChannelMemberWithLastViewAt(ss store.Store, channelId, userId string,
 	cm, _ := ss.Channel().SaveMember(&m)
 	return cm
 }
-func createPostWithTimestamp(ss store.Store, channelId, userId, rootId, parentId string, timestamp int64) *model.Post {
+func createPostWithTimestamp(ss store.Store, channelId, userId, rootId string, timestamp int64) *model.Post {
 	m := model.Post{}
 	m.CreateAt = timestamp
 	m.ChannelId = channelId
 	m.UserId = userId
 	m.RootId = rootId
-	m.ParentId = parentId
 	m.Message = "zz" + model.NewId() + "b"
 	p, _ := ss.Post().Save(&m)
 	return p
@@ -225,10 +224,10 @@ func TestMsgCountRootMigration(t *testing.T) {
 						}
 						for i, pt := range testChannel.PostTimes {
 							rt := testChannel.ReplyTimes[i]
-							post := createPostWithTimestamp(ss, channel.Id, model.NewId(), "", "", pt)
+							post := createPostWithTimestamp(ss, channel.Id, model.NewId(), "", pt)
 							require.NotNil(t, post)
 							if rt > 0 {
-								reply := createPostWithTimestamp(ss, channel.Id, model.NewId(), post.Id, post.Id, rt)
+								reply := createPostWithTimestamp(ss, channel.Id, model.NewId(), post.Id, rt)
 								require.NotNil(t, reply)
 							}
 						}

@@ -792,7 +792,6 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 		UserId:    args.UserId,
 		ChannelId: args.ChannelId,
 		RootId:    args.RootId,
-		ParentId:  args.ParentId,
 	}
 
 	savedHook, err := a.Srv().Store.CommandWebhook().Save(hook)
@@ -844,7 +843,6 @@ func (a *App) HandleCommandWebhook(c *request.Context, hookID string, response *
 		ChannelId: hook.ChannelId,
 		TeamId:    cmd.TeamId,
 		RootId:    hook.RootId,
-		ParentId:  hook.ParentId,
 	}
 
 	if nErr := a.Srv().Store.CommandWebhook().TryUse(hook.Id, 5); nErr != nil {
