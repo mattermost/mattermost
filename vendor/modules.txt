@@ -183,7 +183,7 @@ github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
 # github.com/dustin/go-humanize v1.0.0
 github.com/dustin/go-humanize
-# github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09 => github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627
+# github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
 ## explicit
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/fatih/color v1.12.0
@@ -955,4 +955,3 @@ willnorris.com/go/gifresize
 ## explicit
 willnorris.com/go/imageproxy
 willnorris.com/go/imageproxy/third_party/http
-# github.com/dyatlov/go-opengraph => github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627
