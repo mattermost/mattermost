@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package model
+package app
 
 import (
 	"testing"
@@ -49,7 +49,7 @@ func TestPossibleAtMentions(t *testing.T) {
 	}
 
 	for _, data := range fixture {
-		actual := PossibleAtMentions(data.message)
+		actual := possibleAtMentions(data.message)
 		require.ElementsMatch(t, actual, data.expected)
 	}
 }
@@ -73,7 +73,7 @@ func TestTrimUsernameSpecialChar(t *testing.T) {
 	}
 
 	for _, data := range fixture {
-		actualString, actualBool := TrimUsernameSpecialChar(data.word)
+		actualString, actualBool := trimUsernameSpecialChar(data.word)
 		require.Equal(t, actualBool, data.expectedBool)
 		if actualBool {
 			require.Equal(t, actualString, data.expectedString)
