@@ -5,7 +5,7 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND index_name = 'idx_threads_channel_id'
     ) > 0,
-    'DROP INDEX idx_threads_channel_id ON Threads (ChannelId);',
+    'DROP INDEX idx_threads_channel_id ON Threads;',
     'SELECT 1'
 ));
 
