@@ -13,4 +13,3 @@ UPDATE threads
     FROM posts
     WHERE posts.id=threads.postid
     AND threads.channelid IS NULL;
-
