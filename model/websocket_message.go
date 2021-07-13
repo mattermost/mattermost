@@ -105,13 +105,11 @@ type webSocketEventJSON struct {
 	Sequence  int64                  `json:"seq"`
 }
 
-// **NOTE**: Direct access to WebSocketEvent fields is deprecated. They will be
-// made unexported in next major version release. Provided getter functions should be used instead.
 type WebSocketEvent struct {
-	Event           string                 // Deprecated: use EventType()
-	Data            map[string]interface{} // Deprecated: use GetData()
-	Broadcast       *WebsocketBroadcast    // Deprecated: use GetBroadcast()
-	Sequence        int64                  // Deprecated: use GetSequence()
+	event           string
+	data            map[string]interface{}
+	broadcast       *WebsocketBroadcast
+	sequence        int64
 	precomputedJSON *precomputedWebSocketEventJSON
 }
 
@@ -119,9 +117,9 @@ type WebSocketEvent struct {
 // This makes ToJson much more efficient when sending the same event to multiple connections.
 func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 	copy := ev.Copy()
-	event, _ := json.Marshal(copy.Event)
-	data, _ := json.Marshal(copy.Data)
-	broadcast, _ := json.Marshal(copy.Broadcast)
+	event, _ := json.Marshal(copy.event)
+	data, _ := json.Marshal(copy.data)
+	broadcast, _ := json.Marshal(copy.broadcast)
 	copy.precomputedJSON = &precomputedWebSocketEventJSON{
 		Event:     json.RawMessage(event),
 		Data:      json.RawMessage(data),
@@ -131,78 +129,85 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 }
 
 func (ev *WebSocketEvent) Add(key string, value interface{}) {
-	ev.Data[key] = value
+	ev.data[key] = value
 }
 
 func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[string]bool) *WebSocketEvent {
-	return &WebSocketEvent{Event: event, Data: make(map[string]interface{}),
-		Broadcast: &WebsocketBroadcast{TeamId: teamId, ChannelId: channelId, UserId: userId, OmitUsers: omitUsers}}
+	return &WebSocketEvent{
+		event: event,
+		data:  make(map[string]interface{}),
+		broadcast: &WebsocketBroadcast{
+			TeamId:    teamId,
+			ChannelId: channelId,
+			UserId:    userId,
+			OmitUsers: omitUsers},
+	}
 }
 
 func (ev *WebSocketEvent) Copy() *WebSocketEvent {
 	copy := &WebSocketEvent{
-		Event:           ev.Event,
-		Data:            ev.Data,
-		Broadcast:       ev.Broadcast,
-		Sequence:        ev.Sequence,
+		event:           ev.event,
+		data:            ev.data,
+		broadcast:       ev.broadcast,
+		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON,
 	}
 	return copy
 }
 
 func (ev *WebSocketEvent) GetData() map[string]interface{} {
-	return ev.Data
+	return ev.data
 }
 
 func (ev *WebSocketEvent) GetBroadcast() *WebsocketBroadcast {
-	return ev.Broadcast
+	return ev.broadcast
 }
 
 func (ev *WebSocketEvent) GetSequence() int64 {
-	return ev.Sequence
+	return ev.sequence
 }
 
 func (ev *WebSocketEvent) SetEvent(event string) *WebSocketEvent {
 	copy := ev.Copy()
-	copy.Event = event
+	copy.event = event
 	return copy
 }
 
 func (ev *WebSocketEvent) SetData(data map[string]interface{}) *WebSocketEvent {
 	copy := ev.Copy()
-	copy.Data = data
+	copy.data = data
 	return copy
 }
 
 func (ev *WebSocketEvent) SetBroadcast(broadcast *WebsocketBroadcast) *WebSocketEvent {
 	copy := ev.Copy()
-	copy.Broadcast = broadcast
+	copy.broadcast = broadcast
 	return copy
 }
 
 func (ev *WebSocketEvent) SetSequence(seq int64) *WebSocketEvent {
 	copy := ev.Copy()
-	copy.Sequence = seq
+	copy.sequence = seq
 	return copy
 }
 
 func (ev *WebSocketEvent) IsValid() bool {
-	return ev.Event != ""
+	return ev.event != ""
 }
 
 func (ev *WebSocketEvent) EventType() string {
-	return ev.Event
+	return ev.event
 }
 
 func (ev *WebSocketEvent) ToJson() string {
 	if ev.precomputedJSON != nil {
-		return fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.Sequence)
+		return fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.GetSequence())
 	}
 	b, _ := json.Marshal(webSocketEventJSON{
-		ev.Event,
-		ev.Data,
-		ev.Broadcast,
-		ev.Sequence,
+		ev.event,
+		ev.data,
+		ev.broadcast,
+		ev.sequence,
 	})
 	return string(b)
 }
@@ -211,15 +216,15 @@ func (ev *WebSocketEvent) ToJson() string {
 func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
 	if ev.precomputedJSON != nil {
 		return enc.Encode(json.RawMessage(
-			fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.Sequence),
+			fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.sequence),
 		))
 	}
 
 	return enc.Encode(webSocketEventJSON{
-		ev.Event,
-		ev.Data,
-		ev.Broadcast,
-		ev.Sequence,
+		ev.event,
+		ev.data,
+		ev.broadcast,
+		ev.sequence,
 	})
 }
 
@@ -229,7 +234,7 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 	if err := json.NewDecoder(data).Decode(&o); err != nil {
 		return nil
 	}
-	ev.Event = o.Event
+	ev.event = o.Event
 	if u, ok := o.Data["user"]; ok {
 		// We need to convert to and from JSON again
 		// because the user is in the form of a map[string]interface{}.
@@ -239,9 +244,9 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 		}
 		o.Data["user"] = UserFromJson(bytes.NewReader(buf))
 	}
-	ev.Data = o.Data
-	ev.Broadcast = o.Broadcast
-	ev.Sequence = o.Sequence
+	ev.data = o.Data
+	ev.broadcast = o.Broadcast
+	ev.sequence = o.Sequence
 	return &ev
 }
 
