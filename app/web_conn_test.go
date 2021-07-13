@@ -256,7 +256,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 				_, buf, err = conn.ReadMessage()
 				ev := model.WebSocketEventFromJson(bytes.NewReader(buf))
 				require.LessOrEqual(t, int(i), limit)
-				assert.Equal(t, i, ev.Sequence)
+				assert.Equal(t, i, ev.GetSequence())
 				i++
 			}
 			if _, ok := err.(*websocket.CloseError); !ok {
