@@ -167,8 +167,8 @@ func TestCreatePost(t *testing.T) {
 		for eventsToGo > 0 {
 			select {
 			case event := <-WebSocketClient.EventChannel:
-				if event.Event == model.WebsocketEventEphemeralMessage {
-					require.Equal(t, model.WebsocketEventEphemeralMessage, event.Event)
+				if event.EventType() == model.WebsocketEventEphemeralMessage {
+					require.Equal(t, model.WebsocketEventEphemeralMessage, event.EventType())
 					eventsToGo = eventsToGo - 1
 				}
 			case <-timeout:
