@@ -543,7 +543,7 @@ workflows:
       - test:
           name: test-postgres
           dbdriver: postgres
-          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
           racemode: ""
           requires:
             - check-app-layers
@@ -631,7 +631,7 @@ workflows:
       - test:
           name: test-postgres
           dbdriver: postgres
-          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
           racemode: "-race"
           requires:
             - check-app-layers
