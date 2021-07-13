@@ -1218,7 +1218,7 @@ func upgradeDatabaseToVersion538(sqlStore *SqlStore) {
 	// TODO: uncomment when the time arrive to upgrade the DB for 5.38
 	// if shouldPerformUpgrade(sqlStore, Version5370, Version5380) {
 	fixCRTChannelMembershipCounts(sqlStore)
-	fixCRTChannelMembershipCounts(sqlStore)
+	fixCRTThreadCountsAndUnreads(sqlStore)
 
 	// 	saveSchemaVersion(sqlStore, Version5380)
 	// }
