@@ -5,13 +5,13 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'RemoteId'
     ) > 0,
-    'ALTER TABLE Users DROP RemoteId;',
+    'ALTER TABLE UploadSessions DROP RemoteId;',
     'SELECT 1'
 ));
 
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+PREPARE alterIfExists FROM @preparedStatement;
+EXECUTE alterIfExists;
+DEALLOCATE PREPARE alterIfExists;
 
 SET @preparedStatement = (SELECT IF(
     (
@@ -20,12 +20,12 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'ReqFileId'
     ) > 0,
-    'ALTER TABLE Users DROP ReqFileId;',
+    'ALTER TABLE UploadSessions DROP ReqFileId;',
     'SELECT 1'
 ));
 
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+PREPARE alterIfExists FROM @preparedStatement;
+EXECUTE alterIfExists;
+DEALLOCATE PREPARE alterIfExists;
 
 DROP TABLE IF EXISTS UploadSessions;
