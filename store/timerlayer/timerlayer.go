@@ -8405,6 +8405,22 @@ func (s *TimerLayerTokenStore) Delete(token string) error {
 	return err
 }
 
+func (s *TimerLayerTokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {
+	start := timemodule.Now()
+
+	result, err := s.TokenStore.GetAllTokensByType(tokenType)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.GetAllTokensByType", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	start := timemodule.Now()
 
