@@ -10409,6 +10409,23 @@ func (a *OpenTracingAppLayer) HasPermissionToChannelByPost(askingUserId string, 
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) HasPermissionToReadChannel(userID string, channel *model.Channel) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToReadChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.HasPermissionToReadChannel(userID, channel)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) HasPermissionToTeam(askingUserId string, teamID string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToTeam")

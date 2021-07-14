@@ -815,6 +815,7 @@ type AppIface interface {
 	HasPermissionTo(askingUserId string, permission *model.Permission) bool
 	HasPermissionToChannel(askingUserId string, channelID string, permission *model.Permission) bool
 	HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool
+	HasPermissionToReadChannel(userID string, channel *model.Channel) bool
 	HasPermissionToTeam(askingUserId string, teamID string, permission *model.Permission) bool
 	HasPermissionToUser(askingUserId string, userID string) bool
 	HasSharedChannel(channelID string) (bool, error)
