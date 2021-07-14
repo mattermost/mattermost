@@ -234,18 +234,85 @@ func (k *KVService) DeleteAll() error {
 }
 
 // ListKeysOption used to configure a ListKeys() operation.
-// TODO: Do we have plans for this?
 type ListKeysOption func(*listKeysOptions)
 
 // listKeysOptions holds configurations of a ListKeys() operation.
 type listKeysOptions struct {
+	checkers []func(key string) (keep bool, err error)
 }
 
-// ListKeys lists all keys for the plugin.
+func (o *listKeysOptions) checkAll(key string) (keep bool, err error) {
+	for _, check := range o.checkers {
+		keep, err := check(key)
+		if err != nil {
+			return false, err
+		}
+		if !keep {
+			return false, nil
+		}
+	}
+
+	// key made it through all checkers
+	return true, nil
+}
+
+// WithPrefix only return keys that start with the given string.
+func WithPrefix(prefix string) ListKeysOption {
+	return WithChecker(func(key string) (keep bool, err error) {
+		return strings.HasPrefix(key, prefix), nil
+	})
+}
+
+// WithChecker allows for a custom filter function to determine which keys to return.
+// Returning true will keep the key and false will filter it out. Returning an error
+// will halt KVListWithOptions immediately and pass the error up (with no other results).
+func WithChecker(f func(key string) (keep bool, err error)) ListKeysOption {
+	return func(args *listKeysOptions) {
+		args.checkers = append(args.checkers, f)
+	}
+}
+
+// ListKeys lists all keys that match the given options. If no options are provided then all keys are returned.
 //
 // Minimum server version: 5.6
 func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]string, error) {
-	keys, appErr := k.api.KVList(page, count)
+	// convert functional options into args struct
+	args := &listKeysOptions{
+		checkers: nil,
+	}
+	for _, opt := range options {
+		opt(args)
+	}
 
-	return keys, normalizeAppErr(appErr)
+	// get our keys a batch at a time, filter out the ones we don't want based on our args
+	// any errors will hault the whole process and return the error raw
+
+	keys, appErr := k.api.KVList(page, count)
+	if appErr != nil {
+		return nil, normalizeAppErr(appErr)
+	}
+
+	if len(args.checkers) == 0 {
+		// no checkers, just return the keys
+		return keys, nil
+	}
+
+	ret := make([]string, 0)
+	// we have a filter, so check each key, all checkers must say key
+	// for us to keep a key
+	for _, key := range keys {
+		keep, err := args.checkAll(key)
+		if err != nil {
+			return nil, err
+		}
+
+		if !keep {
+			continue
+		}
+
+		// didn't get filtered out, add to our return
+		ret = append(ret, key)
+	}
+
+	return ret, nil
 }

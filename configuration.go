@@ -3,6 +3,8 @@ package pluginapi
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/pkg/errors"
 )
 
 // ConfigurationService exposes methods to manipulate the server and plugin configuration.
@@ -52,4 +54,28 @@ func (c *ConfigurationService) GetPluginConfig() map[string]interface{} {
 // Minimum server version: 5.6
 func (c *ConfigurationService) SavePluginConfig(config map[string]interface{}) error {
 	return normalizeAppErr(c.api.SavePluginConfig(config))
+}
+
+// CheckRequiredServerConfiguration checks if the server is configured according to
+// plugin requirements.
+//
+// Minimum server version: 5.2
+func (c *ConfigurationService) CheckRequiredServerConfiguration(req *model.Config) (bool, error) {
+	if req == nil {
+		return true, nil
+	}
+
+	cfg := c.api.GetConfig()
+
+	mc, err := utils.Merge(cfg, req, nil)
+	if err != nil {
+		return false, errors.Wrap(err, "could not merge configurations")
+	}
+
+	mergedCfg := mc.(model.Config)
+	if mergedCfg.ToJson() != cfg.ToJson() {
+		return false, nil
+	}
+
+	return true, nil
 }

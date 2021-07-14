@@ -9,6 +9,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
+const (
+	internalKeyPrefix = "mmi_"
+	botUserKey        = internalKeyPrefix + "botid"
+)
+
 // BotService exposes methods to manipulate bots.
 type BotService struct {
 	api plugin.API

@@ -4,10 +4,10 @@
 package bot
 
 import (
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )
 
 type Bot interface {
@@ -17,14 +17,14 @@ type Bot interface {
 }
 
 type bot struct {
-	pluginHelpers    plugin.Helpers
+	botService       pluginapi.BotService
 	mattermostUserID string
 	displayName      string
 }
 
-func New(helpers plugin.Helpers) Bot {
+func New(botService pluginapi.BotService) Bot {
 	newBot := &bot{
-		pluginHelpers: helpers,
+		botService: botService,
 	}
 	return newBot
 }
@@ -35,7 +35,7 @@ func (bot *bot) Ensure(stored *model.Bot, iconPath string) error {
 		return nil
 	}
 
-	botUserID, err := bot.pluginHelpers.EnsureBot(stored, plugin.ProfileImagePath(iconPath))
+	botUserID, err := bot.botService.EnsureBot(stored, pluginapi.ProfileImagePath(iconPath))
 	if err != nil {
 		return errors.Wrap(err, "failed to ensure bot account")
 	}

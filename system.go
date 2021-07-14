@@ -1,6 +1,8 @@
 package pluginapi
 
 import (
+	"net/url"
+	"path"
 	"time"
 
 	"github.com/blang/semver/v4"
@@ -18,12 +20,12 @@ type SystemService struct {
 //
 // Minimum server version: 5.10
 func (s *SystemService) GetManifest() (*model.Manifest, error) {
-	path, err := s.api.GetBundlePath()
+	p, err := s.api.GetBundlePath()
 	if err != nil {
 		return nil, err
 	}
 
-	m, _, err := model.FindManifest(path)
+	m, _, err := model.FindManifest(p)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find and open manifest")
 	}
@@ -36,6 +38,32 @@ func (s *SystemService) GetManifest() (*model.Manifest, error) {
 // Minimum server version: 5.10
 func (s *SystemService) GetBundlePath() (string, error) {
 	return s.api.GetBundlePath()
+}
+
+// GetPluginAssetURL builds a URL to the given asset in the assets directory.
+// Use this URL to link to assets from the webapp, or for third-party integrations with your plugin.
+//
+// Minimum server version: 5.2
+func (s *SystemService) GetPluginAssetURL(pluginID, asset string) (string, error) {
+	if pluginID == "" {
+		return "", errors.New("empty pluginID provided")
+	}
+
+	if asset == "" {
+		return "", errors.New("empty asset name provided")
+	}
+
+	siteURL := *s.api.GetConfig().ServiceSettings.SiteURL
+	if siteURL == "" {
+		return "", errors.New("no SiteURL configured by the server")
+	}
+
+	u, err := url.Parse(siteURL + path.Join("/", pluginID, asset))
+	if err != nil {
+		return "", err
+	}
+
+	return u.String(), nil
 }
 
 // GetLicense returns the current license used by the Mattermost server. Returns nil if the

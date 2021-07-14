@@ -524,13 +524,158 @@ func TestDeleteAll(t *testing.T) {
 }
 
 func TestListKeys(t *testing.T) {
-	api := &plugintest.API{}
-	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api, &plugintest.Driver{})
+	t.Run("No keys", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-	api.On("KVList", 1, 2).Return([]string{"3", "4"}, nil)
+		api.On("KVList", 0, 100).Return(nil, nil)
 
-	keys, err := client.KV.ListKeys(1, 2)
-	require.NoError(t, err)
-	require.Equal(t, []string{"3", "4"}, keys)
+		keys, err := client.KV.ListKeys(0, 100)
+
+		assert.Empty(t, keys)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Basic Success, one page", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 1, 2).Return(getKeys(2), nil)
+
+		keys, err := client.KV.ListKeys(1, 2)
+		require.NoError(t, err)
+		require.Equal(t, getKeys(2), keys)
+	})
+
+	t.Run("success, two page, filter prefix, one", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("key99"))
+		assert.ElementsMatch(t, keys, []string{"key99"})
+		assert.NoError(t, err)
+	})
+
+	t.Run("success, two page, filter prefix, all", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("notkey"))
+		assert.Empty(t, keys)
+		assert.NoError(t, err)
+	})
+
+	t.Run("success, two page, filter prefix, none", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("key"))
+		assert.ElementsMatch(t, keys, getKeys(100))
+		assert.NoError(t, err)
+	})
+
+	t.Run("success, two page, checker func, one", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+
+		check := func(key string) (bool, error) {
+			if key == "key1" {
+				return true, nil
+			}
+			return false, nil
+		}
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithChecker(check))
+		assert.ElementsMatch(t, keys, []string{"key1"})
+		assert.NoError(t, err)
+	})
+
+	t.Run("success, two page, checker func, all", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+
+		check := func(key string) (bool, error) {
+			return false, nil
+		}
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithChecker(check))
+		assert.Empty(t, keys)
+		assert.NoError(t, err)
+	})
+
+	t.Run("success, two page, checker func, none", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+
+		check := func(key string) (bool, error) {
+			return true, nil
+		}
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithChecker(check))
+		assert.ElementsMatch(t, keys, getKeys(100))
+		assert.NoError(t, err)
+	})
+
+	t.Run("error, checker func", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 0, 100).Return([]string{"key1"}, nil)
+
+		check := func(key string) (bool, error) {
+			return true, &model.AppError{}
+		}
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithChecker(check))
+		assert.Empty(t, keys)
+		assert.Error(t, err)
+	})
+
+	t.Run("success, filter and checker func, partial on both", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVList", 0, 100).Return([]string{"key1", "key2", "notkey3", "key4", "key5"}, nil)
+
+		check := func(key string) (bool, error) {
+			if key == "key1" || key == "key5" {
+				return false, nil
+			}
+			return true, nil
+		}
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("key"), pluginapi.WithChecker(check))
+		assert.ElementsMatch(t, keys, []string{"key2", "key4"})
+		assert.NoError(t, err)
+	})
+}
+
+func getKeys(count int) []string {
+	ret := make([]string, count)
+	for i := 0; i < count; i++ {
+		ret[i] = "key" + strconv.Itoa(i)
+	}
+	return ret
 }

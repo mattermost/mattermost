@@ -3,6 +3,7 @@ package pluginapi
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/pkg/errors"
 )
 
 // PostService exposes methods to manipulate posts.
@@ -178,4 +179,156 @@ func (p *PostService) GetReactions(postID string) ([]*model.Reaction, error) {
 // Minimum server version: 5.3
 func (p *PostService) RemoveReaction(reaction *model.Reaction) error {
 	return normalizeAppErr(p.api.RemoveReaction(reaction))
+}
+
+type ShouldProcessMessageOption func(*shouldProcessMessageOptions)
+
+type shouldProcessMessageOptions struct {
+	AllowSystemMessages bool
+	AllowBots           bool
+	AllowWebhook        bool
+	FilterChannelIDs    []string
+	FilterUserIDs       []string
+	OnlyBotDMs          bool
+	BotID               string
+}
+
+// AllowSystemMessages configures a call to ShouldProcessMessage to return true for system messages.
+//
+// As it is typically desirable only to consume messages from users of the system, ShouldProcessMessage ignores system messages by default.
+func AllowSystemMessages() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.AllowSystemMessages = true
+	}
+}
+
+// AllowBots configures a call to ShouldProcessMessage to return true for bot posts.
+//
+// As it is typically desirable only to consume messages from human users of the system, ShouldProcessMessage ignores bot messages by default.
+// When allowing bots, take care to avoid a loop where two plugins respond to each others posts repeatedly.
+func AllowBots() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.AllowBots = true
+	}
+}
+
+// AllowWebhook configures a call to ShouldProcessMessage to return true for posts from webhook.
+//
+// As it is typically desirable only to consume messages from human users of the system, ShouldProcessMessage ignores webhook messages by default.
+func AllowWebhook() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.AllowWebhook = true
+	}
+}
+
+// FilterChannelIDs configures a call to ShouldProcessMessage to return true only for the given channels.
+//
+// By default, posts from all channels are allowed to be processed.
+func FilterChannelIDs(filterChannelIDs []string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.FilterChannelIDs = filterChannelIDs
+	}
+}
+
+// FilterUserIDs configures a call to ShouldProcessMessage to return true only for the given users.
+//
+// By default, posts from all non-bot users are allowed.
+func FilterUserIDs(filterUserIDs []string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.FilterUserIDs = filterUserIDs
+	}
+}
+
+// OnlyBotDMs configures a call to ShouldProcessMessage to return true only for direct messages sent to the bot created by EnsureBot.
+//
+// By default, posts from all channels are allowed.
+func OnlyBotDMs() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.OnlyBotDMs = true
+	}
+}
+
+// If provided, BotID configures ShouldProcessMessage to skip its retrieval from the store.
+//
+// By default, posts from all non-bot users are allowed.
+func BotID(botID string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.BotID = botID
+	}
+}
+
+// ShouldProcessMessage returns if the message should be processed by a message hook.
+//
+// Use this method to avoid processing unnecessary messages in a MessageHasBeenPosted
+// or MessageWillBePosted hook, and indeed in some cases avoid an infinite loop between
+// two automated bots or plugins.
+//
+// The behavior is customizable using the given options, since plugin needs may vary.
+// By default, system messages and messages from bots will be skipped.
+//
+// Minimum server version: 5.2
+func (p *PostService) ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error) {
+	messageProcessOptions := &shouldProcessMessageOptions{}
+	for _, option := range options {
+		option(messageProcessOptions)
+	}
+
+	var botIDBytes []byte
+	var kvGetErr *model.AppError
+
+	if messageProcessOptions.BotID != "" {
+		botIDBytes = []byte(messageProcessOptions.BotID)
+	} else {
+		botIDBytes, kvGetErr = p.api.KVGet(botUserKey)
+
+		if kvGetErr != nil {
+			return false, errors.Wrap(kvGetErr, "failed to get bot")
+		}
+	}
+
+	if botIDBytes != nil {
+		if post.UserId == string(botIDBytes) {
+			return false, nil
+		}
+	}
+
+	if post.IsSystemMessage() && !messageProcessOptions.AllowSystemMessages {
+		return false, nil
+	}
+
+	if !messageProcessOptions.AllowWebhook && post.GetProp("from_webhook") == "true" {
+		return false, nil
+	}
+
+	if !messageProcessOptions.AllowBots {
+		user, appErr := p.api.GetUser(post.UserId)
+		if appErr != nil {
+			return false, errors.Wrap(appErr, "unable to get user")
+		}
+
+		if user.IsBot {
+			return false, nil
+		}
+	}
+
+	if len(messageProcessOptions.FilterChannelIDs) != 0 && !stringInSlice(post.ChannelId, messageProcessOptions.FilterChannelIDs) {
+		return false, nil
+	}
+
+	if len(messageProcessOptions.FilterUserIDs) != 0 && !stringInSlice(post.UserId, messageProcessOptions.FilterUserIDs) {
+		return false, nil
+	}
+
+	if botIDBytes != nil && messageProcessOptions.OnlyBotDMs {
+		channel, appErr := p.api.GetChannel(post.ChannelId)
+		if appErr != nil {
+			return false, errors.Wrap(appErr, "unable to get channel")
+		}
+
+		if !model.IsBotDMChannel(channel, string(botIDBytes)) {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
