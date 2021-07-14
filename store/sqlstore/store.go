@@ -57,7 +57,9 @@ const (
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
-	MinimumRequiredPostgresVersion = 100000
+	minimumRequiredPostgresVersion = 100000
+	// major*10 + minor
+	minimumRequiredMySQLVersion = 57
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -179,24 +181,57 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
-	if *settings.DriverName == model.DatabaseDriverPostgres {
-		ver, err := store.GetDbVersion(true)
-		if err != nil {
-			mlog.Critical("Cannot get DB version.", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
-		}
+	ver, err := store.GetDbVersion(true)
+	if err != nil {
+		mlog.Critical("Cannot get DB version.", mlog.Err(err))
+		os.Exit(ExitGenericFailure)
+	}
+	switch *settings.DriverName {
+	case model.DatabaseDriverPostgres:
 		intVer, err := strconv.Atoi(ver)
 		if err != nil {
 			mlog.Critical("Cannot parse DB version.", mlog.Err(err))
 			os.Exit(ExitGenericFailure)
 		}
-		if intVer < MinimumRequiredPostgresVersion {
-			mlog.Critical("Minimum Postgres version requirements not met.", mlog.String("Found", VersionString(intVer)), mlog.String("Wanted", VersionString(MinimumRequiredPostgresVersion)))
+		if intVer < minimumRequiredPostgresVersion {
+			mlog.Critical("Minimum Postgres version requirements not met.", mlog.String("Found", versionString(intVer, *settings.DriverName)), mlog.String("Wanted", versionString(minimumRequiredPostgresVersion, *settings.DriverName)))
 			os.Exit(ExitGenericFailure)
+		}
+	case model.DatabaseDriverMysql:
+		// Usually a version string is of the form 5.6.49-log, 10.4.5-MariaDB etc.
+		if strings.Contains(strings.ToLower(ver), "maria") {
+			mlog.Debug("MariaDB detected. Skipping version check.")
+		} else {
+			parts := strings.Split(ver, "-")
+			if len(parts) < 1 {
+				mlog.Critical("Cannot parse MySQL DB version.", mlog.String("version", ver))
+				os.Exit(ExitGenericFailure)
+			}
+			// Get the major and minor versions.
+			versions := strings.Split(parts[0], ".")
+			if len(versions) < 2 {
+				mlog.Critical("Cannot parse MySQL DB version.", mlog.String("version", ver))
+				os.Exit(ExitGenericFailure)
+			}
+			majorVer, err := strconv.Atoi(versions[0])
+			if err != nil {
+				mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+				os.Exit(ExitGenericFailure)
+			}
+			minorVer, err := strconv.Atoi(versions[1])
+			if err != nil {
+				mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+				os.Exit(ExitGenericFailure)
+			}
+			intVer := majorVer*10 + minorVer
+			if intVer < minimumRequiredMySQLVersion {
+				mlog.Critical("Minimum MySQL version requirements not met.", mlog.String("Found", versionString(intVer, *settings.DriverName)), mlog.String("Wanted", versionString(minimumRequiredMySQLVersion, *settings.DriverName)))
+				os.Exit(ExitGenericFailure)
+			}
 		}
 	}
 
-	err := store.migrate(migrationsDirectionUp)
+	err = store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
 		os.Exit(ExitGenericFailure)
@@ -1678,12 +1713,21 @@ func IsDuplicate(err error) bool {
 	return false
 }
 
-// VersionString converts an integer representation of a DB version
+// versionString converts an integer representation of a DB version
 // to a pretty-printed string.
 // Postgres doesn't follow three-part version numbers from 10.0 onwards:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
-func VersionString(v int) string {
-	minor := v % 10000
-	major := v / 10000
-	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+// For MySQL, we consider a major*10 + minor format.
+func versionString(v int, driver string) string {
+	switch driver {
+	case model.DatabaseDriverPostgres:
+		minor := v % 10000
+		major := v / 10000
+		return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+	case model.DatabaseDriverMysql:
+		minor := v % 10
+		major := v / 10
+		return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+	}
+	return ""
 }
