@@ -497,12 +497,7 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 
 func (a *App) GetStatusSchedule(userID string) (*model.StatusSchedule, *model.AppError) {
 
-	statusSchedule, err := a.Srv().Store.StatusSchedule().Get(userID)
-
-	if err != nil {
-		mlog.Warn("Failed get status schedule from store", mlog.String("err", err.Error()))
-		return nil, err
-	}
+	statusSchedule, _ := a.Srv().Store.StatusSchedule().Get(userID)
 
 	return statusSchedule, nil
 }

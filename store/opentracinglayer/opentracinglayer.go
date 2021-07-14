@@ -45,6 +45,7 @@ type OpenTracingLayer struct {
 	SessionStore              store.SessionStore
 	SharedChannelStore        store.SharedChannelStore
 	StatusStore               store.StatusStore
+	StatusScheduleStore       store.StatusScheduleStore
 	SystemStore               store.SystemStore
 	TeamStore                 store.TeamStore
 	TermsOfServiceStore       store.TermsOfServiceStore
@@ -163,6 +164,10 @@ func (s *OpenTracingLayer) SharedChannel() store.SharedChannelStore {
 
 func (s *OpenTracingLayer) Status() store.StatusStore {
 	return s.StatusStore
+}
+
+func (s *OpenTracingLayer) StatusSchedule() store.StatusScheduleStore {
+	return s.StatusScheduleStore
 }
 
 func (s *OpenTracingLayer) System() store.SystemStore {
@@ -337,6 +342,11 @@ type OpenTracingLayerSharedChannelStore struct {
 
 type OpenTracingLayerStatusStore struct {
 	store.StatusStore
+	Root *OpenTracingLayer
+}
+
+type OpenTracingLayerStatusScheduleStore struct {
+	store.StatusScheduleStore
 	Root *OpenTracingLayer
 }
 
@@ -7634,6 +7644,42 @@ func (s *OpenTracingLayerStatusStore) UpdateLastActivityAt(userID string, lastAc
 	return err
 }
 
+func (s *OpenTracingLayerStatusScheduleStore) Get(userID string) (*model.StatusSchedule, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusScheduleStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.StatusScheduleStore.Get(userID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerStatusScheduleStore) SaveOrUpdate(statusSchedule *model.StatusSchedule) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusScheduleStore.SaveOrUpdate")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.StatusScheduleStore.SaveOrUpdate(statusSchedule)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerSystemStore) Get() (model.StringMap, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.Get")
@@ -11210,6 +11256,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.SessionStore = &OpenTracingLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
 	newStore.SharedChannelStore = &OpenTracingLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}
 	newStore.StatusStore = &OpenTracingLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
+	newStore.StatusScheduleStore = &OpenTracingLayerStatusScheduleStore{StatusScheduleStore: childStore.StatusSchedule(), Root: &newStore}
 	newStore.SystemStore = &OpenTracingLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}
 	newStore.TeamStore = &OpenTracingLayerTeamStore{TeamStore: childStore.Team(), Root: &newStore}
 	newStore.TermsOfServiceStore = &OpenTracingLayerTermsOfServiceStore{TermsOfServiceStore: childStore.TermsOfService(), Root: &newStore}

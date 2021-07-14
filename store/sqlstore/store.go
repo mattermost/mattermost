@@ -207,6 +207,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.token = newSqlTokenStore(store)
 	store.stores.emoji = newSqlEmojiStore(store, metrics)
 	store.stores.status = newSqlStatusStore(store)
+	store.stores.statusSchedule = newSqlStatusScheduleStore(store)
 	store.stores.fileInfo = newSqlFileInfoStore(store, metrics)
 	store.stores.uploadSession = newSqlUploadSessionStore(store)
 	store.stores.thread = newSqlThreadStore(store)
@@ -260,6 +261,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.token.(*SqlTokenStore).createIndexesIfNotExists()
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
 	store.stores.status.(*SqlStatusStore).createIndexesIfNotExists()
+	store.stores.statusSchedule.(*SqlStatusScheduleStore).createIndexesIfNotExists()
 	store.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()
 	store.stores.uploadSession.(*SqlUploadSessionStore).createIndexesIfNotExists()
 	store.stores.job.(*SqlJobStore).createIndexesIfNotExists()
@@ -1313,6 +1315,10 @@ func (ss *SqlStore) Emoji() store.EmojiStore {
 
 func (ss *SqlStore) Status() store.StatusStore {
 	return ss.stores.status
+}
+
+func (ss *SqlStore) StatusSchedule() store.StatusScheduleStore {
+	return ss.stores.statusSchedule
 }
 
 func (ss *SqlStore) FileInfo() store.FileInfoStore {

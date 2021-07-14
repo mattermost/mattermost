@@ -45,6 +45,7 @@ type TimerLayer struct {
 	SessionStore              store.SessionStore
 	SharedChannelStore        store.SharedChannelStore
 	StatusStore               store.StatusStore
+	StatusScheduleStore       store.StatusScheduleStore
 	SystemStore               store.SystemStore
 	TeamStore                 store.TeamStore
 	TermsOfServiceStore       store.TermsOfServiceStore
@@ -163,6 +164,10 @@ func (s *TimerLayer) SharedChannel() store.SharedChannelStore {
 
 func (s *TimerLayer) Status() store.StatusStore {
 	return s.StatusStore
+}
+
+func (s *TimerLayer) StatusSchedule() store.StatusScheduleStore {
+	return s.StatusScheduleStore
 }
 
 func (s *TimerLayer) System() store.SystemStore {
@@ -337,6 +342,11 @@ type TimerLayerSharedChannelStore struct {
 
 type TimerLayerStatusStore struct {
 	store.StatusStore
+	Root *TimerLayer
+}
+
+type TimerLayerStatusScheduleStore struct {
+	store.StatusScheduleStore
 	Root *TimerLayer
 }
 
@@ -6888,6 +6898,38 @@ func (s *TimerLayerStatusStore) UpdateLastActivityAt(userID string, lastActivity
 	return err
 }
 
+func (s *TimerLayerStatusScheduleStore) Get(userID string) (*model.StatusSchedule, error) {
+	start := timemodule.Now()
+
+	result, err := s.StatusScheduleStore.Get(userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusScheduleStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerStatusScheduleStore) SaveOrUpdate(statusSchedule *model.StatusSchedule) error {
+	start := timemodule.Now()
+
+	err := s.StatusScheduleStore.SaveOrUpdate(statusSchedule)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusScheduleStore.SaveOrUpdate", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSystemStore) Get() (model.StringMap, error) {
 	start := timemodule.Now()
 
@@ -10120,6 +10162,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.SessionStore = &TimerLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
 	newStore.SharedChannelStore = &TimerLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}
 	newStore.StatusStore = &TimerLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
+	newStore.StatusScheduleStore = &TimerLayerStatusScheduleStore{StatusScheduleStore: childStore.StatusSchedule(), Root: &newStore}
 	newStore.SystemStore = &TimerLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}
 	newStore.TeamStore = &TimerLayerTeamStore{TeamStore: childStore.Team(), Root: &newStore}
 	newStore.TermsOfServiceStore = &TimerLayerTermsOfServiceStore{TermsOfServiceStore: childStore.TermsOfService(), Root: &newStore}
