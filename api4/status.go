@@ -5,7 +5,7 @@ package api4
 
 import (
 	"net/http"
-
+	"fmt"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -124,14 +124,14 @@ func getUserStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := model.StatusFromJson(r.Body)
-	if status == nil {
-		c.SetInvalidParam("status")
+	statusSchedule := model.StatusScheduleFromJson(r.Body)
+	if statusSchedule == nil {
+		c.SetInvalidParam("statusSchedule")
 		return
 	}
 
 	// The user being updated in the payload must be the same one as indicated in the URL.
-	if status.UserId != c.Params.UserId {
+	if statusSchedule.UserId != c.Params.UserId {
 		c.SetInvalidParam("user_id")
 		return
 	}
@@ -141,7 +141,7 @@ func getUserStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SetStatusDoNotDisturbSchedule(status.UserId, status.DayOfTheWeek, status.CurrentTime)
+	c.App.SetStatusDoNotDisturbSchedule(statusSchedule.UserId, statusSchedule.DayOfTheWeek, statusSchedule.CurrentTime)
 
 	ReturnStatusOK(w)
 }
@@ -152,14 +152,15 @@ func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := model.StatusFromJson(r.Body)
-	if status == nil {
-		c.SetInvalidParam("status")
+	statusSchedule := model.StatusScheduleFromJson(r.Body)
+	fmt.Printf(statusSchedule.UserId)
+	if statusSchedule == nil {
+		c.SetInvalidParam("statusSchedule")
 		return
 	}
 
 	// The user being updated in the payload must be the same one as indicated in the URL.
-	if status.UserId != c.Params.UserId {
+	if statusSchedule.UserId != c.Params.UserId {
 		c.SetInvalidParam("user_id")
 		return
 	}
@@ -169,7 +170,7 @@ func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SetStatusSchedule(c.Params.UserId, status.MondayStart, status.MondayEnd, status.TuesdayStart, status.TuesdayEnd, status.WednesdayStart, status.WednesdayEnd, status.ThursdayStart, status.ThursdayEnd, status.FridayStart, status.FridayEnd, status.SaturdayStart, status.SaturdayEnd, status.SundayStart, status.SundayEnd, status.Mode)
+	c.App.SetStatusSchedule(c.Params.UserId, statusSchedule.MondayStart, statusSchedule.MondayEnd, statusSchedule.TuesdayStart, statusSchedule.TuesdayEnd, statusSchedule.WednesdayStart, statusSchedule.WednesdayEnd, statusSchedule.ThursdayStart, statusSchedule.ThursdayEnd, statusSchedule.FridayStart, statusSchedule.FridayEnd, statusSchedule.SaturdayStart, statusSchedule.SaturdayEnd, statusSchedule.SundayStart, statusSchedule.SundayEnd, statusSchedule.Mode)
 
 	ReturnStatusOK(w)
 }

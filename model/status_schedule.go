@@ -25,6 +25,8 @@ type StatusSchedule struct {
 	SundayStart    string `json:"sunday_start"`
 	SundayEnd      string `json:"sunday_end"`
 	Mode           int64  `json:"mode"`
+	DayOfTheWeek   string `json:"day_of_the_week"`
+	CurrentTime    string `json:"current_time"`
 }
 
 func (o *StatusSchedule) ToJson() string {
