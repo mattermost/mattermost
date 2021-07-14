@@ -188,9 +188,9 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	}
 	switch *settings.DriverName {
 	case model.DatabaseDriverPostgres:
-		intVer, err := strconv.Atoi(ver)
-		if err != nil {
-			mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+		intVer, err2 := strconv.Atoi(ver)
+		if err2 != nil {
+			mlog.Critical("Cannot parse DB version.", mlog.Err(err2))
 			os.Exit(ExitGenericFailure)
 		}
 		if intVer < minimumRequiredPostgresVersion {
@@ -213,14 +213,14 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 				mlog.Critical("Cannot parse MySQL DB version.", mlog.String("version", ver))
 				os.Exit(ExitGenericFailure)
 			}
-			majorVer, err := strconv.Atoi(versions[0])
-			if err != nil {
-				mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+			majorVer, err2 := strconv.Atoi(versions[0])
+			if err2 != nil {
+				mlog.Critical("Cannot parse DB version.", mlog.Err(err2))
 				os.Exit(ExitGenericFailure)
 			}
-			minorVer, err := strconv.Atoi(versions[1])
-			if err != nil {
-				mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+			minorVer, err2 := strconv.Atoi(versions[1])
+			if err2 != nil {
+				mlog.Critical("Cannot parse DB version.", mlog.Err(err2))
 				os.Exit(ExitGenericFailure)
 			}
 			intVer := majorVer*10 + minorVer
