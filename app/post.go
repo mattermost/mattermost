@@ -351,11 +351,19 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost, true, false, c.Session().UserId)
+	rpost = a.PreparePostForClient(rpost, true, false, "")
 
-	rpost, nErr = a.addPostPreviewProp(rpost)
+	rpost, previewPost, nErr := a.addPostPreviewProp(rpost)
 	if nErr != nil {
 		return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	var previewedChannel *model.Channel
+	if previewPost != nil {
+		previewedChannel, err = a.GetChannel(previewPost.Post.ChannelId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
@@ -367,20 +375,25 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		a.SendEphemeralPost(post.UserId, ephemeralPost)
 	}
 
+	if previewedChannel != nil && !a.HasPermissionToReadChannel(c.Session().UserId, previewedChannel) {
+		rpost.Metadata.Embeds[0].Data = nil
+	}
+
 	return rpost, nil
 }
 
-func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, error) {
+func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, *model.PreviewPost, error) {
 	for _, embed := range post.Metadata.Embeds {
 		if embed.Type == model.POST_EMBED_PERMALINK {
 			updatedPost := post.Clone()
 			if previewPost, ok := embed.Data.(*model.PreviewPost); ok {
 				updatedPost.AddProp(model.POST_PROPS_PREVIEWED_POST, previewPost.PostID)
-				return a.Srv().Store.Post().Update(updatedPost, post)
+				updatedPost, err := a.Srv().Store.Post().Update(updatedPost, post)
+				return updatedPost, previewPost, err
 			}
 		}
 	}
-	return post, nil
+	return post, nil, nil
 }
 
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
@@ -665,21 +678,47 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost, false, true, c.Session().UserId)
+	rpost = a.PreparePostForClient(rpost, false, true, "")
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
 	// individually.
 	rpost.IsFollowing = nil
 
-	rpost, nErr = a.addPostPreviewProp(rpost)
+	rpost, previewPost, nErr := a.addPostPreviewProp(rpost)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
-	message.Add("post", rpost.ToJson())
-	a.Publish(message)
+	if previewPost != nil {
+		channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
+		if err != nil {
+			return nil, err
+		}
+
+		previewedChannel, err := a.GetChannel(previewPost.Post.ChannelId)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, cm := range *channelMembers {
+			postForIndividualUser := rpost.Clone()
+			if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
+				postForIndividualUser.Metadata.Embeds[0].Data = nil
+			}
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, cm.UserId, nil)
+			message.Add("post", postForIndividualUser.ToJson())
+			a.Publish(message)
+		}
+
+		if !a.HasPermissionToReadChannel(c.Session().UserId, previewedChannel) {
+			rpost.Metadata.Embeds[0].Data = nil
+		}
+	} else {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
+		message.Add("post", rpost.ToJson())
+		a.Publish(message)
+	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
@@ -1069,15 +1108,13 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 		}
 	}
 
-	postData := a.PreparePostForClient(post, false, false, deleteByID).ToJson()
-
 	userMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	userMessage.Add("post", postData)
+	userMessage.Add("post", post)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(userMessage)
 
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	adminMessage.Add("post", postData)
+	adminMessage.Add("post", post)
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)

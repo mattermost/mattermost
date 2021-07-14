@@ -458,7 +458,39 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
-	a.Publish(message)
+	var previewedPostID string
+	if val, ok := post.GetProp(model.POST_PROPS_PREVIEWED_POST).(string); ok {
+		previewedPostID = val
+	}
+	var previewedChannel *model.Channel
+	if model.IsValidId(previewedPostID) {
+		previewedPost, err := a.GetSinglePost(previewedPostID)
+		if err != nil {
+			return nil, err
+		}
+
+		channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
+		if err != nil {
+			return nil, err
+		}
+
+		previewedChannel, err = a.GetChannel(previewedPost.ChannelId)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, cm := range *channelMembers {
+			postForIndividualUser := post.Clone()
+			if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
+				postForIndividualUser.Metadata.Embeds[0].Data = nil
+			}
+			message.Broadcast.UserId = cm.UserId
+			message.Add("post", postForIndividualUser.ToJson())
+			a.Publish(message)
+		}
+	} else {
+		a.Publish(message)
+	}
 
 	// If this is a reply in a thread, notify participants
 	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
@@ -486,6 +518,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 					message.Add("thread", userThread.ToJson())
+					if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) {
+						post.Metadata.Embeds[0].Data = nil
+					}
 					a.Publish(message)
 				}
 			}
