@@ -38,6 +38,8 @@ type FeatureFlags struct {
 
 	// Enable timed dnd support for user status
 	TimedDND bool
+
+	PermalinkPreviews bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -53,6 +55,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginFocalboard = ""
 	f.CustomDataRetentionEnabled = false
 	f.TimedDND = false
+	f.PermalinkPreviews = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

@@ -188,7 +188,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		return nil, err
 	}
 
-	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
 		permalink = nil
 	}
 
@@ -433,7 +433,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	// Check cache
 	og, image, permalink, ok := getLinkMetadataFromCache(requestURL, timestamp)
-	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
 		permalink = nil
 	}
 
@@ -445,7 +445,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 	if !isNewPost {
 		og, image, permalink, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 
-		if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
+		if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
 			permalink = nil
 		}
 
@@ -488,7 +488,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	var err error
 
-	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
+	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
 		referencedPostID := postIDFromPermalink(requestURL)
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID)
@@ -596,7 +596,7 @@ func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*
 
 	data := linkMetadata.Data
 
-	if linkMetadata.Type == model.LINK_METADATA_TYPE_PERMALINK && *a.Config().ServiceSettings.EnablePermalinkPreviews {
+	if linkMetadata.Type == model.LINK_METADATA_TYPE_PERMALINK && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
 		return nil, nil, &model.Permalink{}, true
 	}
 
