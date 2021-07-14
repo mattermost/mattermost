@@ -4188,7 +4188,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Unable to make cloud check for at or over the limit."
+    "translation": "Unable to check number of users in your Mattermost cloud instance.."
   },
   {
     "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
