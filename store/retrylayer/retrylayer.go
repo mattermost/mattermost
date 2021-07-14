@@ -6230,7 +6230,7 @@ func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error
 
 }
 
-func (s *RetryLayerPreferenceStore) Delete(userID string, category string, name string) error {
+func (s *RetryLayerPreferenceStore) Delete(userID string, category model.PreferenceCategory, name string) error {
 
 	tries := 0
 	for {
@@ -6250,7 +6250,7 @@ func (s *RetryLayerPreferenceStore) Delete(userID string, category string, name 
 
 }
 
-func (s *RetryLayerPreferenceStore) DeleteCategory(userID string, category string) error {
+func (s *RetryLayerPreferenceStore) DeleteCategory(userID string, category model.PreferenceCategory) error {
 
 	tries := 0
 	for {
@@ -6270,7 +6270,7 @@ func (s *RetryLayerPreferenceStore) DeleteCategory(userID string, category strin
 
 }
 
-func (s *RetryLayerPreferenceStore) DeleteCategoryAndName(category string, name string) error {
+func (s *RetryLayerPreferenceStore) DeleteCategoryAndName(category model.PreferenceCategory, name string) error {
 
 	tries := 0
 	for {
@@ -6310,7 +6310,7 @@ func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error)
 
 }
 
-func (s *RetryLayerPreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
+func (s *RetryLayerPreferenceStore) Get(userID string, category model.PreferenceCategory, name string) (*model.Preference, error) {
 
 	tries := 0
 	for {
@@ -6350,7 +6350,7 @@ func (s *RetryLayerPreferenceStore) GetAll(userID string) (model.Preferences, er
 
 }
 
-func (s *RetryLayerPreferenceStore) GetCategory(userID string, category string) (model.Preferences, error) {
+func (s *RetryLayerPreferenceStore) GetCategory(userID string, category model.PreferenceCategory) (model.Preferences, error) {
 
 	tries := 0
 	for {

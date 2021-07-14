@@ -299,7 +299,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 				`INSERT INTO
 					Preferences(UserId, Category, Name, Value)
 				SELECT
-					Id, '`+model.PreferenceCategoryTheme+`', '', ThemeProps
+					Id, '`+string(model.PreferenceCategoryTheme)+`', '', ThemeProps
 				FROM
 					Users
 				WHERE
@@ -321,7 +321,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 
 			// rename solarized_* code themes to solarized-* to match client changes in 3.0
 			var data model.Preferences
-			if _, err := sqlStore.GetMaster().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PreferenceCategoryTheme+"' AND Value LIKE '%solarized_%'"); err == nil {
+			if _, err := sqlStore.GetMaster().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+string(model.PreferenceCategoryTheme)+"' AND Value LIKE '%solarized_%'"); err == nil {
 				for i := range data {
 					data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
 				}

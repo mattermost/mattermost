@@ -573,12 +573,12 @@ type CommandWebhookStore interface {
 
 type PreferenceStore interface {
 	Save(preferences *model.Preferences) error
-	GetCategory(userID string, category string) (model.Preferences, error)
-	Get(userID string, category string, name string) (*model.Preference, error)
+	GetCategory(userID string, category model.PreferenceCategory) (model.Preferences, error)
+	Get(userID string, category model.PreferenceCategory, name string) (*model.Preference, error)
 	GetAll(userID string) (model.Preferences, error)
-	Delete(userID, category, name string) error
-	DeleteCategory(userID string, category string) error
-	DeleteCategoryAndName(category string, name string) error
+	Delete(userID string, category model.PreferenceCategory, name string) error
+	DeleteCategory(userID string, category model.PreferenceCategory) error
+	DeleteCategoryAndName(category model.PreferenceCategory, name string) error
 	PermanentDeleteByUser(userID string) error
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	CleanupFlagsBatch(limit int64) (int64, error)

@@ -214,7 +214,7 @@ func validateUserConfigEntry(preferences store.PreferenceStore, userID string, k
 	if _, ok := expectedValue.(string); !ok {
 		return false, errors.New("Invalid format of user config. Value should be string")
 	}
-	pref, err := preferences.Get(userID, parts[0], parts[1])
+	pref, err := preferences.Get(userID, model.PreferenceCategory(parts[0]), parts[1])
 	if err != nil {
 		return false, nil
 	}

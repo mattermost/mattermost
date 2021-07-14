@@ -25,7 +25,7 @@ func TestGetPreferences(t *testing.T) {
 
 	user1 := th.BasicUser
 
-	category := model.NewId()
+	category := model.PreferenceCategory(model.NewId())
 	preferences1 := model.Preferences{
 		{
 			UserId:   user1.Id,
@@ -39,7 +39,7 @@ func TestGetPreferences(t *testing.T) {
 		},
 		{
 			UserId:   user1.Id,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     model.NewId(),
 		},
 	}
@@ -79,7 +79,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	th.LoginBasic()
 	user1 := th.BasicUser
 
-	category := model.NewId()
+	category := model.PreferenceCategory(model.NewId())
 	preferences1 := model.Preferences{
 		{
 			UserId:   user1.Id,
@@ -93,7 +93,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 		},
 		{
 			UserId:   user1.Id,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     model.NewId(),
 		},
 	}
@@ -189,7 +189,7 @@ func TestUpdatePreferences(t *testing.T) {
 	th.LoginBasic()
 	user1 := th.BasicUser
 
-	category := model.NewId()
+	category := model.PreferenceCategory(model.NewId())
 	preferences1 := model.Preferences{
 		{
 			UserId:   user1.Id,
@@ -203,7 +203,7 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 		{
 			UserId:   user1.Id,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     model.NewId(),
 		},
 	}
@@ -256,12 +256,12 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	preferences := &model.Preferences{
 		{
 			UserId:   userId,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     model.NewId(),
 		},
 		{
 			UserId:   userId,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     model.NewId(),
 		},
 	}
@@ -576,12 +576,12 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	preferences := &model.Preferences{
 		{
 			UserId:   userId,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     model.NewId(),
 		},
 		{
 			UserId:   userId,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     model.NewId(),
 		},
 	}

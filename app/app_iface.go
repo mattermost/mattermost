@@ -695,8 +695,8 @@ type AppIface interface {
 	GetPostsForChannelAroundLastUnread(channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError)
 	GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError)
-	GetPreferenceByCategoryAndNameForUser(userID string, category string, preferenceName string) (*model.Preference, *model.AppError)
-	GetPreferenceByCategoryForUser(userID string, category string) (model.Preferences, *model.AppError)
+	GetPreferenceByCategoryAndNameForUser(userID string, category model.PreferenceCategory, preferenceName string) (*model.Preference, *model.AppError)
+	GetPreferenceByCategoryForUser(userID string, category model.PreferenceCategory) (model.Preferences, *model.AppError)
 	GetPreferencesForUser(userID string) (model.Preferences, *model.AppError)
 	GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string
 	GetPrivateChannelsForTeam(teamID string, offset int, limit int) (*model.ChannelList, *model.AppError)

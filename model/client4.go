@@ -3791,7 +3791,7 @@ func (c *Client4) DeletePreferences(userId string, preferences *Preferences) (bo
 }
 
 // GetPreferencesByCategory returns the user's preferences from the provided category string.
-func (c *Client4) GetPreferencesByCategory(userId string, category string) (Preferences, *Response) {
+func (c *Client4) GetPreferencesByCategory(userId string, category PreferenceCategory) (Preferences, *Response) {
 	url := fmt.Sprintf(c.GetPreferencesRoute(userId)+"/%s", category)
 	r, err := c.DoApiGet(url, "")
 	if err != nil {
@@ -3803,7 +3803,7 @@ func (c *Client4) GetPreferencesByCategory(userId string, category string) (Pref
 }
 
 // GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string.
-func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string, preferenceName string) (*Preference, *Response) {
+func (c *Client4) GetPreferenceByCategoryAndName(userId string, category PreferenceCategory, preferenceName string) (*Preference, *Response) {
 	url := fmt.Sprintf(c.GetPreferencesRoute(userId)+"/%s/name/%v", category, preferenceName)
 	r, err := c.DoApiGet(url, "")
 	if err != nil {

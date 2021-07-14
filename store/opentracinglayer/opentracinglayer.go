@@ -5767,7 +5767,7 @@ func (s *OpenTracingLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64,
 	return result, err
 }
 
-func (s *OpenTracingLayerPreferenceStore) Delete(userID string, category string, name string) error {
+func (s *OpenTracingLayerPreferenceStore) Delete(userID string, category model.PreferenceCategory, name string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -5785,7 +5785,7 @@ func (s *OpenTracingLayerPreferenceStore) Delete(userID string, category string,
 	return err
 }
 
-func (s *OpenTracingLayerPreferenceStore) DeleteCategory(userID string, category string) error {
+func (s *OpenTracingLayerPreferenceStore) DeleteCategory(userID string, category model.PreferenceCategory) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.DeleteCategory")
 	s.Root.Store.SetContext(newCtx)
@@ -5803,7 +5803,7 @@ func (s *OpenTracingLayerPreferenceStore) DeleteCategory(userID string, category
 	return err
 }
 
-func (s *OpenTracingLayerPreferenceStore) DeleteCategoryAndName(category string, name string) error {
+func (s *OpenTracingLayerPreferenceStore) DeleteCategoryAndName(category model.PreferenceCategory, name string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.DeleteCategoryAndName")
 	s.Root.Store.SetContext(newCtx)
@@ -5839,7 +5839,7 @@ func (s *OpenTracingLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, 
 	return result, err
 }
 
-func (s *OpenTracingLayerPreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
+func (s *OpenTracingLayerPreferenceStore) Get(userID string, category model.PreferenceCategory, name string) (*model.Preference, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -5875,7 +5875,7 @@ func (s *OpenTracingLayerPreferenceStore) GetAll(userID string) (model.Preferenc
 	return result, err
 }
 
-func (s *OpenTracingLayerPreferenceStore) GetCategory(userID string, category string) (model.Preferences, error) {
+func (s *OpenTracingLayerPreferenceStore) GetCategory(userID string, category model.PreferenceCategory) (model.Preferences, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.GetCategory")
 	s.Root.Store.SetContext(newCtx)

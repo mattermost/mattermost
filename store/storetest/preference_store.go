@@ -79,7 +79,7 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 		},
 		{
 			UserId:   userId,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     name,
 		},
 		{
@@ -97,7 +97,7 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 	require.Equal(t, preferences[0].ToJson(), data.ToJson(), "got incorrect preference")
 
 	// make sure getting a missing preference fails
-	_, err = ss.Preference().Get(model.NewId(), model.NewId(), model.NewId())
+	_, err = ss.Preference().Get(model.NewId(), model.PreferenceCategory(model.NewId()), model.NewId())
 	require.Error(t, err, "no error on getting a missing preference")
 }
 
@@ -121,7 +121,7 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 		// same user/name, different category
 		{
 			UserId:   userId,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     name,
 		},
 		// same name/category, different user
@@ -145,7 +145,7 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 	)
 
 	// make sure getting a missing preference category doesn't fail
-	preferencesByCategory, err = ss.Preference().GetCategory(model.NewId(), model.NewId())
+	preferencesByCategory, err = ss.Preference().GetCategory(model.NewId(), model.PreferenceCategory(model.NewId()))
 	require.NoError(t, err)
 	require.Equal(t, 0, len(preferencesByCategory), "shouldn't have got any preferences")
 }
@@ -170,7 +170,7 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 		// same user/name, different category
 		{
 			UserId:   userId,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     name,
 		},
 		// same name/category, different user
@@ -214,7 +214,7 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 		// same user/name, different category
 		{
 			UserId:   userId,
-			Category: model.NewId(),
+			Category: model.PreferenceCategory(model.NewId()),
 			Name:     name,
 		},
 		// same name/category, different user
@@ -255,7 +255,7 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 }
 
 func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
-	category := model.NewId()
+	category := model.PreferenceCategory(model.NewId())
 	userId := model.NewId()
 
 	preference1 := model.Preference{
@@ -288,7 +288,7 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 }
 
 func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
-	category := model.NewId()
+	category := model.PreferenceCategory(model.NewId())
 	name := model.NewId()
 	userId := model.NewId()
 	userId2 := model.NewId()

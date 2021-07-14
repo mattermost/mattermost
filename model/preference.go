@@ -12,16 +12,19 @@ import (
 	"unicode/utf8"
 )
 
-const (
-	PreferenceCategoryDirectChannelShow = "direct_channel_show"
-	PreferenceCategoryGroupChannelShow  = "group_channel_show"
-	PreferenceCategoryTutorialSteps     = "tutorial_step"
-	PreferenceCategoryAdvancedSettings  = "advanced_settings"
-	PreferenceCategoryFlaggedPost       = "flagged_post"
-	PreferenceCategoryFavoriteChannel   = "favorite_channel"
-	PreferenceCategorySidebarSettings   = "sidebar_settings"
+type PreferenceCategory string
 
-	PreferenceCategoryDisplaySettings     = "display_settings"
+const (
+	PreferenceCategoryDirectChannelShow PreferenceCategory = "direct_channel_show"
+	PreferenceCategoryGroupChannelShow  PreferenceCategory = "group_channel_show"
+	PreferenceCategoryTutorialSteps     PreferenceCategory = "tutorial_step"
+	PreferenceCategoryAdvancedSettings  PreferenceCategory = "advanced_settings"
+	PreferenceCategoryFlaggedPost       PreferenceCategory = "flagged_post"
+	PreferenceCategoryFavoriteChannel   PreferenceCategory = "favorite_channel"
+	PreferenceCategorySidebarSettings   PreferenceCategory = "sidebar_settings"
+
+	PreferenceCategoryDisplaySettings PreferenceCategory = "display_settings"
+
 	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
 	PreferenceNameChannelDisplayMode      = "channel_display_mode"
 	PreferenceNameCollapseSetting         = "collapse_previews"
@@ -29,24 +32,27 @@ const (
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
 
-	PreferenceCategoryTheme = "theme"
+	PreferenceCategoryTheme PreferenceCategory = "theme"
 	// the name for theme props is the team id
 
 	PreferenceCategoryAuthorizedOAuthApp = "oauth_app"
 	// the name for oauth_app is the client_id and value is the current scope
 
-	PreferenceCategoryLast    = "last"
+	PreferenceCategoryLast PreferenceCategory = "last"
+
 	PreferenceNameLastChannel = "channel"
 	PreferenceNameLastTeam    = "team"
 
-	PreferenceCategoryCustomStatus          = "custom_status"
+	PreferenceCategoryCustomStatus PreferenceCategory = "custom_status"
+
 	PreferenceNameRecentCustomStatuses      = "recent_custom_statuses"
 	PreferenceNameCustomStatusTutorialState = "custom_status_tutorial_state"
 
 	PreferenceCustomStatusModalViewed = "custom_status_modal_viewed"
 
-	PreferenceCategoryNotifications = "notifications"
-	PreferenceNameEmailInterval     = "email_interval"
+	PreferenceCategoryNotifications PreferenceCategory = "notifications"
+
+	PreferenceNameEmailInterval = "email_interval"
 
 	PreferenceEmailIntervalNoBatchingSeconds = "30"  // the "immediate" setting is actually 30s
 	PreferenceEmailIntervalBatchingSeconds   = "900" // fifteen minutes is 900 seconds
@@ -58,10 +64,10 @@ const (
 )
 
 type Preference struct {
-	UserId   string `json:"user_id"`
-	Category string `json:"category"`
-	Name     string `json:"name"`
-	Value    string `json:"value"`
+	UserId   string             `json:"user_id"`
+	Category PreferenceCategory `json:"category"`
+	Name     string             `json:"name"`
+	Value    string             `json:"value"`
 }
 
 func (o *Preference) ToJson() string {
@@ -81,7 +87,7 @@ func (o *Preference) IsValid() *AppError {
 	}
 
 	if o.Category == "" || len(o.Category) > 32 {
-		return NewAppError("Preference.IsValid", "model.preference.is_valid.category.app_error", nil, "category="+o.Category, http.StatusBadRequest)
+		return NewAppError("Preference.IsValid", "model.preference.is_valid.category.app_error", nil, "category="+string(o.Category), http.StatusBadRequest)
 	}
 
 	if len(o.Name) > 32 {

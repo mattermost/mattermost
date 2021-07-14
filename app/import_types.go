@@ -202,6 +202,6 @@ type AttachmentImportData struct {
 }
 
 type ComparablePreference struct {
-	Category string
+	Category model.PreferenceCategory
 	Name     string
 }

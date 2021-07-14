@@ -49,7 +49,7 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	preferences, err := c.App.GetPreferenceByCategoryForUser(c.Params.UserId, c.Params.Category)
+	preferences, err := c.App.GetPreferenceByCategoryForUser(c.Params.UserId, model.PreferenceCategory(c.Params.Category))
 	if err != nil {
 		c.Err = err
 		return
@@ -69,7 +69,7 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	preferences, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, c.Params.Category, c.Params.PreferenceName)
+	preferences, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, model.PreferenceCategory(c.Params.Category), c.Params.PreferenceName)
 	if err != nil {
 		c.Err = err
 		return

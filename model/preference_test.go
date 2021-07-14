@@ -23,7 +23,7 @@ func TestPreferenceIsValid(t *testing.T) {
 	preference.UserId = NewId()
 	require.Nil(t, preference.IsValid())
 
-	preference.Category = strings.Repeat("01234567890", 20)
+	preference.Category = PreferenceCategory(strings.Repeat("01234567890", 20))
 	require.NotNil(t, preference.IsValid())
 
 	preference.Category = PreferenceCategoryDirectChannelShow

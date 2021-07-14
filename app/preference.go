@@ -18,7 +18,7 @@ func (a *App) GetPreferencesForUser(userID string) (model.Preferences, *model.Ap
 	return preferences, nil
 }
 
-func (a *App) GetPreferenceByCategoryForUser(userID string, category string) (model.Preferences, *model.AppError) {
+func (a *App) GetPreferenceByCategoryForUser(userID string, category model.PreferenceCategory) (model.Preferences, *model.AppError) {
 	preferences, err := a.Srv().Store.Preference().GetCategory(userID, category)
 	if err != nil {
 		return nil, model.NewAppError("GetPreferenceByCategoryForUser", "app.preference.get_category.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -30,7 +30,7 @@ func (a *App) GetPreferenceByCategoryForUser(userID string, category string) (mo
 	return preferences, nil
 }
 
-func (a *App) GetPreferenceByCategoryAndNameForUser(userID string, category string, preferenceName string) (*model.Preference, *model.AppError) {
+func (a *App) GetPreferenceByCategoryAndNameForUser(userID string, category model.PreferenceCategory, preferenceName string) (*model.Preference, *model.AppError) {
 	res, err := a.Srv().Store.Preference().Get(userID, category, preferenceName)
 	if err != nil {
 		return nil, model.NewAppError("GetPreferenceByCategoryAndNameForUser", "app.preference.get.app_error", nil, err.Error(), http.StatusBadRequest)

@@ -36,7 +36,7 @@ func ptrBool(b bool) *bool {
 	return &b
 }
 
-func checkPreference(t *testing.T, a *App, userID string, category string, name string, value string) {
+func checkPreference(t *testing.T, a *App, userID string, category model.PreferenceCategory, name string, value string) {
 	preferences, err := a.Srv().Store.Preference().GetCategory(userID, category)
 	require.NoErrorf(t, err, "Failed to get preferences for user %v with category %v", userID, category)
 	found := false

@@ -1217,7 +1217,7 @@ func (a *App) RemoveTeamMemberFromTeam(c *request.Context, teamMember *model.Tea
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
-	if err := a.Srv().Store.Preference().DeleteCategory(user.Id, teamMember.TeamId); err != nil {
+	if err := a.Srv().Store.Preference().DeleteCategory(user.Id, model.PreferenceCategory(teamMember.TeamId)); err != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

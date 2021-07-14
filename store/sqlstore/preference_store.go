@@ -144,7 +144,7 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 	return nil
 }
 
-func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
+func (s SqlPreferenceStore) Get(userId string, category model.PreferenceCategory, name string) (*model.Preference, error) {
 	var preference *model.Preference
 	query, args, err := s.getQueryBuilder().
 		Select("*").
@@ -164,7 +164,7 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) (*m
 	return preference, nil
 }
 
-func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.Preferences, error) {
+func (s SqlPreferenceStore) GetCategory(userId string, category model.PreferenceCategory) (model.Preferences, error) {
 	var preferences model.Preferences
 	query, args, err := s.getQueryBuilder().
 		Select("*").
@@ -211,7 +211,7 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) error {
 	return nil
 }
 
-func (s SqlPreferenceStore) Delete(userId, category, name string) error {
+func (s SqlPreferenceStore) Delete(userId string, category model.PreferenceCategory, name string) error {
 
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
@@ -230,7 +230,7 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 	return nil
 }
 
-func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error {
+func (s SqlPreferenceStore) DeleteCategory(userId string, category model.PreferenceCategory) error {
 
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
@@ -248,7 +248,7 @@ func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error
 	return nil
 }
 
-func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) error {
+func (s SqlPreferenceStore) DeleteCategoryAndName(category model.PreferenceCategory, name string) error {
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
 		Where(sq.Eq{"Name": name}).

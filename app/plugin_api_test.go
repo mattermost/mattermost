@@ -272,7 +272,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	require.Nil(t, err)
 
 	assert.Equal(t, 2, len(preferences))
-	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme}
+	expectedCategories := []model.PreferenceCategory{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme}
 	for _, pref := range preferences {
 		assert.Contains(t, expectedCategories, pref.Category)
 		assert.Equal(t, user1.Id, pref.UserId)

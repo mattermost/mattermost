@@ -5225,7 +5225,7 @@ func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error
 	return result, err
 }
 
-func (s *TimerLayerPreferenceStore) Delete(userID string, category string, name string) error {
+func (s *TimerLayerPreferenceStore) Delete(userID string, category model.PreferenceCategory, name string) error {
 	start := timemodule.Now()
 
 	err := s.PreferenceStore.Delete(userID, category, name)
@@ -5241,7 +5241,7 @@ func (s *TimerLayerPreferenceStore) Delete(userID string, category string, name 
 	return err
 }
 
-func (s *TimerLayerPreferenceStore) DeleteCategory(userID string, category string) error {
+func (s *TimerLayerPreferenceStore) DeleteCategory(userID string, category model.PreferenceCategory) error {
 	start := timemodule.Now()
 
 	err := s.PreferenceStore.DeleteCategory(userID, category)
@@ -5257,7 +5257,7 @@ func (s *TimerLayerPreferenceStore) DeleteCategory(userID string, category strin
 	return err
 }
 
-func (s *TimerLayerPreferenceStore) DeleteCategoryAndName(category string, name string) error {
+func (s *TimerLayerPreferenceStore) DeleteCategoryAndName(category model.PreferenceCategory, name string) error {
 	start := timemodule.Now()
 
 	err := s.PreferenceStore.DeleteCategoryAndName(category, name)
@@ -5289,7 +5289,7 @@ func (s *TimerLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error)
 	return result, err
 }
 
-func (s *TimerLayerPreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
+func (s *TimerLayerPreferenceStore) Get(userID string, category model.PreferenceCategory, name string) (*model.Preference, error) {
 	start := timemodule.Now()
 
 	result, err := s.PreferenceStore.Get(userID, category, name)
@@ -5321,7 +5321,7 @@ func (s *TimerLayerPreferenceStore) GetAll(userID string) (model.Preferences, er
 	return result, err
 }
 
-func (s *TimerLayerPreferenceStore) GetCategory(userID string, category string) (model.Preferences, error) {
+func (s *TimerLayerPreferenceStore) GetCategory(userID string, category model.PreferenceCategory) (model.Preferences, error) {
 	start := timemodule.Now()
 
 	result, err := s.PreferenceStore.GetCategory(userID, category)
