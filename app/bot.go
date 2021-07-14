@@ -316,8 +316,10 @@ func (a *App) UpdateBotActive(c *request.Context, botUserId string, active bool)
 		}
 	}
 
-	if _, err := a.UpdateActive(c, user, active); err != nil {
-		return nil, err
+	if (user.DeleteAt != 0 && active) || (user.DeleteAt == 0 && !active) {
+		if _, err := a.UpdateActive(c, user, active); err != nil {
+			return nil, err
+		}
 	}
 
 	bot, nErr := a.Srv().Store.Bot().Get(botUserId, true)
