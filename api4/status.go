@@ -5,7 +5,7 @@ package api4
 
 import (
 	"net/http"
-	"fmt"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -153,7 +153,7 @@ func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusSchedule := model.StatusScheduleFromJson(r.Body)
-	fmt.Printf(statusSchedule.UserId)
+
 	if statusSchedule == nil {
 		c.SetInvalidParam("statusSchedule")
 		return

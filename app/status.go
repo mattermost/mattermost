@@ -349,7 +349,7 @@ func (a *App) SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tu
 	statusSchedule, err := a.GetStatusSchedule(userId)
 
 	if err != nil {
-		return
+		statusSchedule = &model.StatusSchedule{UserId: userId}
 	}
 
 	statusSchedule.MondayStart = mondayStart
@@ -497,7 +497,16 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 
 func (a *App) GetStatusSchedule(userID string) (*model.StatusSchedule, *model.AppError) {
 
-	statusSchedule, _ := a.Srv().Store.StatusSchedule().Get(userID)
+	statusSchedule, err := a.Srv().Store.StatusSchedule().Get(userID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetStatusSchedule", "app.status.get.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetStatusSchedule", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
 
 	return statusSchedule, nil
 }
