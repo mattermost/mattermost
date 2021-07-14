@@ -28,7 +28,7 @@ func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(32)
 		table.ColMap("Status").SetMaxSize(32)
-		table.ColMap("Data").SetMaxSize(1024)
+		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return s

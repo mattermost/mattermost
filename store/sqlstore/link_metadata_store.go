@@ -24,7 +24,7 @@ func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
 		table := db.AddTableWithName(model.LinkMetadata{}, "LinkMetadata").SetKeys(false, "Hash")
 		table.ColMap("URL").SetMaxSize(2048)
 		table.ColMap("Type").SetMaxSize(16)
-		table.ColMap("Data").SetMaxSize(4096)
+		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return s

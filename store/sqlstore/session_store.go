@@ -34,7 +34,7 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("DeviceId").SetMaxSize(512)
 		table.ColMap("Roles").SetMaxSize(64)
-		table.ColMap("Props").SetMaxSize(1000)
+		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return us
