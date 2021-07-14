@@ -12,6 +12,7 @@ type Client struct {
 	Configuration ConfigurationService
 	Channel       ChannelService
 	SlashCommand  SlashCommandService
+	OAuth         OAuthService
 	Emoji         EmojiService
 	File          FileService
 	Frontend      FrontendService
@@ -40,6 +41,7 @@ func NewClient(api plugin.API, driver plugin.Driver) *Client {
 		Channel:       ChannelService{api: api},
 		Configuration: ConfigurationService{api: api},
 		SlashCommand:  SlashCommandService{api: api},
+		OAuth:         OAuthService{api: api},
 		Emoji:         EmojiService{api: api},
 		File:          FileService{api: api},
 		Frontend:      FrontendService{api: api},
