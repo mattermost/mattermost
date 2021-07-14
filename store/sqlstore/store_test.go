@@ -555,14 +555,14 @@ func TestVersionString(t *testing.T) {
 			output: "12.5",
 		},
 		{
-			input:  57,
+			input:  5708,
 			driver: model.DatabaseDriverMysql,
-			output: "5.7",
+			output: "5.7.8",
 		},
 		{
-			input:  80,
+			input:  8000,
 			driver: model.DatabaseDriverMysql,
-			output: "8.0",
+			output: "8.0.0",
 		},
 	}
 

@@ -58,8 +58,8 @@ const (
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
 	minimumRequiredPostgresVersion = 100000
-	// major*10 + minor
-	minimumRequiredMySQLVersion = 57
+	// major*1000 + minor*100 + patch
+	minimumRequiredMySQLVersion = 5712
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -209,7 +209,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 			}
 			// Get the major and minor versions.
 			versions := strings.Split(parts[0], ".")
-			if len(versions) < 2 {
+			if len(versions) < 3 {
 				mlog.Critical("Cannot parse MySQL DB version.", mlog.String("version", ver))
 				os.Exit(ExitGenericFailure)
 			}
@@ -223,7 +223,12 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 				mlog.Critical("Cannot parse DB version.", mlog.Err(err2))
 				os.Exit(ExitGenericFailure)
 			}
-			intVer := majorVer*10 + minorVer
+			patchVer, err2 := strconv.Atoi(versions[2])
+			if err2 != nil {
+				mlog.Critical("Cannot parse DB version.", mlog.Err(err2))
+				os.Exit(ExitGenericFailure)
+			}
+			intVer := majorVer*1000 + minorVer*100 + patchVer
 			if intVer < minimumRequiredMySQLVersion {
 				mlog.Critical("Minimum MySQL version requirements not met.", mlog.String("Found", versionString(intVer, *settings.DriverName)), mlog.String("Wanted", versionString(minimumRequiredMySQLVersion, *settings.DriverName)))
 				os.Exit(ExitGenericFailure)
@@ -1725,9 +1730,11 @@ func versionString(v int, driver string) string {
 		major := v / 10000
 		return strconv.Itoa(major) + "." + strconv.Itoa(minor)
 	case model.DatabaseDriverMysql:
-		minor := v % 10
-		major := v / 10
-		return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+		minor := v % 1000
+		major := v / 1000
+		patch := minor % 100
+		minor = minor / 100
+		return strconv.Itoa(major) + "." + strconv.Itoa(minor) + "." + strconv.Itoa(patch)
 	}
 	return ""
 }
