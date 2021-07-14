@@ -388,7 +388,8 @@ func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, *model.PreviewP
 			updatedPost := post.Clone()
 			if previewPost, ok := embed.Data.(*model.PreviewPost); ok {
 				updatedPost.AddProp(model.POST_PROPS_PREVIEWED_POST, previewPost.PostID)
-				updatedPost, err := a.Srv().Store.Post().Update(updatedPost, post)
+				var err error
+				updatedPost, err = a.Srv().Store.Post().Update(updatedPost, post)
 				return updatedPost, previewPost, err
 			}
 		}
