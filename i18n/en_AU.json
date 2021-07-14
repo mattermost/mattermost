@@ -9212,7 +9212,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Unable to check number of users in your Mattermost cloud instance.."
+    "translation": "Unable to check number of users in your Mattermost cloud instance."
   },
   {
     "id": "app.system.system_bot.bot_displayname",
