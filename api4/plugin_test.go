@@ -1758,7 +1758,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 	}, "missing prepackaged and remote plugin signatures")
 }
 
-func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
+func findClusterMessages(event model.ClusterEvent, msgs []*model.ClusterMessage) []*model.ClusterMessage {
 	var result []*model.ClusterMessage
 	for _, msg := range msgs {
 		if msg.Event == event {

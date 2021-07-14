@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (s *Server) notifyClusterPluginEvent(event string, data model.PluginEventData) {
+func (s *Server) notifyClusterPluginEvent(event model.ClusterEvent, data model.PluginEventData) {
 	if s.Cluster != nil {
 		s.Cluster.SendClusterMessage(&model.ClusterMessage{
 			Event:            event,

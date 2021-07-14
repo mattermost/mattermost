@@ -8,41 +8,43 @@ import (
 	"io"
 )
 
+type ClusterEvent string
+
 const (
-	ClusterEventPublish                                     = "publish"
-	ClusterEventUpdateStatus                                = "update_status"
-	ClusterEventInvalidateAllCaches                         = "inv_all_caches"
-	ClusterEventInvalidateCacheForReactions                 = "inv_reactions"
-	ClusterEventInvalidateCacheForWebhook                   = "inv_webhook"
-	ClusterEventInvalidateCacheForChannelPosts              = "inv_channel_posts"
-	ClusterEventInvalidateCacheForChannelMembersNotifyProps = "inv_channel_members_notify_props"
-	ClusterEventInvalidateCacheForChannelMembers            = "inv_channel_members"
-	ClusterEventInvalidateCacheForChannelByName             = "inv_channel_name"
-	ClusterEventInvalidateCacheForChannel                   = "inv_channel"
-	ClusterEventInvalidateCacheForChannelGuestCount         = "inv_channel_guest_count"
-	ClusterEventInvalidateCacheForUser                      = "inv_user"
-	ClusterEventInvalidateCacheForUserTeams                 = "inv_user_teams"
-	ClusterEventClearSessionCacheForUser                    = "clear_session_user"
-	ClusterEventInvalidateCacheForRoles                     = "inv_roles"
-	ClusterEventInvalidateCacheForRolePermissions           = "inv_role_permissions"
-	ClusterEventInvalidateCacheForProfileByIds              = "inv_profile_ids"
-	ClusterEventInvalidateCacheForProfileInChannel          = "inv_profile_in_channel"
-	ClusterEventInvalidateCacheForSchemes                   = "inv_schemes"
-	ClusterEventInvalidateCacheForFileInfos                 = "inv_file_infos"
-	ClusterEventInvalidateCacheForWebhooks                  = "inv_webhooks"
-	ClusterEventInvalidateCacheForEmojisById                = "inv_emojis_by_id"
-	ClusterEventInvalidateCacheForEmojisIdByName            = "inv_emojis_id_by_name"
-	ClusterEventInvalidateCacheForChannelPinnedpostsCounts  = "inv_channel_pinnedposts_counts"
-	ClusterEventInvalidateCacheForChannelMemberCounts       = "inv_channel_member_counts"
-	ClusterEventInvalidateCacheForLastPosts                 = "inv_last_posts"
-	ClusterEventInvalidateCacheForLastPostTime              = "inv_last_post_time"
-	ClusterEventInvalidateCacheForTeams                     = "inv_teams"
-	ClusterEventClearSessionCacheForAllUsers                = "inv_all_user_sessions"
-	ClusterEventInstallPlugin                               = "install_plugin"
-	ClusterEventRemovePlugin                                = "remove_plugin"
-	ClusterEventPluginEvent                                 = "plugin_event"
-	ClusterEventInvalidateCacheForTermsOfService            = "inv_terms_of_service"
-	ClusterEventBusyStateChanged                            = "busy_state_change"
+	ClusterEventPublish                                     ClusterEvent = "publish"
+	ClusterEventUpdateStatus                                ClusterEvent = "update_status"
+	ClusterEventInvalidateAllCaches                         ClusterEvent = "inv_all_caches"
+	ClusterEventInvalidateCacheForReactions                 ClusterEvent = "inv_reactions"
+	ClusterEventInvalidateCacheForWebhook                   ClusterEvent = "inv_webhook"
+	ClusterEventInvalidateCacheForChannelPosts              ClusterEvent = "inv_channel_posts"
+	ClusterEventInvalidateCacheForChannelMembersNotifyProps ClusterEvent = "inv_channel_members_notify_props"
+	ClusterEventInvalidateCacheForChannelMembers            ClusterEvent = "inv_channel_members"
+	ClusterEventInvalidateCacheForChannelByName             ClusterEvent = "inv_channel_name"
+	ClusterEventInvalidateCacheForChannel                   ClusterEvent = "inv_channel"
+	ClusterEventInvalidateCacheForChannelGuestCount         ClusterEvent = "inv_channel_guest_count"
+	ClusterEventInvalidateCacheForUser                      ClusterEvent = "inv_user"
+	ClusterEventInvalidateCacheForUserTeams                 ClusterEvent = "inv_user_teams"
+	ClusterEventClearSessionCacheForUser                    ClusterEvent = "clear_session_user"
+	ClusterEventInvalidateCacheForRoles                     ClusterEvent = "inv_roles"
+	ClusterEventInvalidateCacheForRolePermissions           ClusterEvent = "inv_role_permissions"
+	ClusterEventInvalidateCacheForProfileByIds              ClusterEvent = "inv_profile_ids"
+	ClusterEventInvalidateCacheForProfileInChannel          ClusterEvent = "inv_profile_in_channel"
+	ClusterEventInvalidateCacheForSchemes                   ClusterEvent = "inv_schemes"
+	ClusterEventInvalidateCacheForFileInfos                 ClusterEvent = "inv_file_infos"
+	ClusterEventInvalidateCacheForWebhooks                  ClusterEvent = "inv_webhooks"
+	ClusterEventInvalidateCacheForEmojisById                ClusterEvent = "inv_emojis_by_id"
+	ClusterEventInvalidateCacheForEmojisIdByName            ClusterEvent = "inv_emojis_id_by_name"
+	ClusterEventInvalidateCacheForChannelPinnedpostsCounts  ClusterEvent = "inv_channel_pinnedposts_counts"
+	ClusterEventInvalidateCacheForChannelMemberCounts       ClusterEvent = "inv_channel_member_counts"
+	ClusterEventInvalidateCacheForLastPosts                 ClusterEvent = "inv_last_posts"
+	ClusterEventInvalidateCacheForLastPostTime              ClusterEvent = "inv_last_post_time"
+	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
+	ClusterEventClearSessionCacheForAllUsers                ClusterEvent = "inv_all_user_sessions"
+	ClusterEventInstallPlugin                               ClusterEvent = "install_plugin"
+	ClusterEventRemovePlugin                                ClusterEvent = "remove_plugin"
+	ClusterEventPluginEvent                                 ClusterEvent = "plugin_event"
+	ClusterEventInvalidateCacheForTermsOfService            ClusterEvent = "inv_terms_of_service"
+	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
 
 	// Gossip communication
 	ClusterGossipEventRequestGetLogs            = "gossip_request_get_logs"
@@ -60,7 +62,7 @@ const (
 )
 
 type ClusterMessage struct {
-	Event            string            `json:"event"`
+	Event            ClusterEvent      `json:"event"`
 	SendType         string            `json:"-"`
 	WaitForAllToSend bool              `json:"-"`
 	Data             string            `json:"data,omitempty"`
