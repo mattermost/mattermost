@@ -441,7 +441,6 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 }
 
 func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
-	t.Skip("MM-36411")
 	logFile, err := ioutil.TempFile("", "adv.log")
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
@@ -471,6 +470,8 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 		cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal)
 	})
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
+
+	require.NoError(t, logFile.Sync())
 
 	// Forcing a flush before attempting to read log's content.
 	err = th.Server.Log.Flush(context.Background())
