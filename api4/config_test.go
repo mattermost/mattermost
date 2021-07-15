@@ -475,6 +475,8 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	err = th.Server.Log.Flush(context.Background())
 	require.NoError(t, err)
 
+	require.NoError(t, logFile.Sync())
+
 	data, err := ioutil.ReadAll(logFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, data)

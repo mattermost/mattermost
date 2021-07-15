@@ -595,6 +595,7 @@ type TokenStore interface {
 	Delete(token string) error
 	GetByToken(token string) (*model.Token, error)
 	Cleanup()
+	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error
 }
 
