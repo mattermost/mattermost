@@ -484,9 +484,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
 				postForIndividualUser.Metadata.Embeds[0].Data = nil
 			}
-			message.Broadcast.UserId = cm.UserId
-			message.Add("post", postForIndividualUser.ToJson())
-			a.Publish(message)
+			messageCopy := message.Copy()
+			messageCopy.Broadcast.UserId = cm.UserId
+			messageCopy.Add("post", postForIndividualUser.ToJson())
+			a.Publish(messageCopy)
 		}
 	} else {
 		a.Publish(message)
