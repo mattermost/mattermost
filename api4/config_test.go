@@ -441,6 +441,7 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 }
 
 func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
+	t.Skip("MM-36411")
 	logFile, err := ioutil.TempFile("", "adv.log")
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
