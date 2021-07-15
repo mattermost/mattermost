@@ -282,7 +282,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	props := model.StringInterfaceFromJson(r.Body)
-	privacy, ok := props["privacy"].(string)
+	privacy, ok := props["privacy"].(model.ChannelType)
 	if !ok || (privacy != model.ChannelTypeOpen && privacy != model.ChannelTypePrivate) {
 		c.SetInvalidParam("privacy")
 		return

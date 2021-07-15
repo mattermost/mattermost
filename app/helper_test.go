@@ -316,7 +316,7 @@ func (th *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
 	return th.createChannel(team, model.ChannelTypePrivate)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
