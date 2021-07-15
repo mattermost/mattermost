@@ -474,13 +474,13 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = o1.UserId
-	o3.Message = "zz" + model.NewId() + "d"
+	o3.Message = model.NewRandomString(10)
 	o3.RootId = o1.Id
 
 	o4 := &model.Post{}
 	o4.ChannelId = o1.ChannelId
 	o4.UserId = o1.UserId
-	o4.Message = "zz" + model.NewId() + "e"
+	o4.Message = model.NewRandomString(10)
 	o4.RootId = o1.Id
 
 	o3, err = ss.Post().Save(o3)
