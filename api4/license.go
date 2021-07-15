@@ -179,7 +179,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Srv().LicenseManager == nil {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -281,7 +281,7 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().LicenseManager == nil {
-		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
