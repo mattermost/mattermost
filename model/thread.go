@@ -54,6 +54,9 @@ type GetUserThreadsOpts struct {
 
 	// Unread will make sure that only threads with unread replies are returned
 	Unread bool
+
+	// TotalsOnly will not fetch any threads and just fetch the total counts
+	TotalsOnly bool
 }
 
 func (o *ThreadResponse) ToJson() string {

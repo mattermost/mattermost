@@ -150,7 +150,11 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	totalUnreadThreadsChan := make(chan store.StoreResult, 1)
 	totalCountChan := make(chan store.StoreResult, 1)
 	totalUnreadMentionsChan := make(chan store.StoreResult, 1)
-	threadsChan := make(chan store.StoreResult, 1)
+	var threadsChan chan store.StoreResult
+	if !opts.TotalsOnly {
+		threadsChan = make(chan store.StoreResult, 1)
+	}
+
 	go func() {
 		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
 			Select("COUNT(DISTINCT(Posts.RootId))").
@@ -195,71 +199,61 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		totalUnreadMentionsChan <- store.StoreResult{Data: totalUnreadMentions, NErr: err}
 		close(totalUnreadMentionsChan)
 	}()
-	go func() {
-		newFetchConditions := fetchConditions
-		if opts.Since > 0 {
-			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since}}
-		}
-		order := "DESC"
-		if opts.Before != "" {
-			newFetchConditions = sq.And{
-				newFetchConditions,
-				sq.Expr(`LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before),
-			}
-		}
-		if opts.After != "" {
-			order = "ASC"
-			newFetchConditions = sq.And{
-				newFetchConditions,
-				sq.Expr(`LastReplyAt > (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.After),
-			}
-		}
-		if opts.Unread {
-			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
-		}
 
-		unreadRepliesFetchConditions := sq.And{
-			sq.Expr("Posts.RootId = ThreadMemberships.PostId"),
-			sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"),
-		}
-		if !opts.Deleted {
-			unreadRepliesFetchConditions = sq.And{
-				unreadRepliesFetchConditions,
-				sq.Expr("Posts.DeleteAt = 0"),
+	if !opts.TotalsOnly {
+		go func() {
+			newFetchConditions := fetchConditions
+			if opts.Since > 0 {
+				newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since}}
 			}
-		}
+			order := "DESC"
+			if opts.Before != "" {
+				newFetchConditions = sq.And{
+					newFetchConditions,
+					sq.Expr(`LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before),
+				}
+			}
+			if opts.Unread {
+				newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+			}
 
-		unreadRepliesQuery, _ := sq.
-			Select("COUNT(Posts.Id)").
-			From("Posts").
-			Where(unreadRepliesFetchConditions).
-			MustSql()
+			unreadRepliesFetchConditions := sq.And{
+				sq.Expr("Posts.RootId = ThreadMemberships.PostId"),
+				sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"),
+			}
+			if !opts.Deleted {
+				unreadRepliesFetchConditions = sq.And{
+					unreadRepliesFetchConditions,
+					sq.Expr("Posts.DeleteAt = 0"),
+				}
+			}
 
-		var threads []*JoinedThread
-		query, args, _ := s.getQueryBuilder().
-			Select(`Threads.*,
+			unreadRepliesQuery, _ := sq.
+				Select("COUNT(Posts.Id)").
+				From("Posts").
+				Where(unreadRepliesFetchConditions).
+				MustSql()
+
+			var threads []*JoinedThread
+			query, args, _ := s.getQueryBuilder().
+				Select(`Threads.*,
 				` + postSliceCoalesceQuery() + `,
 				ThreadMemberships.LastViewed as LastViewedAt,
 				ThreadMemberships.UnreadMentions as UnreadMentions`).
-			From("Threads").
-			Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
-			LeftJoin("Posts ON Posts.Id = Threads.PostId").
-			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
-			Where(newFetchConditions).
-			OrderBy("Threads.LastReplyAt " + order).
-			Limit(pageSize).ToSql()
+				From("Threads").
+				Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
+				LeftJoin("Posts ON Posts.Id = Threads.PostId").
+				LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+				LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+				Where(newFetchConditions).
+				OrderBy("Threads.LastReplyAt " + order).
+				Limit(pageSize).ToSql()
 
-		_, err := s.GetReplica().Select(&threads, query, args...)
-		threadsChan <- store.StoreResult{Data: threads, NErr: err}
-		close(threadsChan)
-	}()
-
-	threadsResult := <-threadsChan
-	if threadsResult.NErr != nil {
-		return nil, threadsResult.NErr
+			_, err := s.GetReplica().Select(&threads, query, args...)
+			threadsChan <- store.StoreResult{Data: threads, NErr: err}
+			close(threadsChan)
+		}()
 	}
-	threads := threadsResult.Data.([]*JoinedThread)
 
 	totalUnreadMentionsResult := <-totalUnreadMentionsChan
 	if totalUnreadMentionsResult.NErr != nil {
@@ -281,26 +275,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	var userIds []string
 	userIdMap := map[string]bool{}
-	for _, thread := range threads {
-		for _, participantId := range thread.Participants {
-			if _, ok := userIdMap[participantId]; !ok {
-				userIdMap[participantId] = true
-				userIds = append(userIds, participantId)
-			}
-		}
-	}
-	var users []*model.User
-	if opts.Extended {
-		var err error
-		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
-		}
-	} else {
-		for _, userId := range userIds {
-			users = append(users, &model.User{Id: userId})
-		}
-	}
 
 	result := &model.Threads{
 		Total:               totalCount,
@@ -309,31 +283,59 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		TotalUnreadThreads:  totalUnreadThreads,
 	}
 
-	for _, thread := range threads {
-		var participants []*model.User
-		for _, participantId := range thread.Participants {
-			var participant *model.User
-			for _, u := range users {
-				if u.Id == participantId {
-					participant = u
-					break
+	if !opts.TotalsOnly {
+		threadsResult := <-threadsChan
+		if threadsResult.NErr != nil {
+			return nil, threadsResult.NErr
+		}
+		threads := threadsResult.Data.([]*JoinedThread)
+		for _, thread := range threads {
+			for _, participantId := range thread.Participants {
+				if _, ok := userIdMap[participantId]; !ok {
+					userIdMap[participantId] = true
+					userIds = append(userIds, participantId)
 				}
 			}
-			if participant == nil {
-				return nil, errors.New("cannot find thread participant with id=" + participantId)
-			}
-			participants = append(participants, participant)
 		}
-		result.Threads = append(result.Threads, &model.ThreadResponse{
-			PostId:         thread.PostId,
-			ReplyCount:     thread.ReplyCount,
-			LastReplyAt:    thread.LastReplyAt,
-			LastViewedAt:   thread.LastViewedAt,
-			UnreadReplies:  thread.UnreadReplies,
-			UnreadMentions: thread.UnreadMentions,
-			Participants:   participants,
-			Post:           thread.Post.ToNilIfInvalid(),
-		})
+		var users []*model.User
+		if opts.Extended {
+			var err error
+			users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+			}
+		} else {
+			for _, userId := range userIds {
+				users = append(users, &model.User{Id: userId})
+			}
+		}
+
+		for _, thread := range threads {
+			var participants []*model.User
+			for _, participantId := range thread.Participants {
+				var participant *model.User
+				for _, u := range users {
+					if u.Id == participantId {
+						participant = u
+						break
+					}
+				}
+				if participant == nil {
+					return nil, errors.New("cannot find thread participant with id=" + participantId)
+				}
+				participants = append(participants, participant)
+			}
+			result.Threads = append(result.Threads, &model.ThreadResponse{
+				PostId:         thread.PostId,
+				ReplyCount:     thread.ReplyCount,
+				LastReplyAt:    thread.LastReplyAt,
+				LastViewedAt:   thread.LastViewedAt,
+				UnreadReplies:  thread.UnreadReplies,
+				UnreadMentions: thread.UnreadMentions,
+				Participants:   participants,
+				Post:           &thread.Post,
+			})
+		}
 	}
 
 	return result, nil
