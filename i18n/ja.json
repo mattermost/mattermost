@@ -9240,5 +9240,45 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "トライアルが開始可能か確認できませんでした"
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "ライセンスの確認メールを送信できませんでした"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "カスタマーアカウントでログインして更新"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}さん、あなたのサブスクリプションは{{.Days}}日で期限切れになるように設定されています。Mattermostが可能にする柔軟で安全なチームコラボレーションを体験していただければ幸いです。チームがこれらのメリットを引き続き享受できるように、今すぐ更新してください。"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "ライセンスは更新中です"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "更新する"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "ライセンスの確認メールを送信できませんでした"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "ライセンスの更新リンク生成に失敗しました"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "電子メール確認トークンを無効にする際にトークンを解析できませんでした"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "電子メール確認トークンを無効にする際にトークンを削除できませんでした"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "あなたのMattermostのサブスクリプションは更新が必要です"
   }
 ]
