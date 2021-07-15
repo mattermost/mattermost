@@ -229,4 +229,12 @@ func TestRequestTrialLicense(t *testing.T) {
 		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
 		require.False(t, ok)
 	})
+
+	th.App.Srv().LicenseManager = nil
+	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.RequestTrialLicense(1)
+		CheckBadRequestStatus(t, resp)
+		require.False(t, ok)
+		require.Equal(t, "api.license.upgrade_needed.app_error", resp.Error.Id)
+	})
 }

@@ -1965,6 +1965,10 @@
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Failed to send the disable license email successfully."
   },
