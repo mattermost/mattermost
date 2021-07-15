@@ -1965,10 +1965,6 @@
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
-    "id": "api.license.upgrade_needed.app_error",
-    "translation": "Feature requires an upgrade to Enterprise Edition."
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Failed to send the disable license email successfully."
   },
@@ -2003,6 +1999,10 @@
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
     "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Feature requires an upgrade to Enterprise Edition."
   },
   {
     "id": "api.marshal_error",
