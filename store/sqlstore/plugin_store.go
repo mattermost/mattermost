@@ -54,32 +54,23 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		return kv, nil
 	}
 
+	query := ps.getQueryBuilder().
+		Insert("PluginKeyValueStore").
+		Columns("PluginId", "PKey", "PValue", "ExpireAt").
+		Values(kv.PluginId, kv.Key, kv.Value, kv.ExpireAt)
 	if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// Unfortunately PostgreSQL pre-9.5 does not have an atomic upsert, so we use
-		// separate update and insert queries to accomplish our upsert
-		if rowsAffected, err := ps.GetMaster().Update(kv); err != nil {
-			return nil, errors.Wrap(err, "failed to update PluginKeyValue")
-		} else if rowsAffected == 0 {
-			// No rows were affected by the update, so let's try an insert
-			if err := ps.GetMaster().Insert(kv); err != nil {
-				return nil, errors.Wrap(err, "failed to save PluginKeyValue")
-			}
-		}
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (pluginid, pkey) DO UPDATE SET PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
 	} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		query := ps.getQueryBuilder().
-			Insert("PluginKeyValueStore").
-			Columns("PluginId", "PKey", "PValue", "ExpireAt").
-			Values(kv.PluginId, kv.Key, kv.Value, kv.ExpireAt).
-			SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "plugin_tosql")
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "plugin_tosql")
+	}
 
-		if _, err := ps.GetMaster().Exec(queryString, args...); err != nil {
-			return nil, errors.Wrap(err, "failed to upsert PluginKeyValue")
-		}
+	if _, err := ps.GetMaster().Exec(queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to upsert PluginKeyValue")
 	}
 
 	return kv, nil

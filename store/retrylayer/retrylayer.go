@@ -10154,6 +10154,26 @@ func (s *RetryLayerTokenStore) Delete(token string) error {
 
 }
 
+func (s *RetryLayerTokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {
+
+	tries := 0
+	for {
+		result, err := s.TokenStore.GetAllTokensByType(tokenType)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 
 	tries := 0
