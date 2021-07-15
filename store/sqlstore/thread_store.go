@@ -131,9 +131,19 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 
 	fetchConditions := sq.And{
-		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
+	}
+	if opts.TeamOnly {
+		fetchConditions = sq.And{
+			sq.Eq{"Channels.TeamId": teamId},
+			fetchConditions,
+		}
+	} else {
+		fetchConditions = sq.And{
+			sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+			fetchConditions,
+		}
 	}
 	if !opts.Deleted {
 		fetchConditions = sq.And{

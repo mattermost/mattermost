@@ -57,6 +57,9 @@ type GetUserThreadsOpts struct {
 
 	// TotalsOnly will not fetch any threads and just fetch the total counts
 	TotalsOnly bool
+
+	// TeamOnly will only fetch threads and unreads for the specified team and excludes DMs/GMs
+	TeamOnly bool
 }
 
 func (o *ThreadResponse) ToJson() string {

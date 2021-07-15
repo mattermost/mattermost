@@ -1667,7 +1667,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 
 	for _, member := range membersMap {
 		if includeCollapsedThreads {
-			data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, member.TeamId, model.GetUserThreadsOpts{TotalsOnly: true})
+			data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, member.TeamId, model.GetUserThreadsOpts{TotalsOnly: true, TeamOnly: true})
 			if err != nil {
 				return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
