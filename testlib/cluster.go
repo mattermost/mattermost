@@ -20,7 +20,7 @@ func (c *FakeClusterInterface) StartInterNodeCommunication() {}
 
 func (c *FakeClusterInterface) StopInterNodeCommunication() {}
 
-func (c *FakeClusterInterface) RegisterClusterMessageHandler(event string, crm einterfaces.ClusterMessageHandler) {
+func (c *FakeClusterInterface) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 	c.clusterMessageHandler = crm
 }
 
