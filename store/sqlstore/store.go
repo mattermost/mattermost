@@ -1722,7 +1722,7 @@ func IsDuplicate(err error) bool {
 // to a pretty-printed string.
 // Postgres doesn't follow three-part version numbers from 10.0 onwards:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
-// For MySQL, we consider a major*10 + minor format.
+// For MySQL, we consider a major*1000 + minor*100 + patch format.
 func versionString(v int, driver string) string {
 	switch driver {
 	case model.DatabaseDriverPostgres:
