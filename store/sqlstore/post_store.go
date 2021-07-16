@@ -598,13 +598,19 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 
 func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select("p.*").
+		From("Posts p").
+		Where(sq.Eq{"p.Id": id})
+
+	replyCountSubQuery := s.getQueryBuilder().
+		Select("COUNT(Posts.Id)").
 		From("Posts").
-		Where(sq.Eq{"Id": id})
+		Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 
 	if !inclDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
+		query = query.Where(sq.Eq{"p.DeleteAt": 0})
 	}
+	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -2383,7 +2389,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 	if len(rootIds) == 0 {
 		return nil
 	}
-	now := model.GetMillis()
 	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": rootIds}).ToSql()
 	var threadsByRoots []*model.Thread
 	if _, err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
@@ -2407,23 +2412,30 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 			if err != nil {
 				return err
 			}
+			// calculate last reply at
+			lastReplyAt, err := transaction.SelectInt("SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE RootID=:RootId and DeleteAt=0", map[string]interface{}{"RootId": rootId})
+			if err != nil {
+				return err
+			}
 			// no metadata entry, create one
 			if err := transaction.Insert(&model.Thread{
 				PostId:       rootId,
 				ChannelId:    posts[0].ChannelId,
 				ReplyCount:   count,
-				LastReplyAt:  now,
+				LastReplyAt:  lastReplyAt,
 				Participants: participants,
 			}); err != nil {
 				return err
 			}
 		} else {
 			// metadata exists, update it
-			thread.LastReplyAt = now
 			for _, post := range posts {
 				thread.ReplyCount += 1
 				if !thread.Participants.Contains(post.UserId) {
 					thread.Participants = append(thread.Participants, post.UserId)
+				}
+				if post.CreateAt > thread.LastReplyAt {
+					thread.LastReplyAt = post.CreateAt
 				}
 			}
 			if _, err := transaction.Update(thread); err != nil {

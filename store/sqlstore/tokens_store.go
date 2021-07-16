@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -72,6 +73,19 @@ func (s SqlTokenStore) Cleanup() {
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE CreateAt < :DelTime", map[string]interface{}{"DelTime": deltime}); err != nil {
 		mlog.Error("Unable to cleanup token store.")
 	}
+}
+
+func (s SqlTokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {
+	tokens := []*model.Token{}
+	query, args, err := s.getQueryBuilder().Select("*").From("Tokens").Where(sq.Eq{"Type": tokenType}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get all tokens by type")
+	}
+
+	if _, err := s.GetReplica().Select(&tokens, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to get all tokens of Type=%s", tokenType)
+	}
+	return tokens, nil
 }
 
 func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) error {

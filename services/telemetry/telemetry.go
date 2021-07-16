@@ -1311,6 +1311,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
 		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PluginSettingsDefaultMarketplaceUrl),
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
+		"chimera_oauth_proxy_url":       *cfg.PluginSettings.ChimeraOAuthProxyUrl,
 	}
 
 	// knownPluginIDs lists all known plugin IDs in the Marketplace
