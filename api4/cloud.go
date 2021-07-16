@@ -102,11 +102,13 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	json, err := json.Marshal(changedSub)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Write(json)
