@@ -13449,7 +13449,7 @@ func (a *OpenTracingAppLayer) SanitizePostListMetadataForUser(postList model.Pos
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SanitizePostMetadataForUser(post model.Post, userID string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) SanitizePostMetadataForUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SanitizePostMetadataForUser")
 

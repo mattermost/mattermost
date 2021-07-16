@@ -943,7 +943,7 @@ type AppIface interface {
 	RolesGrantPermission(roleNames []string, permissionId string) bool
 	Saml() einterfaces.SamlInterface
 	SanitizePostListMetadataForUser(postList model.PostList, userID string) (*model.PostList, *model.AppError)
-	SanitizePostMetadataForUser(post model.Post, userID string) (*model.Post, *model.AppError)
+	SanitizePostMetadataForUser(post *model.Post, userID string) (*model.Post, *model.AppError)
 	SanitizeProfile(user *model.User, asAdmin bool)
 	SanitizeTeam(session model.Session, team *model.Team) *model.Team
 	SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team

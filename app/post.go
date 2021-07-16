@@ -367,7 +367,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		a.SendEphemeralPost(post.UserId, ephemeralPost)
 	}
 
-	rpost, err = a.SanitizePostMetadataForUser(*rpost, c.Session().UserId)
+	rpost, err = a.SanitizePostMetadataForUser(rpost, c.Session().UserId)
 	if err != nil {
 		return nil, err
 	}
