@@ -1672,18 +1672,18 @@ func IsDuplicate(err error) bool {
 // ensureMinimumDBVersion gets the DB version and ensures it is
 // above the required minimum version requirements.
 func (ss *SqlStore) ensureMinimumDBVersion() (bool, error) {
-	ver, err := s.GetDbVersion(true)
+	ver, err := ss.GetDbVersion(true)
 	if err != nil {
 		return false, err
 	}
-	switch *s.settings.DriverName {
+	switch *ss.settings.DriverName {
 	case model.DatabaseDriverPostgres:
 		intVer, err2 := strconv.Atoi(ver)
 		if err2 != nil {
 			return false, fmt.Errorf("cannot parse DB version: %v", err2)
 		}
 		if intVer < minimumRequiredPostgresVersion {
-			return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *s.settings.DriverName), versionString(minimumRequiredPostgresVersion, *s.settings.DriverName))
+			return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredPostgresVersion, *ss.settings.DriverName))
 		}
 	case model.DatabaseDriverMysql:
 		// Usually a version string is of the form 5.6.49-log, 10.4.5-MariaDB etc.
@@ -1713,7 +1713,7 @@ func (ss *SqlStore) ensureMinimumDBVersion() (bool, error) {
 			}
 			intVer := majorVer*1000 + minorVer*100 + patchVer
 			if intVer < minimumRequiredMySQLVersion {
-				return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *s.settings.DriverName), versionString(minimumRequiredMySQLVersion, *s.settings.DriverName))
+				return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
 			}
 		}
 	}
