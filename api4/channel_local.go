@@ -67,8 +67,8 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	props := model.StringInterfaceFromJson(r.Body)
-	privacy, ok := props["privacy"].(model.ChannelType)
-	if !ok || (privacy != model.ChannelTypeOpen && privacy != model.ChannelTypePrivate) {
+	privacy, ok := props["privacy"].(string)
+	if !ok || (model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate) {
 		c.SetInvalidParam("privacy")
 		return
 	}
@@ -84,11 +84,11 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec.AddMeta("channel", channel)
 	auditRec.AddMeta("new_type", privacy)
 
-	if channel.Name == model.DefaultChannelName && privacy == model.ChannelTypePrivate {
+	if channel.Name == model.DefaultChannelName && model.ChannelType(privacy) == model.ChannelTypePrivate {
 		c.Err = model.NewAppError("updateChannelPrivacy", "api.channel.update_channel_privacy.default_channel_error", nil, "", http.StatusBadRequest)
 		return
 	}
-	channel.Type = privacy
+	channel.Type = model.ChannelType(privacy)
 
 	updatedChannel, err := c.App.UpdateChannelPrivacy(c.AppContext, channel, nil)
 	if err != nil {

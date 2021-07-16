@@ -3942,7 +3942,7 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 	team := &model.Team{
 		DisplayName: "A Name",
 		Name:        "zz" + model.NewId(),
-		Type:        string(model.ChannelTypeOpen),
+		Type:        model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(team)
 	require.NoError(t, nErr)
@@ -4045,7 +4045,7 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "A Name",
 		Name:        "zz" + model.NewId(),
-		Type:        string(model.ChannelTypeOpen),
+		Type:        model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(team)
 	require.NoError(t, nErr)
