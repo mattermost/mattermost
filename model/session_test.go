@@ -57,8 +57,6 @@ func TestSessionJson(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 
 	require.True(t, session.IsExpired(), "Should expire")
-
-	session.SetExpireInDays(10)
 }
 
 func TestSessionCSRF(t *testing.T) {
