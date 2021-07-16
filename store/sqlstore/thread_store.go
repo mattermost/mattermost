@@ -223,6 +223,13 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 					sq.Expr(`LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before),
 				}
 			}
+			if opts.After != "" {
+				order = "ASC"
+				newFetchConditions = sq.And{
+					newFetchConditions,
+					sq.Expr(`LastReplyAt > (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.After),
+				}
+			}
 			if opts.Unread {
 				newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
 			}
@@ -343,7 +350,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 				UnreadReplies:  thread.UnreadReplies,
 				UnreadMentions: thread.UnreadMentions,
 				Participants:   participants,
-				Post:           &thread.Post,
+				Post:           thread.Post.ToNilIfInvalid(),
 			})
 		}
 	}
