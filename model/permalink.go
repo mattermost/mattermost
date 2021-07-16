@@ -16,7 +16,7 @@ type PreviewPost struct {
 	ChannelDisplayName string `json:"channel_display_name"`
 }
 
-func PreviewPostFromPost(post *Post, team *Team, channel *Channel) *PreviewPost {
+func NewPreviewPost(post *Post, team *Team, channel *Channel) *PreviewPost {
 	if post == nil {
 		return nil
 	}

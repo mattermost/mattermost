@@ -351,19 +351,11 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost, true, false, "")
+	rpost = a.PreparePostForClient(rpost, true, false)
 
-	rpost, previewPost, nErr := a.addPostPreviewProp(rpost)
+	rpost, _, nErr = a.addPostPreviewProp(rpost)
 	if nErr != nil {
 		return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-
-	var previewedChannel *model.Channel
-	if previewPost != nil {
-		previewedChannel, err = a.GetChannel(previewPost.Post.ChannelId)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
@@ -375,8 +367,9 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		a.SendEphemeralPost(post.UserId, ephemeralPost)
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(c.Session().UserId, previewedChannel) {
-		rpost.Metadata.Embeds[0].Data = nil
+	rpost, err = a.SanitizePostMetadataForUser(*rpost, c.Session().UserId)
+	if err != nil {
+		return nil, err
 	}
 
 	return rpost, nil
@@ -528,7 +521,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false, userID)
+	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
 	a.Publish(message)
@@ -546,7 +539,7 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false, userID)
+	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
 	a.Publish(message)
@@ -679,7 +672,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost, false, true, "")
+	rpost = a.PreparePostForClient(rpost, false, true)
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
