@@ -28,7 +28,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	}
 	defer file.Close()
 
-	if err = checkImageLimits(file); err != nil {
+	if err = checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.check_image_limits.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 

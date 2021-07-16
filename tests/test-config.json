@@ -140,6 +140,7 @@
         "EnableMobileUpload": true,
         "EnableMobileDownload": true,
         "MaxFileSize": 52428800,
+        "MaxImageResolution": 33177600,
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
