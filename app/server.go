@@ -72,8 +72,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-var MaxNotificationsPerChannelDefault int64 = 1000000
-
 // declaring this as var to allow overriding in tests
 var SentryDSN = "placeholder_sentry_dsn"
 
@@ -587,15 +585,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.checkPushNotificationServerUrl()
 
-	license := s.License()
-	if license == nil {
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
-		})
-	}
-
 	s.ReloadConfig()
 
+	license := s.License()
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
 	if s.Audit == nil {
