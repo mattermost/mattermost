@@ -217,7 +217,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.AddCursorIdsForPostList(list, afterPost, beforePost, since, page, perPage, collapsedThreads)
 	clientPostList := c.App.PreparePostListForClient(list)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(*clientPostList, c.AppContext.Session().UserId)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -278,7 +278,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	postList.PrevPostId = c.App.GetPrevPostIdFromPostList(postList, collapsedThreads)
 
 	clientPostList := c.App.PreparePostListForClient(postList)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(*clientPostList, c.AppContext.Session().UserId)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -345,7 +345,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	pl.SortByCreateAt()
 	clientPostList := c.App.PreparePostListForClient(pl)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(*clientPostList, c.AppContext.Session().UserId)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -479,7 +479,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientPostList := c.App.PreparePostListForClient(list)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(*clientPostList, c.AppContext.Session().UserId)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -555,7 +555,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientPostList := c.App.PreparePostListForClient(results.PostList)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(*clientPostList, c.AppContext.Session().UserId)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return

@@ -739,3 +739,14 @@ func (o *Post) ToNilIfInvalid() *Post {
 	}
 	return o
 }
+
+func (o *Post) GetPreviewPost() *PreviewPost {
+	for _, embed := range o.Metadata.Embeds {
+		if embed.Type == POST_EMBED_PERMALINK {
+			if previewPost, ok := embed.Data.(*PreviewPost); ok {
+				return previewPost
+			}
+		}
+	}
+	return nil
+}

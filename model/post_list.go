@@ -25,6 +25,15 @@ func NewPostList() *PostList {
 	}
 }
 
+func (o *PostList) Clone() *PostList {
+	return &PostList{
+		Order:      o.Order,
+		Posts:      o.Posts,
+		NextPostId: o.NextPostId,
+		PrevPostId: o.PrevPostId,
+	}
+}
+
 func (o *PostList) ToSlice() []*Post {
 	var posts []*Post
 

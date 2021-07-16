@@ -145,26 +145,35 @@ func (a *App) SanitizePostMetadataForUser(post *model.Post, userID string) (*mod
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return post, nil
 	}
-	previewedChannel, err := a.GetChannel(post.ChannelId)
+
+	previewPost := post.GetPreviewPost()
+	if previewPost == nil {
+		return post, nil
+	}
+
+	previewedChannel, err := a.GetChannel(previewPost.Post.ChannelId)
 	if err != nil {
 		return nil, err
 	}
+
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(userID, previewedChannel) {
 		post = post.Clone()
 		post.Metadata.Embeds[0].Data = nil
 	}
+
 	return post, nil
 }
 
-func (a *App) SanitizePostListMetadataForUser(postList model.PostList, userID string) (*model.PostList, *model.AppError) {
-	for postID, post := range postList.Posts {
+func (a *App) SanitizePostListMetadataForUser(postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
+	clonedPostList := postList.Clone()
+	for postID, post := range clonedPostList.Posts {
 		sanitizedPost, err := a.SanitizePostMetadataForUser(post, userID)
 		if err != nil {
 			return nil, err
 		}
-		postList.Posts[postID] = sanitizedPost
+		clonedPostList.Posts[postID] = sanitizedPost
 	}
-	return &postList, nil
+	return clonedPostList, nil
 }
 
 func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, *model.AppError) {

@@ -458,38 +458,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
-	var previewedPostID string
-	if val, ok := post.GetProp(model.POST_PROPS_PREVIEWED_POST).(string); ok {
-		previewedPostID = val
+	published, err := a.publishWebsocketEventForPermalinkPost(post, message)
+	if err != nil {
+		return nil, err
 	}
-	var previewedChannel *model.Channel
-	if model.IsValidId(previewedPostID) {
-		previewedPost, err := a.GetSinglePost(previewedPostID)
-		if err != nil {
-			return nil, err
-		}
-
-		channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
-		if err != nil {
-			return nil, err
-		}
-
-		previewedChannel, err = a.GetChannel(previewedPost.ChannelId)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, cm := range *channelMembers {
-			postForIndividualUser := post.Clone()
-			if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
-				postForIndividualUser.Metadata.Embeds[0].Data = nil
-			}
-			messageCopy := message.Copy()
-			messageCopy.Broadcast.UserId = cm.UserId
-			messageCopy.Add("post", postForIndividualUser.ToJson())
-			a.Publish(messageCopy)
-		}
-	} else {
+	if !published {
 		a.Publish(message)
 	}
 
@@ -518,10 +491,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if userThread != nil {
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
-					message.Add("thread", userThread.ToJson())
-					if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) {
-						post.Metadata.Embeds[0].Data = nil
+
+					previewPost := post.GetPreviewPost()
+					if previewPost != nil {
+						previewedChannel, err := a.GetChannel(previewPost.Post.ChannelId)
+						if err != nil {
+							return nil, err
+						}
+						if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) {
+							userThread.Post.Metadata.Embeds[0].Data = nil
+						}
 					}
+
+					message.Add("thread", userThread.ToJson())
 					a.Publish(message)
 				}
 			}
