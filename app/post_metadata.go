@@ -142,6 +142,9 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 }
 
 func (a *App) SanitizePostMetadataForUser(post model.Post, userID string) (*model.Post, *model.AppError) {
+	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
+		return &post, nil
+	}
 	previewedChannel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
 		return nil, err
