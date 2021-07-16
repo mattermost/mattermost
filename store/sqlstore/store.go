@@ -1671,7 +1671,7 @@ func IsDuplicate(err error) bool {
 
 // ensureMinimumDBVersion gets the DB version and ensures it is
 // above the required minimum version requirements.
-func (s *SqlStore) ensureMinimumDBVersion() (bool, error) {
+func (ss *SqlStore) ensureMinimumDBVersion() (bool, error) {
 	ver, err := s.GetDbVersion(true)
 	if err != nil {
 		return false, err
