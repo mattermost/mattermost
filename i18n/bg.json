@@ -9241,5 +9241,41 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "Не може да се провери възможността за започване на пробна версия"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Задачата по запазване на данни е неуспешна."
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "Неуспешно изпращане на ел.поща за подновяване на лиценза"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Вашият абонамент за Mattermost подлежи на подновяване"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Влезте в клиентския си профил, за да подновите"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, абонаментът Ви изтича след {{.Days}} дни. Надяваме се, че ще се насладите на гъвкавото и сигурно екипно сътрудничество, което Mattermost позволява. Подновете абонамента си скоро, за да гарантирате, че екипът Ви ще продължи да се възползва от тези предимства."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Лицензът Ви подлежи на подновяване"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Поднови сега"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Неуспешно изпращане на ел.поща за подновяване на лиценза"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Неуспешно генериране връзката за подновяване на лиценза"
   }
 ]

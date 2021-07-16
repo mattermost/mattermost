@@ -12,6 +12,9 @@ include:
 
 variables:
   BUILD: "yes"
+  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
+  IMAGE_BUILD_DOCKER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
+  IMAGE_DIND: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
 
 empty:
   stage: create-vars
@@ -30,7 +33,7 @@ empty:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
 .layers: # Commenting this job, because it is run in CircleCI
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
+  image: $IMAGE_BUILD_SERVER
   stage: test
   script:
     - make store-layers
@@ -44,9 +47,9 @@ empty:
 
 .test-mysql: # Commenting this job, because it is run in CircleCI
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
+  image: $IMAGE_BUILD_DOCKER
   services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
+    - name: $IMAGE_DIND
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
@@ -74,9 +77,9 @@ empty:
 
 .test-postgres: # Commenting this job, because it is run in CircleCI
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
+  image: $IMAGE_BUILD_DOCKER
   services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
+    - name: $IMAGE_DIND
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
@@ -104,9 +107,9 @@ empty:
 
 test-schema-mysql:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
+  image: $IMAGE_BUILD_DOCKER
   services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
+    - name: $IMAGE_DIND
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
@@ -123,12 +126,14 @@ test-schema-mysql:
     - k8s-memory
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "cloud"'
+    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
 
 test-schema-postgres:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
+  image: $IMAGE_BUILD_DOCKER
   services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
+    - name: $IMAGE_DIND
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
@@ -145,3 +150,5 @@ test-schema-postgres:
     - k8s-memory
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "cloud"'
+    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'

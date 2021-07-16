@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type notificationType string
@@ -55,7 +56,7 @@ type PushNotification struct {
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
 	cfg := a.Config()
-	msg, err := a.BuildPushNotificationMessage(
+	msg, appErr := a.BuildPushNotificationMessage(
 		*cfg.EmailSettings.PushNotificationContents,
 		post,
 		user,
@@ -66,8 +67,8 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		channelWideMention,
 		replyToThreadType,
 	)
-	if err != nil {
-		return err
+	if appErr != nil {
+		return appErr
 	}
 
 	return a.sendPushNotificationToAllSessions(msg, user.Id, "")
@@ -578,6 +579,12 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	}
 
 	postMessage := post.Message
+	stripped, err := utils.StripMarkdown(postMessage)
+	if err != nil {
+		mlog.Warn("Failed parse to markdown", mlog.String("post_id", post.Id), mlog.Err(err))
+	} else {
+		postMessage = stripped
+	}
 	for _, attachment := range post.Attachments() {
 		if attachment.Fallback != "" {
 			postMessage += "\n" + attachment.Fallback

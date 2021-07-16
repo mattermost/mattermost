@@ -1877,7 +1877,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "转至发文"
+    "translation": "查看消息"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -6373,7 +6373,7 @@
   },
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "我们删除偏好设置时遇到错误。"
+    "translation": "我们在删除偏好设置时遇到错误。"
   },
   {
     "id": "app.preference.get_category.app_error",
@@ -8525,7 +8525,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "恭喜，您的{{.WorkSpace}}工作区已准备就绪！"
+    "translation": "您的{{.WorkSpace}}工作区的 14 天试用已准备就绪！"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8629,11 +8629,11 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "未设置站点网址。请在系统控制台设置。"
+    "translation": "未设置站点网址。请在系统控制台 > 环境 > 网页服务器设置。"
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| 安全连接 | 显示名 | 连接 ID | 站点网址 | 已接受邀请 | 在线 | 上次 ping |"
+    "translation": "| 安全连接 | 显示名 | 连接 ID | 站点网址 | 已接受邀请 | 在线 | 最近 ping |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8669,11 +8669,11 @@
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "无法启用远程集群服务。"
+    "translation": "未启用安全连接服务。"
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "远程集群服务已停用。"
+    "translation": "安全连接服务已停用。"
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -8705,7 +8705,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "将以下加密的（AES256 + Base64）Blob 与密码一起发送给远程站点管理员。他们将使用 `{{.Command}}` 斜杠命令来接受邀请。\n\n```\n{{.Invitation}}\n```\n\n**确保远程站点可以通过 {{.SiteURL}} 访问您的集群**"
+    "translation": "将以下 AES 256-bit 加密的邀请与密码一起发送给外部 Mattermost 管理员。他们将使用 `{{.Command}}` 斜杠命令来接受邀请。\n\n```\n{{.Invitation}}\n```\n\n**确保远程站点可以通过 {{.SiteURL}} 访问您的 Mattermost 实例**"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -8717,7 +8717,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "创建安全连接"
+    "translation": "邀请安全连接"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -8753,7 +8753,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "邀请远程 Mattermost 集群进行集群间通信。"
+    "translation": "邀请安全连接以在 Mattermost 实例之间进行通信。"
   },
   {
     "id": "api.command_remote.accept.help",
@@ -8806,5 +8806,283 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "无法在这些用户之间创建直连频道因为他们不属于同一个团队。"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "重置 AuthData 栏到邮件失败。"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "必须指定有效的安全连接 ID 才能取消邀请"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "无效的安全连接 ID：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "已邀请安全连接。"
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "您需要`{{.Permission}}`权限才能管理共享频道。"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "无法取消共享未共享的频道。"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "没有安全连接被邀请到该频道。"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "share-channel"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "必须指定有效的安全连接 ID 才能邀请。"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "缺少操作。可用操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "邀请外部 Mattermost 实例加入当前共享频道"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "共享频道邀请已发送至 `{{.Name}} {{.SiteURL}}`。"
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "'{{.Arg}}'的无效值：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "无法获取安全连接的状态：{{.Error}}。"
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "获取安全连接时出错：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "与外部 Mattermost 实例共享当前频道。"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "无法取消邀请`{{.RemoteId}}`：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "检查共享频道是否存在时出错：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "频道 ID `{{.ChannelId}}` 的状态"
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "共享频道安全连接 `{{.RemoteId}}` 不存在该频道。"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "无法邀请来自其他地方的共享频道到安全连接。"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost 云试用已结束"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "开始订阅"
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "图像限制检查失败。分辨率过高。"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "请转到**系统控制台 > 站点配置 > 自定义**将 [支持电子邮件](https://docs.mattermost.com/administration/config-settings.html#support-email) 设置为您组织的内部 IT 支持用于最终用户反馈、电子邮件通知以及支持请求的电子邮件地址。"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "设置您的支持电子邮件地址"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "未能为续订电子邮件发送许可证"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "无法生成许可证续订链接"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "已存在具有相同网址的安全连接。"
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "更新安全连接时遇到错误。"
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "远程集群服务未启用。"
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "安全连接已被添加。"
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "保存安全连接时遇到错误。"
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "无效的主题。"
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "无效的 id。"
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "检索安全连接时遇到错误。"
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "删除安全连接时遇到错误。"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "如果您没有自动重定向，请点击<a href='{{.Link}}'>链接</a>"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "此 Mattermost 企业版的试用许可证密钥已过期。如果您想延长试用期，请[联系我们的销售团队](https://mattermost.com/contact-us/)。"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "无法检查是否可以开始试用"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "您尝试创建的作业的作业类型无效"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "您尝试检索的作业的作业类型不包含权限"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "确保您的 Amazon S3 存储桶可用，并验证您的存储桶权限。"
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "无法连接到 S3。验证您的 Amazon S3 连接授权参数和身份验证设置。"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "other": "{{ .SenderName }} 和 {{.Count}} 其他人向您发送了新消息"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "请参阅下面的新消息摘要。"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "查看此消息"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "打开 Mattermost"
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "缺少安全连接 ID。"
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "安全连接 ID 不匹配。"
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "无法找到安全连接 ID {{.RemoteId}}。"
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "JSON 编码错误。"
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "邀请已过期。"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "差异配置失败"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "差异配置失败"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "取消共享当前频道"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "未知操作`{{.Action}}`。可用操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "取消邀请的安全连接的 ID。"
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "取消邀请来自此共享频道的安全连接"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "无法取消此频道：{{.Error}}。"
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "此频道不再共享。"
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[只读] - ‘Y’ 或 ‘N’。默认为 ‘N’"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "频道将以只读模式共享"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "无法共享此频道：{{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "共享频道服务已禁用。"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "已取消`{{.RemoteId}}`的的安全连接受邀。"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "|安全连接|网站网址|只读|接受邀请|在线 |上次同步|"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "现有安全连接 ID。请参阅 `secure-connection`命令以添加安全连接。"
   }
 ]
