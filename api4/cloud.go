@@ -91,6 +91,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	var subscriptionChange *model.SubscriptionChange
 	if err = json.Unmarshal(bodyBytes, &subscriptionChange); err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
