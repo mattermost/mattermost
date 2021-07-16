@@ -464,7 +464,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
 	if !isNewPost {
-		og, image, _, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
+		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok {
 			cacheLinkMetadata(requestURL, timestamp, og, image, nil)
 			return og, image, nil, nil
@@ -573,25 +573,21 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 	return cached.OpenGraph, cached.PostImage, cached.Permalink, true
 }
 
-func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, bool) {
+func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
 	linkMetadata, err := a.Srv().Store.LinkMetadata().Get(requestURL, timestamp)
 	if err != nil {
-		return nil, nil, nil, false
+		return nil, nil, false
 	}
 
 	data := linkMetadata.Data
 
-	if linkMetadata.Type == model.LINK_METADATA_TYPE_PERMALINK && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
-		return nil, nil, &model.Permalink{}, true
-	}
-
 	switch v := data.(type) {
 	case *opengraph.OpenGraph:
-		return v, nil, nil, true
+		return v, nil, true
 	case *model.PostImage:
-		return nil, v, nil, true
+		return nil, v, true
 	default:
-		return nil, nil, nil, true
+		return nil, nil, true
 	}
 }
 

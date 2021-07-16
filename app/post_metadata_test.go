@@ -1719,7 +1719,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.True(t, ok, "data should already exist in in-memory cache")
 
-			_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in database")
 
 			og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -1734,7 +1734,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.True(t, ok, "data should already exist in in-memory cache")
 
-			_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in database")
 
 			og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp+60*1000, false)
@@ -1751,7 +1751,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(differentURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
-			_, _, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
+			_, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
 			require.False(t, ok, "data should not exist in database")
 
 			og, img, _, err := th.App.getLinkMetadata(differentURL, timestamp, false)
@@ -1767,7 +1767,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, differentTimestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
-			_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
 			require.False(t, ok, "data should not exist in database")
 
 			og, img, _, err := th.App.getLinkMetadata(requestURL, differentTimestamp, false)
@@ -1794,7 +1794,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
-			_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 			require.True(t, ok, "data should already exist in database")
 
 			og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -1811,7 +1811,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
-			_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 			require.True(t, ok, "data should already exist in database")
 
 			og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp+60*1000, false)
@@ -1830,7 +1830,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
-			_, _, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
+			_, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
 			require.False(t, ok, "data should not exist in database")
 
 			og, img, _, err := th.App.getLinkMetadata(differentURL, timestamp, false)
@@ -1848,7 +1848,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
-			_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
 			require.False(t, ok, "data should not exist in database")
 
 			og, img, _, err := th.App.getLinkMetadata(requestURL, differentTimestamp, false)
@@ -1869,7 +1869,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
-		_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in database")
 
 		og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -1889,7 +1889,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
-		_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in database")
 
 		og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -1902,7 +1902,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.True(t, ok)
 		assert.Exactly(t, og, fromCache)
 
-		fromDatabase, _, _, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		fromDatabase, _, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Exactly(t, og, fromDatabase)
 	})
@@ -1917,7 +1917,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
-		_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in database")
 
 		og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -1930,7 +1930,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.True(t, ok)
 		assert.Exactly(t, img, fromCache)
 
-		_, fromDatabase, _, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, fromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Exactly(t, img, fromDatabase)
 	})
@@ -1945,7 +1945,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
-		_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in database")
 
 		og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -1959,7 +1959,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, ogFromCache)
 		assert.Nil(t, imgFromCache)
 
-		ogFromDatabase, imageFromDatabase, _, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Nil(t, ogFromDatabase)
 		assert.Nil(t, imageFromDatabase)
@@ -1975,7 +1975,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
-		_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in database")
 
 		og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -1989,7 +1989,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, ogFromCache)
 		assert.Nil(t, imgFromCache)
 
-		ogFromDatabase, imageFromDatabase, _, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Nil(t, ogFromDatabase)
 		assert.Nil(t, imageFromDatabase)
@@ -2009,7 +2009,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
-		_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in database")
 
 		og, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -2024,7 +2024,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, ogFromCache)
 		assert.Nil(t, imgFromCache)
 
-		ogFromDatabase, imageFromDatabase, _, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Nil(t, ogFromDatabase)
 		assert.Nil(t, imageFromDatabase)
@@ -2040,7 +2040,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
-		_, _, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in database")
 
 		_, img, _, err := th.App.getLinkMetadata(requestURL, timestamp, false)
@@ -2053,7 +2053,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should no longer exist in in-memory cache")
 
-		_, fromDatabase, _, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		_, fromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		assert.True(t, ok, "data should be be in in-memory cache again")
 		assert.Exactly(t, img, fromDatabase)
 	})
