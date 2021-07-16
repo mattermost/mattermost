@@ -1230,6 +1230,11 @@ func upgradeDatabaseToVersion538(sqlStore *SqlStore) {
 // last viewed at time of the the thread as the last viewed at time
 // of the channel
 func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
+	var system model.System
+	if err := sqlStore.GetMaster().SelectOne(&system, "SELECT * FROM Systems WHERE Name = 'CRTThreadCountsAndUnreadsMigrationComplete'"); err == nil {
+		return
+	}
+
 	threadMembershipsCTE := `
 		SELECT PostId, UserId, ChannelMembers.LastViewedAt as CM_LastViewedAt, Threads.LastReplyAt
 		FROM Threads
@@ -1238,7 +1243,7 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 	`
 	updateThreadMembershipQuery := `
 		WITH q as (` + threadMembershipsCTE + `)
-		UPDATE ThreadMemberships set LastViewed = q.CM_LastViewedAt, UnreadMentions = 0, LastUpdated = :Now
+		UPDATE ThreadMemberships set LastViewed = q.CM_LastViewedAt + 1, UnreadMentions = 0, LastUpdated = :Now
 		FROM q WHERE ThreadMemberships.Postid = q.PostId AND ThreadMemberships.UserId = q.UserId
 	`
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
@@ -1252,6 +1257,11 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 
 	if _, err := sqlStore.GetMaster().ExecNoTimeout(updateThreadMembershipQuery, map[string]interface{}{"Now": model.GetMillis()}); err != nil {
 		mlog.Error("Error updating lastviewedat and unreadmentions of threadmemberships", mlog.Err(err))
+		return
+	}
+
+	if _, err := sqlStore.GetMaster().ExecNoTimeout("INSERT INTO Systems VALUES ('CRTThreadCountsAndUnreadsMigrationComplete', 'true')"); err != nil {
+		mlog.Error("Error marking migration as done", mlog.Err(err))
 	}
 }
 
@@ -1259,6 +1269,10 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 // total root message count, mention count, and mention count in root messages for users
 // who have viewed the channel after the last post in the channel
 func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
+	var system model.System
+	if err := sqlStore.GetMaster().SelectOne(&system, "SELECT * FROM Systems WHERE Name = 'CRTChannelMembershipCountsMigrationComplete'"); err == nil {
+		return
+	}
 	channelMembershipsCountsAndMentions := `
 		UPDATE ChannelMembers
 		SET MentionCount=0, MentionCountRoot=0, MsgCount=Channels.TotalMsgCount, MsgCountRoot=Channels.TotalMsgCountRoot, LastUpdateAt = :Now
@@ -1277,5 +1291,9 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 
 	if _, err := sqlStore.GetMaster().ExecNoTimeout(channelMembershipsCountsAndMentions, map[string]interface{}{"Now": model.GetMillis()}); err != nil {
 		mlog.Error("Error updating counts and unreads for channelmemberships", mlog.Err(err))
+		return
+	}
+	if _, err := sqlStore.GetMaster().ExecNoTimeout("INSERT INTO Systems VALUES ('CRTChannelMembershipCountsMigrationComplete', 'true')"); err != nil {
+		mlog.Error("Error marking migration as done", mlog.Err(err))
 	}
 }
