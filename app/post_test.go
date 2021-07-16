@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
@@ -2331,4 +2332,46 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[2])
 	})
+}
+
+func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	appErr := th.App.JoinChannel(th.Context, channel, user.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(th.Context, channel, user2.Id)
+	require.Nil(t, appErr)
+	p1, err := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, false, false)
+	require.Nil(t, err)
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user2.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
+	require.Nil(t, err)
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "reply"}, channel, false, false)
+	require.Nil(t, err)
+
+	// unfollow thread
+	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
+		Following: false,
+	})
+	require.NoError(t, nErr)
+	require.False(t, m.Following)
+
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "another reply"}, channel, false, false)
+	require.Nil(t, err)
+
+	// User should be following thread after posting in it, even after previously
+	// unfollowing it, if ThreadAutoFollow is true
+	m, err = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
+	require.Nil(t, err)
+	require.True(t, m.Following)
 }

@@ -358,6 +358,16 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	// Make sure poster is following the thread
+	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
+		_, err := a.Srv().Store.Thread().MaintainMembership(user.Id, rpost.RootId, store.ThreadMembershipOpts{
+			Following: true,
+		})
+		if err != nil {
+			mlog.Warn("Failed to update thread membership", mlog.Err(err))
+		}
+	}
+
 	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
 		mlog.Warn("Failed to handle post events", mlog.Err(err))
 	}
