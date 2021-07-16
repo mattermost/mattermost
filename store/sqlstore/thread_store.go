@@ -217,7 +217,24 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		if opts.Unread {
 			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
 		}
-		unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.CreateAt > ThreadMemberships.LastViewed AND Posts.DeleteAt = 0"
+
+		unreadRepliesFetchConditions := sq.And{
+			sq.Expr("Posts.RootId = ThreadMemberships.PostId"),
+			sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"),
+		}
+		if !opts.Deleted {
+			unreadRepliesFetchConditions = sq.And{
+				unreadRepliesFetchConditions,
+				sq.Expr("Posts.DeleteAt = 0"),
+			}
+		}
+
+		unreadRepliesQuery, _ := sq.
+			Select("COUNT(Posts.Id)").
+			From("Posts").
+			Where(unreadRepliesFetchConditions).
+			MustSql()
+
 		var threads []*JoinedThread
 		query, args, _ := s.getQueryBuilder().
 			Select(`Threads.*,
