@@ -651,8 +651,8 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 			sq.Eq{"Threads.ChannelId": channelIds},
 			sq.Eq{"ChannelMembers.UserId": userId},
 			sq.Or{
-				sq.Expr("Threads.LastReplyAt >= ChannelMembers.LastViewedAt"),
-				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
+				sq.Expr("Threads.LastReplyAt > ChannelMembers.LastViewedAt"),
+				sq.Gt{"Threads.LastReplyAt": timestamp},
 			},
 		}).
 		ToSql()
