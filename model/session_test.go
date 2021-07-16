@@ -5,7 +5,9 @@ package model
 
 import (
 	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,6 +39,24 @@ func TestSessionDeepCopy(t *testing.T) {
 	copySession = session.DeepCopy()
 
 	assert.Equal(t, 0, len(copySession.TeamMembers))
+}
+
+func TestSessionJson(t *testing.T) {
+	session := Session{}
+	session.PreSave()
+	json := session.ToJson()
+	rsession := SessionFromJson(strings.NewReader(json))
+
+	require.Equal(t, rsession.Id, session.Id, "Ids do not match")
+
+	session.Sanitize()
+
+	require.False(t, session.IsExpired(), "Shouldn't expire")
+
+	session.ExpiresAt = GetMillis()
+	time.Sleep(10 * time.Millisecond)
+
+	require.True(t, session.IsExpired(), "Should expire")
 }
 
 func TestSessionCSRF(t *testing.T) {
