@@ -331,6 +331,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		require.NoError(t, err)
 
 		// Run migration to fix threads and memberships
+		ss.System().PermanentDeleteByName("CRTThreadCountsAndUnreadsMigrationComplete")
 		fixCRTThreadCountsAndUnreads(sqlStore)
 
 		// Check bad threadMemberships is fixed
@@ -387,6 +388,7 @@ func TestFixCRTChannelUnreads(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+		ss.System().PermanentDeleteByName("CRTChannelMembershipCountsMigrationComplete")
 		fixCRTChannelMembershipCounts(sqlStore)
 
 		cm1AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId1)
