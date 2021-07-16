@@ -438,7 +438,7 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 	if rateLimited {
 		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
-		return RateLimitExceedError
+		return RateLimitExceededError
 	}
 
 	for _, invite := range invites {
@@ -500,7 +500,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 	if rateLimited {
 		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
-		return RateLimitExceedError
+		return RateLimitExceededError
 	}
 
 	for _, invite := range invites {

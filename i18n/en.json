@@ -6964,7 +6964,7 @@
   },
   {
     "id": "ent.data_retention.run_failed.error",
-    "translation": ""
+    "translation": "Data retention job failed."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",

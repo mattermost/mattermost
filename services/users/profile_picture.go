@@ -12,6 +12,7 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -35,8 +36,7 @@ func (us *UserService) GetProfileImage(user *model.User) ([]byte, bool, error) {
 		return img, false, nil
 	}
 
-	path := "users/" + user.Id + "/profile.png"
-
+	path := path.Join("users", user.Id, "profile.png")
 	data, err := us.ReadFile(path)
 	if err != nil {
 		img, appErr := us.GetDefaultProfileImage(user)
