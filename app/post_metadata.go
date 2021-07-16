@@ -443,10 +443,6 @@ func looksLikeAPermalink(url, siteURL string) bool {
 	return matched
 }
 
-func postIDFromPermalink(permalinkURL string) string {
-	return permalinkURL[len(permalinkURL)-26:]
-}
-
 func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
@@ -474,7 +470,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 	var err error
 
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
-		referencedPostID := postIDFromPermalink(requestURL)
+		referencedPostID := requestURL[len(requestURL)-26:]
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID)
 		// Ignore 'not found' errors; post could have been deleted via retention policy so we don't want to permanently log a warning.
