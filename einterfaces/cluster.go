@@ -12,7 +12,7 @@ type ClusterMessageHandler func(msg *model.ClusterMessage)
 type ClusterInterface interface {
 	StartInterNodeCommunication()
 	StopInterNodeCommunication()
-	RegisterClusterMessageHandler(event string, crm ClusterMessageHandler)
+	RegisterClusterMessageHandler(event model.ClusterEvent, crm ClusterMessageHandler)
 	GetClusterId() string
 	IsLeader() bool
 	// HealthScore returns a number which is indicative of how well an instance is meeting
