@@ -336,7 +336,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		// Check bad threadMemberships is fixed
 		fixedThreadMembership1, err := ss.Thread().GetMembershipForUser(uId1, rootPost1.Id)
 		require.NoError(t, err)
-		require.EqualValues(t, lastReplyAt, fixedThreadMembership1.LastViewed)
+		require.EqualValues(t, lastReplyAt+1, fixedThreadMembership1.LastViewed)
 		require.EqualValues(t, int64(0), fixedThreadMembership1.UnreadMentions)
 		require.NotEqual(t, goodThreadMembership1.LastUpdated, fixedThreadMembership1.LastUpdated)
 

@@ -1251,7 +1251,7 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 			UPDATE ThreadMemberships
 			INNER JOIN (` + threadMembershipsCTE + `) as q
 			ON ThreadMemberships.Postid = q.PostId AND ThreadMemberships.UserId = q.UserId
-			SET LastViewed = q.CM_LastViewedAt, UnreadMentions = 0, LastUpdated = :Now
+			SET LastViewed = q.CM_LastViewedAt + 1, UnreadMentions = 0, LastUpdated = :Now
 		`
 	}
 
