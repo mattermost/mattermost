@@ -621,7 +621,7 @@ type StatusStore interface {
 
 type StatusScheduleStore interface {
 	SaveOrUpdate(statusSchedule *model.StatusSchedule) error
-	Get(userID string) (*model.StatusSchedule, error) 
+	Get(userID string) (*model.StatusSchedule, error)
 }
 
 type FileInfoStore interface {

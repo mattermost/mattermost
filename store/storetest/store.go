@@ -38,7 +38,7 @@ type Store struct {
 	EmojiStore                mocks.EmojiStore
 	ThreadStore               mocks.ThreadStore
 	StatusStore               mocks.StatusStore
-	StatusScheduleStore	      mocks.StatusScheduleStore
+	StatusScheduleStore       mocks.StatusScheduleStore
 	FileInfoStore             mocks.FileInfoStore
 	UploadSessionStore        mocks.UploadSessionStore
 	ReactionStore             mocks.ReactionStore
