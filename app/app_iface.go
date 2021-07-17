@@ -742,6 +742,7 @@ type AppIface interface {
 	GetSiteURL() string
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
+	GetStatusSchedule(userID string) (*model.StatusSchedule, *model.AppError)
 	GetStatusesByIds(userIDs []string) (map[string]interface{}, *model.AppError)
 	GetSubscriptionStats() (*model.SubscriptionStats, *model.AppError)
 	GetSystemBot() (*model.Bot, *model.AppError)
@@ -951,6 +952,7 @@ type AppIface interface {
 	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
+	SaveStatusSchedule(statusSchedule *model.StatusSchedule)
 	SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
 	SearchArchivedChannels(teamID string, term string, userID string) (*model.ChannelList, *model.AppError)

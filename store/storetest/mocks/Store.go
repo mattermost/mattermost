@@ -577,6 +577,22 @@ func (_m *Store) Status() store.StatusStore {
 	return r0
 }
 
+// StatusSchedule provides a mock function with given fields:
+func (_m *Store) StatusSchedule() store.StatusScheduleStore {
+	ret := _m.Called()
+
+	var r0 store.StatusScheduleStore
+	if rf, ok := ret.Get(0).(func() store.StatusScheduleStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StatusScheduleStore)
+		}
+	}
+
+	return r0
+}
+
 // System provides a mock function with given fields:
 func (_m *Store) System() store.SystemStore {
 	ret := _m.Called()

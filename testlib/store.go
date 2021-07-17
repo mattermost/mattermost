@@ -76,6 +76,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	statusStore := mocks.StatusStore{}
 	statusStore.On("ResetAll").Return(nil)
 
+	statusScheduleStore := mocks.StatusScheduleStore{}
+
 	channelStore := mocks.ChannelStore{}
 	channelStore.On("ClearCaches").Return(nil)
 
@@ -94,6 +96,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)
 	mockStore.On("Status").Return(&statusStore)
+	mockStore.On("StatusSchedule").Return(&statusScheduleStore)
 	mockStore.On("Channel").Return(&channelStore)
 	mockStore.On("Team").Return(&teamStore)
 	mockStore.On("Role").Return(&roleStore)
