@@ -52,7 +52,7 @@ func threadToSlice(thread *model.Thread) []interface{} {
 		thread.ChannelId,
 		thread.LastReplyAt,
 		thread.ReplyCount,
-		thread.Participants,
+		model.ArrayToJson(thread.Participants),
 	}
 }
 
@@ -130,7 +130,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		model.Post
 	}
 
-	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.CreateAt >= ThreadMemberships.LastViewed"
 	fetchConditions := sq.And{
 		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
 		sq.Eq{"ThreadMemberships.UserId": userId},
@@ -159,7 +158,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 			Where(fetchConditions).
-			Where("Posts.CreateAt >= ThreadMemberships.LastViewed").ToSql()
+			Where("Posts.CreateAt > ThreadMemberships.LastViewed").ToSql()
 
 		totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
 		totalUnreadThreadsChan <- store.StoreResult{Data: totalUnreadThreads, NErr: errors.Wrapf(err, "failed to get count unread on threads for user id=%s", userId)}
@@ -218,6 +217,24 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		if opts.Unread {
 			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
 		}
+
+		unreadRepliesFetchConditions := sq.And{
+			sq.Expr("Posts.RootId = ThreadMemberships.PostId"),
+			sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"),
+		}
+		if !opts.Deleted {
+			unreadRepliesFetchConditions = sq.And{
+				unreadRepliesFetchConditions,
+				sq.Expr("Posts.DeleteAt = 0"),
+			}
+		}
+
+		unreadRepliesQuery, _ := sq.
+			Select("COUNT(Posts.Id)").
+			From("Posts").
+			Where(unreadRepliesFetchConditions).
+			MustSql()
+
 		var threads []*JoinedThread
 		query, args, _ := s.getQueryBuilder().
 			Select(`Threads.*,
@@ -358,7 +375,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		From("Posts").
 		Where(sq.And{
 			sq.Eq{"Posts.RootId": threadMembership.PostId},
-			sq.GtOrEq{"Posts.CreateAt": threadMembership.LastViewed},
+			sq.Gt{"Posts.CreateAt": threadMembership.LastViewed},
 			sq.Eq{"Posts.DeleteAt": 0},
 		}).MustSql()
 
@@ -651,8 +668,8 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 			sq.Eq{"Threads.ChannelId": channelIds},
 			sq.Eq{"ChannelMembers.UserId": userId},
 			sq.Or{
-				sq.Expr("Threads.LastReplyAt >= ChannelMembers.LastViewedAt"),
-				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
+				sq.Expr("Threads.LastReplyAt > ChannelMembers.LastViewedAt"),
+				sq.Gt{"Threads.LastReplyAt": timestamp},
 			},
 		}).
 		ToSql()

@@ -485,11 +485,18 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 		return nil
 	}
 
+	vals := map[string]interface{}{
+		"Id":          publicChannel.Id,
+		"DeleteAt":    publicChannel.DeleteAt,
+		"TeamId":      publicChannel.TeamId,
+		"DisplayName": publicChannel.DisplayName,
+		"Name":        publicChannel.Name,
+		"Header":      publicChannel.Header,
+		"Purpose":     publicChannel.Purpose,
+	}
+	var err error
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		// Leverage native upsert for MySQL, since RowsAffected returns 0 if the row exists
-		// but no changes were made, breaking the update-then-insert paradigm below when
-		// the row already exists. (Postgres 9.4 doesn't support native upsert.)
-		if _, err := transaction.Exec(`
+		_, err = transaction.Exec(`
 			INSERT INTO
 			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
 			VALUES
@@ -501,29 +508,24 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 			    Name = :Name,
 			    Header = :Header,
 			    Purpose = :Purpose;
-		`, map[string]interface{}{
-			"Id":          publicChannel.Id,
-			"DeleteAt":    publicChannel.DeleteAt,
-			"TeamId":      publicChannel.TeamId,
-			"DisplayName": publicChannel.DisplayName,
-			"Name":        publicChannel.Name,
-			"Header":      publicChannel.Header,
-			"Purpose":     publicChannel.Purpose,
-		}); err != nil {
-			return errors.Wrap(err, "failed to insert public channel")
-		}
+		`, vals)
 	} else {
-		count, err := transaction.Update(publicChannel)
-		if err != nil {
-			return errors.Wrap(err, "failed to update public channel")
-		}
-		if count > 0 {
-			return nil
-		}
-
-		if err := transaction.Insert(publicChannel); err != nil {
-			return errors.Wrap(err, "failed to insert public channel")
-		}
+		_, err = transaction.Exec(`
+			INSERT INTO
+			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+			VALUES
+			    (:Id, :DeleteAt, :TeamId, :DisplayName, :Name, :Header, :Purpose)
+			ON CONFLICT (id) DO UPDATE
+			SET DeleteAt = :DeleteAt,
+			    TeamId = :TeamId,
+			    DisplayName = :DisplayName,
+			    Name = :Name,
+			    Header = :Header,
+			    Purpose = :Purpose;
+		`, vals)
+	}
+	if err != nil {
+		return errors.Wrap(err, "failed to insert public channel")
 	}
 
 	return nil
