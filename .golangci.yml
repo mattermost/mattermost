@@ -36,6 +36,12 @@ linters:
 issues:
   exclude-rules:
     - linters:
+      # ignore unused warnings from enterprise code
+      # add more as required.
+      - unused
+      text: "SetupEnterprise"
+
+    - linters:
       - staticcheck
       path: ".*_test.go|store/storetest"
 
