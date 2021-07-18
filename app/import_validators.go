@@ -259,48 +259,48 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 	}
 
 	if data.NotifyProps != nil {
-		if data.NotifyProps.Desktop != nil && !model.IsValidUserNotifyLevel(*data.NotifyProps.Desktop) {
+		if data.NotifyProps.Desktop != nil && !isValidUserNotifyLevel(*data.NotifyProps.Desktop) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.DesktopSound != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.DesktopSound) {
+		if data.NotifyProps.DesktopSound != nil && !isValidTrueOrFalseString(*data.NotifyProps.DesktopSound) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.Email != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.Email) {
+		if data.NotifyProps.Email != nil && !isValidTrueOrFalseString(*data.NotifyProps.Email) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_email_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.Mobile != nil && !model.IsValidUserNotifyLevel(*data.NotifyProps.Mobile) {
+		if data.NotifyProps.Mobile != nil && !isValidUserNotifyLevel(*data.NotifyProps.Mobile) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_mobile_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.MobilePushStatus != nil && !model.IsValidPushStatusNotifyLevel(*data.NotifyProps.MobilePushStatus) {
+		if data.NotifyProps.MobilePushStatus != nil && !isValidPushStatusNotifyLevel(*data.NotifyProps.MobilePushStatus) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.ChannelTrigger != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.ChannelTrigger) {
+		if data.NotifyProps.ChannelTrigger != nil && !isValidTrueOrFalseString(*data.NotifyProps.ChannelTrigger) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.CommentsTrigger != nil && !model.IsValidCommentsNotifyLevel(*data.NotifyProps.CommentsTrigger) {
+		if data.NotifyProps.CommentsTrigger != nil && !isValidCommentsNotifyLevel(*data.NotifyProps.CommentsTrigger) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if data.UseMarkdownPreview != nil && !model.IsValidTrueOrFalseString(*data.UseMarkdownPreview) {
+	if data.UseMarkdownPreview != nil && !isValidTrueOrFalseString(*data.UseMarkdownPreview) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.UseFormatting != nil && !model.IsValidTrueOrFalseString(*data.UseFormatting) {
+	if data.UseFormatting != nil && !isValidTrueOrFalseString(*data.UseFormatting) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_formatting.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.ShowUnreadSection != nil && !model.IsValidTrueOrFalseString(*data.ShowUnreadSection) {
+	if data.ShowUnreadSection != nil && !isValidTrueOrFalseString(*data.ShowUnreadSection) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_show_unread_section.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.EmailInterval != nil && !model.IsValidEmailBatchingInterval(*data.EmailInterval) {
+	if data.EmailInterval != nil && !isValidEmailBatchingInterval(*data.EmailInterval) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_email_interval.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -578,4 +578,32 @@ func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 	}
 
 	return nil
+}
+
+func isValidTrueOrFalseString(value string) bool {
+	return value == "true" || value == "false"
+}
+
+func isValidUserNotifyLevel(notifyLevel string) bool {
+	return notifyLevel == model.ChannelNotifyAll ||
+		notifyLevel == model.ChannelNotifyMention ||
+		notifyLevel == model.ChannelNotifyNone
+}
+
+func isValidPushStatusNotifyLevel(notifyLevel string) bool {
+	return notifyLevel == model.StatusOnline ||
+		notifyLevel == model.StatusAway ||
+		notifyLevel == model.StatusOffline
+}
+
+func isValidCommentsNotifyLevel(notifyLevel string) bool {
+	return notifyLevel == model.CommentsNotifyAny ||
+		notifyLevel == model.CommentsNotifyRoot ||
+		notifyLevel == model.CommentsNotifyNever
+}
+
+func isValidEmailBatchingInterval(emailInterval string) bool {
+	return emailInterval == model.PreferenceEmailIntervalImmediately ||
+		emailInterval == model.PreferenceEmailIntervalFifteen ||
+		emailInterval == model.PreferenceEmailIntervalHour
 }

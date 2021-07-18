@@ -443,8 +443,8 @@ func (r *Role) Patch(patch *RolePatch) {
 func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *RolePermissions) {
 	mergedPermissions := []string{}
 
-	higherScopedPermissionsMap := AsStringBoolMap(higherScopedPermissions.Permissions)
-	rolePermissionsMap := AsStringBoolMap(r.Permissions)
+	higherScopedPermissionsMap := asStringBoolMap(higherScopedPermissions.Permissions)
+	rolePermissionsMap := asStringBoolMap(r.Permissions)
 
 	for _, cp := range AllPermissions {
 		if cp.Scope != PermissionScopeChannel {
@@ -949,4 +949,12 @@ func AddAncillaryPermissions(permissions []string) []string {
 		}
 	}
 	return permissions
+}
+
+func asStringBoolMap(list []string) map[string]bool {
+	listMap := map[string]bool{}
+	for _, p := range list {
+		listMap[p] = true
+	}
+	return listMap
 }

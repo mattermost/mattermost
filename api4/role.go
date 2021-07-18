@@ -163,7 +163,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		*patch.Permissions = model.UniqueStrings(*patch.Permissions)
+		*patch.Permissions = model.RemoveDuplicateStrings(*patch.Permissions)
 	}
 
 	if c.App.Srv().License() != nil && isGuest && !*c.App.Srv().License().Features.GuestAccountsPermissions {
