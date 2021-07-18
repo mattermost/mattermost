@@ -181,7 +181,13 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
-	ok, err := store.ensureMinimumDBVersion()
+	ver, err := store.GetDbVersion(true)
+	if err != nil {
+		mlog.Critical("Error while getting DB version.", mlog.Err(err))
+		os.Exit(ExitGenericFailure)
+	}
+
+	ok, err := store.ensureMinimumDBVersion(ver)
 	if !ok {
 		mlog.Critical("Error while checking DB version.", mlog.Err(err))
 		os.Exit(ExitGenericFailure)
@@ -1671,11 +1677,7 @@ func IsDuplicate(err error) bool {
 
 // ensureMinimumDBVersion gets the DB version and ensures it is
 // above the required minimum version requirements.
-func (ss *SqlStore) ensureMinimumDBVersion() (bool, error) {
-	ver, err := ss.GetDbVersion(true)
-	if err != nil {
-		return false, err
-	}
+func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 	switch *ss.settings.DriverName {
 	case model.DatabaseDriverPostgres:
 		intVer, err2 := strconv.Atoi(ver)
