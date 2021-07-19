@@ -3867,14 +3867,6 @@
     "translation": "Login failed because of invalid password."
   },
   {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Failed to send trial ended email"
-  },
-  {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Failed to send trial ending warning email"
-  },
-  {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email."
   },
@@ -4131,28 +4123,8 @@
     "translation": "Failed to send the deactivate account email successfully"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Failed to send email change notification email successfully"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Failed to send username change notification email successfully"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully"
-  },
-  {
-    "id": "api.user.send_license_up_for_renewal_email.error",
-    "translation": "Failed to send license up for renewal email"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Failed to send update password email successfully"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -4167,20 +4139,8 @@
     "translation": "Failed to send update password email successfully"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Failed to send email to user limit notification to admin"
-  },
-  {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send \"Personal access token added\" email successfully"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Failed to send verification email successfully"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Failed to send welcome email successfully"
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
