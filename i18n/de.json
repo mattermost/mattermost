@@ -7889,5 +7889,137 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
     "translation": "Ihre Enterprise Test ist jetzt aktiv. Erstellen Sie einen Kanal und gehen Sie zu **Systemkonsole > Benutzerverwaltung > Kanäle** um das Schreiben von Nachrichten auf Kanaladministratoren zu beschränken."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost Cloud Test ist beendet"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Starte Abonnement"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "Sie haben das Benutzerlimit für die freie Nutzung erreicht "
+  },
+  {
+    "id": "api.templates.at_limit_subject",
+    "translation": "Mattermost Cloud Benutzerlimit erreicht"
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternativ können Sie Benutzer in der Verwaltungskonsole deaktivieren um Plätze für mehr Benutzer bereitzustellen oder um unterhalb des Limits für freie Benutzer zu bleiben."
+  },
+  {
+    "id": "api.templates.at_limit_info2",
+    "translation": "Alternativ können Sie Benutzer in der Verwaltungskonsole deaktivieren um Plätze für mehr Benutzer bereitzustellen oder um unterhalb des Limits für freie Benutzer zu bleiben."
+  },
+  {
+    "id": "api.templates.at_limit_info1",
+    "translation": "Es sieht so aus, als ob Sie 10 oder mehr Benutzer in Ihrem Arbeitsbereich haben — das ist großartig! Wenn Sie mehr Team Mitglieder einladen wollen, sollten Sie jetzt in Betracht ziehen, auf Mattermost Cloud Professional upzugraden."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Prüfung der Bildbeschränkungen ist fehlgeschlagen. Auflösung ist zu hoch."
+  },
+  {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "Sie haben das Benutzerlimit für die freie Nutzung erreicht"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Ungültiger oder fehlender Anfragebody."
+  },
+  {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "Unbekannte Importquelle."
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Fehler beim Abruf des Cloud-Abonnements"
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Der Anfrage-Body kann nicht verarbeitet werden."
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": "Die Aktualisierung von gelesenen Hinweisen ist fehlgeschlagen"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Die Überprüfung der Konditionen für Produkthinweise ist fehlgeschlagen"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Die Verarbeitung von Produkthinweisen ist fehlgeschlagen"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Das Holen von Produkthinweisen ist fehlgeschlagen"
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Das Löschen alter Produkthinweise ist fehlgeschlagen"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Bitte gehen Sie zu **Systemkonsole > Systemkonfiguration > Anpassung** um die [Support-E-Mail-Adresse](https://docs.mattermost.com/administration/config-settings.html#support-email) als E-Mail-Adresse des internen IT-Supports für Benutzerfeedback, E-Mail Benachrichtigungen und Support-Anfragen festzulegen."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Setzen Ihre Support E-Mail Adresse"
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Starte Test"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "Ihr Enterprise Test ist jetzt aktiv. Gehen Sie zu **Systemkonsole > Benutzerverwaltung > Berechtigungen** um die erweiterten Berechtigungen zu aktivieren."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "Ihre Mattermost Umgebung hat jetzt mehrere Teams. Viele Teams habe ihren eigenen, bevorzugten Weg der Koordination und Zusammenarbeit, unter anderem, wie Kanäle erstellt werden, wer neue Teammitglieder einladen kann und wie Integrationen verwaltet werden. Team Übersteuerungsschemata erlauben es Ihnen, Benutzerberechtigungen in jedem Team auf dessen speziellen Bedürfnisse anzupassen.\n\n[Mehr über erweiterte Rechte](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nDurch Anklicken von Starte Test, stimmen Sie dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der[Datenschutzerklärung] (https://mattermost.com/privacy-policy/) zu, und erhalten Emails zum Produkt."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "Erweiterte Berechtigungen verwenden"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
+    "translation": "Ihre Mattermost Umgebung hat jetzt mehrere Teams. Viele Teams habe ihren eigenen, bevorzugten Weg der Koordination und Zusammenarbeit, unter anderem, wie Kanäle erstellt werden, wer neue Teammitglieder einladen kann und wie Integrationen verwaltet werden. Team Übersteuerungsschemata erlauben es Ihnen, Benutzerberechtigungen in jedem Team auf dessen speziellen Bedürfnisse anzupassen.\n\n[Mehr über erweiterte Rechte](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nDurch Klicken auf \"Kontakt\" teilen Sie Ihre Daten mit Mattermost, Inc. [mehr](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Mattermost Kontaktanfrage. Ich bin daran interessiert, mehr über Erweiterte Berechtigungen mit Team Schemata zu erfahren.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
+    "translation": "Ihre Enterprise Lizenz ist jetzt aktiv. Wenn Sie einen Elasticsearch Server haben, gehen Sie zur Konfiguration zu **Systemkonsole > Umgebung > Elasticsearch**."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
+    "translation": "Ihre Mattermost Umegbung hat eine große Anzahl an Nachrichten. Die standardmäßige Mattermost-Datenbanksuche beginnt bei ungefähr 2.5 Millionen Nachrichten ein Nachlassen der Leistung zu zeigen. Bei über 5 Millionen Nachrichten kann Elasticsearch signifikate Leistungseinbrüche, wie Timeouts bei der Suche und @-Erwähnungen, vermeiden. Kontaktieren Sie uns um mehr zu erfahren und lassen Sie uns wissen, wie wir Sie unterstützen können.\n\n[Lerne mehr über die Verbesserung der Leistung](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDurch Anklicken von Starte Test, stimmen Sie dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der[Datenschutzerklärung] (https://mattermost.com/privacy-policy/) zu, und erhalten Emails zum Produkt."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "Ihre Mattermost Umegbung hat eine große Anzahl an Nachrichten. Die standardmäßige Mattermost-Datenbanksuche beginnt bei ungefähr 2.5 Millionen Nachrichten ein Nachlassen der Leistung zu zeigen. Bei über 5 Millionen Nachrichten kann Elasticsearch signifikate Leistungseinbrüche, wie Timeouts bei der Suche und @-Erwähnungen, vermeiden. Kontaktieren Sie uns um mehr zu erfahren und lassen Sie uns wissen, wie wir Sie unterstützen können.\n\n[Lerne mehr über die Verbesserung der Leistung](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDurch Anklicken von \"Kontaktiere Uns\", teilen Sie Informationen mit Mattermost, Inc. [Mehr Information](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "Leistung verbessern"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
+    "translation": "Mattermost Kontaktanfrage. Ich bin daran interessiert, mehr über die Verbesserung der Leistung mit Elasticsearch zu erfahren.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
+    "translation": "Ihre Enterprise Lizenz ist jetzt aktiv. Gehe zu **Systemkonsole > Benutzerverwaltung > Berechtigungen** um erweiterte Berechtigungen zu aktivieren."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
+    "translation": "Kanäle helfen beim Verbessern der Kommunikation, aber je mehr Mattermost-Benutzern Kanäle erstellen oder beitreten, desto größer wird die Anforderung im System den Überblick zu bewahren. Erweiterte Berechtigungen ermöglichen es festzulegen, welche Benutzer oder Rollen welche spezifische Aktion ausführen dürfen.Dazu zählen unter anderem das Verwalten von Kanaleinstellungen und -mitgliedern, das Verwenden von @channel oder @here, und das Erstellen neuer Webhooks.\n\n[Lerne mehr über Erweiterte Berechtigungen](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDurch Anklicken von \"Starte Test\", stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzrichtlinie](https://mattermost.com/privacy-policy/) zu und erhalten E-Mails zum Produkt."
   }
 ]
