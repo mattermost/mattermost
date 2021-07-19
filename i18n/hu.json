@@ -6293,7 +6293,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nCsatorna hozzáadva:\n"
+    "translation": "\nHozzáadott csatornák:\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -7820,7 +7820,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Az alapértelmezett csatorna nem törölhető, {{.Channel}}."
+    "translation": "Az alapértelmezett csatorna {{.Channel}} nem törölhető."
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
@@ -7828,11 +7828,11 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s csatorna fejléce frissítve: %s -re"
+    "translation": "%s frissítette a csatorna fejlécét %s -re"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-    "translation": "%s csatorna fejléce frissítve: %s -ről: %s -re"
+    "translation": "%s frissítette a csatorna fejlécét %s -ről %s -re"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
@@ -7848,7 +7848,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s csatorna neve frissítve: %s -ről: %s -re"
+    "translation": "%s frissítette a csatorna nevét %s -ről %s -re"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
@@ -7856,7 +7856,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Nem sikerült beküldeni a megjelenítési nevet a frissítési üzenetnél"
+    "translation": "Nem sikerült beküldeni a megjelenítési név frissítési üzenetet"
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -7876,7 +7876,7 @@
   },
   {
     "id": "api.channel.move_channel.type.invalid",
-    "translation": "Nem lehet közvetlen vagy csoportos üzenetcsatornákat áthelyezni"
+    "translation": "Nem lehet közvetlen vagy csoportos üzenet csatornákat áthelyezni"
   },
   {
     "id": "api.channel.leave.left",
@@ -7884,15 +7884,15 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ön az egyetlen tag próbálkozzon a privát csatorna eltávolításával a kilépés helyett."
+    "translation": "Ön az egyetlen megmaradt tag, kilépés helyett próbálkozzon a privát csatorna eltávolításával."
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "A közvetlen üzenet küldési csatornából nem lehet kilépni."
+    "translation": "Közvetlen üzenet csatornából nem lehet kilépni."
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Az alapértelmezett csatornából nem lehet kilépni {{.Channel}}."
+    "translation": "Az alapértelmezett csatornából {{.Channel}} nem lehet kilépni."
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
@@ -7920,7 +7920,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Az alapértelmezett csatorna nem törölhető, {{.Channel}}."
+    "translation": "Az alapértelmezett csatorna {{.Channel}} nem törölhető."
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -7940,11 +7940,11 @@
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Közösségi tér"
+    "translation": "Főtér"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Más témák"
+    "translation": "Egyéb Téma"
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -7972,11 +7972,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Ez a csatorna nyilvános csatornává lett alakítva és bárki bármilyen csapatból csatlakozhat hozzá."
+    "translation": "Ez a csatorna nyilvános csatornává lett alakítva és bármilyen csapattag csatlakozhat hozzá."
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Ehhez a csatornatípushoz nem adható hozzá felhasználó."
+    "translation": "Ehhez a csatorna típushoz nem adható hozzá felhasználó."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -7984,11 +7984,11 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Nem sikerült hozzáadni a csatornához a felhasználót."
+    "translation": "Nem sikerült hozzáadni a felhasználót a csatornához."
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "A csatorna tagság megtagadva a következő felhasználóknak, csoportkorlátozások miatt: {{.UserIDs}}"
+    "translation": "A csatorna tagság megtagadva a következő felhasználóknak, csoport összeférhetetlenség miatt: {{.UserIDs}}"
   },
   {
     "id": "api.channel.add_members.error",
@@ -8004,27 +8004,27 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Kérem, adjon hozzá azokhoz a csapatokhoz és csatornához, amelyekben szeretné, hogy működjek. Ehhez kérem használjon egy böngészőt vagy a Mattermost alkalmazást."
+    "translation": "Kérem, adjon hozzá azokhoz a csapatokhoz és csatornákhoz, amelyekben szeretné, hogy részt vegyek. Ehhez használjon egy böngészőt vagy a Mattermost alkalmazást."
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "A profilképet nem lehetett feltölteni. A fájl túl nagy."
+    "translation": "Az ikon képet nem lehetett feltölteni. A fájl túl nagy."
   },
   {
     "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nem sikerült tagolnia többrészes űrlapot."
+    "translation": "Nem sikerült értelmezni a többrészes űrlapot."
   },
   {
     "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "A Képfájl nem nyitható meg.."
+    "translation": "A képfájl nem nyitható meg."
   },
   {
     "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'kép' mezőben."
+    "translation": "Nincs fájl a kérés 'image' mezőjében."
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Üres a tömb a 'kép' alatt a kérésnél."
+    "translation": "Üres tömb a kérés 'image' mezőjében."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
@@ -8056,19 +8056,19 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Nem sikerült tagolni a többrészes formot."
+    "translation": "Nem sikerült értelmezni a többrészes formot."
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'kép' mezőben."
+    "translation": "Nincs fájl a kérés 'image' elemében."
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Üres a tömb a 'kép' alatt a kérésben."
+    "translation": "Üres a tömb a kérés 'image' elemében."
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "Az S3 Bucket szükséges"
+    "translation": "S3 Bucket szükséges"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -8877,7 +8877,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Email beállítások tesztelése"
+    "translation": "Mattermost - E-mail beállítások tesztelése"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -8889,7 +8889,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "Úgy tűnik a Mattermost email helyesen be van állítva!"
+    "translation": "Úgy tűnik a Mattermost e-mail helyesen van beállítva!"
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
@@ -8901,7 +8901,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "A tanúsítvány szövege nem megfelelő."
+    "translation": "Érvénytelen tanúsítvány szöveg."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -8913,31 +8913,31 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Hiányzó identitásszolgáltató SSO leíró csomópontok az XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató SSO szolgáltatások csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Hiányzó identitás-szolgáltató kulcsleírók a csomópont XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató kulcs infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Hiányzó identitásszolgáltató SSO leíró csomópontok az XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató SSO infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
-    "translation": "Tanúsítványfájl mentése sikertelen."
+    "translation": "Nem sikerült a tanúsítvány fájl mentése."
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
-    "translation": "Nem sikerült visszaállítani az AuthData mezőt E-mailre."
+    "translation": "Nem sikerült visszaállítani az AuthData mezőt e-mailre."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Hiba történt a személyazonosság-szolgáltatótól kapott metaadat-adatok tanúsítványként történő elemzése során."
+    "translation": "Hiba történt a Személyazonossági Szolgáltatótól kapott metaadat-adatok tanúsítványként történő elemzése során."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Metadata beszerzése sikertelen a Személyazonossági Szolgáltató URL től."
+    "translation": "Metadata beszerzése sikertelen a Személyazonossági Szolgáltató URL-ből."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -8953,31 +8953,31 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Hiba a log-fájl beolvasása közben."
+    "translation": "Hiba a naplófájl beolvasása közben."
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Nem sikerült törölni az egyedi cég képét, nem található."
+    "translation": "Nem sikerült törölni az egyediesítés képét, nem található."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Tanúsítványfájl mentése sikertelen."
+    "translation": "Tanúsítvány fájl mentése sikertelen."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
-    "translation": "Hiba történt a multiform kérés tagolás közben"
+    "translation": "Hiba történt a multiform kérés értelmezése közben"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Tanúsítványfájl megnyitása sikertelen."
+    "translation": "Tanúsítvány fájl megnyitása sikertelen."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'tanúsítvány' mezőben."
+    "translation": "Nincs megadva fájl a kérés 'certificate' mezőjében."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Nincs megadva fájl a 'tanúsítvány' mezőben."
+    "translation": "Nincs megadva fájl a kérés 'certificate' mezőjében."
   },
   {
     "id": "September",
