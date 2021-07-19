@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5370
+	CurrentSchemaVersion   = Version5380
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -1336,7 +1336,7 @@ func hasMissingMigrationsVersion536(sqlStore *SqlStore) bool {
 }
 
 func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
+	if hasMissingMigrationsVersion537(sqlStore) {
 		sqlStore.RemoveIndexIfExists("idx_posts_channel_id", "Posts")
 		sqlStore.RemoveIndexIfExists("idx_channels_name", "Channels")
 		sqlStore.RemoveIndexIfExists("idx_publicchannels_name", "PublicChannels")
@@ -1356,22 +1356,82 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 		sqlStore.RemoveIndexIfExists("idx_sharedchannelusers_user_id", "SharedChannelUsers")
 		sqlStore.RemoveIndexIfExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies")
 		sqlStore.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
+	}
 
-		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "bigint", "bigint")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
-
+	if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
 		saveSchemaVersion(sqlStore, Version5370)
 	}
 }
 
-func upgradeDatabaseToVersion538(sqlStore *SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.38
-	// if shouldPerformUpgrade(sqlStore, Version5370, Version5380) {
-	fixCRTChannelMembershipCounts(sqlStore)
-	fixCRTThreadCountsAndUnreads(sqlStore)
+func hasMissingMigrationsVersion537(sqlStore *SqlStore) bool {
+	if sqlStore.DoesIndexExist("idx_posts_create_at", "Posts") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_channels_name", "Channels") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_publicchannels_name", "PublicChannels") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_channelmembers_channel_id", "ChannelMembers") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_emoji_name", "Emoji") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_oauthaccessdata_client_id", "OAuthAccessData") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_oauthauthdata_client_id", "OAuthAuthData") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_preferences_user_id", "Preferences") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_notice_views_user_id", "ProductNoticeViewState") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_notice_views_user_notice", "ProductNoticeViewState") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_status_user_id", "Status") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_teammembers_team_id", "TeamMembers") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_teams_name", "Teams") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_user_access_tokens_token", "UserAccessTokens") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_user_terms_of_service_user_id", "UserTermsOfService") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_users_email", "Users") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("idx_sharedchannelusers_user_id", "SharedChannelUsers") {
+		return true
+	}
+	if sqlStore.DoesIndexExist("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies") {
+		return true
+	}
+	if !sqlStore.DoesIndexExist("IDX_RetentionPolicies_DisplayName", "RetentionPolicies") {
+		return true
+	}
 
-	// 	saveSchemaVersion(sqlStore, Version5380)
-	// }
+	return false
+}
+
+func upgradeDatabaseToVersion538(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5370, Version5380) {
+		fixCRTChannelMembershipCounts(sqlStore)
+		fixCRTThreadCountsAndUnreads(sqlStore)
+
+		saveSchemaVersion(sqlStore, Version5380)
+	}
 }
 
 // fixCRTThreadCountsAndUnreads Marks threads as read for users where the last
