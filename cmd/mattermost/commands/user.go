@@ -344,54 +344,24 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	type prompt struct {
-		name  string
-		iface interface{}
+	username, erru := command.Flags().GetString("username")
+	if erru != nil || username == "" {
+		return errors.New("Username is required")
 	}
-
-	var (
-		username        string
-		email           string
-		password        string
-		passwordConfirm string
-		nickname        string
-		firstname       string
-		lastname        string
-		locale          string
-		systemAdmin     bool
-	)
-	fmt.Println("---------------CREATE USER--------------")
-	var prompts = []prompt{
-		{name: "username", iface: &username},
-		{name: "email", iface: &email},
-		{name: "password", iface: &password},
-		{name: "passwordConfirm", iface: &passwordConfirm},
-		{name: "nickname", iface: &nickname},
-		{name: "firstname", iface: &firstname},
-		{name: "lastname", iface: &lastname},
-		{name: "locale", iface: &locale},
-		{name: "systemAdmin", iface: &systemAdmin},
+	email, erre := command.Flags().GetString("email")
+	if erre != nil || email == "" {
+		return errors.New("Email is required")
 	}
-	for _, prompt := range prompts {
-		fmt.Print(prompt.name + ": ")
-		fmt.Scanln(prompt.iface)
+	email = strings.ToLower((email))
+	password, errp := command.Flags().GetString("password")
+	if errp != nil || password == "" {
+		return errors.New("Password is required")
 	}
-
-	if username == "" {
-		return errors.New("username is required")
-	}
-	if email == "" {
-		return errors.New("email is required")
-	}
-	if password == "" {
-		return errors.New("password is required")
-	}
-	if passwordConfirm == "" {
-		return errors.New("you have to confirm your password")
-	}
-	if passwordConfirm != password {
-		return errors.New("passwords do not match")
-	}
+	nickname, _ := command.Flags().GetString("nickname")
+	firstname, _ := command.Flags().GetString("firstname")
+	lastname, _ := command.Flags().GetString("lastname")
+	locale, _ := command.Flags().GetString("locale")
+	systemAdmin, _ := command.Flags().GetBool("system_admin")
 
 	user := &model.User{
 		Username:  username,
