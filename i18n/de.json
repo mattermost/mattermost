@@ -7829,5 +7829,65 @@
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
     "translation": "Ihre Enterprise Test ist jetzt aktiv. Gehen Sie zu **System Konsole > Authentifizierung > MFA** um Multi-Faktor Authentifizierung zu erzwingen.."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_email_header",
+    "translation": "Email: {{.Email}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+    "translation": "Diagnose Nr: {{.DiagnosticId}}"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "EMails für die Lizenzverlängerung konnte nicht gesendet werden"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Der Link zur Lizenzverlängerung konnte nicht generiert werden"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
+    "translation": "Ihr Enterprise Test ist jetzt aktiv. Gehen Sie zur Systemkonsole um die erweiterten Funktionen zu aktivieren."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
+    "translation": "Mattermost empfiehlt dringend, dass Installationen mit mehr als 500 Benutzern die Vorteile von Funktionen, wie Benutzermanagement, Server Clustering und Performanzüberwachung nutzen. Kontaktieren Sie uns um mehr darüber zu erfahren und teilen Sie uns mit, wie wir Ihnen helfen können.\n\nDurch Anklicken von Starte Test, stimmen Sie dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der[Datenschutzerklärung] (https://mattermost.com/privacy-policy/) zu, und erhalten Emails zum Produkt."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+    "translation": "Skalieren mit Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+    "translation": "Mattermost empfiehlt dringend, dass Installationen mit mehr als 500 Benutzern die Vorteile von Funktionen, wie Benutzermanagement, Server Clustering und Performanzüberwachung nutzen. Kontaktieren Sie uns um mehr darüber zu erfahren und teilen Sie uns mit, wie wir Ihnen helfen können.\n\nDurch Anklicken von Kontaktieren Sie uns, teilen Sie Informationen mit Mattermost, Inc. [Mehr dazu](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Mattermost Kontaktanfrage. Mein Team hat jetzt 500 Benutzer und ich überlege die Mattermost Enterprise Edition zu nutzen.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
+    "translation": "Mit der Masse an Kommunikation, die in Mattermost passiert, kann es schwierig sein zu wissen, wo wichtige Informationen gefunden werden können. Wenn Sie eine Nachricht an ein breites Publikum senden wollen, können Sie Nur-Lesbare Ankündigungskanäle erstellen, denen jedermann beitreten kann, in die aber nur Administratoren Nachrichten schreiben können.\n\n[Lernen Sie mehr über das Erstellen von Nur-Lesbaren Ankündigungskanälen](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDurch Anklicken von \"Starte Test\" stimmen Sie dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzreklärung](https://mattermost.com/privacy-policy/) zu, und erhalten Emails zum Produkt."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
+    "translation": "Mit der Masse an Kommunikation, die in Mattermost passiert, kann es schwierig sein zu wissen, wo wichtige Informationen gefunden werden können. Wenn Sie eine Nachricht an ein breites Publikum senden wollen, können Sie Nur-Lesbare Ankündigungskanäle erstellen, denen jedermann beitreten kann, in die aber nur Administratoren Nachrichten schreiben können.\n\n[Lernen Sie mehr über das Erstellen von Nur-Lesbaren Ankündigungskanälen](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDurch Anklicken von \"Kontaktieren Sie uns\" teilen Sie Informationen mit Mattermost, Inc. [Mehr dazu](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
+    "translation": "Mattermost Kontaktanfrage. Ich bin daran interessiert mehr über das Erstellen von Nur-Lesbaren Ankündigungskanälen zu lernen.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Nur-Lesbare Ankündigungskanäle"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
+    "translation": "Ihre Enterprise Test ist jetzt aktiv. Erstellen Sie einen Kanal und gehen Sie zu **Systemkonsole > Benutzerverwaltung > Kanäle** um das Schreiben von Nachrichten auf Kanaladministratoren zu beschränken."
   }
 ]
