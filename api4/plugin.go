@@ -45,7 +45,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.ApiSessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
 }
 
-// pluginEnabledCheck is common unility function for checking if plugin system is emabled
+// pluginEnabledCheck is common unility function for checking if plugin system is enabled
 func pluginEnabledCheck(c *Context, where string) *model.AppError {
 	if !*c.App.Config().PluginSettings.Enable {
 		return model.NewAppError(where, "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
