@@ -7833,5 +7833,21 @@
   {
     "id": "api.email_batching.send_batched_email_notification.time",
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_email_header",
+    "translation": "Email: {{.Email}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+    "translation": "Diagnose Nr: {{.DiagnosticId}}"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "EMails für die Lizenzverlängerung konnte nicht gesendet werden"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Der Link zur Lizenzverlängerung konnte nicht generiert werden"
   }
 ]
