@@ -57,7 +57,9 @@ const (
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
-	MinimumRequiredPostgresVersion = 100000
+	minimumRequiredPostgresVersion = 100000
+	// major*1000 + minor*100 + patch
+	minimumRequiredMySQLVersion = 5712
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -179,24 +181,19 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
-	if *settings.DriverName == model.DatabaseDriverPostgres {
-		ver, err := store.GetDbVersion(true)
-		if err != nil {
-			mlog.Critical("Cannot get DB version.", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
-		}
-		intVer, err := strconv.Atoi(ver)
-		if err != nil {
-			mlog.Critical("Cannot parse DB version.", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
-		}
-		if intVer < MinimumRequiredPostgresVersion {
-			mlog.Critical("Minimum Postgres version requirements not met.", mlog.String("Found", VersionString(intVer)), mlog.String("Wanted", VersionString(MinimumRequiredPostgresVersion)))
-			os.Exit(ExitGenericFailure)
-		}
+	ver, err := store.GetDbVersion(true)
+	if err != nil {
+		mlog.Critical("Error while getting DB version.", mlog.Err(err))
+		os.Exit(ExitGenericFailure)
 	}
 
-	err := store.migrate(migrationsDirectionUp)
+	ok, err := store.ensureMinimumDBVersion(ver)
+	if !ok {
+		mlog.Critical("Error while checking DB version.", mlog.Err(err))
+		os.Exit(ExitGenericFailure)
+	}
+
+	err = store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
 		os.Exit(ExitGenericFailure)
@@ -1678,12 +1675,70 @@ func IsDuplicate(err error) bool {
 	return false
 }
 
-// VersionString converts an integer representation of a DB version
+// ensureMinimumDBVersion gets the DB version and ensures it is
+// above the required minimum version requirements.
+func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
+	switch *ss.settings.DriverName {
+	case model.DatabaseDriverPostgres:
+		intVer, err2 := strconv.Atoi(ver)
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse DB version: %v", err2)
+		}
+		if intVer < minimumRequiredPostgresVersion {
+			return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredPostgresVersion, *ss.settings.DriverName))
+		}
+	case model.DatabaseDriverMysql:
+		// Usually a version string is of the form 5.6.49-log, 10.4.5-MariaDB etc.
+		if strings.Contains(strings.ToLower(ver), "maria") {
+			mlog.Debug("MariaDB detected. Skipping version check.")
+			return true, nil
+		}
+		parts := strings.Split(ver, "-")
+		if len(parts) < 1 {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
+		}
+		// Get the major and minor versions.
+		versions := strings.Split(parts[0], ".")
+		if len(versions) < 3 {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
+		}
+		majorVer, err2 := strconv.Atoi(versions[0])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		minorVer, err2 := strconv.Atoi(versions[1])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		patchVer, err2 := strconv.Atoi(versions[2])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		intVer := majorVer*1000 + minorVer*100 + patchVer
+		if intVer < minimumRequiredMySQLVersion {
+			return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
+		}
+	}
+	return true, nil
+}
+
+// versionString converts an integer representation of a DB version
 // to a pretty-printed string.
 // Postgres doesn't follow three-part version numbers from 10.0 onwards:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
-func VersionString(v int) string {
-	minor := v % 10000
-	major := v / 10000
-	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+// For MySQL, we consider a major*1000 + minor*100 + patch format.
+func versionString(v int, driver string) string {
+	switch driver {
+	case model.DatabaseDriverPostgres:
+		minor := v % 10000
+		major := v / 10000
+		return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+	case model.DatabaseDriverMysql:
+		minor := v % 1000
+		major := v / 1000
+		patch := minor % 100
+		minor = minor / 100
+		return strconv.Itoa(major) + "." + strconv.Itoa(minor) + "." + strconv.Itoa(patch)
+	}
+	return ""
 }
