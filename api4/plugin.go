@@ -45,6 +45,15 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.ApiSessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
 }
 
+// pluginEnabledCheck is common unility function for checking if plugin system is emabled
+func pluginEnabledCheck(c *Context, where string) *model.AppError {
+	if !*c.App.Config().PluginSettings.Enable {
+		return model.NewAppError(where, "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	return nil
+}
+
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
 	if !*config.PluginSettings.Enable || !*config.PluginSettings.EnableUploads || *config.PluginSettings.RequirePluginSignature {
@@ -126,8 +135,8 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	if err := pluginEnabledCheck(c, "installMarketplacePlugin"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -166,8 +175,8 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("getPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	if err := pluginEnabledCheck(c, "getPlugins"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -186,8 +195,8 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("getPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	if err := pluginEnabledCheck(c, "getPluginStatuses"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -211,8 +220,8 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("removePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	if err := pluginEnabledCheck(c, "removePlugin"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -236,8 +245,8 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("getWebappPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	if err := pluginEnabledCheck(c, "getWebappPlugins"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -262,8 +271,8 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	if err := pluginEnabledCheck(c, "getMarketplacePlugins"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -304,8 +313,8 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("activatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	if err := pluginEnabledCheck(c, "enablePlugin"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -333,8 +342,8 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("deactivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	if err := pluginEnabledCheck(c, "disablePlugin"); err != nil {
+		c.Err = err
 		return
 	}
 
