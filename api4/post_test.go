@@ -881,6 +881,7 @@ func TestPatchPost(t *testing.T) {
 		rpost, resp = Client.PatchPost(post.Id, patch)
 		CheckNoError(t, resp)
 
+		sort.Strings(fileIds[0:2])
 		assert.False(t, rpost.IsPinned, "IsPinned did not update properly")
 		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
 		assert.Equal(t, *patch.Props, rpost.GetProps(), "Props did not update properly")
