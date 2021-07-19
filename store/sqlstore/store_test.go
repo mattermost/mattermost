@@ -406,6 +406,81 @@ func TestGetDbVersion(t *testing.T) {
 	}
 }
 
+func TestEnsureMinimumDBVersion(t *testing.T) {
+	tests := []struct {
+		driver string
+		ver    string
+		ok     bool
+		err    string
+	}{
+		{
+			driver: model.DatabaseDriverPostgres,
+			ver:    "100001",
+			ok:     true,
+			err:    "",
+		},
+		{
+			driver: model.DatabaseDriverPostgres,
+			ver:    "90603",
+			ok:     false,
+			err:    "minimum Postgres version requirements not met",
+		},
+		{
+			driver: model.DatabaseDriverPostgres,
+			ver:    "12.34.1",
+			ok:     false,
+			err:    "cannot parse DB version",
+		},
+		{
+			driver: model.DatabaseDriverMysql,
+			ver:    "10.4.5-MariaDB",
+			ok:     true,
+			err:    "",
+		},
+		{
+			driver: model.DatabaseDriverMysql,
+			ver:    "5.6.99-test",
+			ok:     false,
+			err:    "minimum MySQL version requirements not met",
+		},
+		{
+			driver: model.DatabaseDriverMysql,
+			ver:    "34-55.12",
+			ok:     false,
+			err:    "cannot parse MySQL DB version",
+		},
+		{
+			driver: model.DatabaseDriverMysql,
+			ver:    "8.0.0-log",
+			ok:     true,
+			err:    "",
+		},
+	}
+
+	pg := model.DatabaseDriverPostgres
+	pgSettings := &model.SqlSettings{
+		DriverName: &pg,
+	}
+	my := model.DatabaseDriverMysql
+	mySettings := &model.SqlSettings{
+		DriverName: &my,
+	}
+	for _, tc := range tests {
+		store := &SqlStore{}
+		switch tc.driver {
+		case pg:
+			store.settings = pgSettings
+		case my:
+			store.settings = mySettings
+		}
+		ok, err := store.ensureMinimumDBVersion(tc.ver)
+		assert.Equal(t, tc.ok, ok)
+		if tc.err != "" {
+			assert.Contains(t, err.Error(), tc.err)
+		}
+	}
+}
+
 func TestUpAndDownMigrations(t *testing.T) {
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
@@ -536,24 +611,38 @@ func TestIsDuplicate(t *testing.T) {
 func TestVersionString(t *testing.T) {
 	versions := []struct {
 		input  int
+		driver string
 		output string
 	}{
 		{
 			input:  100000,
+			driver: model.DatabaseDriverPostgres,
 			output: "10.0",
 		},
 		{
 			input:  90603,
+			driver: model.DatabaseDriverPostgres,
 			output: "9.603",
 		},
 		{
 			input:  120005,
+			driver: model.DatabaseDriverPostgres,
 			output: "12.5",
+		},
+		{
+			input:  5708,
+			driver: model.DatabaseDriverMysql,
+			output: "5.7.8",
+		},
+		{
+			input:  8000,
+			driver: model.DatabaseDriverMysql,
+			output: "8.0.0",
 		},
 	}
 
 	for _, v := range versions {
-		out := VersionString(v.input)
+		out := versionString(v.input, v.driver)
 		assert.Equal(t, v.output, out)
 	}
 }
