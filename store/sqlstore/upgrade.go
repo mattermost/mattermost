@@ -212,6 +212,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion600(sqlStore)
 
 	return nil
 }
@@ -1296,4 +1297,14 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().ExecNoTimeout("INSERT INTO Systems VALUES ('CRTChannelMembershipCountsMigrationComplete', 'true')"); err != nil {
 		mlog.Error("Error marking migration as done", mlog.Err(err))
 	}
+}
+
+func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+
+	// allow 10 files per post
+	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+
+	// saveSchemaVersion(sqlStore, Version600)
+	// }
 }
