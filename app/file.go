@@ -684,7 +684,11 @@ func (t *UploadFileTask) init(a *App) {
 	}
 	t.teeInput = io.TeeReader(t.limitedInput, t.buf)
 
-	t.pluginsEnvironment = a.GetPluginsEnvironment()
+	plgEnvironment, appErr := a.GetPluginsEnvironment()
+	if appErr != nil {
+		mlog.Error("Plugin is disabled or not set", mlog.Err(appErr))
+	}
+	t.pluginsEnvironment = plgEnvironment
 	t.writeFile = a.WriteFile
 	t.saveToDatabase = a.Srv().Store.FileInfo().Save
 }
@@ -983,7 +987,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+	if pluginsEnvironment, appErr := a.GetPluginsEnvironment(); pluginsEnvironment != nil && appErr == nil {
 		var rejectionError *model.AppError
 		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {

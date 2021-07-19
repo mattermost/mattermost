@@ -138,7 +138,7 @@ func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArg
 		return nil, nil, nil
 	}
 
-	pluginsEnvironment := a.GetPluginsEnvironment()
+	pluginsEnvironment, _ := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, nil, nil
 	}

@@ -20,8 +20,8 @@ func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
-	env := s.GetPluginsEnvironment()
-	if env == nil {
+	env, appErr := s.GetPluginsEnvironment()
+	if env == nil || appErr != nil {
 		return
 	}
 	if msg.Props == nil {

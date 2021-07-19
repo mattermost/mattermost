@@ -125,7 +125,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	// This exists to clean up manually until we figure out what test isn't cleaning up after
 	// itself.
 	cleanExistingBundles := func(t *testing.T, th *TestHelper) {
-		pluginsEnvironment := th.App.GetPluginsEnvironment()
+		pluginsEnvironment, _ := th.App.GetPluginsEnvironment()
 		require.NotNil(t, pluginsEnvironment)
 		bundleInfos, err := pluginsEnvironment.Available()
 		require.NoError(t, err)
@@ -137,7 +137,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	}
 
 	assertBundleInfoManifests := func(t *testing.T, th *TestHelper, manifests []*model.Manifest) {
-		pluginsEnvironment := th.App.GetPluginsEnvironment()
+		pluginsEnvironment, _ := th.App.GetPluginsEnvironment()
 		require.NotNil(t, pluginsEnvironment)
 		bundleInfos, err := pluginsEnvironment.Available()
 		require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestInstallPluginAlreadyActive(t *testing.T) {
 	appError = th.App.EnablePlugin(actualManifest.Id)
 	require.Nil(t, appError)
 
-	pluginsEnvironment := th.App.GetPluginsEnvironment()
+	pluginsEnvironment, _ := th.App.GetPluginsEnvironment()
 	require.NotNil(t, pluginsEnvironment)
 	bundleInfos, err := pluginsEnvironment.Available()
 	require.NoError(t, err)

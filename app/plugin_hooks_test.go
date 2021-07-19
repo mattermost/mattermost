@@ -1001,7 +1001,11 @@ func TestActiveHooks(t *testing.T) {
 		require.Len(t, pluginIDs, 1)
 		pluginID := pluginIDs[0]
 
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		env, appErr := th.App.GetPluginsEnvironment()
+		if appErr != nil {
+			t.Error(appErr.Message)
+		}
+		require.True(t, env.IsActive(pluginID))
 		user1 := &model.User{
 			Email:       model.NewId() + "success+test@example.com",
 			Nickname:    "Darth Vader1",
@@ -1009,7 +1013,7 @@ func TestActiveHooks(t *testing.T) {
 			Password:    "passwd1",
 			AuthService: "",
 		}
-		_, appErr := th.App.CreateUser(th.Context, user1)
+		_, appErr = th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(1 * time.Second)
 		user1, appErr = th.App.GetUser(user1.Id)
@@ -1017,15 +1021,15 @@ func TestActiveHooks(t *testing.T) {
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
 		// Disable plugin
-		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
-		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		require.True(t, env.Deactivate(pluginID))
+		require.False(t, env.IsActive(pluginID))
 
-		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginID)
+		hooks, err := env.HooksForPlugin(pluginID)
 		require.Error(t, err)
 		require.Nil(t, hooks)
 
 		// Should fail to find pluginID as it was deleted when deactivated
-		path, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
+		path, err := env.PublicFilesPath(pluginID)
 		require.Error(t, err)
 		require.Empty(t, path)
 	})
@@ -1106,7 +1110,11 @@ func TestHookMetrics(t *testing.T) {
 			}
 		})
 
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		env, appErr := th.App.GetPluginsEnvironment()
+		if appErr != nil {
+			t.Error(appErr.Message)
+		}
+		require.True(t, env.IsActive(pluginID))
 
 		user1 := &model.User{
 			Email:       model.NewId() + "success+test@example.com",
@@ -1115,7 +1123,7 @@ func TestHookMetrics(t *testing.T) {
 			Password:    "passwd1",
 			AuthService: "",
 		}
-		_, appErr := th.App.CreateUser(th.Context, user1)
+		_, appErr = th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(1 * time.Second)
 		user1, appErr = th.App.GetUser(user1.Id)
@@ -1123,8 +1131,8 @@ func TestHookMetrics(t *testing.T) {
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
 		// Disable plugin
-		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
-		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		require.True(t, env.Deactivate(pluginID))
+		require.False(t, env.IsActive(pluginID))
 
 		metricsMock.AssertExpectations(t)
 	})

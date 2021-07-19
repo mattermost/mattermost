@@ -86,7 +86,7 @@ type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
 	HttpService() httpservice.HTTPService
-	GetPluginsEnvironment() *plugin.Environment
+	GetPluginsEnvironment() (*plugin.Environment, *model.AppError)
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
@@ -859,8 +859,8 @@ func (ts *TelemetryService) trackLicense() {
 }
 
 func (ts *TelemetryService) trackPlugins() {
-	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
+	pluginsEnvironment, appErr := ts.srv.GetPluginsEnvironment()
+	if pluginsEnvironment == nil || appErr != nil {
 		return
 	}
 
@@ -1355,7 +1355,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		}
 	}
 
-	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
+	pluginsEnvironment, _ := ts.srv.GetPluginsEnvironment()
 	if pluginsEnvironment != nil {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 			mlog.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))

@@ -23,8 +23,8 @@ const minFirstPartSize = 5 * 1024 * 1024 // 5MB
 const IncompleteUploadSuffix = ".tmp"
 
 func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
+	pluginsEnvironment, appErr := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil || appErr != nil {
 		return nil
 	}
 

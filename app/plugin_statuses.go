@@ -11,9 +11,9 @@ import (
 
 // GetPluginStatus returns the status for a plugin installed on this server.
 func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	pluginsEnvironment := s.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return nil, model.NewAppError("GetPluginStatus", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	pluginsEnvironment, appErr := s.GetPluginsEnvironment()
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	pluginStatuses, err := pluginsEnvironment.Statuses()
@@ -42,9 +42,9 @@ func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) 
 
 // GetPluginStatuses returns the status for plugins installed on this server.
 func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	pluginsEnvironment := s.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	pluginsEnvironment, appErr := s.GetPluginsEnvironment()
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	pluginStatuses, err := pluginsEnvironment.Statuses()

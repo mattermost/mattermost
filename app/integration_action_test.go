@@ -508,7 +508,11 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		}
 		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
-	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
+	pluginEnvironment, appErr := th.App.GetPluginsEnvironment()
+	if appErr != nil {
+		t.Error(appErr.Message)
+	}
+	hooks, err2 := pluginEnvironment.HooksForPlugin("myplugin")
 	require.NoError(t, err2)
 	require.NotNil(t, hooks)
 
@@ -790,7 +794,11 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		}
 		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
-	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
+	pluginEnvironment, appErr := th.App.GetPluginsEnvironment()
+	if appErr != nil {
+		t.Errorf("Plugin environment is not set or disabled %s", appErr.Message)
+	}
+	hooks, err2 := pluginEnvironment.HooksForPlugin("myplugin")
 	require.NoError(t, err2)
 	require.NotNil(t, hooks)
 
@@ -1009,7 +1017,11 @@ func TestDoPluginRequest(t *testing.T) {
 		}
 		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
-	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
+	pluginEnvironment, appErr := th.App.GetPluginsEnvironment()
+	if appErr != nil {
+		t.Error(appErr.Message)
+	}
+	hooks, err2 := pluginEnvironment.HooksForPlugin("myplugin")
 	require.NoError(t, err2)
 	require.NotNil(t, hooks)
 

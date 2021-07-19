@@ -513,7 +513,7 @@ func TestPluginSync(t *testing.T) {
 				testCase.ConfigFunc(cfg)
 			})
 
-			env := th.App.GetPluginsEnvironment()
+			env, _ := th.App.GetPluginsEnvironment()
 			require.NotNil(t, env)
 
 			path, _ := fileutils.FindDir("tests")
@@ -636,7 +636,8 @@ func TestSyncPluginsActiveState(t *testing.T) {
 		*cfg.PluginSettings.Enable = true
 	})
 
-	env := th.App.GetPluginsEnvironment()
+	env, appErr := th.App.GetPluginsEnvironment()
+	require.NoError(t, appErr)
 	require.NotNil(t, env)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -648,7 +649,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 	require.NoError(t, err)
 	defer fileReader.Close()
 
-	_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
+	_, appErr = th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
 	checkNoError(t, appErr)
 
 	// Sync with file store so the plugin environment has access to this plugin.
@@ -759,7 +760,8 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
-		env := th.App.GetPluginsEnvironment()
+		env, appErr := th.App.GetPluginsEnvironment()
+		require.NoError(t, appErr)
 
 		activatedManifest, activated, err := env.Activate(manifest.Id)
 		require.NoError(t, err)
@@ -797,7 +799,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		env := th.App.GetPluginsEnvironment()
+		env, _ := th.App.GetPluginsEnvironment()
 
 		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
@@ -816,8 +818,8 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		env := th.App.GetPluginsEnvironment()
-
+		env, appErr := th.App.GetPluginsEnvironment()
+		require.NoError(t, appErr)
 		// Add signature
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
 		err := testlib.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
@@ -851,7 +853,8 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		env := th.App.GetPluginsEnvironment()
+		env, appErr := th.App.GetPluginsEnvironment()
+		require.NoError(t, appErr)
 
 		// Add signature
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
@@ -908,7 +911,8 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		env := th.App.GetPluginsEnvironment()
+		env, appErr := th.App.GetPluginsEnvironment()
+		require.NoError(t, appErr)
 
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
 		err := testlib.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))

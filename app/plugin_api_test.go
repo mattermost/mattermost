@@ -157,7 +157,11 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App, th.Context)
 
 	publicFilesFolderInTest := filepath.Join(pluginDir, pluginID, "public")
-	publicFilesPath, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
+	env, appErr := th.App.GetPluginsEnvironment()
+	if appErr != nil {
+		t.Error(appErr.Message)
+	}
+	publicFilesPath, err := env.PublicFilesPath(pluginID)
 	assert.NoError(t, err)
 	assert.Equal(t, publicFilesPath, publicFilesFolderInTest)
 }
@@ -955,7 +959,11 @@ func TestInstallPlugin(t *testing.T) {
 	}}`, "testinstallplugin", th.App, th.Context)
 	defer tearDown()
 
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testinstallplugin")
+	env, appErr := th.App.GetPluginsEnvironment()
+	if appErr != nil {
+		t.Error(appErr.Message)
+	}
+	hooks, err := env.HooksForPlugin("testinstallplugin")
 	require.NoError(t, err)
 
 	err = hooks.OnActivate()
@@ -1065,7 +1073,11 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	setupPluginApiTest(t, code,
 		fmt.Sprintf(`{"id": "%v", "backend": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
 		id, th.App, th.Context)
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
+	env, appErr := th.App.GetPluginsEnvironment()
+	if appErr != nil {
+		t.Error(appErr.Message)
+	}
+	hooks, err := env.HooksForPlugin(id)
 	require.NoError(t, err)
 	require.NotNil(t, hooks)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
@@ -1518,7 +1530,11 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		th.Context,
 	)
 
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugininterclient")
+	env, appErr := th.App.GetPluginsEnvironment()
+	if appErr != nil {
+		t.Error(appErr.Message)
+	}
+	hooks, err := env.HooksForPlugin("testplugininterclient")
 	require.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "ok", ret)
@@ -1581,7 +1597,11 @@ func TestApiMetrics(t *testing.T) {
 		_, _, activationErr := env.Activate(pluginID)
 		require.NoError(t, activationErr)
 
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		env, appErr := th.App.GetPluginsEnvironment()
+		if appErr != nil {
+			t.Error(appErr.Message)
+		}
+		require.True(t, env.IsActive(pluginID))
 
 		user1 := &model.User{
 			Email:       model.NewId() + "success+test@example.com",
@@ -1590,7 +1610,7 @@ func TestApiMetrics(t *testing.T) {
 			Password:    "passwd1",
 			AuthService: "",
 		}
-		_, appErr := th.App.CreateUser(th.Context, user1)
+		_, appErr = th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(1 * time.Second)
 		user1, appErr = th.App.GetUser(user1.Id)
@@ -1598,8 +1618,8 @@ func TestApiMetrics(t *testing.T) {
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
 		// Disable plugin
-		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
-		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		require.True(t, env.Deactivate(pluginID))
+		require.False(t, env.IsActive(pluginID))
 
 		metricsMock.AssertExpectations(t)
 	})

@@ -217,7 +217,9 @@ func TestStaticFilesRequest(t *testing.T) {
 	ioutil.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
 
 	// Activate the plugin
-	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
+	plguinEnv, appErr := th.App.GetPluginsEnvironment()
+	require.NoError(t, appErr)
+	manifest, activated, reterr := plguinEnv.Activate(pluginID)
 	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)

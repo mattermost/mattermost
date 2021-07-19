@@ -773,7 +773,7 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 		return teamMember, nil
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+	if pluginsEnvironment, _ := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if userRequestorId != "" {
 			actor, _ = a.GetUser(userRequestorId)
@@ -1193,7 +1193,7 @@ func (a *App) RemoveTeamMemberFromTeam(c *request.Context, teamMember *model.Tea
 		}
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+	if pluginsEnvironment, _ := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if requestorId != "" {
 			actor, _ = a.GetUser(requestorId)

@@ -1163,7 +1163,8 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		},
 	}
 
-	env := th.App.GetPluginsEnvironment()
+	env, appErr := th.App.GetPluginsEnvironment()
+	require.NoError(t, appErr)
 	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin})
 
 	t.Run("get remote and prepackaged plugins", func(t *testing.T) {
@@ -1216,7 +1217,8 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 			Manifest: manifest,
 		}
 
-		env := th.App.GetPluginsEnvironment()
+		env, appErr := th.App.GetPluginsEnvironment()
+		require.NoError(t, appErr)
 		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin})
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
@@ -1591,7 +1593,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 				*cfg.PluginSettings.AllowInsecureDownloadUrl = false
 			})
 
-			env := th2.App.GetPluginsEnvironment()
+			env, appErr := th2.App.GetPluginsEnvironment()
+			require.NoError(t, appErr)
 
 			pluginsResp, resp := client.GetPlugins()
 			CheckNoError(t, resp)
@@ -1721,7 +1724,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.AllowInsecureDownloadUrl = true
 		})
 
-		env := th.App.GetPluginsEnvironment()
+		env, appErr := th.App.GetPluginsEnvironment()
+		require.NoError(t, appErr)
+
 		plugins := env.PrepackagedPlugins()
 		require.Len(t, plugins, 1)
 		require.Equal(t, "testplugin", plugins[0].Manifest.Id)

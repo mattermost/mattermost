@@ -40,7 +40,10 @@ func TestHealthCheckJob(t *testing.T) {
 	}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
-	env := th.App.GetPluginsEnvironment()
+	env, appErr := th.App.GetPluginsEnvironment()
+	if appErr != nil {
+		t.Error(appErr.Message)
+	}
 	job := env.GetPluginHealthCheckJob()
 	require.NotNil(t, job)
 	bundles := env.Active()
