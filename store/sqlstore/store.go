@@ -1691,32 +1691,32 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		// Usually a version string is of the form 5.6.49-log, 10.4.5-MariaDB etc.
 		if strings.Contains(strings.ToLower(ver), "maria") {
 			mlog.Debug("MariaDB detected. Skipping version check.")
-		} else {
-			parts := strings.Split(ver, "-")
-			if len(parts) < 1 {
-				return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
-			}
-			// Get the major and minor versions.
-			versions := strings.Split(parts[0], ".")
-			if len(versions) < 3 {
-				return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
-			}
-			majorVer, err2 := strconv.Atoi(versions[0])
-			if err2 != nil {
-				return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
-			}
-			minorVer, err2 := strconv.Atoi(versions[1])
-			if err2 != nil {
-				return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
-			}
-			patchVer, err2 := strconv.Atoi(versions[2])
-			if err2 != nil {
-				return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
-			}
-			intVer := majorVer*1000 + minorVer*100 + patchVer
-			if intVer < minimumRequiredMySQLVersion {
-				return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
-			}
+			return true, nil
+		}
+		parts := strings.Split(ver, "-")
+		if len(parts) < 1 {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
+		}
+		// Get the major and minor versions.
+		versions := strings.Split(parts[0], ".")
+		if len(versions) < 3 {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
+		}
+		majorVer, err2 := strconv.Atoi(versions[0])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		minorVer, err2 := strconv.Atoi(versions[1])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		patchVer, err2 := strconv.Atoi(versions[2])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		intVer := majorVer*1000 + minorVer*100 + patchVer
+		if intVer < minimumRequiredMySQLVersion {
+			return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
 		}
 	}
 	return true, nil
