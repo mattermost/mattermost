@@ -7829,5 +7829,9 @@
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
     "translation": "Ihre Enterprise Test ist jetzt aktiv. Gehen Sie zu **System Konsole > Authentifizierung > MFA** um Multi-Faktor Authentifizierung zu erzwingen.."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   }
 ]
