@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -30,8 +31,9 @@ func (api *API) InitBot() {
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	botPatch := model.BotPatchFromJson(r.Body)
-	if botPatch == nil {
+	var botPatch *model.BotPatch
+	err := json.NewDecoder(r.Body).Decode(botPatch)
+	if err != nil {
 		c.SetInvalidParam("bot")
 		return
 	}
@@ -62,9 +64,9 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdBot, err := c.App.CreateBot(c.AppContext, bot)
-	if err != nil {
-		c.Err = err
+	createdBot, appErr := c.App.CreateBot(c.AppContext, bot)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -82,8 +84,9 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	botPatch := model.BotPatchFromJson(r.Body)
-	if botPatch == nil {
+	var botPatch *model.BotPatch
+	err := json.NewDecoder(r.Body).Decode(botPatch)
+	if err != nil {
 		c.SetInvalidParam("bot")
 		return
 	}
@@ -97,9 +100,9 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedBot, err := c.App.PatchBot(botUserId, botPatch)
-	if err != nil {
-		c.Err = err
+	updatedBot, appErr := c.App.PatchBot(botUserId, botPatch)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

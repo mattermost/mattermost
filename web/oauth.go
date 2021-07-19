@@ -4,6 +4,7 @@
 package web
 
 import (
+	"encoding/json"
 	"html"
 	"net/http"
 	"net/url"
@@ -44,8 +45,9 @@ func testHandler(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
-	authRequest := model.AuthorizeRequestFromJson(r.Body)
-	if authRequest == nil {
+	var authRequest *model.AuthorizeRequest
+	err := json.NewDecoder(r.Body).Decode(authRequest)
+	if err != nil {
 		c.SetInvalidParam("authorize_request")
 		return
 	}
@@ -65,10 +67,9 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
-
-	if err != nil {
-		c.Err = err
+	redirectUrl, appErr := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

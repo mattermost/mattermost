@@ -4,31 +4,10 @@
 package model
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-func TestAuthJson(t *testing.T) {
-	a1 := AuthData{}
-	a1.ClientId = NewId()
-	a1.UserId = NewId()
-	a1.Code = NewId()
-
-	json := a1.ToJson()
-	ra1 := AuthDataFromJson(strings.NewReader(json))
-	require.Equal(t, a1.Code, ra1.Code, "codes didn't match")
-
-	a2 := AuthorizeRequest{}
-	a2.ClientId = NewId()
-	a2.Scope = NewId()
-
-	json = a2.ToJson()
-	ra2 := AuthorizeRequestFromJson(strings.NewReader(json))
-
-	require.Equal(t, a2.ClientId, ra2.ClientId, "client ids didn't match")
-}
 
 func TestAuthPreSave(t *testing.T) {
 	a1 := AuthData{}
