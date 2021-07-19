@@ -8021,5 +8021,9 @@
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
     "translation": "Kanäle helfen beim Verbessern der Kommunikation, aber je mehr Mattermost-Benutzern Kanäle erstellen oder beitreten, desto größer wird die Anforderung im System den Überblick zu bewahren. Erweiterte Berechtigungen ermöglichen es festzulegen, welche Benutzer oder Rollen welche spezifische Aktion ausführen dürfen.Dazu zählen unter anderem das Verwalten von Kanaleinstellungen und -mitgliedern, das Verwenden von @channel oder @here, und das Erstellen neuer Webhooks.\n\n[Lerne mehr über Erweiterte Berechtigungen](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDurch Anklicken von \"Starte Test\", stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzrichtlinie](https://mattermost.com/privacy-policy/) zu und erhalten E-Mails zum Produkt."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "Erweiterte Berechtigungen verwenden"
   }
 ]
