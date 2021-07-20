@@ -721,15 +721,23 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 
 	previewedPost, err := a.GetSinglePost(previewedPostID)
 	if err != nil {
-		return false, err
-	}
-
-	channelMembers, err := a.GetChannelMembersPage(post.ChannelId, 0, 10000000)
-	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
+			return false, nil
+		}
 		return false, err
 	}
 
 	previewedChannel, err := a.GetChannel(previewedPost.ChannelId)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			return false, nil
+		}
+		return false, err
+	}
+
+	channelMembers, err := a.GetChannelMembersPage(post.ChannelId, 0, 10000000)
 	if err != nil {
 		return false, err
 	}
