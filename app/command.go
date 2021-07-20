@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"unicode"
@@ -23,7 +24,10 @@ import (
 
 const (
 	CmdCustomStatusTrigger = "status"
+	usernameSpecialChars   = ".-_"
 )
+
+var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
 
 type CommandProvider interface {
 	GetTrigger() string
@@ -56,7 +60,7 @@ func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID str
 
 	post.CreateAt = model.GetMillis()
 
-	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		err := model.NewAppError("CreateCommandPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
 		return nil, err
 	}
@@ -65,11 +69,11 @@ func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID str
 		model.ParseSlackAttachment(post, response.Attachments)
 	}
 
-	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
+	if response.ResponseType == model.CommandResponseTypeInChannel {
 		return a.CreatePostMissingChannel(c, post, true)
 	}
 
-	if (response.ResponseType == "" || response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL) && (response.Text != "" || response.Attachments != nil) {
+	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {
 		post.ParentId = ""
 		a.SendEphemeralPost(post.UserId, post)
 	}
@@ -233,7 +237,7 @@ func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 		Id   string
 	}
 
-	possibleMentions := model.PossibleAtMentions(message)
+	possibleMentions := possibleAtMentions(message)
 	mentionChan := make(chan *mentionMapItem, len(possibleMentions))
 
 	var wg sync.WaitGroup
@@ -252,8 +256,8 @@ func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 			// If it's a http.StatusNotFound error, check for usernames in substrings
 			// without trailing punctuation
 			if nErr != nil {
-				trimmed, ok := model.TrimUsernameSpecialChar(mention)
-				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
+				trimmed, ok := trimUsernameSpecialChar(mention)
+				for ; ok; trimmed, ok = trimUsernameSpecialChar(trimmed) {
 					userFromTrimmed, nErr := a.Srv().Store.User().GetByUsername(trimmed)
 					if nErr != nil && !errors.As(nErr, &nfErr) {
 						return
@@ -477,7 +481,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	// Prepare the request
 	var req *http.Request
 	var err error
-	if cmd.Method == model.COMMAND_METHOD_GET {
+	if cmd.Method == model.CommandMethodGet {
 		req, err = http.NewRequest(http.MethodGet, cmd.URL, nil)
 	} else {
 		req, err = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
@@ -487,7 +491,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
 	}
 
-	if cmd.Method == model.COMMAND_METHOD_GET {
+	if cmd.Method == model.CommandMethodGet {
 		if req.URL.RawQuery != "" {
 			req.URL.RawQuery += "&"
 		}
@@ -496,7 +500,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Token "+cmd.Token)
-	if cmd.Method == model.COMMAND_METHOD_POST {
+	if cmd.Method == model.CommandMethodPost {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 
@@ -769,4 +773,38 @@ func (a *App) DeleteCommand(commandID string) *model.AppError {
 	}
 
 	return nil
+}
+
+// possibleAtMentions returns all substrings in message that look like valid @
+// mentions.
+func possibleAtMentions(message string) []string {
+	var names []string
+
+	if !strings.Contains(message, "@") {
+		return names
+	}
+
+	alreadyMentioned := make(map[string]bool)
+	for _, match := range atMentionRegexp.FindAllString(message, -1) {
+		name := model.NormalizeUsername(match[1:])
+		if !alreadyMentioned[name] && model.IsValidUsernameAllowRemote(name) {
+			names = append(names, name)
+			alreadyMentioned[name] = true
+		}
+	}
+
+	return names
+}
+
+// trimUsernameSpecialChar tries to remove the last character from word if it
+// is a special character for usernames (dot, dash or underscore). If not, it
+// returns the same string.
+func trimUsernameSpecialChar(word string) (string, bool) {
+	len := len(word)
+
+	if len > 0 && strings.LastIndexAny(word, usernameSpecialChars) == (len-1) {
+		return word[:len-1], true
+	}
+
+	return word, false
 }

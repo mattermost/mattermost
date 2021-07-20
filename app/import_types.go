@@ -34,13 +34,13 @@ type TeamImportData struct {
 }
 
 type ChannelImportData struct {
-	Team        *string `json:"team"`
-	Name        *string `json:"name"`
-	DisplayName *string `json:"display_name"`
-	Type        *string `json:"type"`
-	Header      *string `json:"header,omitempty"`
-	Purpose     *string `json:"purpose,omitempty"`
-	Scheme      *string `json:"scheme,omitempty"`
+	Team        *string            `json:"team"`
+	Name        *string            `json:"name"`
+	DisplayName *string            `json:"display_name"`
+	Type        *model.ChannelType `json:"type"`
+	Header      *string            `json:"header,omitempty"`
+	Purpose     *string            `json:"purpose,omitempty"`
+	Scheme      *string            `json:"scheme,omitempty"`
 }
 
 type UserImportData struct {

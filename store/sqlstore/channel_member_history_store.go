@@ -212,7 +212,7 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 		err   error
 	)
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		var innerSelect string
 		innerSelect, args, err = s.getQueryBuilder().
 			Select("ctid").

@@ -27,11 +27,11 @@ import (
 )
 
 const (
-	LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
-	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS           = "0123456789"
-	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	MB                = 1 << 20
+	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS          = "0123456789"
+	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	MB               = 1 << 20
 )
 
 type StringInterface map[string]interface{}
@@ -415,7 +415,7 @@ func IsValidChannelIdentifier(s string) bool {
 		return false
 	}
 
-	if len(s) < CHANNEL_NAME_MIN_LENGTH {
+	if len(s) < ChannelNameMinLength {
 		return false
 	}
 

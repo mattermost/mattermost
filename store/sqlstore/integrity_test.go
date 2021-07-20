@@ -29,7 +29,7 @@ func createChannel(ss store.Store, teamId, creatorId string) *model.Channel {
 	m.CreatorId = creatorId
 	m.DisplayName = "Name"
 	m.Name = "zz" + model.NewId() + "b"
-	m.Type = model.CHANNEL_OPEN
+	m.Type = model.ChannelTypeOpen
 	c, _ := ss.Channel().Save(&m, -1)
 	return c
 }
@@ -41,7 +41,7 @@ func createChannelWithSchemeId(ss store.Store, schemeId *string) *model.Channel 
 	m.CreatorId = model.NewId()
 	m.DisplayName = "Name"
 	m.Name = "zz" + model.NewId() + "b"
-	m.Type = model.CHANNEL_OPEN
+	m.Type = model.ChannelTypeOpen
 	c, _ := ss.Channel().Save(&m, -1)
 	return c
 }
@@ -49,7 +49,7 @@ func createChannelWithSchemeId(ss store.Store, schemeId *string) *model.Channel 
 func createCommand(ss store.Store, userId, teamId string) *model.Command {
 	m := model.Command{}
 	m.CreatorId = userId
-	m.Method = model.COMMAND_METHOD_POST
+	m.Method = model.CommandMethodPost
 	m.TeamId = teamId
 	m.URL = "http://nowhere.com/"
 	m.Trigger = "trigger"
@@ -99,10 +99,10 @@ func createCompliance(ss store.Store, userId string) *model.Compliance {
 	m := model.Compliance{}
 	m.UserId = userId
 	m.Desc = "Audit"
-	m.Status = model.COMPLIANCE_STATUS_FAILED
+	m.Status = model.ComplianceStatusFailed
 	m.StartAt = model.GetMillis() - 1
 	m.EndAt = model.GetMillis() + 1
-	m.Type = model.COMPLIANCE_TYPE_ADHOC
+	m.Type = model.ComplianceTypeAdhoc
 	c, _ := ss.Compliance().Save(&m)
 	return c
 }
@@ -200,7 +200,7 @@ func createPreferences(ss store.Store, userId string) *model.Preferences {
 		{
 			UserId:   userId,
 			Name:     model.NewId(),
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Category: model.PreferenceCategoryDirectChannelShow,
 			Value:    "somevalue",
 		},
 	}
@@ -220,54 +220,54 @@ func createReaction(ss store.Store, userId, postId string) *model.Reaction {
 
 func createDefaultRoles(ss store.Store) {
 	ss.Role().Save(&model.Role{
-		Name:        model.TEAM_ADMIN_ROLE_ID,
-		DisplayName: model.TEAM_ADMIN_ROLE_ID,
+		Name:        model.TeamAdminRoleId,
+		DisplayName: model.TeamAdminRoleId,
 		Permissions: []string{
-			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+			model.PermissionDeleteOthersPosts.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.TEAM_USER_ROLE_ID,
-		DisplayName: model.TEAM_USER_ROLE_ID,
+		Name:        model.TeamUserRoleId,
+		DisplayName: model.TeamUserRoleId,
 		Permissions: []string{
-			model.PERMISSION_VIEW_TEAM.Id,
-			model.PERMISSION_ADD_USER_TO_TEAM.Id,
+			model.PermissionViewTeam.Id,
+			model.PermissionAddUserToTeam.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.TEAM_GUEST_ROLE_ID,
-		DisplayName: model.TEAM_GUEST_ROLE_ID,
+		Name:        model.TeamGuestRoleId,
+		DisplayName: model.TeamGuestRoleId,
 		Permissions: []string{
-			model.PERMISSION_VIEW_TEAM.Id,
+			model.PermissionViewTeam.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.CHANNEL_ADMIN_ROLE_ID,
-		DisplayName: model.CHANNEL_ADMIN_ROLE_ID,
+		Name:        model.ChannelAdminRoleId,
+		DisplayName: model.ChannelAdminRoleId,
 		Permissions: []string{
-			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
-			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+			model.PermissionManagePublicChannelMembers.Id,
+			model.PermissionManagePrivateChannelMembers.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.CHANNEL_USER_ROLE_ID,
-		DisplayName: model.CHANNEL_USER_ROLE_ID,
+		Name:        model.ChannelUserRoleId,
+		DisplayName: model.ChannelUserRoleId,
 		Permissions: []string{
-			model.PERMISSION_READ_CHANNEL.Id,
-			model.PERMISSION_CREATE_POST.Id,
+			model.PermissionReadChannel.Id,
+			model.PermissionCreatePost.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.CHANNEL_GUEST_ROLE_ID,
-		DisplayName: model.CHANNEL_GUEST_ROLE_ID,
+		Name:        model.ChannelGuestRoleId,
+		DisplayName: model.ChannelGuestRoleId,
 		Permissions: []string{
-			model.PERMISSION_READ_CHANNEL.Id,
-			model.PERMISSION_CREATE_POST.Id,
+			model.PermissionReadChannel.Id,
+			model.PermissionCreatePost.Id,
 		},
 	})
 }
@@ -277,7 +277,7 @@ func createScheme(ss store.Store) *model.Scheme {
 	m.DisplayName = model.NewId()
 	m.Name = model.NewId()
 	m.Description = model.NewId()
-	m.Scope = model.SCHEME_SCOPE_CHANNEL
+	m.Scope = model.SchemeScopeChannel
 	s, _ := ss.Scheme().Save(&m)
 	return s
 }
@@ -292,7 +292,7 @@ func createSession(ss store.Store, userId string) *model.Session {
 func createStatus(ss store.Store, userId string) *model.Status {
 	m := model.Status{}
 	m.UserId = userId
-	m.Status = model.STATUS_ONLINE
+	m.Status = model.StatusOnline
 	ss.Status().SaveOrUpdate(&m)
 	return &m
 }
@@ -300,7 +300,7 @@ func createStatus(ss store.Store, userId string) *model.Status {
 func createTeam(ss store.Store) *model.Team {
 	m := model.Team{}
 	m.DisplayName = "DisplayName"
-	m.Type = model.TEAM_OPEN
+	m.Type = model.TeamOpen
 	m.Email = "test@example.com"
 	m.Name = "z-z-z" + model.NewRandomTeamName() + "b"
 	t, _ := ss.Team().Save(&m)
@@ -319,7 +319,7 @@ func createTeamWithSchemeId(ss store.Store, schemeId *string) *model.Team {
 	m := model.Team{}
 	m.SchemeId = schemeId
 	m.DisplayName = "DisplayName"
-	m.Type = model.TEAM_OPEN
+	m.Type = model.TeamOpen
 	m.Email = "test@example.com"
 	m.Name = "z-z-z" + model.NewId() + "b"
 	t, _ := ss.Team().Save(&m)

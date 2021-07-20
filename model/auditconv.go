@@ -60,7 +60,7 @@ func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {
 type auditChannel struct {
 	ID   string
 	Name string
-	Type string
+	Type ChannelType
 }
 
 // newAuditChannel creates a simplified representation of Channel for output to audit log.
@@ -77,7 +77,7 @@ func newAuditChannel(c *Channel) auditChannel {
 func (c auditChannel) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("id", c.ID)
 	enc.StringKey("name", c.Name)
-	enc.StringKey("type", c.Type)
+	enc.StringKey("type", string(c.Type))
 }
 
 func (c auditChannel) IsNil() bool {

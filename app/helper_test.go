@@ -164,7 +164,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	th := setupTestHelper(mockStore, false, false, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
-	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
 	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
@@ -179,7 +179,7 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	th := setupTestHelper(mockStore, true, false, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
-	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
 	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
@@ -200,7 +200,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
@@ -237,7 +237,7 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	utils.DisableDebugLogForTest()
@@ -309,14 +309,14 @@ func WithShared(v bool) ChannelOption {
 }
 
 func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_OPEN, options...)
+	return th.createChannel(team, model.ChannelTypeOpen, options...)
 }
 
 func (th *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_PRIVATE)
+	return th.createChannel(team, model.ChannelTypePrivate)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -462,7 +462,7 @@ func (th *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 		DisplayName: "Test Scheme Display Name",
 		Name:        model.NewId(),
 		Description: "Test scheme description",
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	})
 	if err != nil {
 		panic(err)
@@ -597,7 +597,7 @@ func (*TestHelper) ResetRoleMigration() {
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.AdvancedPermissionsMigrationKey}); err != nil {
 		panic(err)
 	}
 }
@@ -630,7 +630,7 @@ func (th *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
 }
 
 func (th *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	count, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	count, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 	require.NoError(t, err, "Failed to get channel count.")
 	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }
@@ -639,7 +639,7 @@ func (th *TestHelper) SetupTeamScheme() *model.Scheme {
 	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	})
 	if err != nil {
 		panic(err)
@@ -651,7 +651,7 @@ func (th *TestHelper) SetupChannelScheme() *model.Scheme {
 	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	})
 	if err != nil {
 		panic(err)

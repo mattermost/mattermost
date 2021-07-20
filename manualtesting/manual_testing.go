@@ -75,7 +75,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			DisplayName: teamDisplayName[0],
 			Name:        "zz" + utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
 			Email:       "success+" + model.NewId() + "simulator.amazonses.com",
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		createdTeam, err := c.App.Srv().Store.Team().Save(team)
@@ -93,7 +93,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
+		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.ChannelTypeOpen, TeamId: createdTeam.Id}
 		if _, err := c.App.CreateChannel(c.AppContext, channel, false); err != nil {
 			c.Err = err
 			return
@@ -127,7 +127,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 
 		// Respond with an auth token this can be overridden by a specific test as required
 		sessionCookie := &http.Cookie{
-			Name:     model.SESSION_COOKIE_TOKEN,
+			Name:     model.SessionCookieToken,
 			Value:    client.AuthToken,
 			Path:     "/",
 			MaxAge:   *c.App.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24,

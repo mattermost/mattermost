@@ -38,7 +38,7 @@ func (h *HelpProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	helpLink := *a.Config().SupportSettings.HelpLink
 
 	if helpLink == "" {
-		helpLink = model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK
+		helpLink = model.SupportSettingsDefaultHelpLink
 	}
 
 	return &model.CommandResponse{GotoLocation: helpLink}

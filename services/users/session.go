@@ -97,8 +97,8 @@ func (us *UserService) ClearUserSessionCache(userID string) {
 
 	if us.cluster != nil {
 		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER,
-			SendType: model.CLUSTER_SEND_RELIABLE,
+			Event:    model.ClusterEventClearSessionCacheForUser,
+			SendType: model.ClusterSendReliable,
 			Data:     userID,
 		}
 		us.cluster.SendClusterMessage(msg)
@@ -110,8 +110,8 @@ func (us *UserService) ClearAllUsersSessionCache() {
 
 	if us.cluster != nil {
 		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS,
-			SendType: model.CLUSTER_SEND_RELIABLE,
+			Event:    model.ClusterEventClearSessionCacheForAllUsers,
+			SendType: model.ClusterSendReliable,
 		}
 		us.cluster.SendClusterMessage(msg)
 	}
@@ -217,7 +217,7 @@ func (us *UserService) UpdateSessionsIsGuest(userID string, isGuest bool) error 
 	}
 
 	for _, session := range sessions {
-		session.AddProp(model.SESSION_PROP_IS_GUEST, fmt.Sprintf("%t", isGuest))
+		session.AddProp(model.SessionPropIsGuest, fmt.Sprintf("%t", isGuest))
 		err := us.sessionStore.UpdateProps(session)
 		if err != nil {
 			mlog.Warn("Unable to update isGuest session", mlog.Err(err))

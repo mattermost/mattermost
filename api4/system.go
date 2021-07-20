@@ -126,7 +126,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	reqs := c.App.Config().ClientRequirements
 
 	s := make(map[string]string)
-	s[model.STATUS] = model.STATUS_OK
+	s[model.STATUS] = model.StatusOk
 	s["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 	s["AndroidMinVersion"] = reqs.AndroidMinVersion
 	s["DesktopLatestVersion"] = reqs.DesktopLatestVersion
@@ -142,7 +142,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	actualGoroutines := runtime.NumGoroutine()
 	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
 		mlog.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
-		s[model.STATUS] = model.STATUS_UNHEALTHY
+		s[model.STATUS] = model.StatusUnhealthy
 	}
 
 	// Enhanced ping health check:
@@ -150,32 +150,32 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	// database and file storage backends.
 	if r.FormValue("get_server_status") != "" {
 		dbStatusKey := "database_status"
-		s[dbStatusKey] = model.STATUS_OK
+		s[dbStatusKey] = model.StatusOk
 
 		writeErr := c.App.DBHealthCheckWrite()
 		if writeErr != nil {
 			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
-			s[dbStatusKey] = model.STATUS_UNHEALTHY
-			s[model.STATUS] = model.STATUS_UNHEALTHY
+			s[dbStatusKey] = model.StatusUnhealthy
+			s[model.STATUS] = model.StatusUnhealthy
 		}
 
 		writeErr = c.App.DBHealthCheckDelete()
 		if writeErr != nil {
 			mlog.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
-			s[dbStatusKey] = model.STATUS_UNHEALTHY
-			s[model.STATUS] = model.STATUS_UNHEALTHY
+			s[dbStatusKey] = model.StatusUnhealthy
+			s[model.STATUS] = model.StatusUnhealthy
 		}
 
-		if s[dbStatusKey] == model.STATUS_OK {
+		if s[dbStatusKey] == model.StatusOk {
 			mlog.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"
-		s[filestoreStatusKey] = model.STATUS_OK
+		s[filestoreStatusKey] = model.StatusOk
 		appErr := c.App.TestFileStoreConnection()
 		if appErr != nil {
-			s[filestoreStatusKey] = model.STATUS_UNHEALTHY
-			s[model.STATUS] = model.STATUS_UNHEALTHY
+			s[filestoreStatusKey] = model.StatusUnhealthy
+			s[model.STATUS] = model.StatusUnhealthy
 		}
 
 		w.Header().Set(model.STATUS, s[model.STATUS])
@@ -183,7 +183,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
 	}
 
-	if s[model.STATUS] != model.STATUS_OK {
+	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.Write([]byte(model.MapToJson(s)))
@@ -195,8 +195,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_TEST_EMAIL) {
-		c.SetPermissionError(model.PERMISSION_TEST_EMAIL)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestEmail) {
+		c.SetPermissionError(model.PermissionTestEmail)
 		return
 	}
 
@@ -215,8 +215,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_TEST_SITE_URL) {
-		c.SetPermissionError(model.PERMISSION_TEST_SITE_URL)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestSiteUrl) {
+		c.SetPermissionError(model.PermissionTestSiteUrl)
 		return
 	}
 
@@ -245,8 +245,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getAudits", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_AUDITS) {
-		c.SetPermissionError(model.PERMISSION_READ_AUDITS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadAudits) {
+		c.SetPermissionError(model.PermissionReadAudits)
 		return
 	}
 
@@ -264,8 +264,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_RECYCLE_DATABASE_CONNECTIONS) {
-		c.SetPermissionError(model.PERMISSION_RECYCLE_DATABASE_CONNECTIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRecycleDatabaseConnections) {
+		c.SetPermissionError(model.PermissionRecycleDatabaseConnections)
 		return
 	}
 
@@ -284,8 +284,8 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_INVALIDATE_CACHES) {
-		c.SetPermissionError(model.PERMISSION_INVALIDATE_CACHES)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInvalidateCaches) {
+		c.SetPermissionError(model.PermissionInvalidateCaches)
 		return
 	}
 
@@ -318,8 +318,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_GET_LOGS) {
-		c.SetPermissionError(model.PERMISSION_GET_LOGS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+		c.SetPermissionError(model.PermissionGetLogs)
 		return
 	}
 
@@ -344,7 +344,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 			forceToDebug = true
 		}
 	}
@@ -381,8 +381,8 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		name = "standard"
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_GET_ANALYTICS) {
-		c.SetPermissionError(model.PERMISSION_GET_ANALYTICS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetAnalytics) {
+		c.SetPermissionError(model.PermissionGetAnalytics)
 		return
 	}
 
@@ -421,8 +421,8 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_TEST_S3) {
-		c.SetPermissionError(model.PERMISSION_TEST_S3)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
+		c.SetPermissionError(model.PermissionTestS3)
 		return
 	}
 
@@ -437,7 +437,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
@@ -551,8 +551,8 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -580,8 +580,8 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -596,8 +596,8 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 	w.Write([]byte(c.App.Srv().Busy.ToJson()))
@@ -607,8 +607,8 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("upgradeToEnterprise", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -663,8 +663,8 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -691,8 +691,8 @@ func restart(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("restartServer", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -731,8 +731,8 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -768,8 +768,8 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 

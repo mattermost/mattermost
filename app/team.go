@@ -160,7 +160,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		return team, err
 	}
 
-	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam)
 
 	return oldTeam, nil
 }
@@ -235,7 +235,7 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	a.ClearTeamMembersCache(team.Id)
 
-	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM_SCHEME)
+	a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme)
 
 	return oldTeam, nil
 }
@@ -247,7 +247,7 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 	}
 
 	// Force a regeneration of the invite token if changing a team to restricted.
-	if (allowOpenInvite != oldTeam.AllowOpenInvite || teamType != oldTeam.Type) && (!allowOpenInvite || teamType == model.TEAM_INVITE) {
+	if (allowOpenInvite != oldTeam.AllowOpenInvite || teamType != oldTeam.Type) && (!allowOpenInvite || teamType == model.TeamInvite) {
 		oldTeam.InviteId = model.NewId()
 	}
 
@@ -268,7 +268,7 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 		}
 	}
 
-	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam)
 
 	return nil
 }
@@ -293,7 +293,7 @@ func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *mo
 		return team, err
 	}
 
-	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	a.sendTeamEvent(team, model.WebsocketEventUpdateTeam)
 
 	return team, nil
 }
@@ -320,7 +320,7 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 		}
 	}
 
-	a.sendTeamEvent(updatedTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam)
 
 	return updatedTeam, nil
 }
@@ -331,7 +331,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 	sanitizedTeam.Sanitize()
 
 	teamID := "" // no filtering by teamID by default
-	if event == model.WEBSOCKET_EVENT_UPDATE_TEAM {
+	if event == model.WebsocketEventUpdateTeam {
 		// in case of update_team event - we send the message only to members of that team
 		teamID = team.Id
 	}
@@ -354,7 +354,7 @@ func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *mod
 		return scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole, nil
 	}
 
-	return model.TEAM_GUEST_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID, nil
+	return model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId, nil
 }
 
 func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
@@ -455,7 +455,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 
 	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {
-		member.ExplicitRoles = RemoveRoles([]string{model.TEAM_GUEST_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID}, member.ExplicitRoles)
+		member.ExplicitRoles = RemoveRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
 	}
 
 	member, nErr := a.Srv().Store.Team().UpdateMember(member)
@@ -477,7 +477,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 }
 
 func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) {
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil)
 	message.Add("member", member.ToJson())
 	a.Publish(message)
 }
@@ -819,7 +819,7 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 	a.InvalidateCacheForUser(user.Id)
 	a.invalidateCacheForUserTeams(user.Id)
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", user.Id, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", user.Id, nil)
 	message.Add("team_id", team.Id)
 	message.Add("user_id", user.Id)
 	a.Publish(message)
@@ -1029,7 +1029,7 @@ func (a *App) AddTeamMember(c *request.Context, teamID, userID string) (*model.T
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil)
 	message.Add("team_id", teamID)
 	message.Add("user_id", userID)
 	a.Publish(message)
@@ -1058,7 +1058,7 @@ func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string
 			Member: teamMember,
 		})
 
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userID, nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil)
 		message.Add("team_id", teamID)
 		message.Add("user_id", userID)
 		a.Publish(message)
@@ -1107,7 +1107,7 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 		teamUnread.MentionCount += cu.MentionCount
 		teamUnread.MentionCountRoot += cu.MentionCountRoot
 
-		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
+		if cu.NotifyProps[model.MarkUnreadNotifyProp] != model.ChannelMarkUnreadMention {
 			teamUnread.MsgCount += cu.MsgCount
 			teamUnread.MsgCountRoot += cu.MsgCountRoot
 		}
@@ -1164,7 +1164,7 @@ func (a *App) RemoveUserFromTeam(c *request.Context, teamID string, userID strin
 
 func (a *App) RemoveTeamMemberFromTeam(c *request.Context, teamMember *model.TeamMember, requestorId string) *model.AppError {
 	// Send the websocket message before we actually do the remove so the user being removed gets it.
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, teamMember.TeamId, "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil)
 	message.Add("user_id", teamMember.UserId)
 	message.Add("team_id", teamMember.TeamId)
 	a.Publish(message)
@@ -1255,7 +1255,7 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 		}
 	}
 
-	channel, nErr := a.Srv().Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	channel, nErr := a.Srv().Store.Channel().GetByName(team.Id, model.DefaultChannelName, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1289,7 +1289,7 @@ func (a *App) postLeaveTeamMessage(c *request.Context, user *model.User, channel
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.leave.left"), user.Username),
-		Type:      model.POST_LEAVE_TEAM,
+		Type:      model.PostTypeLeaveTeam,
 		UserId:    user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
@@ -1307,7 +1307,7 @@ func (a *App) postRemoveFromTeamMessage(c *request.Context, user *model.User, ch
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.remove_user_from_team.removed"), user.Username),
-		Type:      model.POST_REMOVE_FROM_TEAM,
+		Type:      model.PostTypeRemoveFromTeam,
 		UserId:    user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
@@ -1638,7 +1638,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 		tu.MentionCount += cu.MentionCount
 		tu.MentionCountRoot += cu.MentionCountRoot
 
-		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
+		if cu.NotifyProps[model.MarkUnreadNotifyProp] != model.ChannelMarkUnreadMention {
 			tu.MsgCount += cu.MsgCount
 			tu.MsgCountRoot += cu.MsgCountRoot
 		}
@@ -1715,7 +1715,7 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return model.NewAppError("PermanentDeleteTeam", "app.team.permanent_delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)
+	a.sendTeamEvent(team, model.WebsocketEventDeleteTeam)
 
 	return nil
 }
@@ -1741,7 +1741,7 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		}
 	}
 
-	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)
+	a.sendTeamEvent(team, model.WebsocketEventDeleteTeam)
 
 	return nil
 }
@@ -1767,7 +1767,7 @@ func (a *App) RestoreTeam(teamID string) *model.AppError {
 		}
 	}
 
-	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_RESTORE_TEAM)
+	a.sendTeamEvent(team, model.WebsocketEventRestoreTeam)
 	return nil
 }
 
@@ -1839,11 +1839,11 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 }
 
 func (a *App) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
-	if a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
+	if a.SessionHasPermissionToTeam(session, team.Id, model.PermissionManageTeam) {
 		return team
 	}
 
-	if a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_INVITE_USER) {
+	if a.SessionHasPermissionToTeam(session, team.Id, model.PermissionInviteUser) {
 		inviteId := team.InviteId
 		team.Sanitize()
 		team.InviteId = inviteId
@@ -1940,7 +1940,7 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = curTime
 
-	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	a.sendTeamEvent(team, model.WebsocketEventUpdateTeam)
 
 	return nil
 }
@@ -1957,7 +1957,7 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 
 	team.LastTeamIconUpdate = 0
 
-	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	a.sendTeamEvent(team, model.WebsocketEventUpdateTeam)
 
 	return nil
 }
@@ -1986,7 +1986,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 		for _, teamMember := range teamMembers {
 			a.ClearSessionCacheForUser(teamMember.UserId)
 
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", teamMember.UserId, nil)
+			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil)
 			message.Add("member", teamMember.ToJson())
 			a.Publish(message)
 		}

@@ -169,7 +169,7 @@ func TestCreateEmoji(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// try to create an emoji without permissions
-	th.RemovePermissionFromRole(model.PERMISSION_CREATE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionCreateEmojis.Id, model.SystemUserRoleId)
 
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -180,7 +180,7 @@ func TestCreateEmoji(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// create an emoji with permissions in one team
-	th.AddPermissionToRole(model.PERMISSION_CREATE_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionCreateEmojis.Id, model.TeamUserRoleId)
 
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -254,7 +254,7 @@ func TestGetEmojiList(t *testing.T) {
 
 	require.Len(t, listEmoji, 1, "should only return 1")
 
-	listEmoji, resp = Client.GetSortedEmojiList(0, 100, model.EMOJI_SORT_BY_NAME)
+	listEmoji, resp = Client.GetSortedEmojiList(0, 100, model.EmojiSortByName)
 	CheckNoError(t, resp)
 
 	require.Greater(t, len(listEmoji), 0, "should return more than 0")
@@ -320,10 +320,10 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNoError(t, resp)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 	_, resp = Client.DeleteEmoji(newEmoji.Id)
 	CheckForbiddenStatus(t, resp)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 
 	//Try to delete other user's custom emoji without DELETE_EMOJIS permissions
 	emoji = &model.Emoji{
@@ -334,8 +334,8 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNoError(t, resp)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
 	Client.Logout()
 	th.LoginBasic2()
@@ -343,8 +343,8 @@ func TestDeleteEmoji(t *testing.T) {
 	_, resp = Client.DeleteEmoji(newEmoji.Id)
 	CheckForbiddenStatus(t, resp)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 
 	Client.Logout()
 	th.LoginBasic()
@@ -376,8 +376,8 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNoError(t, resp)
 
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
 	Client.Logout()
 	th.LoginBasic2()
@@ -392,12 +392,12 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNoError(t, resp)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
 	_, resp = Client.DeleteEmoji(newEmoji.Id)
 	CheckNoError(t, resp)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
 
 	//Try to delete other user's custom emoji with permissions at team level
 	emoji = &model.Emoji{
@@ -408,11 +408,11 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNoError(t, resp)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.TeamUserRoleId)
 
 	Client.Logout()
 	th.LoginBasic2()
