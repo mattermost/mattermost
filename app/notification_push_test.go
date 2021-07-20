@@ -573,7 +573,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		replyToThreadType        string
 		Locale                   string
 		PushNotificationContents string
-		ChannelType              string
+		ChannelType              model.ChannelType
 
 		ExpectedMessage string
 	}{

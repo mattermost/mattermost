@@ -70,7 +70,7 @@ func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64,
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
 
-func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
+func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, expectedCount int64) {
 	count, err := a.Srv().Store.Channel().AnalyticsTypeCount("", channelType)
 	require.Equalf(t, expectedCount, count, "Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
 	require.NoError(t, err, "Failed to get channel count.")

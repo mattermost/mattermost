@@ -31,7 +31,7 @@ type slackChannel struct {
 	Members []string        `json:"members"`
 	Purpose slackChannelSub `json:"purpose"`
 	Topic   slackChannelSub `json:"topic"`
-	Type    string
+	Type    model.ChannelType
 }
 
 type slackChannelSub struct {

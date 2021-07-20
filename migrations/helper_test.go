@@ -159,7 +159,7 @@ func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
 	return th.createChannel(team, model.ChannelTypeOpen)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{

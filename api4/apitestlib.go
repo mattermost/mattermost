@@ -636,11 +636,11 @@ func (th *TestHelper) CreatePrivateChannel() *model.Channel {
 	return th.CreateChannelWithClient(th.Client, model.ChannelTypePrivate)
 }
 
-func (th *TestHelper) CreateChannelWithClient(client *model.Client4, channelType string) *model.Channel {
+func (th *TestHelper) CreateChannelWithClient(client *model.Client4, channelType model.ChannelType) *model.Channel {
 	return th.CreateChannelWithClientAndTeam(client, channelType, th.BasicTeam.Id)
 }
 
-func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, channelType string, teamId string) *model.Channel {
+func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, channelType model.ChannelType, teamId string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{

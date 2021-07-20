@@ -19,7 +19,7 @@ type AutoChannelCreator struct {
 	DisplayNameCharset string
 	NameLen            utils.Range
 	NameCharset        string
-	ChannelType        string
+	ChannelType        model.ChannelType
 }
 
 func NewAutoChannelCreator(a *app.App, team *model.Team, userID string) *AutoChannelCreator {
