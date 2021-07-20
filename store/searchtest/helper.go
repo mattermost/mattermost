@@ -239,7 +239,7 @@ func (th *SearchTestHelper) deleteBot(botID string) error {
 	return nil
 }
 
-func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose, channelType string, deleted bool) (*model.Channel, error) {
+func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose string, channelType model.ChannelType, deleted bool) (*model.Channel, error) {
 	channel, err := th.Store.Channel().Save(&model.Channel{
 		TeamId:      teamID,
 		DisplayName: displayName,
