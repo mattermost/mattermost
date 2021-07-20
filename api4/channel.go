@@ -283,7 +283,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.StringInterfaceFromJson(r.Body)
 	privacy, ok := props["privacy"].(string)
-	if !ok || (privacy != model.ChannelTypeOpen && privacy != model.ChannelTypePrivate) {
+	if !ok || (model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate) {
 		c.SetInvalidParam("privacy")
 		return
 	}
@@ -299,17 +299,17 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("channel", channel)
 	auditRec.AddMeta("new_type", privacy)
 
-	if privacy == model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPrivateChannelToPublic) {
+	if model.ChannelType(privacy) == model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPrivateChannelToPublic) {
 		c.SetPermissionError(model.PermissionConvertPrivateChannelToPublic)
 		return
 	}
 
-	if privacy == model.ChannelTypePrivate && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPublicChannelToPrivate) {
+	if model.ChannelType(privacy) == model.ChannelTypePrivate && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPublicChannelToPrivate) {
 		c.SetPermissionError(model.PermissionConvertPublicChannelToPrivate)
 		return
 	}
 
-	if channel.Name == model.DefaultChannelName && privacy == model.ChannelTypePrivate {
+	if channel.Name == model.DefaultChannelName && model.ChannelType(privacy) == model.ChannelTypePrivate {
 		c.Err = model.NewAppError("updateChannelPrivacy", "api.channel.update_channel_privacy.default_channel_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -321,7 +321,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	channel.Type = privacy
+	channel.Type = model.ChannelType(privacy)
 
 	updatedChannel, err := c.App.UpdateChannelPrivacy(c.AppContext, channel, user)
 	if err != nil {
