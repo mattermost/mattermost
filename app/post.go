@@ -87,7 +87,7 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	// or if it does not have from_bot set (e.g. from discovering the user is a bot within CreatePost).
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	if !fromWebhook && !fromBot {
+	if !fromWebhook && !fromBot && !(a.isCRTEnabledForUser(post.UserId) && post.RootId != "") {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
 				"Encountered error updating last viewed",
