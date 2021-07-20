@@ -247,7 +247,7 @@ func (th *TestHelper) createPrivateChannel(team *model.Team) *model.Channel {
 	return th.createChannel(team, model.ChannelTypePrivate)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -288,7 +288,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string, option
 	return channel
 }
 
-func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType, userID string) *model.Channel {
+func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType model.ChannelType, userID string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{

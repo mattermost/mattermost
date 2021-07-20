@@ -1850,7 +1850,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	type testTable []struct {
 		name            string
 		channel         *model.Channel
-		expectedPrivacy string
+		expectedPrivacy model.ChannelType
 	}
 
 	t.Run("Should get a forbidden response if not logged in", func(t *testing.T) {

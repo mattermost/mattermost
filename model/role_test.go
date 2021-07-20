@@ -231,7 +231,7 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 	tests := []struct {
 		Name        string
 		Permissions []string
-		ChannelType string
+		ChannelType ChannelType
 		Expected    map[string]bool
 	}{
 		{

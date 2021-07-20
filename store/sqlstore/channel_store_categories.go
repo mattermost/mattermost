@@ -378,11 +378,11 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 	var channelTypeFilter sq.Sqlizer
 	if category.Type == model.SidebarCategoryDirectMessages {
 		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category
-		channelTypeFilter = sq.Eq{"Channels.Type": []string{model.ChannelTypeDirect, model.ChannelTypeGroup}}
+		channelTypeFilter = sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}}
 	} else if category.Type == model.SidebarCategoryChannels {
 		// any public/private channels that are on the current team and aren't in any category should be returned as part of the Channels category
 		channelTypeFilter = sq.And{
-			sq.Eq{"Channels.Type": []string{model.ChannelTypeOpen, model.ChannelTypePrivate}},
+			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}},
 			sq.Eq{"Channels.TeamId": category.TeamId},
 		}
 	}
