@@ -91,6 +91,8 @@ const (
 	ExitRemoveIndexPostgres      = 121
 	ExitRemoveIndexMySQL         = 122
 	ExitRemoveIndexMissing       = 123
+	ExitDoesIndexExists          = 124
+	ExitDoesIndexExistsMySQL     = 125
 	ExitRemoveTable              = 134
 	ExitAlterPrimaryKey          = 139
 )
@@ -669,6 +671,31 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		os.Exit(ExitDoesColumnExistsMissing)
 		return false
 	}
+}
+
+func (ss *SqlStore) DoesIndexExist(indexName string, tableName string) bool {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
+		// It should fail if the index does not exist
+		return err == nil
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
+		if err != nil {
+			mlog.Critical("Failed to check index", mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(ExitDoesIndexExistsMySQL)
+		}
+
+		if count <= 0 {
+			return false
+		}
+	} else {
+		mlog.Critical("Failed to check if index exists because of missing driver")
+		time.Sleep(time.Second)
+		os.Exit(ExitDoesIndexExists)
+	}
+
+	return true
 }
 
 // GetColumnInfo returns data type information about the given column.

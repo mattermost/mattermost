@@ -44,11 +44,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
-	f.CollapsedThreads = false
+	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
 
-	f.PluginIncidentManagement = "1.12.0"
+	f.PluginIncidentManagement = "1.14.3"
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.CustomDataRetentionEnabled = false

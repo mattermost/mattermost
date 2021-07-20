@@ -1302,7 +1302,6 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 }
 
 func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *model.AppError) {
-
 	tokenExtra := struct {
 		UserId string
 		Email  string
