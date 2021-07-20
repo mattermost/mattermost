@@ -14,11 +14,13 @@ import (
 	"unicode/utf8"
 )
 
+type ChannelType string
+
 const (
-	ChannelTypeOpen    = "O"
-	ChannelTypePrivate = "P"
-	ChannelTypeDirect  = "D"
-	ChannelTypeGroup   = "G"
+	ChannelTypeOpen    ChannelType = "O"
+	ChannelTypePrivate ChannelType = "P"
+	ChannelTypeDirect  ChannelType = "D"
+	ChannelTypeGroup   ChannelType = "G"
 
 	ChannelGroupMaxUsers       = 8
 	ChannelGroupMinUsers       = 3
@@ -40,7 +42,7 @@ type Channel struct {
 	UpdateAt          int64                  `json:"update_at"`
 	DeleteAt          int64                  `json:"delete_at"`
 	TeamId            string                 `json:"team_id"`
-	Type              string                 `json:"type"`
+	Type              ChannelType            `json:"type"`
 	DisplayName       string                 `json:"display_name"`
 	Name              string                 `json:"name"`
 	Header            string                 `json:"header"`

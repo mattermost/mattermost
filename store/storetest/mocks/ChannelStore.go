@@ -40,18 +40,18 @@ func (_m *ChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType str
 }
 
 // AnalyticsTypeCount provides a mock function with given fields: teamID, channelType
-func (_m *ChannelStore) AnalyticsTypeCount(teamID string, channelType string) (int64, error) {
+func (_m *ChannelStore) AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	ret := _m.Called(teamID, channelType)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
+	if rf, ok := ret.Get(0).(func(string, model.ChannelType) int64); ok {
 		r0 = rf(teamID, channelType)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(string, model.ChannelType) error); ok {
 		r1 = rf(teamID, channelType)
 	} else {
 		r1 = ret.Error(1)

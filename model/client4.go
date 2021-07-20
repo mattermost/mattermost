@@ -2453,8 +2453,8 @@ func (c *Client4) ConvertChannelToPrivate(channelId string) (*Channel, *Response
 }
 
 // UpdateChannelPrivacy updates channel privacy
-func (c *Client4) UpdateChannelPrivacy(channelId string, privacy string) (*Channel, *Response) {
-	requestBody := map[string]string{"privacy": privacy}
+func (c *Client4) UpdateChannelPrivacy(channelId string, privacy ChannelType) (*Channel, *Response) {
+	requestBody := map[string]string{"privacy": string(privacy)}
 	r, err := c.DoApiPut(c.GetChannelRoute(channelId)+"/privacy", MapToJson(requestBody))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)

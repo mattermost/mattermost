@@ -17,15 +17,15 @@ import (
 
 // channelInviteMsg represents an invitation for a remote cluster to start sharing a channel.
 type channelInviteMsg struct {
-	ChannelId            string   `json:"channel_id"`
-	TeamId               string   `json:"team_id"`
-	ReadOnly             bool     `json:"read_only"`
-	Name                 string   `json:"name"`
-	DisplayName          string   `json:"display_name"`
-	Header               string   `json:"header"`
-	Purpose              string   `json:"purpose"`
-	Type                 string   `json:"type"`
-	DirectParticipantIDs []string `json:"direct_participant_ids"`
+	ChannelId            string            `json:"channel_id"`
+	TeamId               string            `json:"team_id"`
+	ReadOnly             bool              `json:"read_only"`
+	Name                 string            `json:"name"`
+	DisplayName          string            `json:"display_name"`
+	Header               string            `json:"header"`
+	Purpose              string            `json:"purpose"`
+	Type                 model.ChannelType `json:"type"`
+	DirectParticipantIDs []string          `json:"direct_participant_ids"`
 }
 
 type InviteOption func(msg *channelInviteMsg)
