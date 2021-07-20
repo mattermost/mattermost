@@ -35,8 +35,8 @@ func (o *PostList) Clone() *PostList {
 		postsCopy[k] = v.Clone()
 	}
 	return &PostList{
-		Order:      o.Order,
-		Posts:      o.Posts,
+		Order:      orderCopy,
+		Posts:      postsCopy,
 		NextPostId: o.NextPostId,
 		PrevPostId: o.PrevPostId,
 	}
