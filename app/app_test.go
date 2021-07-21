@@ -336,117 +336,11 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, permissions, role.Permissions)
 	}
-
-	// Check that the config setting for "always" and "time_limit" edit posts is updated correctly.
-	th.ResetRoleMigration()
-
-	allowEditPost := *th.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost
-	postEditTimeLimit := *th.App.Config().ServiceSettings.PostEditTimeLimit
-
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = allowEditPost })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit })
-	}()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "always"
-		*cfg.ServiceSettings.PostEditTimeLimit = 300
-	})
-
-	th.App.DoAdvancedPermissionsMigration()
-
-	config := th.App.Config()
-	assert.Equal(t, -1, *config.ServiceSettings.PostEditTimeLimit)
-
-	th.ResetRoleMigration()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "time_limit"
-		*cfg.ServiceSettings.PostEditTimeLimit = 300
-	})
-
-	th.App.DoAdvancedPermissionsMigration()
-	config = th.App.Config()
-	assert.Equal(t, 300, *config.ServiceSettings.PostEditTimeLimit)
 }
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th := SetupWithoutPreloadMigrations(t)
 	defer th.TearDown()
-
-	// Add a license and change the policy config.
-	restrictCustomEmojiCreation := *th.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation
-
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = restrictCustomEmojiCreation
-		})
-	}()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN
-	})
-
-	th.ResetEmojisMigration()
-	th.App.DoEmojisPermissionsMigration()
-
-	expectedSystemAdmin := allPermissionIDs
-	sort.Strings(expectedSystemAdmin)
-
-	role1, err1 := th.App.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID)
-	assert.Nil(t, err1)
-	sort.Strings(role1.Permissions)
-	assert.Equal(t, expectedSystemAdmin, role1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ADMIN
-	})
-
-	th.ResetEmojisMigration()
-	th.App.DoEmojisPermissionsMigration()
-
-	role2, err2 := th.App.GetRoleByName(context.Background(), model.TEAM_ADMIN_ROLE_ID)
-	assert.Nil(t, err2)
-	expected2 := []string{
-		model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
-		model.PERMISSION_MANAGE_TEAM.Id,
-		model.PERMISSION_IMPORT_TEAM.Id,
-		model.PERMISSION_MANAGE_TEAM_ROLES.Id,
-		model.PERMISSION_READ_PUBLIC_CHANNEL_GROUPS.Id,
-		model.PERMISSION_READ_PRIVATE_CHANNEL_GROUPS.Id,
-		model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
-		model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id,
-		model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id,
-		model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
-		model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
-		model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
-		model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
-		model.PERMISSION_DELETE_POST.Id,
-		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
-		model.PERMISSION_CREATE_EMOJIS.Id,
-		model.PERMISSION_DELETE_EMOJIS.Id,
-		model.PERMISSION_ADD_REACTION.Id,
-		model.PERMISSION_CREATE_POST.Id,
-		model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
-		model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
-		model.PERMISSION_REMOVE_REACTION.Id,
-		model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
-		model.PERMISSION_USE_GROUP_MENTIONS.Id,
-		model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE.Id,
-		model.PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC.Id,
-	}
-	sort.Strings(expected2)
-	sort.Strings(role2.Permissions)
-	assert.Equal(t, expected2, role2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.TEAM_ADMIN_ROLE_ID))
-
-	systemAdmin1, systemAdminErr1 := th.App.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID)
-	assert.Nil(t, systemAdminErr1)
-	sort.Strings(systemAdmin1.Permissions)
-	assert.Equal(t, expectedSystemAdmin, systemAdmin1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ALL
-	})
 
 	th.ResetEmojisMigration()
 	th.App.DoEmojisPermissionsMigration()

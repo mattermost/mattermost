@@ -814,48 +814,14 @@ func TestListenAddressIsValidated(t *testing.T) {
 }
 
 func TestImageProxySettingsSetDefaults(t *testing.T) {
-	ss := ServiceSettings{
-		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(IMAGE_PROXY_TYPE_ATMOS_CAMO),
-		DEPRECATED_DO_NOT_USE_ImageProxyURL:     NewString("http://images.example.com"),
-		DEPRECATED_DO_NOT_USE_ImageProxyOptions: NewString("1234abcd"),
-	}
-
-	t.Run("default, no old settings", func(t *testing.T) {
+	t.Run("default settings", func(t *testing.T) {
 		ips := ImageProxySettings{}
-		ips.SetDefaults(ServiceSettings{})
+		ips.SetDefaults()
 
 		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
 		assert.Equal(t, "", *ips.RemoteImageProxyURL)
 		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
-	})
-
-	t.Run("default, old settings", func(t *testing.T) {
-		ips := ImageProxySettings{}
-		ips.SetDefaults(ss)
-
-		assert.Equal(t, true, *ips.Enable)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyType, *ips.ImageProxyType)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyURL, *ips.RemoteImageProxyURL)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions, *ips.RemoteImageProxyOptions)
-	})
-
-	t.Run("not default, old settings", func(t *testing.T) {
-		url := "http://images.mattermost.com"
-		options := "aaaaaaaa"
-
-		ips := ImageProxySettings{
-			Enable:                  NewBool(false),
-			ImageProxyType:          NewString(IMAGE_PROXY_TYPE_LOCAL),
-			RemoteImageProxyURL:     &url,
-			RemoteImageProxyOptions: &options,
-		}
-		ips.SetDefaults(ss)
-
-		assert.Equal(t, false, *ips.Enable)
-		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
-		assert.Equal(t, url, *ips.RemoteImageProxyURL)
-		assert.Equal(t, options, *ips.RemoteImageProxyOptions)
 	})
 }
 

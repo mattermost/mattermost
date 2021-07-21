@@ -68,11 +68,9 @@ func (s *Server) doAdvancedPermissionsMigration() {
 	}
 
 	config := s.Config()
-	if *config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost == model.ALLOW_EDIT_POST_ALWAYS {
-		*config.ServiceSettings.PostEditTimeLimit = -1
-		if _, _, err := s.SaveConfig(config, true); err != nil {
-			mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.Err(err))
-		}
+	*config.ServiceSettings.PostEditTimeLimit = -1
+	if _, _, err := s.SaveConfig(config, true); err != nil {
+		mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.Err(err))
 	}
 
 	system := model.System{
@@ -83,6 +81,7 @@ func (s *Server) doAdvancedPermissionsMigration() {
 	if err := s.Store.System().Save(&system); err != nil {
 		mlog.Critical("Failed to mark advanced permissions migration as completed.", mlog.Err(err))
 	}
+	mlog.Info("Looks like migration ran successfully.")
 }
 
 func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
@@ -110,23 +109,11 @@ func (s *Server) doEmojisPermissionsMigration() {
 	var err *model.AppError
 
 	mlog.Info("Migrating emojis config to database.")
-	switch *s.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation {
-	case model.RESTRICT_EMOJI_CREATION_ALL:
-		role, err = s.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
-		if err != nil {
-			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-			return
-		}
-	case model.RESTRICT_EMOJI_CREATION_ADMIN:
-		role, err = s.GetRoleByName(context.Background(), model.TEAM_ADMIN_ROLE_ID)
-		if err != nil {
-			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-			return
-		}
-	case model.RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN:
-		role = nil
-	default:
-		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config. Invalid restrict emoji creation setting")
+
+	// Emoji creation is set to all by default
+	role, err = s.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
+	if err != nil {
+		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return
 	}
 
