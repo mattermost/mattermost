@@ -931,30 +931,6 @@ func CleanUsername(username string) string {
 	return s
 }
 
-func IsValidUserNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == ChannelNotifyAll ||
-		notifyLevel == ChannelNotifyMention ||
-		notifyLevel == ChannelNotifyNone
-}
-
-func IsValidPushStatusNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == StatusOnline ||
-		notifyLevel == StatusAway ||
-		notifyLevel == StatusOffline
-}
-
-func IsValidCommentsNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == CommentsNotifyAny ||
-		notifyLevel == CommentsNotifyRoot ||
-		notifyLevel == CommentsNotifyNever
-}
-
-func IsValidEmailBatchingInterval(emailInterval string) bool {
-	return emailInterval == PreferenceEmailIntervalImmediately ||
-		emailInterval == PreferenceEmailIntervalFifteen ||
-		emailInterval == PreferenceEmailIntervalHour
-}
-
 func IsValidLocale(locale string) bool {
 	if locale != "" {
 		if len(locale) > UserLocaleMaxLength {
