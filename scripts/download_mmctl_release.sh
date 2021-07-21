@@ -15,7 +15,14 @@ fi
 
 BIN_PATH=${2:-bin}
 
-RELEASE_TO_DOWNLOAD="release-6.0"
+# strip whitespace
+THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$THIS_BRANCH" =~ 'release-'[0-9] ]];
+then
+  RELEASE_TO_DOWNLOAD="$THIS_BRANCH"
+else
+  RELEASE_TO_DOWNLOAD=master
+fi
 
 echo "Downloading prepackaged binary: https://releases.mattermost.com/mmctl/$RELEASE_TO_DOWNLOAD";
 
