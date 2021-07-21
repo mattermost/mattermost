@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"unicode/utf8"
@@ -121,13 +120,6 @@ func (b *Bot) ToJson() []byte {
 	return data
 }
 
-// BotFromJson deserializes a bot from json.
-func BotFromJson(data io.Reader) *Bot {
-	var bot *Bot
-	json.NewDecoder(data).Decode(&bot)
-	return bot
-}
-
 // Patch modifies an existing bot with optional fields from the given patch.
 // TODO 6.0: consider returning a boolean to indicate whether or not the patch
 // applied any changes.
@@ -172,18 +164,6 @@ func (b *BotPatch) ToJson() []byte {
 	return data
 }
 
-// BotPatchFromJson deserializes a bot patch from json.
-func BotPatchFromJson(data io.Reader) *BotPatch {
-	decoder := json.NewDecoder(data)
-	var botPatch BotPatch
-	err := decoder.Decode(&botPatch)
-	if err != nil {
-		return nil
-	}
-
-	return &botPatch
-}
-
 // UserFromBot returns a user model describing the bot fields stored in the User store.
 func UserFromBot(b *Bot) *User {
 	return &User{
@@ -203,13 +183,6 @@ func BotFromUser(u *User) *Bot {
 		Username:    u.Username,
 		DisplayName: u.GetDisplayName(ShowUsername),
 	}
-}
-
-// BotListFromJson deserializes a list of bots from json.
-func BotListFromJson(data io.Reader) BotList {
-	var bots BotList
-	json.NewDecoder(data).Decode(&bots)
-	return bots
 }
 
 // ToJson serializes a list of bots to json.

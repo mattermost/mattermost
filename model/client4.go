@@ -1331,12 +1331,17 @@ func (c *Client4) PermanentDeleteUser(userId string) (bool, *Response) {
 
 // ConvertUserToBot converts a user to a bot user.
 func (c *Client4) ConvertUserToBot(userId string) (*Bot, *Response) {
-	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/convert_to_bot", "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetUserRoute(userId)+"/convert_to_bot", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotFromJson(r.Body), BuildResponse(r)
+	var bot *Bot
+	err := json.NewDecoder(r.Body).Decode(&bot)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("ConvertUserToBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return bot, BuildResponse(r)
 }
 
 // ConvertBotToUser converts a bot user to a user.
@@ -1458,12 +1463,18 @@ func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*Team
 // GetUserAudits returns a list of audit based on the provided user id string.
 func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag string) (Audits, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/audits"+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+"/audits"+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return AuditsFromJson(r.Body), BuildResponse(r)
+
+	var audits Audits
+	err := json.NewDecoder(r.Body).Decode(&audits)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetUserAudits", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return audits, BuildResponse(r)
 }
 
 // VerifyUserEmail will verify a user's email using the supplied token.
@@ -1657,105 +1668,172 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response) {
 
 // CreateBot creates a bot in the system based on the provided bot struct.
 func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response) {
-	r, err := c.doApiPostBytes(c.GetBotsRoute(), bot.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.doApiPostBytes(c.GetBotsRoute(), bot.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotFromJson(r.Body), BuildResponse(r)
+
+	var resp *Bot
+	err := json.NewDecoder(r.Body).Decode(&resp)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("CreateBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	return resp, BuildResponse(r)
 }
 
 // PatchBot partially updates a bot. Any missing fields are not updated.
 func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response) {
-	r, err := c.doApiPutBytes(c.GetBotRoute(userId), patch.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.doApiPutBytes(c.GetBotRoute(userId), patch.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotFromJson(r.Body), BuildResponse(r)
+
+	var bot *Bot
+	err := json.NewDecoder(r.Body).Decode(&bot)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("PatchBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	return bot, BuildResponse(r)
 }
 
 // GetBot fetches the given, undeleted bot.
 func (c *Client4) GetBot(userId string, etag string) (*Bot, *Response) {
-	r, err := c.DoApiGet(c.GetBotRoute(userId), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetBotRoute(userId), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotFromJson(r.Body), BuildResponse(r)
+
+	var bot *Bot
+	err := json.NewDecoder(r.Body).Decode(&bot)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	return bot, BuildResponse(r)
 }
 
-// GetBot fetches the given bot, even if it is deleted.
+// GetBotIncludeDeleted fetches the given bot, even if it is deleted.
 func (c *Client4) GetBotIncludeDeleted(userId string, etag string) (*Bot, *Response) {
-	r, err := c.DoApiGet(c.GetBotRoute(userId)+"?include_deleted="+c.boolString(true), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetBotRoute(userId)+"?include_deleted="+c.boolString(true), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotFromJson(r.Body), BuildResponse(r)
+
+	var bot *Bot
+	err := json.NewDecoder(r.Body).Decode(&bot)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetBotIncludeDeleted", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	return bot, BuildResponse(r)
 }
 
 // GetBots fetches the given page of bots, excluding deleted.
 func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotListFromJson(r.Body), BuildResponse(r)
+
+	var bots BotList
+	err := json.NewDecoder(r.Body).Decode(&bots)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetBots", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return bots, BuildResponse(r)
 }
 
 // GetBotsIncludeDeleted fetches the given page of bots, including deleted.
 func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted="+c.boolString(true), page, perPage)
-	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotListFromJson(r.Body), BuildResponse(r)
+
+	var bots BotList
+	err := json.NewDecoder(r.Body).Decode(&bots)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetBotsIncludeDeleted", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return bots, BuildResponse(r)
 }
 
 // GetBotsOrphaned fetches the given page of bots, only including orphanded bots.
 func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned="+c.boolString(true), page, perPage)
-	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotListFromJson(r.Body), BuildResponse(r)
+
+	var bots BotList
+	err := json.NewDecoder(r.Body).Decode(&bots)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetBotsOrphaned", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return bots, BuildResponse(r)
 }
 
 // DisableBot disables the given bot in the system.
 func (c *Client4) DisableBot(botUserId string) (*Bot, *Response) {
-	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/disable", nil)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/disable", nil)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotFromJson(r.Body), BuildResponse(r)
+
+	var bot *Bot
+	err := json.NewDecoder(r.Body).Decode(&bot)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("DisableBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	return bot, BuildResponse(r)
 }
 
 // EnableBot disables the given bot in the system.
 func (c *Client4) EnableBot(botUserId string) (*Bot, *Response) {
-	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/enable", nil)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/enable", nil)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotFromJson(r.Body), BuildResponse(r)
+
+	var bot *Bot
+	err := json.NewDecoder(r.Body).Decode(&bot)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("EnableBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	return bot, BuildResponse(r)
 }
 
 // AssignBot assigns the given bot to the given user
 func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response) {
-	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/assign/"+newOwnerId, nil)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/assign/"+newOwnerId, nil)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return BotFromJson(r.Body), BuildResponse(r)
+
+	var bot *Bot
+	err := json.NewDecoder(r.Body).Decode(&bot)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("AssignBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	return bot, BuildResponse(r)
 }
 
 // SetBotIconImage sets LHS bot icon image.
@@ -3602,12 +3680,18 @@ func (c *Client4) RemoveLicenseFile() (bool, *Response) {
 // to a specific team.
 func (c *Client4) GetAnalyticsOld(name, teamId string) (AnalyticsRows, *Response) {
 	query := fmt.Sprintf("?name=%v&team_id=%v", name, teamId)
-	r, err := c.DoApiGet(c.GetAnalyticsRoute()+"/old"+query, "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetAnalyticsRoute()+"/old"+query, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return AnalyticsRowsFromJson(r.Body), BuildResponse(r)
+
+	var rows AnalyticsRows
+	err := json.NewDecoder(r.Body).Decode(&rows)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetAnalyticsOld", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return rows, BuildResponse(r)
 }
 
 // Webhooks Section
@@ -4309,12 +4393,18 @@ func (c *Client4) DeleteLdapPrivateCertificate() (bool, *Response) {
 // GetAudits returns a list of audits for the whole system.
 func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoApiGet("/audits"+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet("/audits"+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return AuditsFromJson(r.Body), BuildResponse(r)
+
+	var audits Audits
+	err := json.NewDecoder(r.Body).Decode(&audits)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetAudits", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return audits, BuildResponse(r)
 }
 
 // Brand Section
@@ -4521,9 +4611,10 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Response) {
-	rq, err := http.NewRequest(http.MethodPost, c.Url+"/oauth/access_token", strings.NewReader(data.Encode()))
+	url := c.Url + "/oauth/access_token"
+	rq, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
-		return nil, &Response{Error: NewAppError(c.Url+"/oauth/access_token", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -4533,7 +4624,7 @@ func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Respon
 
 	rp, err := c.HttpClient.Do(rq)
 	if err != nil || rp == nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.Url+"/oauth/access_token", "model.client.connecting.app_error", nil, err.Error(), 403)}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 403)}
 	}
 	defer closeBody(rp)
 
@@ -4541,7 +4632,13 @@ func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Respon
 		return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	}
 
-	return AccessResponseFromJson(rp.Body), BuildResponse(rp)
+	var ar *AccessResponse
+	err = json.NewDecoder(rp.Body).Decode(&ar)
+	if err != nil {
+		return nil, BuildErrorResponse(rp, NewAppError(url, "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	return ar, BuildResponse(rp)
 }
 
 // Elasticsearch Section
