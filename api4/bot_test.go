@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -444,13 +445,16 @@ func TestPatchBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(createdBot.UserId)
 
-		r, err := th.Client.DoApiPut(th.Client.GetBotRoute(createdBot.UserId), `{"creator_id":"`+th.BasicUser2.Id+`"}`)
-		require.Nil(t, err)
+		r, appErr := th.Client.DoApiPut(th.Client.GetBotRoute(createdBot.UserId), `{"creator_id":"`+th.BasicUser2.Id+`"}`)
+		require.Nil(t, appErr)
 		defer func() {
 			_, _ = ioutil.ReadAll(r.Body)
 			_ = r.Body.Close()
 		}()
-		patchedBot := model.BotFromJson(r.Body)
+		var patchedBot *model.Bot
+		err := json.NewDecoder(r.Body).Decode(&patchedBot)
+		require.NoError(t, err)
+
 		resp = model.BuildResponse(r)
 		CheckOKStatus(t, resp)
 
