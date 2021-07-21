@@ -952,7 +952,7 @@ func AddAncillaryPermissions(permissions []string) []string {
 }
 
 func asStringBoolMap(list []string) map[string]bool {
-	listMap := map[string]bool{}
+	listMap := make(map[string]bool, len(list))
 	for _, p := range list {
 		listMap[p] = true
 	}
