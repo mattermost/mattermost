@@ -847,21 +847,22 @@ func TestPatchPost(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	fileIds := make([]string, 3)
+	fileIDs := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
-	for i := 0; i < len(fileIds); i++ {
+	for i := 0; i < len(fileIDs); i++ {
 		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
 		CheckNoError(t, resp)
-		fileIds[i] = fileResp.FileInfos[0].Id
+		fileIDs[i] = fileResp.FileInfos[0].Id
 	}
+	sort.Strings(fileIDs)
 
 	post := &model.Post{
 		ChannelId:    channel.Id,
 		IsPinned:     true,
 		Message:      "#hashtag a message",
 		Props:        model.StringInterface{"channel_header": "old_header"},
-		FileIds:      fileIds[0:2],
+		FileIds:      fileIDs[0:2],
 		HasReactions: true,
 	}
 	post, _ = Client.CreatePost(post)
@@ -873,7 +874,7 @@ func TestPatchPost(t *testing.T) {
 		patch.IsPinned = model.NewBool(false)
 		patch.Message = model.NewString("#otherhashtag other message")
 		patch.Props = &model.StringInterface{"channel_header": "new_header"}
-		patchFileIds := model.StringArray(fileIds) // one extra file
+		patchFileIds := model.StringArray(fileIDs) // one extra file
 		patch.FileIds = &patchFileIds
 		patch.HasReactions = model.NewBool(false)
 
@@ -885,7 +886,7 @@ func TestPatchPost(t *testing.T) {
 		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
 		assert.Equal(t, *patch.Props, rpost.GetProps(), "Props did not update properly")
 		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
-		assert.Equal(t, model.StringArray(fileIds[0:2]), rpost.FileIds, "FileIds should not update")
+		assert.Equal(t, model.StringArray(fileIDs[0:2]), rpost.FileIds, "FileIds should not update")
 		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
 	})
 
