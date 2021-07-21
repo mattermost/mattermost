@@ -725,7 +725,7 @@ func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, ch
 		authorUsername = systemBot.Username
 	}
 
-	message := (map[string]string{
+	message := (map[model.ChannelType]string{
 		model.ChannelTypeOpen:    i18n.T("api.channel.change_channel_privacy.private_to_public"),
 		model.ChannelTypePrivate: i18n.T("api.channel.change_channel_privacy.public_to_private"),
 	})[channel.Type]
@@ -1080,7 +1080,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	return buildChannelModerations(channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
 
-func buildChannelModerations(channelType string, memberRole *model.Role, guestRole *model.Role, higherScopedMemberRole *model.Role, higherScopedGuestRole *model.Role) []*model.ChannelModeration {
+func buildChannelModerations(channelType model.ChannelType, memberRole *model.Role, guestRole *model.Role, higherScopedMemberRole *model.Role, higherScopedGuestRole *model.Role) []*model.ChannelModeration {
 	var memberPermissions, guestPermissions, higherScopedMemberPermissions, higherScopedGuestPermissions map[string]bool
 	if memberRole != nil {
 		memberPermissions = memberRole.GetChannelModeratedPermissions(channelType)

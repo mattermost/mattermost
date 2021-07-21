@@ -610,10 +610,11 @@ func TestImportImportChannel(t *testing.T) {
 	require.NoError(t, nErr, "Failed to get team count.")
 
 	// Do an invalid channel in dry-run mode.
+	chanOpen := model.ChannelTypeOpen
 	data := ChannelImportData{
 		Team:        &teamName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanOpen,
 		Header:      ptrStr("Channe Header"),
 		Purpose:     ptrStr("Channel Purpose"),
 		Scheme:      &scheme1.Name,
@@ -678,8 +679,9 @@ func TestImportImportChannel(t *testing.T) {
 	assert.Equal(t, scheme1.Id, *channel.SchemeId)
 
 	// Alter all the fields of that channel.
+	cTypePr := model.ChannelTypePrivate
 	data.DisplayName = ptrStr("Chaned Disp Name")
-	data.Type = ptrStr(model.ChannelTypePrivate)
+	data.Type = &cTypePr
 	data.Header = ptrStr("New Header")
 	data.Purpose = ptrStr("New Purpose")
 	data.Scheme = &scheme2.Name
@@ -874,11 +876,12 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
@@ -1396,7 +1399,7 @@ func TestImportImportUser(t *testing.T) {
 		Team:        &teamName,
 		Name:        ptrStr(model.NewId()),
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 		Header:      ptrStr("Channe Header"),
 		Purpose:     ptrStr("Channel Purpose"),
 	}
@@ -1939,11 +1942,12 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
@@ -2418,7 +2422,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		Team:        &teamName2,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	_, err = th.App.GetChannelByName(channelName, team2.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
@@ -2477,11 +2481,12 @@ func TestImportImportPost(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
@@ -3920,11 +3925,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
@@ -4195,11 +4201,12 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
