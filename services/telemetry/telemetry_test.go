@@ -80,17 +80,17 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 
 	systemStore := storeMocks.SystemStore{}
 	props := model.StringMap{}
-	props[model.SYSTEM_TELEMETRY_ID] = "test"
+	props[model.SystemTelemetryId] = "test"
 	systemStore.On("Get").Return(props, nil)
-	systemStore.On("GetByName", model.ADVANCED_PERMISSIONS_MIGRATION_KEY).Return(nil, nil)
-	systemStore.On("GetByName", model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2).Return(nil, nil)
+	systemStore.On("GetByName", model.AdvancedPermissionsMigrationKey).Return(nil, nil)
+	systemStore.On("GetByName", model.MigrationKeyAdvancedPermissionsPhase2).Return(nil, nil)
 
 	userStore := storeMocks.UserStore{}
 	userStore.On("Count", model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true, ExcludeRegularUsers: false, TeamId: "", ViewRestrictions: nil}).Return(int64(10), nil)
 	userStore.On("Count", model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false, ExcludeRegularUsers: true, TeamId: "", ViewRestrictions: nil}).Return(int64(100), nil)
-	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SYSTEM_MANAGER_ROLE_ID}}).Return(int64(5), nil)
-	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SYSTEM_USER_MANAGER_ROLE_ID}}).Return(int64(10), nil)
-	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID}}).Return(int64(15), nil)
+	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemManagerRoleId}}).Return(int64(5), nil)
+	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemUserManagerRoleId}}).Return(int64(10), nil)
+	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemReadOnlyAdminRoleId}}).Return(int64(15), nil)
 	userStore.On("AnalyticsGetGuestCount").Return(int64(11), nil)
 	userStore.On("AnalyticsActiveCount", mock.Anything, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false, ExcludeRegularUsers: false, TeamId: "", ViewRestrictions: nil}).Return(int64(5), nil)
 	userStore.On("AnalyticsGetInactiveUsersCount").Return(int64(8), nil)
@@ -101,9 +101,9 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	teamStore.On("GroupSyncedTeamCount").Return(int64(16), nil)
 
 	channelStore := storeMocks.ChannelStore{}
-	channelStore.On("AnalyticsTypeCount", "", "O").Return(int64(25), nil)
-	channelStore.On("AnalyticsTypeCount", "", "P").Return(int64(26), nil)
-	channelStore.On("AnalyticsTypeCount", "", "D").Return(int64(27), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(25), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypePrivate).Return(int64(26), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeDirect).Return(int64(27), nil)
 	channelStore.On("AnalyticsDeletedTypeCount", "", "O").Return(int64(22), nil)
 	channelStore.On("AnalyticsDeletedTypeCount", "", "P").Return(int64(23), nil)
 	channelStore.On("GroupSyncedChannelCount").Return(int64(17), nil)
@@ -361,7 +361,7 @@ func TestRudderTelemetry(t *testing.T) {
 			TrackConfigRate,
 			TrackConfigEmail,
 			TrackConfigPrivacy,
-			TrackConfigOauth,
+			TrackConfigOAuth,
 			TrackConfigLDAP,
 			TrackConfigCompliance,
 			TrackConfigLocalization,
@@ -404,7 +404,7 @@ func TestRudderTelemetry(t *testing.T) {
 			TrackConfigRate,
 			TrackConfigEmail,
 			TrackConfigPrivacy,
-			TrackConfigOauth,
+			TrackConfigOAuth,
 			TrackConfigLDAP,
 			TrackConfigCompliance,
 			TrackConfigLocalization,

@@ -40,14 +40,14 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 		if shouldError.get() {
 			w.WriteHeader(http.StatusInternalServerError)
 			resp := make(map[string]string)
-			resp[model.STATUS] = model.STATUS_FAIL
+			resp[model.STATUS] = model.StatusFail
 			w.Write([]byte(model.MapToJson(resp)))
 			return
 		}
 
-		status := model.STATUS_OK
+		status := model.StatusOk
 		defer func(s *string) {
-			if *s != model.STATUS_OK {
+			if *s != model.StatusOk {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 			resp := make(map[string]string)
@@ -56,20 +56,20 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 		}(&status)
 
 		if err := r.ParseMultipartForm(1024 * 1024); err != nil {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "connect parse multipart form", err)
 			return
 		}
 		m := r.MultipartForm
 		if m == nil {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "multipart form missing")
 			return
 		}
 
 		imageArray, ok := m.File["image"]
 		if !ok || len(imageArray) != 1 {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "image missing")
 			return
 		}
@@ -77,7 +77,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 		imageData := imageArray[0]
 		file, err := imageData.Open()
 		if err != nil {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "cannot open multipart form file")
 			return
 		}
@@ -85,7 +85,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 		img, err := png.Decode(file)
 		if err != nil || imageWidth != img.Bounds().Max.X || imageHeight != img.Bounds().Max.Y {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "cannot decode png", err)
 			return
 		}

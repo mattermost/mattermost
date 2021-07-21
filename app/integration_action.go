@@ -219,7 +219,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		upstreamRequest.TeamName = team.Name
 	}
 
-	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
+	if upstreamRequest.Type == model.PostActionTypeSelect {
 		if selectedOption != "" {
 			if upstreamRequest.Context == nil {
 				upstreamRequest.Context = map[string]interface{}{}
@@ -249,8 +249,15 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+
+	if len(respBytes) > 0 {
+		if err = json.Unmarshal(respBytes, &response); err != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	if response.Update != nil {
@@ -322,7 +329,7 @@ func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	if (inURL.Hostname() == "localhost" || inURL.Hostname() == "127.0.0.1" || inURL.Hostname() == siteURL.Hostname()) && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+c.Session().Token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+c.Session().Token)
 		httpClient = a.HTTPService().MakeClient(true)
 	} else {
 		httpClient = a.HTTPService().MakeClient(false)
@@ -407,7 +414,7 @@ func (a *App) doPluginRequest(c *request.Context, method, rawURL string, values 
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 	r.Header.Set("Mattermost-User-Id", c.Session().UserId)
-	r.Header.Set(model.HEADER_AUTH, "Bearer "+c.Session().Token)
+	r.Header.Set(model.HeaderAuth, "Bearer "+c.Session().Token)
 	params := make(map[string]string)
 	params["plugin_id"] = pluginID
 	r = mux.SetURLVars(r, params)
@@ -478,7 +485,7 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 				&model.PostAction{
 					Id:   "emailUs",
 					Name: i18n.T("api.server.warn_metric.email_us"),
-					Type: model.POST_ACTION_TYPE_BUTTON,
+					Type: model.PostActionTypeButton,
 					Options: []*model.PostActionOptions{
 						{
 							Text:  "WarnMetricMailtoUrl",
@@ -494,7 +501,7 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 							"bot_user_id": botPost.UserId,
 							"force_ack":   true,
 						},
-						URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
+						URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SystemWarnMetricNumberOfActiveUsers500),
 					},
 				},
 			)
@@ -556,7 +563,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	mailToLinkContent := &MailToLinkContent{
 		MetricId:      warnMetricId,
-		MailRecipient: model.MM_SUPPORT_ADVISOR_ADDRESS,
+		MailRecipient: model.MmSupportAdvisorAddress,
 		MailCC:        user.Email,
 		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
 		MailBody:      mailBody,
@@ -579,7 +586,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 
 	jsonRequest, _ := json.Marshal(request)
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_OPEN_DIALOG, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil)
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 

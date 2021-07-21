@@ -78,7 +78,7 @@ func TestPluginCommand(t *testing.T) {
 
 			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				return &model.CommandResponse{
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					ResponseType: model.CommandResponseTypeEphemeral,
 					Text: "text",
 				}, nil
 			}
@@ -93,7 +93,7 @@ func TestPluginCommand(t *testing.T) {
 
 		resp, err := th.App.ExecuteCommand(th.Context, args)
 		require.Nil(t, err)
-		require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
+		require.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
 
 		err2 := th.App.DisablePlugin(pluginIDs[0])
@@ -172,7 +172,7 @@ func TestPluginCommand(t *testing.T) {
 				p.API.LogInfo("ExecuteCommand, saved plugin config")
 
 				return &model.CommandResponse{
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					ResponseType: model.CommandResponseTypeEphemeral,
 					Text: "text",
 				}, nil
 			}
@@ -196,7 +196,7 @@ func TestPluginCommand(t *testing.T) {
 			// Ignore if we kill below.
 			if !killed {
 				require.Nil(t, err)
-				require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
+				require.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
 				require.Equal(t, "text", resp.Text)
 			}
 		}()
@@ -266,7 +266,7 @@ func TestPluginCommand(t *testing.T) {
 
 			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				return &model.CommandResponse{
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					ResponseType: model.CommandResponseTypeEphemeral,
 					Text: "text",
 				}, nil
 			}
@@ -282,7 +282,7 @@ func TestPluginCommand(t *testing.T) {
 		args.Command = "/code"
 		resp, err := th.App.ExecuteCommand(th.Context, args)
 		require.Nil(t, err)
-		require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
+		require.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
 
 		th.App.RemovePlugin(pluginIDs[0])

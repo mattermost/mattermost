@@ -17,7 +17,7 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  100,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 	return a.GetUsers(userOptions)

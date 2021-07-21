@@ -16,7 +16,7 @@ import (
 	"net/mail"
 	"net/url"
 	"regexp"
-	"strconv"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -27,11 +27,11 @@ import (
 )
 
 const (
-	LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
-	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS           = "0123456789"
-	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	MB                = 1 << 20
+	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS          = "0123456789"
+	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	MB               = 1 << 20
 )
 
 type StringInterface map[string]interface{}
@@ -227,7 +227,7 @@ func GetEndOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
 }
 
 func CopyStringMap(originalMap map[string]string) map[string]string {
-	copyMap := make(map[string]string)
+	copyMap := make(map[string]string, len(originalMap))
 	for k, v := range originalMap {
 		copyMap[k] = v
 	}
@@ -315,21 +315,6 @@ func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
 	return objmap
 }
 
-func StringToJson(s string) string {
-	b, _ := json.Marshal(s)
-	return string(b)
-}
-
-func StringFromJson(data io.Reader) string {
-	decoder := json.NewDecoder(data)
-
-	var s string
-	if err := decoder.Decode(&s); err != nil {
-		return ""
-	}
-	return s
-}
-
 // ToJson serializes an arbitrary data type to JSON, discarding the error.
 func ToJson(v interface{}) []byte {
 	b, _ := json.Marshal(v)
@@ -372,12 +357,12 @@ func GetServerIpAddress(iface string) string {
 	return ""
 }
 
-func IsLower(s string) bool {
+func isLower(s string) bool {
 	return strings.ToLower(s) == s
 }
 
 func IsValidEmail(email string) bool {
-	if !IsLower(email) {
+	if !isLower(email) {
 		return false
 	}
 
@@ -415,32 +400,32 @@ func IsValidChannelIdentifier(s string) bool {
 		return false
 	}
 
-	if len(s) < CHANNEL_NAME_MIN_LENGTH {
+	if len(s) < ChannelNameMinLength {
 		return false
 	}
 
 	return true
 }
 
-func IsValidAlphaNum(s string) bool {
-	validAlphaNum := regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
+var (
+	validAlphaNum                           = regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
+	validAlphaNumHyphenUnderscore           = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]+$`)
+	validSimpleAlphaNumHyphenUnderscore     = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`)
+	validSimpleAlphaNumHyphenUnderscorePlus = regexp.MustCompile(`^[a-zA-Z0-9+_-]+$`)
+)
 
+func isValidAlphaNum(s string) bool {
 	return validAlphaNum.MatchString(s)
 }
 
 func IsValidAlphaNumHyphenUnderscore(s string, withFormat bool) bool {
 	if withFormat {
-		validAlphaNumHyphenUnderscore := regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]+$`)
 		return validAlphaNumHyphenUnderscore.MatchString(s)
 	}
-
-	validSimpleAlphaNumHyphenUnderscore := regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`)
 	return validSimpleAlphaNumHyphenUnderscore.MatchString(s)
 }
 
 func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
-
-	validSimpleAlphaNumHyphenUnderscorePlus := regexp.MustCompile(`^[a-zA-Z0-9+_-]+$`)
 	return validSimpleAlphaNumHyphenUnderscorePlus.MatchString(s)
 }
 
@@ -455,10 +440,12 @@ func Etag(parts ...interface{}) string {
 	return etag
 }
 
-var validHashtag = regexp.MustCompile(`^(#\pL[\pL\d\-_.]*[\pL\d])$`)
-var puncStart = regexp.MustCompile(`^[^\pL\d\s#]+`)
-var hashtagStart = regexp.MustCompile(`^#{2,}`)
-var puncEnd = regexp.MustCompile(`[^\pL\d\s]+$`)
+var (
+	validHashtag = regexp.MustCompile(`^(#\pL[\pL\d\-_.]*[\pL\d])$`)
+	puncStart    = regexp.MustCompile(`^[^\pL\d\s#]+`)
+	hashtagStart = regexp.MustCompile(`^#{2,}`)
+	puncEnd      = regexp.MustCompile(`[^\pL\d\s]+$`)
+)
 
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
@@ -511,56 +498,6 @@ func IsValidHttpUrl(rawUrl string) bool {
 	return true
 }
 
-func IsValidTurnOrStunServer(rawUri string) bool {
-	if strings.Index(rawUri, "turn:") != 0 && strings.Index(rawUri, "stun:") != 0 {
-		return false
-	}
-
-	if _, err := url.ParseRequestURI(rawUri); err != nil {
-		return false
-	}
-
-	return true
-}
-
-func IsSafeLink(link *string) bool {
-	if link != nil {
-		if IsValidHttpUrl(*link) {
-			return true
-		} else if strings.HasPrefix(*link, "/") {
-			return true
-		} else {
-			return false
-		}
-	}
-
-	return true
-}
-
-func IsValidWebsocketUrl(rawUrl string) bool {
-	if strings.Index(rawUrl, "ws://") != 0 && strings.Index(rawUrl, "wss://") != 0 {
-		return false
-	}
-
-	if _, err := url.ParseRequestURI(rawUrl); err != nil {
-		return false
-	}
-
-	return true
-}
-
-func IsValidTrueOrFalseString(value string) bool {
-	return value == "true" || value == "false"
-}
-
-func IsValidNumberString(value string) bool {
-	if _, err := strconv.Atoi(value); err != nil {
-		return false
-	}
-
-	return true
-}
-
 func IsValidId(value string) bool {
 	if len(value) != 26 {
 		return false
@@ -575,73 +512,24 @@ func IsValidId(value string) bool {
 	return true
 }
 
-// Copied from https://golang.org/src/net/dnsclient.go#L119
-func IsDomainName(s string) bool {
-	// See RFC 1035, RFC 3696.
-	// Presentation format has dots before every label except the first, and the
-	// terminal empty label is optional here because we assume fully-qualified
-	// (absolute) input. We must therefore reserve space for the first and last
-	// labels' length octets in wire format, where they are necessary and the
-	// maximum total length is 255.
-	// So our _effective_ maximum is 253, but 254 is not rejected if the last
-	// character is a dot.
-	l := len(s)
-	if l == 0 || l > 254 || l == 254 && s[l-1] != '.' {
-		return false
-	}
-
-	last := byte('.')
-	ok := false // Ok once we've seen a letter.
-	partlen := 0
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		switch {
-		default:
-			return false
-		case 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_':
-			ok = true
-			partlen++
-		case '0' <= c && c <= '9':
-			// fine
-			partlen++
-		case c == '-':
-			// Byte before dash cannot be dot.
-			if last == '.' {
-				return false
-			}
-			partlen++
-		case c == '.':
-			// Byte before dot cannot be dot, dash.
-			if last == '.' || last == '-' {
-				return false
-			}
-			if partlen > 63 || partlen == 0 {
-				return false
-			}
-			partlen = 0
-		}
-		last = c
-	}
-	if last == '-' || partlen > 63 {
-		return false
-	}
-
-	return ok
-}
-
+// RemoveDuplicateStrings does an in-place removal of duplicate strings
+// from the input slice. The original slice gets modified.
 func RemoveDuplicateStrings(in []string) []string {
-	out := []string{}
-	seen := make(map[string]bool, len(in))
-
-	for _, item := range in {
-		if !seen[item] {
-			out = append(out, item)
-
-			seen[item] = true
-		}
+	// In-place de-dup.
+	// Copied from https://github.com/golang/go/wiki/SliceTricks#in-place-deduplicate-comparable
+	if len(in) == 0 {
+		return in
 	}
-
-	return out
+	sort.Strings(in)
+	j := 0
+	for i := 1; i < len(in); i++ {
+		if in[j] == in[i] {
+			continue
+		}
+		j++
+		in[j] = in[i]
+	}
+	return in[:j+1]
 }
 
 func GetPreferredTimezone(timezone StringMap) string {
@@ -650,19 +538,6 @@ func GetPreferredTimezone(timezone StringMap) string {
 	}
 
 	return timezone["manualTimezone"]
-}
-
-// IsSamlFile checks if filename is a SAML file.
-func IsSamlFile(saml *SamlSettings, filename string) bool {
-	return filename == *saml.PublicCertificateFile || filename == *saml.PrivateKeyFile || filename == *saml.IdpCertificateFile
-}
-
-func AsStringBoolMap(list []string) map[string]bool {
-	listMap := map[string]bool{}
-	for _, p := range list {
-		listMap[p] = true
-	}
-	return listMap
 }
 
 // SanitizeUnicode will remove undesirable Unicode characters from a string.
@@ -708,19 +583,4 @@ func filterBlocklist(r rune) rune {
 	}
 
 	return r
-}
-
-// UniqueStrings returns a unique subset of the string slice provided.
-func UniqueStrings(input []string) []string {
-	u := make([]string, 0, len(input))
-	m := make(map[string]bool)
-
-	for _, val := range input {
-		if _, ok := m[val]; !ok {
-			m[val] = true
-			u = append(u, val)
-		}
-	}
-
-	return u
 }

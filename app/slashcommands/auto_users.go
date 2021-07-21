@@ -99,7 +99,7 @@ func (cfg *AutoUserCreator) createRandomUser(c *request.Context) (*model.User, e
 		return nil, appErr
 	}
 
-	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	status := &model.Status{UserId: ruser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	if err := cfg.app.Srv().Store.Status().SaveOrUpdate(status); err != nil {
 		return nil, err
 	}

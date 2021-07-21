@@ -55,7 +55,7 @@ func (b *Busy) Set(dur time.Duration) {
 	b.setWithoutNotify(dur)
 
 	if b.cluster != nil {
-		sbs := &model.ServerBusyState{Busy: true, Expires: b.expires.Unix(), Expires_ts: b.expires.UTC().Format(TimestampFormat)}
+		sbs := &model.ServerBusyState{Busy: true, Expires: b.expires.Unix(), ExpiresTS: b.expires.UTC().Format(TimestampFormat)}
 		b.notifyServerBusyChange(sbs)
 	}
 }
@@ -80,7 +80,7 @@ func (b *Busy) Clear() {
 	b.clearWithoutNotify()
 
 	if b.cluster != nil {
-		sbs := &model.ServerBusyState{Busy: false, Expires: time.Time{}.Unix(), Expires_ts: ""}
+		sbs := &model.ServerBusyState{Busy: false, Expires: time.Time{}.Unix(), ExpiresTS: ""}
 		b.notifyServerBusyChange(sbs)
 	}
 }
@@ -110,8 +110,8 @@ func (b *Busy) notifyServerBusyChange(sbs *model.ServerBusyState) {
 		return
 	}
 	msg := &model.ClusterMessage{
-		Event:            model.CLUSTER_EVENT_BUSY_STATE_CHANGED,
-		SendType:         model.CLUSTER_SEND_RELIABLE,
+		Event:            model.ClusterEventBusyStateChanged,
+		SendType:         model.ClusterSendReliable,
 		WaitForAllToSend: true,
 		Data:             sbs.ToJson(),
 	}
@@ -139,9 +139,9 @@ func (b *Busy) ToJson() string {
 	defer b.mux.RUnlock()
 
 	sbs := &model.ServerBusyState{
-		Busy:       atomic.LoadInt32(&b.busy) != 0,
-		Expires:    b.expires.Unix(),
-		Expires_ts: b.expires.UTC().Format(TimestampFormat),
+		Busy:      atomic.LoadInt32(&b.busy) != 0,
+		Expires:   b.expires.Unix(),
+		ExpiresTS: b.expires.UTC().Format(TimestampFormat),
 	}
 	return sbs.ToJson()
 }

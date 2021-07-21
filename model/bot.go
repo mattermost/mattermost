@@ -6,18 +6,17 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"unicode/utf8"
 )
 
 const (
-	BOT_DISPLAY_NAME_MAX_RUNES   = USER_FIRST_NAME_MAX_RUNES
-	BOT_DESCRIPTION_MAX_RUNES    = 1024
-	BOT_CREATOR_ID_MAX_RUNES     = KEY_VALUE_PLUGIN_ID_MAX_RUNES // UserId or PluginId
-	BOT_WARN_METRIC_BOT_USERNAME = "mattermost-advisor"
-	BOT_SYSTEM_BOT_USERNAME      = "system-bot"
+	BotDisplayNameMaxRunes   = UserFirstNameMaxRunes
+	BotDescriptionMaxRunes   = 1024
+	BotCreatorIdMaxRunes     = KeyValuePluginIdMaxRunes // UserId or PluginId
+	BotWarnMetricBotUsername = "mattermost-advisor"
+	BotSystemBotUsername     = "system-bot"
 )
 
 // Bot is a special type of User meant for programmatic interactions.
@@ -75,15 +74,15 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.username.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(b.DisplayName) > BOT_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(b.DisplayName) > BotDisplayNameMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(b.Description) > BOT_DESCRIPTION_MAX_RUNES {
+	if utf8.RuneCountInString(b.Description) > BotDescriptionMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.description.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if b.OwnerId == "" || utf8.RuneCountInString(b.OwnerId) > BOT_CREATOR_ID_MAX_RUNES {
+	if b.OwnerId == "" || utf8.RuneCountInString(b.OwnerId) > BotCreatorIdMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
@@ -119,13 +118,6 @@ func (b *Bot) Etag() string {
 func (b *Bot) ToJson() []byte {
 	data, _ := json.Marshal(b)
 	return data
-}
-
-// BotFromJson deserializes a bot from json.
-func BotFromJson(data io.Reader) *Bot {
-	var bot *Bot
-	json.NewDecoder(data).Decode(&bot)
-	return bot
 }
 
 // Patch modifies an existing bot with optional fields from the given patch.
@@ -172,18 +164,6 @@ func (b *BotPatch) ToJson() []byte {
 	return data
 }
 
-// BotPatchFromJson deserializes a bot patch from json.
-func BotPatchFromJson(data io.Reader) *BotPatch {
-	decoder := json.NewDecoder(data)
-	var botPatch BotPatch
-	err := decoder.Decode(&botPatch)
-	if err != nil {
-		return nil
-	}
-
-	return &botPatch
-}
-
 // UserFromBot returns a user model describing the bot fields stored in the User store.
 func UserFromBot(b *Bot) *User {
 	return &User{
@@ -191,7 +171,7 @@ func UserFromBot(b *Bot) *User {
 		Username:  b.Username,
 		Email:     NormalizeEmail(fmt.Sprintf("%s@localhost", b.Username)),
 		FirstName: b.DisplayName,
-		Roles:     SYSTEM_USER_ROLE_ID,
+		Roles:     SystemUserRoleId,
 	}
 }
 
@@ -201,15 +181,8 @@ func BotFromUser(u *User) *Bot {
 		OwnerId:     u.Id,
 		UserId:      u.Id,
 		Username:    u.Username,
-		DisplayName: u.GetDisplayName(SHOW_USERNAME),
+		DisplayName: u.GetDisplayName(ShowUsername),
 	}
-}
-
-// BotListFromJson deserializes a list of bots from json.
-func BotListFromJson(data io.Reader) BotList {
-	var bots BotList
-	json.NewDecoder(data).Decode(&bots)
-	return bots
 }
 
 // ToJson serializes a list of bots to json.
@@ -242,7 +215,7 @@ func MakeBotNotFoundError(userId string) *AppError {
 }
 
 func IsBotDMChannel(channel *Channel, botUserID string) bool {
-	if channel.Type != CHANNEL_DIRECT {
+	if channel.Type != ChannelTypeDirect {
 		return false
 	}
 

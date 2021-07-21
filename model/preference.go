@@ -30,32 +30,49 @@ const (
 	PREFERENCE_NAME_USE_MILITARY_TIME         = "use_military_time"
 	PREFERENCE_RECOMMENDED_NEXT_STEPS         = "recommended_next_steps"
 
-	PREFERENCE_CATEGORY_THEME = "theme"
+	PREFERENCE_CATEGORY_THEME           = "theme"
+	PreferenceCategoryDirectChannelShow = "direct_channel_show"
+	PreferenceCategoryGroupChannelShow  = "group_channel_show"
+	PreferenceCategoryTutorialSteps     = "tutorial_step"
+	PreferenceCategoryAdvancedSettings  = "advanced_settings"
+	PreferenceCategoryFlaggedPost       = "flagged_post"
+	PreferenceCategoryFavoriteChannel   = "favorite_channel"
+	PreferenceCategorySidebarSettings   = "sidebar_settings"
+
+	PreferenceCategoryDisplaySettings     = "display_settings"
+	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
+	PreferenceNameChannelDisplayMode      = "channel_display_mode"
+	PreferenceNameCollapseSetting         = "collapse_previews"
+	PreferenceNameMessageDisplay          = "message_display"
+	PreferenceNameNameFormat              = "name_format"
+	PreferenceNameUseMilitaryTime         = "use_military_time"
+
+	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id
 
-	PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP = "oauth_app"
+	PreferenceCategoryAuthorizedOAuthApp = "oauth_app"
 	// the name for oauth_app is the client_id and value is the current scope
 
-	PREFERENCE_CATEGORY_LAST     = "last"
-	PREFERENCE_NAME_LAST_CHANNEL = "channel"
-	PREFERENCE_NAME_LAST_TEAM    = "team"
+	PreferenceCategoryLast    = "last"
+	PreferenceNameLastChannel = "channel"
+	PreferenceNameLastTeam    = "team"
 
-	PREFERENCE_CATEGORY_CUSTOM_STATUS            = "custom_status"
-	PREFERENCE_NAME_RECENT_CUSTOM_STATUSES       = "recent_custom_statuses"
-	PREFERENCE_NAME_CUSTOM_STATUS_TUTORIAL_STATE = "custom_status_tutorial_state"
+	PreferenceCategoryCustomStatus          = "custom_status"
+	PreferenceNameRecentCustomStatuses      = "recent_custom_statuses"
+	PreferenceNameCustomStatusTutorialState = "custom_status_tutorial_state"
 
-	PREFERENCE_CUSTOM_STATUS_MODAL_VIEWED = "custom_status_modal_viewed"
+	PreferenceCustomStatusModalViewed = "custom_status_modal_viewed"
 
-	PREFERENCE_CATEGORY_NOTIFICATIONS = "notifications"
-	PREFERENCE_NAME_EMAIL_INTERVAL    = "email_interval"
+	PreferenceCategoryNotifications = "notifications"
+	PreferenceNameEmailInterval     = "email_interval"
 
-	PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS = "30"  // the "immediate" setting is actually 30s
-	PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS    = "900" // fifteen minutes is 900 seconds
-	PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY         = "immediately"
-	PREFERENCE_EMAIL_INTERVAL_FIFTEEN             = "fifteen"
-	PREFERENCE_EMAIL_INTERVAL_FIFTEEN_AS_SECONDS  = "900"
-	PREFERENCE_EMAIL_INTERVAL_HOUR                = "hour"
-	PREFERENCE_EMAIL_INTERVAL_HOUR_AS_SECONDS     = "3600"
+	PreferenceEmailIntervalNoBatchingSeconds = "30"  // the "immediate" setting is actually 30s
+	PreferenceEmailIntervalBatchingSeconds   = "900" // fifteen minutes is 900 seconds
+	PreferenceEmailIntervalImmediately       = "immediately"
+	PreferenceEmailIntervalFifteen           = "fifteen"
+	PreferenceEmailIntervalFifteenAsSeconds  = "900"
+	PreferenceEmailIntervalHour              = "hour"
+	PreferenceEmailIntervalHourAsSeconds     = "3600"
 )
 
 type Preference struct {
@@ -93,7 +110,7 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.value.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 	}
 
-	if o.Category == PREFERENCE_CATEGORY_THEME {
+	if o.Category == PreferenceCategoryTheme {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
 			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest)
@@ -104,7 +121,7 @@ func (o *Preference) IsValid() *AppError {
 }
 
 func (o *Preference) PreUpdate() {
-	if o.Category == PREFERENCE_CATEGORY_THEME {
+	if o.Category == PreferenceCategoryTheme {
 		// decode the value of theme (a map of strings to string) and eliminate any invalid values
 		var props map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&props); err != nil {

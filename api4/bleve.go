@@ -18,8 +18,8 @@ func purgeBleveIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("purgeBleveIndexes", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_PURGE_BLEVE_INDEXES) {
-		c.SetPermissionError(model.PERMISSION_PURGE_BLEVE_INDEXES)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPurgeBleveIndexes) {
+		c.SetPermissionError(model.PermissionPurgeBleveIndexes)
 		return
 	}
 

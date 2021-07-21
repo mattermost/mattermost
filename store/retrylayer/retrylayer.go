@@ -588,7 +588,7 @@ func (s *RetryLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channe
 
 }
 
-func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamID string, channelType string) (int64, error) {
+func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 
 	tries := 0
 	for {

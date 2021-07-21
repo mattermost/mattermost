@@ -104,7 +104,7 @@ func (h *MainHelper) Main(m *testing.M) {
 func (h *MainHelper) setupStore(withReadReplica bool) {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_POSTGRES
+		driverName = model.DatabaseDriverPostgres
 	}
 
 	h.Settings = storetest.MakeSqlSettings(driverName, withReadReplica)
@@ -168,7 +168,7 @@ func (h *MainHelper) PreloadMigrations() {
 	basePath := os.Getenv("MM_SERVER_PATH")
 	relPath := "testlib/testdata"
 	switch *h.Settings.DriverName {
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		var finalPath string
 		if basePath != "" {
 			finalPath = filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
@@ -179,7 +179,7 @@ func (h *MainHelper) PreloadMigrations() {
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		var finalPath string
 		if basePath != "" {
 			finalPath = filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
@@ -259,8 +259,8 @@ func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
 }
 
 func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
-	if dn := h.SQLStore.DriverName(); dn != model.DATABASE_DRIVER_MYSQL {
-		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DATABASE_DRIVER_MYSQL)
+	if dn := h.SQLStore.DriverName(); dn != model.DatabaseDriverMysql {
+		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DatabaseDriverMysql)
 	}
 
 	err := h.execOnEachReplica("STOP SLAVE SQL_THREAD FOR CHANNEL ''")

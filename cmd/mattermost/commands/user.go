@@ -524,10 +524,10 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 	}
 
 	systemAdmin, _ := command.Flags().GetBool("system_admin")
-	if systemAdmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
+	if systemAdmin && !user.IsInRole(model.SystemAdminRoleId) {
 		if _, appErr = a.UpdateUserRoles(
 			user.Id,
-			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
+			fmt.Sprintf("%s %s", user.Roles, model.SystemAdminRoleId),
 			false); appErr != nil {
 			return fmt.Errorf("Unable to make user system admin. Error: %s" + appErr.Error())
 		}

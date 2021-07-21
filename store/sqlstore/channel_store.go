@@ -24,10 +24,10 @@ import (
 )
 
 const (
-	AllChannelMembersForUserCacheSize     = model.SESSION_CACHE_SIZE
+	AllChannelMembersForUserCacheSize     = model.SessionCacheSize
 	AllChannelMembersForUserCacheDuration = 15 * time.Minute // 15 mins
 
-	AllChannelMembersNotifyPropsForChannelCacheSize     = model.SESSION_CACHE_SIZE
+	AllChannelMembersNotifyPropsForChannelCacheSize     = model.SessionCacheSize
 	AllChannelMembersNotifyPropsForChannelCacheDuration = 30 * time.Minute // 30 mins
 
 	ChannelCacheDuration = 15 * time.Minute // 15 mins
@@ -132,11 +132,11 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 	// them from ExplicitRoles field.
 	for _, role := range roles {
 		switch role {
-		case model.CHANNEL_GUEST_ROLE_ID:
+		case model.ChannelGuestRoleId:
 			result.schemeGuest = true
-		case model.CHANNEL_USER_ROLE_ID:
+		case model.ChannelUserRoleId:
 			result.schemeUser = true
-		case model.CHANNEL_ADMIN_ROLE_ID:
+		case model.ChannelAdminRoleId:
 			result.schemeAdmin = true
 		default:
 			result.explicitRoles = append(result.explicitRoles, role)
@@ -153,7 +153,7 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 		} else if defaultTeamGuestRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamGuestRole)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_GUEST_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.ChannelGuestRoleId)
 		}
 	}
 	if result.schemeUser {
@@ -162,7 +162,7 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 		} else if defaultTeamUserRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamUserRole)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_USER_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.ChannelUserRoleId)
 		}
 	}
 	if result.schemeAdmin {
@@ -171,7 +171,7 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 		} else if defaultTeamAdminRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamAdminRole)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_ADMIN_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.ChannelAdminRoleId)
 		}
 	}
 	for _, impliedRole := range schemeImpliedRoles {
@@ -288,7 +288,7 @@ func (db allChannelMember) Process() (string, string) {
 		} else if db.TeamSchemeDefaultGuestRole.Valid && db.TeamSchemeDefaultGuestRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultGuestRole.String)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_GUEST_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.ChannelGuestRoleId)
 		}
 	}
 	if db.SchemeUser.Valid && db.SchemeUser.Bool {
@@ -297,7 +297,7 @@ func (db allChannelMember) Process() (string, string) {
 		} else if db.TeamSchemeDefaultUserRole.Valid && db.TeamSchemeDefaultUserRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultUserRole.String)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_USER_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.ChannelUserRoleId)
 		}
 	}
 	if db.SchemeAdmin.Valid && db.SchemeAdmin.Bool {
@@ -306,7 +306,7 @@ func (db allChannelMember) Process() (string, string) {
 		} else if db.TeamSchemeDefaultAdminRole.Valid && db.TeamSchemeDefaultAdminRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultAdminRole.String)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_ADMIN_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.ChannelAdminRoleId)
 		}
 	}
 	for _, impliedRole := range schemeImpliedRoles {
@@ -353,7 +353,7 @@ var allChannelMembersNotifyPropsForChannelCache = cache.NewLRU(cache.LRUOptions{
 	Size: AllChannelMembersNotifyPropsForChannelCacheSize,
 })
 var channelByNameCache = cache.NewLRU(cache.LRUOptions{
-	Size: model.CHANNEL_CACHE_SIZE,
+	Size: model.ChannelCacheSize,
 })
 
 func (s SqlChannelStore) ClearCaches() {
@@ -425,7 +425,7 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
 	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		s.CreateIndexIfNotExists("idx_channels_name_lower", "Channels", "lower(Name)")
 		s.CreateIndexIfNotExists("idx_channels_displayname_lower", "Channels", "lower(DisplayName)")
 	}
@@ -436,7 +436,7 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 
 	s.CreateIndexIfNotExists("idx_publicchannels_team_id", "PublicChannels", "TeamId")
 	s.CreateIndexIfNotExists("idx_publicchannels_delete_at", "PublicChannels", "DeleteAt")
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		s.CreateIndexIfNotExists("idx_publicchannels_name_lower", "PublicChannels", "lower(Name)")
 		s.CreateIndexIfNotExists("idx_publicchannels_displayname_lower", "PublicChannels", "lower(DisplayName)")
 	}
@@ -477,7 +477,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 		Purpose:     channel.Purpose,
 	}
 
-	if channel.Type != model.CHANNEL_OPEN {
+	if channel.Type != model.ChannelTypeOpen {
 		if _, err := transaction.Delete(publicChannel); err != nil {
 			return errors.Wrap(err, "failed to delete public channel")
 		}
@@ -495,7 +495,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 		"Purpose":     publicChannel.Purpose,
 	}
 	var err error
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		_, err = transaction.Exec(`
 			INSERT INTO
 			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
@@ -537,7 +537,7 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
 
-	if channel.Type == model.CHANNEL_DIRECT {
+	if channel.Type == model.ChannelTypeDirect {
 		return nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
 	}
 
@@ -577,7 +577,7 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 	channel.Name = model.GetDMNameFromIds(otherUser.Id, user.Id)
 
 	channel.Header = ""
-	channel.Type = model.CHANNEL_DIRECT
+	channel.Type = model.ChannelTypeDirect
 	channel.Shared = model.NewBool(user.IsRemote() || otherUser.IsRemote())
 	channel.CreatorId = user.Id
 
@@ -602,7 +602,7 @@ func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directChannel.DeleteAt)
 	}
 
-	if directChannel.Type != model.CHANNEL_DIRECT {
+	if directChannel.Type != model.ChannelTypeDirect {
 		return nil, store.NewErrInvalidInput("Channel", "Type", directChannel.Type)
 	}
 
@@ -649,7 +649,7 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 		return nil, err // we just pass through the error as-is for now.
 	}
 
-	if channel.Type != model.CHANNEL_DIRECT && channel.Type != model.CHANNEL_GROUP && maxChannelsPerTeam >= 0 {
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && maxChannelsPerTeam >= 0 {
 		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
 			return nil, errors.Wrapf(err, "save_channel_count: teamId=%s", channel.TeamId)
 		} else if count >= maxChannelsPerTeam {
@@ -1043,7 +1043,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("Channels AS c").
-		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}})
+		Where(sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypePrivate, model.ChannelTypeOpen}})
 
 	if !forCount {
 		query = query.Join("Teams ON Teams.Id = c.TeamId")
@@ -1119,7 +1119,7 @@ func (s SqlChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, li
 	builder := s.getQueryBuilder().
 		Select("*").
 		From("Channels").
-		Where(sq.Eq{"Type": model.CHANNEL_PRIVATE, "TeamId": teamId, "DeleteAt": 0}).
+		Where(sq.Eq{"Type": model.ChannelTypePrivate, "TeamId": teamId, "DeleteAt": 0}).
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
@@ -1907,7 +1907,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 		manualTimezone := `LOCATE(',', Users.Timezone) + 19`
 		manualTimezoneEnd := `LOCATE('useAutomaticTimezone', Users.Timezone) - 22 - LOCATE(',', Users.Timezone)`
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if s.DriverName() == model.DatabaseDriverPostgres {
 			autoTimezone = `POSITION(':' IN Users.Timezone) + 2`
 			autoTimezoneEnd = `POSITION(',' IN Users.Timezone) - POSITION(':' IN Users.Timezone) - 3`
 			manualTimezone = `POSITION(',' IN Users.Timezone) + 19`
@@ -2096,7 +2096,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 
 	query := `SELECT Id, LastPostAt, TotalMsgCount, TotalMsgCountRoot FROM Channels WHERE Id IN ` + keys
 	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = `WITH c AS ( ` + query + `),
 	updated AS (
 	UPDATE
@@ -2125,7 +2125,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 	}
 
 	times := map[string]int64{}
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		for _, t := range lastPostAtTimes {
 			times[t.Id] = t.LastPostAt
 		}
@@ -2181,16 +2181,16 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, int, error) {
 	joinLeavePostTypes := []string{
 		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
-		model.POST_JOIN_LEAVE,
-		model.POST_ADD_REMOVE,
-		model.POST_JOIN_CHANNEL,
-		model.POST_LEAVE_CHANNEL,
-		model.POST_JOIN_TEAM,
-		model.POST_LEAVE_TEAM,
-		model.POST_ADD_TO_CHANNEL,
-		model.POST_REMOVE_FROM_CHANNEL,
-		model.POST_ADD_TO_TEAM,
-		model.POST_REMOVE_FROM_TEAM,
+		model.PostTypeJoinLeave,
+		model.PostTypeAddRemove,
+		model.PostTypeJoinChannel,
+		model.PostTypeLeaveChannel,
+		model.PostTypeJoinTeam,
+		model.PostTypeLeaveTeam,
+		model.PostTypeAddToChannel,
+		model.PostTypeRemoveFromChannel,
+		model.PostTypeAddToTeam,
+		model.PostTypeRemoveFromTeam,
 	}
 	query := s.getQueryBuilder().Select("count(*)").From("Posts").Where(sq.Eq{"ChannelId": channelId}).Where(sq.Gt{"CreateAt": timestamp}).Where(sq.NotEq{"Type": joinLeavePostTypes}).Where(sq.Eq{"DeleteAt": 0})
 
@@ -2376,7 +2376,7 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	return channel, nil
 }
 
-func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) (int64, error) {
+func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType model.ChannelType) (int64, error) {
 	query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType"
 
 	if teamId != "" {
@@ -2444,7 +2444,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 			Channels.TeamId = :TeamId
 			` + deleteFilter + `
 			%v
-		LIMIT ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
+		LIMIT ` + strconv.Itoa(model.ChannelSearchDefaultLimit)
 
 	var channels model.ChannelList
 
@@ -2764,11 +2764,11 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	if opts.Public && !opts.Private {
 		query = query.InnerJoin("PublicChannels ON c.Id = PublicChannels.Id")
 	} else if opts.Private && !opts.Public {
-		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_PRIVATE})
+		query = query.Where(sq.Eq{"c.Type": model.ChannelTypePrivate})
 	} else {
 		query = query.Where(sq.Or{
-			sq.Eq{"c.Type": model.CHANNEL_OPEN},
-			sq.Eq{"c.Type": model.CHANNEL_PRIVATE},
+			sq.Eq{"c.Type": model.ChannelTypeOpen},
+			sq.Eq{"c.Type": model.ChannelTypePrivate},
 		})
 	}
 
@@ -2848,7 +2848,7 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	// Prepare the LIKE portion of the query.
 	var searchFields []string
 	for _, field := range strings.Split(searchColumns, ", ") {
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if s.DriverName() == model.DatabaseDriverPostgres {
 			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*'", field, ":LikeTerm"))
 		} else {
 			searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*'", field, ":LikeTerm"))
@@ -2870,7 +2870,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	}
 
 	// Prepare the FULLTEXT portion of the query.
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		fulltextTerm = strings.Replace(fulltextTerm, "|", "", -1)
 
 		splitTerm := strings.Fields(fulltextTerm)
@@ -2885,7 +2885,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 		fulltextTerm = strings.Join(splitTerm, " ")
 
 		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if s.DriverName() == model.DatabaseDriverMysql {
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
 			splitTerm[i] = "+" + t + "*"
@@ -2958,7 +2958,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
                     HAVING
                         %s
                     LIMIT
-                        ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT) + `
+                        ` + strconv.Itoa(model.ChannelSearchDefaultLimit) + `
                 )`
 	} else {
 		baseLikeClause = "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE %s"
@@ -2990,7 +2990,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
             HAVING
                 %s
             LIMIT
-                ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
+                ` + strconv.Itoa(model.ChannelSearchDefaultLimit)
 	}
 
 	var likeClauses []string
@@ -3009,7 +3009,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
 }
 
 func (s SqlChannelStore) SearchGroupChannels(userId, term string) (*model.ChannelList, error) {
-	isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	isPostgreSQL := s.DriverName() == model.DatabaseDriverPostgres
 	queryString, args := s.getSearchGroupChannelsQuery(userId, term, isPostgreSQL)
 
 	var groupChannels model.ChannelList
@@ -3091,11 +3091,11 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 			member.SchemeGuest = sql.NullBool{Bool: false, Valid: true}
 		}
 		for _, role := range roles {
-			if role == model.CHANNEL_ADMIN_ROLE_ID {
+			if role == model.ChannelAdminRoleId {
 				member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
-			} else if role == model.CHANNEL_USER_ROLE_ID {
+			} else if role == model.ChannelUserRoleId {
 				member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
-			} else if role == model.CHANNEL_GUEST_ROLE_ID {
+			} else if role == model.ChannelGuestRoleId {
 				member.SchemeGuest = sql.NullBool{Bool: true, Valid: true}
 			} else {
 				newRoles = append(newRoles, role)

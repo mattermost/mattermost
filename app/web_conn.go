@@ -272,7 +272,7 @@ func (wc *WebConn) readPump() {
 	defer func() {
 		wc.WebSocket.Close()
 	}()
-	wc.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
+	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
 		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
@@ -357,9 +357,9 @@ func (wc *WebConn) writePump() {
 			if len(wc.send) >= sendSlowWarn {
 				// When the pump starts to get slow we'll drop non-critical messages
 				switch msg.EventType() {
-				case model.WEBSOCKET_EVENT_TYPING,
-					model.WEBSOCKET_EVENT_STATUS_CHANGE,
-					model.WEBSOCKET_EVENT_CHANNEL_VIEWED:
+				case model.WebsocketEventTyping,
+					model.WebsocketEventStatusChange,
+					model.WebsocketEventChannelViewed:
 					mlog.Warn(
 						"websocket.slow: dropping message",
 						mlog.String("user_id", wc.UserId),
@@ -582,7 +582,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 }
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
-	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
+	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil)
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
@@ -596,14 +596,14 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	var canSee bool
 
 	switch msg.EventType() {
-	case model.WEBSOCKET_EVENT_USER_UPDATED:
+	case model.WebsocketEventUserUpdated:
 		user, ok := msg.GetData()["user"].(*model.User)
 		if !ok {
 			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
 			return false
 		}
 		userID = user.Id
-	case model.WEBSOCKET_EVENT_NEW_USER:
+	case model.WebsocketEventNewUser:
 		userID = msg.GetData()["user_id"].(string)
 	default:
 		return true
@@ -629,7 +629,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
 	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
+		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 
 		if *hasReadPrivateDataPermission {
 			return false
@@ -639,7 +639,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sensitive data, only send to users with permission to see it
 	if msg.GetBroadcast().ContainsSensitiveData {
 		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
+			hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 		}
 
 		if !*hasReadPrivateDataPermission {
@@ -687,7 +687,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		return wc.isMemberOfTeam(msg.GetBroadcast().TeamId)
 	}
 
-	if wc.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+	if wc.GetSession().Props[model.SessionPropIsGuest] == "true" {
 		return wc.shouldSendEventToGuest(msg)
 	}
 

@@ -92,7 +92,7 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 		From("ClusterDiscovery").
 		Where(sq.Eq{"Type": ClusterDiscoveryType}).
 		Where(sq.Eq{"ClusterName": clusterName}).
-		Where(sq.Gt{"LastPingAt": model.GetMillis() - model.CDS_OFFLINE_AFTER_MILLIS})
+		Where(sq.Gt{"LastPingAt": model.GetMillis() - model.CDSOfflineAfterMillis})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -128,7 +128,7 @@ func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterD
 func (s sqlClusterDiscoveryStore) Cleanup() error {
 	query := s.getQueryBuilder().
 		Delete("ClusterDiscovery").
-		Where(sq.Lt{"LastPingAt": model.GetMillis() - model.CDS_OFFLINE_AFTER_MILLIS})
+		Where(sq.Lt{"LastPingAt": model.GetMillis() - model.CDSOfflineAfterMillis})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
