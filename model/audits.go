@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 )
 
 type Audits []Audit
@@ -24,10 +23,4 @@ func (o Audits) ToJson() string {
 		return "[]"
 	}
 	return string(b)
-}
-
-func AuditsFromJson(data io.Reader) Audits {
-	var o Audits
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

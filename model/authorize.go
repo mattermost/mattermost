@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 )
 
@@ -120,21 +119,9 @@ func (ad *AuthData) ToJson() string {
 	return string(b)
 }
 
-func AuthDataFromJson(data io.Reader) *AuthData {
-	var ad *AuthData
-	json.NewDecoder(data).Decode(&ad)
-	return ad
-}
-
 func (ar *AuthorizeRequest) ToJson() string {
 	b, _ := json.Marshal(ar)
 	return string(b)
-}
-
-func AuthorizeRequestFromJson(data io.Reader) *AuthorizeRequest {
-	var ar *AuthorizeRequest
-	json.NewDecoder(data).Decode(&ar)
-	return ar
 }
 
 func (ad *AuthData) IsExpired() bool {

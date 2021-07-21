@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	b64 "encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -847,9 +848,10 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	var buf bytes.Buffer
 	tee := io.TeeReader(resp.Body, &buf)
-	ar := model.AccessResponseFromJson(tee)
-	if ar == nil || resp.StatusCode != http.StatusOK {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d", buf.String(), resp.StatusCode), http.StatusInternalServerError)
+	var ar *model.AccessResponse
+	err = json.NewDecoder(tee).Decode(&ar)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", buf.String(), resp.StatusCode, err), http.StatusInternalServerError)
 	}
 
 	if strings.ToLower(ar.TokenType) != model.AccessTokenType {

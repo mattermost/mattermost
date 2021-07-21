@@ -4,7 +4,6 @@
 package model
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 
@@ -352,35 +351,6 @@ func TestBotEtag(t *testing.T) {
 	})
 }
 
-func TestBotToAndFromJson(t *testing.T) {
-	bot1 := &Bot{
-		UserId:         NewId(),
-		Username:       "username",
-		DisplayName:    "display name",
-		Description:    "description",
-		OwnerId:        NewId(),
-		LastIconUpdate: 1,
-		CreateAt:       2,
-		UpdateAt:       3,
-		DeleteAt:       4,
-	}
-
-	bot2 := &Bot{
-		UserId:         NewId(),
-		Username:       "username",
-		DisplayName:    "display name",
-		Description:    "description 2",
-		OwnerId:        NewId(),
-		LastIconUpdate: 5,
-		CreateAt:       6,
-		UpdateAt:       7,
-		DeleteAt:       8,
-	}
-
-	assert.Equal(t, bot1, BotFromJson(bytes.NewReader(bot1.ToJson())))
-	assert.Equal(t, bot2, BotFromJson(bytes.NewReader(bot2.ToJson())))
-}
-
 func sToP(s string) *string {
 	return &s
 }
@@ -525,23 +495,6 @@ func TestBotWouldPatch(t *testing.T) {
 	})
 }
 
-func TestBotPatchToAndFromJson(t *testing.T) {
-	botPatch1 := &BotPatch{
-		Username:    sToP("username"),
-		DisplayName: sToP("display name"),
-		Description: sToP("description"),
-	}
-
-	botPatch2 := &BotPatch{
-		Username:    sToP("username"),
-		DisplayName: sToP("display name"),
-		Description: sToP("description 2"),
-	}
-
-	assert.Equal(t, botPatch1, BotPatchFromJson(bytes.NewReader(botPatch1.ToJson())))
-	assert.Equal(t, botPatch2, BotPatchFromJson(bytes.NewReader(botPatch2.ToJson())))
-}
-
 func TestUserFromBot(t *testing.T) {
 	bot1 := &Bot{
 		UserId:         NewId(),
@@ -598,68 +551,6 @@ func TestBotFromUser(t *testing.T) {
 		Username:    "username",
 		DisplayName: "username",
 	}, BotFromUser(user))
-}
-
-func TestBotListToAndFromJson(t *testing.T) {
-	testCases := []struct {
-		Description string
-		BotList     BotList
-	}{
-		{
-			"empty list",
-			BotList{},
-		},
-		{
-			"single item",
-			BotList{
-				&Bot{
-					UserId:         NewId(),
-					Username:       "username",
-					DisplayName:    "display name",
-					Description:    "description",
-					OwnerId:        NewId(),
-					LastIconUpdate: 1,
-					CreateAt:       2,
-					UpdateAt:       3,
-					DeleteAt:       4,
-				},
-			},
-		},
-		{
-			"multiple items",
-			BotList{
-				&Bot{
-					UserId:         NewId(),
-					Username:       "username",
-					DisplayName:    "display name",
-					Description:    "description",
-					OwnerId:        NewId(),
-					LastIconUpdate: 1,
-					CreateAt:       2,
-					UpdateAt:       3,
-					DeleteAt:       4,
-				},
-
-				&Bot{
-					UserId:         NewId(),
-					Username:       "username",
-					DisplayName:    "display name",
-					Description:    "description 2",
-					OwnerId:        NewId(),
-					LastIconUpdate: 5,
-					CreateAt:       6,
-					UpdateAt:       7,
-					DeleteAt:       8,
-				},
-			},
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.Description, func(t *testing.T) {
-			assert.Equal(t, testCase.BotList, BotListFromJson(bytes.NewReader(testCase.BotList.ToJson())))
-		})
-	}
 }
 
 func TestBotListEtag(t *testing.T) {
