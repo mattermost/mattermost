@@ -155,7 +155,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser2, _ = th.service.userService.GetUser(th.BasicUser2.Id)
 	th.addUserToTeam(th.BasicTeam, th.BasicUser2)
 
-	th.BasicChannel = th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+	th.BasicChannel = th.createChannel(th.BasicTeam, string(model.ChannelTypeOpen))
 	th.addUserToChannel(th.BasicChannel, th.SystemAdminUser)
 	th.addUserToChannel(th.BasicChannel, th.BasicUser)
 	th.addUserToChannel(th.BasicChannel, th.BasicUser2)
@@ -187,7 +187,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	channel := &model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        "name_" + id,
-		Type:        channelType,
+		Type:        model.ChannelType(channelType),
 		TeamId:      team.Id,
 		CreatorId:   th.BasicUser.Id,
 	}
