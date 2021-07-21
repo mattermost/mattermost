@@ -101,9 +101,9 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	teamStore.On("GroupSyncedTeamCount").Return(int64(16), nil)
 
 	channelStore := storeMocks.ChannelStore{}
-	channelStore.On("AnalyticsTypeCount", "", "O").Return(int64(25), nil)
-	channelStore.On("AnalyticsTypeCount", "", "P").Return(int64(26), nil)
-	channelStore.On("AnalyticsTypeCount", "", "D").Return(int64(27), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(25), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypePrivate).Return(int64(26), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeDirect).Return(int64(27), nil)
 	channelStore.On("AnalyticsDeletedTypeCount", "", "O").Return(int64(22), nil)
 	channelStore.On("AnalyticsDeletedTypeCount", "", "P").Return(int64(23), nil)
 	channelStore.On("GroupSyncedChannelCount").Return(int64(17), nil)

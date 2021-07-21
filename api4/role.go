@@ -10,18 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var allowedPermissions = []string{
-	model.PermissionCreateTeam.Id,
-	model.PermissionManageIncomingWebhooks.Id,
-	model.PermissionManageOutgoingWebhooks.Id,
-	model.PermissionManageSlashCommands.Id,
-	model.PermissionManageOAuth.Id,
-	model.PermissionManageSystemWideOAuth.Id,
-	model.PermissionCreateEmojis.Id,
-	model.PermissionDeleteEmojis.Id,
-	model.PermissionEditOthersPosts.Id,
-}
-
 var notAllowedPermissions = []string{
 	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
 	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
@@ -129,23 +117,9 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 			return
 		}
-
-		changedPermissions := model.PermissionsChangedByPatch(oldRole, patch)
-		for _, permission := range changedPermissions {
-			allowed := false
-			for _, allowedPermission := range allowedPermissions {
-				if permission == allowedPermission {
-					allowed = true
-				}
-			}
-
-			if !allowed {
-				c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
-				return
-			}
-		}
 	}
 
+	// Licensed instances can not change permissions in the blacklist set.
 	if patch.Permissions != nil {
 		deltaPermissions := model.PermissionsChangedByPatch(oldRole, patch)
 

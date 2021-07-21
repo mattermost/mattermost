@@ -554,7 +554,7 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 }
 
 // GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
-func (r *Role) GetChannelModeratedPermissions(channelType string) map[string]bool {
+func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
 	for _, permission := range r.Permissions {
 		if _, found := ChannelModeratedPermissionsMap[permission]; !found {

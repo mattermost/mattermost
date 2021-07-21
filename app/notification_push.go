@@ -161,7 +161,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 }
 
 func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention,
-	hasFiles bool, senderName, channelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
+	hasFiles bool, senderName string, channelType model.ChannelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
 
 	// If the post only has images then push an appropriate message
 	if postMessage == "" && hasFiles {

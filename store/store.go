@@ -220,7 +220,7 @@ type ChannelStore interface {
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
 	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
 	IncrementMentionCount(channelID string, userID string, updateThreads, isRoot bool) error
-	AnalyticsTypeCount(teamID string, channelType string) (int64, error)
+	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetMembersForUser(teamID string, userID string) (*model.ChannelMembers, error)
 	GetMembersForUserWithPagination(teamID, userID string, page, perPage int) (*model.ChannelMembers, error)
 	AutocompleteInTeam(teamID string, term string, includeDeleted bool) (*model.ChannelList, error)

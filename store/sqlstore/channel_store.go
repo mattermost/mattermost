@@ -1043,7 +1043,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("Channels AS c").
-		Where(sq.Eq{"c.Type": []string{model.ChannelTypePrivate, model.ChannelTypeOpen}})
+		Where(sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypePrivate, model.ChannelTypeOpen}})
 
 	if !forCount {
 		query = query.Join("Teams ON Teams.Id = c.TeamId")
@@ -2376,7 +2376,7 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	return channel, nil
 }
 
-func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) (int64, error) {
+func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType model.ChannelType) (int64, error) {
 	query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType"
 
 	if teamId != "" {
