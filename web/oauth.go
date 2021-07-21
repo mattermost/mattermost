@@ -46,8 +46,8 @@ func testHandler(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	var authRequest *model.AuthorizeRequest
-	err := json.NewDecoder(r.Body).Decode(authRequest)
-	if err != nil {
+	err := json.NewDecoder(r.Body).Decode(&authRequest)
+	if err != nil || authRequest == nil {
 		c.SetInvalidParam("authorize_request")
 		return
 	}

@@ -32,7 +32,7 @@ func (api *API) InitBot() {
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	var botPatch *model.BotPatch
-	err := json.NewDecoder(r.Body).Decode(botPatch)
+	err := json.NewDecoder(r.Body).Decode(&botPatch)
 	if err != nil {
 		c.SetInvalidParam("bot")
 		return
@@ -85,7 +85,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	botUserId := c.Params.BotUserId
 
 	var botPatch *model.BotPatch
-	err := json.NewDecoder(r.Body).Decode(botPatch)
+	err := json.NewDecoder(r.Body).Decode(&botPatch)
 	if err != nil {
 		c.SetInvalidParam("bot")
 		return
