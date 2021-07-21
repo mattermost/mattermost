@@ -25,12 +25,12 @@ func TestBleveIndexer(t *testing.T) {
 		job := &model.Job{
 			Id:       model.NewId(),
 			CreateAt: model.GetMillis(),
-			Status:   model.JOB_STATUS_PENDING,
-			Type:     model.JOB_TYPE_BLEVE_POST_INDEXING,
+			Status:   model.JobStatusPending,
+			Type:     model.JobTypeBlevePostIndexing,
 		}
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS).Return(true, nil)
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(true, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
 		mockStore.PostStore.On("GetOldestEntityCreationTime").Return(int64(1), errors.New("")) // intentionally return error to return from function
 
 		tempDir, err := ioutil.TempDir("", "setupConfigFile")

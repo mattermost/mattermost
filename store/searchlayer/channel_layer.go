@@ -20,7 +20,7 @@ type SearchChannelStore struct {
 }
 
 func (c *SearchChannelStore) deleteChannelIndex(channel *model.Channel) {
-	if channel.Type == model.CHANNEL_OPEN {
+	if channel.Type == model.ChannelTypeOpen {
 		for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 			if engine.IsIndexingEnabled() {
 				runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
@@ -36,7 +36,7 @@ func (c *SearchChannelStore) deleteChannelIndex(channel *model.Channel) {
 }
 
 func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
-	if channel.Type == model.CHANNEL_OPEN {
+	if channel.Type == model.ChannelTypeOpen {
 		for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 			if engine.IsIndexingEnabled() {
 				runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {

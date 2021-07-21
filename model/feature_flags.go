@@ -40,6 +40,9 @@ type FeatureFlags struct {
 	TimedDND bool
 
 	PermalinkPreviews bool
+
+	// Enable the Global Header
+	GlobalHeader bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -56,6 +59,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CustomDataRetentionEnabled = false
 	f.TimedDND = false
 	f.PermalinkPreviews = true
+	f.GlobalHeader = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

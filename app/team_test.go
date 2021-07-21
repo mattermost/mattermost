@@ -27,7 +27,7 @@ func TestCreateTeam(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	_, err := th.App.CreateTeam(th.Context, team)
@@ -46,7 +46,7 @@ func TestCreateTeamWithUser(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	_, err := th.App.CreateTeamWithUser(th.Context, team, th.BasicUser.Id)
@@ -466,7 +466,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		DisplayName: "deletion-test",
 		Name:        "deletion-test",
 		Email:       "foo@foo.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.Nil(t, err, "Should create a team")
 
@@ -479,7 +479,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		TeamId:    team.Id,
 		Trigger:   "foo",
 		URL:       "http://foo",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 	})
 	require.Nil(t, err, "Should create a command")
 	defer th.App.DeleteCommand(command.Id)
@@ -533,12 +533,12 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("not a user of the team", func(t *testing.T) {
 		userID := model.NewId()
 		session := model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID,
+			Roles: model.SystemUserRoleId,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userID,
 					TeamId: model.NewId(),
-					Roles:  model.TEAM_USER_ROLE_ID,
+					Roles:  model.TeamUserRoleId,
 				},
 			},
 		}
@@ -551,12 +551,12 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("user of the team", func(t *testing.T) {
 		userID := model.NewId()
 		session := model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID,
+			Roles: model.SystemUserRoleId,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userID,
 					TeamId: team.Id,
-					Roles:  model.TEAM_USER_ROLE_ID,
+					Roles:  model.TeamUserRoleId,
 				},
 			},
 		}
@@ -569,12 +569,12 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		userID := model.NewId()
 		session := model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID,
+			Roles: model.SystemUserRoleId,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userID,
 					TeamId: team.Id,
-					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
+					Roles:  model.TeamUserRoleId + " " + model.TeamAdminRoleId,
 				},
 			},
 		}
@@ -587,12 +587,12 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("team admin of another team", func(t *testing.T) {
 		userID := model.NewId()
 		session := model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID,
+			Roles: model.SystemUserRoleId,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userID,
 					TeamId: model.NewId(),
-					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
+					Roles:  model.TeamUserRoleId + " " + model.TeamAdminRoleId,
 				},
 			},
 		}
@@ -605,12 +605,12 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("system admin, not a user of team", func(t *testing.T) {
 		userID := model.NewId()
 		session := model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
+			Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userID,
 					TeamId: model.NewId(),
-					Roles:  model.TEAM_USER_ROLE_ID,
+					Roles:  model.TeamUserRoleId,
 				},
 			},
 		}
@@ -623,12 +623,12 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("system admin, user of team", func(t *testing.T) {
 		userID := model.NewId()
 		session := model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
+			Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userID,
 					TeamId: team.Id,
-					Roles:  model.TEAM_USER_ROLE_ID,
+					Roles:  model.TeamUserRoleId,
 				},
 			},
 		}
@@ -659,17 +659,17 @@ func TestSanitizeTeams(t *testing.T) {
 
 		userID := model.NewId()
 		session := model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID,
+			Roles: model.SystemUserRoleId,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userID,
 					TeamId: teams[0].Id,
-					Roles:  model.TEAM_USER_ROLE_ID,
+					Roles:  model.TeamUserRoleId,
 				},
 				{
 					UserId: userID,
 					TeamId: teams[1].Id,
-					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
+					Roles:  model.TeamUserRoleId + " " + model.TeamAdminRoleId,
 				},
 			},
 		}
@@ -696,12 +696,12 @@ func TestSanitizeTeams(t *testing.T) {
 
 		userID := model.NewId()
 		session := model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
+			Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userID,
 					TeamId: teams[0].Id,
-					Roles:  model.TEAM_USER_ROLE_ID,
+					Roles:  model.TeamUserRoleId,
 				},
 			},
 		}
@@ -721,7 +721,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	_, err := th.App.CreateTeam(th.Context, team)

@@ -53,19 +53,19 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 // The cluster event handlers are spread across this function and NewLocalCacheLayer.
 // Be careful to not have duplicated handlers here and there.
 func (s *Server) registerClusterHandlers() {
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_PUBLISH, s.clusterPublishHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_UPDATE_STATUS, s.clusterUpdateStatusHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES, s.clusterInvalidateAllCachesHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS, s.clusterInvalidateCacheForChannelMembersNotifyPropHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME, s.clusterInvalidateCacheForChannelByNameHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER, s.clusterInvalidateCacheForUserHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS, s.clusterInvalidateCacheForUserTeamsHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_BUSY_STATE_CHANGED, s.clusterBusyStateChgHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER, s.clusterClearSessionCacheForUserHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS, s.clusterClearSessionCacheForAllUsersHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, s.clusterInstallPluginHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, s.clusterRemovePluginHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_PLUGIN_EVENT, s.clusterPluginEventHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventPublish, s.clusterPublishHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventUpdateStatus, s.clusterUpdateStatusHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateAllCaches, s.clusterInvalidateAllCachesHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMembersNotifyProps, s.clusterInvalidateCacheForChannelMembersNotifyPropHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelByName, s.clusterInvalidateCacheForChannelByNameHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUser, s.clusterInvalidateCacheForUserHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserTeams, s.clusterInvalidateCacheForUserTeamsHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventBusyStateChanged, s.clusterBusyStateChgHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForUser, s.clusterClearSessionCacheForUserHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForAllUsers, s.clusterClearSessionCacheForAllUsersHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventInstallPlugin, s.clusterInstallPluginHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventRemovePlugin, s.clusterRemovePluginHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.ClusterEventPluginEvent, s.clusterPluginEventHandler)
 }
 
 func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {

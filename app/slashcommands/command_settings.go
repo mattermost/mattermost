@@ -39,6 +39,6 @@ func (settings *SettingsProvider) DoCommand(a *app.App, c *request.Context, args
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_settings.unsupported.app_error"),
-		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		ResponseType: model.CommandResponseTypeEphemeral,
 	}
 }

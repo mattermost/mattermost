@@ -552,7 +552,7 @@ func (s *OpenTracingLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, 
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) AnalyticsTypeCount(teamID string, channelType string) (int64, error) {
+func (s *OpenTracingLayerChannelStore) AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.AnalyticsTypeCount")
 	s.Root.Store.SetContext(newCtx)

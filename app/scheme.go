@@ -202,7 +202,7 @@ func (s *Server) IsPhase2MigrationCompleted() *model.AppError {
 		return nil
 	}
 
-	if _, err := s.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err != nil {
+	if _, err := s.Store.System().GetByName(model.MigrationKeyAdvancedPermissionsPhase2); err != nil {
 		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, err.Error(), http.StatusNotImplemented)
 	}
 

@@ -13,7 +13,7 @@ type MessageExport struct {
 	ChannelId          *string
 	ChannelName        *string
 	ChannelDisplayName *string
-	ChannelType        *string
+	ChannelType        *ChannelType
 
 	UserId    *string
 	UserEmail *string
@@ -42,7 +42,7 @@ func (m *MessageExport) PreviewID() string {
 	var previewID string
 	props := map[string]interface{}{}
 	if m.PostProps != nil && json.Unmarshal([]byte(*m.PostProps), &props) == nil {
-		if val, ok := props[POST_PROPS_PREVIEWED_POST]; ok {
+		if val, ok := props[PostPropsPreviewedPost]; ok {
 			previewID = val.(string)
 		}
 	}

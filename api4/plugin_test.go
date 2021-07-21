@@ -305,12 +305,12 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		Id: manifest.Id,
 	}
 	expectedInstallMessage := &model.ClusterMessage{
-		Event:            model.CLUSTER_EVENT_INSTALL_PLUGIN,
-		SendType:         model.CLUSTER_SEND_RELIABLE,
+		Event:            model.ClusterEventInstallPlugin,
+		SendType:         model.ClusterSendReliable,
 		WaitForAllToSend: true,
 		Data:             expectedPluginData.ToJson(),
 	}
-	actualMessages := findClusterMessages(model.CLUSTER_EVENT_INSTALL_PLUGIN, messages)
+	actualMessages := findClusterMessages(model.ClusterEventInstallPlugin, messages)
 	require.Equal(t, []*model.ClusterMessage{expectedInstallMessage}, actualMessages)
 
 	// Upgrade
@@ -329,7 +329,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.EventType() == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.GetData()["plugin_statuses"].([]interface{})) == 0 {
+				if resp.EventType() == model.WebsocketEventPluginStatusesChanged && len(resp.GetData()["plugin_statuses"].([]interface{})) == 0 {
 					done <- true
 					return
 				}
@@ -351,12 +351,12 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	messages = testCluster.GetMessages()
 
 	expectedRemoveMessage := &model.ClusterMessage{
-		Event:            model.CLUSTER_EVENT_REMOVE_PLUGIN,
-		SendType:         model.CLUSTER_SEND_RELIABLE,
+		Event:            model.ClusterEventRemovePlugin,
+		SendType:         model.ClusterSendReliable,
 		WaitForAllToSend: true,
 		Data:             expectedPluginData.ToJson(),
 	}
-	actualMessages = findClusterMessages(model.CLUSTER_EVENT_REMOVE_PLUGIN, messages)
+	actualMessages = findClusterMessages(model.ClusterEventRemovePlugin, messages)
 	require.Equal(t, []*model.ClusterMessage{expectedRemoveMessage}, actualMessages)
 
 	pluginStored, appErr = th.App.FileExists(expectedPath)
@@ -1758,7 +1758,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 	}, "missing prepackaged and remote plugin signatures")
 }
 
-func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
+func findClusterMessages(event model.ClusterEvent, msgs []*model.ClusterMessage) []*model.ClusterMessage {
 	var result []*model.ClusterMessage
 	for _, msg := range msgs {
 		if msg.Event == event {

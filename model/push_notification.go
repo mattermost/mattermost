@@ -11,29 +11,29 @@ import (
 )
 
 const (
-	PUSH_NOTIFY_APPLE                = "apple"
-	PUSH_NOTIFY_ANDROID              = "android"
-	PUSH_NOTIFY_APPLE_REACT_NATIVE   = "apple_rn"
-	PUSH_NOTIFY_ANDROID_REACT_NATIVE = "android_rn"
+	PushNotifyApple              = "apple"
+	PushNotifyAndroid            = "android"
+	PushNotifyAppleReactNative   = "apple_rn"
+	PushNotifyAndroidReactNative = "android_rn"
 
-	PUSH_TYPE_MESSAGE      = "message"
-	PUSH_TYPE_CLEAR        = "clear"
-	PUSH_TYPE_UPDATE_BADGE = "update_badge"
-	PUSH_TYPE_SESSION      = "session"
-	PUSH_MESSAGE_V2        = "v2"
+	PushTypeMessage     = "message"
+	PushTypeClear       = "clear"
+	PushTypeUpdateBadge = "update_badge"
+	PushTypeSession     = "session"
+	PushMessageV2       = "v2"
 
-	PUSH_SOUND_NONE = "none"
+	PushSoundNone = "none"
 
 	// The category is set to handle a set of interactive Actions
 	// with the push notifications
-	CATEGORY_CAN_REPLY = "CAN_REPLY"
+	CategoryCanReply = "CAN_REPLY"
 
 	MHPNS = "https://push.mattermost.com"
 
-	PUSH_SEND_PREPARE = "Prepared to send"
-	PUSH_SEND_SUCCESS = "Successful"
-	PUSH_NOT_SENT     = "Not Sent due to preferences"
-	PUSH_RECEIVED     = "Received by device"
+	PushSendPrepare = "Prepared to send"
+	PushSendSuccess = "Successful"
+	PushNotSent     = "Not Sent due to preferences"
+	PushReceived    = "Received by device"
 )
 
 type PushNotificationAck struct {

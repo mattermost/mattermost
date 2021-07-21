@@ -51,7 +51,7 @@ func New(c ServiceConfig) (*UserService, error) {
 	}
 
 	sessionCache, err := cacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.SESSION_CACHE_SIZE,
+		Size:           model.SessionCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
 	})

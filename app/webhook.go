@@ -31,7 +31,7 @@ func (a *App) handleWebhookEvents(c *request.Context, post *model.Post, team *mo
 		return nil
 	}
 
-	if channel.Type != model.CHANNEL_OPEN {
+	if channel.Type != model.ChannelTypeOpen {
 		return nil
 	}
 
@@ -116,7 +116,7 @@ func (a *App) TriggerWebhook(c *request.Context, payload *model.OutgoingWebhookP
 
 			if webhookResp != nil && (webhookResp.Text != nil || len(webhookResp.Attachments) > 0) {
 				postRootId := ""
-				if webhookResp.ResponseType == model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT {
+				if webhookResp.ResponseType == model.OutgoingHookResponseTypeComment {
 					postRootId = post.Id
 				}
 				if len(webhookResp.Props) == 0 {
@@ -180,8 +180,8 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 		}
 	}
 
-	if utf8.RuneCountInString(model.StringInterfaceToJson(base.GetProps())) > model.POST_PROPS_MAX_USER_RUNES {
-		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_USER_RUNES}, "", http.StatusBadRequest)
+	if utf8.RuneCountInString(model.StringInterfaceToJson(base.GetProps())) > model.PostPropsMaxUserRunes {
+		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 	}
 
 	for utf8.RuneCountInString(remainingText) > maxPostSize {
@@ -216,7 +216,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			newPropsString := model.StringInterfaceToJson(newProps)
 			runeCount := utf8.RuneCountInString(newPropsString)
 
-			if runeCount <= model.POST_PROPS_MAX_USER_RUNES {
+			if runeCount <= model.PostPropsMaxUserRunes {
 				lastSplit.SetProps(newProps)
 				break
 			}
@@ -227,10 +227,10 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 				continue
 			}
 
-			truncationNeeded := runeCount - model.POST_PROPS_MAX_USER_RUNES
+			truncationNeeded := runeCount - model.PostPropsMaxUserRunes
 			textRuneCount := utf8.RuneCountInString(attachment.Text)
 			if textRuneCount < truncationNeeded {
-				return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_USER_RUNES}, "", http.StatusBadRequest)
+				return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 			}
 			x := 0
 			for index := range attachment.Text {
@@ -256,7 +256,7 @@ func (a *App) CreateWebhookPost(c *request.Context, userID string, channel *mode
 	post := &model.Post{UserId: userID, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
 	post.AddProp("from_webhook", "true")
 
-	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
 		return nil, err
 	}
@@ -269,7 +269,7 @@ func (a *App) CreateWebhookPost(c *request.Context, userID string, channel *mode
 		if overrideUsername != "" {
 			post.AddProp("override_username", overrideUsername)
 		} else {
-			post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
+			post.AddProp("override_username", model.DefaultWebhookUsername)
 		}
 	}
 
@@ -459,11 +459,11 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 			}
 		}
 
-		if channel.Type != model.CHANNEL_OPEN {
+		if channel.Type != model.ChannelTypeOpen {
 			return nil, model.NewAppError("CreateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusForbidden)
 		}
 
-		if channel.Type != model.CHANNEL_OPEN || channel.TeamId != hook.TeamId {
+		if channel.Type != model.ChannelTypeOpen || channel.TeamId != hook.TeamId {
 			return nil, model.NewAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.permissions.app_error", nil, "", http.StatusForbidden)
 		}
 	} else if len(hook.TriggerWords) == 0 {
@@ -511,7 +511,7 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 			return nil, err
 		}
 
-		if channel.Type != model.CHANNEL_OPEN {
+		if channel.Type != model.ChannelTypeOpen {
 			return nil, model.NewAppError("UpdateOutgoingWebhook", "api.webhook.create_outgoing.not_open.app_error", nil, "", http.StatusForbidden)
 		}
 
@@ -692,7 +692,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props["attachments"] = req.Attachments
-		webhookType = model.POST_SLACK_ATTACHMENT
+		webhookType = model.PostTypeSlackAttachment
 	}
 
 	var channel *model.Channel
@@ -764,11 +764,11 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 	user = result.Data.(*model.User)
 
 	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		channel.Name == model.DEFAULT_CHANNEL && !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		channel.Name == model.DefaultChannelName && !a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
 		return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
-	if channel.Type != model.CHANNEL_OPEN && !a.HasPermissionToChannel(hook.UserId, channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(hook.UserId, channel.Id, model.PermissionReadChannel) {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 

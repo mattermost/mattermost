@@ -37,9 +37,9 @@ func (o *FileInfoList) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+
+	return string(b)
 }
 
 func (o *FileInfoList) MakeNonNil() {

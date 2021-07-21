@@ -148,15 +148,15 @@ func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
-	th.SystemAdminUser, _ = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
+	th.SystemAdminUser, _ = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
 
-	user, _ := th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_USER_ROLE_ID})
+	user, _ := th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
 
-	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
+	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TeamOpen})
 
 	th.App.JoinUserToTeam(th.Context, team, user, "")
 
-	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id, CreatorId: user.Id}, true)
+	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id, CreatorId: user.Id}, true)
 
 	th.BasicUser = user
 	th.BasicChannel = channel

@@ -33,7 +33,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 
 	status, err := th.App.GetStatus(userUpdated1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, model.STATUS_OUT_OF_OFFICE, status.Status)
+	assert.Equal(t, model.StatusOutOfOffice, status.Status)
 
 	patch2 := &model.UserPatch{}
 	patch2.NotifyProps = make(map[string]string)
@@ -47,7 +47,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 
 	status, err = th.App.GetStatus(userUpdated2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, model.STATUS_ONLINE, status.Status)
+	assert.Equal(t, model.StatusOnline, status.Status)
 
 }
 
@@ -268,7 +268,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 
 	autoResponderPostFound := false
 	for _, post := range list.Posts {
-		if post.Type == model.POST_AUTO_RESPONDER {
+		if post.Type == model.PostTypeAutoResponder {
 			autoResponderPostFound = true
 			assert.Equal(t, savedPost.Id, post.RootId)
 			assert.Equal(t, savedPost.Id, post.ParentId)
@@ -318,7 +318,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 
 	autoResponderPostFound := false
 	for _, post := range list.Posts {
-		if post.Type == model.POST_AUTO_RESPONDER {
+		if post.Type == model.PostTypeAutoResponder {
 			autoResponderPostFound = true
 			assert.Equal(t, savedPost.RootId, post.RootId)
 			assert.Equal(t, savedPost.ParentId, post.ParentId)
@@ -359,7 +359,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	} else {
 		autoResponderPostFound := false
 		for _, post := range list.Posts {
-			if post.Type == model.POST_AUTO_RESPONDER {
+			if post.Type == model.PostTypeAutoResponder {
 				autoResponderPostFound = true
 			}
 		}

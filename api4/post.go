@@ -49,21 +49,21 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("post", post)
 
 	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PERMISSION_CREATE_POST) {
+	if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(post.ChannelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
-		if channel.Type == model.CHANNEL_OPEN && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_CREATE_POST_PUBLIC) {
+		if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
 			hasPermission = true
 		}
 	}
 
 	if !hasPermission {
-		c.SetPermissionError(model.PERMISSION_CREATE_POST)
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 
-	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		post.CreateAt = 0
 	}
 
@@ -116,8 +116,8 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	ephRequest.Post.UserId = c.AppContext.Session().UserId
 	ephRequest.Post.CreateAt = model.GetMillis()
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_POST_EPHEMERAL) {
-		c.SetPermissionError(model.PERMISSION_CREATE_POST_EPHEMERAL)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreatePostEphemeral) {
+		c.SetPermissionError(model.PermissionCreatePostEphemeral)
 		return
 	}
 
@@ -169,8 +169,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	page := c.Params.Page
 	perPage := c.Params.PerPage
 
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -212,7 +212,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if etag != "" {
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
 	c.App.AddCursorIdsForPostList(list, afterPost, beforePost, since, page, perPage, collapsedThreads)
@@ -234,13 +234,13 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	userId := c.Params.UserId
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
 	channelId := c.Params.ChannelId
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -285,7 +285,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	if etag != "" {
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 	w.Write([]byte(clientPostList.ToJson()))
 }
@@ -297,7 +297,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -328,7 +328,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		if !ok {
 			allowed = false
 
-			if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+			if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
 				allowed = true
 			}
 
@@ -371,14 +371,14 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
-		if channel.Type == model.CHANNEL_OPEN {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
-				c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
+		if channel.Type == model.ChannelTypeOpen {
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
+				c.SetPermissionError(model.PermissionReadPublicChannel)
 				return
 			}
 		} else {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 	}
@@ -394,7 +394,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
+	w.Header().Set(model.HeaderEtagServer, post.Etag())
 	w.Write([]byte(post.ToJson()))
 }
 
@@ -410,19 +410,19 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	post, err := c.App.GetSinglePost(c.Params.PostId)
 	if err != nil {
-		c.SetPermissionError(model.PERMISSION_DELETE_POST)
+		c.SetPermissionError(model.PermissionDeletePost)
 		return
 	}
 	auditRec.AddMeta("post", post)
 
 	if c.AppContext.Session().UserId == post.UserId {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PERMISSION_DELETE_POST) {
-			c.SetPermissionError(model.PERMISSION_DELETE_POST)
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
+			c.SetPermissionError(model.PermissionDeletePost)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PERMISSION_DELETE_OTHERS_POSTS) {
-			c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts) {
+			c.SetPermissionError(model.PermissionDeleteOthersPosts)
 			return
 		}
 	}
@@ -462,14 +462,14 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
-		if channel.Type == model.CHANNEL_OPEN {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
-				c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
+		if channel.Type == model.ChannelTypeOpen {
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
+				c.SetPermissionError(model.PermissionReadPublicChannel)
 				return
 			}
 		} else {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 	}
@@ -485,7 +485,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
+	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 
 	w.Write([]byte(clientPostList.ToJson()))
 }
@@ -496,8 +496,8 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
-		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
 
@@ -589,14 +589,14 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PERMISSION_EDIT_POST) {
-		c.SetPermissionError(model.PERMISSION_EDIT_POST)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditPost) {
+		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 
 	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
 	if err != nil {
-		c.SetPermissionError(model.PERMISSION_EDIT_POST)
+		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 	auditRec.AddMeta("post", originalPost)
@@ -605,8 +605,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.FileIds = originalPost.FileIds
 
 	if c.AppContext.Session().UserId != originalPost.UserId {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
-			c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditOthersPosts) {
+			c.SetPermissionError(model.PermissionEditOthersPosts)
 			return
 		}
 	}
@@ -646,16 +646,16 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
 	if err != nil {
-		c.SetPermissionError(model.PERMISSION_EDIT_POST)
+		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 	auditRec.AddMeta("post", originalPost)
 
 	var permission *model.Permission
 	if c.AppContext.Session().UserId == originalPost.UserId {
-		permission = model.PERMISSION_EDIT_POST
+		permission = model.PermissionEditPost
 	} else {
-		permission = model.PERMISSION_EDIT_OTHERS_POSTS
+		permission = model.PermissionEditOthersPosts
 	}
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, permission) {
@@ -685,11 +685,11 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	collapsedThreadsSupported := props["collapsed_threads_supported"]
 
 	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -710,8 +710,8 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	auditRec := c.MakeAuditRecord("saveIsPinnedPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -737,8 +737,8 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 
 	if c.App.Srv().License() != nil &&
 		*c.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		channel.Name == model.DEFAULT_CHANNEL &&
-		!c.App.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		channel.Name == model.DefaultChannelName &&
+		!c.App.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
 		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.save_is_pinned_post.town_square_read_only", nil, "", http.StatusForbidden)
 		return
 	}
@@ -771,8 +771,8 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -787,6 +787,6 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
-	w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
+	w.Header().Set(model.HeaderEtagServer, model.GetEtagForFileInfos(infos))
 	w.Write([]byte(model.FileInfosToJson(infos)))
 }

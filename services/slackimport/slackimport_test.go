@@ -329,7 +329,7 @@ func TestOldImportChannel(t *testing.T) {
 	t.Run("No panic on direct channel", func(t *testing.T) {
 		//ch := th.CreateDmChannel(u1)
 		ch := &model.Channel{
-			Type: model.CHANNEL_DIRECT,
+			Type: model.ChannelTypeDirect,
 			Name: "test-channel",
 		}
 		users := map[string]*model.User{
@@ -349,7 +349,7 @@ func TestOldImportChannel(t *testing.T) {
 
 	t.Run("No panic on direct channel with 1 member", func(t *testing.T) {
 		ch := &model.Channel{
-			Type: model.CHANNEL_DIRECT,
+			Type: model.ChannelTypeDirect,
 			Name: "test-channel",
 		}
 		users := map[string]*model.User{
@@ -369,7 +369,7 @@ func TestOldImportChannel(t *testing.T) {
 
 	t.Run("No panic on group channel", func(t *testing.T) {
 		ch := &model.Channel{
-			Type: model.CHANNEL_GROUP,
+			Type: model.ChannelTypeGroup,
 			Name: "test-channel",
 		}
 		users := map[string]*model.User{

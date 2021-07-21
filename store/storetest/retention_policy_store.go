@@ -116,7 +116,7 @@ func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, teamId strin
 			TeamId:      teamId,
 			DisplayName: "Channel " + name,
 			Name:        name,
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}
 		channel, err := ss.Channel().Save(channel, -1)
 		require.NoError(t, err)
@@ -132,7 +132,7 @@ func createTeamsForRetentionPolicy(t *testing.T, ss store.Store, numTeams int) (
 		team := &model.Team{
 			DisplayName: "Team " + name,
 			Name:        name,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 		team, err := ss.Team().Save(team)
 		require.NoError(t, err)

@@ -16,7 +16,7 @@ func (api *API) InitImport() {
 
 func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 

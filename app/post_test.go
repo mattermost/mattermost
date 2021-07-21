@@ -414,7 +414,7 @@ func TestPostChannelMentions(t *testing.T) {
 	channelToMention, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "Mention Test",
 		Name:        "mention-test",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 	}, false)
 	require.Nil(t, err)
@@ -484,7 +484,7 @@ func TestImageProxy(t *testing.T) {
 		ProxiedRemovedImageURL string
 	}{
 		"atmos/camo": {
-			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
 			ProxyOptions:           "foo",
 			ImageURL:               "http://mydomain.com/myimage",
@@ -492,7 +492,7 @@ func TestImageProxy(t *testing.T) {
 			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"atmos/camo_SameSite": {
-			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
 			ProxyOptions:           "foo",
 			ImageURL:               "http://mymattermost.com/myimage",
@@ -500,7 +500,7 @@ func TestImageProxy(t *testing.T) {
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_PathOnly": {
-			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
 			ProxyOptions:           "foo",
 			ImageURL:               "/myimage",
@@ -508,7 +508,7 @@ func TestImageProxy(t *testing.T) {
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_EmptyImageURL": {
-			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
 			ProxyOptions:           "foo",
 			ImageURL:               "",
@@ -516,25 +516,25 @@ func TestImageProxy(t *testing.T) {
 			ProxiedImageURL:        "",
 		},
 		"local": {
-			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ProxyType:              model.ImageProxyTypeLocal,
 			ImageURL:               "http://mydomain.com/myimage",
 			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"local_SameSite": {
-			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ProxyType:              model.ImageProxyTypeLocal,
 			ImageURL:               "http://mymattermost.com/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"local_PathOnly": {
-			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ProxyType:              model.ImageProxyTypeLocal,
 			ImageURL:               "/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"local_EmptyImageURL": {
-			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ProxyType:              model.ImageProxyTypeLocal,
 			ImageURL:               "",
 			ProxiedRemovedImageURL: "",
 			ProxiedImageURL:        "",
@@ -585,7 +585,7 @@ func TestMaxPostSize(t *testing.T) {
 		{
 			"Max post size less than model.model.POST_MESSAGE_MAX_RUNES_V1 ",
 			0,
-			model.POST_MESSAGE_MAX_RUNES_V1,
+			model.PostMessageMaxRunesV1,
 		},
 		{
 			"4000 rune limit",
@@ -730,8 +730,8 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		t.Run("Sets prop when post has mentions and user does not have USE_CHANNEL_MENTIONS", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
-			th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 
 			postWithNoMention := &model.Post{
 				ChannelId: th.BasicChannel.Id,
@@ -749,14 +749,14 @@ func TestCreatePost(t *testing.T) {
 			}
 			rpost, err = th.App.CreatePost(th.Context, postWithMention, th.BasicChannel, false, true)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.GetProp(model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED), true)
+			assert.Equal(t, rpost.GetProp(model.PostPropsMentionHighlightDisabled), true)
 
-			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
-			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		})
 	})
 
-	t.Run("Sets POST_PROPS_PREVIEWED_POST when a permalink is the first link", func(t *testing.T) {
+	t.Run("Sets PostPropsPreviewedPost when a permalink is the first link", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
@@ -859,8 +859,8 @@ func TestPatchPost(t *testing.T) {
 		})
 
 		t.Run("Sets prop when user does not have USE_CHANNEL_MENTIONS", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
-			th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 
 			patchWithNoMention := &model.PostPatch{Message: model.NewString("This patch still does not have a mention")}
 			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention)
@@ -871,10 +871,10 @@ func TestPatchPost(t *testing.T) {
 
 			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.GetProp(model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED), true)
+			assert.Equal(t, rpost.GetProp(model.PostPropsMentionHighlightDisabled), true)
 
-			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
-			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		})
 	})
 }
@@ -1050,7 +1050,7 @@ func TestUpdatePost(t *testing.T) {
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
 
-	t.Run("Sets POST_PROPS_PREVIEWED_POST when a post is updated to have a permalink as the first link", func(t *testing.T) {
+	t.Run("Sets PostPropsPreviewedPost when a post is updated to have a permalink as the first link", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
@@ -1320,7 +1320,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 
-		user2.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP] = "apple"
+		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -1359,7 +1359,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 
-		user2.NotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP] = "true"
+		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -1398,7 +1398,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 
-		user2.NotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP] = "false"
+		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "false"
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -1435,10 +1435,10 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 
-		user2.NotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP] = "true"
+		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
 
 		_, err := th.App.UpdateChannelMemberNotifyProps(map[string]string{
-			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_ON,
+			model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn,
 		}, channel.Id, user2.Id)
 		require.Nil(t, err)
 
@@ -1477,7 +1477,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 
-		user2.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ROOT
+		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyRoot
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
@@ -1531,7 +1531,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 
-		user2.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
@@ -1589,9 +1589,9 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
-			Type:      model.POST_ADD_TO_CHANNEL,
+			Type:      model.PostTypeAddToChannel,
 			Props: map[string]interface{}{
-				model.POST_PROPS_ADDED_USER_ID: model.NewId(),
+				model.PostPropsAddedUserId: model.NewId(),
 			},
 		}, channel, false, true)
 		require.Nil(t, err)
@@ -1599,9 +1599,9 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test2",
-			Type:      model.POST_ADD_TO_CHANNEL,
+			Type:      model.PostTypeAddToChannel,
 			Props: map[string]interface{}{
-				model.POST_PROPS_ADDED_USER_ID: user2.Id,
+				model.PostPropsAddedUserId: user2.Id,
 			},
 		}, channel, false, true)
 		require.Nil(t, err)
@@ -1609,9 +1609,9 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
-			Type:      model.POST_ADD_TO_CHANNEL,
+			Type:      model.PostTypeAddToChannel,
 			Props: map[string]interface{}{
-				model.POST_PROPS_ADDED_USER_ID: user2.Id,
+				model.PostPropsAddedUserId: user2.Id,
 			},
 		}, channel, false, true)
 		require.Nil(t, err)
@@ -1737,7 +1737,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 
-		user2.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2005,7 +2005,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
 	channel := th.BasicChannel
@@ -2063,7 +2063,7 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
 	channel := th.BasicChannel
@@ -2093,7 +2093,7 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
 	channel := th.BasicChannel
@@ -2126,7 +2126,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
@@ -2218,8 +2218,8 @@ func TestReplyToPostWithLag(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
-		t.Skipf("requires %q database driver", model.DATABASE_DRIVER_MYSQL)
+	if *th.App.Srv().Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
+		t.Skipf("requires %q database driver", model.DatabaseDriverMysql)
 	}
 
 	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
@@ -2342,7 +2342,7 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
 	channel := th.BasicChannel
