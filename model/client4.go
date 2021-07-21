@@ -2470,117 +2470,182 @@ func (c *Client4) GetAllChannelsExcludePolicyConstrained(page, perPage int, etag
 func (c *Client4) getAllChannels(page int, perPage int, etag string, opts ChannelSearchOpts) (*ChannelListWithTeamData, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v&exclude_policy_constrained=%v",
 		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained)
-	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelListWithTeamData
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("getAllChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetAllChannelsWithCount get all the channels including the total count. Must be a system administrator.
 func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*ChannelListWithTeamData, int64, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
-	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
-	if err != nil {
-		return nil, 0, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if appErr != nil {
+		return nil, 0, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	cwc := ChannelsWithCountFromJson(r.Body)
+
+	var cwc *ChannelsWithCount
+	err := json.NewDecoder(r.Body).Decode(&cwc)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, NewAppError("GetAllChannelsWithCount", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
 	return cwc.Channels, cwc.TotalCount, BuildResponse(r)
 }
 
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("CreateChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // UpdateChannel updates a channel based on the provided channel struct.
 func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response) {
-	r, err := c.DoApiPut(c.GetChannelRoute(channel.Id), channel.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPut(c.GetChannelRoute(channel.Id), channel.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("UpdateChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // PatchChannel partially updates a channel. Any missing fields are not updated.
 func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel, *Response) {
-	r, err := c.DoApiPut(c.GetChannelRoute(channelId)+"/patch", patch.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPut(c.GetChannelRoute(channelId)+"/patch", patch.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("PatchChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // ConvertChannelToPrivate converts public to private channel.
 func (c *Client4) ConvertChannelToPrivate(channelId string) (*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/convert", "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelRoute(channelId)+"/convert", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("ConvertChannelToPrivate", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // UpdateChannelPrivacy updates channel privacy
 func (c *Client4) UpdateChannelPrivacy(channelId string, privacy ChannelType) (*Channel, *Response) {
 	requestBody := map[string]string{"privacy": string(privacy)}
-	r, err := c.DoApiPut(c.GetChannelRoute(channelId)+"/privacy", MapToJson(requestBody))
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPut(c.GetChannelRoute(channelId)+"/privacy", MapToJson(requestBody))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("UpdateChannelPrivacy", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
 func (c *Client4) RestoreChannel(channelId string) (*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/restore", "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelRoute(channelId)+"/restore", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("RestoreChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // CreateDirectChannel creates a direct message channel based on the two user
 // ids provided.
 func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response) {
 	requestBody := []string{userId1, userId2}
-	r, err := c.DoApiPost(c.GetChannelsRoute()+"/direct", ArrayToJson(requestBody))
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/direct", ArrayToJson(requestBody))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("CreateDirectChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // CreateGroupChannel creates a group message channel based on userIds provided.
 func (c *Client4) CreateGroupChannel(userIds []string) (*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group", ArrayToJson(userIds))
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/group", ArrayToJson(userIds))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("CreateGroupChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannel returns a channel based on the provided channel id string.
 func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetChannelRoute(channelId), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelRoute(channelId), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelStats returns statistics for a channel.
@@ -2616,116 +2681,182 @@ func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Res
 // GetPrivateChannelsForTeam returns a list of private channels based on the provided team id string.
 func (c *Client4) GetPrivateChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
 	query := fmt.Sprintf("/private?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetPrivateChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetPublicChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetDeletedChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetDeletedChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
 	query := fmt.Sprintf("/deleted?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetDeletedChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string.
 func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) ([]*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/ids", ArrayToJson(channelIds))
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/ids", ArrayToJson(channelIds))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetPublicChannelsByIdsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
 func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool, etag string) ([]*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetChannelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelsForTeamForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
 func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response) {
 	route := fmt.Sprintf(c.GetUserRoute(userId) + c.GetTeamRoute(teamId) + "/channels")
 	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
-	r, err := c.DoApiGet(route, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(route, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelsForTeamAndUserWithLastDeleteAt", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("SearchChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // SearchArchivedChannels returns the archived channels on a team matching the provided search term.
 func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search_archived", search.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search_archived", search.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("SearchArchivedChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelListWithTeamData
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("SearchAllChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
 func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCount, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelsWithCountFromJson(r.Body), BuildResponse(r)
+
+	var cwc *ChannelsWithCount
+	err := json.NewDecoder(r.Body).Decode(&cwc)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetAllChannelsWithCount", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return cwc, BuildResponse(r)
 }
 
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+
+	var ch []*Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("SearchGroupChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // DeleteChannel deletes channel based on the provided channel id string.
@@ -2754,115 +2885,181 @@ func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *
 		"team_id": teamId,
 		"force":   force,
 	}
-	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", StringInterfaceToJson(requestBody))
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", StringInterfaceToJson(requestBody))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("MoveChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
 func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelByName", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelByNameIncludeDeleted returns a channel based on the provided channel name and team id strings. Other then GetChannelByName it will also return deleted channels.
 func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, etag string) (*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+"?include_deleted="+c.boolString(true), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+"?include_deleted="+c.boolString(true), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelByNameIncludeDeleted", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelByNameForTeamName returns a channel based on the provided channel name and team name strings.
 func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelByNameForTeamName", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelByNameForTeamNameIncludeDeleted returns a channel based on the provided channel name and team name strings. Other then GetChannelByNameForTeamName it will also return deleted channels.
 func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamName string, etag string) (*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+"?include_deleted="+c.boolString(true), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+"?include_deleted="+c.boolString(true), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelFromJson(r.Body), BuildResponse(r)
+
+	var ch *Channel
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelByNameForTeamNameIncludeDeleted", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelMembers gets a page of channel members.
 func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag string) (*ChannelMembers, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoApiGet(c.GetChannelMembersRoute(channelId)+query, etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelMembersRoute(channelId)+query, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelMembersFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelMembers
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelMembers", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
 func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
-	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds))
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelMembersFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelMembers
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelMembersByIds", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelMember gets a channel member.
 func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMember, *Response) {
-	r, err := c.DoApiGet(c.GetChannelMemberRoute(channelId, userId), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelMemberRoute(channelId, userId), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelMemberFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelMember
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelMember", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelMembersForUser gets all the channel members for a user on a team.
 func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*ChannelMembers, *Response) {
-	r, err := c.DoApiGet(fmt.Sprintf(c.GetUserRoute(userId)+"/teams/%v/channels/members", teamId), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(fmt.Sprintf(c.GetUserRoute(userId)+"/teams/%v/channels/members", teamId), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelMembersFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelMembers
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelMembersForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
 func (c *Client4) ViewChannel(userId string, view *ChannelView) (*ChannelViewResponse, *Response) {
 	url := fmt.Sprintf(c.GetChannelsRoute()+"/members/%v/view", userId)
-	r, err := c.DoApiPost(url, view.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(url, view.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelViewResponseFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelViewResponse
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("ViewChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *Response) {
-	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/unread", "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/unread", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelUnreadFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelUnread
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelUnread", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // UpdateChannelRoles will update the roles on a channel for a user.
@@ -2899,23 +3096,35 @@ func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[s
 // AddChannelMember adds user to channel and return a channel member.
 func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response) {
 	requestBody := map[string]string{"user_id": userId}
-	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody))
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelMemberFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelMember
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("AddChannelMember", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
 func (c *Client4) AddChannelMemberWithRootId(channelId, userId, postRootId string) (*ChannelMember, *Response) {
 	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}
-	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody))
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelMemberFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelMember
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("AddChannelMemberWithRootId", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // RemoveUserFromChannel will delete the channel member object for a user, effectively removing the user from a channel.
@@ -2931,23 +3140,35 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 // AutocompleteChannelsForTeam will return an ordered list of channels autocomplete suggestions.
 func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList, *Response) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/autocomplete"+query, "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, app := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/autocomplete"+query, "")
+	if app != nil {
+		return nil, BuildErrorResponse(r, app)
 	}
 	defer closeBody(r)
-	return ChannelListFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelList
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("AutocompleteChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // AutocompleteChannelsForTeamForSearch will return an ordered list of your channels autocomplete suggestions.
 func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (*ChannelList, *Response) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/search_autocomplete"+query, "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/search_autocomplete"+query, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelListFromJson(r.Body), BuildResponse(r)
+
+	var ch *ChannelList
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("AutocompleteChannelsForTeamForSearch", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // Post Section
@@ -5435,12 +5656,18 @@ func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*
 
 // GetChannelsForScheme gets the channels using this scheme, sorted alphabetically by display name.
 func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (ChannelList, *Response) {
-	r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return *ChannelListFromJson(r.Body), BuildResponse(r)
+
+	var ch ChannelList
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelsForScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // Plugin Section
@@ -5852,22 +6079,38 @@ func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
 }
 
 func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*ChannelModeration, *Response) {
-	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/moderations", etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelRoute(channelID)+"/moderations", etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+
+	var ch []*ChannelModeration
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelModerations", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelModerationPatch) ([]*ChannelModeration, *Response) {
-	payload, _ := json.Marshal(patch)
-	r, err := c.DoApiPut(c.GetChannelRoute(channelID)+"/moderations/patch", string(payload))
+	payload, err := json.Marshal(patch)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("PatchChannelModerations", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+
+	r, appErr := c.DoApiPut(c.GetChannelRoute(channelID)+"/moderations/patch", string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+
+	var ch []*ChannelModeration
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("PatchChannelModerations", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 func (c *Client4) GetKnownUsers() ([]string, *Response) {
@@ -5892,12 +6135,18 @@ func (c *Client4) PublishUserTyping(userID string, typingRequest TypingRequest) 
 }
 
 func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response) {
-	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ChannelMemberCountsByGroupFromJson(r.Body), BuildResponse(r)
+
+	var ch []*ChannelMemberCountByGroup
+	err := json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetChannelMemberCountsByGroup", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	return ch, BuildResponse(r)
 }
 
 // RequestTrialLicense will request a trial license and install it in the server
@@ -5927,7 +6176,9 @@ func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
-	cat, err := OrderedSidebarCategoriesFromJson(r.Body)
+
+	var cat *OrderedSidebarCategories
+	err := json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("Client4.GetSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
@@ -5942,7 +6193,8 @@ func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, cat
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	cat, err := SidebarCategoryFromJson(r.Body)
+	var cat *SidebarCategoryWithChannels
+	err := json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("Client4.CreateSidebarCategoryForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
@@ -5959,12 +6211,13 @@ func (c *Client4) UpdateSidebarCategoriesForTeamForUser(userID, teamID string, c
 	}
 	defer closeBody(r)
 
-	categories, err := SidebarCategoriesFromJson(r.Body)
+	var cat []*SidebarCategoryWithChannels
+	err := json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
 
-	return categories, BuildResponse(r)
+	return cat, BuildResponse(r)
 }
 
 func (c *Client4) GetSidebarCategoryOrderForTeamForUser(userID, teamID, etag string) ([]string, *Response) {
@@ -5995,7 +6248,8 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, e
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	cat, err := SidebarCategoryFromJson(r.Body)
+	var cat *SidebarCategoryWithChannels
+	err := json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
@@ -6011,7 +6265,8 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	cat, err := SidebarCategoryFromJson(r.Body)
+	var cat *SidebarCategoryWithChannels
+	err := json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}

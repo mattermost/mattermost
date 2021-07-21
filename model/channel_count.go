@@ -7,7 +7,6 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"io"
 	"sort"
 	"strconv"
 )
@@ -46,10 +45,4 @@ func (o *ChannelCounts) Etag() string {
 func (o *ChannelCounts) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
-}
-
-func ChannelCountsFromJson(data io.Reader) *ChannelCounts {
-	var o *ChannelCounts
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

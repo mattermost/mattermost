@@ -79,8 +79,9 @@ func (api *API) InitChannel() {
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	channel := model.ChannelFromJson(r.Body)
-	if channel == nil {
+	var channel *model.Channel
+	err := json.NewDecoder(r.Body).Decode(&channel)
+	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
@@ -99,9 +100,9 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc, err := c.App.CreateChannelWithUser(c.AppContext, channel, c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	sc, appErr := c.App.CreateChannelWithUser(c.AppContext, channel, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -119,9 +120,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel := model.ChannelFromJson(r.Body)
-
-	if channel == nil {
+	var channel *model.Channel
+	err := json.NewDecoder(r.Body).Decode(&channel)
+	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
@@ -135,9 +136,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	originalOldChannel, err := c.App.GetChannel(channel.Id)
-	if err != nil {
-		c.Err = err
+	originalOldChannel, appErr := c.App.GetChannel(channel.Id)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	oldChannel := originalOldChannel.DeepCopy()
@@ -204,9 +205,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannel.GroupConstrained = channel.GroupConstrained
 	}
 
-	updatedChannel, err := c.App.UpdateChannel(oldChannel)
-	if err != nil {
-		c.Err = err
+	updatedChannel, appErr := c.App.UpdateChannel(oldChannel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddMeta("update", updatedChannel)
@@ -340,15 +341,16 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	patch := model.ChannelPatchFromJson(r.Body)
-	if patch == nil {
+	var patch *model.ChannelPatch
+	err := json.NewDecoder(r.Body).Decode(&patch)
+	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
 
-	originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	originalOldChannel, appErr := c.App.GetChannel(c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	oldChannel := originalOldChannel.DeepCopy()
@@ -372,7 +374,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
-		if _, err = c.App.GetChannelMember(context.Background(), c.Params.ChannelId, c.AppContext.Session().UserId); err != nil {
+		if _, appErr = c.App.GetChannelMember(context.Background(), c.Params.ChannelId, c.AppContext.Session().UserId); appErr != nil {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
@@ -382,15 +384,15 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rchannel, err := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	err = c.App.FillInChannelProps(rchannel)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.FillInChannelProps(rchannel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -499,15 +501,16 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}
 
-	groupChannels, err := c.App.SearchGroupChannels(c.AppContext.Session().UserId, props.Term)
-	if err != nil {
-		c.Err = err
+	groupChannels, appErr := c.App.SearchGroupChannels(c.AppContext.Session().UserId, props.Term)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -950,28 +953,29 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}
 
 	var channels *model.ChannelList
-	var err *model.AppError
+	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, err = c.App.SearchChannels(c.Params.TeamId, props.Term)
+		channels, appErr = c.App.SearchChannels(c.Params.TeamId, props.Term)
 	} else {
 		// If the user is not a team member, return a 404
-		if _, err = c.App.GetTeamMember(c.Params.TeamId, c.AppContext.Session().UserId); err != nil {
-			c.Err = err
+		if _, appErr = c.App.GetTeamMember(c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
+			c.Err = appErr
 			return
 		}
 
-		channels, err = c.App.SearchChannelsForUser(c.AppContext.Session().UserId, c.Params.TeamId, props.Term)
+		channels, appErr = c.App.SearchChannelsForUser(c.AppContext.Session().UserId, c.Params.TeamId, props.Term)
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -986,28 +990,29 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}
 
 	var channels *model.ChannelList
-	var err *model.AppError
+	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
+		channels, appErr = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
 	} else {
 		// If the user is not a team member, return a 404
-		if _, err = c.App.GetTeamMember(c.Params.TeamId, c.AppContext.Session().UserId); err != nil {
-			c.Err = err
+		if _, appErr = c.App.GetTeamMember(c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
+			c.Err = appErr
 			return
 		}
 
-		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
+		channels, appErr = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1017,8 +1022,9 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}
@@ -1829,17 +1835,23 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	channel, err := c.App.GetChannel(c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	channel, appErr := c.App.GetChannel(c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddMeta("channel", channel)
 
-	channelModerationsPatch := model.ChannelModerationsPatchFromJson(r.Body)
-	channelModerations, err := c.App.PatchChannelModerationsForChannel(channel, channelModerationsPatch)
+	var channelModerationsPatch []*model.ChannelModerationPatch
+	err := json.NewDecoder(r.Body).Decode(&channelModerationsPatch)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	channelModerations, appErr := c.App.PatchChannelModerationsForChannel(channel, channelModerationsPatch)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddMeta("patch", channelModerationsPatch)
