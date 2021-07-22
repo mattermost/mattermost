@@ -1537,3 +1537,40 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		assert.True(t, threadMembership.Following)
 	})
 }
+
+func TestCreateserWithInitialPreferences(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		testUser := th.CreateUser()
+		defer th.App.PermanentDeleteUser(th.Context, testUser)
+
+		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		require.Nil(t, appErr)
+
+		tutorialStepPref := preferences[1]
+		recommendedNextStepsPref := preferences[0]
+
+		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
+		assert.Equal(t, recommendedNextStepsPref.Category, model.PREFERENCE_RECOMMENDED_NEXT_STEPS)
+		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
+		assert.Equal(t, recommendedNextStepsPref.Value, "false")
+	})
+
+	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		testUser := th.CreateGuest()
+		defer th.App.PermanentDeleteUser(th.Context, testUser)
+
+		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		require.Nil(t, appErr)
+
+		tutorialStepPref := preferences[1]
+		recommendedNextStepsPref := preferences[0]
+
+		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
+		assert.Equal(t, recommendedNextStepsPref.Category, model.PREFERENCE_RECOMMENDED_NEXT_STEPS)
+		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
+		assert.Equal(t, recommendedNextStepsPref.Value, "false")
+	})
+}
