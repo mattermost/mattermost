@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateCategoryForTeamForUser(t *testing.T) {
@@ -51,7 +51,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 		// Have another user create a channel that user isn't a part of
 		channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
 			TeamId: th.BasicTeam.Id,
-			Type:   model.CHANNEL_OPEN,
+			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
 		})
 		require.Nil(t, resp.Error)
@@ -235,7 +235,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		// Have another user create a channel that user isn't a part of
 		channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
 			TeamId: th.BasicTeam.Id,
-			Type:   model.CHANNEL_OPEN,
+			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
 		})
 		require.Nil(t, resp.Error)
@@ -381,7 +381,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		// Have another user create a channel that user isn't a part of
 		channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
 			TeamId: th.BasicTeam.Id,
-			Type:   model.CHANNEL_OPEN,
+			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
 		})
 		require.Nil(t, resp.Error)

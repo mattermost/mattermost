@@ -28,7 +28,7 @@ func TestCommandIsValid(t *testing.T) {
 		TeamId:      NewId(),
 		Trigger:     "trigger",
 		URL:         "http://example.com",
-		Method:      COMMAND_METHOD_GET,
+		Method:      CommandMethodGet,
 		DisplayName: "",
 		Description: "",
 	}
@@ -95,10 +95,10 @@ func TestCommandIsValid(t *testing.T) {
 	o.Method = "https://example.com"
 	require.NotNil(t, o.IsValid(), "should be invalid")
 
-	o.Method = COMMAND_METHOD_GET
+	o.Method = CommandMethodGet
 	require.Nil(t, o.IsValid())
 
-	o.Method = COMMAND_METHOD_POST
+	o.Method = CommandMethodPost
 	require.Nil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 65)

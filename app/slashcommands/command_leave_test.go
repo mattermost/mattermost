@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestLeaveProviderDoCommand(t *testing.T) {
@@ -22,7 +22,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	publicChannel, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
@@ -30,12 +30,12 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	privateChannel, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "BB",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
 
-	defaultChannel, err := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
+	defaultChannel, err := th.App.GetChannelByName(model.DefaultChannelName, th.BasicTeam.Id, false)
 	require.Nil(t, err)
 
 	guest := th.createGuest()
@@ -54,7 +54,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		}
 		actual := lp.DoCommand(th.App, th.Context, args, "")
 		assert.Equal(t, "api.command_leave.fail.app_error", actual.Text)
-		assert.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, actual.ResponseType)
+		assert.Equal(t, model.CommandResponseTypeEphemeral, actual.ResponseType)
 	})
 
 	t.Run("Should error when no Team ID in args", func(t *testing.T) {
@@ -65,7 +65,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		}
 		actual := lp.DoCommand(th.App, th.Context, args, "")
 		assert.Equal(t, "api.command_leave.fail.app_error", actual.Text)
-		assert.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, actual.ResponseType)
+		assert.Equal(t, model.CommandResponseTypeEphemeral, actual.ResponseType)
 	})
 
 	t.Run("Leave a public channel", func(t *testing.T) {
@@ -78,7 +78,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		}
 		actual := lp.DoCommand(th.App, th.Context, args, "")
 		assert.Equal(t, "", actual.Text)
-		assert.Equal(t, args.SiteURL+"/"+th.BasicTeam.Name+"/channels/"+model.DEFAULT_CHANNEL, actual.GotoLocation)
+		assert.Equal(t, args.SiteURL+"/"+th.BasicTeam.Name+"/channels/"+model.DefaultChannelName, actual.GotoLocation)
 		assert.Equal(t, "", actual.ResponseType)
 
 		_, err = th.App.GetChannelMember(context.Background(), publicChannel.Id, th.BasicUser.Id)

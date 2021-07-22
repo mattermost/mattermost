@@ -10,9 +10,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlTokenStore struct {
@@ -69,7 +69,7 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 
 func (s SqlTokenStore) Cleanup() {
 	mlog.Debug("Cleaning up token store.")
-	deltime := model.GetMillis() - model.MAX_TOKEN_EXIPRY_TIME
+	deltime := model.GetMillis() - model.MaxTokenExipryTime
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE CreateAt < :DelTime", map[string]interface{}{"DelTime": deltime}); err != nil {
 		mlog.Error("Unable to cleanup token store.")
 	}

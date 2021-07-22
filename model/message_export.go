@@ -11,7 +11,7 @@ type MessageExport struct {
 	ChannelId          *string
 	ChannelName        *string
 	ChannelDisplayName *string
-	ChannelType        *string
+	ChannelType        *ChannelType
 
 	UserId    *string
 	UserEmail *string
