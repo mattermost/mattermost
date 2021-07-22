@@ -10,16 +10,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/services/users"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/shared/templates"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/testlib"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/templates"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type TestHelper struct {
@@ -54,7 +54,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	th := setupTestHelper(mockStore, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
-	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
 	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
@@ -155,7 +155,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser2, _ = th.service.userService.GetUser(th.BasicUser2.Id)
 	th.addUserToTeam(th.BasicTeam, th.BasicUser2)
 
-	th.BasicChannel = th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
+	th.BasicChannel = th.createChannel(th.BasicTeam, string(model.ChannelTypeOpen))
 	th.addUserToChannel(th.BasicChannel, th.SystemAdminUser)
 	th.addUserToChannel(th.BasicChannel, th.BasicUser)
 	th.addUserToChannel(th.BasicChannel, th.BasicUser2)
@@ -169,7 +169,7 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	utils.DisableDebugLogForTest()
@@ -187,7 +187,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	channel := &model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        "name_" + id,
-		Type:        channelType,
+		Type:        model.ChannelType(channelType),
 		TeamId:      team.Id,
 		CreatorId:   th.BasicUser.Id,
 	}

@@ -11,8 +11,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -58,9 +58,9 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		Insert("PluginKeyValueStore").
 		Columns("PluginId", "PKey", "PValue", "ExpireAt").
 		Values(kv.PluginId, kv.Key, kv.Value, kv.ExpireAt)
-	if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ps.DriverName() == model.DatabaseDriverPostgres {
 		query = query.SuffixExpr(sq.Expr("ON CONFLICT (pluginid, pkey) DO UPDATE SET PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
-	} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ps.DriverName() == model.DatabaseDriverMysql {
 		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
 	}
 
@@ -144,7 +144,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			// Failed to update
 			return false, errors.Wrap(err, "unable to get rows affected")
 		} else if rowsAffected == 0 {
-			if ps.DriverName() == model.DATABASE_DRIVER_MYSQL && bytes.Equal(oldValue, kv.Value) {
+			if ps.DriverName() == model.DatabaseDriverMysql && bytes.Equal(oldValue, kv.Value) {
 				// ROW_COUNT on MySQL is zero even if the row existed but no changes to the row were required.
 				// Check if the row exists with the required value to distinguish this case. Strictly speaking,
 				// this isn't a good use of CompareAndSet anyway, since there's no corresponding guarantee of

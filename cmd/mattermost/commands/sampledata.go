@@ -18,11 +18,11 @@ import (
 	"github.com/icrowley/fake"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
@@ -617,9 +617,9 @@ func createChannel(idx int, teamName string) app.LineImportData {
 		purpose = purpose[0:250]
 	}
 
-	channelType := "P"
+	channelType := model.ChannelTypePrivate
 	if rand.Intn(2) == 0 {
-		channelType = "O"
+		channelType = model.ChannelTypeOpen
 	}
 
 	channel := app.ChannelImportData{

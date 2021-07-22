@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/configservice"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var ErrNotEnabled = Error{errors.New("imageproxy.ImageProxy: image proxy not enabled")}
@@ -70,9 +70,9 @@ func (proxy *ImageProxy) makeBackend(enable bool, proxyType string) ImageProxyBa
 	}
 
 	switch proxyType {
-	case model.IMAGE_PROXY_TYPE_LOCAL:
+	case model.ImageProxyTypeLocal:
 		return makeLocalBackend(proxy)
-	case model.IMAGE_PROXY_TYPE_ATMOS_CAMO:
+	case model.ImageProxyTypeAtmosCamo:
 		return makeAtmosCamoBackend(proxy)
 	default:
 		return nil

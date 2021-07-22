@@ -12,8 +12,8 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlJobStore struct {
@@ -97,7 +97,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 		Set("Status", newStatus).
 		Where(sq.Eq{"Id": id, "Status": currentStatus})
 
-	if newStatus == model.JOB_STATUS_IN_PROGRESS {
+	if newStatus == model.JobStatusInProgress {
 		builder = builder.Set("StartAt", model.GetMillis())
 	}
 	query, args, err := builder.ToSql()

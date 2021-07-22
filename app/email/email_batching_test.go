@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestHandleNewNotifications(t *testing.T) {
@@ -98,8 +98,8 @@ func TestCheckPendingNotifications(t *testing.T) {
 
 	nErr := th.store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
-		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
-		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Category: model.PreferenceCategoryNotifications,
+		Name:     model.PreferenceNameEmailInterval,
 		Value:    "60",
 	}})
 	require.NoError(t, nErr)
@@ -120,8 +120,8 @@ func TestCheckPendingNotifications(t *testing.T) {
 	// We reset the interval to something shorter
 	nErr = th.store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
-		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
-		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Category: model.PreferenceCategoryNotifications,
+		Name:     model.PreferenceNameEmailInterval,
 		Value:    "10",
 	}})
 	require.NoError(t, nErr)
@@ -256,8 +256,8 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	// preference value is not an integer, so we'll fall back to the default 15min value
 	nErr := th.store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
-		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
-		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Category: model.PreferenceCategoryNotifications,
+		Name:     model.PreferenceNameEmailInterval,
 		Value:    "notAnIntegerValue",
 	}})
 	require.NoError(t, nErr)

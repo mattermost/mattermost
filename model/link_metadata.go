@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	LINK_METADATA_TYPE_IMAGE     LinkMetadataType = "image"
-	LINK_METADATA_TYPE_NONE      LinkMetadataType = "none"
-	LINK_METADATA_TYPE_OPENGRAPH LinkMetadataType = "opengraph"
-	MAX_IMAGES                   int              = 5
+	LinkMetadataTypeImage     LinkMetadataType = "image"
+	LinkMetadataTypeNone      LinkMetadataType = "none"
+	LinkMetadataTypeOpengraph LinkMetadataType = "opengraph"
+	LinkMetadataMaxImages     int              = 5
 )
 
 type LinkMetadataType string
@@ -51,8 +51,8 @@ func truncateText(original string) string {
 }
 
 func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
-	if maxImages < 0 { // dont break stuff, if it's weird, go for sane defaults
-		maxImages = MAX_IMAGES
+	if maxImages < 0 { // don't break stuff, if it's weird, go for sane defaults
+		maxImages = LinkMetadataMaxImages
 	}
 	numImages := len(images)
 	if numImages > maxImages {
@@ -76,7 +76,7 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 		ogdata.Determiner = empty.Determiner
 		ogdata.Locale = empty.Locale
 		ogdata.LocalesAlternate = empty.LocalesAlternate
-		ogdata.Images = firstNImages(ogdata.Images, MAX_IMAGES)
+		ogdata.Images = firstNImages(ogdata.Images, LinkMetadataMaxImages)
 		ogdata.Audios = empty.Audios
 		ogdata.Videos = empty.Videos
 	}
@@ -97,7 +97,7 @@ func (o *LinkMetadata) IsValid() *AppError {
 	}
 
 	switch o.Type {
-	case LINK_METADATA_TYPE_IMAGE:
+	case LinkMetadataTypeImage:
 		if o.Data == nil {
 			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -105,11 +105,11 @@ func (o *LinkMetadata) IsValid() *AppError {
 		if _, ok := o.Data.(*PostImage); !ok {
 			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data_type.app_error", nil, "", http.StatusBadRequest)
 		}
-	case LINK_METADATA_TYPE_NONE:
+	case LinkMetadataTypeNone:
 		if o.Data != nil {
 			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data_type.app_error", nil, "", http.StatusBadRequest)
 		}
-	case LINK_METADATA_TYPE_OPENGRAPH:
+	case LinkMetadataTypeOpengraph:
 		if o.Data == nil {
 			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -146,13 +146,13 @@ func (o *LinkMetadata) DeserializeDataToConcreteType() error {
 	var err error
 
 	switch o.Type {
-	case LINK_METADATA_TYPE_IMAGE:
+	case LinkMetadataTypeImage:
 		image := &PostImage{}
 
 		err = json.Unmarshal(b, &image)
 
 		data = image
-	case LINK_METADATA_TYPE_OPENGRAPH:
+	case LinkMetadataTypeOpengraph:
 		og := &opengraph.OpenGraph{}
 
 		json.Unmarshal(b, &og)
