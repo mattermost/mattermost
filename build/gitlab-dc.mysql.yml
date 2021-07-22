@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: ${CI_REGISTRY}/mattermost/ci/images/mysql:5.6-1
+    image: ${CI_REGISTRY}/mattermost/ci/images/mysql:5.7-1
     restart: always
     environment:
       MYSQL_ROOT_HOST: "%"
