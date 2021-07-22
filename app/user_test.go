@@ -1538,7 +1538,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 	})
 }
 
-func TestCreateserWithInitialPreferences(t *testing.T) {
+func TestCreateUserWithInitialPreferences(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
