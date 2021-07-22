@@ -12,7 +12,7 @@ type Plugin struct {
 }
 
 func (p *Plugin) OnActivate() error {
-	p.client = pluginapi.NewClient(p.API, p.Driver)
+	p.client = pluginapi.NewClient(p.API)
 
 	return nil
 }

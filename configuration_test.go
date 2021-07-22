@@ -104,7 +104,7 @@ func TestCheckRequiredServerConfiguration(t *testing.T) {
 			api := test.SetupAPI(&plugintest.API{})
 			defer api.AssertExpectations(t)
 
-			client := pluginapi.NewClient(api, &plugintest.Driver{})
+			client := pluginapi.NewClient(api)
 
 			ok, err := client.Configuration.CheckRequiredServerConfiguration(test.Input)
 

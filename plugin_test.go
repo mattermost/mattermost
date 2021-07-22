@@ -22,7 +22,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 	t.Run("incompatible server version", func(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.1.0")
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		_, err := client.Plugin.InstallPluginFromURL("", true)
 
@@ -33,7 +33,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 	t.Run("error while parsing the download url", func(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.19.0")
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		_, err := client.Plugin.InstallPluginFromURL("http://%41:8080/", replace)
 
@@ -44,7 +44,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 	t.Run("errors out while downloading file", func(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.19.0")
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -61,7 +61,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 	t.Run("downloads the file successfully", func(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.19.0")
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		tarData, err := os.ReadFile(filepath.Join("tests", "testplugin.tar.gz"))
 		require.NoError(t, err)
@@ -84,7 +84,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 	t.Run("the url pointing to server is incorrect", func(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.19.0")
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusNotFound)
 		}))
@@ -103,7 +103,7 @@ func TestGetPluginAssetURL(t *testing.T) {
 	api := &plugintest.API{}
 	api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: &siteURL}})
 
-	client := pluginapi.NewClient(api, &plugintest.Driver{})
+	client := pluginapi.NewClient(api)
 
 	t.Run("Valid asset directory was provided", func(t *testing.T) {
 		pluginID := "mattermost-1234"

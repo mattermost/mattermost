@@ -31,7 +31,7 @@ func TestLogrus(t *testing.T) {
 
 			api := &plugintest.API{}
 			defer api.AssertExpectations(t)
-			client := pluginapi.NewClient(api, &plugintest.Driver{})
+			client := pluginapi.NewClient(api)
 
 			pluginapi.ConfigureLogrus(logger, client)
 

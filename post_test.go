@@ -17,7 +17,7 @@ func TestCreatePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		id := model.NewId()
 		in := &model.Post{
@@ -35,7 +35,7 @@ func TestCreatePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		in := &model.Post{
 			Id: "postID",
@@ -53,7 +53,7 @@ func TestGetPost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		expectedPost := &model.Post{
@@ -69,7 +69,7 @@ func TestGetPost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		api.On("GetPost", postID).Return(nil, newAppError())
@@ -84,7 +84,7 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		now := model.GetMillis()
 		in := &model.Post{
@@ -102,7 +102,7 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		in := &model.Post{
 			Id: "postID",
@@ -120,7 +120,7 @@ func TestDeletePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 
@@ -133,7 +133,7 @@ func TestDeletePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		api.On("DeletePost", postID).Return(newAppError())
@@ -146,7 +146,7 @@ func TestDeletePost(t *testing.T) {
 func TestSendEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api, &plugintest.Driver{})
+	client := pluginapi.NewClient(api)
 
 	userID := "userID"
 	expectedPost := &model.Post{
@@ -160,7 +160,7 @@ func TestSendEphemeralPost(t *testing.T) {
 func TestUpdateEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api, &plugintest.Driver{})
+	client := pluginapi.NewClient(api)
 
 	now := model.GetMillis()
 	userID := "userID"
@@ -178,7 +178,7 @@ func TestUpdateEphemeralPost(t *testing.T) {
 func TestDeleteEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api, &plugintest.Driver{})
+	client := pluginapi.NewClient(api)
 
 	userID := "userID"
 	postID := "postID"
@@ -191,7 +191,7 @@ func TestGetPostThread(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		expectedPostList := model.NewPostList()
@@ -207,7 +207,7 @@ func TestGetPostThread(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		api.On("GetPostThread", postID).Return(nil, newAppError())
@@ -222,7 +222,7 @@ func TestGetPostsSince(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		time := int64(0)
@@ -239,7 +239,7 @@ func TestGetPostsSince(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		time := int64(0)
@@ -255,7 +255,7 @@ func TestGetPostsAfter(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		postID := "postID"
@@ -272,7 +272,7 @@ func TestGetPostsAfter(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		postID := "postID"
@@ -288,7 +288,7 @@ func TestGetPostsBefore(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		postID := "postID"
@@ -305,7 +305,7 @@ func TestGetPostsBefore(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		postID := "postID"
@@ -321,7 +321,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		expectedPostList := model.NewPostList()
@@ -337,7 +337,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		api.On("GetPostsForChannel", channelID, 0, 0).Return(nil, newAppError())
@@ -352,7 +352,7 @@ func TestSearchPostsInTeam(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		teamID := "teamID"
 		searchParams := []*model.SearchParams{{InChannels: []string{"channelID"}}}
@@ -367,7 +367,7 @@ func TestSearchPostsInTeam(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		teamID := "teamID"
 		searchParams := []*model.SearchParams{{InChannels: []string{"channelID"}}}
@@ -383,7 +383,7 @@ func TestAddReaction(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		in := &model.Reaction{
 			PostId: "postId",
@@ -397,7 +397,7 @@ func TestAddReaction(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		in := &model.Reaction{
 			PostId: "postId",
@@ -413,7 +413,7 @@ func TestGetReactions(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		expectedReactions := []*model.Reaction{
@@ -430,7 +430,7 @@ func TestGetReactions(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		api.On("GetReactions", postID).Return(nil, newAppError())
@@ -445,7 +445,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		reaction := &model.Reaction{
 			PostId: "postId",
@@ -459,7 +459,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		reaction := &model.Reaction{
 			PostId: "postId",
@@ -475,7 +475,7 @@ func TestSearchTeamPosts(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		api.On("SearchPostsInTeam", "1", []*model.SearchParams{{Terms: "2"}, {Terms: "3"}}).
 			Return([]*model.Post{{Id: "3"}, {Id: "4"}}, nil)
@@ -488,7 +488,7 @@ func TestSearchTeamPosts(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -511,7 +511,7 @@ func TestShouldProcessMessage(t *testing.T) {
 	t.Run("should not respond to itself", func(t *testing.T) {
 		api := setupAPI()
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{Type: model.POST_HEADER_CHANGE, UserId: expectedBotID},
@@ -526,7 +526,7 @@ func TestShouldProcessMessage(t *testing.T) {
 	t.Run("should not process as the post is generated by system", func(t *testing.T) {
 		api := setupAPI()
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{Type: model.POST_HEADER_CHANGE},
@@ -541,7 +541,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{ChannelId: channelID}, pluginapi.AllowSystemMessages(),
@@ -559,7 +559,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		api.On("GetUser", userID).Return(&model.User{IsBot: true}, nil)
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{UserId: userID, ChannelId: channelID},
@@ -581,7 +581,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&channel, nil)
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{UserId: userID, ChannelId: channelID},
@@ -598,7 +598,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID},
@@ -616,7 +616,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
 		api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID},
@@ -639,7 +639,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		}
 		api.On("GetChannel", channelID).Return(&channel, nil)
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID},
@@ -658,7 +658,7 @@ func TestShouldProcessMessage(t *testing.T) {
 
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}},
 			pluginapi.AllowBots(),
@@ -674,7 +674,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}},
@@ -692,7 +692,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{ChannelId: channelID},
@@ -709,7 +709,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 
 		api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "false"}},
@@ -728,7 +728,7 @@ func TestShouldProcessMessage(t *testing.T) {
 
 		api.On("GetUser", userID).Return(&model.User{IsBot: false}, nil)
 
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client := pluginapi.NewClient(api)
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
 			&model.Post{ChannelId: channelID, UserId: userID},

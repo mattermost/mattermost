@@ -11,6 +11,7 @@ require (
 	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210714130822-54b0ef574b5d
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/pkg/errors v0.9.1
+	github.com/proullon/ramsql v0.0.0-20181213202341-817cee58a244
 	github.com/rudderlabs/analytics-go v3.3.1+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
