@@ -440,6 +440,15 @@ func (a *App) RemoveCustomStatus(userID string) *model.AppError {
 	return nil
 }
 
+func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return &model.CustomStatus{}, err
+	}
+
+	return user.GetCustomStatus(), nil
+}
+
 func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
 	var newRCS *model.RecentCustomStatuses
 

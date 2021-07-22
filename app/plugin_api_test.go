@@ -487,13 +487,13 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	user1, err := th.App.CreateUser(&model.User{
+	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Username: "user_" + model.NewId(),
 		Password: "password",
-		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user1)
+	defer th.App.PermanentDeleteUser(th.Context, user1)
 
 	custom := &model.CustomStatus{
 		Emoji: ":tada:",
@@ -502,24 +502,24 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	user, err := th.App.GetUser(user1.Id)
+	userCs, err := th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
-	assert.Equal(t, `{"emoji":":tada:","text":"honk"}`, user.Props[model.UserPropsKeyCustomStatus])
+	assert.Equal(t, custom, userCs)
 
 	custom.Text = ""
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	user, err = th.App.GetUser(user1.Id)
+	userCs, err = th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
-	assert.Equal(t, `{"emoji":":tada:","text":""}`, user.Props[model.UserPropsKeyCustomStatus])
+	assert.Equal(t, custom, userCs)
 
 	custom.Text = "honk"
 	custom.Emoji = ""
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	user, err = th.App.GetUser(user1.Id)
+	userCs, err = th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
-	assert.Equal(t, `{"emoji":"","text":"honk"}`, user.Props[model.UserPropsKeyCustomStatus])
+	assert.Equal(t, custom, userCs)
 
 	custom.Text = ""
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
@@ -529,9 +529,10 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	// Remove custom status
 	err = api.RemoveUserCustomStatus(user1.Id)
 	assert.Nil(t, err)
-	user, err = th.App.GetUser(user1.Id)
+	var csClear *model.CustomStatus
+	userCs, err = th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
-	assert.Equal(t, "", user.Props[model.UserPropsKeyCustomStatus])
+	assert.Equal(t, csClear, userCs)
 }
 
 func TestPluginAPIGetFile(t *testing.T) {

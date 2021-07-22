@@ -622,6 +622,15 @@ func (u *User) SetCustomStatus(cs *CustomStatus) {
 	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
 }
 
+func (u *User) GetCustomStatus() *CustomStatus {
+	var o *CustomStatus
+
+	data := u.Props[UserPropsKeyCustomStatus]
+	_ = json.Unmarshal([]byte(data), &o)
+
+	return o
+}
+
 func (u *User) ClearCustomStatus() {
 	u.MakeNonNil()
 	u.Props[UserPropsKeyCustomStatus] = ""
