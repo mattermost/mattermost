@@ -275,12 +275,12 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		//   - user2: reply 2 to root post 1
 		//   - user1: reply 3 to root post 1
 		//   - user2: reply 4 to root post 1
-		rootPost1 := createPostWithTimestamp(ss, c1.Id, uId2, "", "", 1)
+		rootPost1 := createPostWithTimestamp(ss, c1.Id, uId2, "", 1)
 		lastReplyAt := int64(40)
-		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, rootPost1.Id, 10)
-		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, rootPost1.Id, 20)
-		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, rootPost1.Id, 30)
-		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, rootPost1.Id, lastReplyAt)
+		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, 10)
+		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, 20)
+		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, 30)
+		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, lastReplyAt)
 
 		// Check created thread is good
 		goodThread1, err := ss.Thread().Get(rootPost1.Id)
