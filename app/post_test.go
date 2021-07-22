@@ -970,7 +970,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_OFF
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
 		})
 
 		post := &model.Post{
@@ -1006,7 +1006,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
-			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		})
 
 		post := &model.Post{
