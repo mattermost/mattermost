@@ -18,11 +18,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchtest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/searchtest"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
 
 type storeType struct {
@@ -104,14 +104,14 @@ func initStores() {
 	if os.Getenv("IS_CI") == "true" {
 		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
 		case "mysql":
-			storeTypes = append(storeTypes, newStoreType("MySQL", model.DATABASE_DRIVER_MYSQL))
+			storeTypes = append(storeTypes, newStoreType("MySQL", model.DatabaseDriverMysql))
 		case "postgres":
-			storeTypes = append(storeTypes, newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+			storeTypes = append(storeTypes, newStoreType("PostgreSQL", model.DatabaseDriverPostgres))
 		}
 	} else {
 		storeTypes = append(storeTypes,
-			newStoreType("MySQL", model.DATABASE_DRIVER_MYSQL),
-			newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES),
+			newStoreType("MySQL", model.DatabaseDriverMysql),
+			newStoreType("PostgreSQL", model.DatabaseDriverPostgres),
 		)
 	}
 
@@ -165,7 +165,7 @@ func tearDownStores() {
 // before the fix in MM-28397.
 // Keeping it here to help avoiding future regressions.
 func TestStoreLicenseRace(t *testing.T) {
-	settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+	settings := makeSqlSettings(model.DatabaseDriverPostgres)
 	store := New(*settings, nil)
 	defer func() {
 		store.Close()
@@ -251,7 +251,7 @@ func TestGetReplica(t *testing.T) {
 		testCase := testCase
 		t.Run(testCase.Description+" with license", func(t *testing.T) {
 
-			settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+			settings := makeSqlSettings(model.DatabaseDriverPostgres)
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
 			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
@@ -321,7 +321,7 @@ func TestGetReplica(t *testing.T) {
 
 		t.Run(testCase.Description+" without license", func(t *testing.T) {
 
-			settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+			settings := makeSqlSettings(model.DatabaseDriverPostgres)
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
 			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
@@ -389,8 +389,8 @@ func TestGetReplica(t *testing.T) {
 
 func TestGetDbVersion(t *testing.T) {
 	testDrivers := []string{
-		model.DATABASE_DRIVER_POSTGRES,
-		model.DATABASE_DRIVER_MYSQL,
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
 	}
 
 	for _, driver := range testDrivers {
@@ -406,10 +406,85 @@ func TestGetDbVersion(t *testing.T) {
 	}
 }
 
+func TestEnsureMinimumDBVersion(t *testing.T) {
+	tests := []struct {
+		driver string
+		ver    string
+		ok     bool
+		err    string
+	}{
+		{
+			driver: model.DatabaseDriverPostgres,
+			ver:    "100001",
+			ok:     true,
+			err:    "",
+		},
+		{
+			driver: model.DatabaseDriverPostgres,
+			ver:    "90603",
+			ok:     false,
+			err:    "minimum Postgres version requirements not met",
+		},
+		{
+			driver: model.DatabaseDriverPostgres,
+			ver:    "12.34.1",
+			ok:     false,
+			err:    "cannot parse DB version",
+		},
+		{
+			driver: model.DatabaseDriverMysql,
+			ver:    "10.4.5-MariaDB",
+			ok:     true,
+			err:    "",
+		},
+		{
+			driver: model.DatabaseDriverMysql,
+			ver:    "5.6.99-test",
+			ok:     false,
+			err:    "minimum MySQL version requirements not met",
+		},
+		{
+			driver: model.DatabaseDriverMysql,
+			ver:    "34-55.12",
+			ok:     false,
+			err:    "cannot parse MySQL DB version",
+		},
+		{
+			driver: model.DatabaseDriverMysql,
+			ver:    "8.0.0-log",
+			ok:     true,
+			err:    "",
+		},
+	}
+
+	pg := model.DatabaseDriverPostgres
+	pgSettings := &model.SqlSettings{
+		DriverName: &pg,
+	}
+	my := model.DatabaseDriverMysql
+	mySettings := &model.SqlSettings{
+		DriverName: &my,
+	}
+	for _, tc := range tests {
+		store := &SqlStore{}
+		switch tc.driver {
+		case pg:
+			store.settings = pgSettings
+		case my:
+			store.settings = mySettings
+		}
+		ok, err := store.ensureMinimumDBVersion(tc.ver)
+		assert.Equal(t, tc.ok, ok)
+		if tc.err != "" {
+			assert.Contains(t, err.Error(), tc.err)
+		}
+	}
+}
+
 func TestUpAndDownMigrations(t *testing.T) {
 	testDrivers := []string{
-		model.DATABASE_DRIVER_POSTGRES,
-		model.DATABASE_DRIVER_MYSQL,
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
 	}
 
 	for _, driver := range testDrivers {
@@ -493,7 +568,7 @@ func TestGetAllConns(t *testing.T) {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
-			settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+			settings := makeSqlSettings(model.DatabaseDriverPostgres)
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
 			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
@@ -536,32 +611,46 @@ func TestIsDuplicate(t *testing.T) {
 func TestVersionString(t *testing.T) {
 	versions := []struct {
 		input  int
+		driver string
 		output string
 	}{
 		{
 			input:  100000,
+			driver: model.DatabaseDriverPostgres,
 			output: "10.0",
 		},
 		{
 			input:  90603,
+			driver: model.DatabaseDriverPostgres,
 			output: "9.603",
 		},
 		{
 			input:  120005,
+			driver: model.DatabaseDriverPostgres,
 			output: "12.5",
+		},
+		{
+			input:  5708,
+			driver: model.DatabaseDriverMysql,
+			output: "5.7.8",
+		},
+		{
+			input:  8000,
+			driver: model.DatabaseDriverMysql,
+			output: "8.0.0",
 		},
 	}
 
 	for _, v := range versions {
-		out := VersionString(v.input)
+		out := versionString(v.input, v.driver)
 		assert.Equal(t, v.output, out)
 	}
 }
 
 func TestReplicaLagQuery(t *testing.T) {
 	testDrivers := []string{
-		model.DATABASE_DRIVER_POSTGRES,
-		model.DATABASE_DRIVER_MYSQL,
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
 	}
 
 	for _, driver := range testDrivers {
@@ -570,10 +659,10 @@ func TestReplicaLagQuery(t *testing.T) {
 		var tableName string
 		// Just any random query which returns a row in (string, int) format.
 		switch driver {
-		case model.DATABASE_DRIVER_POSTGRES:
+		case model.DatabaseDriverPostgres:
 			query = `SELECT relname, count(relname) FROM pg_class WHERE relname='posts' GROUP BY relname`
 			tableName = "posts"
-		case model.DATABASE_DRIVER_MYSQL:
+		case model.DatabaseDriverMysql:
 			query = `SELECT table_name, count(table_name) FROM information_schema.tables WHERE table_name='Posts' and table_schema=Database() GROUP BY table_name`
 			tableName = "Posts"
 		}
@@ -621,19 +710,19 @@ func TestAppendMultipleStatementsFlagMysql(t *testing.T) {
 			"Should append multiStatements param to the DSN path with existing params",
 			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s",
 			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s&multiStatements=true",
-			model.DATABASE_DRIVER_MYSQL,
+			model.DatabaseDriverMysql,
 		},
 		{
 			"Should append multiStatements param to the DSN path with no existing params",
 			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
 			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?multiStatements=true",
-			model.DATABASE_DRIVER_MYSQL,
+			model.DatabaseDriverMysql,
 		},
 		{
 			"Should not multiStatements param to the DSN when driver is not MySQL",
 			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
 			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			model.DATABASE_DRIVER_POSTGRES,
+			model.DatabaseDriverPostgres,
 		},
 	}
 
@@ -649,9 +738,9 @@ func TestAppendMultipleStatementsFlagMysql(t *testing.T) {
 
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		return storetest.MakeSqlSettings(driver, false)
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		return storetest.MakeSqlSettings(driver, false)
 	}
 
@@ -667,9 +756,9 @@ func TestExecNoTimeout(t *testing.T) {
 		defer func() {
 			sqlStore.master.QueryTimeout = timeout
 		}()
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
 			query = `SELECT SLEEP(2);`
-		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			query = `SELECT pg_sleep(2);`
 		}
 		_, err := sqlStore.GetMaster().ExecNoTimeout(query)
@@ -678,7 +767,7 @@ func TestExecNoTimeout(t *testing.T) {
 }
 
 func TestMySQLReadTimeout(t *testing.T) {
-	settings := makeSqlSettings(model.DATABASE_DRIVER_MYSQL)
+	settings := makeSqlSettings(model.DatabaseDriverMysql)
 	dataSource := *settings.DataSource
 	config, err := mysql.ParseDSN(dataSource)
 	require.NoError(t, err)
@@ -741,13 +830,13 @@ func TestAlterDefaultIfColumnExists(t *testing.T) {
 			ok := sqlStore.AlterDefaultIfColumnExists("Posts", "Id", model.NewString(""), model.NewString(""))
 			require.True(t, ok)
 
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			if sqlStore.DriverName() == model.DatabaseDriverMysql {
 				query = `SELECT column_default
 			 FROM information_schema.columns
 			 WHERE table_schema = DATABASE()
 			 AND table_name = 'Posts'
 			 AND column_name = 'Id'`
-			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 				query = `SELECT column_default
 			 FROM information_schema.columns
 			 WHERE table_name = 'posts'
@@ -757,9 +846,9 @@ func TestAlterDefaultIfColumnExists(t *testing.T) {
 			err := sqlStore.GetMaster().SelectOne(&def, query)
 			require.NoError(t, err)
 			require.NotNil(t, def)
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			if sqlStore.DriverName() == model.DatabaseDriverMysql {
 				require.Equal(t, "", *def)
-			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 				require.Equal(t, "''::character varying", *def)
 			}
 		})
@@ -771,9 +860,9 @@ func TestAlterDefaultIfColumnExists(t *testing.T) {
 			err := sqlStore.GetMaster().SelectOne(&def, query)
 			require.NoError(t, err)
 			require.NotNil(t, def)
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			if sqlStore.DriverName() == model.DatabaseDriverMysql {
 				require.Equal(t, "", *def)
-			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 				require.Equal(t, "''::character varying", *def)
 			}
 		})
@@ -794,9 +883,9 @@ func TestAlterDefaultIfColumnExists(t *testing.T) {
 			err := sqlStore.GetMaster().SelectOne(&def, query)
 			require.NoError(t, err)
 			require.NotNil(t, def)
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			if sqlStore.DriverName() == model.DatabaseDriverMysql {
 				require.Equal(t, "test", *def)
-			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 				require.Equal(t, "'test'::character varying", *def)
 			}
 
@@ -808,13 +897,13 @@ func TestAlterDefaultIfColumnExists(t *testing.T) {
 			ok := sqlStore.AlterDefaultIfColumnExists("Posts", "UpdateAt", model.NewString("0"), model.NewString("0"))
 			require.True(t, ok)
 
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			if sqlStore.DriverName() == model.DatabaseDriverMysql {
 				query = `SELECT column_default
 			 FROM information_schema.columns
 			 WHERE table_schema = DATABASE()
 			 AND table_name = 'Posts'
 			 AND column_name = 'UpdateAt'`
-			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 				query = `SELECT column_default
 			 FROM information_schema.columns
 			 WHERE table_name = 'posts'

@@ -5,14 +5,13 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 )
 
 const (
-	ACCESS_TOKEN_GRANT_TYPE  = "authorization_code"
-	ACCESS_TOKEN_TYPE        = "bearer"
-	REFRESH_TOKEN_GRANT_TYPE = "refresh_token"
+	AccessTokenGrantType  = "authorization_code"
+	AccessTokenType       = "bearer"
+	RefreshTokenGrantType = "refresh_token"
 )
 
 type AccessData struct {
@@ -79,19 +78,7 @@ func (ad *AccessData) ToJson() string {
 	return string(b)
 }
 
-func AccessDataFromJson(data io.Reader) *AccessData {
-	var ad *AccessData
-	json.NewDecoder(data).Decode(&ad)
-	return ad
-}
-
 func (ar *AccessResponse) ToJson() string {
 	b, _ := json.Marshal(ar)
 	return string(b)
-}
-
-func AccessResponseFromJson(data io.Reader) *AccessResponse {
-	var ar *AccessResponse
-	json.NewDecoder(data).Decode(&ar)
-	return ar
 }

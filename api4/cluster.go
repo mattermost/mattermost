@@ -6,7 +6,7 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitCluster() {
@@ -14,8 +14,8 @@ func (api *API) InitCluster() {
 }
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadEnvironmentHighAvailability) {
+		c.SetPermissionError(model.PermissionSysconsoleReadEnvironmentHighAvailability)
 		return
 	}
 

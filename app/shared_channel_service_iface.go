@@ -4,8 +4,8 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
 )
 
 // SharedChannelServiceIFace is the interface to the shared channel service

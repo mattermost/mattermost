@@ -10,9 +10,9 @@ import (
 	"context"
 	timemodule "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type TimerLayer struct {
@@ -534,7 +534,7 @@ func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channe
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType string) (int64, error) {
+func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.AnalyticsTypeCount(teamID, channelType)
