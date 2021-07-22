@@ -1092,14 +1092,6 @@
     "translation": "Fel vid base64-avkodningen av trigger ID i den interaktiva dialogen."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Kunde inte hantera importen: kunde inte packa upp filen."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Kunde inte hantera importen: misslyckades med att skapa temporär mapp."
-  },
-  {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "Kunde inte spara exportfil."
   },
@@ -9213,5 +9205,45 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Det går inte att aktivera fler användare eftersom du nått gränsen för ditt Mattermost Cloud-konto."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Det gick inte att kontrollera gränsen för antalet tillåtna användare."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Listan med administratörer är tom."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Listan med administratörer är tom."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "System"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Användarens trådmedlemskap finns inte"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kunde inte få fram användarens trådmedlemskap"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Licensnyckeln för testperioden av Mattermost Enterprise Edition är inte längre giltig. [Kontakta Sales team] (https://mattermost.com/contact-us/) om du vill utöka testperionden."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Kunde inte kontrollera om en testperiod kan startas"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Datagallringsjobbet misslyckades."
   }
 ]

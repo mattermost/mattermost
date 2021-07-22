@@ -560,14 +560,6 @@
     "translation": "Nem sikerült dekódolni az interaktív párbeszédpanel trigger ID azonosítóját."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Nem sikerült feldolgozni az importot: nem sikerült kicsomagolni a fájlt."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Nem sikerült feldolgozni az importot: nem sikerült létrehozni egy ideiglenes könyvtárat."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Nem sikerült feldolgozni az importot: nem sikerült megnyitni a fájlt."
   },
@@ -801,7 +793,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "A méretkorlát túllépve. Próbálja meg ellenőrizni a [maximális oldalméretet] (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded )."
+    "translation": "A méretkorlát túllépve. Próbálja meg ellenőrizni a [maximális oldalméretet](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -4409,7 +4401,7 @@
   },
   {
     "id": "app.system.warn_metric.bot_description",
-    "translation": "[További információ a Mattermost Tanácsadóról] (https://about.mattermost.com/default-channel-handle-documentation)"
+    "translation": "[További információk a Mattermost Advisor-ról](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -5013,11 +5005,11 @@
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Nem sikerült felhasználót létrehozni a (z) {{.Service}} felhasználói objektumból."
+    "translation": "Nem sikerült felhasználót létrehozni a(z) {{.Service}} felhasználói objektumból."
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Az e-mail címmel már van társítva egy fiók, a (z) {{.Service}} eltérő bejelentkezési módszerrel. Kérjük, jelentkezzen be az {{.Auth}} használatával."
+    "translation": "Az e-mail címmel már van társítva egy fiók, a(z) {{.Service}} eltérő bejelentkezési módszerrel. Kérjük, jelentkezzen be az {{.Auth}} használatával."
   },
   {
     "id": "api.user.create_email_token.error",
@@ -5121,15 +5113,15 @@
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A (z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A (z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A (z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
@@ -5269,7 +5261,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "A (z) {{.TeamDisplayName}} felhasználóneve {{.NewUsername}} névre változott."
+    "translation": "A(z) {{.TeamDisplayName}} csapatban az Ön felhasználóneve {{.NewUsername}} névre változott."
   },
   {
     "id": "api.templates.user_access_token_subject",
@@ -5513,7 +5505,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Személyes hozzáférési tokent adtunk a fiókjához a (z) {{.SiteURL}} webhelyen. Ezek felhasználhatók a (z) {{.SiteName}} fiókhoz való hozzáférésére."
+    "translation": "Személyes hozzáférési tokent adtunk a fiókjához a(z) {{.SiteURL}} webhelyen. Ezek felhasználhatók a(z) {{.SiteName}} fiókhoz való hozzáférésére."
   },
   {
     "id": "api.templates.upgrade_request_title2",
@@ -5553,7 +5545,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Frissítette bejelentkezési módszerét a (z) {{.SiteName}} webhelyen a következőre: {{.Method}}."
+    "translation": "Frissítette bejelentkezési módszerét a(z) {{.SiteName}} webhelyen a következőre: {{.Method}}."
   },
   {
     "id": "api.templates.reset_subject",
@@ -5773,7 +5765,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "A többtényezős hitelesítést eltávolítottuk fiókjából a (z) {{.SiteURL}} webhelyen."
+    "translation": "A többtényezős hitelesítést eltávolítottuk fiókjából a(z) {{.SiteURL}} webhelyen."
   },
   {
     "id": "api.templates.mfa_change_subject",
@@ -5785,7 +5777,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "A többtényezős hitelesítést hozzáadtuk fiókjához a (z) {{.SiteURL}} oldalon."
+    "translation": "A többtényezős hitelesítést hozzáadtuk fiókjához a(z) {{.SiteURL}} oldalon."
   },
   {
     "id": "api.templates.invite_subject",
@@ -5793,7 +5785,7 @@
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} meghívta Önt, hogy csatlakozzon a (z) {{.TeamDisplayName}} csapathoz vendégként"
+    "translation": "[{{.SiteName}}] {{.SenderName}} meghívta Önt, hogy csatlakozzon a(z) {{.TeamDisplayName}} csapathoz vendégként"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -6301,7 +6293,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nCsatorna hozzáadva:\n"
+    "translation": "\nHozzáadott csatornák:\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -6325,7 +6317,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "A Mattermost rendszerének több csapata van. Sok csapatnak megvan a maga preferált módja a koordinációra és az együttműködésre, beleértve a csatornák létrehozásának módját, kik hívhatnak meg új csapattársakat és hogyan kezelik az integrációkat. A csapat felülbírálási sémái lehetővé teszik a felhasználói engedélyek testreszabását az egyes csapatokon belül, hogy megfeleljenek a saját igényeiknek.\n\n[További információ a Speciális engedélyek használatáról] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost rendszerének több csapata van. Sok csapatnak megvan a maga preferált módja a koordinációra és az együttműködésre, beleértve a csatornák létrehozásának módját, kik hívhatnak meg új csapattársakat és hogyan kezelik az integrációkat. A csapat felülbírálási sémái lehetővé teszik a felhasználói engedélyek testreszabását az egyes csapatokon belül, hogy megfeleljenek a saját igényeiknek.\n\n[További információ a Speciális engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -6333,7 +6325,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "A Mattermost rendszerének több csapata van. Sok csapatnak megvan a maga preferált módja a koordinációra és az együttműködésre, beleértve a csatornák létrehozásának módját, kik hívhatnak meg új csapattársakat és hogyan kezelik az integrációkat. A csapat felülbírálási sémái lehetővé teszik a felhasználói engedélyek testreszabását az egyes csapatokon belül, hogy megfeleljenek a saját igényeiknek.\n\n[További információ a Speciális engedélyek használatáról] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost rendszerének több csapata van. Sok csapatnak megvan a maga preferált módja a koordinációra és az együttműködésre, beleértve a csatornák létrehozásának módját, kik hívhatnak meg új csapattársakat és hogyan kezelik az integrációkat. A csapat felülbírálási sémái lehetővé teszik a felhasználói engedélyek testreszabását az egyes csapatokon belül, hogy megfeleljenek a saját igényeiknek.\n\n[További információ a Speciális engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
@@ -6345,7 +6337,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "A Mattermost rendszerében nagy számú üzenet van. Az alapértelmezett Mattermost adatbázis-keresés körülbelül 2,5 millió hozzászólásnál kezdi mutatni a teljesítmény romlását. Több mint 5 millió bejegyzéssel az Elasticsearch kereséssel és megemlítésekkel segíthet elkerülni a jelentős teljesítményproblémákat, például az időtúllépéseket. Vegye fel velünk a kapcsolatot, hogy többet tudjon meg, és tudassa velünk, hogyan tudunk segíteni.\n\n[További információ a teljesítmény javításáról] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost rendszerében nagy számú üzenet van. Az alapértelmezett Mattermost adatbázis-keresés körülbelül 2,5 millió hozzászólásnál kezdi mutatni a teljesítmény romlását. Több mint 5 millió bejegyzéssel az Elasticsearch kereséssel és megemlítésekkel segíthet elkerülni a jelentős teljesítményproblémákat, például az időtúllépéseket. Vegye fel velünk a kapcsolatot, hogy többet tudjon meg, és tudassa velünk, hogyan tudunk segíteni.\n\n[További információ a teljesítmény javításáról](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -6353,7 +6345,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "A Mattermost rendszerében nagy számú üzenet van. Az alapértelmezett Mattermost adatbázis-keresés körülbelül 2,5 millió hozzászólásnál kezdi mutatni a teljesítmény romlását. Több mint 5 millió bejegyzéssel az Elasticsearch kereséssel és megemlítésekkel segíthet elkerülni a jelentős teljesítményproblémákat, például az időtúllépéseket. Vegye fel velünk a kapcsolatot, ha többet szeretne megtudni, és tudassa velünk, hogyan tudunk segíteni.\n\n[További információ a teljesítmény javításáról] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost rendszerében nagy számú üzenet van. Az alapértelmezett Mattermost adatbázis-keresés körülbelül 2,5 millió hozzászólásnál kezdi mutatni a teljesítmény romlását. Több mint 5 millió bejegyzéssel az Elasticsearch kereséssel és megemlítésekkel segíthet elkerülni a jelentős teljesítményproblémákat, például az időtúllépéseket. Vegye fel velünk a kapcsolatot, ha többet szeretne megtudni, és tudassa velünk, hogyan tudunk segíteni.\n\n[További információ a teljesítmény javításáról](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
@@ -6365,7 +6357,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "A csatornák segítenek a kommunikáció javításában, de azáltal, hogy a Mattermost felhasználók csatlakoznak és létrehoznak csatornákat, nő a rendszer szervezettségének kihívása. A Speciális engedélyek segítségével beállíthatja, hogy mely felhasználók vagy szerepkörök hajthassanak végre bizonyos műveleteket, ideértve a csatornabeállítások és tagok kezelését, a @channel vagy a @here használatával a felhasználók széles csoportjainak címkézését, valamint új webhorgot.\n\n[További információ a Speciális engedélyek használatáról] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A csatornák segítenek a kommunikáció javításában, de azáltal, hogy a Mattermost felhasználók csatlakoznak és létrehoznak csatornákat, nő a rendszer szervezettségének kihívása. A Speciális engedélyek segítségével beállíthatja, hogy mely felhasználók vagy szerepkörök hajthassanak végre bizonyos műveleteket, ideértve a csatornabeállítások és tagok kezelését, a @channel vagy a @here használatával a felhasználók széles csoportjainak címkézését, valamint új webhorgot.\n\n[További információ a Speciális engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -6385,7 +6377,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "A csatornák segítenek a kommunikáció javításában, de azáltal, hogy a Mattermost felhasználók csatlakoznak és létrehoznak csatornákat, nő a rendszer szervezettségének kihívása. A Speciális engedélyek segítségével beállíthatja, hogy mely felhasználók vagy szerepkörök hajthassanak végre bizonyos műveleteket, ideértve a csatornabeállítások és tagok kezelését, a @channel vagy a @here használatával a felhasználók széles csoportjainak címkézését, valamint új webhorgot.\n\n[További információ a Speciális engedélyek használatáról] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nA Kapcsolatfelvétel gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A csatornák segítenek a kommunikáció javításában, de azáltal, hogy a Mattermost felhasználók csatlakoznak és létrehoznak csatornákat, nő a rendszer szervezettségének kihívása. A Speciális engedélyek segítségével beállíthatja, hogy mely felhasználók vagy szerepkörök hajthassanak végre bizonyos műveleteket, ideértve a csatornabeállítások és tagok kezelését, a @channel vagy a @here használatával a felhasználók széles csoportjainak címkézését, valamint új webhorgot.\n\n[További információ a Speciális engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nA Kapcsolatfelvétel gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
@@ -6397,7 +6389,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "A Mattermost nyomatékosan javasolja, hogy több mint 500 felhasználó telepítéséhez használja ki az olyan funkciók előnyeit, mint a felhasználókezelés, a szervercsoportosítás és a teljesítményfigyelés. Vegye fel velünk a kapcsolatot, ha többet szeretne megtudni, és tudassa velünk, hogyan tudunk segíteni.\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost nyomatékosan javasolja, hogy több mint 500 felhasználó telepítéséhez használja ki az olyan funkciók előnyeit, mint a felhasználókezelés, a szervercsoportosítás és a teljesítményfigyelés. Vegye fel velünk a kapcsolatot, ha többet szeretne megtudni, és tudassa velünk, hogyan tudunk segíteni.\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
@@ -6405,7 +6397,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "A Mattermost nyomatékosan javasolja, hogy több mint 500 felhasználó telepítéséhez használja ki az olyan funkciók előnyeit, mint a felhasználókezelés, a szervercsoportosítás és a teljesítményfigyelés. Vegye fel velünk a kapcsolatot, hogy többet tudjon meg, és tudassa velünk, hogyan tudunk segíteni.\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost nyomatékosan javasolja, hogy több mint 500 felhasználó telepítéséhez használja ki az olyan funkciók előnyeit, mint a felhasználókezelés, a szervercsoportosítás és a teljesítményfigyelés. Vegye fel velünk a kapcsolatot, hogy többet tudjon meg, és tudassa velünk, hogyan tudunk segíteni.\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -6421,11 +6413,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Annyi beszélgetés folyik az egész Mattermost-on keresztül, így kihívást jelenthet tudni, hol keressünk fontos információkat. Ha nagy közönségnek szeretne üzenetet sugározni, beállíthat csak olvasható bejelentési csatornákat, ahová bárki csatlakozhat, de csak a csatornák rendszergazdái küldhetnek üzeneteket.\n\n[További információ a csak olvasható bejelentési csatornák létrehozásáról] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "Annyi beszélgetés folyik az egész Mattermost-on keresztül, így kihívást jelenthet tudni, hol keressünk fontos információkat. Ha nagy közönségnek szeretne üzenetet sugározni, beállíthat csak olvasható bejelentési csatornákat, ahová bárki csatlakozhat, de csak a csatornák rendszergazdái küldhetnek üzeneteket.\n\n[További információ a csak olvasható bejelentési csatornák létrehozásáról](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Annyi beszélgetés folyik az egész Mattermost-on keresztül, így kihívást jelenthet tudni, hogy hol keressünk fontos információkat. Ha nagy közönségnek szeretne üzenetet sugározni, beállíthat csak olvasható bejelentési csatornákat, ahová bárki csatlakozhat, de csak a csatornák rendszergazdái küldhetnek üzeneteket.\n\n[További információ a csak olvasható bejelentési csatornák létrehozásáról] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nA Kapcsolatfelvétel gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Annyi beszélgetés folyik az egész Mattermost-on keresztül, így kihívást jelenthet tudni, hogy hol keressünk fontos információkat. Ha nagy közönségnek szeretne üzenetet sugározni, beállíthat csak olvasható bejelentési csatornákat, ahová bárki csatlakozhat, de csak a csatornák rendszergazdái küldhetnek üzeneteket.\n\n[További információ a csak olvasható bejelentési csatornák létrehozásáról](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nA Kapcsolatfelvétel gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
@@ -6437,7 +6429,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "A Mattermost rendszerének most 200 felhasználója van. Amikor a Mattermost és a szervezete egyszeri bejelentkezési szolgáltatóját csatlakoztatja, a felhasználók anélkül érhetik el a Mattermost, hogy újra meg kellene adniuk hitelesítő adataikat. Javasoljuk, hogy integrálja SAML 2.0-szolgáltatóját a Mattermost szerverével.\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost rendszerének most 200 felhasználója van. Amikor a Mattermost és a szervezete egyszeri bejelentkezési szolgáltatóját csatlakoztatja, a felhasználók anélkül érhetik el a Mattermost, hogy újra meg kellene adniuk hitelesítő adataikat. Javasoljuk, hogy integrálja SAML 2.0-szolgáltatóját a Mattermost szerverével. [Tudjon meg többet a SAML 2.0 integráciról](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -6445,7 +6437,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "A Mattermost rendszerének most 200 felhasználója van. Amikor a Mattermost és a szervezete egyszeri bejelentkezési szolgáltatóját csatlakoztatja, a felhasználók anélkül érhetik el a Mattermost, hogy újra meg kellene adniuk hitelesítő adataikat. Javasoljuk, hogy integrálja SAML 2.0-szolgáltatóját a Mattermost szerverével. .\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost rendszerének most 200 felhasználója van. Amikor a Mattermost és a szervezete egyszeri bejelentkezési szolgáltatóját csatlakoztatja, a felhasználók anélkül érhetik el a Mattermost, hogy újra meg kellene adniuk hitelesítő adataikat. Javasoljuk, hogy integrálja SAML 2.0-szolgáltatóját a Mattermost szerverével. [Tudjon meg többet a SAML 2.0 integrációról](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
@@ -6457,7 +6449,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "A Mattermost rendszerének több mint 100 felhasználója van. A felhasználói bázis növekedésével az új fiókok kiépítése időigényessé válhat. Javasoljuk, hogy integrálja szervezete Active Directory / LDAP-ját, amely lehetővé teszi, hogy bárki hozzáférjen a Mattermost-hez.\n\n[További információ az AD / LDAP integrációjáról] (https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost rendszerének több mint 100 felhasználója van. A felhasználói bázis növekedésével az új fiókok kiépítése időigényessé válhat. Javasoljuk, hogy integrálja szervezete Active Directory/LDAP-ját, amely lehetővé teszi, hogy bárki hozzáférjen a Mattermost-hez.\n\n[További információ az AD/LDAP integrációjáról](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -6465,7 +6457,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "A Mattermost rendszerének több mint 100 felhasználója van. Ahogyan a felhasználói bázisa növekszik az új fiókok kiépítése időigényessé válhat. Javasoljuk, hogy integrálja szervezete Active Directory / LDAP-ját, amely lehetővé teszi, hogy bárki hozzáférjen a Mattermost-hez.\n\n[További információ az AD / LDAP integrációjáról] (https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nA Kapcsolatfelvétel gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost rendszerének több mint 100 felhasználója van. Ahogyan a felhasználói bázisa növekszik az új fiókok kiépítése időigényessé válhat. Javasoljuk, hogy integrálja szervezete Active Directory/LDAP-ját, amely lehetővé teszi, hogy bárki hozzáférjen a Mattermost-hez.\n\n[További információ az AD/LDAP integrációjáról](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nA Kapcsolatfelvétel gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
@@ -6477,7 +6469,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Az Ön Mattermost rendszerében engedélyezve van a többtényezős hitelesítés, amely lehetővé teszi a felhasználók számára, hogy a jelszavukon felül további hitelesítési eszközökkel biztosítsák számlájukat. A rendszer biztonságának javítása érdekében megkövetelheti az összes Mattermost fiók számára, hogy többtényezős hitelesítést használjon.\n\n[További információ a többtényezős hitelesítés végrehajtásáról] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "Az Ön Mattermost rendszerében engedélyezve van a többtényezős hitelesítés, amely lehetővé teszi a felhasználók számára, hogy a jelszavukon felül további hitelesítési eszközökkel biztosítsák számlájukat. A rendszer biztonságának javítása érdekében megkövetelheti az összes Mattermost fiók számára, hogy többtényezős hitelesítést használjon.\n\n[További információ a többtényezős hitelesítés végrehajtásáról](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -6485,7 +6477,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Az Ön Mattermost rendszerében engedélyezve van a többtényezős hitelesítés, amely lehetővé teszi a felhasználók számára, hogy a jelszavukon felül további hitelesítési eszközökkel biztosítsák számlájukat. A rendszer biztonságának javítása érdekében megkövetelheti az összes Mattermost fiók számára, hogy többtényezős hitelesítést használjon.\n\n[További információ a többtényezős hitelesítés végrehajtásáról] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nA Kapcsolatfelvétel gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Az Ön Mattermost rendszerében engedélyezve van a többtényezős hitelesítés, amely lehetővé teszi a felhasználók számára, hogy a jelszavukon felül további hitelesítési eszközökkel biztosítsák számlájukat. A rendszer biztonságának javítása érdekében megkövetelheti az összes Mattermost fiók számára, hogy többtényezős hitelesítést használjon.\n\n[További információ a többtényezős hitelesítés végrehajtásáról](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nA Kapcsolatfelvétel gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.mfa.contact_us.email_body",
@@ -6501,7 +6493,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "A projektek gyakran érintenek vállalaton belüli és kívüli embereket egyaránt.. A Vendégfiókok segítségével külső partnereket vonhat be a Mattermost rendszerébe, és meghatározhatja, kivel dolgozhatnak és mit láthatnak.\n\n[További információ a vendégfiókok engedélyezéséről] (https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement] -et (https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A projektek gyakran érintenek vállalaton belüli és kívüli embereket egyaránt. A Vendégfiókok segítségével külső partnereket vonhat be a Mattermost rendszerébe, és meghatározhatja, kivel dolgozhatnak és mit láthatnak.\n\n[További információ a vendégfiókok engedélyezéséről](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) -et, valamint termék e-mailek fogadása."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -6509,7 +6501,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "A projektek gyakran érintenek vállalaton belüli és kívüli embereket egyaránt. A Vendégfiókok segítségével külső partnereket vonhat be a Mattermost rendszerébe, és meghatározhatja, kivel dolgozhatnak és mit láthatnak.\n\n[További információ a vendégfiókok engedélyezéséről] (https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A projektek gyakran érintenek vállalaton belüli és kívüli embereket egyaránt. A Vendégfiókok segítségével külső partnereket vonhat be a Mattermost rendszerébe, és meghatározhatja, kivel dolgozhatnak és mit láthatnak.\n\n[További információ a vendégfiókok engedélyezéséről](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
@@ -7384,7 +7376,7 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Az eltávolítandó biztonságos kapcsolat azonosítója"
+    "translation": "Az eltávolítandó biztonságos kapcsolat azonosítója."
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -7432,7 +7424,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Legfrissebb rendszergazdának a jelszóval együtt. A meghívás elfogadásához a \"{{.Command}}\" perjel parancsot fogják használni.\n\n\"\n{{.Invitation}}\n\"\n\n** Győződjön meg róla, hogy a biztonságos kapcsolat a ** {{.SiteURL}} segítségével érheti el a Mattermost példányt."
+    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Mattermost Rendszergazdának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n```\n{{.Invitation}}\n```\n\n**Győződjön meg róla, hogy a biztonságos kapcsolat a** {{.SiteURL}} **cím segítségével érheti el a Mattermost példányt.**"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -7828,7 +7820,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Az alapértelmezett csatorna nem törölhető, {{.Channel}}."
+    "translation": "Az alapértelmezett csatorna {{.Channel}} nem törölhető."
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
@@ -7836,11 +7828,11 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s csatorna fejléce frissítve: %s -re"
+    "translation": "%s frissítette a csatorna fejlécét %s -re"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-    "translation": "%s csatorna fejléce frissítve: %s -ről: %s -re"
+    "translation": "%s frissítette a csatorna fejlécét %s -ről %s -re"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
@@ -7856,7 +7848,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s csatorna neve frissítve: %s -ről: %s -re"
+    "translation": "%s frissítette a csatorna nevét %s -ről %s -re"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
@@ -7864,7 +7856,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Nem sikerült beküldeni a megjelenítési nevet a frissítési üzenetnél"
+    "translation": "Nem sikerült beküldeni a megjelenítési név frissítési üzenetet"
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -7884,7 +7876,7 @@
   },
   {
     "id": "api.channel.move_channel.type.invalid",
-    "translation": "Nem lehet közvetlen vagy csoportos üzenetcsatornákat áthelyezni"
+    "translation": "Nem lehet közvetlen vagy csoportos üzenet csatornákat áthelyezni"
   },
   {
     "id": "api.channel.leave.left",
@@ -7892,15 +7884,15 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ön az egyetlen tag próbálkozzon a privát csatorna eltávolításával a kilépés helyett."
+    "translation": "Ön az egyetlen megmaradt tag, kilépés helyett próbálkozzon a privát csatorna eltávolításával."
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "A közvetlen üzenet küldési csatornából nem lehet kilépni."
+    "translation": "Közvetlen üzenet csatornából nem lehet kilépni."
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Az alapértelmezett csatornából nem lehet kilépni {{.Channel}}."
+    "translation": "Az alapértelmezett csatornából {{.Channel}} nem lehet kilépni."
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
@@ -7928,7 +7920,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Az alapértelmezett csatorna nem törölhető, {{.Channel}}."
+    "translation": "Az alapértelmezett csatorna {{.Channel}} nem törölhető."
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -7948,11 +7940,11 @@
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Közösségi tér"
+    "translation": "Főtér"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Más témák"
+    "translation": "Egyéb Téma"
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -7980,11 +7972,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Ez a csatorna nyilvános csatornává lett alakítva és bárki bármilyen csapatból csatlakozhat hozzá."
+    "translation": "Ez a csatorna nyilvános csatornává lett alakítva és bármilyen csapattag csatlakozhat hozzá."
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Ehhez a csatornatípushoz nem adható hozzá felhasználó."
+    "translation": "Ehhez a csatorna típushoz nem adható hozzá felhasználó."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -7992,11 +7984,11 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Nem sikerült hozzáadni a csatornához a felhasználót."
+    "translation": "Nem sikerült hozzáadni a felhasználót a csatornához."
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "A csatorna tagság megtagadva a következő felhasználóknak, csoportkorlátozások miatt: {{.UserIDs}}"
+    "translation": "A csatorna tagság megtagadva a következő felhasználóknak, csoport összeférhetetlenség miatt: {{.UserIDs}}"
   },
   {
     "id": "api.channel.add_members.error",
@@ -8012,27 +8004,27 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Kérem, adjon hozzá azokhoz a csapatokhoz és csatornához, amelyekben szeretné, hogy működjek. Ehhez kérem használjon egy böngészőt vagy a Mattermost alkalmazást."
+    "translation": "Kérem, adjon hozzá azokhoz a csapatokhoz és csatornákhoz, amelyekben szeretné, hogy részt vegyek. Ehhez használjon egy böngészőt vagy a Mattermost alkalmazást."
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "A profilképet nem lehetett feltölteni. A fájl túl nagy."
+    "translation": "Az ikon képet nem lehetett feltölteni. A fájl túl nagy."
   },
   {
     "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nem sikerült tagolnia többrészes űrlapot."
+    "translation": "Nem sikerült értelmezni a többrészes űrlapot."
   },
   {
     "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "A Képfájl nem nyitható meg.."
+    "translation": "A képfájl nem nyitható meg."
   },
   {
     "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'kép' mezőben."
+    "translation": "Nincs fájl a kérés 'image' mezőjében."
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Üres a tömb a 'kép' alatt a kérésnél."
+    "translation": "Üres tömb a kérés 'image' mezőjében."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
@@ -8064,19 +8056,19 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Nem sikerült tagolni a többrészes formot."
+    "translation": "Nem sikerült értelmezni a többrészes formot."
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'kép' mezőben."
+    "translation": "Nincs fájl a kérés 'image' elemében."
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Üres a tömb a 'kép' alatt a kérésben."
+    "translation": "Üres a tömb a kérés 'image' elemében."
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "Az S3 Bucket szükséges"
+    "translation": "S3 Bucket szükséges"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -8590,7 +8582,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [channel handle] (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna kezelőt](https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_mute.name",
@@ -8602,7 +8594,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosító] (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosító](https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_mute.desc",
@@ -8754,7 +8746,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosító] (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosító](https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -8885,7 +8877,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Email beállítások tesztelése"
+    "translation": "Mattermost - E-mail beállítások tesztelése"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -8897,7 +8889,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "Úgy tűnik a Mattermost email helyesen be van állítva!"
+    "translation": "Úgy tűnik a Mattermost e-mail helyesen van beállítva!"
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
@@ -8909,7 +8901,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "A tanúsítvány szövege nem megfelelő."
+    "translation": "Érvénytelen tanúsítvány szöveg."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -8921,31 +8913,31 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Hiányzó identitásszolgáltató SSO leíró csomópontok az XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató SSO szolgáltatások csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Hiányzó identitás-szolgáltató kulcsleírók a csomópont XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató kulcs infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Hiányzó identitásszolgáltató SSO leíró csomópontok az XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató SSO infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
-    "translation": "Tanúsítványfájl mentése sikertelen."
+    "translation": "Nem sikerült a tanúsítvány fájl mentése."
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
-    "translation": "Nem sikerült visszaállítani az AuthData mezőt E-mailre."
+    "translation": "Nem sikerült visszaállítani az AuthData mezőt e-mailre."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Hiba történt a személyazonosság-szolgáltatótól kapott metaadat-adatok tanúsítványként történő elemzése során."
+    "translation": "Hiba történt a Személyazonossági Szolgáltatótól kapott metaadat-adatok tanúsítványként történő elemzése során."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Metadata beszerzése sikertelen a Személyazonossági Szolgáltató URL től."
+    "translation": "Metadata beszerzése sikertelen a Személyazonossági Szolgáltató URL-ből."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -8961,31 +8953,31 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Hiba a log-fájl beolvasása közben."
+    "translation": "Hiba a naplófájl beolvasása közben."
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Nem sikerült törölni az egyedi cég képét, nem található."
+    "translation": "Nem sikerült törölni az egyediesítés képét, nem található."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Tanúsítványfájl mentése sikertelen."
+    "translation": "Tanúsítvány fájl mentése sikertelen."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
-    "translation": "Hiba történt a multiform kérés tagolás közben"
+    "translation": "Hiba történt a multiform kérés értelmezése közben"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Tanúsítványfájl megnyitása sikertelen."
+    "translation": "Tanúsítvány fájl megnyitása sikertelen."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'tanúsítvány' mezőben."
+    "translation": "Nincs megadva fájl a kérés 'certificate' mezőjében."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Nincs megadva fájl a 'tanúsítvány' mezőben."
+    "translation": "Nincs megadva fájl a kérés 'certificate' mezőjében."
   },
   {
     "id": "September",
@@ -9089,7 +9081,7 @@
   },
   {
     "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "A [Támogatási e-mail] (https://docs.mattermost.com/administration/config-settings.html#support-email) beállításához a szervezet belső IT-támogatásaként lépjen a ** Rendszerkonzol> Weboldal beállítások> Testreszabás ** oldalra. Asztali e-mail cím a végfelhasználói visszajelzésekhez, e-mailes értesítésekhez és támogatási kérelmekhez."
+    "translation": "A [Támogatási e-mail](https://docs.mattermost.com/administration/config-settings.html#support-email) beállításához a szervezet belső IT-támogatásaként lépjen a **Rendszerkonzol > Weboldal beállítások > Testreszabás** oldalra. Asztali e-mail cím a végfelhasználói visszajelzésekhez, e-mailes értesítésekhez és támogatási kérelmekhez."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
@@ -9145,5 +9137,157 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Közvetlen csatorna nem hozható létre e felhasználók között, mert nincsenek közös csapatban."
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "Hiba lépett fel a JSON kérés listázása közben"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "A legrégebbi entitást (felhasználó, csatorna vagy bejegyzés) nem sikerült lekérdezni az adatbázisból."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "A jelszó érvénytelen"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Nem sikerült lekérni a közös csapatazonosítókat."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "A piactéri bővítményeket nem sikerült listázni."
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "Nem sikerült választ kapni."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Nem sikerült választ kapni."
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő botfiókokat kezelték, amelyeket mostantól letiltottak.\n\n{{.BotNames}}{{else}}{{.UserName}} deaktiválták. Ők kezelték a {{.NumBots}} botfiókokat, amelyeket mostanra letiltottak, beleértve a következőket:\n\n{{.BotNames}}{{end}}Az egyes botok tulajdonjogát úgy veheti át, hogy engedélyezi őket a **Integrációk > Botfiókok** menüpontban, és új tokeneket hoz létre a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő botfiókokat kezelték, amelyek még mindig engedélyezve vannak.\n\n{{.BotNames}}\n{{else}}{{.UserName}} deaktiválták. Ők kezelték a még mindig engedélyezett {{.NumBots}} botfiókokat, köztük a következőket:\n\n{{.BotNames}}{{end}}Nyomatékosan javasoljuk, hogy vegye tulajdonába az egyes botokat, és engedélyezze újra a **Integrációk > Botfiókok** menüpontban, és hozzon létre új tokeneket a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nHa azt szeretné, hogy a botfiókok automatikusan kikapcsolódjanak a tulajdonos deaktiválása után, állítsa a **Rendszerkonzol > Integrációk > Botfiókok** pontban a \"Botfiókok kikapcsolása, ha a tulajdonos deaktiválódik\" opciót igazra.{{end}}"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Nem tud több felhasználót aktiválni, mivel a felhőfiók kapacitása túllépte a korlátot."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Nem lehet felhőellenőrzést végezni a határértéknél vagy a határérték felett."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "Meg kell hívni a frissítést a meglévő csatornára."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Meg kell hívni a frissítést a meglévő felhasználóra."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Felhasználói szál tagság nem létezik"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Nem sikerült lekérni a felhasználói szál tagságot"
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Nem hívható meg a mentés egy meglévő felhasználási feltételekhez."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Meg kell hívni a frissítést a meglévő csapatokra."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Rendszer"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Nem sikerült lekérni az idő körüli bejegyzést."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Az adminok listája üres."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Az adminok listája üres."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Ez a próba időszak kulcs a Mattermost Enterprise kiadáshoz lejárt és már nem érvényes. Ha szeretné meghosszabbítani a próbaidőszakot, kérjük [vegye fel a kapcsolatot értékesítési csapatunkkal](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Nem ellenőrizhető, hogy a próba időszak indítható-e"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Adat megőrzési feladat hibára futott."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, az előfizetésed le fog járni {{.Days}} nap múlva. Reméljük, hogy sikeresen megismerted a rugalmas, biztonságos csoportmunkát, amit a Mattermost biztosít. Újítsd meg mihamarabb az előfizetésed, hogy a csapatod tovább élvezhesse eme szolgáltatások nyújtotta előnyöket."
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "Hiba történt a licensz megújító e-mail küldése közben"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Hiba történt a licensz megújító e-mailek küldése közben"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "A Mattermost előfizetése megújításra szorul"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "A megújításhoz jelentkezzen be az Ügyfél fiókjába"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "A licensze megújításra szorul"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Megújítás most"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Hiba történt a licenc megújító link elkészítése közben"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Nem lehetséges a token értelmezése az e-mail alapú visszaigazoló tokenek tiltása során"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Nem lehetséges a token eltávolítása az e-mail alapú visszaigazoló tokenek tiltása során"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Nem lehetséges a tokenek típus alapján lekérése az e-mail alapú visszaigazoló tokenek tiltása során"
   }
 ]

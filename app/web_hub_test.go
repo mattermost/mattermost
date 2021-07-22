@@ -15,9 +15,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -148,15 +149,29 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockSessionStore.On("Remove", "id1").Return(nil)
 
 	mockStatusStore := mocks.StatusStore{}
-	mockStatusStore.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	mockStatusStore.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
 	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 
+	mockOAuthStore := mocks.OAuthStore{}
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("OAuth").Return(&mockOAuthStore)
 	mockStore.On("Status").Return(&mockStatusStore)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+
+	userService, err := users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &mockSessionStore,
+		OAuthStore:   &mockOAuthStore,
+		ConfigFn:     th.App.srv.Config,
+		Metrics:      th.App.Metrics(),
+		Cluster:      th.App.Cluster(),
+		LicenseFn:    th.App.srv.License,
+	})
+	require.NoError(t, err)
+	th.App.srv.userService = userService
 
 	// This needs to be false for the condition to trigger
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -174,7 +189,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	time.Sleep(time.Second)
 	// We override the LastActivityAt which happens in NewWebConn.
 	// This is needed to call RevokeSessionById which triggers the race.
-	th.App.AddSessionToCache(sess1)
+	th.App.srv.userService.AddSessionToCache(sess1)
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {

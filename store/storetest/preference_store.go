@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestPreferenceStore(t *testing.T, ss store.Store) {
@@ -22,7 +22,7 @@ func TestPreferenceStore(t *testing.T, ss store.Store) {
 	t.Run("PreferenceDelete", func(t *testing.T) { testPreferenceDelete(t, ss) })
 	t.Run("PreferenceDeleteCategory", func(t *testing.T) { testPreferenceDeleteCategory(t, ss) })
 	t.Run("PreferenceDeleteCategoryAndName", func(t *testing.T) { testPreferenceDeleteCategoryAndName(t, ss) })
-	t.Run("PreferenceCleanupFlagsBatch", func(t *testing.T) { testPreferenceCleanupFlagsBatch(t, ss) })
+	t.Run("PreferenceDeleteOrphanedRows", func(t *testing.T) { testPreferenceDeleteOrphanedRows(t, ss) })
 }
 
 func testPreferenceSave(t *testing.T, ss store.Store) {
@@ -31,13 +31,13 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 	preferences := model.Preferences{
 		{
 			UserId:   id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Category: model.PreferenceCategoryDirectChannelShow,
 			Name:     model.NewId(),
 			Value:    "value1a",
 		},
 		{
 			UserId:   id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Category: model.PreferenceCategoryDirectChannelShow,
 			Name:     model.NewId(),
 			Value:    "value1b",
 		},
@@ -63,7 +63,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 
 func testPreferenceGet(t *testing.T, ss store.Store) {
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
 
 	preferences := model.Preferences{
@@ -103,7 +103,7 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 
 func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
 
 	preferences := model.Preferences{
@@ -152,7 +152,7 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 
 func testPreferenceGetAll(t *testing.T, ss store.Store) {
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
 
 	preferences := model.Preferences{
@@ -196,7 +196,7 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 
 func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
 
 	preferences := model.Preferences{
@@ -235,7 +235,7 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 func testPreferenceDelete(t *testing.T, ss store.Store) {
 	preference := model.Preference{
 		UserId:   model.NewId(),
-		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+		Category: model.PreferenceCategoryDirectChannelShow,
 		Name:     model.NewId(),
 		Value:    "value1a",
 	}
@@ -330,44 +330,66 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 	assert.Empty(t, preferences, "should've returned no preference")
 }
 
-func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
-	category := model.PREFERENCE_CATEGORY_FLAGGED_POST
+func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
+	const limit = 1000
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+	channel, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	category := model.PreferenceCategoryFlaggedPost
 	userId := model.NewId()
 
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = userId
-	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
-	o1.CreateAt = 1000
-	o1, err := ss.Post().Save(o1)
+	olderPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    userId,
+		Message:   "message",
+		CreateAt:  1000,
+	})
+	require.NoError(t, err)
+	newerPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    userId,
+		Message:   "message",
+		CreateAt:  3000,
+	})
 	require.NoError(t, err)
 
 	preference1 := model.Preference{
 		UserId:   userId,
 		Category: category,
-		Name:     o1.Id,
+		Name:     olderPost.Id,
 		Value:    "true",
 	}
 
 	preference2 := model.Preference{
 		UserId:   userId,
 		Category: category,
-		Name:     model.NewId(),
+		Name:     newerPost.Id,
 		Value:    "true",
 	}
 
 	nErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Preference().CleanupFlagsBatch(-1)
-	require.Error(t, nErr)
+	_, _, nErr = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
+	assert.NoError(t, nErr)
 
-	_, nErr = ss.Preference().CleanupFlagsBatch(10000)
+	_, nErr = ss.Preference().DeleteOrphanedRows(limit)
 	assert.NoError(t, nErr)
 
 	_, nErr = ss.Preference().Get(userId, category, preference1.Name)
-	assert.NoError(t, nErr)
+	assert.Error(t, nErr, "older preference should have been deleted")
 
 	_, nErr = ss.Preference().Get(userId, category, preference2.Name)
-	assert.Error(t, nErr)
+	assert.NoError(t, nErr, "newer preference should not have been deleted")
 }

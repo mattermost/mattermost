@@ -14,10 +14,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
@@ -125,12 +125,12 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	}
 	cookieAuth := false
 
-	authHeader := r.Header.Get(model.HEADER_AUTH)
-	if strings.HasPrefix(strings.ToUpper(authHeader), model.HEADER_BEARER+" ") {
-		token = authHeader[len(model.HEADER_BEARER)+1:]
-	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HEADER_TOKEN+" ") {
-		token = authHeader[len(model.HEADER_TOKEN)+1:]
-	} else if cookie, _ := r.Cookie(model.SESSION_COOKIE_TOKEN); cookie != nil {
+	authHeader := r.Header.Get(model.HeaderAuth)
+	if strings.HasPrefix(strings.ToUpper(authHeader), model.HeaderBearer+" ") {
+		token = authHeader[len(model.HeaderBearer)+1:]
+	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HeaderToken+" ") {
+		token = authHeader[len(model.HeaderToken)+1:]
+	} else if cookie, _ := r.Cookie(model.SessionCookieToken); cookie != nil {
 		token = cookie.Value
 		cookieAuth = true
 	} else {
@@ -143,21 +143,21 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := New(ServerConnector(s)).GetSession(token)
-		defer ReturnSessionToPool(session)
+		defer s.userService.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false
 
 		if session != nil && err == nil && cookieAuth && r.Method != "GET" {
 			sentToken := ""
 
-			if r.Header.Get(model.HEADER_CSRF_TOKEN) == "" {
+			if r.Header.Get(model.HeaderCsrfToken) == "" {
 				bodyBytes, _ := ioutil.ReadAll(r.Body)
 				r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 				r.ParseForm()
 				sentToken = r.FormValue("csrf")
 				r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 			} else {
-				sentToken = r.Header.Get(model.HEADER_CSRF_TOKEN)
+				sentToken = r.Header.Get(model.HeaderCsrfToken)
 			}
 
 			expectedToken := session.GetCSRF()
@@ -167,7 +167,7 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 			}
 
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
-			if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML && !csrfCheckPassed {
+			if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXml && !csrfCheckPassed {
 				csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
 				sid := ""
 				userID := ""
@@ -204,11 +204,11 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	cookies := r.Cookies()
 	r.Header.Del("Cookie")
 	for _, c := range cookies {
-		if c.Name != model.SESSION_COOKIE_TOKEN {
+		if c.Name != model.SessionCookieToken {
 			r.AddCookie(c)
 		}
 	}
-	r.Header.Del(model.HEADER_AUTH)
+	r.Header.Del(model.HeaderAuth)
 	r.Header.Del("Referer")
 
 	params := mux.Vars(r)

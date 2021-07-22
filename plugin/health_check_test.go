@@ -12,9 +12,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestPluginHealthCheck(t *testing.T) {
@@ -36,7 +36,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -59,7 +59,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		EnableFile:    false,
 	})
 
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
@@ -78,8 +78,8 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/model"
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -106,7 +106,7 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		EnableFile:    false,
 	})
 
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()

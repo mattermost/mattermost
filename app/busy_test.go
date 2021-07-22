@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestBusySet(t *testing.T) {
@@ -126,7 +126,7 @@ func (c *ClusterMock) SendClusterMessageToNode(nodeID string, msg *model.Cluster
 
 func (c *ClusterMock) StartInterNodeCommunication() {}
 func (c *ClusterMock) StopInterNodeCommunication()  {}
-func (c *ClusterMock) RegisterClusterMessageHandler(event string, crm einterfaces.ClusterMessageHandler) {
+func (c *ClusterMock) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 }
 func (c *ClusterMock) GetClusterId() string                                       { return "cluster_mock" }
 func (c *ClusterMock) IsLeader() bool                                             { return false }

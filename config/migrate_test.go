@@ -12,12 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type cleanUpFn func(store *Store)
 
 func TestMigrate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping migration test in short mode")
+	}
 	files := []string{
 		"IdpCertificateFile",
 		"PublicCertificateFile",

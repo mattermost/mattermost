@@ -22,10 +22,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 var testDir = ""
@@ -68,7 +68,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	}
 	req.Header.Set("Content-Type", contentType)
 	if c.AuthToken != "" {
-		req.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+		req.Header.Set(model.HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
 	resp, err := c.HttpClient.Do(req)

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,7 +57,7 @@ func TestNewCache(t *testing.T) {
 
 		size := 1
 		expiry := 1 * time.Second
-		event := "clusterEvent"
+		event := model.ClusterEvent("clusterEvent")
 		c, err := p.NewCache(&CacheOptions{
 			Size:                   size,
 			Name:                   "name",
@@ -139,7 +140,7 @@ func TestNewCache_Striped(t *testing.T) {
 
 		size := 1
 		expiry := 1 * time.Second
-		event := "clusterEvent"
+		event := model.ClusterEvent("clusterEvent")
 		c, err := p.NewCache(&CacheOptions{
 			Size:                   size,
 			Name:                   "name",

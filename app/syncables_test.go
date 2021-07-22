@@ -9,10 +9,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateDefaultMemberships(t *testing.T) {
+	t.Skip("MM-36909")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -20,7 +21,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		DisplayName: "Singers",
 		Name:        "zz" + model.NewId(),
 		Email:       "singers@test.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	if err != nil {
 		t.Errorf("test team not created: %s", err.Error())
@@ -30,7 +31,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		DisplayName: "Nerds",
 		Name:        "zz" + model.NewId(),
 		Email:       "nerds@test.com",
-		Type:        model.TEAM_INVITE,
+		Type:        model.TeamInvite,
 	})
 	if err != nil {
 		t.Errorf("test team not created: %s", err.Error())
@@ -40,7 +41,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		TeamId:      singersTeam.Id,
 		DisplayName: "Practices",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	if err != nil {
 		t.Errorf("test channel not created: %s", err.Error())
@@ -50,7 +51,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		TeamId:      singersTeam.Id,
 		DisplayName: "Experiments",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}, false)
 	if err != nil {
 		t.Errorf("test channel not created: %s", err.Error())
@@ -299,7 +300,8 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	timeAfterLeaving := model.GetMillis()
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	_, nErr := th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
+	_, _, nErr := th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+		0, timeBeforeLeaving, 1000, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -315,7 +317,8 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	_, nErr = th.App.Srv().Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
+	_, _, nErr = th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+		0, timeAfterLeaving, 1000, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -344,7 +347,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			Name:           "restricted" + model.NewId(),
 			Email:          "restricted@mattermost.org",
 			AllowedDomains: "mattermost.org",
-			Type:           model.TEAM_OPEN,
+			Type:           model.TeamOpen,
 		})
 		require.Nil(t, err)
 		_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(scienceGroup.Id, restrictedTeam.Id, true))
@@ -354,7 +357,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			TeamId:      restrictedTeam.Id,
 			DisplayName: "Restricted",
 			Name:        "restricted" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, false)
 		require.Nil(t, err)
 		_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(scienceGroup.Id, restrictedChannel.Id, true))

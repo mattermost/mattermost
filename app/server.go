@@ -20,7 +20,6 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -37,43 +36,42 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/mattermost/mattermost-server/v5/app/featureflag"
-	"github.com/mattermost/mattermost-server/v5/app/imaging"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/awsmeter"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
-	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
-	"github.com/mattermost/mattermost-server/v5/services/telemetry"
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
-	"github.com/mattermost/mattermost-server/v5/services/tracing"
-	"github.com/mattermost/mattermost-server/v5/services/upgrader"
-	"github.com/mattermost/mattermost-server/v5/services/users"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mail"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/shared/templates"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app/email"
+	"github.com/mattermost/mattermost-server/v6/app/featureflag"
+	"github.com/mattermost/mattermost-server/v6/app/imaging"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
+	"github.com/mattermost/mattermost-server/v6/services/cache"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
+	"github.com/mattermost/mattermost-server/v6/services/telemetry"
+	"github.com/mattermost/mattermost-server/v6/services/timezones"
+	"github.com/mattermost/mattermost-server/v6/services/tracing"
+	"github.com/mattermost/mattermost-server/v6/services/upgrader"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mail"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/templates"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v6/store/retrylayer"
+	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/store/timerlayer"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
-
-var MaxNotificationsPerChannelDefault int64 = 1000000
 
 // declaring this as var to allow overriding in tests
 var SentryDSN = "placeholder_sentry_dsn"
@@ -114,7 +112,7 @@ type Server struct {
 	PluginConfigListenerId string
 	PluginsLock            sync.RWMutex
 
-	EmailService *EmailService
+	EmailService *email.Service
 
 	hubs     []*Hub
 	hashSeed maphash.Seed
@@ -136,7 +134,6 @@ type Server struct {
 	newStore func() (store.Store, error)
 
 	htmlTemplateWatcher     *templates.Container
-	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
 	configListenerId        string
@@ -193,6 +190,7 @@ type Server struct {
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
+	LicenseManager   einterfaces.LicenseInterface
 
 	CacheProvider cache.Provider
 
@@ -211,6 +209,9 @@ type Server struct {
 
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
+
+	dndTaskMut sync.Mutex
+	dndTask    *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -329,20 +330,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	var err error
-	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.SESSION_CACHE_SIZE,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create session cache")
-	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
 	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.STATUS_CACHE_SIZE,
+		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
 	}); err != nil {
@@ -360,19 +354,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
-			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				ver, err2 := s.sqlStore.GetDbVersion(true)
-				if err2 != nil {
-					return nil, errors.Wrap(err2, "cannot get DB version")
-				}
-				intVer, err2 := strconv.Atoi(ver)
-				if err2 != nil {
-					return nil, errors.Wrap(err2, "cannot parse DB version")
-				}
-				if intVer < sqlstore.MinimumRequiredPostgresVersion {
-					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
-				}
-			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
@@ -427,12 +408,23 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "cannot create store")
 	}
 
-	s.userService = users.New(s.Store.User(), s.Config)
+	s.userService, err = users.New(users.ServiceConfig{
+		UserStore:    s.Store.User(),
+		SessionStore: s.Store.Session(),
+		OAuthStore:   s.Store.OAuth(),
+		ConfigFn:     s.Config,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create users service")
+	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		s.configOrLicenseListener()
 
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil)
 
 		message.Add("config", s.ClientConfigWithComputed())
 		s.Go(func() {
@@ -442,7 +434,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.configOrLicenseListener()
 
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil)
 		message.Add("license", s.GetSanitizedClientLicense())
 		s.Go(func() {
 			s.Publish(message)
@@ -460,7 +452,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
-	emailService, err := NewEmailService(s)
+	emailService, err := email.NewService(email.ServiceConfig{
+		ConfigFn:           s.Config,
+		LicenseFn:          s.License,
+		GoFn:               s.Go,
+		TemplatesContainer: s.TemplatesContainer(),
+		UserService:        s.userService,
+		Store:              s.GetStore(),
+	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")
 	}
@@ -595,15 +594,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.checkPushNotificationServerUrl()
 
-	license := s.License()
-	if license == nil {
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
-		})
-	}
-
 	s.ReloadConfig()
 
+	license := s.License()
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
 	if s.Audit == nil {
@@ -686,6 +679,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.runLicenseExpirationCheckJob()
 			runCheckAdminSupportStatusJob(app, c)
 			runCheckWarnMetricStatusJob(app, c)
+			runDNDStatusExpireJob(app)
 		})
 		s.runJobs()
 	}
@@ -700,6 +694,14 @@ func NewServer(options ...Option) (*Server, error) {
 			s.initPlugins(c, *cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
 		} else {
 			s.ShutDownPlugins()
+		}
+	})
+	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
+			runDNDStatusExpireJob(app)
+		}
+		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
+			stopDNDStatusExpireJob(app)
 		}
 	})
 
@@ -1064,6 +1066,12 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
+	s.dndTaskMut.Lock()
+	if s.dndTask != nil {
+		s.dndTask.Cancel()
+	}
+	s.dndTaskMut.Unlock()
+
 	mlog.Info("Server stopped")
 
 	// this should just write the "server stopped" record, the rest are already flushed.
@@ -1093,7 +1101,7 @@ func (s *Server) Restart() error {
 }
 
 func (s *Server) isUpgradedFromTE() bool {
-	val, err := s.Store.System().GetByName(model.SYSTEM_UPGRADED_FROM_TE_ID)
+	val, err := s.Store.System().GetByName(model.SystemUpgradedFromTeId)
 	if err != nil {
 		return false
 	}
@@ -1108,7 +1116,7 @@ func (s *Server) UpgradeToE0() error {
 	if err := upgrader.UpgradeToE0(); err != nil {
 		return err
 	}
-	upgradedFromTE := &model.System{Name: model.SYSTEM_UPGRADED_FROM_TE_ID, Value: "true"}
+	upgradedFromTE := &model.System{Name: model.SystemUpgradedFromTeId, Value: "true"}
 	s.Store.System().Save(upgradedFromTE)
 	return nil
 }
@@ -1231,7 +1239,7 @@ func (s *Server) Start() error {
 
 	addr := *s.Config().ServiceSettings.ListenAddress
 	if addr == "" {
-		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+		if *s.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTls {
 			addr = ":https"
 		} else {
 			addr = ":http"
@@ -1291,7 +1299,7 @@ func (s *Server) Start() error {
 	s.didFinishListen = make(chan struct{})
 	go func() {
 		var err error
-		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+		if *s.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTls {
 
 			tlsConfig := &tls.Config{
 				PreferServerCipherSuites: true,
@@ -1470,7 +1478,7 @@ func (s *Server) runLicenseExpirationCheckJob() {
 func runReportToAWSMeterJob(s *Server) {
 	model.CreateRecurringTask("Collect and send usage report to AWS Metering Service", func() {
 		doReportUsageToAWSMeteringService(s)
-	}, time.Hour*model.AWS_METERING_REPORT_INTERVAL)
+	}, time.Hour*model.AwsMeteringReportInterval)
 }
 
 func doReportUsageToAWSMeteringService(s *Server) {
@@ -1480,8 +1488,8 @@ func doReportUsageToAWSMeteringService(s *Server) {
 		return
 	}
 
-	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
-	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AWS_METERING_REPORT_INTERVAL*time.Hour).UTC())
+	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
+	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AwsMeteringReportInterval*time.Hour).UTC())
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
@@ -1490,14 +1498,14 @@ func runCheckWarnMetricStatusJob(a *App, c *request.Context) {
 	doCheckWarnMetricStatus(a, c)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
 		doCheckWarnMetricStatus(a, c)
-	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
+	}, time.Hour*model.WarnMetricJobInterval)
 }
 
 func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
 	doCheckAdminSupportStatus(a, c)
 	model.CreateRecurringTask("Check Admin Support Status Job", func() {
 		doCheckAdminSupportStatus(a, c)
-	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
+	}, time.Hour*model.WarnMetricJobInterval)
 }
 
 func doSecurity(s *Server) {
@@ -1538,10 +1546,10 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 	warnMetricStatusFromStore := make(map[string]string)
 
 	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
 				warnMetricStatusFromStore[key] = value
-				if value == model.WARN_METRIC_STATUS_ACK {
+				if value == model.WarnMetricStatusAck {
 					// If any warn metric has already been acked, we return
 					mlog.Debug("Warn metrics have been acked, skip")
 					return
@@ -1556,7 +1564,7 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 	} else {
 		currentTime := utils.MillisFromTime(time.Now())
 		// If the admin advisory has already been shown in the last 7 days
-		if (currentTime-lastWarnMetricRunTimestamp)/(model.WARN_METRIC_JOB_WAIT_TIME) < 1 {
+		if (currentTime-lastWarnMetricRunTimestamp)/(model.WarnMetricJobWaitTime) < 1 {
 			mlog.Debug("No advisories should be shown during the wait interval time")
 			return
 		}
@@ -1572,7 +1580,7 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
 
-	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 	if err2 != nil {
 		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
 	}
@@ -1588,31 +1596,31 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 
 	warnMetrics := []model.WarnMetric{}
 
-	if numberOfActiveUsers < model.WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25 {
+	if numberOfActiveUsers < model.WarnMetricNumberOfActiveUsers25 {
 		return
-	} else if teamCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5] != model.WARN_METRIC_STATUS_RUNONCE {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5])
-	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_MFA] != model.WARN_METRIC_STATUS_RUNONCE {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_MFA])
-	} else if isDiffEmailAccount && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN] != model.WARN_METRIC_STATUS_RUNONCE {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN])
-	} else if openChannelCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50] != model.WARN_METRIC_STATUS_RUNONCE {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50])
+	} else if teamCount >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfTeams5].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfTeams5] != model.WarnMetricStatusRunonce {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfTeams5])
+	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && warnMetricStatusFromStore[model.SystemWarnMetricMfa] != model.WarnMetricStatusRunonce {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricMfa])
+	} else if isDiffEmailAccount && warnMetricStatusFromStore[model.SystemWarnMetricEmailDomain] != model.WarnMetricStatusRunonce {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricEmailDomain])
+	} else if openChannelCount >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfChannels50].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfChannels50] != model.WarnMetricStatusRunonce {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfChannels50])
 	}
 
 	// If the system did not cross any of the thresholds for the Contextual Advisories
 	if len(warnMetrics) == 0 {
-		if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100] != model.WARN_METRIC_STATUS_RUNONCE {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200] != model.WARN_METRIC_STATUS_RUNONCE {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300] != model.WARN_METRIC_STATUS_RUNONCE {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit {
+		if numberOfActiveUsers >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers100].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers200].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfActiveUsers100] != model.WarnMetricStatusRunonce {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers100])
+		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers300].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfActiveUsers200] != model.WarnMetricStatusRunonce {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers200])
+		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers500].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfActiveUsers300] != model.WarnMetricStatusRunonce {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers300])
+		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers500].Limit {
 			var tWarnMetric model.WarnMetric
 
-			if warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500] != model.WARN_METRIC_STATUS_RUNONCE {
-				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]
+			if warnMetricStatusFromStore[model.SystemWarnMetricNumberOfActiveUsers500] != model.WarnMetricStatusRunonce {
+				tWarnMetric = model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers500]
 			}
 
 			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
@@ -1620,8 +1628,8 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 				mlog.Debug("Error attempting to get number of posts.", mlog.Err(err4))
 			}
 
-			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {
-				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M]
+			if postsCount > model.WarnMetricsTable[model.SystemWarnMetricNumberOfPosts2m].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfPosts2m] != model.WarnMetricStatusRunonce {
+				tWarnMetric = model.WarnMetricsTable[model.SystemWarnMetricNumberOfPosts2m]
 			}
 
 			if tWarnMetric != (model.WarnMetric{}) {
@@ -1634,7 +1642,7 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if nErr == nil && data != nil && warnMetric.IsBotOnly && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
+		if nErr == nil && data != nil && warnMetric.IsBotOnly && data.Value == model.WarnMetricStatusRunonce {
 			mlog.Debug("This metric warning is bot only and ran once")
 			continue
 		}
@@ -1642,12 +1650,12 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil, isE0Edition)
 		if !warnMetric.IsBotOnly {
 			// Banner and bot metric types - send websocket event every interval
-			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
+			message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusReceived, "", "", "", nil)
 			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
 			a.Publish(message)
 
 			// Banner and bot metric types, send the bot message only once
-			if data != nil && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
+			if data != nil && data.Value == model.WarnMetricStatusRunonce {
 				continue
 			}
 		}
@@ -1657,9 +1665,9 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 		}
 
 		if warnMetric.IsRunOnce {
-			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
+			a.setWarnMetricsStatusForId(warnMetric.Id, model.WarnMetricStatusRunonce)
 		} else {
-			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
+			a.setWarnMetricsStatusForId(warnMetric.Id, model.WarnMetricStatusLimitReached)
 		}
 	}
 }
@@ -1667,8 +1675,8 @@ func doCheckWarnMetricStatus(a *App, c *request.Context) {
 func doCheckAdminSupportStatus(a *App, c *request.Context) {
 	isE0Edition := model.BuildEnterpriseReady == "true"
 
-	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {
-		if err := a.notifyAdminsOfWarnMetricStatus(c, model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED, isE0Edition); err != nil {
+	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SupportSettingsDefaultSupportEmail {
+		if err := a.notifyAdminsOfWarnMetricStatus(c, model.SystemMetricSupportEmailNotConfigured, isE0Edition); err != nil {
 			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 		}
 	}
@@ -1774,6 +1782,51 @@ func (s *Server) startMetricsServer() {
 	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
+func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
+	key := model.LicenseUpForRenewalEmailSent + license.Id
+	if _, err := s.Store.System().GetByName(key); err == nil {
+		// return early because the key already exists and that means we already executed the code below to send email successfully
+		return nil
+	}
+
+	daysToExpiration := license.DaysToExpiration()
+
+	renewalLink, appErr := s.GenerateLicenseRenewalLink()
+	if appErr != nil {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for _, user := range users {
+		name := user.FirstName
+		if name == "" {
+			name = user.Username
+		}
+		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration); err != nil {
+			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(users) {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_sending_email", nil, "", http.StatusInternalServerError)
+	}
+
+	system := model.System{
+		Name:  key,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Debug("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
+	}
+
+	return nil
+}
+
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
 	license := s.License()
@@ -1783,14 +1836,21 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if !license.IsPastGracePeriod() {
-		mlog.Debug("License is not past the grace period.")
-		return
-	}
-
 	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
+		return
+	}
+
+	if license.IsWithinExpirationPeriod() {
+		appErr := s.sendLicenseUpForRenewalEmail(users, license)
+		if appErr != nil {
+			mlog.Debug(appErr.Error())
+		}
+	}
+
+	if !license.IsPastGracePeriod() {
+		mlog.Debug("License is not past the grace period.")
 		return
 	}
 
@@ -1804,7 +1864,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
-			if err := s.EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
+			if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1812,6 +1872,21 @@ func (s *Server) doLicenseExpirationCheck() {
 
 	//remove the license
 	s.RemoveLicense()
+}
+
+// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
+// to renew the user license
+func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
+	renewalLink, err := s.GenerateLicenseRenewalLink()
+	if err != nil {
+		return err
+	}
+
+	if err := s.EmailService.SendRemoveExpiredLicenseEmail(renewalLink, email, locale, siteURL); err != nil {
+		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s *Server) StartSearchEngine() (string, string) {
@@ -2258,18 +2333,18 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 }
 
 func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
-	var img []byte
-	var appErr *model.AppError
+	img, err := s.userService.GetDefaultProfileImage(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.DefaultFontError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
+		case errors.Is(err, users.UserInitialsError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
+		default:
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
 
-	if user.IsBot {
-		img = model.BotDefaultImage
-		appErr = nil
-	} else {
-		img, appErr = CreateProfileImage(user.Username, user.Id, *s.Config().FileSettings.InitialFont)
-	}
-	if appErr != nil {
-		return nil, appErr
-	}
 	return img, nil
 }
 
@@ -2297,3 +2372,41 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // 	}
 // 	return result, nil
 // }
+
+func createDNDStatusExpirationRecurringTask(a *App) {
+	a.srv.dndTaskMut.Lock()
+	a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+	a.srv.dndTaskMut.Unlock()
+}
+
+func cancelDNDStatusExpirationRecurringTask(a *App) {
+	a.srv.dndTaskMut.Lock()
+	if a.srv.dndTask != nil {
+		a.srv.dndTask.Cancel()
+		a.srv.dndTask = nil
+	}
+	a.srv.dndTaskMut.Unlock()
+}
+
+func runDNDStatusExpireJob(a *App) {
+	if !a.Config().FeatureFlags.TimedDND {
+		return
+	}
+	if a.IsLeader() {
+		createDNDStatusExpirationRecurringTask(a)
+	}
+	a.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			createDNDStatusExpirationRecurringTask(a)
+		} else {
+			cancelDNDStatusExpirationRecurringTask(a)
+		}
+	})
+}
+
+func stopDNDStatusExpireJob(a *App) {
+	if a.IsLeader() {
+		cancelDNDStatusExpirationRecurringTask(a)
+	}
+}
