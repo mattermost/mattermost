@@ -1553,7 +1553,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		recommendedNextStepsPref := preferences[0]
 
 		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
-		assert.Equal(t, recommendedNextStepsPref.Category, model.PREFERENCE_RECOMMENDED_NEXT_STEPS)
+		assert.Equal(t, recommendedNextStepsPref.Category, model.PreferenceRecommendedNextSteps)
 		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
 		assert.Equal(t, recommendedNextStepsPref.Value, "false")
 	})
@@ -1569,7 +1569,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		recommendedNextStepsPref := preferences[0]
 
 		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
-		assert.Equal(t, recommendedNextStepsPref.Category, model.PREFERENCE_RECOMMENDED_NEXT_STEPS)
+		assert.Equal(t, recommendedNextStepsPref.Category, model.PreferenceRecommendedNextSteps)
 		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
 		assert.Equal(t, recommendedNextStepsPref.Value, "false")
 	})
