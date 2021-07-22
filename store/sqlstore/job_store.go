@@ -97,7 +97,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 		Set("Status", newStatus).
 		Where(sq.Eq{"Id": id, "Status": currentStatus})
 
-	if newStatus == model.JOB_STATUS_IN_PROGRESS {
+	if newStatus == model.JobStatusInProgress {
 		builder = builder.Set("StartAt", model.GetMillis())
 	}
 	query, args, err := builder.ToSql()

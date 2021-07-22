@@ -68,7 +68,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if client version is in notice range
 	clientVersions := cnd.DesktopVersion
-	if client == model.NoticeClientType_MobileAndroid || client == model.NoticeClientType_MobileIos {
+	if client == model.NoticeClientTypeMobileAndroid || client == model.NoticeClientTypeMobileIos {
 		clientVersions = cnd.MobileVersion
 	}
 
@@ -155,7 +155,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		}
 
 		switch cnd.DeprecatingDependency.Name {
-		case model.DATABASE_DRIVER_MYSQL, model.DATABASE_DRIVER_POSTGRES:
+		case model.DatabaseDriverMysql, model.DatabaseDriverPostgres:
 			if dbName != cnd.DeprecatingDependency.Name {
 				return false, nil
 			}
@@ -164,8 +164,8 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 				return false, errors.Wrapf(err, "Cannot parse DBMS version %s", dbVer)
 			}
 			return extDepVersion.GreaterThan(serverDBMSVersion), nil
-		case model.SEARCHENGINE_ELASTICSEARCH:
-			if searchEngineName != model.SEARCHENGINE_ELASTICSEARCH {
+		case model.SearchengineElasticsearch:
+			if searchEngineName != model.SearchengineElasticsearch {
 				return false, nil
 			}
 			semverESVersion, err := semver.NewVersion(searchEngineVer)
@@ -239,8 +239,8 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 func (a *App) GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
-	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PERMISSION_MANAGE_SYSTEM)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PERMISSION_MANAGE_TEAM)
+	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
+	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
 
 	// check if notices for regular users are disabled
 	if !*a.Srv().Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {

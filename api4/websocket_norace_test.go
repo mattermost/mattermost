@@ -34,7 +34,7 @@ func TestWebSocket(t *testing.T) {
 	WebSocketClient.Listen()
 
 	resp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
+	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
 
 	WebSocketClient.SendMessage("ping", nil)
 	resp = <-WebSocketClient.ResponseChannel

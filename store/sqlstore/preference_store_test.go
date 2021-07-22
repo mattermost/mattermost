@@ -21,7 +21,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
-		category := model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS
+		category := model.PreferenceCategoryAdvancedSettings
 		feature1 := "feature1"
 		feature2 := "feature2"
 
@@ -62,7 +62,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
                             FROM Preferences
                     WHERE Category = :Category
                     AND Value = :Val
-                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "false"}); err != nil {
+                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PreferenceCategoryAdvancedSettings, "Val": "false"}); err != nil {
 			require.NoError(t, err)
 		} else if val != 0 {
 			require.Fail(t, "Found %d features with value 'false', expected all to be deleted", val)
@@ -73,7 +73,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
                             FROM Preferences
                     WHERE Category = :Category
                     AND Value = :Val
-                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "true"}); err != nil {
+                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PreferenceCategoryAdvancedSettings, "Val": "true"}); err != nil {
 			require.NoError(t, err)
 		} else if val == 0 {
 			require.Fail(t, "Found %d features with value 'true', expected to find at least %d features", val, 2)

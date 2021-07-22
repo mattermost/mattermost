@@ -41,5 +41,5 @@ func (*ShrugProvider) DoCommand(a *app.App, c *request.Context, args *model.Comm
 		rmsg = message + " " + rmsg
 	}
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeInChannel, Text: rmsg}
 }

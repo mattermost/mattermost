@@ -58,7 +58,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	var webhook model.CommandWebhook
 
-	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+	exptime := model.GetMillis() - model.CommandWebhookLifetime
 
 	query := s.getQueryBuilder().
 		Select("*").
@@ -104,7 +104,7 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 
 func (s SqlCommandWebhookStore) Cleanup() {
 	mlog.Debug("Cleaning up command webhook store.")
-	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+	exptime := model.GetMillis() - model.CommandWebhookLifetime
 
 	query := s.getQueryBuilder().
 		Delete("CommandWebhooks").

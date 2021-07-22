@@ -146,7 +146,7 @@ func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastP
 	m.CreatorId = creatorId
 	m.DisplayName = "Name"
 	m.Name = "zz" + model.NewId() + "b"
-	m.Type = model.CHANNEL_OPEN
+	m.Type = model.ChannelTypeOpen
 	return ss.Channel().Save(&m, -1)
 }
 
@@ -331,12 +331,13 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		require.NoError(t, err)
 
 		// Run migration to fix threads and memberships
+		ss.System().PermanentDeleteByName("CRTThreadCountsAndUnreadsMigrationComplete")
 		fixCRTThreadCountsAndUnreads(sqlStore)
 
 		// Check bad threadMemberships is fixed
 		fixedThreadMembership1, err := ss.Thread().GetMembershipForUser(uId1, rootPost1.Id)
 		require.NoError(t, err)
-		require.EqualValues(t, lastReplyAt, fixedThreadMembership1.LastViewed)
+		require.EqualValues(t, lastReplyAt+1, fixedThreadMembership1.LastViewed)
 		require.EqualValues(t, int64(0), fixedThreadMembership1.UnreadMentions)
 		require.NotEqual(t, goodThreadMembership1.LastUpdated, fixedThreadMembership1.LastUpdated)
 
@@ -387,6 +388,7 @@ func TestFixCRTChannelUnreads(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+		ss.System().PermanentDeleteByName("CRTChannelMembershipCountsMigrationComplete")
 		fixCRTChannelMembershipCounts(sqlStore)
 
 		cm1AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId1)

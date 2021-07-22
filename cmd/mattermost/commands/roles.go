@@ -65,18 +65,18 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 		roles := strings.Fields(user.Roles)
 		for _, role := range roles {
 			switch role {
-			case model.SYSTEM_ADMIN_ROLE_ID:
+			case model.SystemAdminRoleId:
 				systemAdmin = true
-			case model.SYSTEM_USER_ROLE_ID:
+			case model.SystemUserRoleId:
 				systemUser = true
 			}
 		}
 
 		if !systemUser {
-			roles = append(roles, model.SYSTEM_USER_ROLE_ID)
+			roles = append(roles, model.SystemUserRoleId)
 		}
 		if !systemAdmin {
-			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
+			roles = append(roles, model.SystemAdminRoleId)
 		}
 
 		updatedUser, errUpdate := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true)
@@ -115,9 +115,9 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 		roles := strings.Fields(user.Roles)
 		for _, role := range roles {
 			switch role {
-			case model.SYSTEM_ADMIN_ROLE_ID:
+			case model.SystemAdminRoleId:
 			default:
-				if role == model.SYSTEM_USER_ROLE_ID {
+				if role == model.SystemUserRoleId {
 					systemUser = true
 				}
 				newRoles = append(newRoles, role)
@@ -125,7 +125,7 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 		}
 
 		if !systemUser {
-			newRoles = append(roles, model.SYSTEM_USER_ROLE_ID)
+			newRoles = append(roles, model.SystemUserRoleId)
 		}
 
 		updatedUser, errUpdate := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true)

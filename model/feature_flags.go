@@ -38,6 +38,9 @@ type FeatureFlags struct {
 
 	// Enable timed dnd support for user status
 	TimedDND bool
+
+	// Enable the Global Header
+	GlobalHeader bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -53,6 +56,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginFocalboard = ""
 	f.CustomDataRetentionEnabled = false
 	f.TimedDND = false
+	f.GlobalHeader = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

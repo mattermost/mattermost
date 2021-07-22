@@ -23,7 +23,7 @@ func testAPIHandlerGzipMode(t *testing.T, name string, h http.Handler, token str
 	t.Run("Handler: "+name+" No Accept-Encoding", func(t *testing.T) {
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/v4/test", nil)
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+token)
 		h.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Equal(t, "", resp.Header().Get("Content-Encoding"))
@@ -33,7 +33,7 @@ func testAPIHandlerGzipMode(t *testing.T, name string, h http.Handler, token str
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/v4/test", nil)
 		req.Header.Set("Accept-Encoding", "gzip")
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+token)
 
 		h.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
@@ -45,7 +45,7 @@ func testAPIHandlerNoGzipMode(t *testing.T, name string, h http.Handler, token s
 	t.Run("Handler: "+name+" No Accept-Encoding", func(t *testing.T) {
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/v4/test", nil)
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+token)
 
 		h.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
@@ -56,7 +56,7 @@ func testAPIHandlerNoGzipMode(t *testing.T, name string, h http.Handler, token s
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/v4/test", nil)
 		req.Header.Set("Accept-Encoding", "gzip")
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+token)
 
 		h.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)

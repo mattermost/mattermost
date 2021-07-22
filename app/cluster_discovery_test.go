@@ -15,7 +15,7 @@ func TestClusterDiscoveryService(t *testing.T) {
 	defer th.TearDown()
 
 	ds := th.App.NewClusterDiscoveryService()
-	ds.Type = model.CDS_TYPE_APP
+	ds.Type = model.CDSTypeApp
 	ds.ClusterName = "ClusterA"
 	ds.AutoFillHostname()
 

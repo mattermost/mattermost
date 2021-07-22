@@ -35,11 +35,11 @@ func TestSamlCompleteCSRFPass(t *testing.T) {
 	}
 
 	cookie1 := &http.Cookie{
-		Name:  model.SESSION_COOKIE_USER,
+		Name:  model.SessionCookieUser,
 		Value: th.BasicUser.Username,
 	}
 	cookie2 := &http.Cookie{
-		Name:  model.SESSION_COOKIE_TOKEN,
+		Name:  model.SessionCookieToken,
 		Value: th.Client.AuthToken,
 	}
 	req.AddCookie(cookie1)
@@ -60,7 +60,7 @@ func TestSamlResetId(t *testing.T) {
 	user := th.BasicUser
 	_, appErr := th.App.UpdateUserAuth(user.Id, &model.UserAuth{
 		AuthData:    model.NewString(model.NewId()),
-		AuthService: model.USER_AUTH_SERVICE_SAML,
+		AuthService: model.UserAuthServiceSaml,
 	})
 	require.Nil(t, appErr)
 

@@ -99,7 +99,7 @@ func Setup() *TestHelper {
 
 func (th *TestHelper) InitBasic() *TestHelper {
 	th.SystemAdminUser = th.CreateUser()
-	th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 
 	th.BasicTeam = th.CreateTeam()
@@ -123,7 +123,7 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	utils.DisableDebugLogForTest()
@@ -156,10 +156,10 @@ func (th *TestHelper) CreateUser() *model.User {
 }
 
 func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_OPEN)
+	return th.createChannel(team, model.ChannelTypeOpen)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -250,13 +250,13 @@ func (*TestHelper) ResetRoleMigration() {
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.AdvancedPermissionsMigrationKey}); err != nil {
 		panic(err)
 	}
 }
 
 func (th *TestHelper) DeleteAllJobsByTypeAndMigrationKey(jobType string, migrationKey string) {
-	jobs, err := th.App.Srv().Store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS)
+	jobs, err := th.App.Srv().Store.Job().GetAllByType(model.JobTypeMigrations)
 	if err != nil {
 		panic(err)
 	}

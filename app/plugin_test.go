@@ -476,7 +476,7 @@ func TestPluginSync(t *testing.T) {
 		{
 			"local",
 			func(cfg *model.Config) {
-				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_LOCAL)
+				cfg.FileSettings.DriverName = model.NewString(model.ImageDriverLocal)
 			},
 		},
 		{
@@ -493,10 +493,10 @@ func TestPluginSync(t *testing.T) {
 				}
 
 				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
-				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_S3)
-				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MINIO_ACCESS_KEY)
-				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MINIO_SECRET_KEY)
-				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MINIO_BUCKET)
+				cfg.FileSettings.DriverName = model.NewString(model.ImageDriverS3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MinioAccessKey)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MinioSecretKey)
+				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MinioBucket)
 				cfg.FileSettings.AmazonS3PathPrefix = model.NewString("")
 				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
 				cfg.FileSettings.AmazonS3Region = model.NewString("")

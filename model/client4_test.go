@@ -21,7 +21,7 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 		testUrl := baseUrl + strings.Repeat("/", s)
 		client := NewAPIv4Client(testUrl)
 		assert.Equal(t, baseUrl, client.Url)
-		assert.Equal(t, baseUrl+API_URL_SUFFIX, client.ApiUrl)
+		assert.Equal(t, baseUrl+ApiUrlSuffix, client.ApiUrl)
 	}
 }
 
@@ -75,12 +75,12 @@ func TestClient4SetToken(t *testing.T) {
 	expected := NewId()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get(HEADER_AUTH)
+		authHeader := r.Header.Get(HeaderAuth)
 
-		token := strings.Split(authHeader, HEADER_BEARER)
+		token := strings.Split(authHeader, HeaderBearer)
 
 		if len(token) < 2 {
-			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HEADER_BEARER, expected)
+			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HeaderBearer, expected)
 		}
 
 		assert.Equal(t, expected, strings.TrimSpace(token[1]))
@@ -97,12 +97,12 @@ func TestClient4MockSession(t *testing.T) {
 	expected := NewId()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get(HEADER_AUTH)
+		authHeader := r.Header.Get(HeaderAuth)
 
-		token := strings.Split(authHeader, HEADER_BEARER)
+		token := strings.Split(authHeader, HeaderBearer)
 
 		if len(token) < 2 {
-			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HEADER_BEARER, expected)
+			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HeaderBearer, expected)
 		}
 
 		assert.Equal(t, expected, strings.TrimSpace(token[1]))
