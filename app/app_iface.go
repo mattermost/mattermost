@@ -606,6 +606,7 @@ type AppIface interface {
 	GetComplianceReport(reportId string) (*model.Compliance, *model.AppError)
 	GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError)
 	GetCookieDomain() string
+	GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(teamID string, offset int, limit int, userID string) (*model.ChannelList, *model.AppError)
 	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
