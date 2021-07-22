@@ -9277,5 +9277,17 @@
   {
     "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": "Неуспешно генериране връзката за подновяване на лиценза"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Невъзможно анализирането на маркера при анулиране на маркерите за проверка по ел.поща"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Невъзможно премахването на маркера при анулиране на маркерите за проверка по ел.поща"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Невъзможно получаването на маркери по тип при анулирането на маркери за проверка по ел.поща"
   }
 ]
