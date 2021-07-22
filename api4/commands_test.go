@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/mattermost/mattermost-server/v5/app/slashcommands"
+	_ "github.com/mattermost/mattermost-server/v6/app/slashcommands"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestEchoCommand(t *testing.T) {

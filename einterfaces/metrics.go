@@ -5,7 +5,7 @@ package einterfaces
 
 import (
 	"github.com/mattermost/logr"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type MetricsInterface interface {

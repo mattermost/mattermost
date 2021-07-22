@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	mocks2 "github.com/mattermost/mattermost-server/v5/utils/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	mocks2 "github.com/mattermost/mattermost-server/v6/utils/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetOldClientLicense(t *testing.T) {
