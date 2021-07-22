@@ -361,7 +361,7 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	}
 
 	if locale == "" {
-		locale = model.DEFAULT_LOCALE
+		locale = model.DefaultLocale
 	}
 	return i18n.GetUserTranslations(locale)
 }

@@ -34,7 +34,7 @@ func TestCreatePost(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PROPS_ADD_CHANNEL_MEMBER: "no good"}}
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}}
 	rpost, resp := Client.CreatePost(post)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
@@ -43,7 +43,7 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, "#hashtag", rpost.Hashtags, "hashtag didn't match")
 	require.Empty(t, rpost.FileIds)
 	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
-	require.Nil(t, rpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "newly created post shouldn't have Props['add_channel_member'] set")
+	require.Nil(t, rpost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
 
 	post.RootId = rpost.Id
 	post.ParentId = rpost.Id
@@ -124,7 +124,7 @@ func TestCreatePost(t *testing.T) {
 
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
-		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
@@ -138,7 +138,7 @@ func TestCreatePost(t *testing.T) {
 		for waiting {
 			select {
 			case event := <-WebSocketClient.EventChannel:
-				require.NotEqual(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.EventType(), "should not have ephemeral message event")
+				require.NotEqual(t, model.WebsocketEventEphemeralMessage, event.EventType(), "should not have ephemeral message event")
 			case <-timeout:
 				waiting = false
 			}
@@ -167,8 +167,8 @@ func TestCreatePost(t *testing.T) {
 		for eventsToGo > 0 {
 			select {
 			case event := <-WebSocketClient.EventChannel:
-				if event.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
-					require.Equal(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.Event)
+				if event.EventType() == model.WebsocketEventEphemeralMessage {
+					require.Equal(t, model.WebsocketEventEphemeralMessage, event.EventType())
 					eventsToGo = eventsToGo - 1
 				}
 			case <-timeout:
@@ -180,7 +180,7 @@ func TestCreatePost(t *testing.T) {
 
 	post.RootId = ""
 	post.ParentId = ""
-	post.Type = model.POST_SYSTEM_GENERIC
+	post.Type = model.PostTypeSystemGeneric
 	_, resp = Client.CreatePost(post)
 	CheckBadRequestStatus(t, resp)
 
@@ -222,7 +222,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 
 	ephemeralPost := &model.PostEphemeral{
 		UserID: th.BasicUser2.Id,
-		Post:   &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", Props: model.StringInterface{model.PROPS_ADD_CHANNEL_MEMBER: "no good"}},
+		Post:   &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}},
 	}
 
 	rpost, resp := Client.CreatePostEphemeral(ephemeralPost)
@@ -334,7 +334,7 @@ func testCreatePostWithOutgoingHook(
 
 		respPostType := "" //if is empty or post will do a normal post.
 		if commentPostType {
-			respPostType = model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT
+			respPostType = model.OutgoingHookResponseTypeComment
 		}
 
 		outGoingHookResponse := &model.OutgoingWebhookResponse{
@@ -437,7 +437,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 
-	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_USER_ROLE_ID}
+	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
 
 	ruser, resp := Client.CreateUser(&user)
 	CheckNoError(t, resp)
@@ -447,7 +447,7 @@ func TestCreatePostPublic(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_PUBLIC_ROLE_ID, false)
+	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
@@ -459,9 +459,9 @@ func TestCreatePostPublic(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
+	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_PUBLIC_ROLE_ID)
+	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
@@ -482,7 +482,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 
-	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_USER_ROLE_ID}
+	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
 
 	directChannel, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 
@@ -494,7 +494,7 @@ func TestCreatePostAll(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_ROLE_ID, false)
+	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
@@ -510,9 +510,9 @@ func TestCreatePostAll(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckNoError(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
+	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_ROLE_ID)
+	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
@@ -553,7 +553,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			require.NotEqual(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.EventType(), "should not have ephemeral message event")
+			require.NotEqual(t, model.WebsocketEventEphemeralMessage, event.EventType(), "should not have ephemeral message event")
 		case <-timeout:
 			waiting = false
 		}
@@ -572,14 +572,14 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() != model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+			if event.EventType() != model.WebsocketEventEphemeralMessage {
 				// Ignore any other events
 				continue
 			}
 
 			wpost := model.PostFromJson(strings.NewReader(event.GetData()["post"].(string)))
 
-			acm, ok := wpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER).(map[string]interface{})
+			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]interface{})
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
 			require.True(t, acm["post_id"] != nil, "should not be nil")
 			require.True(t, acm["user_ids"] != nil, "should not be nil")
@@ -613,7 +613,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 		for {
 			select {
 			case ev := <-wsClient.EventChannel:
-				if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
+				if ev.EventType() == model.WebsocketEventPosted {
 					assert.True(t, ev.GetData()["set_online"].(bool) == isSetOnline)
 					return
 				}
@@ -634,7 +634,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", "/api/v4/posts?set_online=false", strings.NewReader(post.ToJson()))
-	req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
+	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusCreated, resp.Code)
@@ -645,7 +645,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	assert.Equal(t, "app.status.get.missing.app_error", err.Id)
 
 	req = httptest.NewRequest("POST", "/api/v4/posts", strings.NewReader(post.ToJson()))
-	req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
+	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusCreated, resp.Code)
@@ -712,27 +712,27 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("new message, invalid props", func(t *testing.T) {
 		msg1 := "#hashtag a" + model.NewId() + " update post again"
 		rpost.Message = msg1
-		rpost.AddProp(model.PROPS_ADD_CHANNEL_MEMBER, "no good")
+		rpost.AddProp(model.PropsAddChannelMember, "no good")
 		rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
 		CheckNoError(t, resp)
 
 		assert.Equal(t, msg1, rrupost.Message, "failed to update message")
 		assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
-		assert.Nil(t, rrupost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "failed to sanitize Props['add_channel_member'], should be nil")
+		assert.Nil(t, rrupost.GetProp(model.PropsAddChannelMember), "failed to sanitize Props['add_channel_member'], should be nil")
 
 		actual, resp := Client.GetPost(rpost.Id, "")
 		CheckNoError(t, resp)
 
 		assert.Equal(t, msg1, actual.Message, "failed to update message")
 		assert.Equal(t, "#hashtag", actual.Hashtags, "failed to update hashtags")
-		assert.Nil(t, actual.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "failed to sanitize Props['add_channel_member'], should be nil")
+		assert.Nil(t, actual.GetProp(model.PropsAddChannelMember), "failed to sanitize Props['add_channel_member'], should be nil")
 	})
 
 	t.Run("join/leave post", func(t *testing.T) {
 		rpost2, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
-			Type:      model.POST_JOIN_LEAVE,
+			Type:      model.PostTypeJoinLeave,
 			UserId:    th.BasicUser.Id,
 		}, channel, false, true)
 		require.Nil(t, err)
@@ -847,21 +847,22 @@ func TestPatchPost(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	fileIds := make([]string, 3)
+	fileIDs := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
-	for i := 0; i < len(fileIds); i++ {
+	for i := 0; i < len(fileIDs); i++ {
 		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
 		CheckNoError(t, resp)
-		fileIds[i] = fileResp.FileInfos[0].Id
+		fileIDs[i] = fileResp.FileInfos[0].Id
 	}
+	sort.Strings(fileIDs)
 
 	post := &model.Post{
 		ChannelId:    channel.Id,
 		IsPinned:     true,
 		Message:      "#hashtag a message",
 		Props:        model.StringInterface{"channel_header": "old_header"},
-		FileIds:      fileIds[0:2],
+		FileIds:      fileIDs[0:2],
 		HasReactions: true,
 	}
 	post, _ = Client.CreatePost(post)
@@ -873,7 +874,7 @@ func TestPatchPost(t *testing.T) {
 		patch.IsPinned = model.NewBool(false)
 		patch.Message = model.NewString("#otherhashtag other message")
 		patch.Props = &model.StringInterface{"channel_header": "new_header"}
-		patchFileIds := model.StringArray(fileIds) // one extra file
+		patchFileIds := model.StringArray(fileIDs) // one extra file
 		patch.FileIds = &patchFileIds
 		patch.HasReactions = model.NewBool(false)
 
@@ -885,7 +886,7 @@ func TestPatchPost(t *testing.T) {
 		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
 		assert.Equal(t, *patch.Props, rpost.GetProps(), "Props did not update properly")
 		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
-		assert.Equal(t, model.StringArray(fileIds[0:2]), rpost.FileIds, "FileIds should not update")
+		assert.Equal(t, model.StringArray(fileIDs[0:2]), rpost.FileIds, "FileIds should not update")
 		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
 	})
 
@@ -955,8 +956,8 @@ func TestPatchPost(t *testing.T) {
 
 		// Add permission to edit others'
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
-		th.RemovePermissionFromRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
-		th.AddPermissionToRole(model.PERMISSION_EDIT_OTHERS_POSTS.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PermissionEditPost.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
 
 		_, resp = Client.PatchPost(post.Id, patch)
 		CheckNoError(t, resp)
@@ -1203,7 +1204,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	preference := model.Preference{
 		UserId:   user.Id,
-		Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+		Category: model.PreferenceCategoryFlaggedPost,
 		Name:     post1.Id,
 		Value:    "true",
 	}
@@ -1293,7 +1294,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	CheckNoError(t, resp)
 	require.Empty(t, rpl.Posts)
 
-	channel4 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	channel4 := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 	post5 := th.CreatePostWithClient(th.SystemAdminClient, channel4)
 
 	preference.Name = post5.Id
@@ -2031,7 +2032,7 @@ func TestDeletePostMessage(t *testing.T) {
 			for {
 				select {
 				case ev := <-wsClient.EventChannel:
-					if ev.EventType() == model.WEBSOCKET_EVENT_POST_DELETED {
+					if ev.EventType() == model.WebsocketEventPostDeleted {
 						assert.Equal(t, tc.delete_by, ev.GetData()["delete_by"])
 						return
 					}
@@ -2554,7 +2555,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
 	// user2: first root mention @user1

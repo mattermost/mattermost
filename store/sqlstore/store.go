@@ -57,7 +57,9 @@ const (
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
-	MinimumRequiredPostgresVersion = 100000
+	minimumRequiredPostgresVersion = 100000
+	// major*1000 + minor*100 + patch
+	minimumRequiredMySQLVersion = 5712
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -179,24 +181,19 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
-	if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		ver, err := store.GetDbVersion(true)
-		if err != nil {
-			mlog.Critical("Cannot get DB version.", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
-		}
-		intVer, err := strconv.Atoi(ver)
-		if err != nil {
-			mlog.Critical("Cannot parse DB version.", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
-		}
-		if intVer < MinimumRequiredPostgresVersion {
-			mlog.Critical("Minimum Postgres version requirements not met.", mlog.String("Found", VersionString(intVer)), mlog.String("Wanted", VersionString(MinimumRequiredPostgresVersion)))
-			os.Exit(ExitGenericFailure)
-		}
+	ver, err := store.GetDbVersion(true)
+	if err != nil {
+		mlog.Critical("Error while getting DB version.", mlog.Err(err))
+		os.Exit(ExitGenericFailure)
 	}
 
-	err := store.migrate(migrationsDirectionUp)
+	ok, err := store.ensureMinimumDBVersion(ver)
+	if !ok {
+		mlog.Critical("Error while checking DB version.", mlog.Err(err))
+		os.Exit(ExitGenericFailure)
+	}
+
+	err = store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
 		os.Exit(ExitGenericFailure)
@@ -347,14 +344,14 @@ func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
 	var dbMap *gorp.DbMap
 	switch *settings.DriverName {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		dbMap = &gorp.DbMap{
 			Db:            db,
 			TypeConverter: mattermConverter{},
 			Dialect:       gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"},
 			QueryTimeout:  connectionTimeout,
 		}
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		dbMap = &gorp.DbMap{
 			Db:            db,
 			TypeConverter: mattermConverter{},
@@ -383,7 +380,7 @@ func (ss *SqlStore) Context() context.Context {
 
 func (ss *SqlStore) initConnection() {
 	dataSource := *ss.settings.DataSource
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DatabaseDriverMysql {
 		// TODO: We ignore the readTimeout datasource parameter for MySQL since QueryTimeout
 		// covers that already. Ideally we'd like to do this only for the upgrade
 		// step. To be reviewed in MM-35789.
@@ -437,13 +434,13 @@ func (ss *SqlStore) GetCurrentSchemaVersion() string {
 // that can be parsed by callers.
 func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	var sqlVersion string
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		if numerical {
 			sqlVersion = `SHOW server_version_num`
 		} else {
 			sqlVersion = `SHOW server_version`
 		}
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		sqlVersion = `SELECT version()`
 	} else {
 		return "", errors.New("Not supported driver")
@@ -564,15 +561,15 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 		return
 	}
 
-	unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
+	unitTests := props[model.SystemRanUnitTests]
 	if unitTests == "" {
-		systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
+		systemTests := &model.System{Name: model.SystemRanUnitTests, Value: "1"}
 		ss.System().Save(systemTests)
 	}
 }
 
 func (ss *SqlStore) DoesTableExist(tableName string) bool {
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
@@ -586,7 +583,7 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 
 		return count > 0
 
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT
@@ -617,7 +614,7 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 }
 
 func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT COUNT(0)
 			FROM   pg_attribute
@@ -640,7 +637,7 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 
 		return count > 0
 
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT
@@ -674,7 +671,7 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 // GetColumnInfo returns data type information about the given column.
 func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, error) {
 	var columnInfo ColumnInfo
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		err := ss.GetMaster().SelectOne(&columnInfo,
 			`SELECT data_type as DataType,
 					COALESCE(character_maximum_length, 0) as CharMaximumLength
@@ -686,7 +683,7 @@ func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, er
 			return nil, err
 		}
 		return &columnInfo, nil
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		err := ss.GetMaster().SelectOne(&columnInfo,
 			`SELECT data_type as DataType,
 					COALESCE(character_maximum_length, 0) as CharMaximumLength
@@ -706,11 +703,11 @@ func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, er
 // IsVarchar returns true if the column type matches one of the varchar types
 // either in MySQL or PostgreSQL.
 func (ss *SqlStore) IsVarchar(columnType string) bool {
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES && columnType == "character varying" {
+	if ss.DriverName() == model.DatabaseDriverPostgres && columnType == "character varying" {
 		return true
 	}
 
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL && columnType == "varchar" {
+	if ss.DriverName() == model.DatabaseDriverMysql && columnType == "varchar" {
 		return true
 	}
 
@@ -718,7 +715,7 @@ func (ss *SqlStore) IsVarchar(columnType string) bool {
 }
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		count, err := ss.GetMaster().SelectInt(`
 			SELECT
 				COUNT(0)
@@ -736,7 +733,7 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 
 		return count > 0
 
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		count, err := ss.GetMaster().SelectInt(`
 			SELECT
 				COUNT(0)
@@ -769,7 +766,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		return false
 	}
 
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
@@ -779,7 +776,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 
 		return true
 
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
@@ -803,7 +800,7 @@ func (ss *SqlStore) CreateColumnIfNotExistsNoDefault(tableName string, columnNam
 		return false
 	}
 
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType)
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
@@ -813,7 +810,7 @@ func (ss *SqlStore) CreateColumnIfNotExistsNoDefault(tableName string, columnNam
 
 		return true
 
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
@@ -868,9 +865,9 @@ func (ss *SqlStore) RenameColumnIfExists(tableName string, oldColumnName string,
 	}
 
 	var err error
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DatabaseDriverMysql {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DatabaseDriverPostgres {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
 	}
 
@@ -890,9 +887,9 @@ func (ss *SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName st
 
 	var result string
 	var err error
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DatabaseDriverMysql {
 		result, err = ss.GetMaster().SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DatabaseDriverPostgres {
 		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
 	}
 
@@ -911,9 +908,9 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	}
 
 	var err error
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DatabaseDriverMysql {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DatabaseDriverPostgres {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
 	}
 
@@ -948,14 +945,14 @@ func (ss *SqlStore) AlterDefaultIfColumnExists(tableName string, columnName stri
 	}
 
 	var defaultValue string
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DatabaseDriverMysql {
 		// Some column types in MySQL cannot have defaults, so don't try to configure anything.
 		if mySqlColDefault == nil {
 			return true
 		}
 
 		defaultValue = *mySqlColDefault
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DatabaseDriverPostgres {
 		// Postgres doesn't have the same limitation, but preserve the interface.
 		if postgresColDefault == nil {
 			return true
@@ -992,7 +989,7 @@ func (ss *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool
 	var err error
 	// get the current primary key as a comma separated list of columns
 	switch ss.DriverName() {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		query := `
 			SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index) AS PK
 		FROM
@@ -1004,7 +1001,7 @@ func (ss *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool
 		GROUP BY
 			index_name`
 		currentPrimaryKey, err = ss.GetMaster().SelectStr(query, tableName)
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		query := `
 			SELECT string_agg(a.attname, ',') AS pk
 		FROM
@@ -1031,9 +1028,9 @@ func (ss *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool
 	}
 	// alter primary key
 	var alterQuery string
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DatabaseDriverMysql {
 		alterQuery = "ALTER TABLE " + tableName + " DROP PRIMARY KEY, ADD PRIMARY KEY (" + primaryKey + ")"
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DatabaseDriverPostgres {
 		alterQuery = "ALTER TABLE " + tableName + " DROP CONSTRAINT " + strings.ToLower(tableName) + "_pkey, ADD PRIMARY KEY (" + strings.ToLower(primaryKey) + ")"
 	}
 	_, err = ss.GetMaster().ExecNoTimeout(alterQuery)
@@ -1076,7 +1073,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 		uniqueStr = "UNIQUE "
 	}
 
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		_, errExists := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if errExists == nil {
@@ -1109,7 +1106,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			time.Sleep(time.Second)
 			os.Exit(ExitCreateIndexPostgres)
 		}
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
@@ -1168,7 +1165,7 @@ func (ss *SqlStore) CreateForeignKeyIfNotExists(
 
 func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool {
 
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if err != nil {
@@ -1183,7 +1180,7 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 		}
 
 		return true
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
@@ -1443,7 +1440,7 @@ func (ss *SqlStore) DropAllTables() {
 
 func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
 	return builder
@@ -1478,7 +1475,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	conn := setupConnection("migrations", dataSource, ss.settings)
 	defer conn.Db.Close()
 
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DatabaseDriverMysql {
 		driver, err = mysqlmigrate.WithInstance(conn.Db, &mysqlmigrate.Config{})
 		if err != nil {
 			return err
@@ -1535,7 +1532,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
 	// We need to tell the MySQL driver that we want to use multiStatements
 	// in order to make migrations work.
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DatabaseDriverMysql {
 		config, err := mysql.ParseDSN(dataSource)
 		if err != nil {
 			return "", err
@@ -1678,12 +1675,70 @@ func IsDuplicate(err error) bool {
 	return false
 }
 
-// VersionString converts an integer representation of a DB version
+// ensureMinimumDBVersion gets the DB version and ensures it is
+// above the required minimum version requirements.
+func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
+	switch *ss.settings.DriverName {
+	case model.DatabaseDriverPostgres:
+		intVer, err2 := strconv.Atoi(ver)
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse DB version: %v", err2)
+		}
+		if intVer < minimumRequiredPostgresVersion {
+			return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredPostgresVersion, *ss.settings.DriverName))
+		}
+	case model.DatabaseDriverMysql:
+		// Usually a version string is of the form 5.6.49-log, 10.4.5-MariaDB etc.
+		if strings.Contains(strings.ToLower(ver), "maria") {
+			mlog.Debug("MariaDB detected. Skipping version check.")
+			return true, nil
+		}
+		parts := strings.Split(ver, "-")
+		if len(parts) < 1 {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
+		}
+		// Get the major and minor versions.
+		versions := strings.Split(parts[0], ".")
+		if len(versions) < 3 {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
+		}
+		majorVer, err2 := strconv.Atoi(versions[0])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		minorVer, err2 := strconv.Atoi(versions[1])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		patchVer, err2 := strconv.Atoi(versions[2])
+		if err2 != nil {
+			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+		}
+		intVer := majorVer*1000 + minorVer*100 + patchVer
+		if intVer < minimumRequiredMySQLVersion {
+			return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
+		}
+	}
+	return true, nil
+}
+
+// versionString converts an integer representation of a DB version
 // to a pretty-printed string.
 // Postgres doesn't follow three-part version numbers from 10.0 onwards:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
-func VersionString(v int) string {
-	minor := v % 10000
-	major := v / 10000
-	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+// For MySQL, we consider a major*1000 + minor*100 + patch format.
+func versionString(v int, driver string) string {
+	switch driver {
+	case model.DatabaseDriverPostgres:
+		minor := v % 10000
+		major := v / 10000
+		return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+	case model.DatabaseDriverMysql:
+		minor := v % 1000
+		major := v / 1000
+		patch := minor % 100
+		minor = minor / 100
+		return strconv.Itoa(major) + "." + strconv.Itoa(minor) + "." + strconv.Itoa(patch)
+	}
+	return ""
 }

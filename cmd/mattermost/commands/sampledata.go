@@ -617,9 +617,9 @@ func createChannel(idx int, teamName string) app.LineImportData {
 		purpose = purpose[0:250]
 	}
 
-	channelType := "P"
+	channelType := model.ChannelTypePrivate
 	if rand.Intn(2) == 0 {
-		channelType = "O"
+		channelType = model.ChannelTypeOpen
 	}
 
 	channel := app.ChannelImportData{

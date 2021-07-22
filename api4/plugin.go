@@ -64,8 +64,8 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("uploadPlugin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
 		return
 	}
 
@@ -115,8 +115,8 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("installPluginFromUrl", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
 		return
 	}
 
@@ -148,8 +148,8 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec := c.MakeAuditRecord("installMarketplacePlugin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
 		return
 	}
 
@@ -180,8 +180,8 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
 		return
 	}
 
@@ -200,8 +200,8 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
 		return
 	}
 
@@ -229,8 +229,8 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("plugin_id", c.Params.PluginId)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
 		return
 	}
 
@@ -281,8 +281,8 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
 		return
 	}
 
@@ -322,8 +322,8 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("plugin_id", c.Params.PluginId)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
 		return
 	}
 
@@ -351,8 +351,8 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("plugin_id", c.Params.PluginId)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
 		return
 	}
 
@@ -403,13 +403,13 @@ func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
 	firstAdminVisitMarketplaceObj := model.System{
-		Name:  model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE,
+		Name:  model.SystemFirstAdminVisitMarketplace,
 		Value: "true",
 	}
 
@@ -418,7 +418,7 @@ func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketFirstAdminVisitMarketplaceStatusReceived, "", "", "", nil)
 	message.Add("firstAdminVisitMarketplaceStatus", firstAdminVisitMarketplaceObj.Value)
 	c.App.Publish(message)
 
@@ -431,18 +431,18 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
-	firstAdminVisitMarketplaceObj, err := c.App.Srv().Store.System().GetByName(model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE)
+	firstAdminVisitMarketplaceObj, err := c.App.Srv().Store.System().GetByName(model.SystemFirstAdminVisitMarketplace)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
 			firstAdminVisitMarketplaceObj = &model.System{
-				Name:  model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE,
+				Name:  model.SystemFirstAdminVisitMarketplace,
 				Value: "false",
 			}
 		default:

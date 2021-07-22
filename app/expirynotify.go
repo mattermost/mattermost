@@ -32,8 +32,8 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 	}
 
 	msg := &model.PushNotification{
-		Version: model.PUSH_MESSAGE_V2,
-		Type:    model.PUSH_TYPE_SESSION,
+		Version: model.PushMessageV2,
+		Type:    model.PushTypeSession,
 	}
 
 	for _, session := range sessions {
@@ -59,7 +59,7 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 			mlog.String("type", tmpMessage.Type),
 			mlog.String("userId", session.UserId),
 			mlog.String("deviceId", tmpMessage.DeviceId),
-			mlog.String("status", model.PUSH_SEND_SUCCESS),
+			mlog.String("status", model.PushSendSuccess),
 		)
 
 		if a.Metrics() != nil {
@@ -75,7 +75,7 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 }
 
 func (a *App) getSessionExpiredPushMessage(session *model.Session) string {
-	locale := model.DEFAULT_LOCALE
+	locale := model.DefaultLocale
 	user, err := a.GetUser(session.UserId)
 	if err == nil {
 		locale = user.Locale

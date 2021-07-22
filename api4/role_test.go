@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"testing"
 
@@ -194,21 +195,21 @@ func TestPatchRole(t *testing.T) {
 		defer th.App.Srv().Store.Job().Delete(systemManager.Id)
 
 		patchWriteSystemRoles := &model.RolePatch{
-			Permissions: &[]string{model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id},
+			Permissions: &[]string{model.PermissionSysconsoleWriteUserManagementSystemRoles.Id},
 		}
 
 		_, resp = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
 		CheckNotImplementedStatus(t, resp)
 
 		patchReadSystemRoles := &model.RolePatch{
-			Permissions: &[]string{model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id},
+			Permissions: &[]string{model.PermissionSysconsoleReadUserManagementSystemRoles.Id},
 		}
 
 		_, resp = client.PatchRole(systemManager.Id, patchReadSystemRoles)
 		CheckNotImplementedStatus(t, resp)
 
 		patchManageRoles := &model.RolePatch{
-			Permissions: &[]string{model.PERMISSION_MANAGE_ROLES.Id},
+			Permissions: &[]string{model.PermissionManageRoles.Id},
 		}
 
 		_, resp = client.PatchRole(systemManager.Id, patchManageRoles)
@@ -223,7 +224,9 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		assert.EqualValues(t, received.Permissions, []string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
+		perms := []string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		sort.Strings(perms)
+		assert.EqualValues(t, received.Permissions, perms)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		// Check a no-op patch succeeds.
@@ -240,22 +243,10 @@ func TestPatchRole(t *testing.T) {
 	_, resp = th.Client.PatchRole(role.Id, patch)
 	CheckForbiddenStatus(t, resp)
 
-	// Check a change that the license would not allow.
 	patch = &model.RolePatch{
 		Permissions: &[]string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.PatchRole(role.Id, patch)
-		CheckNotImplementedStatus(t, resp)
-	})
-
-	// Add a license.
-	license := model.NewTestLicense()
-	license.Features.GuestAccountsPermissions = model.NewBool(false)
-	th.App.Srv().SetLicense(license)
-
-	// Try again, should succeed
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		received, resp := client.PatchRole(role.Id, patch)
 		CheckNoError(t, resp)
@@ -264,7 +255,9 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
+		perms := []string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		sort.Strings(perms)
+		assert.EqualValues(t, received.Permissions, perms)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {

@@ -68,7 +68,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 // so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
-	prop, ok := post.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+	prop, ok := post.GetProps()[model.PostPropsOverrideIconEmoji]
 	if !ok || prop == nil {
 		return
 	}
@@ -85,7 +85,7 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	emojiName = strings.ReplaceAll(emojiName, ":", "")
 
 	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
-		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
+		post.AddProp(model.PostPropsOverrideIconUrl, emojiUrl)
 	} else {
 		mlog.Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
@@ -167,7 +167,7 @@ func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []
 func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool) (*model.PostEmbed, error) {
 	if _, ok := post.GetProps()["attachments"]; ok {
 		return &model.PostEmbed{
-			Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+			Type: model.PostEmbedMessageAttachment,
 		}, nil
 	}
 
@@ -182,7 +182,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 
 	if og != nil {
 		return &model.PostEmbed{
-			Type: model.POST_EMBED_OPENGRAPH,
+			Type: model.PostEmbedOpengraph,
 			URL:  firstLink,
 			Data: og,
 		}, nil
@@ -191,13 +191,13 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 	if image != nil {
 		// Note that we're not passing the image info here since it'll be part of the PostMetadata.Images field
 		return &model.PostEmbed{
-			Type: model.POST_EMBED_IMAGE,
+			Type: model.PostEmbedImage,
 			URL:  firstLink,
 		}, nil
 	}
 
 	return &model.PostEmbed{
-		Type: model.POST_EMBED_LINK,
+		Type: model.PostEmbedLink,
 		URL:  firstLink,
 	}, nil
 }
@@ -207,14 +207,14 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 
 	for _, embed := range post.Metadata.Embeds {
 		switch embed.Type {
-		case model.POST_EMBED_IMAGE:
+		case model.PostEmbedImage:
 			// These dimensions will generally be cached by a previous call to getEmbedForPost
 			imageURLs = append(imageURLs, embed.URL)
 
-		case model.POST_EMBED_MESSAGE_ATTACHMENT:
+		case model.PostEmbedMessageAttachment:
 			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(post)...)
 
-		case model.POST_EMBED_OPENGRAPH:
+		case model.PostEmbedOpengraph:
 			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
 				var imageURL string
 				if image.SecureURL != "" {
@@ -250,7 +250,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 }
 
 func getEmojiNamesForString(s string) []string {
-	names := model.EMOJI_PATTERN.FindAllString(s, -1)
+	names := model.EmojiPattern.FindAllString(s, -1)
 
 	for i, name := range names {
 		names[i] = strings.Trim(name, ":")
@@ -503,13 +503,13 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 	}
 
 	if og != nil {
-		metadata.Type = model.LINK_METADATA_TYPE_OPENGRAPH
+		metadata.Type = model.LinkMetadataTypeOpengraph
 		metadata.Data = og
 	} else if image != nil {
-		metadata.Type = model.LINK_METADATA_TYPE_IMAGE
+		metadata.Type = model.LinkMetadataTypeImage
 		metadata.Data = image
 	} else {
-		metadata.Type = model.LINK_METADATA_TYPE_NONE
+		metadata.Type = model.LinkMetadataTypeNone
 	}
 
 	_, err := a.Srv().Store.LinkMetadata().Save(metadata)

@@ -10,22 +10,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var allowedPermissions = []string{
-	model.PERMISSION_CREATE_TEAM.Id,
-	model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
-	model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
-	model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
-	model.PERMISSION_MANAGE_OAUTH.Id,
-	model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
-	model.PERMISSION_CREATE_EMOJIS.Id,
-	model.PERMISSION_DELETE_EMOJIS.Id,
-	model.PERMISSION_EDIT_OTHERS_POSTS.Id,
-}
-
 var notAllowedPermissions = []string{
-	model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id,
-	model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id,
-	model.PERMISSION_MANAGE_ROLES.Id,
+	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
+	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
+	model.PermissionManageRoles.Id,
 }
 
 func (api *API) InitRole() {
@@ -111,11 +99,11 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("role", oldRole)
 
 	// manage_system permission is required to patch system_admin
-	requiredPermission := model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS
-	specialProtectedSystemRoles := append(model.NewSystemRoleIDs, model.SYSTEM_ADMIN_ROLE_ID)
+	requiredPermission := model.PermissionSysconsoleWriteUserManagementPermissions
+	specialProtectedSystemRoles := append(model.NewSystemRoleIDs, model.SystemAdminRoleId)
 	for _, roleID := range specialProtectedSystemRoles {
 		if oldRole.Name == roleID {
-			requiredPermission = model.PERMISSION_MANAGE_SYSTEM
+			requiredPermission = model.PermissionManageSystem
 		}
 	}
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), requiredPermission) {
@@ -123,29 +111,15 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isGuest := oldRole.Name == model.SYSTEM_GUEST_ROLE_ID || oldRole.Name == model.TEAM_GUEST_ROLE_ID || oldRole.Name == model.CHANNEL_GUEST_ROLE_ID
+	isGuest := oldRole.Name == model.SystemGuestRoleId || oldRole.Name == model.TeamGuestRoleId || oldRole.Name == model.ChannelGuestRoleId
 	if c.App.Srv().License() == nil && patch.Permissions != nil {
 		if isGuest {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 			return
 		}
-
-		changedPermissions := model.PermissionsChangedByPatch(oldRole, patch)
-		for _, permission := range changedPermissions {
-			allowed := false
-			for _, allowedPermission := range allowedPermissions {
-				if permission == allowedPermission {
-					allowed = true
-				}
-			}
-
-			if !allowed {
-				c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
-				return
-			}
-		}
 	}
 
+	// Licensed instances can not change permissions in the blacklist set.
 	if patch.Permissions != nil {
 		deltaPermissions := model.PermissionsChangedByPatch(oldRole, patch)
 
@@ -163,7 +137,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		*patch.Permissions = model.UniqueStrings(*patch.Permissions)
+		*patch.Permissions = model.RemoveDuplicateStrings(*patch.Permissions)
 	}
 
 	if c.App.Srv().License() != nil && isGuest && !*c.App.Srv().License().Features.GuestAccountsPermissions {
@@ -171,14 +145,14 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldRole.Name == model.TEAM_ADMIN_ROLE_ID || oldRole.Name == model.CHANNEL_ADMIN_ROLE_ID || oldRole.Name == model.SYSTEM_USER_ROLE_ID || oldRole.Name == model.TEAM_USER_ROLE_ID || oldRole.Name == model.CHANNEL_USER_ROLE_ID || oldRole.Name == model.SYSTEM_GUEST_ROLE_ID || oldRole.Name == model.TEAM_GUEST_ROLE_ID || oldRole.Name == model.CHANNEL_GUEST_ROLE_ID {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+	if oldRole.Name == model.TeamAdminRoleId || oldRole.Name == model.ChannelAdminRoleId || oldRole.Name == model.SystemUserRoleId || oldRole.Name == model.TeamUserRoleId || oldRole.Name == model.ChannelUserRoleId || oldRole.Name == model.SystemGuestRoleId || oldRole.Name == model.TeamGuestRoleId || oldRole.Name == model.ChannelGuestRoleId {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES) {
-			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES)
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementSystemRoles) {
+			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementSystemRoles)
 			return
 		}
 	}

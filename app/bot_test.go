@@ -87,7 +87,7 @@ func TestCreateBot(t *testing.T) {
 
 		postArray := posts.ToSlice()
 		assert.Len(t, postArray, 1)
-		assert.Equal(t, postArray[0].Type, model.POST_ADD_BOT_TEAMS_CHANNELS)
+		assert.Equal(t, postArray[0].Type, model.PostTypeAddBotTeamsChannels)
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
@@ -595,20 +595,20 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin1",
 		Password: "hello1",
 		Username: "un_sysadmin1",
-		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(sysadmin1.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.App.UpdateUserRoles(sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
 		Nickname: "nn_sysadmin2",
 		Password: "hello1",
 		Username: "un_sysadmin2",
-		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(sysadmin2.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.App.UpdateUserRoles(sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	// create user to be disabled
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -932,23 +932,23 @@ func TestGetSystemBot(t *testing.T) {
 
 	t.Run("The bot should be created the first time it's retrieved", func(t *testing.T) {
 		// assert no bot with username exists
-		_, err := th.App.GetUserByUsername(model.BOT_SYSTEM_BOT_USERNAME)
+		_, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.NotNil(t, err)
 
 		bot, err := th.App.GetSystemBot()
 		require.Nil(t, err)
-		require.Equal(t, bot.Username, model.BOT_SYSTEM_BOT_USERNAME)
+		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 	})
 
 	t.Run("The bot should be correctly retrieved if it exists already", func(t *testing.T) {
 		// assert that the bot is now present
-		botUser, err := th.App.GetUserByUsername(model.BOT_SYSTEM_BOT_USERNAME)
+		botUser, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.Nil(t, err)
 		require.True(t, botUser.IsBot)
 
 		bot, err := th.App.GetSystemBot()
 		require.Nil(t, err)
-		require.Equal(t, bot.Username, model.BOT_SYSTEM_BOT_USERNAME)
+		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
 }

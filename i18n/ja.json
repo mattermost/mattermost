@@ -9280,5 +9280,9 @@
   {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "あなたのMattermostのサブスクリプションは更新が必要です"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "電子メール確認トークンを無効にする際にタイプ別のトークンを取得できませんでした"
   }
 ]

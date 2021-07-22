@@ -156,7 +156,7 @@ func TestCreateChannel(t *testing.T) {
 		th.CheckCommand(t, "channel", "create", "--display_name", commonName, "--team", th.BasicTeam.Name, "--name", commonName)
 		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, commonName, false)
 		assert.Equal(t, commonName, channel.Name)
-		assert.Equal(t, model.CHANNEL_OPEN, channel.Type)
+		assert.Equal(t, model.ChannelTypeOpen, channel.Type)
 	})
 
 	t.Run("should create private channel", func(t *testing.T) {
@@ -164,7 +164,7 @@ func TestCreateChannel(t *testing.T) {
 		th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name, "--private")
 		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, name, false)
 		assert.Equal(t, name, channel.Name)
-		assert.Equal(t, model.CHANNEL_PRIVATE, channel.Type)
+		assert.Equal(t, model.ChannelTypePrivate, channel.Type)
 	})
 
 	t.Run("should create channel with header and purpose", func(t *testing.T) {
@@ -172,7 +172,7 @@ func TestCreateChannel(t *testing.T) {
 		th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name, "--header", "this is a header", "--purpose", "this is the purpose")
 		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, name, false)
 		assert.Equal(t, name, channel.Name)
-		assert.Equal(t, model.CHANNEL_OPEN, channel.Type)
+		assert.Equal(t, model.ChannelTypeOpen, channel.Type)
 		assert.Equal(t, "this is a header", channel.Header)
 		assert.Equal(t, "this is the purpose", channel.Purpose)
 	})
@@ -321,7 +321,7 @@ func TestModifyChannel(t *testing.T) {
 	th.CheckCommand(t, "channel", "modify", "--public", th.BasicTeam.Name+":"+channel1.Name, "--username", th.BasicUser2.Email)
 	res, err := th.App.Srv().Store.Channel().Get(channel1.Id, false)
 	require.NoError(t, err)
-	assert.Equal(t, model.CHANNEL_OPEN, res.Type)
+	assert.Equal(t, model.ChannelTypeOpen, res.Type)
 
 	// should fail because user doesn't exist
 	require.Error(t, th.RunCommand(t, "channel", "modify", "--public", th.BasicTeam.Name+":"+channel2.Name, "--username", "idonotexist"))
@@ -332,7 +332,7 @@ func TestModifyChannel(t *testing.T) {
 	th.CheckCommand(t, "channel", "modify", "--private", th.BasicTeam.Name+":"+pchannel1.Name, "--username", th.BasicUser2.Email)
 	res, err = th.App.Srv().Store.Channel().Get(pchannel1.Id, false)
 	require.NoError(t, err)
-	assert.Equal(t, model.CHANNEL_PRIVATE, res.Type)
+	assert.Equal(t, model.ChannelTypePrivate, res.Type)
 
 	// should fail because user doesn't exist
 	require.Error(t, th.RunCommand(t, "channel", "modify", "--private", th.BasicTeam.Name+":"+pchannel2.Name, "--username", "idonotexist"))

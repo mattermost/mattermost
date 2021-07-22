@@ -315,13 +315,13 @@ func (api *PluginAPI) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *
 
 func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *model.AppError) {
 	switch status {
-	case model.STATUS_ONLINE:
+	case model.StatusOnline:
 		api.app.SetStatusOnline(userID, true)
-	case model.STATUS_OFFLINE:
+	case model.StatusOffline:
 		api.app.SetStatusOffline(userID, true)
-	case model.STATUS_AWAY:
+	case model.StatusAway:
 		api.app.SetStatusAwayIfNeeded(userID, true)
-	case model.STATUS_DND:
+	case model.StatusDnd:
 		api.app.SetStatusDoNotDisturb(userID)
 	default:
 		return nil, model.NewAppError("UpdateUserStatus", "plugin.api.update_user_status.bad_status", nil, "unrecognized status", http.StatusBadRequest)
@@ -340,13 +340,13 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
-	case model.CHANNEL_SORT_BY_USERNAME:
+	case model.ChannelSortByUsername:
 		return api.app.GetUsersInChannel(&model.UserGetOptions{
 			InChannelId: channelID,
 			Page:        page,
 			PerPage:     perPage,
 		})
-	case model.CHANNEL_SORT_BY_STATUS:
+	case model.ChannelSortByStatus:
 		return api.app.GetUsersInChannelByStatus(&model.UserGetOptions{
 			InChannelId: channelID,
 			Page:        page,
@@ -372,8 +372,8 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 	}
 
 	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
-	if user.AuthService == model.USER_AUTH_SERVICE_LDAP ||
-		(user.AuthService == model.USER_AUTH_SERVICE_SAML && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
+	if user.AuthService == model.UserAuthServiceLdap ||
+		(user.AuthService == model.UserAuthServiceSaml && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
 		return api.app.Ldap().GetUserAttributes(*user.AuthData, attributes)
 	}
 
@@ -780,7 +780,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	if err := api.app.Srv().EmailService.sendNotificationMail(to, subject, htmlBody); err != nil {
+	if err := api.app.Srv().EmailService.SendNotificationMail(to, subject, htmlBody); err != nil {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1116,7 +1116,7 @@ func (api *PluginAPI) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *mod
 		return nil, err
 	}
 
-	return api.app.UpdateOauthApp(oldApp, app)
+	return api.app.UpdateOAuthApp(oldApp, app)
 }
 
 func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
@@ -1132,7 +1132,7 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	}
 
 	msg := &model.ClusterMessage{
-		Event:            model.CLUSTER_EVENT_PLUGIN_EVENT,
+		Event:            model.ClusterEventPluginEvent,
 		SendType:         opts.SendType,
 		WaitForAllToSend: false,
 		Props: map[string]string{
@@ -1175,7 +1175,7 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              api.app.TelemetryId(),
-		Name:                  requester.GetDisplayName(model.SHOW_FULLNAME),
+		Name:                  requester.GetDisplayName(model.ShowFullName),
 		Email:                 requester.Email,
 		SiteName:              *api.app.Config().TeamSettings.SiteName,
 		SiteURL:               *api.app.Config().ServiceSettings.SiteURL,

@@ -26,7 +26,7 @@ func (w *Web) InitStatic() {
 			mlog.Error("Failed to update assets subpath from config", mlog.Err(err))
 		}
 
-		staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
+		staticDir, _ := fileutils.FindDir(model.ClientDir)
 		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
 
 		subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
@@ -72,7 +72,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 
-	staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
+	staticDir, _ := fileutils.FindDir(model.ClientDir)
 	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
 }
 

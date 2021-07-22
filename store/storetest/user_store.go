@@ -370,7 +370,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u1" + model.NewId(),
-		Roles:    model.SYSTEM_USER_ROLE_ID,
+		Roles:    model.SystemUserRoleId,
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
@@ -378,7 +378,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u2, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u2" + model.NewId(),
-		Roles:    model.SYSTEM_USER_ROLE_ID,
+		Roles:    model.SystemUserRoleId,
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
@@ -427,7 +427,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: "u7" + model.NewId(),
 		DeleteAt: model.GetMillis(),
-		Roles:    model.SYSTEM_USER_ROLE_ID,
+		Roles:    model.SystemUserRoleId,
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u7.Id)) }()
@@ -846,7 +846,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
@@ -855,7 +855,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	c2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
@@ -1013,7 +1013,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
@@ -1022,7 +1022,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	c2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
@@ -1067,15 +1067,15 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 	require.NoError(t, nErr)
 	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u1.Id,
-		Status: model.STATUS_DND,
+		Status: model.StatusDnd,
 	}))
 	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u2.Id,
-		Status: model.STATUS_AWAY,
+		Status: model.StatusAway,
 	}))
 	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u3.Id,
-		Status: model.STATUS_ONLINE,
+		Status: model.StatusOnline,
 	}))
 
 	t.Run("get all users in channel 1, offset 0, limit 100", func(t *testing.T) {
@@ -1230,7 +1230,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
@@ -1239,7 +1239,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	c2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
@@ -1356,7 +1356,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
@@ -1365,7 +1365,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	c2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
@@ -1595,7 +1595,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Stor
 	gc1, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_GROUP,
+		Type:        model.ChannelTypeGroup,
 	}, -1)
 	require.NoError(t, nErr)
 
@@ -1611,7 +1611,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Stor
 	gc2, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_GROUP,
+		Type:        model.ChannelTypeGroup,
 	}, -1)
 	require.NoError(t, nErr)
 
@@ -1760,7 +1760,7 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Roles:    model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
+		Roles:    model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 		Username: "u1" + model.NewId(),
 	})
 	require.NoError(t, err)
@@ -1779,7 +1779,7 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Roles:    model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
+		Roles:    model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 		Username: "u3" + model.NewId(),
 	})
 	require.NoError(t, err)
@@ -2032,7 +2032,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:       MakeEmail(),
 		Username:    "u1" + model.NewId(),
-		AuthService: model.USER_AUTH_SERVICE_GITLAB,
+		AuthService: model.UserAuthServiceGitlab,
 		AuthData:    &auth,
 	})
 
@@ -2044,7 +2044,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	u2, err := ss.User().Save(&model.User{
 		Email:       MakeEmail(),
 		Username:    "u2" + model.NewId(),
-		AuthService: model.USER_AUTH_SERVICE_LDAP,
+		AuthService: model.UserAuthServiceLdap,
 		AuthData:    &auth2,
 	})
 	require.NoError(t, err)
@@ -2055,7 +2055,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	u3, err := ss.User().Save(&model.User{
 		Email:       MakeEmail(),
 		Username:    "u3" + model.NewId(),
-		AuthService: model.USER_AUTH_SERVICE_LDAP,
+		AuthService: model.UserAuthServiceLdap,
 		AuthData:    &auth3,
 	})
 	require.NoError(t, err)
@@ -2194,17 +2194,17 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
 
 	resetAuthDataToID := func() {
 		_, err = ss.User().UpdateAuthData(
-			user.Id, model.USER_AUTH_SERVICE_SAML, model.NewString("some-id"), "", false)
+			user.Id, model.UserAuthServiceSaml, model.NewString("some-id"), "", false)
 		require.NoError(t, err)
 	}
 	resetAuthDataToID()
 
 	// dry run
-	numAffected, err := ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, true)
+	numAffected, err := ss.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, nil, false, true)
 	require.NoError(t, err)
 	require.Equal(t, 1, numAffected)
 	// real run
-	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, false)
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, nil, false, false)
 	require.NoError(t, err)
 	require.Equal(t, 1, numAffected)
 	user, appErr := ss.User().Get(context.Background(), user.Id)
@@ -2213,10 +2213,10 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
 
 	resetAuthDataToID()
 	// with specific user IDs
-	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, []string{model.NewId()}, false, true)
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, []string{model.NewId()}, false, true)
 	require.NoError(t, err)
 	require.Equal(t, 0, numAffected)
-	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, []string{user.Id}, false, true)
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, []string{user.Id}, false, true)
 	require.NoError(t, err)
 	require.Equal(t, 1, numAffected)
 
@@ -2224,11 +2224,11 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
 	user.DeleteAt = model.GetMillisForTime(time.Now())
 	ss.User().Update(user, true)
 	// without deleted user
-	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, true)
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, nil, false, true)
 	require.NoError(t, err)
 	require.Equal(t, 0, numAffected)
 	// with deleted user
-	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, true, true)
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, nil, true, true)
 	require.NoError(t, err)
 	require.Equal(t, 1, numAffected)
 }
@@ -2240,13 +2240,13 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	c1.TeamId = teamId
 	c1.DisplayName = "Unread Messages"
 	c1.Name = "unread-messages-" + model.NewId()
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 
 	c2 := model.Channel{}
 	c2.TeamId = teamId
 	c2.DisplayName = "Unread Direct"
 	c2.Name = "unread-direct-" + model.NewId()
-	c2.Type = model.CHANNEL_DIRECT
+	c2.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
 	u1.Username = "user1" + model.NewId()
@@ -2414,9 +2414,9 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s 
 	u2.LastActivityAt = millis - 1
 	u1.LastActivityAt = millis - 1
 
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
 		users, err := ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
@@ -2603,7 +2603,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1, u3},
 		},
@@ -2613,8 +2613,8 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				TeamRoles:      []string{model.TEAM_GUEST_ROLE_ID, model.TEAM_ADMIN_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				TeamRoles:      []string{model.TeamGuestRoleId, model.TeamAdminRoleId},
 			},
 			[]*model.User{u3},
 		},
@@ -2624,9 +2624,9 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID},
-				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				Roles:          []string{model.SystemAdminRoleId},
+				TeamRoles:      []string{model.TeamAdminRoleId},
 			},
 			[]*model.User{u1},
 		},
@@ -2636,8 +2636,8 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			"jim",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				TeamRoles:      []string{model.TeamAdminRoleId},
 			},
 			[]*model.User{u2},
 		},
@@ -2647,8 +2647,8 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			"jim",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_GUEST_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				TeamRoles:      []string{model.TeamAdminRoleId, model.TeamGuestRoleId},
 			},
 			[]*model.User{u2, u3},
 		},
@@ -2658,9 +2658,9 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			"jim",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID},
-				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				Roles:          []string{model.SystemAdminRoleId},
+				TeamRoles:      []string{model.TeamAdminRoleId},
 			},
 			[]*model.User{u2, u1},
 		},
@@ -2670,8 +2670,8 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			"jim",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				Roles:          []string{model.SYSTEM_GUEST_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				Roles:          []string{model.SystemGuestRoleId},
 				TeamRoles:      []string{},
 			},
 			[]*model.User{u3},
@@ -2748,7 +2748,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 		TeamId:      tid,
 		DisplayName: "NameName",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(&ch1, -1)
 	require.NoError(t, nErr)
@@ -2757,7 +2757,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 		TeamId:      tid,
 		DisplayName: "NameName",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c2, nErr := ss.Channel().Save(&ch2, -1)
 	require.NoError(t, nErr)
@@ -2796,7 +2796,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1},
 		},
@@ -2808,7 +2808,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1},
 		},
@@ -2819,7 +2819,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1},
 		},
@@ -2830,7 +2830,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -2841,7 +2841,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -2853,7 +2853,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u3},
 		},
@@ -2864,7 +2864,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -2875,7 +2875,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -2886,7 +2886,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			"jim",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u2, u1},
 		},
@@ -2977,7 +2977,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		TeamId:      tid,
 		DisplayName: "NameName",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(&ch1, -1)
 	require.NoError(t, nErr)
@@ -2986,7 +2986,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		TeamId:      tid,
 		DisplayName: "NameName",
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c2, nErr := ss.Channel().Save(&ch2, -1)
 	require.NoError(t, nErr)
@@ -3029,7 +3029,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1},
 		},
@@ -3040,7 +3040,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1, u3},
 		},
@@ -3061,7 +3061,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -3072,7 +3072,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -3083,8 +3083,8 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				Roles:          []string{model.SystemAdminRoleId},
 			},
 			[]*model.User{u1},
 		},
@@ -3095,8 +3095,8 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				Roles:          []string{model.SystemAdminRoleId, model.SystemUserRoleId},
 			},
 			[]*model.User{u1, u3},
 		},
@@ -3107,8 +3107,8 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				ChannelRoles:   []string{model.CHANNEL_USER_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				ChannelRoles:   []string{model.ChannelUserRoleId},
 			},
 			[]*model.User{u3},
 		},
@@ -3119,8 +3119,8 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				ChannelRoles:   []string{model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				ChannelRoles:   []string{model.ChannelUserRoleId, model.ChannelAdminRoleId},
 			},
 			[]*model.User{u3},
 		},
@@ -3131,8 +3131,8 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				ChannelRoles:   []string{model.CHANNEL_USER_ROLE_ID},
+				Limit:          model.UserSearchDefaultLimit,
+				ChannelRoles:   []string{model.ChannelUserRoleId},
 			},
 			[]*model.User{u2},
 		},
@@ -3260,7 +3260,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			"simo",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u4},
 		},
@@ -3271,7 +3271,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -3282,7 +3282,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -3292,7 +3292,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			"simo",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -3302,7 +3302,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1},
 		},
@@ -3313,7 +3313,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1, u3},
 		},
@@ -3403,7 +3403,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			"",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u2, u1},
 		},
@@ -3412,7 +3412,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			"jim",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u2, u1},
 		},
@@ -3421,7 +3421,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			"* ",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u2, u1},
 		},
@@ -3526,7 +3526,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1},
 		},
@@ -3537,7 +3537,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{u1, u3},
 		},
@@ -3558,7 +3558,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -3569,7 +3569,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				AllowInactive:  true,
-				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Limit:          model.UserSearchDefaultLimit,
 			},
 			[]*model.User{},
 		},
@@ -3594,7 +3594,7 @@ func testCount(t *testing.T, ss store.Store) {
 	channelId := model.NewId()
 	regularUser := &model.User{}
 	regularUser.Email = MakeEmail()
-	regularUser.Roles = model.SYSTEM_USER_ROLE_ID
+	regularUser.Roles = model.SystemUserRoleId
 	_, err := ss.User().Save(regularUser)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(regularUser.Id)) }()
@@ -3605,7 +3605,7 @@ func testCount(t *testing.T, ss store.Store) {
 
 	guestUser := &model.User{}
 	guestUser.Email = MakeEmail()
-	guestUser.Roles = model.SYSTEM_GUEST_ROLE_ID
+	guestUser.Roles = model.SystemGuestRoleId
 	_, err = ss.User().Save(guestUser)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(guestUser.Id)) }()
@@ -3616,7 +3616,7 @@ func testCount(t *testing.T, ss store.Store) {
 
 	teamAdmin := &model.User{}
 	teamAdmin.Email = MakeEmail()
-	teamAdmin.Roles = model.SYSTEM_USER_ROLE_ID
+	teamAdmin.Roles = model.SystemUserRoleId
 	_, err = ss.User().Save(teamAdmin)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(teamAdmin.Id)) }()
@@ -3627,7 +3627,7 @@ func testCount(t *testing.T, ss store.Store) {
 
 	sysAdmin := &model.User{}
 	sysAdmin.Email = MakeEmail()
-	sysAdmin.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
+	sysAdmin.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
 	_, err = ss.User().Save(sysAdmin)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin.Id)) }()
@@ -3752,7 +3752,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by system admins only",
 			model.UserCountOptions{
 				TeamId: teamId,
-				Roles:  []string{model.SYSTEM_ADMIN_ROLE_ID},
+				Roles:  []string{model.SystemAdminRoleId},
 			},
 			1,
 		},
@@ -3760,7 +3760,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by system users only",
 			model.UserCountOptions{
 				TeamId: teamId,
-				Roles:  []string{model.SYSTEM_USER_ROLE_ID},
+				Roles:  []string{model.SystemUserRoleId},
 			},
 			2,
 		},
@@ -3768,7 +3768,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by system guests only",
 			model.UserCountOptions{
 				TeamId: teamId,
-				Roles:  []string{model.SYSTEM_GUEST_ROLE_ID},
+				Roles:  []string{model.SystemGuestRoleId},
 			},
 			1,
 		},
@@ -3776,7 +3776,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by system admins and system users",
 			model.UserCountOptions{
 				TeamId: teamId,
-				Roles:  []string{model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_ROLE_ID},
+				Roles:  []string{model.SystemAdminRoleId, model.SystemUserRoleId},
 			},
 			3,
 		},
@@ -3784,7 +3784,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by system admins, system user and system guests",
 			model.UserCountOptions{
 				TeamId: teamId,
-				Roles:  []string{model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_ROLE_ID, model.SYSTEM_GUEST_ROLE_ID},
+				Roles:  []string{model.SystemAdminRoleId, model.SystemUserRoleId, model.SystemGuestRoleId},
 			},
 			4,
 		},
@@ -3792,7 +3792,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by team admins",
 			model.UserCountOptions{
 				TeamId:    teamId,
-				TeamRoles: []string{model.TEAM_ADMIN_ROLE_ID},
+				TeamRoles: []string{model.TeamAdminRoleId},
 			},
 			1,
 		},
@@ -3800,7 +3800,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by team members",
 			model.UserCountOptions{
 				TeamId:    teamId,
-				TeamRoles: []string{model.TEAM_USER_ROLE_ID},
+				TeamRoles: []string{model.TeamUserRoleId},
 			},
 			1,
 		},
@@ -3808,7 +3808,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by team guests",
 			model.UserCountOptions{
 				TeamId:    teamId,
-				TeamRoles: []string{model.TEAM_GUEST_ROLE_ID},
+				TeamRoles: []string{model.TeamGuestRoleId},
 			},
 			1,
 		},
@@ -3816,8 +3816,8 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by team guests and any system role",
 			model.UserCountOptions{
 				TeamId:    teamId,
-				TeamRoles: []string{model.TEAM_GUEST_ROLE_ID},
-				Roles:     []string{model.SYSTEM_ADMIN_ROLE_ID},
+				TeamRoles: []string{model.TeamGuestRoleId},
+				Roles:     []string{model.SystemAdminRoleId},
 			},
 			2,
 		},
@@ -3825,7 +3825,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by channel members",
 			model.UserCountOptions{
 				ChannelId:    channelId,
-				ChannelRoles: []string{model.CHANNEL_USER_ROLE_ID},
+				ChannelRoles: []string{model.ChannelUserRoleId},
 			},
 			1,
 		},
@@ -3833,8 +3833,8 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by channel members and system admins",
 			model.UserCountOptions{
 				ChannelId:    channelId,
-				Roles:        []string{model.SYSTEM_ADMIN_ROLE_ID},
-				ChannelRoles: []string{model.CHANNEL_USER_ROLE_ID},
+				Roles:        []string{model.SystemAdminRoleId},
+				ChannelRoles: []string{model.ChannelUserRoleId},
 			},
 			2,
 		},
@@ -3842,8 +3842,8 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by channel members and system admins and channel admins",
 			model.UserCountOptions{
 				ChannelId:    channelId,
-				Roles:        []string{model.SYSTEM_ADMIN_ROLE_ID},
-				ChannelRoles: []string{model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID},
+				Roles:        []string{model.SystemAdminRoleId},
+				ChannelRoles: []string{model.ChannelUserRoleId, model.ChannelAdminRoleId},
 			},
 			3,
 		},
@@ -3851,7 +3851,7 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by channel guests",
 			model.UserCountOptions{
 				ChannelId:    channelId,
-				ChannelRoles: []string{model.CHANNEL_GUEST_ROLE_ID},
+				ChannelRoles: []string{model.ChannelGuestRoleId},
 			},
 			1,
 		},
@@ -3859,8 +3859,8 @@ func testCount(t *testing.T, ss store.Store) {
 			"Filter by channel guests and any system role",
 			model.UserCountOptions{
 				ChannelId:    channelId,
-				ChannelRoles: []string{model.CHANNEL_GUEST_ROLE_ID},
-				Roles:        []string{model.SYSTEM_ADMIN_ROLE_ID},
+				ChannelRoles: []string{model.ChannelGuestRoleId},
+				Roles:        []string{model.SystemAdminRoleId},
 			},
 			2,
 		},
@@ -3927,11 +3927,11 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore)
 	// u0 last activity status is two months ago.
 	// u1 last activity status is two days ago.
 	// u2, u3, u4 last activity is within last day
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.StatusOffline, LastActivityAt: millisTwoMonthsAgo}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.StatusOffline, LastActivityAt: millisTwoDaysAgo}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.StatusOffline, LastActivityAt: millis}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.StatusOffline, LastActivityAt: millis}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.StatusOffline, LastActivityAt: millis}))
 
 	// Daily counts (without bots)
 	count, err := ss.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
@@ -4015,11 +4015,11 @@ func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s 
 	// u2 last activity is one day ago
 	// u3 last activity is within last day
 	// u4 last activity is within last day
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo + MonthMilliseconds}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo + DayMilliseconds}))
-	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.StatusOffline, LastActivityAt: millisTwoMonthsAgo}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.StatusOffline, LastActivityAt: millisTwoMonthsAgo + MonthMilliseconds}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.StatusOffline, LastActivityAt: millisTwoDaysAgo}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.StatusOffline, LastActivityAt: millisTwoDaysAgo + DayMilliseconds}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.StatusOffline, LastActivityAt: millis}))
 
 	// Two months to two days (without bots)
 	count, nerr := ss.User().AnalyticsActiveCountForPeriod(millisTwoMonthsAgo, millisTwoDaysAgo, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
@@ -4170,7 +4170,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team",
 		Name:        "zz" + model.NewId(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 
@@ -4482,27 +4482,27 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	t1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
 		Name:        "zz" + model.NewId(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 
 	ch1 := &model.Channel{
 		Name: model.NewId(),
-		Type: model.CHANNEL_OPEN,
+		Type: model.ChannelTypeOpen,
 	}
 	cPub1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := &model.Channel{
 		Name: model.NewId(),
-		Type: model.CHANNEL_OPEN,
+		Type: model.ChannelTypeOpen,
 	}
 	cPub2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
 
 	ch3 := &model.Channel{
 		Name: model.NewId(),
-		Type: model.CHANNEL_PRIVATE,
+		Type: model.ChannelTypePrivate,
 	}
 
 	cPriv, nErr := ss.Channel().Save(ch3, -1)
@@ -4619,7 +4619,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 		DisplayName: "dn_" + id,
 		Name:        "n-" + id,
 		Email:       id + "@test.com",
-		Type:        model.TEAM_INVITE,
+		Type:        model.TeamInvite,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, team)
@@ -4739,7 +4739,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	channel, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        "n-" + id,
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}, 999)
 	require.NoError(t, nErr)
 	require.NotNil(t, channel)
@@ -4878,7 +4878,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -4924,7 +4924,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -5020,7 +5020,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -5065,7 +5065,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -5110,7 +5110,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			TeamId:      teamId1,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 
@@ -5193,7 +5193,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -5237,7 +5237,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -5327,7 +5327,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -5370,7 +5370,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -5413,7 +5413,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			TeamId:      teamId1,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
 
@@ -5633,7 +5633,7 @@ func testGetKnownUsers(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
@@ -5642,7 +5642,7 @@ func testGetKnownUsers(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	c2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
@@ -5651,7 +5651,7 @@ func testGetKnownUsers(t *testing.T, ss store.Store) {
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	c3, nErr := ss.Channel().Save(ch3, -1)
 	require.NoError(t, nErr)

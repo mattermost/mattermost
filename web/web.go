@@ -102,6 +102,6 @@ func IsOAuthApiCall(a app.AppIface, r *http.Request) bool {
 
 func ReturnStatusOK(w http.ResponseWriter) {
 	m := make(map[string]string)
-	m[model.STATUS] = model.STATUS_OK
+	m[model.STATUS] = model.StatusOk
 	w.Write([]byte(model.MapToJson(m)))
 }

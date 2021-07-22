@@ -27,7 +27,7 @@ func makeTestLocalProxy() *ImageProxy {
 			},
 			ImageProxySettings: model.ImageProxySettings{
 				Enable:         model.NewBool(true),
-				ImageProxyType: model.NewString(model.IMAGE_PROXY_TYPE_LOCAL),
+				ImageProxyType: model.NewString(model.ImageProxyTypeLocal),
 			},
 		},
 	}
