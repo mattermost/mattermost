@@ -2651,22 +2651,22 @@ func TestGetMyTeamsUnread(t *testing.T) {
 	user := th.BasicUser
 	Client.Login(user.Email, user.Password)
 
-	teams, resp := Client.GetTeamsUnreadForUser(user.Id, "")
+	teams, resp := Client.GetTeamsUnreadForUser(user.Id, "", true)
 	CheckNoError(t, resp)
 	require.NotEqual(t, len(teams), 0, "should have results")
 
-	teams, resp = Client.GetTeamsUnreadForUser(user.Id, th.BasicTeam.Id)
+	teams, resp = Client.GetTeamsUnreadForUser(user.Id, th.BasicTeam.Id, true)
 	CheckNoError(t, resp)
 	require.Empty(t, teams, "should not have results")
 
-	_, resp = Client.GetTeamsUnreadForUser("fail", "")
+	_, resp = Client.GetTeamsUnreadForUser("fail", "", true)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetTeamsUnreadForUser(model.NewId(), "")
+	_, resp = Client.GetTeamsUnreadForUser(model.NewId(), "", true)
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.GetTeamsUnreadForUser(user.Id, "")
+	_, resp = Client.GetTeamsUnreadForUser(user.Id, "", true)
 	CheckUnauthorizedStatus(t, resp)
 }
 
