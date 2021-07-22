@@ -6,11 +6,11 @@ package active_users
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (

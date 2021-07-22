@@ -9,8 +9,8 @@ import (
 	"database/sql/driver"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 // DriverImpl implements the plugin.Driver interface on the server-side.

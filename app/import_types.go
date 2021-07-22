@@ -6,7 +6,7 @@ package app
 import (
 	"archive/zip"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // Import Data Models
