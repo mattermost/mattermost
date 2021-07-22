@@ -17,13 +17,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mail"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mail"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 
-	_ "github.com/mattermost/mattermost-server/v5/model/gitlab"
+	_ "github.com/mattermost/mattermost-server/v6/model/gitlab"
 )
 
 func TestCreateUser(t *testing.T) {

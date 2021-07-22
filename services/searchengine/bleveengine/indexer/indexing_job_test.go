@@ -9,11 +9,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
