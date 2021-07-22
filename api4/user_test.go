@@ -2695,7 +2695,7 @@ func TestCheckUserMfa(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
-		*c.ServiceSettings.DisableLegacyMFA = false
+		*c.ServiceSettings.DEPRECATED_DO_NOT_USE_DisableLegacyMFA = false
 	})
 
 	required, resp := th.Client.CheckUserMfa(th.BasicUser.Email)
@@ -2731,7 +2731,7 @@ func TestCheckUserMfa(t *testing.T) {
 	require.False(t, required, "mfa not active")
 
 	th.App.UpdateConfig(func(c *model.Config) {
-		*c.ServiceSettings.DisableLegacyMFA = true
+		*c.ServiceSettings.DEPRECATED_DO_NOT_USE_DisableLegacyMFA = true
 	})
 
 	_, resp = th.Client.CheckUserMfa(th.BasicUser.Email)
@@ -2743,7 +2743,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
-		*c.ServiceSettings.DisableLegacyMFA = true
+		*c.ServiceSettings.DEPRECATED_DO_NOT_USE_DisableLegacyMFA = true
 		*c.ServiceSettings.EnableMultifactorAuthentication = true
 	})
 

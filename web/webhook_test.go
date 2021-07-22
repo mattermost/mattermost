@@ -131,7 +131,9 @@ func TestIncomingWebhook(t *testing.T) {
 
 	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = true
+		})
 
 		// Read only default channel should fail.
 		resp, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
@@ -152,7 +154,9 @@ func TestIncomingWebhook(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = false
+		})
 	})
 
 	t.Run("WebhookAttachments", func(t *testing.T) {

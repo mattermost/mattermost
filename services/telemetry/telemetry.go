@@ -423,7 +423,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_api_user_deletion":                                *cfg.ServiceSettings.EnableAPIUserDeletion,
 		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
-		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DisableLegacyMFA,
+		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_DisableLegacyMFA,
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
@@ -443,8 +443,6 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
 		"enable_user_creation":                      cfg.TeamSettings.EnableUserCreation,
-		"restrict_public_channel_deletion":          *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion,
-		"restrict_private_channel_deletion":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion,
 		"enable_open_server":                        *cfg.TeamSettings.EnableOpenServer,
 		"enable_user_deactivation":                  *cfg.TeamSettings.EnableUserDeactivation,
 		"enable_custom_user_statuses":               *cfg.TeamSettings.EnableCustomUserStatuses,
@@ -461,11 +459,10 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_custom_brand_text":               isDefault(*cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
 		"isdefault_custom_description_text":         isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
 		"isdefault_user_status_away_timeout":        isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
-		"restrict_private_channel_manage_members":   *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers,
 		"enable_X_to_leave_channels_from_LHS":       *cfg.TeamSettings.EnableXToLeaveChannelsFromLHS,
 		"experimental_enable_automatic_replies":     *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
 		"experimental_town_square_is_hidden_in_lhs": *cfg.TeamSettings.ExperimentalHideTownSquareinLHS,
-		"experimental_town_square_is_read_only":     *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
+		"experimental_town_square_is_read_only":     *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly,
 		"experimental_primary_team":                 isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
 		"experimental_default_channels":             len(cfg.TeamSettings.ExperimentalDefaultChannels),
 	})

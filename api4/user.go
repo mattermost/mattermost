@@ -1465,7 +1465,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 //			   Clients should attempt a login without MFA and will receive a MFA error when it's required.
 func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	if *c.App.Config().ServiceSettings.DisableLegacyMFA {
+	if *c.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_DisableLegacyMFA {
 		http.NotFound(w, r)
 		return
 	}

@@ -985,12 +985,16 @@ func TestPinPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
-		townSquareIsReadOnly := *th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
+		townSquareIsReadOnly := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = true
+		})
 
 		defer th.App.Srv().RemoveLicense()
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly })
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly
+		})
 
 		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
 		assert.Nil(t, err)

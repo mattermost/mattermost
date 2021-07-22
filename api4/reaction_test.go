@@ -163,7 +163,9 @@ func TestSaveReaction(t *testing.T) {
 		post := th.CreatePostWithClient(th.Client, channel)
 
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = true
+		})
 
 		reaction := &model.Reaction{
 			UserId:    userId,
@@ -179,7 +181,9 @@ func TestSaveReaction(t *testing.T) {
 		require.Equal(t, 0, len(reactions), "should have not created a reaction")
 
 		th.App.Srv().RemoveLicense()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = false
+		})
 	})
 
 	t.Run("unable-to-react-in-an-archived-channel", func(t *testing.T) {
@@ -502,7 +506,9 @@ func TestDeleteReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have created a reaction")
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = true
+		})
 
 		_, resp = th.SystemAdminClient.DeleteReaction(r1)
 		CheckForbiddenStatus(t, resp)
@@ -512,7 +518,9 @@ func TestDeleteReaction(t *testing.T) {
 		require.Equal(t, 1, len(reactions), "should have not deleted a reaction")
 
 		th.App.Srv().RemoveLicense()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = false
+		})
 	})
 
 	t.Run("unable-to-delete-reactions-in-an-archived-channel", func(t *testing.T) {

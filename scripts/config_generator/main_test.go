@@ -25,7 +25,7 @@ func TestDefaultsGenerator(t *testing.T) {
 	b, err := ioutil.ReadFile(tmpFile.Name())
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(b, &config))
-	require.True(t, *config.ServiceSettings.DisableLegacyMFA)
+	require.True(t, *config.ServiceSettings.DEPRECATED_DO_NOT_USE_DisableLegacyMFA)
 	require.Equal(t, *config.SqlSettings.AtRestEncryptKey, "")
 	require.Equal(t, *config.FileSettings.PublicLinkSalt, "")
 

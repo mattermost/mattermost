@@ -209,7 +209,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		post.AddProp("from_bot", "true")
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
+	if a.Srv().License() != nil && *a.Config().TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
 		channel.Name == model.DEFAULT_CHANNEL &&
 		!a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {

@@ -143,7 +143,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
-		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
+		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 
 		if *license.Features.LDAP {

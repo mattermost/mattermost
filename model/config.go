@@ -350,7 +350,7 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	DisableLegacyMFA                                  *bool `access:"write_restrictable,cloud_restrictable"`
+	DEPRECATED_DO_NOT_USE_DisableLegacyMFA            *bool `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts,write_restrictable,cloud_restrictable"`
@@ -715,8 +715,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
 	}
 
-	if s.DisableLegacyMFA == nil {
-		s.DisableLegacyMFA = NewBool(!isUpdate)
+	if s.DEPRECATED_DO_NOT_USE_DisableLegacyMFA == nil {
+		s.DEPRECATED_DO_NOT_USE_DisableLegacyMFA = NewBool(!isUpdate)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
@@ -1864,33 +1864,30 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                                                  *string  `access:"site_customization"`
-	MaxUsersPerTeam                                           *int     `access:"site_users_and_teams"`
-	EnableUserCreation                                        *bool    `access:"authentication_signup"`
-	EnableOpenServer                                          *bool    `access:"authentication_signup"`
-	EnableUserDeactivation                                    *bool    `access:"experimental_features"`
-	RestrictCreationToDomains                                 *string  `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses                                  *bool    `access:"site_users_and_teams"`
-	EnableCustomBrand                                         *bool    `access:"site_customization"`
-	CustomBrandText                                           *string  `access:"site_customization"`
-	CustomDescriptionText                                     *string  `access:"site_customization"`
-	RestrictDirectMessage                                     *string  `access:"site_users_and_teams"`
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string  `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string  `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string  `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // Deprecated: do not use
-	EnableXToLeaveChannelsFromLHS                             *bool    `access:"experimental_features"`
-	UserStatusAwayTimeout                                     *int64   `access:"experimental_features"`
-	MaxChannelsPerTeam                                        *int64   `access:"site_users_and_teams"`
-	MaxNotificationsPerChannel                                *int64   `access:"environment_push_notification_server"`
-	EnableConfirmNotificationsToChannel                       *bool    `access:"site_notifications"`
-	TeammateNameDisplay                                       *string  `access:"site_users_and_teams"`
-	ExperimentalViewArchivedChannels                          *bool    `access:"experimental_features,site_users_and_teams"`
-	ExperimentalEnableAutomaticReplies                        *bool    `access:"experimental_features"`
-	ExperimentalHideTownSquareinLHS                           *bool    `access:"experimental_features"`
-	ExperimentalTownSquareIsReadOnly                          *bool    `access:"experimental_features"`
-	LockTeammateNameDisplay                                   *bool    `access:"site_users_and_teams"`
-	ExperimentalPrimaryTeam                                   *string  `access:"experimental_features"`
-	ExperimentalDefaultChannels                               []string `access:"experimental_features"`
+	SiteName                                               *string  `access:"site_customization"`
+	MaxUsersPerTeam                                        *int     `access:"site_users_and_teams"`
+	EnableUserCreation                                     *bool    `access:"authentication_signup"`
+	EnableOpenServer                                       *bool    `access:"authentication_signup"`
+	EnableUserDeactivation                                 *bool    `access:"experimental_features"`
+	RestrictCreationToDomains                              *string  `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses                               *bool    `access:"site_users_and_teams"`
+	EnableCustomBrand                                      *bool    `access:"site_customization"`
+	CustomBrandText                                        *string  `access:"site_customization"`
+	CustomDescriptionText                                  *string  `access:"site_customization"`
+	RestrictDirectMessage                                  *string  `access:"site_users_and_teams"`
+	EnableXToLeaveChannelsFromLHS                          *bool    `access:"experimental_features"`
+	UserStatusAwayTimeout                                  *int64   `access:"experimental_features"`
+	MaxChannelsPerTeam                                     *int64   `access:"site_users_and_teams"`
+	MaxNotificationsPerChannel                             *int64   `access:"environment_push_notification_server"`
+	EnableConfirmNotificationsToChannel                    *bool    `access:"site_notifications"`
+	TeammateNameDisplay                                    *string  `access:"site_users_and_teams"`
+	ExperimentalViewArchivedChannels                       *bool    `access:"experimental_features,site_users_and_teams"`
+	ExperimentalEnableAutomaticReplies                     *bool    `access:"experimental_features"`
+	ExperimentalHideTownSquareinLHS                        *bool    `access:"experimental_features"`
+	DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly *bool    `access:"experimental_features"`
+	LockTeammateNameDisplay                                *bool    `access:"site_users_and_teams"`
+	ExperimentalPrimaryTeam                                *string  `access:"experimental_features"`
+	ExperimentalDefaultChannels                            []string `access:"experimental_features"`
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -1939,10 +1936,6 @@ func (s *TeamSettings) SetDefaults() {
 		s.RestrictDirectMessage = NewString(DIRECT_MESSAGE_ANY)
 	}
 
-	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers == nil {
-		s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers = NewString(PERMISSIONS_ALL)
-	}
-
 	if s.EnableXToLeaveChannelsFromLHS == nil {
 		s.EnableXToLeaveChannelsFromLHS = NewBool(false)
 	}
@@ -1971,8 +1964,8 @@ func (s *TeamSettings) SetDefaults() {
 		s.ExperimentalHideTownSquareinLHS = NewBool(false)
 	}
 
-	if s.ExperimentalTownSquareIsReadOnly == nil {
-		s.ExperimentalTownSquareIsReadOnly = NewBool(false)
+	if s.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly == nil {
+		s.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = NewBool(false)
 	}
 
 	if s.ExperimentalPrimaryTeam == nil {
