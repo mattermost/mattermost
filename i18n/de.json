@@ -1841,7 +1841,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "{{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} beizutreten."
+    "translation": "Sie wurden von {{ .SenderName }} eingeladen dem Team {{ .TeamDisplayName }} beizutreten."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1881,7 +1881,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Gehe zum Beitrag"
+    "translation": "Nachricht anzeigen"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1961,11 +1961,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Bitte bestätigen Sie ihre E-Mail-Adresse durch das Anklicken des folgenden Links."
+    "translation": "Diese E-Mail-Adresse wurde verwendet, um ein Mattermost Konto zu erstellen."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Sie sind {{ .ServerURL }} beigetreten"
+    "translation": "Willkommen im Team"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -2009,7 +2009,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Nicht unterstützter OAuth-Service-Provider"
+    "translation": "{{.Service}} SSO über OAuth 2.0 auf diesem Server nicht verfügbar."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -5717,7 +5717,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Lizenz jetzt erneuern"
   },
   {
     "id": "api.templates.invite_guest_subject",
