@@ -2176,24 +2176,8 @@
     "translation": "Failed to send the deactivate account email successfully"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "전자우편 변경 알림을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "사용자명 변경 알림을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "전자우편 주소 변경 검증을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "비밀번호 변경 알림을 위한 전자우편을 발송하지 못했습니다"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2208,16 +2192,8 @@
     "translation": "비밀번호 변경 알림을 위한 전자우편을 발송하지 못했습니다"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send \"Personal access token added\" email successfully"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "전자우편 주소 검증을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "가입 환영 전자우편을 발송하지 못했습니다"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
