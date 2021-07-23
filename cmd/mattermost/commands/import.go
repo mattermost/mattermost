@@ -19,14 +19,6 @@ var ImportCmd = &cobra.Command{
 	Short: "Import data.",
 }
 
-var SlackImportCmd = &cobra.Command{
-	Use:     "slack [team] [file]",
-	Short:   "Import a team from Slack.",
-	Long:    "Import a team from a Slack export zip file.",
-	Example: "  import slack myteam slack_export.zip",
-	RunE:    slackImportCmdF,
-}
-
 var BulkImportCmd = &cobra.Command{
 	Use:     "bulk [file]",
 	Short:   "Import bulk data.",
@@ -43,59 +35,8 @@ func init() {
 
 	ImportCmd.AddCommand(
 		BulkImportCmd,
-		SlackImportCmd,
 	)
 	RootCmd.AddCommand(ImportCmd)
-}
-
-func slackImportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
-	if err != nil {
-		return err
-	}
-	defer a.Srv().Shutdown()
-
-	if len(args) != 2 {
-		return errors.New("Incorrect number of arguments.")
-	}
-
-	team := getTeamFromTeamArg(a, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	fileReader, err := os.Open(args[1])
-	if err != nil {
-		return err
-	}
-	defer fileReader.Close()
-
-	fileInfo, err := fileReader.Stat()
-	if err != nil {
-		return err
-	}
-
-	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
-
-	importErr, log := a.SlackImport(&request.Context{}, fileReader, fileInfo.Size(), team.Id)
-
-	if importErr != nil {
-		return err
-	}
-
-	CommandPrettyPrintln("")
-	CommandPrintln(log.String())
-	CommandPrettyPrintln("")
-
-	CommandPrettyPrintln("Finished Slack Import.")
-	CommandPrettyPrintln("")
-
-	auditRec := a.MakeAuditRecord("slackImport", audit.Success)
-	auditRec.AddMeta("team", team)
-	auditRec.AddMeta("file", args[1])
-	a.LogAuditRec(auditRec, nil)
-
-	return nil
 }
 
 func bulkImportCmdF(command *cobra.Command, args []string) error {
