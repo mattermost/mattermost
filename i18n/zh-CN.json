@@ -2176,24 +2176,8 @@
     "translation": "无法发送帐号注销邮件"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "无法发送电子邮件通知电子邮件"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "无法发送用户名更改通知邮件"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "无法发送电子邮件更改验证电子邮件"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "无法发送 MFA 更改邮件通知。"
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "无法发送更新密码电子邮件"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2208,16 +2192,8 @@
     "translation": "无法发送更新密码电子邮件"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "发送邮件 \"已添加个人访问令牌\" 失败"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "无法发送验证电子邮件"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "无法成功发送欢迎电子邮件"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -8354,10 +8330,6 @@
   {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "请求缺少 AuthData 或 AuthService 参数。"
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "给管理员发送用户限制通知邮件失败"
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
