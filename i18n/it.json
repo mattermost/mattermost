@@ -2180,24 +2180,8 @@
     "translation": "Impossibile inviare la notifica di disattivazione account"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Invio notifica email di cambio email avvenuto con successo fallita"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Invio notifica email di cambio username avvenuto con successo, fallita"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Invio email di verifica per il cambio email fallita"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Impossibile inviare l'email di notifica del cambio MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Invio email per la verifica dell'update della password fallito"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "Invio email per la verifica dell'update della password fallito"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Impossibile inviare l'email di notifica per la creazione del token di accesso"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Invio email di verifica fallita"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Invio email di benvenuto fallito"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
