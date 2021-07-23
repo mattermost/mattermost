@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Es ist ein Fehler beim Löschen der OAuth2 App aufgetreten."
+    "translation": "Es ist ein Fehler beim Löschen des Zertifikates aufgetreten."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Off-Topic"
+    "translation": "Sonstiges"
   },
   {
     "id": "api.channel.create_default_channels.town_square",
@@ -1211,7 +1211,7 @@
   },
   {
     "id": "api.oauth.get_access_token.credentials.app_error",
-    "translation": "invalid_client: Ungültige Client Zugangsdaten"
+    "translation": "invalid_client: Ungültige Client Zugangsdaten."
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
@@ -1219,7 +1219,7 @@
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: Ungültiger oder abgelaufener Autorisationscode"
+    "translation": "invalid_grant: Ungültiger oder abgelaufener Autorisationscode."
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
@@ -1239,23 +1239,23 @@
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
-    "translation": "invalid_request: Code fehlt"
+    "translation": "invalid_request: Code fehlt."
   },
   {
     "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
-    "translation": "invalid_request: refresh_token fehlt"
+    "translation": "invalid_request: refresh_token fehlt."
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: Angegebene redirect_uri entspricht nicht redirect_uri des Autorisationscodes"
+    "translation": "invalid_request: Angegebene redirect_uri entspricht nicht redirect_uri des Autorisationscodes."
   },
   {
     "id": "api.oauth.get_access_token.refresh_token.app_error",
-    "translation": "invalid_grant: Ungültiger refresh_token"
+    "translation": "invalid_grant: Ungültiger refresh_token."
   },
   {
     "id": "api.oauth.invalid_state_token.app_error",
-    "translation": "Ungültiger Status-Token"
+    "translation": "Ungültiger Status-Token."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1291,7 +1291,7 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "Datei-Array ist leer in multipart/form-Anfrage"
+    "translation": "Datei-Array ist leer in multipart/form-Anfrage."
   },
   {
     "id": "api.plugin.upload.file.app_error",
@@ -1299,7 +1299,7 @@
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Fehlende Datei in multipart/form-Anfrage"
+    "translation": "Fehlende Datei in multipart/form-Anfrage."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1573,7 +1573,7 @@
   },
   {
     "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack Import Log\r\n"
+    "translation": "Mattermost Slack Import Protokoll\n"
   },
   {
     "id": "api.slackimport.slack_import.note1",
@@ -2977,7 +2977,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration."
+    "translation": "Beim Speichern der Konfiguration ist ein Fehler aufgetreten."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3461,7 +3461,7 @@
   },
   {
     "id": "mattermost.bulletin.subject",
-    "translation": "Mattermost Security Bulletin"
+    "translation": "Mattermost Security Mitteilung"
   },
   {
     "id": "mfa.activate.bad_token.app_error",
@@ -3557,7 +3557,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at."
+    "translation": "Ungültige Aktualisierung am."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -4949,7 +4949,7 @@
   },
   {
     "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
+    "translation": "Fehler beim Bereinigen der Bleve Indices: Suchmaschine ist deaktiviert"
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
@@ -5037,7 +5037,7 @@
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
-    "translation": "invalid characters in the name property for group"
+    "translation": "Ungültige Zeichen in der Name-Eigenschaft für Gruppe"
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
@@ -5061,15 +5061,15 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung SearchEnabled auf wahr steht"
+    "translation": "Bleve IndexingEnabled muss auf true gesetzt sein, wenn Bleve SearchEnabled auf true steht"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung SearchEnabled auf wahr steht"
+    "translation": "Bleve IndexingEnabled muss auf true gesetzt sein, wenn Bleve SearchEnabled auf true steht"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung AutocompleteEnabled auf wahr steht"
+    "translation": "Bleve IndexingEnabled muss auf true gesetzt sein, wenn Bleve AutocompleteEnabled auf true steht"
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
@@ -5077,7 +5077,7 @@
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "Invalid AutocompleteData"
+    "translation": "Ungültiges AutocompleteData"
   },
   {
     "id": "model.channel.is_valid.name.app_error",
@@ -5093,7 +5093,7 @@
   },
   {
     "id": "group_not_associated_to_synced_team",
-    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+    "translation": "Gruppe kann dem Kanal nicht zugeordnet werden, solange sie nicht zuerst dem übergeordneten gruppen-sychronisierten Team zugeordnet wird."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
@@ -6069,7 +6069,7 @@
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Konnte Token nicht löschen."
+    "translation": "Konnte Benutzer nicht löschen."
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
@@ -6201,15 +6201,15 @@
   },
   {
     "id": "app.user_access_token.search.app_error",
-    "translation": "Beim Suchen von Zugangs-Tokens wurde ein Fehler festgestellt."
+    "translation": "Beim Suchen von Benutzerzugangstoken wurde ein Fehler festgestellt."
   },
   {
     "id": "app.user_access_token.save.app_error",
-    "translation": "Konnte das persönliche Zugriffs-Token nicht speichern."
+    "translation": "Konnte den persönlichen Zugriffs-Token nicht speichern."
   },
   {
     "id": "app.user_access_token.get_by_user.app_error",
-    "translation": "Konnte das persönliche Zugriffs-Token nicht über den Benutzer abrufen."
+    "translation": "Konnte die persönlichen Zugriffs-Token nach Benutzer nicht abrufen."
   },
   {
     "id": "app.user_access_token.get_all.app_error",
@@ -6961,7 +6961,7 @@
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": "Das /{{.Command}} Kommando hat das {{.PluginId}} Plugin zum Absturz gebracht. Bitte Kontaktieren Sie Ihren Systemadministrator."
+    "translation": "Das /{{.Command}} Kommando hat das {{.PluginId}} Plugin zum Absturz gebracht. Bitte Kontaktieren Sie Ihren Systemadministrator"
   },
   {
     "id": "model.command.is_valid.plugin_id.app_error",
@@ -6993,7 +6993,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Die Suche nach Dateien mit Elasticsearch ist auf diesem Server deaktiviert."
+    "translation": "Die Suche nach Dateien mit Elasticsearch ist auf diesem Server deaktiviert"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8536,7 +8536,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Cloud Überprüfung für am oder über dem Limit konnte nicht durchgeführt werden."
+    "translation": "Konnte die Anzahl der Benutzer in Ihrer Mattermost Cloud Instanz nicht prüfen."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -8885,5 +8885,369 @@
   {
     "id": "app.export.marshal.app_error",
     "translation": "Kann Antwort nicht ordnen."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Konnte Benutzermitgliedschaft an der Unterhaltung nicht abrufen"
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Keine E-Mails erfolgreich gesendet"
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Konnte keine automatische Antwort vom Benutzer senden."
+  },
+  {
+    "id": "app.user.search.app_error",
+    "translation": "Konnte keine Benutzer, der auf die Suchparameter passt, finden."
+  },
+  {
+    "id": "app.user.save.username_exists.app_error",
+    "translation": "Ein Konto mit dem Benutzernamen ist schon vorhanden."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Aktualisierung für den vorhandenen Benutzer muss aufgerufen werden."
+  },
+  {
+    "id": "app.user.save.email_exists.app_error",
+    "translation": "Ein Konto mit dieser E-Mail Adresse ist bereits vorhanden."
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "Konnte Konto nicht speichern."
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "Konnte Benutzer nicht aktualisieren."
+  },
+  {
+    "id": "app.user.get_recently_active_users.app_error",
+    "translation": "Wir sind beim Suchen nach kürzlich aktiven Benutzer auf einen Fehler gestoßen."
+  },
+  {
+    "id": "app.user.get_profiles.app_error",
+    "translation": "Wir sind beim Suchen nach Benutzerprofilen auf einen Fehler gestoßen."
+  },
+  {
+    "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "Wir sind beim Suchen nach Benutzerprofilen auf einen Fehler gestoßen."
+  },
+  {
+    "id": "app.user.get_new_users.app_error",
+    "translation": "Wir sind beim Suchen nach neuen Benutzern auf einen Fehler gestoßen."
+  },
+  {
+    "id": "app.user.get_known_users.get_users.app_error",
+    "translation": "Konnte keine bekannten Benutzer aus der Datenbank holen."
+  },
+  {
+    "id": "store.sql_command.update.missing.app_error",
+    "translation": "Befehl existiert nicht."
+  },
+  {
+    "id": "store.sql_command.get.missing.app_error",
+    "translation": "Befehl existiert nicht."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Diese Nachricht enthält permanente Links zu anderen Kanälen, die für andere Benutzer in anderen Standorten nicht sichtbar sein können."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Eine oder mehrere Nachrichten konnten nicht zum entfernten Standort {{.Remote}} zugestellt werden, da dieser offline ist. Die Zustellung erfolgt, wenn der Standort online ist."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Konnte Feld nicht zu JSON kodieren"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Ungültiger Wert für Dateiname"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "Ungültiger Wert für FileSize"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "Ungültiger Wert für FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "Ungültiger Wert für ChannelId."
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "Alle IncludeDeletedChannels Parameter sollten den gleichen Wert haben."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Aktualisierung am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin für /{{.Command}} funktioniert nicht. Bitte kontaktieren Sie Ihren Systemadministrator"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Ungültige maximale Verbindungsleerlaufzeit für SQL Einstellungen. Muss eine nicht-negative Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+    "translation": "Service Provider Identifier wird benötigt"
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "Ungültiger Wert für RetentionDays. Wert ist zu niedrig."
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Ungültiger Wert für Verzeichnis."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Ungültiger Wert für RetentionDays. Wert sollte größer als 0 sein"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Wert für Verzeichnis darf nicht leer sein."
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Ungültiges Local Storage Verzeichnis. Darf kein leerer String sein."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "Einstellung für Unterhaltungen muss entweder disabled, default_on oder default_off sein"
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Konnte MFA-Aktiv Status für den Benutzer nicht aktualisieren."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Konnte MFA-Aktiv Status für den Benutzer nicht aktualisieren."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": "Konnte Import nicht verarbeiten: import_file Parameter fehlt."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "Wir haben eine ungültige Zeit in der Antwort des Identitätsproviders erhalten. Bitte kontaktieren Sie Ihren Systemadministrator."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "Wir haben eine ungültige Signatur in der Antwort des Identitätsproviders erhalten. Bitte kontaktieren Sie Ihren Systemadministrator."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
+  },
+  {
+    "id": "ent.ldap_id_migrate.app_error",
+    "translation": "konnte nicht migrieren."
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Konnte Suchergebnisse nicht dekodieren"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "Die älteste Einheit (Benutzer, Kanal oder Nachricht) konnte nicht von der Datenbank abgerufen werden"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Konnte Datei nicht indizieren"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Konnte Benutzerdateien nicht löschen"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Konnte Nachrichtendateien nicht löschen"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Konnte Datei nicht löschen"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Konnte Elasticsearch Vorlage für Dateien nicht erstellen"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Datenhaltungs-Job fehlgeschlagen."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Richtlinie ist ungültig."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Wir sind bei der Durchführen der angefragten Operation auf einen Fehler gestoßen."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Konnte globale Austauschdatei nicht schreiben."
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Konnte CSV-Datei nicht schreiben."
+  },
+  {
+    "id": "ent.cluster.timeout.error",
+    "translation": "Zeitüberschreitung beim Warten auf eine Cluster-Antwort"
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "Fehler beim Ordnen der JSON Abfragen aufgetreten"
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Konnte Cloud Abonnement nicht abrufen"
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Konnte Exportdatei nicht schreiben."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Prüfung der Bildbeschränkungen ist fehlgeschlagen. Auflösung ist zu hoch."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Dateiindex konnte nicht geschlossen werden."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Dateisuche konnte nicht abgeschlossen werden."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Fehlschlag beim Bereinigen der Dateiindices."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Die älteste Einheit (Benutzer, Kanal oder Nachricht) konnte nicht aus der Datenbank abgerufen werden."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Fehler beim Indizieren des Dateistapels."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Fehler beim Indizieren der Datei."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Fehler beim Löschen der Benutzerdateien."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Fehler beim Löschen der Nachrichtendateien."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Fehler beim Löschen der Dateien."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Fehler beim Löschen der Datei."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Fehler beim Erstellen des Bleve Dateiindex."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Passwort ist ungültig"
+  },
+  {
+    "id": "app.user.permanent_delete.app_error",
+    "translation": "Konnte das bestehende Konto nicht löschen."
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "Konnte den Benutzer nicht finden."
+  },
+  {
+    "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Konnte den Benutzerstapel für die Indizierung nicht abrufen."
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "Wir konnten den Ungelesene Nachrichten Zähler für den Benutzer nicht abrufen."
+  },
+  {
+    "id": "app.user.get_total_users_count.app_error",
+    "translation": "Wir konnten die Benutzer nicht zählen."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Benutzerunterhaltung ist nicht vorhanden oder wird nicht gefolgt"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Konnte Benutzerunterhaltungen nicht abrufen"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Benutzermitgliedschaft an der Unterhaltung ist nicht vorhanden"
+  },
+  {
+    "id": "app.user.verify_email.app_error",
+    "translation": "Konnte das E-Mail Überprüfen-Feld nicht aktualisieren."
+  },
+  {
+    "id": "app.user.update_update.app_error",
+    "translation": "Konnte den Zeitpunkt der letzten Aktualisierung des Benutzers nicht aktualisieren."
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "Konnte alle Benutzerunterhaltungen nicht als gelesen aktualisieren"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "Konnte den Gelesen-Status für die Unterhaltung nicht aktualisieren"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Konnte den Folgen-Status für die Unterhaltung nicht aktualisieren"
+  },
+  {
+    "id": "app.user.update_failed_pwd_attempts.app_error",
+    "translation": "Konnte die failed_attempts nicht aktualisieren."
+  },
+  {
+    "id": "app.user.update_auth_data.email_exists.app_error",
+    "translation": "Konnte Konto nicht zu {{.Service}} wechseln. Ein Konto mit der E-Mail {{.Email}} ist schon vorhanden."
+  },
+  {
+    "id": "app.user.update_auth_data.app_error",
+    "translation": "Konnte die Auth-Daten nicht aktualisieren."
+  },
+  {
+    "id": "app.user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Konnte Gäste nicht deaktivieren."
+  },
+  {
+    "id": "app.user.update.finding.app_error",
+    "translation": "Wir sind beim Suchen des Kontos auf einen Fehler gestoßen."
+  },
+  {
+    "id": "app.user.update.find.app_error",
+    "translation": "Konnte kein vorhandenes Konto zur Aktualisierung finden."
   }
 ]
