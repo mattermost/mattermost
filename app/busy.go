@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -109,11 +110,12 @@ func (b *Busy) notifyServerBusyChange(sbs *model.ServerBusyState) {
 	if b.cluster == nil {
 		return
 	}
+	buf, _ := json.Marshal(sbs)
 	msg := &model.ClusterMessage{
 		Event:            model.ClusterEventBusyStateChanged,
 		SendType:         model.ClusterSendReliable,
 		WaitForAllToSend: true,
-		Data:             sbs.ToJson(),
+		Data:             buf,
 	}
 	b.cluster.SendClusterMessage(msg)
 }
