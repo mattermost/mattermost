@@ -345,7 +345,6 @@ type ServiceSettings struct {
 	EnableTutorial                                    *bool    `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental_features"`
-	ExperimentalChannelOrganization                   *bool    `access:"experimental_features"`
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
@@ -686,11 +685,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
 	} else if *s.ExperimentalGroupUnreadChannels == "1" {
 		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DEFAULT_ON)
-	}
-
-	if s.ExperimentalChannelOrganization == nil {
-		experimentalUnreadEnabled := *s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED
-		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
 	if s.EnableAPITeamDeletion == nil {
