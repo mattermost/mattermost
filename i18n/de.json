@@ -1945,7 +1945,7 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Prüfen Sie Ihre E-Mail-Adresse"
+    "translation": "Verifizieren Sie Ihre E-Mail-Adresse."
   },
   {
     "id": "api.templates.verify_subject",
@@ -2180,16 +2180,8 @@
     "translation": "Fehler beim Senden der Konto-Deaktivierungs-E-Mail"
   },
   {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Die Benutzernamen-Änderungsbenachrichtigung konnte erfolgreich nicht versendet werden"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Die Bestätigungs-E-Mail über die Änderung der E-Mail-Adresse konnte nicht versandt werden"
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Die Bestätigungs-E-Mail über die Änderung des Passworts konnte nicht versandt werden"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
