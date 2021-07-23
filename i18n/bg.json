@@ -9172,7 +9172,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Не е възможно да се извърши проверка на облака за превишаване на лимита."
+    "translation": "Неуспешна проверка броя на потребителите във Вашата Mattermost облачна инстанция."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
