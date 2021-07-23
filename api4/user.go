@@ -57,7 +57,6 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
-	api.BaseRoutes.Users.Handle("/mfa", api.ApiHandler(checkUserMfa)).Methods("POST")
 	api.BaseRoutes.User.Handle("/mfa", api.ApiSessionRequiredMfa(updateUserMfa)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/mfa/generate", api.ApiSessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
@@ -1459,40 +1458,6 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
 
 	w.Write([]byte(user.ToJson()))
-}
-
-// Deprecated: checkUserMfa is deprecated and should not be used anymore, starting with version 6.0 it will be disabled.
-//			   Clients should attempt a login without MFA and will receive a MFA error when it's required.
-func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	if *c.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_DisableLegacyMFA {
-		http.NotFound(w, r)
-		return
-	}
-
-	props := model.MapFromJson(r.Body)
-
-	loginId := props["login_id"]
-	if loginId == "" {
-		c.SetInvalidParam("login_id")
-		return
-	}
-
-	resp := map[string]interface{}{}
-	resp["mfa_required"] = false
-
-	if !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
-		w.Write([]byte(model.StringInterfaceToJson(resp)))
-		return
-	}
-
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
-		resp["mfa_required"] = true
-	} else if user, err := c.App.GetUserForLogin("", loginId); err == nil {
-		resp["mfa_required"] = user.MfaActive
-	}
-
-	w.Write([]byte(model.StringInterfaceToJson(resp)))
 }
 
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {

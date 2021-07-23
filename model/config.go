@@ -341,7 +341,6 @@ type ServiceSettings struct {
 	EnableUserStatuses                                *bool    `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool    `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	ClusterLogTimeoutMilliseconds                     *int     `access:"write_restrictable,cloud_restrictable"`
-	CloseUnusedDirectMessages                         *bool    `access:"experimental_features"`
 	EnablePreviewFeatures                             *bool    `access:"experimental_features"`
 	EnableTutorial                                    *bool    `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental_features"`
@@ -350,7 +349,6 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	DEPRECATED_DO_NOT_USE_DisableLegacyMFA            *bool `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts,write_restrictable,cloud_restrictable"`
@@ -563,10 +561,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ClusterLogTimeoutMilliseconds = NewInt(2000)
 	}
 
-	if s.CloseUnusedDirectMessages == nil {
-		s.CloseUnusedDirectMessages = NewBool(false)
-	}
-
 	if s.EnableTutorial == nil {
 		s.EnableTutorial = NewBool(true)
 	}
@@ -713,10 +707,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExperimentalEnableHardenedMode == nil {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_DisableLegacyMFA == nil {
-		s.DEPRECATED_DO_NOT_USE_DisableLegacyMFA = NewBool(!isUpdate)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
@@ -1875,7 +1865,6 @@ type TeamSettings struct {
 	CustomBrandText                                        *string  `access:"site_customization"`
 	CustomDescriptionText                                  *string  `access:"site_customization"`
 	RestrictDirectMessage                                  *string  `access:"site_users_and_teams"`
-	EnableXToLeaveChannelsFromLHS                          *bool    `access:"experimental_features"`
 	UserStatusAwayTimeout                                  *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                                     *int64   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel                             *int64   `access:"environment_push_notification_server"`
@@ -1883,7 +1872,6 @@ type TeamSettings struct {
 	TeammateNameDisplay                                    *string  `access:"site_users_and_teams"`
 	ExperimentalViewArchivedChannels                       *bool    `access:"experimental_features,site_users_and_teams"`
 	ExperimentalEnableAutomaticReplies                     *bool    `access:"experimental_features"`
-	ExperimentalHideTownSquareinLHS                        *bool    `access:"experimental_features"`
 	DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly *bool    `access:"experimental_features"`
 	LockTeammateNameDisplay                                *bool    `access:"site_users_and_teams"`
 	ExperimentalPrimaryTeam                                *string  `access:"experimental_features"`
@@ -1936,10 +1924,6 @@ func (s *TeamSettings) SetDefaults() {
 		s.RestrictDirectMessage = NewString(DIRECT_MESSAGE_ANY)
 	}
 
-	if s.EnableXToLeaveChannelsFromLHS == nil {
-		s.EnableXToLeaveChannelsFromLHS = NewBool(false)
-	}
-
 	if s.UserStatusAwayTimeout == nil {
 		s.UserStatusAwayTimeout = NewInt64(TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT)
 	}
@@ -1958,10 +1942,6 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.ExperimentalEnableAutomaticReplies == nil {
 		s.ExperimentalEnableAutomaticReplies = NewBool(false)
-	}
-
-	if s.ExperimentalHideTownSquareinLHS == nil {
-		s.ExperimentalHideTownSquareinLHS = NewBool(false)
 	}
 
 	if s.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly == nil {
