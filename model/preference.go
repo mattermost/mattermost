@@ -13,23 +13,24 @@ import (
 )
 
 const (
-	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW = "direct_channel_show"
-	PREFERENCE_CATEGORY_GROUP_CHANNEL_SHOW  = "group_channel_show"
-	PREFERENCE_CATEGORY_TUTORIAL_STEPS      = "tutorial_step"
-	PREFERENCE_CATEGORY_ADVANCED_SETTINGS   = "advanced_settings"
-	PREFERENCE_CATEGORY_FLAGGED_POST        = "flagged_post"
-	PREFERENCE_CATEGORY_FAVORITE_CHANNEL    = "favorite_channel"
-	PREFERENCE_CATEGORY_SIDEBAR_SETTINGS    = "sidebar_settings"
+	PreferenceCategoryDirectChannelShow = "direct_channel_show"
+	PreferenceCategoryGroupChannelShow  = "group_channel_show"
+	PreferenceCategoryTutorialSteps     = "tutorial_step"
+	PreferenceCategoryAdvancedSettings  = "advanced_settings"
+	PreferenceCategoryFlaggedPost       = "flagged_post"
+	PreferenceCategoryFavoriteChannel   = "favorite_channel"
+	PreferenceCategorySidebarSettings   = "sidebar_settings"
 
-	PREFERENCE_CATEGORY_DISPLAY_SETTINGS      = "display_settings"
-	PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED = "collapsed_reply_threads"
-	PREFERENCE_NAME_CHANNEL_DISPLAY_MODE      = "channel_display_mode"
-	PREFERENCE_NAME_COLLAPSE_SETTING          = "collapse_previews"
-	PREFERENCE_NAME_MESSAGE_DISPLAY           = "message_display"
-	PREFERENCE_NAME_NAME_FORMAT               = "name_format"
-	PREFERENCE_NAME_USE_MILITARY_TIME         = "use_military_time"
+	PreferenceCategoryDisplaySettings     = "display_settings"
+	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
+	PreferenceNameChannelDisplayMode      = "channel_display_mode"
+	PreferenceNameCollapseSetting         = "collapse_previews"
+	PreferenceNameMessageDisplay          = "message_display"
+	PreferenceNameNameFormat              = "name_format"
+	PreferenceNameUseMilitaryTime         = "use_military_time"
+	PreferenceRecommendedNextSteps        = "recommended_next_steps"
 
-	PREFERENCE_CATEGORY_THEME = "theme"
+	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id
 
 	PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP = "oauth_app"
