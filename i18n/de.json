@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Es ist ein Fehler beim Löschen des Zertifikates aufgetreten."
+    "translation": "Es ist ein Fehler beim Löschen des Zertifikats aufgetreten."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -7696,7 +7696,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Danke, dass Sie Mattermost kontaktiert habe. Wir setzen uns ins Kürze mit Ihnen in Verbindung."
+    "translation": "Danke, dass Sie Mattermost kontaktiert haben. Wir werden uns in Kürze mit Ihnen in Verbindung setzen."
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
