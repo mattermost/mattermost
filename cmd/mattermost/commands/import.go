@@ -48,17 +48,17 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	apply, err := command.Flags().GetBool("apply")
 	if err != nil {
-		return errors.New("Apply flag error")
+		return errors.New("apply flag error")
 	}
 
 	validate, err := command.Flags().GetBool("validate")
 	if err != nil {
-		return errors.New("Validate flag error")
+		return errors.New("validate flag error")
 	}
 
 	workers, err := command.Flags().GetInt("workers")
 	if err != nil {
-		return errors.New("Workers flag error")
+		return errors.New("workers flag error")
 	}
 
 	importPath, err := command.Flags().GetString("import-path")
@@ -67,7 +67,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if len(args) != 1 {
-		return errors.New("Incorrect number of arguments.")
+		return errors.New("incorrect number of arguments")
 	}
 
 	fileReader, err := os.Open(args[0])
