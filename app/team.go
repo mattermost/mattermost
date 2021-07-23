@@ -1692,7 +1692,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 		}
 	}
 
-	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED
+	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	for _, member := range membersMap {
 		if includeCollapsedThreads {
