@@ -2180,20 +2180,12 @@
     "translation": "Fehler beim Senden der Konto-Deaktivierungs-E-Mail"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Die E-Mail-Änderungsbenachrichtigung konnte nicht erfolgreich versendet werden"
-  },
-  {
     "id": "api.user.send_email_change_username_and_forget.error",
     "translation": "Die Benutzernamen-Änderungsbenachrichtigung konnte erfolgreich nicht versendet werden"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Die Bestätigungs-E-Mail über die Änderung der E-Mail-Adresse konnte nicht versandt werden"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Konnte E-Mail-Benachrichtigung für MFA-Änderung nicht senden."
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -2212,16 +2204,8 @@
     "translation": "Die Bestätigungs-E-Mail über die Änderung des Passworts konnte nicht versandt werden"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Konnte \"Persönliches Zugriffs-Token hinzugefügt\"-E-Mail nicht erfolgreich versenden"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Die Bestätigungs-E-Mail konnte nicht versandt werden"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Die Willkommens-E-Mail konnte nicht versandt werden"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",

@@ -5262,16 +5262,8 @@
     "translation": "Не можете да активирате профил за гости, тъй като функцията за достъп на гости не е разрешена."
   },
   {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Не можа да се изпрати ел.поща за добре дошли"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Не можа да се изпрати ел.поща за потвърждение"
-  },
-  {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Не можа да се изпрати ел.поща \"личен маркер за достъп е добавен\""
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -5286,24 +5278,8 @@
     "translation": "Не можа да се изпрати ел.поща за нулиране на паролата."
   },
   {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Не можа да се изпрати ел.поща за актуализация на парола"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Не можа да се изпрати ел.поща с известие за промяна в МФУ."
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Не можа да се изпрати ел.поща за потвърждаване промяна на ел.поща"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Не можа да се изпрати ел.поща с известие за промяна на потребителско име"
-  },
-  {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Не можа да се изпрати ел.поща с известие за промяна на ел.поща"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -8352,10 +8328,6 @@
     "translation": "Няма успешно изпратена ел.поща"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Неуспешно изпращане на ел.поща за ограничението на потребители до администратора"
-  },
-  {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} желае да покани членове във Вашето работно пространство"
   },
@@ -8912,14 +8884,6 @@
     "translation": "Полето '{{.Field}}' трябва да бъде зададено чрез доставчика за удостоверяване на потребители."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Неуспешно изпращане на предупредителна ел.поща за приключване на пробния период"
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Неуспешно изпращане на ел.поща за край на пробния период"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Безплатната Ви 14-дневна пробна версия на Mattermost приключва скоро"
   },
@@ -9245,10 +9209,6 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Задачата по запазване на данни е неуспешна."
-  },
-  {
-    "id": "api.user.send_license_up_for_renewal_email.error",
-    "translation": "Неуспешно изпращане на ел.поща за подновяване на лиценза"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",

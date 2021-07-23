@@ -4744,20 +4744,8 @@
     "translation": "Nem aktiválhat vendégfiókot, mert a vendégelérés funkció nincs engedélyezve."
   },
   {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Nem sikerült elküldeni az üdvözlés emailt"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Nem sikerült elküldeni az email megerősítés emailt"
-  },
-  {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Nem sikerült elküldeni a \"Személyes hozzáférési token hozzáadva\" emailt"
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Nem sikerült elküldeni a felhasználói korlát emailt az adminnak"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -4770,14 +4758,6 @@
   {
     "id": "api.user.send_password_reset.send.app_error",
     "translation": "Nem sikerült elküldeni a jelszó visszaállítás emailt."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Nem sikerült elküldeni a jelszó változtatás emailt"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Nem lehet elküldeni az MFA változtatás értesítés emailt."
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -5022,10 +5002,6 @@
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Üres email."
-  },
-  {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Nem sikerült elküldeni a próbaidőszak végére figyelmeztető e-mailt"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -6362,14 +6338,6 @@
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
     "translation": "Haladó jogosultságok használata"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Az felhasználó változtatás értesítő email küldése sikertelen volt"
-  },
-  {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Az email változtatás értesítő email küldése sikertelen volt"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -9064,10 +9032,6 @@
     "translation": "Amíg távol volt, {{.SenderName}} új közvetlen üzenetet küldött Önnek."
   },
   {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Nem sikerült elküldeni a próbaverzió lejárt e-mailt"
-  },
-  {
     "id": "api.templates.cloud_trial_ended_email.title",
     "translation": "A Mattermost ingyenes 14 napos próbaverziója ma lejárt"
   },
@@ -9249,10 +9213,6 @@
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, az előfizetésed le fog járni {{.Days}} nap múlva. Reméljük, hogy sikeresen megismerted a rugalmas, biztonságos csoportmunkát, amit a Mattermost biztosít. Újítsd meg mihamarabb az előfizetésed, hogy a csapatod tovább élvezhesse eme szolgáltatások nyújtotta előnyöket."
-  },
-  {
-    "id": "api.user.send_license_up_for_renewal_email.error",
-    "translation": "Hiba történt a licensz megújító e-mail küldése közben"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
