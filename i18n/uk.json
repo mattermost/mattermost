@@ -2184,24 +2184,8 @@
     "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Не вдалося надіслати електронне повідомлення про зміну електронної пошти успішно"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Не вдалося успішно відправити повідомлення про зміну імені користувача "
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Не вдалося успішно надіслати лист підтвердження змін електронною поштою"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Неможливо відправити email повідомлення для зміни MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Не вдалося успішно надіслати пару електронних листів оновлення"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2216,16 +2200,8 @@
     "translation": "Не вдалося відправити лист про оновлення пароля"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Не вдалося успішно надіслати \"Доданий токен особистого доступу\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Не вдалося успішно надіслати електронний лист для підтвердження"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Не вдалося успішно надіслати вітальний лист"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",

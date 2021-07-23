@@ -2180,24 +2180,8 @@
     "translation": "De e-mail met het deactiveren van de account kon niet met succes worden verzonden"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Aanpassings mail voor notificatie kon niet verstuurd worden"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "De e-mail voor het aanpassen van de gebruikersnaam kon niet verstuurd worden"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "De verificatie-e-mail voor het aanpassen van het e-mailadres kon niet verstuurd worden"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Kon geen e-mailmelding versturen voor wijzigen MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "De e-mail voor het bijwerken van het wachtwoord kon niet verstuurd worden"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "De e-mail voor het bijwerken van het wachtwoord kon niet verstuurd worden"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Fout bij het verzenden van e-mail \"Persoonlijke toegangstoken toegevoegd\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Verificatie-e-mail kon niet verstuurd worden"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Welkomst-mail kon niet verstuurd worden"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -8352,10 +8328,6 @@
     "translation": "Geen enkele e-mail werd succesvol verzonden"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Mislukt om e-mail naar gebruiker te sturen limietmelding aan admin"
-  },
-  {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} wil leden uitnodigen voor jouw werkruimte"
   },
@@ -9040,10 +9012,6 @@
     "translation": "Er is een fout opgetreden bij het uitvoeren van de gevraagde bewerking."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Fout bij het verzenden van waarschuwingsmail over einde proefperiode"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt binnenkort"
   },
@@ -9070,10 +9038,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kan geen automatisch antwoord van gebruiker sturen."
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Fout bij het verzenden van e-mail einde proefperiode"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -9245,10 +9209,6 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Dataretentietaak mislukt."
-  },
-  {
-    "id": "api.user.send_license_up_for_renewal_email.error",
-    "translation": "Het is niet gelukt om de e-mail over de te vernieuwen licentie te verzenden"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
