@@ -2180,24 +2180,8 @@
     "translation": "Hesabı devre dışı bırakma bildirimi e-postası gönderilemedi"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "E-posta adresi değişikliği bildirim e-postası gönderilemedi"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Kullanıcı adı değişikliği bildirim e-postası gönderilemedi"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "E-posta adresi değişikliği doğrulama e-postası gönderilemedi"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama değişikliği e-posta bildirimi gönderilemedi."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Parola güncelleme bildirim e-postası gönderilemedi"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "Parola güncelleme bildirim e-postası gönderilemedi"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "\"Kişisel erişim kodu eklendi\" e-postası gönderilemedi"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Doğrulama e-postası gönderilemedi"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Karşılama e-postası gönderilemedi"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -8352,10 +8328,6 @@
     "translation": "Hiç bir e-posta gönderilemedi"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Yöneticiye kullanıcı sayısı sınırı bildirimi gönderilemedi"
-  },
-  {
     "id": "api.templates.upgrade_request_subject",
     "translation": "Mattermost kullanıcısı çalışma alanının yükseltilmesini istiyor"
   },
@@ -8880,10 +8852,6 @@
     "translation": "Doğrudan paylaşılmış bir kanal eklenirken bir sorun çıktı."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Deneme süresi sona eriyor bildirim e-postası gönderilemedi"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "14 günlük Mattermost deneme süreniz yakında sona erecek"
   },
@@ -9072,10 +9040,6 @@
     "translation": "Kullanıcının otomatik yanıtı gönderilemedi."
   },
   {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Deneme süresi sonu bildirimi gönderilemedi"
-  },
-  {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
     "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
   },
@@ -9245,10 +9209,6 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Veri saklama görevi yürütülemedi."
-  },
-  {
-    "id": "api.user.send_license_up_for_renewal_email.error",
-    "translation": "Lisans yenileme e-postası gönderilemedi"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
