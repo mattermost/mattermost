@@ -515,6 +515,7 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
+	t.Skip("MM-37378")
 	// Creating a temp file to collect logs
 	tmpfile, err := ioutil.TempFile("", "mlog")
 	if err != nil {
