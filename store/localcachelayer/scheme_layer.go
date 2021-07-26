@@ -4,6 +4,8 @@
 package localcachelayer
 
 import (
+	"bytes"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -14,10 +16,10 @@ type LocalCacheSchemeStore struct {
 }
 
 func (s *LocalCacheSchemeStore) handleClusterInvalidateScheme(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.schemeCache.Purge()
 	} else {
-		s.rootStore.schemeCache.Remove(msg.Data)
+		s.rootStore.schemeCache.Remove(string(msg.Data))
 	}
 }
 
