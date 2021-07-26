@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -134,7 +135,9 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(license.ToJson()))
+	if err := json.NewEncoder(w).Encode(license); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
