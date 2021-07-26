@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 
+	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/grpclog"
@@ -41,7 +42,7 @@ func (bb *baseBuilder) Build(cc balancer.ClientConn, opt balancer.BuildOptions) 
 		cc:            cc,
 		pickerBuilder: bb.pickerBuilder,
 
-		subConns: make(map[resolver.Address]balancer.SubConn),
+		subConns: make(map[resolver.Address]subConnInfo),
 		scStates: make(map[balancer.SubConn]connectivity.State),
 		csEvltr:  &balancer.ConnectivityStateEvaluator{},
 		config:   bb.config,
@@ -57,6 +58,11 @@ func (bb *baseBuilder) Name() string {
 	return bb.name
 }
 
+type subConnInfo struct {
+	subConn balancer.SubConn
+	attrs   *attributes.Attributes
+}
+
 type baseBalancer struct {
 	cc            balancer.ClientConn
 	pickerBuilder PickerBuilder
@@ -64,7 +70,7 @@ type baseBalancer struct {
 	csEvltr *balancer.ConnectivityStateEvaluator
 	state   connectivity.State
 
-	subConns map[resolver.Address]balancer.SubConn
+	subConns map[resolver.Address]subConnInfo // `attributes` is stripped from the keys of this map (the addresses)
 	scStates map[balancer.SubConn]connectivity.State
 	picker   balancer.Picker
 	config   Config
@@ -101,23 +107,49 @@ func (b *baseBalancer) UpdateClientConnState(s balancer.ClientConnState) error {
 	// addrsSet is the set converted from addrs, it's used for quick lookup of an address.
 	addrsSet := make(map[resolver.Address]struct{})
 	for _, a := range s.ResolverState.Addresses {
-		addrsSet[a] = struct{}{}
-		if _, ok := b.subConns[a]; !ok {
+		// Strip attributes from addresses before using them as map keys. So
+		// that when two addresses only differ in attributes pointers (but with
+		// the same attribute content), they are considered the same address.
+		//
+		// Note that this doesn't handle the case where the attribute content is
+		// different. So if users want to set different attributes to create
+		// duplicate connections to the same backend, it doesn't work. This is
+		// fine for now, because duplicate is done by setting Metadata today.
+		//
+		// TODO: read attributes to handle duplicate connections.
+		aNoAttrs := a
+		aNoAttrs.Attributes = nil
+		addrsSet[aNoAttrs] = struct{}{}
+		if scInfo, ok := b.subConns[aNoAttrs]; !ok {
 			// a is a new address (not existing in b.subConns).
+			//
+			// When creating SubConn, the original address with attributes is
+			// passed through. So that connection configurations in attributes
+			// (like creds) will be used.
 			sc, err := b.cc.NewSubConn([]resolver.Address{a}, balancer.NewSubConnOptions{HealthCheckEnabled: b.config.HealthCheck})
 			if err != nil {
 				logger.Warningf("base.baseBalancer: failed to create new SubConn: %v", err)
 				continue
 			}
-			b.subConns[a] = sc
+			b.subConns[aNoAttrs] = subConnInfo{subConn: sc, attrs: a.Attributes}
 			b.scStates[sc] = connectivity.Idle
 			sc.Connect()
+		} else {
+			// Always update the subconn's address in case the attributes
+			// changed.
+			//
+			// The SubConn does a reflect.DeepEqual of the new and old
+			// addresses. So this is a noop if the current address is the same
+			// as the old one (including attributes).
+			scInfo.attrs = a.Attributes
+			b.subConns[aNoAttrs] = scInfo
+			b.cc.UpdateAddresses(scInfo.subConn, []resolver.Address{a})
 		}
 	}
-	for a, sc := range b.subConns {
+	for a, scInfo := range b.subConns {
 		// a was removed by resolver.
 		if _, ok := addrsSet[a]; !ok {
-			b.cc.RemoveSubConn(sc)
+			b.cc.RemoveSubConn(scInfo.subConn)
 			delete(b.subConns, a)
 			// Keep the state of this sc in b.scStates until sc's state becomes Shutdown.
 			// The entry will be deleted in UpdateSubConnState.
@@ -160,9 +192,10 @@ func (b *baseBalancer) regeneratePicker() {
 	readySCs := make(map[balancer.SubConn]SubConnInfo)
 
 	// Filter out all ready SCs from full subConn map.
-	for addr, sc := range b.subConns {
-		if st, ok := b.scStates[sc]; ok && st == connectivity.Ready {
-			readySCs[sc] = SubConnInfo{Address: addr}
+	for addr, scInfo := range b.subConns {
+		if st, ok := b.scStates[scInfo.subConn]; ok && st == connectivity.Ready {
+			addr.Attributes = scInfo.attrs
+			readySCs[scInfo.subConn] = SubConnInfo{Address: addr}
 		}
 	}
 	b.picker = b.pickerBuilder.Build(PickerBuildInfo{ReadySCs: readySCs})

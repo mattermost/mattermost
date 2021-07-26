@@ -14,11 +14,22 @@ import (
 // It returns the X in Go 1.X.
 func GoVersion(ctx context.Context, inv Invocation, r *Runner) (int, error) {
 	inv.Verb = "list"
-	inv.Args = []string{"-e", "-f", `{{context.ReleaseTags}}`}
+	inv.Args = []string{"-e", "-f", `{{context.ReleaseTags}}`, `--`, `unsafe`}
 	inv.Env = append(append([]string{}, inv.Env...), "GO111MODULE=off")
-	// Unset any unneeded flags.
+	// Unset any unneeded flags, and remove them from BuildFlags, if they're
+	// present.
 	inv.ModFile = ""
 	inv.ModFlag = ""
+	var buildFlags []string
+	for _, flag := range inv.BuildFlags {
+		// Flags can be prefixed by one or two dashes.
+		f := strings.TrimPrefix(strings.TrimPrefix(flag, "-"), "-")
+		if strings.HasPrefix(f, "mod=") || strings.HasPrefix(f, "modfile=") {
+			continue
+		}
+		buildFlags = append(buildFlags, flag)
+	}
+	inv.BuildFlags = buildFlags
 	stdoutBytes, err := r.Run(ctx, inv)
 	if err != nil {
 		return 0, err

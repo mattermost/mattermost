@@ -12,9 +12,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestPluginHealthCheck(t *testing.T) {
@@ -36,7 +36,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -59,13 +59,13 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		EnableFile:    false,
 	})
 
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
-	require.Nil(t, err)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func testPluginHealthCheckPanic(t *testing.T) {
@@ -78,8 +78,8 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/model"
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -106,18 +106,18 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		EnableFile:    false,
 	})
 
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
-	require.Nil(t, err)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	supervisor.hooks.MessageWillBePosted(&Context{}, &model.Post{})
 
 	err = supervisor.PerformHealthCheck()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestShouldDeactivatePlugin(t *testing.T) {

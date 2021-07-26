@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestWebhookStore(t *testing.T) {
@@ -28,7 +28,7 @@ func TestWebhookStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		incomingWebhook, err := cachedStore.Webhook().GetIncoming("123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, incomingWebhook, &fakeWebhook)
 		mockStore.Webhook().(*mocks.WebhookStore).AssertNumberOfCalls(t, "GetIncoming", 1)
 

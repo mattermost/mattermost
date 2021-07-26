@@ -661,6 +661,9 @@ func (s *Selection) eachNodeHtml(htmlStr string, isParent bool, mergeFn func(n *
 		if isParent {
 			context = n.Parent
 		} else {
+			if n.Type != html.ElementNode {
+				continue
+			}
 			context = n
 		}
 		if context != nil {

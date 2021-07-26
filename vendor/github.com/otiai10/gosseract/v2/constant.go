@@ -59,7 +59,7 @@ const (
 
 // SettableVariable represents available strings for TessBaseAPI::SetVariable.
 // See https://groups.google.com/forum/#!topic/tesseract-ocr/eHTBzrBiwvQ
-// and https://github.com/tesseract-ocr/tesseract/blob/master/ccmain/tesseractclass.h
+// and https://github.com/tesseract-ocr/tesseract/blob/master/src/ccmain/tesseractclass.h
 type SettableVariable string
 
 // Followings are variables which can be used for TessBaseAPI::SetVariable.

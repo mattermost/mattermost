@@ -14,8 +14,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestNoticeValidation(t *testing.T) {
@@ -53,7 +54,6 @@ func TestNoticeValidation(t *testing.T) {
 	type args struct {
 		client               model.NoticeClientType
 		clientVersion        string
-		locale               string
 		sku                  string
 		postCount, userCount int64
 		cloud                bool
@@ -61,6 +61,10 @@ func TestNoticeValidation(t *testing.T) {
 		systemAdmin          bool
 		serverVersion        string
 		notice               *model.ProductNotice
+		dbmsName             string
+		dbmsVer              string
+		searchEngineName     string
+		searchEngineVer      string
 	}
 	messages := map[string]model.NoticeMessageInternal{
 		"en": {
@@ -97,7 +101,7 @@ func TestNoticeValidation(t *testing.T) {
 
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ClientType: model.NewNoticeClientType(model.NoticeClientType_Mobile),
+						ClientType: model.NewNoticeClientType(model.NoticeClientTypeMobile),
 					},
 				},
 			},
@@ -283,6 +287,20 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  false,
 		},
+		{
+			name: "notice with server version check on cloud should ignore version",
+			args: args{
+				cloud:         true,
+				serverVersion: "cloud.54.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
 
 		{
 			name: "notice with server version check that is invalid",
@@ -378,7 +396,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_Sysadmin),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceSysadmin),
 					},
 				},
 			},
@@ -391,7 +409,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: false,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_Sysadmin),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceSysadmin),
 					},
 				},
 			},
@@ -404,7 +422,7 @@ func TestNoticeValidation(t *testing.T) {
 				teamAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_TeamAdmin),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceTeamAdmin),
 					},
 				},
 			},
@@ -417,7 +435,7 @@ func TestNoticeValidation(t *testing.T) {
 				teamAdmin: false,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_TeamAdmin),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceTeamAdmin),
 					},
 				},
 			},
@@ -429,7 +447,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_Member),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceMember),
 					},
 				},
 			},
@@ -442,7 +460,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_Member),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceMember),
 					},
 				},
 			},
@@ -455,7 +473,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "e20",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKU_E20),
+						Sku: model.NewNoticeSKU(model.NoticeSKUE20),
 					},
 				},
 			},
@@ -468,7 +486,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "e20",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKU_E10),
+						Sku: model.NewNoticeSKU(model.NoticeSKUE10),
 					},
 				},
 			},
@@ -481,7 +499,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKU_Team),
+						Sku: model.NewNoticeSKU(model.NoticeSKUTeam),
 					},
 				},
 			},
@@ -493,7 +511,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKU_All),
+						Sku: model.NewNoticeSKU(model.NoticeSKUAll),
 					},
 				},
 			},
@@ -506,7 +524,7 @@ func TestNoticeValidation(t *testing.T) {
 				cloud: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceType_Cloud),
+						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceTypeCloud),
 					},
 				},
 			},
@@ -518,7 +536,94 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceType_Both),
+						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceTypeBoth),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+		{
+			name: "notice with depreacting an external dependency",
+			args: args{
+				dbmsName: "mysql",
+				dbmsVer:  "5.6",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "mysql",
+							MinimumVersion: "5.7",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+		{
+			name: "notice with depreacting an external dependency, on a future version",
+			args: args{
+				dbmsName:      "mysql",
+				dbmsVer:       "5.6",
+				serverVersion: "5.32",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{">=v5.33"},
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "mysql",
+							MinimumVersion: "5.7",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice on a deprecating dependency, server is all good",
+			args: args{
+				dbmsName: "postgres",
+				dbmsVer:  "10",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "postgres",
+							MinimumVersion: "10",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice on a deprecating dependency, server has different dbms",
+			args: args{
+				dbmsName: "mysql",
+				dbmsVer:  "5.7",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "postgres",
+							MinimumVersion: "10",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice on deprecating elasticsearch, server has unsupported search engine",
+			args: args{
+				searchEngineName: "elasticsearch",
+				searchEngineVer:  "6.4.1",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "elasticsearch",
+							MinimumVersion: "7",
+						},
 					},
 				},
 			},
@@ -536,7 +641,24 @@ func TestNoticeValidation(t *testing.T) {
 			if model.BuildNumber == "" {
 				model.BuildNumber = "5.26.1"
 			}
-			if ok, err := noticeMatchesConditions(th.App.Config(), th.App.Srv().Store.Preference(), "test", tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
+			if ok, err := noticeMatchesConditions(
+				th.App.Config(),
+				th.App.Srv().Store.Preference(),
+				"test",
+				tt.args.client,
+				clientVersion,
+				tt.args.postCount,
+				tt.args.userCount,
+				tt.args.systemAdmin,
+				tt.args.teamAdmin,
+				tt.args.cloud,
+				tt.args.sku,
+				tt.args.dbmsName,
+				tt.args.dbmsVer,
+				tt.args.searchEngineName,
+				tt.args.searchEngineVer,
+				tt.args.notice,
+			); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
 			} else if ok != tt.wantOk {
 				t.Errorf("noticeMatchesConditions() result = %v, wantOk %v", ok, tt.wantOk)
@@ -560,8 +682,8 @@ func TestNoticeFetch(t *testing.T) {
 		},
 		Repeatable: nil,
 	}}
-	noticesBytes, appErr := notices.Marshal()
-	require.NoError(t, appErr)
+	noticesBytes, err := notices.Marshal()
+	require.NoError(t, err)
 
 	notices2 := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{
@@ -576,8 +698,8 @@ func TestNoticeFetch(t *testing.T) {
 		},
 		Repeatable: nil,
 	}}
-	noticesBytes2, appErr := notices2.Marshal()
-	require.NoError(t, appErr)
+	noticesBytes2, err := notices2.Marshal()
+	require.NoError(t, err)
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "notices.json") {
 			w.Write(noticesBytes)
@@ -593,11 +715,11 @@ func TestNoticeFetch(t *testing.T) {
 	})
 
 	// fetch fake notices
-	appErr = th.App.UpdateProductNotices()
+	appErr := th.App.UpdateProductNotices()
 	require.Nil(t, appErr)
 
 	// get them for specified user
-	messages, appErr := th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr := th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 1)
 
@@ -606,13 +728,13 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, see that none are returned
-	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr = th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
 	// validate views table
 	views, err := th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, views, 1)
 
 	// fetch another set
@@ -625,12 +747,12 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, since conditions don't match we should be zero
-	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr = th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
 	// even though UpdateViewedProductNotices was called previously, the table should be empty, since there's cleanup done during UpdateProductNotices
 	views, err = th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, views, 0)
 }

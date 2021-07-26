@@ -43,6 +43,7 @@ INSERT INTO public.systems VALUES ('add_use_group_mentions_permission', 'true');
 INSERT INTO public.systems VALUES ('add_system_console_permissions', 'true');
 INSERT INTO public.systems VALUES ('add_convert_channel_permissions', 'true');
 INSERT INTO public.systems VALUES ('manage_shared_channel_permissions', 'true');
+INSERT INTO public.systems VALUES ('Version', '5.31.0');
 
 --
 -- PostgreSQL database dump complete

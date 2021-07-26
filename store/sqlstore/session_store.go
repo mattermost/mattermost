@@ -11,9 +11,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -49,7 +49,7 @@ func (me SqlSessionStore) createIndexesIfNotExists() {
 }
 
 func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
-	if len(session.Id) > 0 {
+	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
 	session.PreSave()
@@ -73,10 +73,10 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	return session, nil
 }
 
-func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
+func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error) {
 	var sessions []*model.Session
 
-	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
+	if _, err := me.DBFromContext(ctx).Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
 	} else if len(sessions) == 0 {
 		return nil, store.NewErrNotFound("Session", fmt.Sprintf("sessionIdOrToken=%s", sessionIdOrToken))
@@ -84,7 +84,7 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	session := sessions[0]
 
 	tempMembers, err := me.Team().GetTeamsForUser(
-		withMaster(context.Background()),
+		WithMaster(context.Background()),
 		session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
@@ -249,9 +249,9 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, appErr := me.Get(session.Id)
-	if appErr != nil {
-		return appErr
+	oldSession, err := me.Get(context.Background(), session.Id)
+	if err != nil {
+		return err
 	}
 	oldSession.Props = session.Props
 
@@ -283,7 +283,7 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	mlog.Debug("Cleaning up session store.")
 
 	var query string
-	if me.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if me.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
 	} else {
 		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit"

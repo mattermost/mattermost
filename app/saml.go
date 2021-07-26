@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -281,4 +281,17 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
 
 	return nil
+}
+
+func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError) {
+	if a.Saml() == nil {
+		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+	numAffected, err := a.srv.Store.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, userIDs, includeDeleted, dryRun)
+	if err != nil {
+		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.failure_reset_authdata_to_email.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	return
 }

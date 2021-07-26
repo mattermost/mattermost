@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 func TestHealthCheckJob(t *testing.T) {
@@ -21,8 +21,8 @@ func TestHealthCheckJob(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/model"
-				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/v6/plugin"
 			)
 
 			type MyPlugin struct {
@@ -37,7 +37,7 @@ func TestHealthCheckJob(t *testing.T) {
 				plugin.ClientMain(&MyPlugin{})
 			}
 			`,
-	}, th.App, th.App.NewPluginAPI)
+	}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	env := th.App.GetPluginsEnvironment()
@@ -50,7 +50,7 @@ func TestHealthCheckJob(t *testing.T) {
 
 	// First health check
 	hooks, err := env.HooksForPlugin(id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()
@@ -60,7 +60,7 @@ func TestHealthCheckJob(t *testing.T) {
 
 	// Second health check
 	hooks, err = env.HooksForPlugin(id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()
@@ -70,7 +70,7 @@ func TestHealthCheckJob(t *testing.T) {
 
 	// Third health check, plugin should be deactivated by the job
 	hooks, err = env.HooksForPlugin(id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()

@@ -5,11 +5,11 @@ package einterfaces
 
 import (
 	"github.com/mattermost/logr"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type MetricsInterface interface {
-	StartServer()
-	StopServer()
+	Register()
 
 	IncrementPostCreate()
 	IncrementWebhookPost()
@@ -23,7 +23,7 @@ type MetricsInterface interface {
 
 	IncrementClusterRequest()
 	ObserveClusterRequestDuration(elapsed float64)
-	IncrementClusterEventType(eventType string)
+	IncrementClusterEventType(eventType model.ClusterEvent)
 
 	IncrementLogin()
 	IncrementLoginFail()
@@ -44,6 +44,7 @@ type MetricsInterface interface {
 	DecrementWebSocketBroadcastBufferSize(hub string, amount float64)
 	IncrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
+	IncrementWebsocketReconnectEvent(eventType string)
 
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)
@@ -66,4 +67,17 @@ type MetricsInterface interface {
 
 	ObserveEnabledUsers(users int64)
 	GetLoggerMetricsCollector() logr.MetricsCollector
+
+	IncrementRemoteClusterMsgSentCounter(remoteID string)
+	IncrementRemoteClusterMsgReceivedCounter(remoteID string)
+	IncrementRemoteClusterMsgErrorsCounter(remoteID string, timeout bool)
+	ObserveRemoteClusterPingDuration(remoteID string, elapsed float64)
+	ObserveRemoteClusterClockSkew(remoteID string, skew float64)
+	IncrementRemoteClusterConnStateChangeCounter(remoteID string, online bool)
+
+	IncrementJobActive(jobType string)
+	DecrementJobActive(jobType string)
+
+	SetReplicaLagAbsolute(node string, value float64)
+	SetReplicaLagTime(node string, value float64)
 }

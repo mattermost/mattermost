@@ -4,9 +4,9 @@
 package main
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/app/plugin_api_tests"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 type MyPlugin struct {
@@ -21,10 +21,10 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 
 	// check existing user first
-	data, err := p.API.GetProfileImage(p.configuration.BasicUserId)
+	data, err := p.API.GetProfileImage(p.configuration.BasicUserID)
 	if err != nil {
 		return nil, err.Error()
 	}

@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type HelpProvider struct {
@@ -25,7 +25,7 @@ func (h *HelpProvider) GetTrigger() string {
 	return CmdHelp
 }
 
-func (h *HelpProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (h *HelpProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdHelp,
 		AutoComplete:     true,
@@ -34,11 +34,11 @@ func (h *HelpProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 	}
 }
 
-func (h *HelpProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (h *HelpProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	helpLink := *a.Config().SupportSettings.HelpLink
 
 	if helpLink == "" {
-		helpLink = model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK
+		helpLink = model.SupportSettingsDefaultHelpLink
 	}
 
 	return &model.CommandResponse{GotoLocation: helpLink}

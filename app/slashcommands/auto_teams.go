@@ -4,8 +4,8 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type TeamEnvironment struct {
@@ -54,7 +54,7 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, error) {
 		DisplayName: teamDisplayName,
 		Name:        teamName,
 		Email:       teamEmail,
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	createdTeam, resp := cfg.client.CreateTeam(team)

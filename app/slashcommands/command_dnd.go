@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type DndProvider struct {
@@ -25,7 +25,7 @@ func (*DndProvider) GetTrigger() string {
 	return CmdDND
 }
 
-func (*DndProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*DndProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdDND,
 		AutoComplete:     true,
@@ -34,8 +34,8 @@ func (*DndProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Comman
 	}
 }
 
-func (*DndProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*DndProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusDoNotDisturb(args.UserId)
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_dnd.success")}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_dnd.success")}
 }

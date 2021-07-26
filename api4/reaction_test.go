@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestSaveReaction(t *testing.T) {
@@ -145,14 +145,14 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("unable-to-create-reaction-without-permissions", func(t *testing.T) {
 		th.LoginBasic()
 
-		th.RemovePermissionFromRole(model.PERMISSION_ADD_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PermissionAddReaction.Id, model.ChannelUserRoleId)
 		_, resp := Client.SaveReaction(reaction)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 3, len(reactions), "should have not created a reactions")
-		th.AddPermissionToRole(model.PERMISSION_ADD_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionAddReaction.Id, model.ChannelUserRoleId)
 	})
 
 	t.Run("unable-to-react-in-read-only-town-square", func(t *testing.T) {
@@ -194,7 +194,7 @@ func TestSaveReaction(t *testing.T) {
 			EmojiName: "smile",
 		}
 
-		err := th.App.DeleteChannel(channel, userId)
+		err := th.App.DeleteChannel(th.Context, channel, userId)
 		assert.Nil(t, err)
 
 		_, resp := Client.SaveReaction(reaction)
@@ -246,7 +246,7 @@ func TestGetReactions(t *testing.T) {
 
 	for _, userReaction := range userReactions {
 		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		reactions = append(reactions, reaction)
 	}
 
@@ -324,7 +324,7 @@ func TestDeleteReaction(t *testing.T) {
 	}()
 
 	t.Run("delete-reaction", func(t *testing.T) {
-		th.App.SaveReactionForPost(r1)
+		th.App.SaveReactionForPost(th.Context, r1)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "didn't save reaction correctly")
@@ -340,8 +340,8 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("delete-reaction-when-post-has-multiple-reactions", func(t *testing.T) {
-		th.App.SaveReactionForPost(r1)
-		th.App.SaveReactionForPost(r2)
+		th.App.SaveReactionForPost(th.Context, r1)
+		th.App.SaveReactionForPost(th.Context, r2)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, len(reactions), 2, "didn't save reactions correctly")
@@ -356,7 +356,7 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("delete-reaction-when-plus-one-reaction-name", func(t *testing.T) {
-		th.App.SaveReactionForPost(r3)
+		th.App.SaveReactionForPost(th.Context, r3)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 2, len(reactions), "didn't save reactions correctly")
@@ -372,7 +372,7 @@ func TestDeleteReaction(t *testing.T) {
 
 	t.Run("delete-reaction-made-by-another-user", func(t *testing.T) {
 		th.LoginBasic2()
-		th.App.SaveReactionForPost(r4)
+		th.App.SaveReactionForPost(th.Context, r4)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 2, len(reactions), "didn't save reaction correctly")
@@ -455,8 +455,8 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("unable-to-delete-reaction-without-permissions", func(t *testing.T) {
 		th.LoginBasic()
 
-		th.RemovePermissionFromRole(model.PERMISSION_REMOVE_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
-		th.App.SaveReactionForPost(r1)
+		th.RemovePermissionFromRole(model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
+		th.App.SaveReactionForPost(th.Context, r1)
 
 		_, resp := Client.DeleteReaction(r1)
 		CheckForbiddenStatus(t, resp)
@@ -464,12 +464,12 @@ func TestDeleteReaction(t *testing.T) {
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
-		th.AddPermissionToRole(model.PERMISSION_REMOVE_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
 	})
 
 	t.Run("unable-to-delete-others-reactions-without-permissions", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id, model.SYSTEM_ADMIN_ROLE_ID)
-		th.App.SaveReactionForPost(r1)
+		th.RemovePermissionFromRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
+		th.App.SaveReactionForPost(th.Context, r1)
 
 		_, resp := th.SystemAdminClient.DeleteReaction(r1)
 		CheckForbiddenStatus(t, resp)
@@ -477,7 +477,7 @@ func TestDeleteReaction(t *testing.T) {
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
-		th.AddPermissionToRole(model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id, model.SYSTEM_ADMIN_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("unable-to-delete-reactions-in-read-only-town-square", func(t *testing.T) {
@@ -534,7 +534,7 @@ func TestDeleteReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have created a reaction")
 
-		err = th.App.DeleteChannel(channel, userId)
+		err = th.App.DeleteChannel(th.Context, channel, userId)
 		assert.Nil(t, err)
 
 		_, resp = Client.SaveReaction(r1)
@@ -597,7 +597,7 @@ func TestGetBulkReactions(t *testing.T) {
 	for _, userReaction := range userReactions {
 		reactions := expectedPostIdsReactionsMap[userReaction.PostId]
 		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		reactions = append(reactions, reaction)
 		expectedPostIdsReactionsMap[userReaction.PostId] = reactions
 	}

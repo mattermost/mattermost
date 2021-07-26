@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 const (
@@ -29,6 +29,7 @@ func MloggerConfigFromLoggerConfig(s *model.LogSettings, getFileFunc fileLocatio
 		FileJson:      *s.FileJson,
 		FileLevel:     strings.ToLower(*s.FileLevel),
 		FileLocation:  getFileFunc(*s.FileLocation),
+		EnableColor:   *s.EnableColor,
 	}
 }
 
@@ -58,6 +59,7 @@ func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.N
 		FileLevel:             notificationLogSettings.FileLevel,
 		FileLocation:          notificationLogSettings.FileLocation,
 		AdvancedLoggingConfig: notificationLogSettings.AdvancedLoggingConfig,
+		EnableColor:           notificationLogSettings.EnableColor,
 	}
 }
 

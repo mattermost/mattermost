@@ -35,6 +35,7 @@ gosseract.iml
 .vagrant
 coverage.txt
 vendor
+test/runtimes/TESTRESULT.*.txt
 
 # Editors
 .vscode

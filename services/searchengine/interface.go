@@ -6,13 +6,15 @@ package searchengine
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type SearchEngineInterface interface {
 	Start() *model.AppError
 	Stop() *model.AppError
+	GetFullVersion() string
 	GetVersion() int
+	GetPlugins() []string
 	UpdateConfig(cfg *model.Config)
 	GetName() string
 	IsActive() bool

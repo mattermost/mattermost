@@ -26,8 +26,8 @@ Table of Contents
 
 ## Try out Mattermost
 
-- [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676) to join community discussions about contributions, development and more
-- [Join the Mattermost Demo server](https://demo.mattermost.com/signup_email) to try out Mattermost and explore sample use cases
+- [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=codoy5s743rq5mk18i7u5ksz7e) to join community discussions about contributions, development and more
+- [Get started with Mattermost Cloud](https://customers.mattermost.com/cloud/signup) to try out Mattermost
 
 ## Deploy on Heroku
 

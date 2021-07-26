@@ -9,27 +9,31 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
-	SESSION_COOKIE_TOKEN              = "MMAUTHTOKEN"
-	SESSION_COOKIE_USER               = "MMUSERID"
-	SESSION_COOKIE_CSRF               = "MMCSRF"
-	SESSION_CACHE_SIZE                = 35000
-	SESSION_PROP_PLATFORM             = "platform"
-	SESSION_PROP_OS                   = "os"
-	SESSION_PROP_BROWSER              = "browser"
-	SESSION_PROP_TYPE                 = "type"
-	SESSION_PROP_USER_ACCESS_TOKEN_ID = "user_access_token_id"
-	SESSION_PROP_IS_BOT               = "is_bot"
-	SESSION_PROP_IS_BOT_VALUE         = "true"
-	SESSION_TYPE_USER_ACCESS_TOKEN    = "UserAccessToken"
-	SESSION_TYPE_CLOUD_KEY            = "CloudKey"
-	SESSION_PROP_IS_GUEST             = "is_guest"
-	SESSION_ACTIVITY_TIMEOUT          = 1000 * 60 * 5 // 5 minutes
-	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
+	SessionCookieToken            = "MMAUTHTOKEN"
+	SessionCookieUser             = "MMUSERID"
+	SessionCookieCsrf             = "MMCSRF"
+	SessionCacheSize              = 35000
+	SessionPropPlatform           = "platform"
+	SessionPropOs                 = "os"
+	SessionPropBrowser            = "browser"
+	SessionPropType               = "type"
+	SessionPropUserAccessTokenId  = "user_access_token_id"
+	SessionPropIsBot              = "is_bot"
+	SessionPropIsBotValue         = "true"
+	SessionTypeUserAccessToken    = "UserAccessToken"
+	SessionTypeCloudKey           = "CloudKey"
+	SessionTypeRemoteclusterToken = "RemoteClusterToken"
+	SessionPropIsGuest            = "is_guest"
+	SessionActivityTimeout        = 1000 * 60 * 5 // 5 minutes
+	SessionUserAccessTokenExpiry  = 100 * 365     // 100 years
 )
+
+//msgp StringMap
+type StringMap map[string]string
 
 //msgp:tuple Session
 
@@ -121,17 +125,6 @@ func (s *Session) IsExpired() bool {
 	return false
 }
 
-// Deprecated: SetExpireInDays is deprecated and should not be used.
-//             Use (*App).SetSessionExpireInDays instead which handles the
-//			   cases where the new ExpiresAt is not relative to CreateAt.
-func (s *Session) SetExpireInDays(days int) {
-	if s.CreateAt == 0 {
-		s.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
-	} else {
-		s.ExpiresAt = s.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
-	}
-}
-
 func (s *Session) AddProp(key string, value string) {
 
 	if s.Props == nil {
@@ -152,11 +145,11 @@ func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
 }
 
 func (s *Session) IsMobileApp() bool {
-	return len(s.DeviceId) > 0 || s.IsMobile()
+	return s.DeviceId != "" || s.IsMobile()
 }
 
 func (s *Session) IsMobile() bool {
-	val, ok := s.Props[USER_AUTH_SERVICE_IS_MOBILE]
+	val, ok := s.Props[UserAuthServiceIsMobile]
 	if !ok {
 		return false
 	}
@@ -169,7 +162,7 @@ func (s *Session) IsMobile() bool {
 }
 
 func (s *Session) IsSaml() bool {
-	val, ok := s.Props[USER_AUTH_SERVICE_IS_SAML]
+	val, ok := s.Props[UserAuthServiceIsSaml]
 	if !ok {
 		return false
 	}
@@ -182,7 +175,7 @@ func (s *Session) IsSaml() bool {
 }
 
 func (s *Session) IsOAuthUser() bool {
-	val, ok := s.Props[USER_AUTH_SERVICE_IS_OAUTH]
+	val, ok := s.Props[UserAuthServiceIsOAuth]
 	if !ok {
 		return false
 	}

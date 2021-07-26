@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetMigrationState(t *testing.T) {
@@ -21,7 +21,7 @@ func TestGetMigrationState(t *testing.T) {
 
 	migrationKey := model.NewId()
 
-	th.DeleteAllJobsByTypeAndMigrationKey(model.JOB_TYPE_MIGRATIONS, migrationKey)
+	th.DeleteAllJobsByTypeAndMigrationKey(model.JobTypeMigrations, migrationKey)
 
 	// Test with no job yet.
 	state, job, err := GetMigrationState(migrationKey, th.App.Srv().Store)
@@ -35,7 +35,7 @@ func TestGetMigrationState(t *testing.T) {
 		Value: "true",
 	}
 	nErr := th.App.Srv().Store.System().Save(&system)
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
@@ -43,7 +43,7 @@ func TestGetMigrationState(t *testing.T) {
 	assert.Equal(t, "completed", state)
 
 	_, nErr = th.App.Srv().Store.System().PermanentDeleteByName(migrationKey)
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	// Test with a job scheduled in "pending" state.
 	j1 := &model.Job{
@@ -52,12 +52,12 @@ func TestGetMigrationState(t *testing.T) {
 		Data: map[string]string{
 			JobDataKeyMigration: migrationKey,
 		},
-		Status: model.JOB_STATUS_PENDING,
-		Type:   model.JOB_TYPE_MIGRATIONS,
+		Status: model.JobStatusPending,
+		Type:   model.JobTypeMigrations,
 	}
 
 	j1, nErr = th.App.Srv().Store.Job().Save(j1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
@@ -71,12 +71,12 @@ func TestGetMigrationState(t *testing.T) {
 		Data: map[string]string{
 			JobDataKeyMigration: migrationKey,
 		},
-		Status: model.JOB_STATUS_IN_PROGRESS,
-		Type:   model.JOB_TYPE_MIGRATIONS,
+		Status: model.JobStatusInProgress,
+		Type:   model.JobTypeMigrations,
 	}
 
 	j2, nErr = th.App.Srv().Store.Job().Save(j2)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
@@ -90,12 +90,12 @@ func TestGetMigrationState(t *testing.T) {
 		Data: map[string]string{
 			JobDataKeyMigration: migrationKey,
 		},
-		Status: model.JOB_STATUS_ERROR,
-		Type:   model.JOB_TYPE_MIGRATIONS,
+		Status: model.JobStatusError,
+		Type:   model.JobTypeMigrations,
 	}
 
 	j3, nErr = th.App.Srv().Store.Job().Save(j3)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)

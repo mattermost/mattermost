@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestSupervisor(t *testing.T) {
@@ -41,7 +41,7 @@ func testSupervisorInvalidExecutablePath(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	assert.Nil(t, supervisor)
 	assert.Error(t, err)
 }
@@ -60,7 +60,7 @@ func testSupervisorNonExistentExecutablePath(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }
@@ -90,7 +90,7 @@ func testSupervisorStartTimeout(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }

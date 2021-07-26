@@ -64,7 +64,7 @@ func TestConfigEmptySiteName(t *testing.T) {
 	}
 	c1.SetDefaults()
 
-	require.Equal(t, *c1.TeamSettings.SiteName, TEAM_SETTINGS_DEFAULT_SITE_NAME)
+	require.Equal(t, *c1.TeamSettings.SiteName, TeamSettingsDefaultSiteName)
 }
 
 func TestConfigEnableDeveloper(t *testing.T) {
@@ -73,7 +73,7 @@ func TestConfigEnableDeveloper(t *testing.T) {
 		EnableDeveloper *bool
 		ExpectedSiteURL string
 	}{
-		{"enable developer is true", NewBool(true), SERVICE_SETTINGS_DEFAULT_SITE_URL},
+		{"enable developer is true", NewBool(true), ServiceSettingsDefaultSiteUrl},
 		{"enable developer is false", NewBool(false), ""},
 		{"enable developer is nil", nil, ""},
 	}
@@ -103,7 +103,7 @@ func TestConfigDefaultEmailNotificationContentsType(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	require.Equal(t, *c1.EmailSettings.EmailNotificationContentsType, EMAIL_NOTIFICATION_CONTENTS_FULL)
+	require.Equal(t, *c1.EmailSettings.EmailNotificationContentsType, EmailNotificationContentsFull)
 }
 
 func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
@@ -117,8 +117,8 @@ func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	require.Equal(t, *c1.SamlSettings.SignatureAlgorithm, SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM)
-	require.Equal(t, *c1.SamlSettings.CanonicalAlgorithm, SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM)
+	require.Equal(t, *c1.SamlSettings.SignatureAlgorithm, SamlSettingsDefaultSignatureAlgorithm)
+	require.Equal(t, *c1.SamlSettings.CanonicalAlgorithm, SamlSettingsDefaultCanonicalAlgorithm)
 }
 
 func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
@@ -237,7 +237,7 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	c1 := Config{}
 	c1.SetDefaults()
 
-	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GROUP_UNREAD_CHANNELS_DISABLED)
+	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GroupUnreadChannelsDisabled)
 
 	// This setting was briefly a boolean, so ensure that those values still work as expected
 	c1 = Config{
@@ -247,7 +247,7 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	}
 	c1.SetDefaults()
 
-	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GROUP_UNREAD_CHANNELS_DEFAULT_ON)
+	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GroupUnreadChannelsDefaultOn)
 
 	c1 = Config{
 		ServiceSettings: ServiceSettings{
@@ -256,7 +256,7 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	}
 	c1.SetDefaults()
 
-	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GROUP_UNREAD_CHANNELS_DISABLED)
+	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GroupUnreadChannelsDisabled)
 }
 
 func TestConfigDefaultNPSPluginState(t *testing.T) {
@@ -388,63 +388,56 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{}
 
 	// should fail fast because mes.EnableExport is not set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidEnableExportFalse(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(false),
 	}
 
 	// should fail fast because message export isn't enabled
-	require.Nil(t, mes.isValid(*fs))
+	require.Nil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidExportFromTimestampInvalid(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(true),
 	}
 
 	// should fail fast because export from timestamp isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 
 	mes.ExportFromTimestamp = NewInt64(-1)
 
 	// should fail fast because export from timestamp isn't valid
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 
 	mes.ExportFromTimestamp = NewInt64(GetMillis() + 10000)
 
 	// should fail fast because export from timestamp is greater than current time
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
 	}
 
 	// should fail fast because daily runtime isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 
 	mes.DailyRunTime = NewString("33:33:33")
 
 	// should fail fast because daily runtime is invalid format
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -452,13 +445,10 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 	}
 
 	// should fail fast because batch size isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -467,64 +457,52 @@ func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 	}
 
 	// should fail fast because export format isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
-		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFormat:        NewString(ComplianceExportTypeGlobalrelay),
 		ExportFromTimestamp: NewInt64(0),
 		DailyRunTime:        NewString("15:04"),
 		BatchSize:           NewInt(100),
 	}
 
 	// should fail fast because global relay email address isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidActiance(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
-		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE),
+		ExportFormat:        NewString(ComplianceExportTypeActiance),
 		ExportFromTimestamp: NewInt64(0),
 		DailyRunTime:        NewString("15:04"),
 		BatchSize:           NewInt(100),
 	}
 
 	// should pass because everything is valid
-	require.Nil(t, mes.isValid(*fs))
+	require.Nil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
-		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFormat:        NewString(ComplianceExportTypeGlobalrelay),
 		ExportFromTimestamp: NewInt64(0),
 		DailyRunTime:        NewString("15:04"),
 		BatchSize:           NewInt(100),
 	}
 
 	// should fail because globalrelay settings are missing
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
-		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFormat:        NewString(ComplianceExportTypeGlobalrelay),
 		ExportFromTimestamp: NewInt64(0),
 		DailyRunTime:        NewString("15:04"),
 		BatchSize:           NewInt(100),
@@ -537,14 +515,11 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *t
 	}
 
 	// should fail because customer type is invalid
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 // func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
 func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	tests := []struct {
 		name    string
 		value   *GlobalRelayMessageExportSettings
@@ -553,7 +528,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 		{
 			"Invalid email address",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A9),
+				CustomerType: NewString(GlobalrelayCustomerTypeA9),
 				EmailAddress: NewString("invalidEmailAddress"),
 				SmtpUsername: NewString("SomeUsername"),
 				SmtpPassword: NewString("SomePassword"),
@@ -563,7 +538,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 		{
 			"Missing smtp username",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+				CustomerType: NewString(GlobalrelayCustomerTypeA10),
 				EmailAddress: NewString("valid@mattermost.com"),
 				SmtpPassword: NewString("SomePassword"),
 			},
@@ -572,7 +547,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 		{
 			"Invalid smtp username",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+				CustomerType: NewString(GlobalrelayCustomerTypeA10),
 				EmailAddress: NewString("valid@mattermost.com"),
 				SmtpUsername: NewString(""),
 				SmtpPassword: NewString("SomePassword"),
@@ -582,7 +557,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 		{
 			"Invalid smtp password",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+				CustomerType: NewString(GlobalrelayCustomerTypeA10),
 				EmailAddress: NewString("valid@mattermost.com"),
 				SmtpUsername: NewString("SomeUsername"),
 				SmtpPassword: NewString(""),
@@ -592,7 +567,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 		{
 			"Valid data",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A9),
+				CustomerType: NewString(GlobalrelayCustomerTypeA9),
 				EmailAddress: NewString("valid@mattermost.com"),
 				SmtpUsername: NewString("SomeUsername"),
 				SmtpPassword: NewString("SomePassword"),
@@ -605,7 +580,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mes := &MessageExportSettings{
 				EnableExport:        NewBool(true),
-				ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+				ExportFormat:        NewString(ComplianceExportTypeGlobalrelay),
 				ExportFromTimestamp: NewInt64(0),
 				DailyRunTime:        NewString("15:04"),
 				BatchSize:           NewInt(100),
@@ -613,9 +588,9 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			}
 
 			if tt.success {
-				require.Nil(t, mes.isValid(*fs))
+				require.Nil(t, mes.isValid())
 			} else {
-				require.Error(t, mes.isValid(*fs))
+				require.NotNil(t, mes.isValid())
 			}
 		})
 	}
@@ -629,7 +604,7 @@ func TestMessageExportSetDefaults(t *testing.T) {
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
-	require.Equal(t, COMPLIANCE_EXPORT_TYPE_ACTIANCE, *mes.ExportFormat)
+	require.Equal(t, ComplianceExportTypeActiance, *mes.ExportFormat)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
@@ -840,7 +815,7 @@ func TestListenAddressIsValidated(t *testing.T) {
 
 func TestImageProxySettingsSetDefaults(t *testing.T) {
 	ss := ServiceSettings{
-		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(IMAGE_PROXY_TYPE_ATMOS_CAMO),
+		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(ImageProxyTypeAtmosCamo),
 		DEPRECATED_DO_NOT_USE_ImageProxyURL:     NewString("http://images.example.com"),
 		DEPRECATED_DO_NOT_USE_ImageProxyOptions: NewString("1234abcd"),
 	}
@@ -850,7 +825,7 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 		ips.SetDefaults(ServiceSettings{})
 
 		assert.Equal(t, false, *ips.Enable)
-		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
 		assert.Equal(t, "", *ips.RemoteImageProxyURL)
 		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
 	})
@@ -871,14 +846,14 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 
 		ips := ImageProxySettings{
 			Enable:                  NewBool(false),
-			ImageProxyType:          NewString(IMAGE_PROXY_TYPE_LOCAL),
+			ImageProxyType:          NewString(ImageProxyTypeLocal),
 			RemoteImageProxyURL:     &url,
 			RemoteImageProxyOptions: &options,
 		}
 		ips.SetDefaults(ss)
 
 		assert.Equal(t, false, *ips.Enable)
-		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
 		assert.Equal(t, url, *ips.RemoteImageProxyURL)
 		assert.Equal(t, options, *ips.RemoteImageProxyOptions)
 	})
@@ -923,7 +898,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 		{
 			Name:                    "atmos/camo",
 			Enable:                  true,
-			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "someoptions",
 			ExpectError:             false,
@@ -931,7 +906,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 		{
 			Name:                    "atmos/camo, missing url",
 			Enable:                  true,
-			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "",
 			RemoteImageProxyOptions: "garbage",
 			ExpectError:             true,
@@ -939,7 +914,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 		{
 			Name:                    "atmos/camo, missing options",
 			Enable:                  true,
-			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "",
 			ExpectError:             true,
@@ -1328,17 +1303,17 @@ func TestConfigSanitize(t *testing.T) {
 
 	c.Sanitize()
 
-	assert.Equal(t, FAKE_SETTING, *c.LdapSettings.BindPassword)
-	assert.Equal(t, FAKE_SETTING, *c.FileSettings.PublicLinkSalt)
-	assert.Equal(t, FAKE_SETTING, *c.FileSettings.AmazonS3SecretAccessKey)
-	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
-	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
-	assert.Equal(t, FAKE_SETTING, *c.OpenIdSettings.Secret)
-	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
-	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
-	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
-	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])
-	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
+	assert.Equal(t, FakeSetting, *c.LdapSettings.BindPassword)
+	assert.Equal(t, FakeSetting, *c.FileSettings.PublicLinkSalt)
+	assert.Equal(t, FakeSetting, *c.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, FakeSetting, *c.EmailSettings.SMTPPassword)
+	assert.Equal(t, FakeSetting, *c.GitLabSettings.Secret)
+	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
+	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
+	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
+	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceReplicas[0])
+	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceSearchReplicas[0])
 }
 
 func TestConfigFilteredByTag(t *testing.T) {
@@ -1393,18 +1368,18 @@ func TestConfigMarketplaceDefaults(t *testing.T) {
 		c.SetDefaults()
 
 		require.True(t, *c.PluginSettings.EnableMarketplace)
-		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+		require.Equal(t, PluginSettingsDefaultMarketplaceUrl, *c.PluginSettings.MarketplaceUrl)
 	})
 
 	t.Run("old marketplace url", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
 
-		*c.PluginSettings.MarketplaceUrl = PLUGIN_SETTINGS_OLD_MARKETPLACE_URL
+		*c.PluginSettings.MarketplaceUrl = PluginSettingsOldMarketplaceUrl
 		c.SetDefaults()
 
 		require.True(t, *c.PluginSettings.EnableMarketplace)
-		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+		require.Equal(t, PluginSettingsDefaultMarketplaceUrl, *c.PluginSettings.MarketplaceUrl)
 	})
 
 	t.Run("custom marketplace url", func(t *testing.T) {
@@ -1463,4 +1438,32 @@ func TestConfigImportSettingsIsValid(t *testing.T) {
 	err = cfg.ImportSettings.isValid()
 	require.NotNil(t, err)
 	require.Equal(t, "model.config.is_valid.import.retention_days_too_low.app_error", err.Id)
+}
+
+func TestConfigExportSettingsDefaults(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.Equal(t, "./export", *cfg.ExportSettings.Directory)
+	require.Equal(t, 30, *cfg.ExportSettings.RetentionDays)
+}
+
+func TestConfigExportSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ExportSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ExportSettings.Directory = ""
+	err = cfg.ExportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.export.directory.app_error", err.Id)
+
+	cfg.SetDefaults()
+
+	*cfg.ExportSettings.RetentionDays = 0
+	err = cfg.ExportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.export.retention_days_too_low.app_error", err.Id)
 }

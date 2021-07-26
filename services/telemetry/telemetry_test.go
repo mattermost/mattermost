@@ -4,6 +4,7 @@
 package telemetry
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"encoding/json"
 	"io/ioutil"
@@ -18,14 +19,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/services/telemetry/mocks"
-	storeMocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/services/telemetry/mocks"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	storeMocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 type FakeConfigService struct {
@@ -51,21 +52,26 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 		os.RemoveAll(webappPluginDir)
 	}
 	pluginsAPIMock := &plugintest.API{}
-	pluginEnv, _ := plugin.NewEnvironment(func(m *model.Manifest) plugin.API { return pluginsAPIMock }, pluginDir, webappPluginDir, mlog.NewLogger(&mlog.LoggerConfiguration{}), nil)
+	pluginEnv, _ := plugin.NewEnvironment(
+		func(m *model.Manifest) plugin.API { return pluginsAPIMock },
+		nil,
+		pluginDir, webappPluginDir,
+		mlog.NewLogger(&mlog.LoggerConfiguration{}),
+		nil)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
 
 	serverIfaceMock.On("License").Return(model.NewTestLicense(), nil)
-	serverIfaceMock.On("GetRoleByName", "system_admin").Return(&model.Role{Permissions: []string{"sa-test1", "sa-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "system_user").Return(&model.Role{Permissions: []string{"su-test1", "su-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "system_user_manager").Return(&model.Role{Permissions: []string{"sum-test1", "sum-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "system_manager").Return(&model.Role{Permissions: []string{"sm-test1", "sm-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "system_read_only_admin").Return(&model.Role{Permissions: []string{"sra-test1", "sra-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "team_admin").Return(&model.Role{Permissions: []string{"ta-test1", "ta-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "team_user").Return(&model.Role{Permissions: []string{"tu-test1", "tu-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "team_guest").Return(&model.Role{Permissions: []string{"tg-test1", "tg-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "channel_admin").Return(&model.Role{Permissions: []string{"ca-test1", "ca-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "channel_user").Return(&model.Role{Permissions: []string{"cu-test1", "cu-test2"}}, nil)
-	serverIfaceMock.On("GetRoleByName", "channel_guest").Return(&model.Role{Permissions: []string{"cg-test1", "cg-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "system_admin").Return(&model.Role{Permissions: []string{"sa-test1", "sa-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "system_user").Return(&model.Role{Permissions: []string{"su-test1", "su-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "system_user_manager").Return(&model.Role{Permissions: []string{"sum-test1", "sum-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "system_manager").Return(&model.Role{Permissions: []string{"sm-test1", "sm-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "system_read_only_admin").Return(&model.Role{Permissions: []string{"sra-test1", "sra-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "team_admin").Return(&model.Role{Permissions: []string{"ta-test1", "ta-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "team_user").Return(&model.Role{Permissions: []string{"tu-test1", "tu-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "team_guest").Return(&model.Role{Permissions: []string{"tg-test1", "tg-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "channel_admin").Return(&model.Role{Permissions: []string{"ca-test1", "ca-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "channel_user").Return(&model.Role{Permissions: []string{"cu-test1", "cu-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "channel_guest").Return(&model.Role{Permissions: []string{"cg-test1", "cg-test2"}}, nil)
 	serverIfaceMock.On("GetSchemes", "team", 0, 100).Return([]*model.Scheme{}, nil)
 	serverIfaceMock.On("HttpService").Return(httpservice.MakeHTTPService(configService))
 
@@ -74,30 +80,30 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 
 	systemStore := storeMocks.SystemStore{}
 	props := model.StringMap{}
-	props[model.SYSTEM_TELEMETRY_ID] = "test"
+	props[model.SystemTelemetryId] = "test"
 	systemStore.On("Get").Return(props, nil)
-	systemStore.On("GetByName", model.ADVANCED_PERMISSIONS_MIGRATION_KEY).Return(nil, nil)
-	systemStore.On("GetByName", model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2).Return(nil, nil)
+	systemStore.On("GetByName", model.AdvancedPermissionsMigrationKey).Return(nil, nil)
+	systemStore.On("GetByName", model.MigrationKeyAdvancedPermissionsPhase2).Return(nil, nil)
 
 	userStore := storeMocks.UserStore{}
 	userStore.On("Count", model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true, ExcludeRegularUsers: false, TeamId: "", ViewRestrictions: nil}).Return(int64(10), nil)
 	userStore.On("Count", model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false, ExcludeRegularUsers: true, TeamId: "", ViewRestrictions: nil}).Return(int64(100), nil)
-	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SYSTEM_MANAGER_ROLE_ID}}).Return(int64(5), nil)
-	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SYSTEM_USER_MANAGER_ROLE_ID}}).Return(int64(10), nil)
-	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID}}).Return(int64(15), nil)
+	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemManagerRoleId}}).Return(int64(5), nil)
+	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemUserManagerRoleId}}).Return(int64(10), nil)
+	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemReadOnlyAdminRoleId}}).Return(int64(15), nil)
 	userStore.On("AnalyticsGetGuestCount").Return(int64(11), nil)
 	userStore.On("AnalyticsActiveCount", mock.Anything, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false, ExcludeRegularUsers: false, TeamId: "", ViewRestrictions: nil}).Return(int64(5), nil)
 	userStore.On("AnalyticsGetInactiveUsersCount").Return(int64(8), nil)
 	userStore.On("AnalyticsGetSystemAdminCount").Return(int64(9), nil)
 
 	teamStore := storeMocks.TeamStore{}
-	teamStore.On("AnalyticsTeamCount", false).Return(int64(3), nil)
+	teamStore.On("AnalyticsTeamCount", (*model.TeamSearch)(nil)).Return(int64(3), nil)
 	teamStore.On("GroupSyncedTeamCount").Return(int64(16), nil)
 
 	channelStore := storeMocks.ChannelStore{}
-	channelStore.On("AnalyticsTypeCount", "", "O").Return(int64(25), nil)
-	channelStore.On("AnalyticsTypeCount", "", "P").Return(int64(26), nil)
-	channelStore.On("AnalyticsTypeCount", "", "D").Return(int64(27), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(25), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypePrivate).Return(int64(26), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeDirect).Return(int64(27), nil)
 	channelStore.On("AnalyticsDeletedTypeCount", "", "O").Return(int64(22), nil)
 	channelStore.On("AnalyticsDeletedTypeCount", "", "P").Return(int64(23), nil)
 	channelStore.On("GroupSyncedChannelCount").Return(int64(17), nil)
@@ -285,7 +291,7 @@ func TestRudderTelemetry(t *testing.T) {
 			}
 		}
 		assert.Equal(t, "analytics-go", actual.Context.Library.Name)
-		assert.Equal(t, "3.0.0", actual.Context.Library.Version)
+		assert.Equal(t, "3.3.0", actual.Context.Library.Version)
 	}
 
 	collectInfo := func(info *[]string) {
@@ -355,7 +361,7 @@ func TestRudderTelemetry(t *testing.T) {
 			TrackConfigRate,
 			TrackConfigEmail,
 			TrackConfigPrivacy,
-			TrackConfigOauth,
+			TrackConfigOAuth,
 			TrackConfigLDAP,
 			TrackConfigCompliance,
 			TrackConfigLocalization,
@@ -368,6 +374,7 @@ func TestRudderTelemetry(t *testing.T) {
 			TrackConfigExperimental,
 			TrackConfigAnalytics,
 			TrackConfigPlugin,
+			TrackFeatureFlags,
 			TrackActivity,
 			TrackServer,
 			TrackConfigMessageExport,
@@ -397,7 +404,7 @@ func TestRudderTelemetry(t *testing.T) {
 			TrackConfigRate,
 			TrackConfigEmail,
 			TrackConfigPrivacy,
-			TrackConfigOauth,
+			TrackConfigOAuth,
 			TrackConfigLDAP,
 			TrackConfigCompliance,
 			TrackConfigLocalization,
@@ -410,6 +417,7 @@ func TestRudderTelemetry(t *testing.T) {
 			TrackConfigExperimental,
 			TrackConfigAnalytics,
 			TrackConfigPlugin,
+			TrackFeatureFlags,
 			TrackActivity,
 			TrackServer,
 			TrackConfigMessageExport,
@@ -527,4 +535,10 @@ func TestRudderTelemetry(t *testing.T) {
 		assert.Equal(t, "arudderstackplace", config.DataplaneUrl)
 		assert.Equal(t, "abc123", config.RudderKey)
 	})
+}
+
+func TestIsDefaultArray(t *testing.T) {
+	assert.True(t, isDefaultArray([]string{"one", "two"}, []string{"one", "two"}))
+	assert.False(t, isDefaultArray([]string{"one", "two"}, []string{"one", "two", "three"}))
+	assert.False(t, isDefaultArray([]string{"one", "two"}, []string{"one", "three"}))
 }

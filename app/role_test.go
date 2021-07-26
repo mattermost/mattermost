@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/csv"
 	"io/ioutil"
 	"os"
@@ -13,8 +14,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type permissionInheritanceTestData struct {
@@ -42,10 +43,20 @@ func TestGetRolesByNames(t *testing.T) {
 
 func TestGetRoleByName(t *testing.T) {
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
-		actualRole, err := th.App.GetRoleByName(testData.channelRole.Name)
+		actualRole, err := th.App.GetRoleByName(context.Background(), testData.channelRole.Name)
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
+		require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions), "row: %+v", testData.truthTableRow)
+	})
+}
+
+func TestGetRoleByID(t *testing.T) {
+	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
+		actualRole, err := th.App.GetRole(testData.channelRole.Id)
+		require.Nil(t, err)
+		require.NotNil(t, actualRole)
+		require.Equal(t, testData.channelRole.Id, actualRole.Id)
 		require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions), "row: %+v", testData.truthTableRow)
 	})
 }
@@ -59,15 +70,15 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
 	permissionsDefault := []string{
-		model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
-		model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
+		model.PermissionManageChannelRoles.Id,
+		model.PermissionManagePublicChannelMembers.Id,
 	}
 
 	// Defer resetting the system scheme permissions
 	systemSchemeRoles, err := th.App.GetRolesByNames([]string{
-		model.CHANNEL_GUEST_ROLE_ID,
-		model.CHANNEL_USER_ROLE_ID,
-		model.CHANNEL_ADMIN_ROLE_ID,
+		model.ChannelGuestRoleId,
+		model.ChannelUserRoleId,
+		model.ChannelAdminRoleId,
 	})
 	require.Nil(t, err)
 	require.Len(t, systemSchemeRoles, 3)
@@ -83,7 +94,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	channelScheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	})
 	require.Nil(t, err)
 	defer th.App.DeleteScheme(channelScheme.Id)
@@ -102,15 +113,15 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 
 	// Get the truth table from CSV
 	file, e := os.Open("tests/channel-role-has-permission.csv")
-	require.Nil(t, e)
+	require.NoError(t, e)
 	defer file.Close()
 
 	b, e := ioutil.ReadAll(file)
-	require.Nil(t, e)
+	require.NoError(t, e)
 
 	r := csv.NewReader(strings.NewReader(string(b)))
 	records, e := r.ReadAll()
-	require.Nil(t, e)
+	require.NoError(t, e)
 
 	test := func(higherScopedGuest, higherScopedUser, higherScopedAdmin string) {
 		for _, roleNameUnderTest := range []string{higherScopedGuest, higherScopedUser, higherScopedAdmin} {
@@ -121,19 +132,19 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				}
 
 				higherSchemeHasPermission, e := strconv.ParseBool(row[0])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				permissionIsModerated, e := strconv.ParseBool(row[1])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				channelSchemeHasPermission, e := strconv.ParseBool(row[2])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				channelRoleIsChannelAdmin, e := strconv.ParseBool(row[3])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				shouldHavePermission, e := strconv.ParseBool(row[4])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				// skip some invalid combinations because of the outer loop iterating all 3 channel roles
 				if (channelRoleIsChannelAdmin && roleNameUnderTest != higherScopedAdmin) || (!channelRoleIsChannelAdmin && roleNameUnderTest == higherScopedAdmin) {
@@ -143,13 +154,13 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				// select the permission to test (moderated or non-moderated)
 				var permission *model.Permission
 				if permissionIsModerated {
-					permission = model.PERMISSION_CREATE_POST // moderated
+					permission = model.PermissionCreatePost // moderated
 				} else {
-					permission = model.PERMISSION_READ_CHANNEL // non-moderated
+					permission = model.PermissionReadChannel // non-moderated
 				}
 
 				// add or remove the permission from the higher-scoped scheme
-				higherScopedRole, testErr := th.App.GetRoleByName(roleNameUnderTest)
+				higherScopedRole, testErr := th.App.GetRoleByName(context.Background(), roleNameUnderTest)
 				require.Nil(t, testErr)
 
 				var higherScopedPermissions []string
@@ -171,7 +182,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				case higherScopedAdmin:
 					channelRoleName = channelScheme.DefaultChannelAdminRole
 				}
-				channelRole, testErr := th.App.GetRoleByName(channelRoleName)
+				channelRole, testErr := th.App.GetRoleByName(context.Background(), channelRoleName)
 				require.Nil(t, testErr)
 
 				// add or remove the permission from the channel scheme
@@ -197,13 +208,13 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	}
 
 	// test 24 combinations where the higher-scoped scheme is the SYSTEM scheme
-	test(model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID)
+	test(model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId)
 
 	// create a team scheme
 	teamScheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	})
 	require.Nil(t, err)
 	defer th.App.DeleteScheme(teamScheme.Id)

@@ -150,6 +150,9 @@ func ReadRR(r io.Reader, file string) (RR, error) {
 // The text "; this is comment" is returned from Comment. Comments inside
 // the RR are returned concatenated along with the RR. Comments on a line
 // by themselves are discarded.
+//
+// Callers should not assume all returned data in an Resource Record is
+// syntactically correct, e.g. illegal base64 in RRSIGs will be returned as-is.
 type ZoneParser struct {
 	c *zlexer
 
@@ -577,10 +580,23 @@ func (zp *ZoneParser) Next() (RR, bool) {
 
 			st = zExpectRdata
 		case zExpectRdata:
-			var rr RR
-			if newFn, ok := TypeToRR[h.Rrtype]; ok && canParseAsRR(h.Rrtype) {
+			var (
+				rr             RR
+				parseAsRFC3597 bool
+			)
+			if newFn, ok := TypeToRR[h.Rrtype]; ok {
 				rr = newFn()
 				*rr.Header() = *h
+
+				// We may be parsing a known RR type using the RFC3597 format.
+				// If so, we handle that here in a generic way.
+				//
+				// This is also true for PrivateRR types which will have the
+				// RFC3597 parsing done for them and the Unpack method called
+				// to populate the RR instead of simply deferring to Parse.
+				if zp.c.Peek().token == "\\#" {
+					parseAsRFC3597 = true
+				}
 			} else {
 				rr = &RFC3597{Hdr: *h}
 			}
@@ -600,18 +616,30 @@ func (zp *ZoneParser) Next() (RR, bool) {
 				return zp.setParseError("unexpected newline", l)
 			}
 
-			if err := rr.parse(zp.c, zp.origin); err != nil {
+			parseAsRR := rr
+			if parseAsRFC3597 {
+				parseAsRR = &RFC3597{Hdr: *h}
+			}
+
+			if err := parseAsRR.parse(zp.c, zp.origin); err != nil {
 				// err is a concrete *ParseError without the file field set.
 				// The setParseError call below will construct a new
 				// *ParseError with file set to zp.file.
 
-				// If err.lex is nil than we have encounter an unknown RR type
-				// in that case we substitute our current lex token.
+				// err.lex may be nil in which case we substitute our current
+				// lex token.
 				if err.lex == (lex{}) {
 					return zp.setParseError(err.err, l)
 				}
 
 				return zp.setParseError(err.err, err.lex)
+			}
+
+			if parseAsRFC3597 {
+				err := parseAsRR.(*RFC3597).fromRFC3597(rr)
+				if err != nil {
+					return zp.setParseError(err.Error(), l)
+				}
 			}
 
 			return rr, true
@@ -621,18 +649,6 @@ func (zp *ZoneParser) Next() (RR, bool) {
 	// If we get here, we and the h.Rrtype is still zero, we haven't parsed anything, this
 	// is not an error, because an empty zone file is still a zone file.
 	return nil, false
-}
-
-// canParseAsRR returns true if the record type can be parsed as a
-// concrete RR. It blacklists certain record types that must be parsed
-// according to RFC 3597 because they lack a presentation format.
-func canParseAsRR(rrtype uint16) bool {
-	switch rrtype {
-	case TypeANY, TypeNULL, TypeOPT, TypeTSIG:
-		return false
-	default:
-		return true
-	}
 }
 
 type zlexer struct {
@@ -1220,7 +1236,7 @@ func stringToCm(token string) (e, m uint8, ok bool) {
 			// 'nn.1' must be treated as 'nn-meters and 10cm, not 1cm.
 			cmeters *= 10
 		}
-		if len(s[0]) == 0 {
+		if s[0] == "" {
 			// This will allow omitting the 'meter' part, like .01 (meaning 0.01m = 1cm).
 			break
 		}
@@ -1290,7 +1306,7 @@ func appendOrigin(name, origin string) string {
 
 // LOC record helper function
 func locCheckNorth(token string, latitude uint32) (uint32, bool) {
-	if latitude > 90 * 1000 * 60 * 60 {
+	if latitude > 90*1000*60*60 {
 		return latitude, false
 	}
 	switch token {
@@ -1304,7 +1320,7 @@ func locCheckNorth(token string, latitude uint32) (uint32, bool) {
 
 // LOC record helper function
 func locCheckEast(token string, longitude uint32) (uint32, bool) {
-	if longitude > 180 * 1000 * 60 * 60 {
+	if longitude > 180*1000*60*60 {
 		return longitude, false
 	}
 	switch token {
@@ -1339,7 +1355,7 @@ func stringToNodeID(l lex) (uint64, *ParseError) {
 	if len(l.token) < 19 {
 		return 0, &ParseError{l.token, "bad NID/L64 NodeID/Locator64", l}
 	}
-	// There must be three colons at fixes postitions, if not its a parse error
+	// There must be three colons at fixes positions, if not its a parse error
 	if l.token[4] != ':' && l.token[9] != ':' && l.token[14] != ':' {
 		return 0, &ParseError{l.token, "bad NID/L64 NodeID/Locator64", l}
 	}

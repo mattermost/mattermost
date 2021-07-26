@@ -52,14 +52,20 @@ import (
 // of the RPC.
 type StreamHandler func(srv interface{}, stream ServerStream) error
 
-// StreamDesc represents a streaming RPC service's method specification.
+// StreamDesc represents a streaming RPC service's method specification.  Used
+// on the server when registering services and on the client when initiating
+// new streams.
 type StreamDesc struct {
-	StreamName string
-	Handler    StreamHandler
+	// StreamName and Handler are only used when registering handlers on a
+	// server.
+	StreamName string        // the name of the method excluding the service
+	Handler    StreamHandler // the handler called for the method
 
-	// At least one of these is true.
-	ServerStreams bool
-	ClientStreams bool
+	// ServerStreams and ClientStreams are used for registering handlers on a
+	// server as well as defining RPC behavior when passed to NewClientStream
+	// and ClientConn.NewStream.  At least one must be true.
+	ServerStreams bool // indicates the server can perform streaming sends
+	ClientStreams bool // indicates the client can perform streaming sends
 }
 
 // Stream defines the common interface a client or server stream has to satisfy.
@@ -166,7 +172,6 @@ func newClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 			}
 		}()
 	}
-	c := defaultCallInfo()
 	// Provide an opportunity for the first RPC to see the first service config
 	// provided by the resolver.
 	if err := cc.waitForResolvedAddrs(ctx); err != nil {
@@ -175,15 +180,40 @@ func newClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 
 	var mc serviceconfig.MethodConfig
 	var onCommit func()
-	rpcConfig := cc.safeConfigSelector.SelectConfig(iresolver.RPCInfo{Context: ctx, Method: method})
+	var newStream = func(ctx context.Context, done func()) (iresolver.ClientStream, error) {
+		return newClientStreamWithParams(ctx, desc, cc, method, mc, onCommit, done, opts...)
+	}
+
+	rpcInfo := iresolver.RPCInfo{Context: ctx, Method: method}
+	rpcConfig, err := cc.safeConfigSelector.SelectConfig(rpcInfo)
+	if err != nil {
+		return nil, toRPCErr(err)
+	}
+
 	if rpcConfig != nil {
 		if rpcConfig.Context != nil {
 			ctx = rpcConfig.Context
 		}
 		mc = rpcConfig.MethodConfig
 		onCommit = rpcConfig.OnCommitted
+		if rpcConfig.Interceptor != nil {
+			rpcInfo.Context = nil
+			ns := newStream
+			newStream = func(ctx context.Context, done func()) (iresolver.ClientStream, error) {
+				cs, err := rpcConfig.Interceptor.NewStream(ctx, rpcInfo, done, ns)
+				if err != nil {
+					return nil, toRPCErr(err)
+				}
+				return cs, nil
+			}
+		}
 	}
 
+	return newStream(ctx, func() {})
+}
+
+func newClientStreamWithParams(ctx context.Context, desc *StreamDesc, cc *ClientConn, method string, mc serviceconfig.MethodConfig, onCommit, doneFunc func(), opts ...CallOption) (_ iresolver.ClientStream, err error) {
+	c := defaultCallInfo()
 	if mc.WaitForReady != nil {
 		c.failFast = !*mc.WaitForReady
 	}
@@ -220,6 +250,7 @@ func newClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 		Host:           cc.authority,
 		Method:         method,
 		ContentSubtype: c.contentSubtype,
+		DoneFunc:       doneFunc,
 	}
 
 	// Set our outgoing compression according to the UseCompressor CallOption, if

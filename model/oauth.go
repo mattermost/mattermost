@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	OAUTH_ACTION_SIGNUP       = "signup"
-	OAUTH_ACTION_LOGIN        = "login"
-	OAUTH_ACTION_EMAIL_TO_SSO = "email_to_sso"
-	OAUTH_ACTION_SSO_TO_EMAIL = "sso_to_email"
-	OAUTH_ACTION_MOBILE       = "mobile"
+	OAuthActionSignup     = "signup"
+	OAuthActionLogin      = "login"
+	OAuthActionEmailToSSO = "email_to_sso"
+	OAuthActionSSOToEmail = "sso_to_email"
+	OAuthActionMobile     = "mobile"
 )
 
 type OAuthApp struct {
@@ -53,11 +53,11 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.creator_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.ClientSecret) == 0 || len(a.ClientSecret) > 128 {
+	if a.ClientSecret == "" || len(a.ClientSecret) > 128 {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.client_secret.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.Name) == 0 || len(a.Name) > 64 {
+	if a.Name == "" || len(a.Name) > 64 {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.name.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -71,7 +71,7 @@ func (a *OAuthApp) IsValid() *AppError {
 		}
 	}
 
-	if len(a.Homepage) == 0 || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
+	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -79,7 +79,7 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.description.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.IconURL) > 0 {
+	if a.IconURL != "" {
 		if len(a.IconURL) > 512 || !IsValidHttpUrl(a.IconURL) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type testHandler struct {
@@ -23,7 +23,7 @@ type testHandler struct {
 
 func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	bb, err := ioutil.ReadAll(r.Body)
-	assert.Nil(th.t, err)
+	assert.NoError(th.t, err)
 	assert.NotEmpty(th.t, string(bb))
 	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
 	assert.NotEmpty(th.t, poir.UserId)
@@ -61,7 +61,7 @@ func TestPostActionCookies(t *testing.T) {
 			Action: model.PostAction{
 				Id:   model.NewId(),
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
 					Context: map[string]interface{}{
@@ -76,7 +76,7 @@ func TestPostActionCookies(t *testing.T) {
 			Action: model.PostAction{
 				Id:   "someID",
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
 					Context: map[string]interface{}{
@@ -91,7 +91,7 @@ func TestPostActionCookies(t *testing.T) {
 			Action: model.PostAction{
 				Id:   "",
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
 					Context: map[string]interface{}{
@@ -106,7 +106,7 @@ func TestPostActionCookies(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			post := &model.Post{
 				Id:        model.NewId(),
-				Type:      model.POST_EPHEMERAL,
+				Type:      model.PostTypeEphemeral,
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				CreateAt:  model.GetMillis(),
@@ -237,8 +237,7 @@ func TestSubmitDialog(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request model.SubmitDialogRequest
 		err := json.NewDecoder(r.Body).Decode(&request)
-		require.Nil(t, err)
-		assert.NotNil(t, request)
+		require.NoError(t, err)
 
 		assert.Equal(t, request.URL, "")
 		assert.Equal(t, request.UserId, submit.UserId)

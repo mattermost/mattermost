@@ -4,28 +4,29 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type AutoChannelCreator struct {
 	a                  *app.App
-	userId             string
+	userID             string
 	team               *model.Team
 	Fuzzy              bool
 	DisplayNameLen     utils.Range
 	DisplayNameCharset string
 	NameLen            utils.Range
 	NameCharset        string
-	ChannelType        string
+	ChannelType        model.ChannelType
 }
 
-func NewAutoChannelCreator(a *app.App, team *model.Team, userId string) *AutoChannelCreator {
+func NewAutoChannelCreator(a *app.App, team *model.Team, userID string) *AutoChannelCreator {
 	return &AutoChannelCreator{
 		a:                  a,
 		team:               team,
-		userId:             userId,
+		userID:             userID,
 		Fuzzy:              false,
 		DisplayNameLen:     ChannelDisplayNameLen,
 		DisplayNameCharset: utils.ALPHANUMERIC,
@@ -35,7 +36,7 @@ func NewAutoChannelCreator(a *app.App, team *model.Team, userId string) *AutoCha
 	}
 }
 
-func (cfg *AutoChannelCreator) createRandomChannel() (*model.Channel, error) {
+func (cfg *AutoChannelCreator) createRandomChannel(c *request.Context) (*model.Channel, error) {
 	var displayName string
 	if cfg.Fuzzy {
 		displayName = utils.FuzzName()
@@ -49,23 +50,23 @@ func (cfg *AutoChannelCreator) createRandomChannel() (*model.Channel, error) {
 		DisplayName: displayName,
 		Name:        name,
 		Type:        cfg.ChannelType,
-		CreatorId:   cfg.userId,
+		CreatorId:   cfg.userID,
 	}
 
-	channel, err := cfg.a.CreateChannel(channel, true)
+	channel, err := cfg.a.CreateChannel(c, channel, true)
 	if err != nil {
 		return nil, err
 	}
 	return channel, nil
 }
 
-func (cfg *AutoChannelCreator) CreateTestChannels(num utils.Range) ([]*model.Channel, error) {
+func (cfg *AutoChannelCreator) CreateTestChannels(c *request.Context, num utils.Range) ([]*model.Channel, error) {
 	numChannels := utils.RandIntFromRange(num)
 	channels := make([]*model.Channel, numChannels)
 
 	for i := 0; i < numChannels; i++ {
 		var err error
-		channels[i], err = cfg.createRandomChannel()
+		channels[i], err = cfg.createRandomChannel(c)
 		if err != nil {
 			return nil, err
 		}

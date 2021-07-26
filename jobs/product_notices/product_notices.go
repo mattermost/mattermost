@@ -4,8 +4,8 @@
 package product_notices
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/app"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 )
 
 type ProductNoticesJobInterfaceImpl struct {
@@ -13,7 +13,8 @@ type ProductNoticesJobInterfaceImpl struct {
 }
 
 func init() {
-	app.RegisterProductNoticesJobInterface(func(a *app.App) tjobs.ProductNoticesJobInterface {
+	app.RegisterProductNoticesJobInterface(func(s *app.Server) tjobs.ProductNoticesJobInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ProductNoticesJobInterfaceImpl{a}
 	})
 }

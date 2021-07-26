@@ -17,13 +17,17 @@ TessBaseAPI Create() {
 
 void Free(TessBaseAPI a) {
     tesseract::TessBaseAPI* api = (tesseract::TessBaseAPI*)a;
-    api->End();
-    delete api;
+    if (api != nullptr) {
+        api->End();
+        delete api;
+    }
 }
 
 void Clear(TessBaseAPI a) {
     tesseract::TessBaseAPI* api = (tesseract::TessBaseAPI*)a;
-    api->Clear();
+    if (api != nullptr) {
+        api->Clear();
+    }
 }
 
 void ClearPersistentCache(TessBaseAPI a) {

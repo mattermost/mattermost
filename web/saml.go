@@ -5,14 +5,15 @@ package web
 
 import (
 	b64 "encoding/base64"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (w *Web) InitSaml() {
@@ -34,15 +35,15 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
-	isMobile := action == model.OAUTH_ACTION_MOBILE
-	redirectURL := r.URL.Query().Get("redirect_to")
+	isMobile := action == model.OAuthActionMobile
+	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 	relayProps := map[string]string{}
 	relayState := ""
 
 	if action != "" {
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
-		if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
+		if action == model.OAuthActionEmailToSSO {
 			relayProps["email"] = r.URL.Query().Get("email")
 		}
 	}
@@ -56,7 +57,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["redirect_to"] = redirectURL
 	}
 
-	relayProps[model.USER_AUTH_SERVICE_IS_MOBILE] = strconv.FormatBool(isMobile)
+	relayProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
 
 	if len(relayProps) > 0 {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
@@ -84,7 +85,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayState := r.FormValue("RelayState")
 
 	relayProps := make(map[string]string)
-	if len(relayState) > 0 {
+	if relayState != "" {
 		stateStr := ""
 		b, err := b64.StdEncoding.DecodeString(relayState)
 		if err != nil {
@@ -102,29 +103,25 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := relayProps["action"]
 	auditRec.AddMeta("action", action)
 
-	isMobile := action == model.OAUTH_ACTION_MOBILE
+	isMobile := action == model.OAuthActionMobile
 	redirectURL := ""
 	hasRedirectURL := false
 	if val, ok := relayProps["redirect_to"]; ok {
 		redirectURL = val
-		hasRedirectURL = len(val) > 0
+		hasRedirectURL = val != ""
 	}
 
 	handleError := func(err *model.AppError) {
-		if isMobile {
-			err.Translate(c.App.T)
-			if hasRedirectURL {
-				utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
-			} else {
-				w.Write([]byte(err.ToJson()))
-			}
+		if isMobile && hasRedirectURL {
+			err.Translate(c.AppContext.T)
+			utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
 		} else {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
 	}
 
-	user, err := samlInterface.DoLogin(encodedXML, relayProps)
+	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
 		mlog.Error(err.Error())
@@ -139,15 +136,15 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch action {
-	case model.OAUTH_ACTION_SIGNUP:
+	case model.OAuthActionSignup:
 		if teamId := relayProps["team_id"]; teamId != "" {
-			if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
+			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
 				c.LogErrorByCode(err)
 				break
 			}
 			c.App.AddDirectChannels(teamId, user)
 		}
-	case model.OAUTH_ACTION_EMAIL_TO_SSO:
+	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(user.Id); err != nil {
 			c.Err = err
 			return
@@ -157,8 +154,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 		c.App.Srv().Go(func() {
-			if err = c.App.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
-				c.LogErrorByCode(err)
+			if err := c.App.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(model.UserAuthServiceSaml)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
+				c.LogErrorByCode(model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError))
 			}
 		})
 	}
@@ -166,7 +163,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
+	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
 	if err != nil {
 		mlog.Error(err.Error())
 		handleError(err)
@@ -176,14 +173,14 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
 
-	c.App.AttachSessionCookies(w, r)
+	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	if hasRedirectURL {
 		if isMobile {
 			// Mobile clients with redirect url support
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
-				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
+				model.SessionCookieToken: c.AppContext.Session().Token,
+				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
@@ -195,9 +192,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	// Mobile clients with web view implementation
-	case model.OAUTH_ACTION_MOBILE:
+	case model.OAuthActionMobile:
 		ReturnStatusOK(w)
-	case model.OAUTH_ACTION_EMAIL_TO_SSO:
+	case model.OAuthActionEmailToSSO:
 		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=signin_change", http.StatusFound)
 	default:
 		http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)

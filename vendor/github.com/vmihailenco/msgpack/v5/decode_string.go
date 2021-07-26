@@ -95,19 +95,30 @@ func (d *Decoder) bytes(c byte, b []byte) ([]byte, error) {
 	return readN(d.r, b, n)
 }
 
-func (d *Decoder) bytesTemp() ([]byte, error) {
+func (d *Decoder) decodeStringTemp() (string, error) {
+	if intern := d.flags&useInternedStringsFlag != 0; intern || len(d.dict) > 0 {
+		return d.decodeInternedString(intern)
+	}
+
 	c, err := d.readCode()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+
 	n, err := d.bytesLen(c)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if n == -1 {
-		return nil, nil
+		return "", nil
 	}
-	return d.readN(n)
+
+	b, err := d.readN(n)
+	if err != nil {
+		return "", err
+	}
+
+	return bytesToString(b), nil
 }
 
 func (d *Decoder) decodeBytesPtr(ptr *[]byte) error {

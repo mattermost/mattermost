@@ -13,12 +13,13 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
+
+	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
 )
 
 const (
-	COMMAND_RESPONSE_TYPE_IN_CHANNEL = "in_channel"
-	COMMAND_RESPONSE_TYPE_EPHEMERAL  = "ephemeral"
+	CommandResponseTypeInChannel = "in_channel"
+	CommandResponseTypeEphemeral = "ephemeral"
 )
 
 type CommandResponse struct {
@@ -103,7 +104,7 @@ func CommandResponseFromJson(data io.Reader) (*CommandResponse, error) {
 	var o CommandResponse
 	err = json.Unmarshal(b, &o)
 	if err != nil {
-		return nil, jsonutils.HumanizeJsonError(err, b)
+		return nil, jsonutils.HumanizeJSONError(err, b)
 	}
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)

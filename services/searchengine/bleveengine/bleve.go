@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -16,9 +17,9 @@ import (
 	"github.com/blevesearch/bleve/analysis/analyzer/standard"
 	"github.com/blevesearch/bleve/mapping"
 
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -231,6 +232,14 @@ func (b *BleveEngine) GetVersion() int {
 	return 0
 }
 
+func (b *BleveEngine) GetFullVersion() string {
+	return "0"
+}
+
+func (b *BleveEngine) GetPlugins() []string {
+	return []string{}
+}
+
 func (b *BleveEngine) GetName() string {
 	return EngineName
 }
@@ -248,6 +257,9 @@ func (b *BleveEngine) deleteIndexes() *model.AppError {
 	}
 	if err := os.RemoveAll(b.getIndexDir(ChannelIndex)); err != nil {
 		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_channel_index.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if err := os.RemoveAll(b.getIndexDir(FileIndex)); err != nil {
+		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_file_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -291,6 +303,10 @@ func (b *BleveEngine) IsSearchEnabled() bool {
 func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
+
+	if reflect.DeepEqual(cfg.BleveSettings, b.cfg.BleveSettings) {
+		return
+	}
 
 	mlog.Info("UpdateConf Bleve")
 

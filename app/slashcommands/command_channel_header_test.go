@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestHeaderProviderDoCommand(t *testing.T) {
@@ -17,7 +17,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 
 	hp := HeaderProvider{}
 
-	th.addPermissionToRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.addPermissionToRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	// Try a public channel *with* permission.
 	args := &model.CommandArgs{
@@ -30,11 +30,11 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		"":      "api.command_channel_header.message.app_error",
 		"hello": "",
 	} {
-		actual := hp.DoCommand(th.App, args, msg).Text
+		actual := hp.DoCommand(th.App, th.Context, args, msg).Text
 		assert.Equal(t, expected, actual)
 	}
 
-	th.removePermissionFromRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.removePermissionFromRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	// Try a public channel *without* permission.
 	args = &model.CommandArgs{
@@ -43,10 +43,10 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual := hp.DoCommand(th.App, args, "hello").Text
+	actual := hp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_header.permission.app_error", actual)
 
-	th.addPermissionToRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.addPermissionToRole(model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	// Try a private channel *with* permission.
 	privateChannel := th.createPrivateChannel(th.BasicTeam)
@@ -57,10 +57,10 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = hp.DoCommand(th.App, args, "hello").Text
+	actual = hp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "", actual)
 
-	th.removePermissionFromRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.removePermissionFromRole(model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	// Try a private channel *without* permission.
 	args = &model.CommandArgs{
@@ -69,7 +69,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = hp.DoCommand(th.App, args, "hello").Text
+	actual = hp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_header.permission.app_error", actual)
 
 	// Try a group channel *with* being a member.
@@ -85,7 +85,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		UserId:    user1.Id,
 	}
 
-	actual = hp.DoCommand(th.App, args, "hello").Text
+	actual = hp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "", actual)
 
 	// Try a group channel *without* being a member.
@@ -95,7 +95,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		UserId:    user3.Id,
 	}
 
-	actual = hp.DoCommand(th.App, args, "hello").Text
+	actual = hp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_header.permission.app_error", actual)
 
 	// Try a direct channel *with* being a member.
@@ -107,7 +107,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = hp.DoCommand(th.App, args, "hello").Text
+	actual = hp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "", actual)
 
 	// Try a direct channel *without* being a member.
@@ -117,6 +117,6 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		UserId:    user2.Id,
 	}
 
-	actual = hp.DoCommand(th.App, args, "hello").Text
+	actual = hp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_header.permission.app_error", actual)
 }

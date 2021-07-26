@@ -57,7 +57,7 @@ type OutgoingWebhookResponse struct {
 	ResponseType string             `json:"response_type"`
 }
 
-const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
+const OutgoingHookResponseTypeComment = "comment"
 
 func (o *OutgoingWebhookPayload) ToJSON() string {
 	b, _ := json.Marshal(o)
@@ -154,7 +154,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 
 	if len(o.TriggerWords) != 0 {
 		for _, triggerWord := range o.TriggerWords {
-			if len(triggerWord) == 0 {
+			if triggerWord == "" {
 				return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -215,7 +215,7 @@ func (o *OutgoingWebhook) PreUpdate() {
 }
 
 func (o *OutgoingWebhook) TriggerWordExactMatch(word string) bool {
-	if len(word) == 0 {
+	if word == "" {
 		return false
 	}
 
@@ -229,7 +229,7 @@ func (o *OutgoingWebhook) TriggerWordExactMatch(word string) bool {
 }
 
 func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
-	if len(word) == 0 {
+	if word == "" {
 		return false
 	}
 
@@ -243,7 +243,7 @@ func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
 }
 
 func (o *OutgoingWebhook) GetTriggerWord(word string, isExactMatch bool) (triggerWord string) {
-	if len(word) == 0 {
+	if word == "" {
 		return
 	}
 

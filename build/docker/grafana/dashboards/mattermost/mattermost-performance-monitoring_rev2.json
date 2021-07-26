@@ -9,6 +9,38 @@
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
+      },
+      {
+        "datasource": "Prometheus",
+        "enable": false,
+        "expr": "mattermost_system_server_start_time{instance=~\"$server\"}*1000",
+        "hide": false,
+        "iconColor": "#C8F2C2",
+        "limit": 100,
+        "name": "Server Start",
+        "showIn": 0,
+        "step": "5s",
+        "tagKeys": "instance",
+        "tags": [],
+        "titleFormat": "Server Started",
+        "type": "tags",
+        "useValueForTime": true
+      },
+      {
+        "datasource": "Prometheus",
+        "enable": false,
+        "expr": "mattermost_jobs_active{instance=~\"$server\"}",
+        "hide": false,
+        "iconColor": "#FFF899",
+        "limit": 100,
+        "name": "Active Jobs",
+        "showIn": 0,
+        "step": "5s",
+        "tagKeys": "type",
+        "tags": [],
+        "titleFormat": "Active Job",
+        "type": "tags",
+        "useValueForTime": false
       }
     ]
   },
@@ -1477,6 +1509,107 @@
         {
           "format": "short",
           "label": "MB",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "A record of any job detected as being active within the configured Prometheus polling interval.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 117
+      },
+      "hiddenSeries": false,
+      "id": 15,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideEmpty": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.6",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "expr": "mattermost_jobs_active{instance=~\"$server\"}",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Active Jobs",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "Active",
           "logBase": 1,
           "max": null,
           "min": null,

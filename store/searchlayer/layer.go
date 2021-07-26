@@ -4,12 +4,13 @@
 package searchlayer
 
 import (
+	"context"
 	"sync/atomic"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SearchStore struct {
@@ -67,7 +68,7 @@ func (s *SearchStore) User() store.UserStore {
 }
 
 func (s *SearchStore) indexUserFromID(userId string) {
-	user, err := s.User().Get(userId)
+	user, err := s.User().Get(context.Background(), userId)
 	if err != nil {
 		return
 	}

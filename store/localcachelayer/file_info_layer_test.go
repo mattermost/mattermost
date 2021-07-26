@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestFileInfoStore(t *testing.T) {
@@ -28,7 +28,7 @@ func TestFileInfoStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		fileInfos, err := cachedStore.FileInfo().GetForPost("123", true, true, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
 		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
 		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})

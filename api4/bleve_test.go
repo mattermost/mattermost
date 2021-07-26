@@ -6,7 +6,7 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestBlevePurgeIndexes(t *testing.T) {
@@ -19,8 +19,8 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	})
 
 	t.Run("as system user with write experimental permission", func(t *testing.T) {
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionPurgeBleveIndexes.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteExperimental.Id, model.SystemUserRoleId)
 		_, resp := th.Client.PurgeBleveIndexes()
 		CheckOKStatus(t, resp)
 	})

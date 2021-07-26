@@ -6,11 +6,14 @@ import (
 )
 
 // Version is the version of the SDK.
-const Version = "0.9.0"
+const Version = "0.11.0"
 
 // apiVersion is the minimum version of the Sentry API compatible with the
 // sentry-go SDK.
 const apiVersion = "7"
+
+// userAgent is the User-Agent of outgoing HTTP requests.
+const userAgent = "sentry-go/" + Version
 
 // Init initializes the SDK with options. The returned error is non-nil if
 // options is invalid, for instance if a malformed DSN is provided.

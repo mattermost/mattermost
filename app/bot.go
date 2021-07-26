@@ -4,20 +4,23 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app/imaging"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 // CreateBot creates the given bot and corresponding user.
-func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
 	user, nErr := a.Srv().Store.User().Save(model.UserFromBot(bot))
 	if nErr != nil {
 		var appErr *model.AppError
@@ -55,27 +58,31 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	}
 
 	// Get the owner of the bot, if one exists. If not, don't send a message
-	ownerUser, err := a.Srv().Store.User().Get(bot.OwnerId)
+	ownerUser, err := a.Srv().Store.User().Get(context.Background(), bot.OwnerId)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
 		return nil, model.NewAppError("CreateBot", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else if ownerUser != nil {
 		// Send a message to the bot's creator to inform them that the bot needs to be added
 		// to a team and channel after it's created
-		channel, err := a.GetOrCreateDirectChannel(savedBot.UserId, bot.OwnerId)
+		botOwner, err := a.GetUser(bot.OwnerId)
+		if err != nil {
+			return nil, err
+		}
+		channel, err := a.getOrCreateDirectChannelWithUser(c, user, botOwner)
 		if err != nil {
 			return nil, err
 		}
 
-		T := utils.GetUserTranslations(ownerUser.Locale)
+		T := i18n.GetUserTranslations(ownerUser.Locale)
 		botAddPost := &model.Post{
-			Type:      model.POST_ADD_BOT_TEAMS_CHANNELS,
+			Type:      model.PostTypeAddBotTeamsChannels,
 			UserId:    savedBot.UserId,
 			ChannelId: channel.Id,
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
 		}
 
-		if _, err := a.CreatePostAsUser(botAddPost, a.Session().Id, true); err != nil {
+		if _, err := a.CreatePostAsUser(c, botAddPost, c.Session().Id, true); err != nil {
 			return nil, err
 		}
 	}
@@ -83,7 +90,66 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	return savedBot, nil
 }
 
-func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
+//nolint:golint,unused,deadcode
+func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
+	perPage := 1
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	}
+
+	sysAdminList, err := a.GetUsers(userOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sysAdminList) == 0 {
+		return nil, model.NewAppError("GetWarnMetricsBot", "app.bot.get_warn_metrics_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
+	warnMetricsBot := &model.Bot{
+		Username:    model.BotWarnMetricBotUsername,
+		DisplayName: T("app.system.warn_metric.bot_displayname"),
+		Description: "",
+		OwnerId:     sysAdminList[0].Id,
+	}
+
+	return a.getOrCreateBot(warnMetricsBot)
+}
+
+func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
+	perPage := 1
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	}
+
+	sysAdminList, err := a.GetUsers(userOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sysAdminList) == 0 {
+		return nil, model.NewAppError("GetSystemBot", "app.bot.get_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
+	systemBot := &model.Bot{
+		Username:    model.BotSystemBotUsername,
+		DisplayName: T("app.system.system_bot.bot_displayname"),
+		Description: "",
+		OwnerId:     sysAdminList[0].Id,
+	}
+
+	return a.getOrCreateBot(systemBot)
+}
+
+func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
@@ -108,9 +174,9 @@ func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.A
 				default:
 					code = "app.user.save.existing.app_error"
 				}
-				return nil, model.NewAppError("getOrCreateWarnMetricsBot", code, nil, invErr.Error(), http.StatusBadRequest)
+				return nil, model.NewAppError("getOrCreateBot", code, nil, invErr.Error(), http.StatusBadRequest)
 			default:
-				return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getOrCreateBot", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 		}
 		botDef.UserId = user.Id
@@ -124,14 +190,14 @@ func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.A
 			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
 				return nil, nAppErr
 			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getOrCreateBot", "app.bot.createbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 		}
 		return savedBot, nil
 	}
 
 	if botUser == nil {
-		return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("getOrCreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
 	}
 
 	//return the bot for this user
@@ -150,9 +216,13 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		return nil, err
 	}
 
+	if !bot.WouldPatch(botPatch) {
+		return bot, nil
+	}
+
 	bot.Patch(botPatch)
 
-	user, nErr := a.Srv().Store.User().Get(botUserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -173,11 +243,17 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
+		var conErr *store.ErrConflict
 		switch {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("PatchBot", "app.user.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("PatchBot", "app.user.update.find.app_error", nil, nErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &conErr):
+			if cErr, ok := nErr.(*store.ErrConflict); ok && cErr.Resource == "Username" {
+				return nil, model.NewAppError("PatchBot", "app.user.save.username_exists.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			}
+			return nil, model.NewAppError("PatchBot", "app.user.save.email_exists.app_error", nil, nErr.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.update.finding.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -193,7 +269,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
@@ -210,7 +286,7 @@ func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("GetBot", "app.bot.getbot.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -228,8 +304,8 @@ func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppEr
 }
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
-func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
-	user, nErr := a.Srv().Store.User().Get(botUserId)
+func (a *App) UpdateBotActive(c *request.Context, botUserId string, active bool) (*model.Bot, *model.AppError) {
+	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -240,7 +316,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		}
 	}
 
-	if _, err := a.UpdateActive(user, active); err != nil {
+	if _, err := a.UpdateActive(c, user, active); err != nil {
 		return nil, err
 	}
 
@@ -249,7 +325,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("UpdateBotActive", "app.bot.getbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -271,7 +347,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 			var appErr *model.AppError
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.MakeBotNotFoundError(nfErr.Id)
+				return nil, model.MakeBotNotFoundError(nfErr.ID)
 			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 				return nil, appErr
 			default: // last fallback in case it doesn't map to an existing app error.
@@ -309,7 +385,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -323,7 +399,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
@@ -335,11 +411,11 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 }
 
 // disableUserBots disables all bots owned by the given user.
-func (a *App) disableUserBots(userId string) *model.AppError {
+func (a *App) disableUserBots(c *request.Context, userID string) *model.AppError {
 	perPage := 20
 	for {
 		options := &model.BotGetOptions{
-			OwnerId:        userId,
+			OwnerId:        userID,
 			IncludeDeleted: false,
 			OnlyOrphaned:   false,
 			Page:           0,
@@ -351,7 +427,7 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 		}
 
 		for _, bot := range userBots {
-			_, err := a.UpdateBotActive(bot.UserId, false)
+			_, err := a.UpdateBotActive(c, bot.UserId, false)
 			if err != nil {
 				mlog.Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
 			}
@@ -368,10 +444,10 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 	return nil
 }
 
-func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError {
+func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID string) *model.AppError {
 	perPage := 25
 	botOptions := &model.BotGetOptions{
-		OwnerId:        userId,
+		OwnerId:        userID,
 		IncludeDeleted: false,
 		OnlyOrphaned:   false,
 		Page:           0,
@@ -402,7 +478,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 	// get sysadmins
@@ -423,14 +499,14 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 	}
 
 	// user being disabled
-	user, err := a.GetUser(userId)
+	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
 
 	// for each sysadmin, notify user that owns bots was disabled
 	for _, sysAdmin := range sysAdmins {
-		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
+		channel, appErr := a.GetOrCreateDirectChannel(c, sysAdmin.Id, sysAdmin.Id)
 		if appErr != nil {
 			return appErr
 		}
@@ -439,10 +515,10 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
 			Message:   a.getDisableBotSysadminMessage(user, userBots),
-			Type:      model.POST_SYSTEM_GENERIC,
+			Type:      model.PostTypeSystemGeneric,
 		}
 
-		_, appErr = a.CreatePost(post, channel, false, true)
+		_, appErr = a.CreatePost(c, post, channel, false, true)
 		if appErr != nil {
 			return appErr
 		}
@@ -466,7 +542,7 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 		botList += fmt.Sprintf("* %v\n", bot.Username)
 	}
 
-	T := utils.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(user.Locale)
 	message = T("app.bot.get_disable_bot_sysadmin_message",
 		map[string]interface{}{
 			"UserName":           user.Username,
@@ -513,7 +589,7 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		return err
 	}
 
-	if _, err := parseSVG(file); err != nil {
+	if _, err := imaging.ParseSVG(file); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
@@ -529,7 +605,7 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return model.MakeBotNotFoundError(nfErr.Id)
+			return model.MakeBotNotFoundError(nfErr.ID)
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return appErr
 		default: // last fallback in case it doesn't map to an existing app error.
@@ -563,7 +639,7 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return model.MakeBotNotFoundError(nfErr.Id)
+			return model.MakeBotNotFoundError(nfErr.ID)
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return appErr
 		default: // last fallback in case it doesn't map to an existing app error.

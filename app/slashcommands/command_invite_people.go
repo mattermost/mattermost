@@ -6,11 +6,11 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type InvitePeopleProvider struct {
@@ -28,7 +28,7 @@ func (*InvitePeopleProvider) GetTrigger() string {
 	return CmdInvite_PEOPLE
 }
 
-func (*InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*InvitePeopleProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	autoComplete := true
 	if !*a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation || !*a.Config().ServiceSettings.EnableEmailInvitations {
 		autoComplete = false
@@ -42,25 +42,25 @@ func (*InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *mod
 	}
 }
 
-func (*InvitePeopleProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PERMISSION_INVITE_USER) {
-		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+func (*InvitePeopleProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PermissionInviteUser) {
+		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
-		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PermissionAddUserToTeam) {
+		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	if !*a.Config().EmailSettings.SendEmailNotifications {
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.email_off")}
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.email_off")}
 	}
 
 	if !*a.Config().TeamSettings.EnableUserCreation {
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.invite_off")}
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.invite_off")}
 	}
 
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.email_invitations_off")}
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.email_invitations_off")}
 	}
 
 	emailList := strings.Fields(message)
@@ -73,13 +73,13 @@ func (*InvitePeopleProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 	}
 
 	if len(emailList) == 0 {
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.no_email")}
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.no_email")}
 	}
 
 	if err := a.InviteNewUsersToTeam(emailList, args.TeamId, args.UserId); err != nil {
 		mlog.Error(err.Error())
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.fail")}
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.fail")}
 	}
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.sent")}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.sent")}
 }

@@ -16,6 +16,7 @@ const (
 	useCompactIntsFlag
 	useCompactFloatsFlag
 	useInternedStringsFlag
+	omitEmptyFlag
 )
 
 type writer interface {
@@ -109,17 +110,15 @@ func (e *Encoder) ResetDict(w io.Writer, dict map[string]int) {
 	e.resetWriter(w)
 	e.flags = 0
 	e.structTag = ""
-	e.SetDict(dict)
+	e.dict = dict
 }
 
-func (e *Encoder) SetDict(dict map[string]int) {
-	if len(dict) > 0 {
-		e.dict = dict
-	} else {
-		for k := range e.dict {
-			delete(e.dict, k)
-		}
-	}
+func (e *Encoder) WithDict(dict map[string]int, fn func(*Encoder) error) error {
+	oldDict := e.dict
+	e.dict = dict
+	err := fn(e)
+	e.dict = oldDict
+	return err
 }
 
 func (e *Encoder) resetWriter(w io.Writer) {
@@ -147,6 +146,15 @@ func (e *Encoder) SetSortMapKeys(on bool) *Encoder {
 // fallback option if there is no msgpack tag.
 func (e *Encoder) SetCustomStructTag(tag string) {
 	e.structTag = tag
+}
+
+// SetOmitEmpty causes the Encoder to omit empty values by default.
+func (e *Encoder) SetOmitEmpty(on bool) {
+	if on {
+		e.flags |= omitEmptyFlag
+	} else {
+		e.flags &= ^omitEmptyFlag
+	}
 }
 
 // UseArrayEncodedStructs causes the Encoder to encode Go structs as msgpack arrays.

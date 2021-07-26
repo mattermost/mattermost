@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestSchemeStore(t *testing.T) {
@@ -28,10 +28,10 @@ func TestSchemeStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		scheme, err := cachedStore.Scheme().Get("123")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, scheme, &fakeScheme)
 		mockStore.Scheme().(*mocks.SchemeStore).AssertNumberOfCalls(t, "Get", 1)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, scheme, &fakeScheme)
 		cachedStore.Scheme().Get("123")
 		mockStore.Scheme().(*mocks.SchemeStore).AssertNumberOfCalls(t, "Get", 1)

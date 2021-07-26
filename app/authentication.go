@@ -4,12 +4,14 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mfa"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 )
 
 type TokenLocation int
@@ -20,6 +22,7 @@ const (
 	TokenLocationCookie
 	TokenLocationQueryString
 	TokenLocationCloudHeader
+	TokenLocationRemoteClusterHeader
 )
 
 func (tl TokenLocation) String() string {
@@ -34,6 +37,8 @@ func (tl TokenLocation) String() string {
 		return "QueryString"
 	case TokenLocationCloudHeader:
 		return "CloudHeader"
+	case TokenLocationRemoteClusterHeader:
+		return "RemoteClusterHeader"
 	default:
 		return "Unknown"
 	}
@@ -45,7 +50,17 @@ func (a *App) IsPasswordValid(password string) *model.AppError {
 		return nil
 	}
 
-	return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
+	if err := users.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings); err != nil {
+		var invErr *users.ErrInvalidPassword
+		switch {
+		case errors.As(err, &invErr):
+			return model.NewAppError("User.IsValid", invErr.Id(), map[string]interface{}{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest)
+		default:
+			return model.NewAppError("User.IsValid", "app.valid_password_generic.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return nil
 }
 
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
@@ -53,14 +68,20 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		return err
 	}
 
-	if err := a.checkUserPassword(user, password); err != nil {
+	if err := users.CheckUserPassword(user, password); err != nil {
 		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, passErr.Error(), http.StatusInternalServerError)
 		}
 
 		a.InvalidateCacheForUser(user.Id)
 
-		return err
+		var invErr *users.ErrInvalidPassword
+		switch {
+		case errors.As(err, &invErr):
+			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+		default:
+			return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if err := a.CheckUserMfa(user, mfaToken); err != nil {
@@ -96,14 +117,20 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 		return err
 	}
 
-	if err := a.checkUserPassword(user, password); err != nil {
+	if err := users.CheckUserPassword(user, password); err != nil {
 		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, passErr.Error(), http.StatusInternalServerError)
 		}
 
 		a.InvalidateCacheForUser(user.Id)
 
-		return err
+		var invErr *users.ErrInvalidPassword
+		switch {
+		case errors.As(err, &invErr):
+			return model.NewAppError("DoubleCheckPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+		default:
+			return model.NewAppError("DoubleCheckPassword", "app.valid_password_generic.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
@@ -115,21 +142,13 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 	return nil
 }
 
-func (a *App) checkUserPassword(user *model.User, password string) *model.AppError {
-	if !model.ComparePassword(user.Password, password) {
-		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
-	}
-
-	return nil
-}
-
-func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
 	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	ldapUser, err := a.Ldap().DoLogin(*ldapId, password)
+	ldapUser, err := a.Ldap().DoLogin(c, *ldapId, password)
 	if err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
@@ -188,10 +207,13 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 		return nil
 	}
 
-	mfaService := mfa.New(a, a.Srv().Store)
-	ok, err := mfaService.ValidateToken(user.MfaSecret, token)
+	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	ok, err := mfa.New(a.Srv().Store.User()).ValidateToken(user.MfaSecret, token)
 	if err != nil {
-		return err
+		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if !ok {
@@ -223,17 +245,17 @@ func checkUserNotBot(user *model.User) *model.AppError {
 	return nil
 }
 
-func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) authenticateUser(c *request.Context, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	license := a.Srv().License()
 	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
-	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
+	if user.AuthService == model.UserAuthServiceLdap {
 		if !ldapAvailable {
 			err := model.NewAppError("login", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 			return user, err
 		}
 
-		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken)
+		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(c, user.AuthData, password, mfaToken)
 		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
@@ -245,7 +267,7 @@ func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*mo
 
 	if user.AuthService != "" {
 		authService := user.AuthService
-		if authService == model.USER_AUTH_SERVICE_SAML {
+		if authService == model.UserAuthServiceSaml {
 			authService = strings.ToUpper(authService)
 		}
 		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "", http.StatusBadRequest)
@@ -261,20 +283,20 @@ func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*mo
 }
 
 func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
-	authHeader := r.Header.Get(model.HEADER_AUTH)
+	authHeader := r.Header.Get(model.HeaderAuth)
 
 	// Attempt to parse the token from the cookie
-	if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
+	if cookie, err := r.Cookie(model.SessionCookieToken); err == nil {
 		return cookie.Value, TokenLocationCookie
 	}
 
 	// Parse the token from the header
-	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
+	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HeaderBearer {
 		// Default session token
 		return authHeader[7:], TokenLocationHeader
 	}
 
-	if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
+	if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HeaderToken {
 		// OAuth token
 		return authHeader[6:], TokenLocationHeader
 	}
@@ -284,8 +306,12 @@ func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
 		return token, TokenLocationQueryString
 	}
 
-	if token := r.Header.Get(model.HEADER_CLOUD_TOKEN); token != "" {
+	if token := r.Header.Get(model.HeaderCloudToken); token != "" {
 		return token, TokenLocationCloudHeader
+	}
+
+	if token := r.Header.Get(model.HeaderRemoteclusterToken); token != "" {
+		return token, TokenLocationRemoteClusterHeader
 	}
 
 	return "", TokenLocationNotFound

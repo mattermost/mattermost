@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -67,7 +67,7 @@ func TestLeaveTeam(t *testing.T) {
 	require.False(t, found, "profile should not be on team")
 
 	teams, err := th.App.Srv().Store.Team().GetTeamsByUserId(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 0, len(teams), "Shouldn't be in team")
 }
 
@@ -245,9 +245,9 @@ func TestModifyTeam(t *testing.T) {
 
 	updatedTeam, _ := th.App.GetTeam(team.Id)
 
-	require.False(t, !updatedTeam.AllowOpenInvite && team.Type == model.TEAM_INVITE, "Failed modifying team's privacy to private")
+	require.False(t, !updatedTeam.AllowOpenInvite && team.Type == model.TeamInvite, "Failed modifying team's privacy to private")
 
 	th.CheckCommand(t, "team", "modify", team.Name, "--public")
 
-	require.False(t, updatedTeam.AllowOpenInvite && team.Type == model.TEAM_OPEN, "Failed modifying team's privacy to private")
+	require.False(t, updatedTeam.AllowOpenInvite && team.Type == model.TeamOpen, "Failed modifying team's privacy to private")
 }

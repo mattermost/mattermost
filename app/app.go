@@ -4,26 +4,24 @@
 package app
 
 import (
-	"context"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
-	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/services/timezones"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mail"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/templates"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type App struct {
@@ -33,16 +31,6 @@ type App struct {
 	// to be registered in (h *MainHelper) setupStore, but that creates
 	// a cyclic dependency as bleve tests themselves import testlib.
 	searchEngine *searchengine.Broker
-
-	t              goi18n.TranslateFunc
-	session        model.Session
-	requestId      string
-	ipAddress      string
-	path           string
-	userAgent      string
-	acceptLanguage string
-
-	context context.Context
 }
 
 func New(options ...AppOption) *App {
@@ -55,97 +43,16 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) InitServer() {
-	a.srv.AppInitializedOnce.Do(func() {
-		a.initEnterprise()
-
-		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-				if appErr := a.DeactivateGuests(); appErr != nil {
-					mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-				}
-			}
-		})
-
-		// Disable active guest accounts on first run if guest accounts are disabled
-		if !*a.Config().GuestAccountsSettings.Enable {
-			if appErr := a.DeactivateGuests(); appErr != nil {
-				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-			}
-		}
-
-		// Scheduler must be started before cluster.
-		a.initJobs()
-
-		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAllClusterMessageHandlers()
-		}
-
-		a.DoAppMigrations()
-
-		a.InitPostMetadata()
-
-		a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-		a.AddConfigListener(func(prevCfg, cfg *model.Config) {
-			if *cfg.PluginSettings.Enable {
-				a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-			} else {
-				a.srv.ShutDownPlugins()
-			}
-		})
-		if a.Srv().runjobs {
-			a.Srv().Go(func() {
-				runLicenseExpirationCheckJob(a)
-				runCheckWarnMetricStatusJob(a)
-			})
-		}
-		a.srv.RunJobs()
-	})
-}
-
-func (a *App) initJobs() {
-	if jobsLdapSyncInterface != nil {
-		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
-	}
-	if jobsPluginsInterface != nil {
-		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
-	}
-	if jobsExpiryNotifyInterface != nil {
-		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
-	}
-	if productNoticesJobInterface != nil {
-		a.srv.Jobs.ProductNotices = productNoticesJobInterface(a)
-	}
-	if jobsImportProcessInterface != nil {
-		a.srv.Jobs.ImportProcess = jobsImportProcessInterface(a)
-	}
-
-	if jobsActiveUsersInterface != nil {
-		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
-	}
-
-	if jobsCloudInterface != nil {
-		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
-	}
-
-	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
-	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
-}
-
 func (a *App) TelemetryId() string {
 	return a.Srv().TelemetryId()
 }
 
-func (s *Server) HTMLTemplates() *template.Template {
-	if s.htmlTemplateWatcher != nil {
-		return s.htmlTemplateWatcher.Templates()
-	}
-
-	return nil
+func (s *Server) TemplatesContainer() *templates.Container {
+	return s.htmlTemplateWatcher
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
-	ipAddress := utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
+	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
 	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
 	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
@@ -157,7 +64,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, err := s.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	systemData, err := s.Store.System().GetByName(model.SystemInstallationDateKey)
 	if err != nil {
 		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -169,7 +76,7 @@ func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 }
 
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
-	systemData, err := s.Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
+	systemData, err := s.Store.System().GetByName(model.SystemFirstServerRunTimestampKey)
 	if err != nil {
 		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -180,8 +87,9 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+//nolint:golint,unused,deadcode
 func (s *Server) getLastWarnMetricTimestamp() (int64, *model.AppError) {
-	systemData, err := s.Store.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	systemData, err := s.Store.System().GetByName(model.SystemWarnMetricLastRunTimestampKey)
 	if err != nil {
 		return 0, model.NewAppError("getLastWarnMetricTimestamp", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -202,9 +110,9 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 
 	result := map[string]*model.WarnMetricStatus{}
 	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
 			if warnMetric, ok := model.WarnMetricsTable[key]; ok {
-				if !warnMetric.IsBotOnly && (value == model.WARN_METRIC_STATUS_RUNONCE || value == model.WARN_METRIC_STATUS_LIMIT_REACHED) {
+				if !warnMetric.IsBotOnly && (value == model.WarnMetricStatusRunonce || value == model.WarnMetricStatusLimitReached) {
 					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(key, nil, isE0Edition)
 				}
 			}
@@ -233,7 +141,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 		warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.bot_response.notification_success.message")
 
 		switch warnMetricId {
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5:
+		case model.SystemWarnMetricNumberOfTeams5:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_teams_5.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_teams_5.start_trial.notification_body")
@@ -242,7 +150,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_teams_5.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_teams_5.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_MFA:
+		case model.SystemWarnMetricMfa:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.mfa.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.mfa.start_trial.notification_body")
@@ -251,7 +159,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.mfa.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.mfa.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN:
+		case model.SystemWarnMetricEmailDomain:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.email_domain.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.email_domain.start_trial.notification_body")
@@ -260,7 +168,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.email_domain.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.email_domain.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50:
+		case model.SystemWarnMetricNumberOfChannels50:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_channels_50.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.start_trial.notification_body")
@@ -269,7 +177,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_channels_50.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100:
+		case model.SystemWarnMetricNumberOfActiveUsers100:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_100.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_100.start_trial.notification_body")
@@ -278,7 +186,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_100.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_100.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200:
+		case model.SystemWarnMetricNumberOfActiveUsers200:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.start_trial.notification_body")
@@ -287,7 +195,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_200.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300:
+		case model.SystemWarnMetricNumberOfActiveUsers300:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_body")
@@ -296,7 +204,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_300.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
+		case model.SystemWarnMetricNumberOfActiveUsers500:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.start_trial.notification_body")
@@ -305,7 +213,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_500.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M:
+		case model.SystemWarnMetricNumberOfPosts2m:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_2M.notification_title")
 			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.start_trial.notification_body")
@@ -314,6 +222,9 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_posts_2M.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
+		case model.SystemMetricSupportEmailNotConfigured:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.support_email_not_configured.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.support_email_not_configured.start_trial.notification_body")
 		default:
 			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
@@ -324,12 +235,24 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
-func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
+//nolint:golint,unused,deadcode
+func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId string, isE0Edition bool) *model.AppError {
+	// get warn metrics bot
+	warnMetricsBot, err := a.GetWarnMetricsBot()
+	if err != nil {
+		return err
+	}
+
+	warnMetric, ok := model.WarnMetricsTable[warnMetricId]
+	if !ok {
+		return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	perPage := 25
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 
@@ -352,25 +275,12 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		}
 	}
 
-	T := utils.GetUserTranslations(sysAdmins[0].Locale)
-	warnMetricsBot := &model.Bot{
-		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
-		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: "",
-		OwnerId:     sysAdmins[0].Id,
-	}
-
-	bot, err := a.getOrCreateWarnMetricsBot(warnMetricsBot)
-	if err != nil {
-		return err
-	}
-
 	for _, sysAdmin := range sysAdmins {
-		T := utils.GetUserTranslations(sysAdmin.Locale)
-		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
-		bot.Description = T("app.system.warn_metric.bot_description")
+		T := i18n.GetUserTranslations(sysAdmin.Locale)
+		warnMetricsBot.DisplayName = T("app.system.warn_metric.bot_displayname")
+		warnMetricsBot.Description = T("app.system.warn_metric.bot_description")
 
-		channel, appErr := a.GetOrCreateDirectChannel(bot.UserId, sysAdmin.Id)
+		channel, appErr := a.GetOrCreateDirectChannel(c, warnMetricsBot.UserId, sysAdmin.Id)
 		if appErr != nil {
 			return appErr
 		}
@@ -381,9 +291,9 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		}
 
 		botPost := &model.Post{
-			UserId:    bot.UserId,
+			UserId:    warnMetricsBot.UserId,
 			ChannelId: channel.Id,
-			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
+			Type:      model.PostTypeSystemWarnMetricStatus,
 			Message:   "",
 		}
 
@@ -404,7 +314,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 			&model.PostAction{
 				Id:   actionId,
 				Name: actionName,
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Options: []*model.PostActionOptions{
 					{
 						Text:  "TrackEventId",
@@ -417,7 +327,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 				},
 				Integration: &model.PostActionIntegration{
 					Context: model.StringInterface{
-						"bot_user_id": bot.UserId,
+						"bot_user_id": warnMetricsBot.UserId,
 						"force_ack":   false,
 					},
 					URL: postActionUrl,
@@ -429,12 +339,16 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 			AuthorName: "",
 			Title:      warnMetricDisplayTexts.BotTitle,
 			Text:       warnMetricDisplayTexts.BotMessageBody,
-			Actions:    actions,
 		}}
+
+		if !warnMetric.SkipAction {
+			attachments[0].Actions = actions
+		}
+
 		model.ParseSlackAttachment(botPost, attachments)
 
 		mlog.Debug("Post admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
-		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
+		if _, err := a.CreatePostAsUser(c, botPost, c.Session().Id, true); err != nil {
 			return err
 		}
 	}
@@ -445,35 +359,35 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
 	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if nErr == nil && data != nil && data.Value == model.WARN_METRIC_STATUS_ACK {
+		if nErr == nil && data != nil && data.Value == model.WarnMetricStatusAck {
 			mlog.Debug("This metric warning has already been acknowledged", mlog.String("id", warnMetric.Id))
 			return nil
 		}
 
 		if !forceAck {
-			if len(*a.Config().EmailSettings.SMTPServer) == 0 {
-				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
+			if *a.Config().EmailSettings.SMTPServer == "" {
+				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, i18n.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
 			}
-			T := utils.GetUserTranslations(sender.Locale)
-			bodyPage := a.Srv().EmailService.newEmailTemplate("warn_metric_ack", sender.Locale)
-			bodyPage.Props["ContactNameHeader"] = T("api.templates.warn_metric_ack.body.contact_name_header")
-			bodyPage.Props["ContactNameValue"] = sender.GetFullName()
-			bodyPage.Props["ContactEmailHeader"] = T("api.templates.warn_metric_ack.body.contact_email_header")
-			bodyPage.Props["ContactEmailValue"] = sender.Email
+			T := i18n.GetUserTranslations(sender.Locale)
+			data := a.Srv().EmailService.NewEmailTemplateData(sender.Locale)
+			data.Props["ContactNameHeader"] = T("api.templates.warn_metric_ack.body.contact_name_header")
+			data.Props["ContactNameValue"] = sender.GetFullName()
+			data.Props["ContactEmailHeader"] = T("api.templates.warn_metric_ack.body.contact_email_header")
+			data.Props["ContactEmailValue"] = sender.Email
 
 			//same definition as the active users count metric displayed in the SystemConsole Analytics section
 			registeredUsersCount, cerr := a.Srv().Store.User().Count(model.UserCountOptions{})
 			if cerr != nil {
 				mlog.Warn("Error retrieving the number of registered users", mlog.Err(cerr))
 			} else {
-				bodyPage.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
-				bodyPage.Props["RegisteredUsersValue"] = registeredUsersCount
+				data.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
+				data.Props["RegisteredUsersValue"] = registeredUsersCount
 			}
-			bodyPage.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
-			bodyPage.Props["SiteURL"] = a.GetSiteURL()
-			bodyPage.Props["TelemetryIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
-			bodyPage.Props["TelemetryIdValue"] = a.TelemetryId()
-			bodyPage.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
+			data.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
+			data.Props["SiteURL"] = a.GetSiteURL()
+			data.Props["TelemetryIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
+			data.Props["TelemetryIdValue"] = a.TelemetryId()
+			data.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
 			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
 			if warnMetricStatus == nil {
@@ -481,9 +395,16 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			}
 
 			subject := T("api.templates.warn_metric_ack.subject")
-			bodyPage.Props["Title"] = warnMetricDisplayTexts.EmailBody
+			data.Props["Title"] = warnMetricDisplayTexts.EmailBody
 
-			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
+			mailConfig := a.Srv().MailServiceConfig()
+
+			body, err := a.Srv().TemplatesContainer().RenderToString("warn_metric_ack", data)
+			if err != nil {
+				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+			}
+
+			if err := mail.SendMailUsingConfig(model.MmSupportAdvisorAddress, subject, body, mailConfig, false, sender.Email); err != nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}
@@ -497,12 +418,12 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 
 func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError {
 	// Ack all metric warnings on the server
-	if err := a.setWarnMetricsStatus(model.WARN_METRIC_STATUS_ACK); err != nil {
+	if err := a.setWarnMetricsStatus(model.WarnMetricStatusAck); err != nil {
 		return err
 	}
 
 	// Inform client that this metric warning has been acked
-	message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_REMOVED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusRemoved, "", "", "", nil)
 	message.Add("warnMetricId", warnMetricId)
 	a.Publish(message)
 
@@ -530,12 +451,12 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 	return nil
 }
 
-func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
+func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError {
 	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	currentUser, appErr := a.GetUser(a.Session().UserId)
+	currentUser, appErr := a.GetUser(c.Session().UserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -547,7 +468,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *m
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              a.TelemetryId(),
-		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
+		Name:                  currentUser.GetDisplayName(model.ShowFullName),
 		Email:                 currentUser.Email,
 		SiteName:              *a.Config().TeamSettings.SiteName,
 		SiteURL:               *a.Config().ServiceSettings.SiteURL,
@@ -585,27 +506,7 @@ func (a *App) Log() *mlog.Logger {
 func (a *App) NotificationsLog() *mlog.Logger {
 	return a.srv.NotificationsLog
 }
-func (a *App) T(translationID string, args ...interface{}) string {
-	return a.t(translationID, args...)
-}
-func (a *App) Session() *model.Session {
-	return &a.session
-}
-func (a *App) RequestId() string {
-	return a.requestId
-}
-func (a *App) IpAddress() string {
-	return a.ipAddress
-}
-func (a *App) Path() string {
-	return a.path
-}
-func (a *App) UserAgent() string {
-	return a.userAgent
-}
-func (a *App) AcceptLanguage() string {
-	return a.acceptLanguage
-}
+
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.srv.AccountMigration
 }
@@ -648,41 +549,6 @@ func (a *App) ImageProxy() *imageproxy.ImageProxy {
 func (a *App) Timezones() *timezones.Timezones {
 	return a.srv.timezones
 }
-func (a *App) Context() context.Context {
-	return a.context
-}
-
-func (a *App) SetSession(s *model.Session) {
-	a.session = *s
-}
-
-func (a *App) SetT(t goi18n.TranslateFunc) {
-	a.t = t
-}
-func (a *App) SetRequestId(s string) {
-	a.requestId = s
-}
-func (a *App) SetIpAddress(s string) {
-	a.ipAddress = s
-}
-func (a *App) SetUserAgent(s string) {
-	a.userAgent = s
-}
-func (a *App) SetAcceptLanguage(s string) {
-	a.acceptLanguage = s
-}
-func (a *App) SetPath(s string) {
-	a.path = s
-}
-func (a *App) SetContext(c context.Context) {
-	a.context = c
-}
-func (a *App) SetServer(srv *Server) {
-	a.srv = srv
-}
-func (a *App) GetT() goi18n.TranslateFunc {
-	return a.t
-}
 
 func (a *App) DBHealthCheckWrite() error {
 	currentTime := strconv.FormatInt(time.Now().Unix(), 10)
@@ -700,4 +566,16 @@ func (a *App) DBHealthCheckDelete() error {
 
 func (a *App) dbHealthCheckKey() string {
 	return fmt.Sprintf("health_check_%s", a.GetClusterId())
+}
+
+func (a *App) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	return a.Srv().Store.CheckIntegrity()
+}
+
+func (a *App) SetServer(srv *Server) {
+	a.srv = srv
+}
+
+func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
 }

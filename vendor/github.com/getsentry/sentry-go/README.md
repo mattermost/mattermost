@@ -7,7 +7,7 @@
 
 # Official Sentry SDK for Go
 
-[![Build Status](https://travis-ci.com/getsentry/sentry-go.svg?branch=master)](https://travis-ci.com/getsentry/sentry-go)
+[![Build Status](https://github.com/getsentry/sentry-go/workflows/go-workflow/badge.svg)](https://github.com/getsentry/sentry-go/actions?query=workflow%3Ago-workflow)
 [![Go Report Card](https://goreportcard.com/badge/github.com/getsentry/sentry-go)](https://goreportcard.com/report/github.com/getsentry/sentry-go)
 [![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/Ww9hbqr)
 [![GoDoc](https://godoc.org/github.com/getsentry/sentry-go?status.svg)](https://godoc.org/github.com/getsentry/sentry-go)
@@ -26,7 +26,7 @@ The only requirement is a Go compiler.
 
 We verify this package against the 3 most recent releases of Go. Those are the
 supported versions. The exact versions are defined in
-[`.travis.yml`](.travis.yml).
+[`GitHub workflow`](.github/workflows/ci.yml).
 
 In addition, we run tests against the current master branch of the Go toolchain,
 though support for this configuration is best-effort.
@@ -47,7 +47,7 @@ version number as well:
 $ go get github.com/getsentry/sentry-go@latest
 ```
 
-Check out the [list of released versions](https://pkg.go.dev/github.com/getsentry/sentry-go?tab=versions). 
+Check out the [list of released versions](https://pkg.go.dev/github.com/getsentry/sentry-go?tab=versions).
 
 ## Configuration
 

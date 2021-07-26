@@ -4,13 +4,14 @@
 package api4
 
 import (
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateScheme(t *testing.T) {
@@ -26,7 +27,7 @@ func TestCreateScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
@@ -65,7 +66,7 @@ func TestCreateScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 
 	s2, r2 := th.SystemAdminClient.CreateScheme(scheme2)
@@ -129,7 +130,7 @@ func TestCreateScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	_, r5 := th.Client.CreateScheme(scheme5)
 	CheckForbiddenStatus(t, r5)
@@ -140,7 +141,7 @@ func TestCreateScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	_, r6 := th.SystemAdminClient.CreateScheme(scheme6)
 	CheckNotImplementedStatus(t, r6)
@@ -154,7 +155,7 @@ func TestCreateScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	_, r7 := th.SystemAdminClient.CreateScheme(scheme7)
 	CheckNotImplementedStatus(t, r7)
@@ -171,7 +172,7 @@ func TestGetScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -232,14 +233,14 @@ func TestGetSchemes(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	scheme2 := &model.Scheme{
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -297,7 +298,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	scheme1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
 	CheckNoError(t, r1)
@@ -305,11 +306,11 @@ func TestGetTeamsForScheme(t *testing.T) {
 	team1 := &model.Team{
 		Name:        GenerateTestUsername(),
 		DisplayName: "A Test Team",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	team1, err := th.App.Srv().Store.Team().Save(team1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l2, r2 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r2)
@@ -317,7 +318,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 
 	team1.SchemeId = &scheme1.Id
 	team1, err = th.App.Srv().Store.Team().Update(team1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r3)
@@ -327,11 +328,11 @@ func TestGetTeamsForScheme(t *testing.T) {
 	team2 := &model.Team{
 		Name:        GenerateTestUsername(),
 		DisplayName: "B Test Team",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 		SchemeId:    &scheme1.Id,
 	}
 	team2, err = th.App.Srv().Store.Team().Save(team2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l4, r4 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -363,7 +364,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 	scheme2, rs2 := th.SystemAdminClient.CreateScheme(scheme2)
 	CheckNoError(t, rs2)
@@ -389,7 +390,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 	scheme1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
 	CheckNoError(t, r1)
@@ -398,11 +399,11 @@ func TestGetChannelsForScheme(t *testing.T) {
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 
 	channel1, errCh := th.App.Srv().Store.Channel().Save(channel1, 1000000)
-	assert.Nil(t, errCh)
+	assert.NoError(t, errCh)
 
 	l2, r2 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r2)
@@ -410,7 +411,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 
 	channel1.SchemeId = &scheme1.Id
 	channel1, err := th.App.Srv().Store.Channel().Update(channel1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r3)
@@ -421,11 +422,11 @@ func TestGetChannelsForScheme(t *testing.T) {
 		TeamId:      model.NewId(),
 		DisplayName: "B Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &scheme1.Id,
 	}
 	channel2, nErr := th.App.Srv().Store.Channel().Save(channel2, 1000000)
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	l4, r4 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -457,7 +458,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	scheme2, rs2 := th.SystemAdminClient.CreateScheme(scheme2)
 	CheckNoError(t, rs2)
@@ -484,7 +485,7 @@ func TestPatchScheme(t *testing.T) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
@@ -592,7 +593,7 @@ func TestDeleteScheme(t *testing.T) {
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_TEAM,
+			Scope:       model.SchemeScopeTeam,
 		}
 
 		s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
@@ -624,10 +625,10 @@ func TestDeleteScheme(t *testing.T) {
 			Name:        "zz" + model.NewId(),
 			DisplayName: model.NewId(),
 			Email:       model.NewId() + "@nowhere.com",
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 			SchemeId:    &s1.Id,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)
@@ -670,7 +671,7 @@ func TestDeleteScheme(t *testing.T) {
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_CHANNEL,
+			Scope:       model.SchemeScopeChannel,
 		}
 
 		s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
@@ -693,10 +694,10 @@ func TestDeleteScheme(t *testing.T) {
 			TeamId:      model.NewId(),
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			SchemeId:    &s1.Id,
 		}, -1)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)
@@ -729,7 +730,7 @@ func TestDeleteScheme(t *testing.T) {
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_CHANNEL,
+			Scope:       model.SchemeScopeChannel,
 		}
 
 		s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
@@ -758,5 +759,38 @@ func TestDeleteScheme(t *testing.T) {
 
 		_, r6 := th.SystemAdminClient.DeleteScheme(s1.Id)
 		CheckNotImplementedStatus(t, r6)
+	})
+}
+
+func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Correctly invalidates team member cache", func(t *testing.T) {
+		th.App.SetPhase2PermissionsMigrationStatus(true)
+
+		team := th.CreateTeam()
+		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, err)
+
+		teamScheme := th.SetupTeamScheme()
+
+		teamUserRole, err := th.App.GetRoleByName(context.Background(), teamScheme.DefaultTeamUserRole)
+		require.Nil(t, err)
+		teamUserRole.Permissions = []string{}
+		_, err = th.App.UpdateRole(teamUserRole)
+		require.Nil(t, err)
+
+		th.LoginBasic()
+
+		_, resp := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
+		require.Nil(t, resp.Error)
+
+		team.SchemeId = &teamScheme.Id
+		team, err = th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		_, resp = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
+		require.NotNil(t, resp.Error)
 	})
 }

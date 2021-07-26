@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlUserTermsOfServiceStore struct {
@@ -29,7 +29,6 @@ func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceS
 }
 
 func (s SqlUserTermsOfServiceStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_terms_of_service_user_id", "UserTermsOfService", "UserId")
 }
 
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {

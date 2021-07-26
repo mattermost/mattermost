@@ -10,34 +10,34 @@ import (
 	"github.com/pkg/errors"
 )
 
-type HumanizedJsonError struct {
+type HumanizedJSONError struct {
 	Err       error
 	Line      int
 	Character int
 }
 
-func (e *HumanizedJsonError) Error() string {
+func (e *HumanizedJSONError) Error() string {
 	return e.Err.Error()
 }
 
-// HumanizeJsonError extracts error offsets and annotates the error with useful context
-func HumanizeJsonError(err error, data []byte) error {
+// HumanizeJSONError extracts error offsets and annotates the error with useful context
+func HumanizeJSONError(err error, data []byte) error {
 	if syntaxError, ok := err.(*json.SyntaxError); ok {
-		return NewHumanizedJsonError(syntaxError, data, syntaxError.Offset)
+		return NewHumanizedJSONError(syntaxError, data, syntaxError.Offset)
 	} else if unmarshalError, ok := err.(*json.UnmarshalTypeError); ok {
-		return NewHumanizedJsonError(unmarshalError, data, unmarshalError.Offset)
+		return NewHumanizedJSONError(unmarshalError, data, unmarshalError.Offset)
 	} else {
 		return err
 	}
 }
 
-func NewHumanizedJsonError(err error, data []byte, offset int64) *HumanizedJsonError {
+func NewHumanizedJSONError(err error, data []byte, offset int64) *HumanizedJSONError {
 	if err == nil {
 		return nil
 	}
 
 	if offset < 0 || offset > int64(len(data)) {
-		return &HumanizedJsonError{
+		return &HumanizedJSONError{
 			Err: errors.Wrapf(err, "invalid offset %d", offset),
 		}
 	}
@@ -48,7 +48,7 @@ func NewHumanizedJsonError(err error, data []byte, offset int64) *HumanizedJsonE
 	lastLineOffset := bytes.LastIndex(data[:offset], lineSep)
 	character := int(offset) - (lastLineOffset + 1) + 1
 
-	return &HumanizedJsonError{
+	return &HumanizedJSONError{
 		Line:      line,
 		Character: character,
 		Err:       errors.Wrapf(err, "parsing error at line %d, character %d", line, character),

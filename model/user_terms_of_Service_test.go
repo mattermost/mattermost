@@ -13,13 +13,13 @@ import (
 
 func TestUserTermsOfServiceIsValid(t *testing.T) {
 	s := UserTermsOfService{}
-	require.Error(t, s.IsValid(), "should be invalid")
+	require.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.UserId = NewId()
-	require.Error(t, s.IsValid(), "should be invalid")
+	require.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.TermsOfServiceId = NewId()
-	require.Error(t, s.IsValid(), "should be invalid")
+	require.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.CreateAt = GetMillis()
 	require.Nil(t, s.IsValid(), "should be valid")

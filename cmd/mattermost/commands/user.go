@@ -12,9 +12,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
 )
 
 var UserCmd = &cobra.Command{
@@ -305,7 +307,7 @@ func changeUserActiveStatus(a *app.App, user *model.User, userArg string, activa
 	if user.IsSSOUser() {
 		fmt.Println("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
 	}
-	updatedUser, err := a.UpdateActive(user, activate)
+	updatedUser, err := a.UpdateActive(&request.Context{}, user, activate)
 	if err != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
@@ -334,6 +336,7 @@ func userDeactivateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+//nolint:unparam
 func userCreateCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
@@ -370,19 +373,19 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		Locale:    locale,
 	}
 
-	ruser, err := a.CreateUser(user)
+	ruser, err := a.CreateUser(&request.Context{}, user)
 	if ruser == nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
 
 	if systemAdmin {
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
+		if _, err := a.UpdateUserRolesWithUser(ruser, "system_user system_admin", false); err != nil {
 			return errors.New("Unable to make user system admin. Error: " + err.Error())
 		}
 	} else {
 		// This else case exists to prevent the first user created from being
 		// created as a system admin unless explicitly specified.
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user", false); err != nil {
+		if _, err := a.UpdateUserRolesWithUser(ruser, "system_user", false); err != nil {
 			return errors.New("If this is the first user: Unable to prevent user from being system admin. Error: " + err.Error())
 		}
 	}
@@ -426,7 +429,7 @@ func usersToBots(args []string, a *app.App) {
 	}
 }
 
-func getUpdatedPassword(command *cobra.Command, a *app.App, user *model.User) (string, error) {
+func getUpdatedPassword(command *cobra.Command) (string, error) {
 	password, err := command.Flags().GetString("password")
 	if err != nil {
 		return "", fmt.Errorf("Unable to read password. Error: %s", err.Error())
@@ -478,7 +481,7 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 		user.Locale = locale
 	}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !app.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !users.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		return nil, errors.New("The email does not belong to an accepted domain.")
 	}
 
@@ -500,7 +503,7 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		return fmt.Errorf("Unable to find bot. Error: %s", appErr.Error())
 	}
 
-	password, err := getUpdatedPassword(command, a, user)
+	password, err := getUpdatedPassword(command)
 	if err != nil {
 		return err
 	}
@@ -521,10 +524,10 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 	}
 
 	systemAdmin, _ := command.Flags().GetBool("system_admin")
-	if systemAdmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
+	if systemAdmin && !user.IsInRole(model.SystemAdminRoleId) {
 		if _, appErr = a.UpdateUserRoles(
 			user.Id,
-			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
+			fmt.Sprintf("%s %s", user.Roles, model.SystemAdminRoleId),
 			false); appErr != nil {
 			return fmt.Errorf("Unable to make user system admin. Error: %s" + appErr.Error())
 		}
@@ -774,7 +777,7 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 				return err
 			}
 		} else {
-			if err := a.PermanentDeleteUser(user); err != nil {
+			if err := a.PermanentDeleteUser(&request.Context{}, user); err != nil {
 				return err
 			}
 		}
@@ -815,7 +818,7 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := a.PermanentDeleteAllUsers(); err != nil {
+	if err := a.PermanentDeleteAllUsers(&request.Context{}); err != nil {
 		return err
 	}
 	CommandPrettyPrintln("All user accounts successfully deleted.")
@@ -843,7 +846,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	fromAuth := args[0]
 	matchField := args[2]
 
-	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "saml") {
+	if fromAuth == "" || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "saml") {
 		return errors.New("Invalid from_auth argument")
 	}
 
@@ -852,7 +855,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 		fromAuth = ""
 	}
 
-	if len(matchField) == 0 || (matchField != "email" && matchField != "username") {
+	if matchField == "" || (matchField != "email" && matchField != "username") {
 		return errors.New("Invalid match_field argument")
 	}
 
@@ -903,7 +906,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 
 	fromAuth := args[0]
 
-	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap") {
+	if fromAuth == "" || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap") {
 		return errors.New("Invalid from_auth argument")
 	}
 

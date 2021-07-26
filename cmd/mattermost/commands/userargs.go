@@ -4,8 +4,10 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"context"
+
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func getUsersFromUserArgs(a *app.App, userArgs []string) []*model.User {
@@ -28,7 +30,7 @@ func getUserFromUserArg(a *app.App, userArg string) *model.User {
 	}
 
 	if user == nil {
-		user, _ = a.Srv().Store.User().Get(userArg)
+		user, _ = a.Srv().Store.User().Get(context.Background(), userArg)
 	}
 
 	return user

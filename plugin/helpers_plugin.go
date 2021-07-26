@@ -12,7 +12,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // InstallPluginFromURL implements Helpers.InstallPluginFromURL.
@@ -59,11 +59,11 @@ func (p *HelpersImpl) ensureServerVersion(required string) error {
 
 // GetPluginAssetURL implements GetPluginAssetURL.
 func (p *HelpersImpl) GetPluginAssetURL(pluginID, asset string) (string, error) {
-	if len(pluginID) == 0 {
+	if pluginID == "" {
 		return "", errors.New("empty pluginID provided")
 	}
 
-	if len(asset) == 0 {
+	if asset == "" {
 		return "", errors.New("empty asset name provided")
 	}
 
