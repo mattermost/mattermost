@@ -4,9 +4,11 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitReaction() {
@@ -44,7 +46,9 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(reaction.ToJson()))
+	if err := json.NewEncoder(w).Encode(reaction); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {

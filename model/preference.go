@@ -28,6 +28,7 @@ const (
 	PreferenceNameMessageDisplay          = "message_display"
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
+	PreferenceRecommendedNextSteps        = "recommended_next_steps"
 
 	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id

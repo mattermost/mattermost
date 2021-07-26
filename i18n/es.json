@@ -2180,24 +2180,8 @@
     "translation": "Ocurrió un error al enviar el correo electrónico de desactivación de cuenta"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del correo electrónico"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del nombre de usuario"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Error al enviar la notificación por correo electrónico para verificar el cambio satisfactorio del correo electrónico"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "No se puede enviar la notificación por correo electrónico para el cambio de MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio de contraseña"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "Error al enviar la notificación por correo del cambio satisfactorio de contraseña"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Error al enviar el correo electrónico de token de acceso personal añadido correctamente"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Error al enviar la notificación por correo electrónico de la verificación del correo electrónico"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Error al enviar la notificación de bienvenida por correo electrónico"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
