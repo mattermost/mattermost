@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS SidebarCategories (
     Sorting varchar(64) DEFAULT NULL,
     Type varchar(64) DEFAULT NULL,
     DisplayName varchar(64) DEFAULT NULL,
-    Muted tinyint(1) DEFAULT 0,
-    Collapsed tinyint(1) DEFAULT 0,
+    Muted tinyint(1) DEFAULT NULL,
+    Collapsed tinyint(1) DEFAULT NULL,
     PRIMARY KEY (Id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
