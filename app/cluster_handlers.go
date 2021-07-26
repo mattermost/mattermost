@@ -4,7 +4,7 @@
 package app
 
 import (
-	"strings"
+	"bytes"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -12,11 +12,11 @@ import (
 )
 
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
-	s.installPluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
+	s.installPluginFromData(model.PluginEventDataFromJson(bytes.NewReader(msg.Data)))
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
-	s.removePluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
+	s.removePluginFromData(model.PluginEventDataFromJson(bytes.NewReader(msg.Data)))
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
@@ -44,7 +44,7 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 
 	hooks.OnPluginClusterEvent(&plugin.Context{}, model.PluginClusterEvent{
 		Id:   eventID,
-		Data: []byte(msg.Data),
+		Data: msg.Data,
 	})
 }
 
@@ -69,7 +69,7 @@ func (s *Server) registerClusterHandlers() {
 }
 
 func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
-	event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
+	event := model.WebSocketEventFromJson(bytes.NewReader(msg.Data))
 	if event == nil {
 		return
 	}
@@ -77,7 +77,7 @@ func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
 }
 
 func (s *Server) clusterUpdateStatusHandler(msg *model.ClusterMessage) {
-	status := model.StatusFromJson(strings.NewReader(msg.Data))
+	status := model.StatusFromJson(bytes.NewReader(msg.Data))
 	s.statusCache.Set(status.UserId, status)
 }
 
@@ -86,7 +86,7 @@ func (s *Server) clusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
 }
 
 func (s *Server) clusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {
-	s.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(msg.Data)
+	s.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(string(msg.Data))
 }
 
 func (s *Server) clusterInvalidateCacheForChannelByNameHandler(msg *model.ClusterMessage) {
@@ -94,11 +94,11 @@ func (s *Server) clusterInvalidateCacheForChannelByNameHandler(msg *model.Cluste
 }
 
 func (s *Server) clusterInvalidateCacheForUserHandler(msg *model.ClusterMessage) {
-	s.invalidateCacheForUserSkipClusterSend(msg.Data)
+	s.invalidateCacheForUserSkipClusterSend(string(msg.Data))
 }
 
 func (s *Server) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage) {
-	s.invalidateWebConnSessionCacheForUser(msg.Data)
+	s.invalidateWebConnSessionCacheForUser(string(msg.Data))
 }
 
 func (s *Server) clearSessionCacheForUserSkipClusterSend(userID string) {
@@ -112,7 +112,7 @@ func (s *Server) clearSessionCacheForAllUsersSkipClusterSend() {
 }
 
 func (s *Server) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {
-	s.clearSessionCacheForUserSkipClusterSend(msg.Data)
+	s.clearSessionCacheForUserSkipClusterSend(string(msg.Data))
 }
 
 func (s *Server) clusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMessage) {
@@ -120,7 +120,7 @@ func (s *Server) clusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMe
 }
 
 func (s *Server) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
-	s.serverBusyStateChanged(model.ServerBusyStateFromJson(strings.NewReader(msg.Data)))
+	s.serverBusyStateChanged(model.ServerBusyStateFromJson(bytes.NewReader(msg.Data)))
 }
 
 func (s *Server) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {

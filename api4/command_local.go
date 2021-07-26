@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitCommandLocal() {
@@ -42,5 +44,7 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("command", rcmd)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rcmd.ToJson()))
+	if err := json.NewEncoder(w).Encode(rcmd); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
