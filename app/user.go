@@ -257,9 +257,10 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		a.sendUpdatedUserEvent(*nUser)
 	}
 
-	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
-		mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
+	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_RECOMMENDED_NEXT_STEPS, Name: "hide", Value: "false"}
+	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
+	if err := a.Srv().Store.Preference().Save(&model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
+		mlog.Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
 	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
