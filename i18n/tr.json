@@ -9176,7 +9176,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Bulut denetimi sınırda veya üzerinde olduğundan yapılamadı."
+    "translation": "Mattermost Cloud kopyanızdaki kullanıcı sayısı denetlenemedi."
   },
   {
     "id": "app.system.system_bot.bot_displayname",
