@@ -27,11 +27,6 @@ type CommandArgs struct {
 	Session Session `json:"-"`
 }
 
-func (o *CommandArgs) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
 func CommandArgsFromJson(data io.Reader) *CommandArgs {
 	var o *CommandArgs
 	json.NewDecoder(data).Decode(&o)
