@@ -478,7 +478,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for _, uid := range followers {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
 			// check if a participant has overridden collapsed threads settings
-			if preference, err := a.Srv().Store.Preference().Get(uid, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); err == nil {
+			if preference, prefErr := a.Srv().Store.Preference().Get(uid, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); prefErr == nil {
 				sendEvent = preference.Value == "on"
 			}
 			if sendEvent {
@@ -487,7 +487,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if threadMembership == nil {
 					threadMembership, err = a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
 					if err != nil {
-						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications.", mlog.String("user_id", uid), mlog.String("thread_id", post.RootId))
+						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications. user_id=%q thread_id=%q", uid, post.RootId)
 					}
 					if threadMembership == nil {
 						continue
