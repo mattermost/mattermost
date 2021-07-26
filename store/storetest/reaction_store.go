@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/retrylayer"
 )
 
 func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -317,24 +317,24 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 		update := reaction.UpdateAt
 
 		_, err := ss.Reaction().Save(reaction)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		if delete > 0 {
 			_, err = ss.Reaction().Delete(reaction)
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 		if update > 0 {
 			err = forceUpdateAt(reaction, update, s)
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 		err = forceNULL(reaction, s) // test COALESCE
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	t.Run("reactions since", func(t *testing.T) {
 		// should return 2 reactions that are not deleted for post
 		returned, err := ss.Reaction().GetForPostSince(postId, later-1, "", false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, returned, 2, "should've returned 2 non-deleted reactions")
 		for _, r := range returned {
 			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
@@ -345,7 +345,7 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("reactions since, incl deleted", func(t *testing.T) {
 		// should return 3 reactions for post, including one deleted
 		returned, err := ss.Reaction().GetForPostSince(postId, later-1, "", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, returned, 3, "should've returned 3 reactions")
 		var count int
 		for _, r := range returned {
@@ -360,7 +360,7 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("reactions since, filter remoteId", func(t *testing.T) {
 		// should return 1 reactions that are not deleted for post and have no remoteId
 		returned, err := ss.Reaction().GetForPostSince(postId, later-1, remoteId, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, returned, 1, "should've returned 1 filtered reactions")
 		for _, r := range returned {
 			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
@@ -370,14 +370,14 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("reactions since, invalid post", func(t *testing.T) {
 		// should return 0 reactions for invalid post
 		returned, err := ss.Reaction().GetForPostSince(model.NewId(), later-1, "", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Empty(t, returned, "should've returned 0 reactions")
 	})
 
 	t.Run("reactions since, far future", func(t *testing.T) {
 		// should return 0 reactions for since far in the future
 		returned, err := ss.Reaction().GetForPostSince(postId, later*2, "", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Empty(t, returned, "should've returned 0 reactions")
 	})
 }
@@ -391,13 +391,13 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 	}
 
 	sqlResult, err := s.GetMaster().Exec(`
-		UPDATE 
-			Reactions 
-		SET 
-			UpdateAt=:UpdateAt 
-		WHERE 
-			UserId = :UserId AND 
-			PostId = :PostId AND 
+		UPDATE
+			Reactions
+		SET
+			UpdateAt=:UpdateAt
+		WHERE
+			UserId = :UserId AND
+			PostId = :PostId AND
 			EmojiName = :EmojiName`, params,
 	)
 
@@ -477,12 +477,12 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 
 	for _, reaction := range reactions {
 		_, err := ss.Reaction().Save(reaction)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// make at least one Reaction record contain NULL for Update and DeleteAt to simulate post schema upgrade case.
 		if reaction.EmojiName == emojiToDelete {
 			err = forceNULL(reaction, s)
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 	}
 
@@ -522,61 +522,72 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	post, err1 := ss.Post().Save(&model.Post{
-		ChannelId: model.NewId(),
-		UserId:    model.NewId(),
+	const limit = 1000
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
 	})
-	require.NoError(t, err1)
+	require.NoError(t, err)
+	channel, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	olderPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    model.NewId(),
+		CreateAt:  1000,
+	})
+	require.NoError(t, err)
+	newerPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    model.NewId(),
+		CreateAt:  3000,
+	})
+	require.NoError(t, err)
 
+	// Reactions will be deleted based on the timestamp of their post. So the time at
+	// which a reaction was created doesn't matter.
 	reactions := []*model.Reaction{
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
+			PostId:    olderPost.Id,
 			EmojiName: "sad",
-			CreateAt:  1000,
 		},
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
+			PostId:    olderPost.Id,
 			EmojiName: "sad",
-			CreateAt:  1500,
 		},
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
-			EmojiName: "sad",
-			CreateAt:  2000,
-		},
-		{
-			UserId:    model.NewId(),
-			PostId:    post.Id,
-			EmojiName: "sad",
-			CreateAt:  2000,
+			PostId:    newerPost.Id,
+			EmojiName: "smile",
 		},
 	}
 
-	// Need to hang on to a reaction to delete later in order to clear the cache, as "allowFromCache" isn't honoured any more.
-	var lastReaction *model.Reaction
 	for _, reaction := range reactions {
-		var nErr error
-		lastReaction, nErr = ss.Reaction().Save(reaction)
-		require.NoError(t, nErr)
+		_, err = ss.Reaction().Save(reaction)
+		require.NoError(t, err)
 	}
 
-	returned, err := ss.Reaction().GetForPost(post.Id, false)
-	require.NoError(t, err)
-	require.Len(t, returned, 4, "expected 4 reactions")
-
-	_, err = ss.Reaction().PermanentDeleteBatch(1800, 1000)
+	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 
-	// This is to force a clear of the cache.
-	_, err = ss.Reaction().Delete(lastReaction)
+	_, err = ss.Reaction().DeleteOrphanedRows(limit)
 	require.NoError(t, err)
 
-	returned, err = ss.Reaction().GetForPost(post.Id, false)
+	returned, err := ss.Reaction().GetForPost(olderPost.Id, false)
 	require.NoError(t, err)
-	require.Len(t, returned, 1, "expected 1 reaction. Got: %v", len(returned))
+	require.Len(t, returned, 0, "reactions for older post should have been deleted")
+
+	returned, err = ss.Reaction().GetForPost(newerPost.Id, false)
+	require.NoError(t, err)
+	require.Len(t, returned, 1, "reactions for newer post should not have been deleted")
 }
 
 func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {

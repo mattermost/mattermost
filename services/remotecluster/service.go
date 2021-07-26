@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -31,8 +31,8 @@ const (
 	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
 	InvitationTopic               = "invitation"
 	PingTopic                     = "ping"
-	ResponseStatusOK              = model.STATUS_OK
-	ResponseStatusFail            = model.STATUS_FAIL
+	ResponseStatusOK              = model.StatusOk
+	ResponseStatusFail            = model.StatusFail
 	InviteExpiresAfter            = time.Hour * 48
 )
 
@@ -63,7 +63,8 @@ type RemoteClusterServiceIFace interface {
 	RemoveConnectionStateListener(listenerId string)
 	SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendMsgResultFunc) error
 	SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error
-	AcceptInvitation(invite *model.RemoteClusterInvite, name string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error)
+	SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider ProfileImageProvider, f SendProfileImageResultFunc) error
+	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error)
 	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 }
 
@@ -74,7 +75,7 @@ type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, res
 // ConnectionStateListener is used to listen to remote cluster connection state changes.
 type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 
-// Service provides inter-cluster communication via topic based messages.
+// Service provides inter-cluster communication via topic based messages. In product these are called "Secured Connections".
 type Service struct {
 	server     ServerIface
 	httpClient *http.Client
@@ -89,7 +90,7 @@ type Service struct {
 	done                     chan struct{}
 }
 
-// NewRemoteClusterService creates a RemoteClusterService instance.
+// NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".
 func NewRemoteClusterService(server ServerIface) (*Service, error) {
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,

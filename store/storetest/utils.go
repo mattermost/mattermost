@@ -4,9 +4,10 @@
 package storetest
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
+// This function has a copy of it in app/helper_test
 // NewTestId is used for testing as a replacement for model.NewId(). It is a [A-Z0-9] string 26
 // characters long. It replaces every odd character with a digit.
 func NewTestId() string {

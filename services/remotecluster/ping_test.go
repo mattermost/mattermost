@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -64,6 +64,8 @@ func TestPing(t *testing.T) {
 		defer ts.Close()
 
 		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		defer mockServer.Shutdown()
+
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
@@ -110,6 +112,8 @@ func TestPing(t *testing.T) {
 		defer ts.Close()
 
 		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		defer mockServer.Shutdown()
+
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
@@ -119,7 +123,7 @@ func TestPing(t *testing.T) {
 
 		wg.Wait()
 
-		assert.Nil(t, merr.ErrorOrNil())
+		assert.NoError(t, merr.ErrorOrNil())
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
 		t.Log(fmt.Sprintf("%d web requests counted;  %d expected",

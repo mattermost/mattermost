@@ -9,20 +9,21 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 const (
-	AvailableRemoteActions = "invite, accept, remove, status"
+	AvailableRemoteActions = "create, accept, remove, status"
 )
 
 type RemoteProvider struct {
 }
 
 const (
-	CommandTriggerRemote = "remote"
+	CommandTriggerRemote = "secure-connection"
 )
 
 func init() {
@@ -37,21 +38,23 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 
 	remote := model.NewAutocompleteData(rp.GetTrigger(), "[action]", T("api.command_remote.remote_add_remove.help", map[string]interface{}{"Actions": AvailableRemoteActions}))
 
-	invite := model.NewAutocompleteData("invite", "", T("api.command_remote.invite.help"))
-	invite.AddNamedTextArgument("password", T("api.command_remote.invite_password.help"), T("api.command_remote.invite_password.hint"), "", true)
-	invite.AddNamedTextArgument("name", T("api.command_remote.name.help"), T("api.command_remote.name.hint"), "", true)
+	create := model.NewAutocompleteData("create", "", T("api.command_remote.invite.help"))
+	create.AddNamedTextArgument("name", T("api.command_remote.name.help"), T("api.command_remote.name.hint"), "", true)
+	create.AddNamedTextArgument("displayname", T("api.command_remote.displayname.help"), T("api.command_remote.displayname.hint"), "", false)
+	create.AddNamedTextArgument("password", T("api.command_remote.invite_password.help"), T("api.command_remote.invite_password.hint"), "", true)
 
 	accept := model.NewAutocompleteData("accept", "", T("api.command_remote.accept.help"))
-	accept.AddNamedTextArgument("password", T("api.command_remote.invite_password.help"), T("api.command_remote.invite_password.hint"), "", true)
 	accept.AddNamedTextArgument("name", T("api.command_remote.name.help"), T("api.command_remote.name.hint"), "", true)
+	accept.AddNamedTextArgument("displayname", T("api.command_remote.displayname.help"), T("api.command_remote.displayname.hint"), "", false)
+	accept.AddNamedTextArgument("password", T("api.command_remote.invite_password.help"), T("api.command_remote.invite_password.hint"), "", true)
 	accept.AddNamedTextArgument("invite", T("api.command_remote.invitation.help"), T("api.command_remote.invitation.hint"), "", true)
 
 	remove := model.NewAutocompleteData("remove", "", T("api.command_remote.remove.help"))
-	remove.AddNamedDynamicListArgument("remoteId", T("api.command_remote.remove_remote_id.help"), "builtin:remote", true)
+	remove.AddNamedDynamicListArgument("connectionID", T("api.command_remote.remove_remote_id.help"), "builtin:"+CommandTriggerRemote, true)
 
 	status := model.NewAutocompleteData("status", "", T("api.command_remote.status.help"))
 
-	remote.AddCommand(invite)
+	remote.AddCommand(create)
 	remote.AddCommand(accept)
 	remote.AddCommand(remove)
 	remote.AddCommand(status)
@@ -66,9 +69,9 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 	}
 }
 
-func (rp *RemoteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.HasPermissionTo(args.UserId, model.PERMISSION_MANAGE_SHARED_CHANNELS) {
-		return responsef(args.T("api.command_remote.permission_required", map[string]interface{}{"Permission": "manage_shared_channels"}))
+func (rp *RemoteProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	if !a.HasPermissionTo(args.UserId, model.PermissionManageSecureConnections) {
+		return responsef(args.T("api.command_remote.permission_required", map[string]interface{}{"Permission": "manage_secure_connections"}))
 	}
 
 	margs := parseNamedArgs(args.Command)
@@ -78,8 +81,8 @@ func (rp *RemoteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 	}
 
 	switch action {
-	case "invite":
-		return rp.doInvite(a, args, margs)
+	case "create":
+		return rp.doCreate(a, args, margs)
 	case "accept":
 		return rp.doAccept(a, args, margs)
 	case "remove":
@@ -92,19 +95,19 @@ func (rp *RemoteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 }
 
 func (rp *RemoteProvider) GetAutoCompleteListItems(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
-	if !a.HasPermissionTo(commandArgs.UserId, model.PERMISSION_MANAGE_SHARED_CHANNELS) {
-		return nil, errors.New("You require `manage_shared_channels` permission to manage remote clusters.")
+	if !a.HasPermissionTo(commandArgs.UserId, model.PermissionManageSecureConnections) {
+		return nil, errors.New("You require `manage_secure_connections` permission to manage secure connections.")
 	}
 
-	if arg.Name == "remoteId" && strings.Contains(parsed, " remove ") {
+	if arg.Name == "connectionID" && strings.Contains(parsed, " remove ") {
 		return getRemoteClusterAutocompleteListItems(a, true)
 	}
 
 	return nil, fmt.Errorf("`%s` is not a dynamic argument", arg.Name)
 }
 
-// doInvite creates and displays an encrypted invite that can be used by a remote site to establish a simple trust.
-func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+// doCreate creates and displays an encrypted invite that can be used by a remote site to establish a simple trust.
+func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	password := margs["password"]
 	if password == "" {
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "password"}))
@@ -115,13 +118,19 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "name"}))
 	}
 
+	displayname := margs["displayname"]
+	if displayname == "" {
+		displayname = name
+	}
+
 	url := a.GetSiteURL()
 	if url == "" {
 		return responsef(args.T("api.command_remote.site_url_not_set"))
 	}
 
 	rc := &model.RemoteCluster{
-		DisplayName: name,
+		Name:        name,
+		DisplayName: displayname,
 		Token:       model.NewId(),
 		CreatorId:   args.UserId,
 	}
@@ -145,7 +154,7 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
 
 	return responsef("##### " + args.T("api.command_remote.invitation_created") + "\n" +
-		args.T("api.command_remote.invite_summary", map[string]interface{}{"Command": "/remote accept", "Invitation": encoded, "SiteURL": invite.SiteURL}))
+		args.T("api.command_remote.invite_summary", map[string]interface{}{"Command": "/secure-connection accept", "Invitation": encoded, "SiteURL": invite.SiteURL}))
 }
 
 // doAccept accepts an invitation generated by a remote site.
@@ -158,6 +167,11 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 	name := margs["name"]
 	if name == "" {
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "name"}))
+	}
+
+	displayname := margs["displayname"]
+	if displayname == "" {
+		displayname = name
 	}
 
 	blob := margs["invite"]
@@ -186,7 +200,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.site_url_not_set"))
 	}
 
-	rc, err := rcs.AcceptInvitation(invite, name, args.UserId, args.TeamId, url)
+	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, args.TeamId, url)
 	if err != nil {
 		return responsef(args.T("api.command_remote.accept_invitation.error", map[string]interface{}{"Error": err.Error()}))
 	}
@@ -196,7 +210,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 
 // doRemove removes a remote cluster from the database, effectively revoking the trust relationship.
 func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	id, ok := margs["remoteId"]
+	id, ok := margs["connectionID"]
 	if !ok {
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "remoteId"}))
 	}
@@ -225,23 +239,16 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[st
 	}
 
 	var sb strings.Builder
-	fmt.Fprintf(&sb, args.T("api.command_remote.remote_table_header")+"| \n")
-	fmt.Fprintf(&sb, "| ---- | -------- | ---------- | :-------------: | :----: | ---------- |\n")
+	fmt.Fprintf(&sb, args.T("api.command_remote.remote_table_header")+" \n")
+	// | Secure Connection | Display name | ConnectionID | Site URL | Invite accepted | Online | Last ping  |
+	fmt.Fprintf(&sb, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | \n")
 
 	for _, rc := range list {
-		accepted := ":white_check_mark:"
-		if rc.SiteURL == "" {
-			accepted = ":x:"
-		}
+		accepted := formatBool(args.T, rc.SiteURL != "")
+		online := formatBool(args.T, isOnline(rc.LastPingAt))
+		lastPing := formatTimestamp(rc.LastPingAt)
 
-		online := ":white_check_mark:"
-		if !isOnline(rc.LastPingAt) {
-			online = ":skull_and_crossbones:"
-		}
-
-		lastPing := formatTimestamp(model.GetTimeForMillis(rc.LastPingAt))
-
-		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n", rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online, lastPing)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s |\n", rc.Name, rc.DisplayName, rc.RemoteId, rc.SiteURL, accepted, online, lastPing)
 	}
 	return responsef(sb.String())
 }

@@ -4,6 +4,9 @@
 package api4
 
 import (
+	"context"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -12,8 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetConfig(t *testing.T) {
@@ -30,26 +34,26 @@ func TestGetConfig(t *testing.T) {
 
 		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
 
-		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && *cfg.LdapSettings.BindPassword != "" {
+		if *cfg.LdapSettings.BindPassword != model.FakeSetting && *cfg.LdapSettings.BindPassword != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		require.Equal(t, model.FAKE_SETTING, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
+		require.Equal(t, model.FakeSetting, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
 
-		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && *cfg.FileSettings.AmazonS3SecretAccessKey != "" {
+		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FakeSetting && *cfg.FileSettings.AmazonS3SecretAccessKey != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && *cfg.EmailSettings.SMTPPassword != "" {
+		if *cfg.EmailSettings.SMTPPassword != model.FakeSetting && *cfg.EmailSettings.SMTPPassword != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && *cfg.GitLabSettings.Secret != "" {
+		if *cfg.GitLabSettings.Secret != model.FakeSetting && *cfg.GitLabSettings.Secret != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.DataSource, "did not sanitize properly")
-		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
-		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
+		require.Equal(t, model.FakeSetting, *cfg.SqlSettings.DataSource, "did not sanitize properly")
+		require.Equal(t, model.FakeSetting, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
+		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FakeSetting) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
+		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FakeSetting) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
 	})
@@ -77,8 +81,8 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
 	cfg, resp := th.Client.GetConfig()
 	CheckNoError(t, resp)
@@ -101,17 +105,17 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	defer th.TearDown()
 
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	cfg, resp := th.Client.GetConfig()
+	_, resp := th.Client.GetConfig()
 
 	t.Run("Check permissions error with no sysconsole read permission", func(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
-	cfg, resp = th.Client.GetConfig()
+	cfg, resp := th.Client.GetConfig()
 	CheckNoError(t, resp)
 	t.Run("Can read value with permission", func(t *testing.T) {
 		assert.NotNil(t, cfg.FeatureFlags)
@@ -254,7 +258,7 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		// add any sysconsole read permission
-		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SystemUserRoleId)
 		_, resp = th.Client.GetConfig()
 
 		// should be readable now
@@ -268,8 +272,8 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
 
 	// add read sysconsole integrations config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
 
 	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
@@ -289,8 +293,8 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		originalValue := *cfg.ServiceSettings.AllowCorsFrom
 
 		// add the wrong write permission
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -309,10 +313,10 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		cfg, resp := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -434,6 +438,51 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
 		require.Equal(t, "http://example.com", *returnedCfg.ServiceSettings.SiteURL)
 	})
+}
+
+func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
+	logFile, err := ioutil.TempFile("", "adv.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
+
+	options := []app.Option{
+		func(s *app.Server) error {
+			s.SetLicense(model.NewTestLicense("advanced_logging"))
+			return nil
+		},
+	}
+	th := SetupWithServerOptions(t, options)
+	defer th.TearDown()
+
+	cfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	timeoutVal := *cfg.ServiceSettings.ReadTimeout
+	cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal + 1)
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal)
+	})
+	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
+
+	// Forcing a flush before attempting to read log's content.
+	err = th.Server.Log.Flush(context.Background())
+	require.NoError(t, err)
+
+	require.NoError(t, logFile.Sync())
+
+	data, err := ioutil.ReadAll(logFile)
+	require.NoError(t, err)
+	require.NotEmpty(t, data)
+	require.Contains(t, string(data),
+		fmt.Sprintf(`"diff":"[{Path:ServiceSettings.ReadTimeout BaseVal:%d ActualVal:%d}]"`,
+			timeoutVal, timeoutVal+1))
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
@@ -655,7 +704,7 @@ func TestPatchConfig(t *testing.T) {
 
 			updatedConfig, _ := client.PatchConfig(&config)
 
-			assert.Equal(t, model.FAKE_SETTING, *updatedConfig.SqlSettings.DataSource)
+			assert.Equal(t, model.FakeSetting, *updatedConfig.SqlSettings.DataSource)
 		})
 
 		t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
@@ -721,11 +770,11 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStore("from.json", false, false, nil)
+		f, err := config.NewStoreFromDSN("from.json", false, false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStore("to.json", false, false, nil)
+		_, err = config.NewStoreFromDSN("to.json", false, false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 

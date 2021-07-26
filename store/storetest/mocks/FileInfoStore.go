@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -206,6 +206,29 @@ func (_m *FileInfoStore) GetForUser(userID string) ([]*model.FileInfo, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFromMaster provides a mock function with given fields: id
+func (_m *FileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
+	ret := _m.Called(id)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(string) *model.FileInfo); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}

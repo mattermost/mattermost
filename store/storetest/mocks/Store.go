@@ -7,10 +7,10 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 
-	store "github.com/mattermost/mattermost-server/v5/store"
+	store "github.com/mattermost/mattermost-server/v6/store"
 
 	time "time"
 )
@@ -471,6 +471,22 @@ func (_m *Store) ReplicaLagTime() error {
 		r0 = rf()
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RetentionPolicy provides a mock function with given fields:
+func (_m *Store) RetentionPolicy() store.RetentionPolicyStore {
+	ret := _m.Called()
+
+	var r0 store.RetentionPolicyStore
+	if rf, ok := ret.Get(0).(func() store.RetentionPolicyStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RetentionPolicyStore)
+		}
 	}
 
 	return r0

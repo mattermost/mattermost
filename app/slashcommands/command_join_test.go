@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 func TestJoinCommandNoChannel(t *testing.T) {
@@ -21,7 +21,7 @@ func TestJoinCommandNoChannel(t *testing.T) {
 	}
 
 	cmd := &JoinProvider{}
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		UserId:  th.BasicUser2.Id,
 		SiteURL: "http://test.url",
@@ -39,16 +39,16 @@ func TestJoinCommandForExistingChannel(t *testing.T) {
 		t.SkipNow()
 	}
 
-	channel2, _ := th.App.CreateChannel(&model.Channel{
+	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
 
 	cmd := &JoinProvider{}
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		UserId:  th.BasicUser2.Id,
 		SiteURL: "http://test.url",
@@ -67,16 +67,16 @@ func TestJoinCommandWithTilde(t *testing.T) {
 		t.SkipNow()
 	}
 
-	channel2, _ := th.App.CreateChannel(&model.Channel{
+	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
 
 	cmd := &JoinProvider{}
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		UserId:  th.BasicUser2.Id,
 		SiteURL: "http://test.url",
@@ -91,10 +91,10 @@ func TestJoinCommandPermissions(t *testing.T) {
 	th := setup(t).initBasic()
 	defer th.tearDown()
 
-	channel2, _ := th.App.CreateChannel(&model.Channel{
+	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
@@ -111,7 +111,7 @@ func TestJoinCommandPermissions(t *testing.T) {
 		TeamId:  th.BasicTeam.Id,
 	}
 
-	actual := cmd.DoCommand(th.App, args, "~"+channel2.Name).Text
+	actual := cmd.DoCommand(th.App, th.Context, args, "~"+channel2.Name).Text
 	assert.Equal(t, "api.command_join.fail.app_error", actual)
 
 	// Try a public channel with permission.
@@ -122,14 +122,14 @@ func TestJoinCommandPermissions(t *testing.T) {
 		TeamId:  th.BasicTeam.Id,
 	}
 
-	actual = cmd.DoCommand(th.App, args, "~"+channel2.Name).Text
+	actual = cmd.DoCommand(th.App, th.Context, args, "~"+channel2.Name).Text
 	assert.Equal(t, "", actual)
 
 	// Try a private channel *without* permission.
-	channel3, _ := th.App.CreateChannel(&model.Channel{
+	channel3, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "BB",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
@@ -141,6 +141,6 @@ func TestJoinCommandPermissions(t *testing.T) {
 		TeamId:  th.BasicTeam.Id,
 	}
 
-	actual = cmd.DoCommand(th.App, args, "~"+channel3.Name).Text
+	actual = cmd.DoCommand(th.App, th.Context, args, "~"+channel3.Name).Text
 	assert.Equal(t, "api.command_join.fail.app_error", actual)
 }

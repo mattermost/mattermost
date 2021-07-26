@@ -9,12 +9,12 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
+	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
 )
 
 const (
-	COMMAND_RESPONSE_TYPE_IN_CHANNEL = "in_channel"
-	COMMAND_RESPONSE_TYPE_EPHEMERAL  = "ephemeral"
+	CommandResponseTypeInChannel = "in_channel"
+	CommandResponseTypeEphemeral = "ephemeral"
 )
 
 type CommandResponse struct {

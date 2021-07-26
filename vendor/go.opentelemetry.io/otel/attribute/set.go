@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"reflect"
 	"sort"
-	"sync"
 )
 
 type (
@@ -35,10 +34,6 @@ type (
 	// 3. Correlation map (TODO)
 	Set struct {
 		equivalent Distinct
-
-		lock     sync.Mutex
-		encoders [maxConcurrentEncoders]EncoderID
-		encoded  [maxConcurrentEncoders]string
 	}
 
 	// Distinct wraps a variable-size array of `KeyValue`,
@@ -75,8 +70,6 @@ var (
 		},
 	}
 )
-
-const maxConcurrentEncoders = 3
 
 // EmptySet returns a reference to a Set with no elements.
 //
@@ -182,51 +175,13 @@ func (l *Set) Equals(o *Set) bool {
 }
 
 // Encoded returns the encoded form of this set, according to
-// `encoder`.  The result will be cached in this `*Set`.
+// `encoder`.
 func (l *Set) Encoded(encoder Encoder) string {
 	if l == nil || encoder == nil {
 		return ""
 	}
 
-	id := encoder.ID()
-	if !id.Valid() {
-		// Invalid IDs are not cached.
-		return encoder.Encode(l.Iter())
-	}
-
-	var lookup *string
-	l.lock.Lock()
-	for idx := 0; idx < maxConcurrentEncoders; idx++ {
-		if l.encoders[idx] == id {
-			lookup = &l.encoded[idx]
-			break
-		}
-	}
-	l.lock.Unlock()
-
-	if lookup != nil {
-		return *lookup
-	}
-
-	r := encoder.Encode(l.Iter())
-
-	l.lock.Lock()
-	defer l.lock.Unlock()
-
-	for idx := 0; idx < maxConcurrentEncoders; idx++ {
-		if l.encoders[idx] == id {
-			return l.encoded[idx]
-		}
-		if !l.encoders[idx].Valid() {
-			l.encoders[idx] = id
-			l.encoded[idx] = r
-			return r
-		}
-	}
-
-	// TODO: This is a performance cliff.  Find a way for this to
-	// generate a warning.
-	return r
+	return encoder.Encode(l.Iter())
 }
 
 func empty() Set {
@@ -246,7 +201,7 @@ func NewSet(kvs ...KeyValue) Set {
 		return empty()
 	}
 	s, _ := NewSetWithSortableFiltered(kvs, new(Sortable), nil)
-	return s //nolint
+	return s
 }
 
 // NewSetWithSortable returns a new `Set`.  See the documentation for
@@ -259,7 +214,7 @@ func NewSetWithSortable(kvs []KeyValue, tmp *Sortable) Set {
 		return empty()
 	}
 	s, _ := NewSetWithSortableFiltered(kvs, tmp, nil)
-	return s //nolint
+	return s
 }
 
 // NewSetWithFiltered returns a new `Set`.  See the documentation for

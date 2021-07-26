@@ -7,8 +7,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
@@ -96,7 +96,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	updatedGroup, err := a.Srv().Store.Group().Update(group)
 
 	if err == nil {
-		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		messageWs.Add("group", updatedGroup.ToJson())
 		a.Publish(messageWs)
 	}
@@ -121,7 +121,7 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	deletedGroup, err := a.Srv().Store.Group().Delete(groupID)
 
 	if err == nil {
-		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		messageWs.Add("group", deletedGroup.ToJson())
 		a.Publish(messageWs)
 	}
@@ -287,9 +287,9 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 
 	var messageWs *model.WebSocketEvent
 	if gs.Type == model.GroupSyncableTypeTeam {
-		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToTeam, gs.SyncableId, "", "", nil)
 	} else {
-		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToChannel, "", gs.SyncableId, "", nil)
 	}
 	messageWs.Add("group_id", gs.GroupId)
 	a.Publish(messageWs)
@@ -388,9 +388,9 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 
 	var messageWs *model.WebSocketEvent
 	if gs.Type == model.GroupSyncableTypeTeam {
-		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupNotAssociatedToTeam, gs.SyncableId, "", "", nil)
 	} else {
-		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupNotAssociatedToChannel, "", gs.SyncableId, "", nil)
 	}
 
 	messageWs.Add("group_id", gs.GroupId)
@@ -399,8 +399,14 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 	return gs, nil
 }
 
-func (a *App) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
-	userTeams, err := a.Srv().Store.Group().TeamMembersToAdd(since, teamID)
+// TeamMembersToAdd returns a slice of UserTeamIDPair that need newly created memberships
+// based on the groups configurations. The returned list can be optionally scoped to a single given team.
+//
+// Typically since will be the last successful group sync time.
+// If includeRemovedMembers is true, then team members who left or were removed from the team will
+// be included; otherwise, they will be excluded.
+func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
+	userTeams, err := a.Srv().Store.Group().TeamMembersToAdd(since, teamID, includeRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("TeamMembersToAdd", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -408,8 +414,14 @@ func (a *App) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamID
 	return userTeams, nil
 }
 
-func (a *App) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
-	userChannels, err := a.Srv().Store.Group().ChannelMembersToAdd(since, channelID)
+// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
+// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
+//
+// Typically since will be the last successful group sync time.
+// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+// be included; otherwise, they will be excluded.
+func (a *App) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
+	userChannels, err := a.Srv().Store.Group().ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("ChannelMembersToAdd", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}

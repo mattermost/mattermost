@@ -13,10 +13,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/wsapi"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/wsapi"
 )
 
 var TestCmd = &cobra.Command{
@@ -58,7 +58,7 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv().AppOptions, a.Srv().Router)
+	api4.Init(a, a.Srv().Router)
 	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
@@ -79,7 +79,7 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv().AppOptions, a.Srv().Router)
+	api4.Init(a, a.Srv().Router)
 	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 

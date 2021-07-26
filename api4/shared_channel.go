@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitSharedChannels() {
@@ -59,7 +59,7 @@ func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// GetRemoteClusterForUser will only return a remote if the user is a member of at
 	// least one channel shared by the remote. All other cases return error.
-	rc, appErr := c.App.GetRemoteClusterForUser(c.Params.RemoteId, c.App.Session().UserId)
+	rc, appErr := c.App.GetRemoteClusterForUser(c.Params.RemoteId, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return

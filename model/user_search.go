@@ -8,8 +8,8 @@ import (
 	"io"
 )
 
-const USER_SEARCH_MAX_LIMIT = 1000
-const USER_SEARCH_DEFAULT_LIMIT = 100
+const UserSearchMaxLimit = 1000
+const UserSearchDefaultLimit = 100
 
 // UserSearch captures the parameters provided by a client for initiating a user search.
 type UserSearch struct {
@@ -41,7 +41,7 @@ func UserSearchFromJson(data io.Reader) *UserSearch {
 	json.NewDecoder(data).Decode(&us)
 
 	if us.Limit == 0 {
-		us.Limit = USER_SEARCH_DEFAULT_LIMIT
+		us.Limit = UserSearchDefaultLimit
 	}
 
 	return &us

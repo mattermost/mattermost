@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestService_AddTopicListener(t *testing.T) {
@@ -30,6 +30,8 @@ func TestService_AddTopicListener(t *testing.T) {
 	}
 
 	mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ""))
+	defer mockServer.Shutdown()
+
 	service, err := NewRemoteClusterService(mockServer)
 	require.NoError(t, err)
 

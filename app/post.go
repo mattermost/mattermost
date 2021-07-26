@@ -9,17 +9,19 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/services/cache"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
 const (
@@ -28,7 +30,9 @@ const (
 	PageDefault             = 0
 )
 
-func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
+var atMentionPattern = regexp.MustCompile(`\B@`)
+
+func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	if errCh != nil {
@@ -36,7 +40,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 		return nil, err
 	}
 
-	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
 		return nil, err
 	}
@@ -46,7 +50,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 		return nil, err
 	}
 
-	rp, err := a.CreatePost(post, channel, true, setOnline)
+	rp, err := a.CreatePost(c, post, channel, true, setOnline)
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" ||
@@ -87,7 +91,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
 	if !fromWebhook && !fromBot {
-		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
+		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
@@ -100,7 +104,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 	return rp, nil
 }
 
-func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostMissingChannel(c *request.Context, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	channel, err := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -112,7 +116,7 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 		}
 	}
 
-	return a.CreatePost(post, channel, triggerWebhooks, true)
+	return a.CreatePost(c, post, channel, triggerWebhooks, true)
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
@@ -157,7 +161,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	return actualPost, nil
 }
 
-func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
+func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
 	foundPost, err := a.deduplicateCreatePost(post)
 	if err != nil {
 		return nil, err
@@ -210,13 +214,13 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
-		channel.Name == model.DEFAULT_CHANNEL &&
-		!a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		channel.Name == model.DefaultChannelName &&
+		!a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
 		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
 	var ephemeralPost *model.Post
-	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PermissionUseChannelMentions) {
 		mention := post.DisableMentionHighlights()
 		if mention != "" {
 			T := i18n.GetUserTranslations(user.Locale)
@@ -226,7 +230,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 				ParentId:  post.ParentId,
 				ChannelId: channel.Id,
 				Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
-				Props:     model.StringInterface{model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+				Props:     model.StringInterface{model.PostPropsMentionHighlightDisabled: true},
 			}
 		}
 	}
@@ -281,7 +285,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
-		pluginContext := a.PluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
@@ -326,7 +330,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	rPostCopy := rpost.Clone()
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext()
+			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rPostCopy)
 				return true
@@ -352,7 +356,17 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	// to be done when we send the post over the websocket in handlePostEvents
 	rpost = a.PreparePostForClient(rpost, true, false)
 
-	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
+	// Make sure poster is following the thread
+	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
+		_, err := a.Srv().Store.Thread().MaintainMembership(user.Id, rpost.RootId, store.ThreadMembershipOpts{
+			Following: true,
+		})
+		if err != nil {
+			mlog.Warn("Failed to update thread membership", mlog.Err(err))
+		}
+	}
+
+	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
 		mlog.Warn("Failed to handle post events", mlog.Err(err))
 	}
 
@@ -411,7 +425,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 		}
 
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.CHANNEL_OPEN {
+			if mentioned.Type == model.ChannelTypeOpen {
 				team, err := a.Srv().Store.Team().Get(mentioned.TeamId)
 				if err != nil {
 					mlog.Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
@@ -431,15 +445,15 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 		post.DelProp("channel_mentions")
 	}
 
-	matched := model.AT_MENTION_PATTEN.MatchString(post.Message)
-	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
-		post.AddProp(model.POST_PROPS_GROUP_HIGHLIGHT_DISABLED, true)
+	matched := atMentionPattern.MatchString(post.Message)
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
 	}
 
 	return nil
 }
 
-func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
+func (a *App) handlePostEvents(c *request.Context, post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
 	var team *model.Team
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store.Team().Get(channel.TeamId)
@@ -459,9 +473,9 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
-	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
+	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
 		a.Srv().Go(func() {
-			_, err := a.SendAutoResponseIfNecessary(channel, user, post)
+			_, err := a.SendAutoResponseIfNecessary(c, channel, user, post)
 			if err != nil {
 				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
@@ -470,7 +484,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 
 	if triggerWebhooks {
 		a.Srv().Go(func() {
-			if err := a.handleWebhookEvents(post, team, channel, user); err != nil {
+			if err := a.handleWebhookEvents(c, post, team, channel, user); err != nil {
 				mlog.Error(err.Error())
 			}
 		})
@@ -480,7 +494,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 }
 
 func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
-	post.Type = model.POST_EPHEMERAL
+	post.Type = model.PostTypeEphemeral
 
 	// fill in fields which haven't been specified which have sensible defaults
 	if post.Id == "" {
@@ -494,7 +508,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 	}
 
 	post.GenerateActionIds()
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
@@ -504,7 +518,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 }
 
 func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
-	post.Type = model.POST_EPHEMERAL
+	post.Type = model.PostTypeEphemeral
 
 	post.UpdateAt = model.GetMillis()
 	if post.GetProps() == nil {
@@ -512,7 +526,7 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 	}
 
 	post.GenerateActionIds()
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
@@ -525,17 +539,17 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	post := &model.Post{
 		Id:       postID,
 		UserId:   userID,
-		Type:     model.POST_EPHEMERAL,
+		Type:     model.PostTypeEphemeral,
 		DeleteAt: model.GetMillis(),
 		UpdateAt: model.GetMillis(),
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", "", userID, nil)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false, "")
@@ -585,8 +599,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
-	newPost := &model.Post{}
-	newPost = oldPost.Clone()
+	newPost := oldPost.Clone()
 
 	if newPost.Message != post.Message {
 		newPost.Message = post.Message
@@ -616,7 +629,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := a.PluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
@@ -639,7 +652,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext()
+			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true
@@ -649,7 +662,12 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	rpost = a.PreparePostForClient(rpost, false, true)
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
+	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
+	// and we don't want to have to populate it for every single user and broadcast to each
+	// individually.
+	rpost.IsFollowing = nil
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil)
 	message.Add("post", rpost.ToJson())
 	a.Publish(message)
 
@@ -658,7 +676,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	return rpost, nil
 }
 
-func (a *App) PatchPost(postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(postID)
 	if err != nil {
 		return nil, err
@@ -674,13 +692,13 @@ func (a *App) PatchPost(postID string, patch *model.PostPatch) (*model.Post, *mo
 		return nil, err
 	}
 
-	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
 		patch.DisableMentionHighlights()
 	}
 
 	post.Patch(patch)
 
-	updatedPost, err := a.UpdatePost(post, false)
+	updatedPost, err := a.UpdatePost(c, post, false)
 	if err != nil {
 		return nil, err
 	}
@@ -791,7 +809,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 	return postList, nil
 }
 
-func (a *App) GetPermalinkPost(postID string, userID string) (*model.PostList, *model.AppError) {
+func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError) {
 	list, nErr := a.Srv().Store.Post().Get(context.Background(), postID, false, false, false, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -816,7 +834,7 @@ func (a *App) GetPermalinkPost(postID string, userID string) (*model.PostList, *
 		return nil, err
 	}
 
-	if err = a.JoinChannel(channel, userID); err != nil {
+	if err = a.JoinChannel(c, channel, userID); err != nil {
 		return nil, err
 	}
 
@@ -1043,12 +1061,12 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 
 	postData := a.PreparePostForClient(post, false, false).ToJson()
 
-	userMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil)
 	userMessage.Add("post", postData)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(userMessage)
 
-	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil)
 	adminMessage.Add("post", postData)
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
@@ -1067,7 +1085,7 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 }
 
 func (a *App) DeleteFlaggedPosts(postID string) {
-	if err := a.Srv().Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postID); err != nil {
+	if err := a.Srv().Store.Preference().DeleteCategoryAndName(model.PreferenceCategoryFlaggedPost, postID); err != nil {
 		mlog.Warn("Unable to delete flagged post preference when deleting post.", mlog.Err(err))
 		return
 	}
@@ -1083,7 +1101,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
+func (a *App) parseAndFetchChannelIdByNameFromInFilter(c *request.Context, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIDs []string
 		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
@@ -1106,7 +1124,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userID, team
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetOrCreateDirectChannel(userID, user.Id)
+		channel, err := a.GetOrCreateDirectChannel(c, userID, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -1157,9 +1175,9 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 	return posts, nil
 }
 
-func (a *App) convertChannelNamesToChannelIds(channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
+func (a *App) convertChannelNamesToChannelIds(c *request.Context, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
 	for idx, channelName := range channels {
-		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userID, teamID, includeDeletedChannels)
+		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(c, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
 			mlog.Warn("error getting channel id by name from in filter", mlog.Err(err))
 			continue
@@ -1190,7 +1208,7 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsInTeamForUser(terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsInTeamForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
@@ -1207,8 +1225,8 @@ func (a *App) SearchPostsInTeamForUser(terms string, userID string, teamID strin
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
-			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userID, teamID, includeDeletedChannels)
-			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userID, teamID, includeDeletedChannels)
+			params.InChannels = a.convertChannelNamesToChannelIds(c, params.InChannels, userID, teamID, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(c, params.ExcludedChannels, userID, teamID, includeDeletedChannels)
 
 			// Convert usernames to user IDs
 			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
@@ -1331,7 +1349,7 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 func (s *Server) MaxPostSize() int {
 	maxPostSize := s.Store.Post().GetMaxPostSize()
 	if maxPostSize == 0 {
-		return model.POST_MESSAGE_MAX_RUNES_V1
+		return model.PostMessageMaxRunesV1
 	}
 
 	return maxPostSize
@@ -1352,7 +1370,7 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 		map[string][]string{},
 		user,
 		map[string]string{},
-		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
+		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
 		true, // Assume channel mentions are always allowed for simplicity
 	)
 
@@ -1363,7 +1381,7 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 
 	count := 0
 
-	if channel.Type == model.CHANNEL_DIRECT {
+	if channel.Type == model.ChannelTypeDirect {
 		// In a DM channel, every post made by the other user is a mention
 		otherId := channel.GetOtherUserIdForDM(user.Id)
 		for _, p := range posts {
@@ -1387,18 +1405,14 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 	if nErr != nil {
 		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-
-	mentions := getExplicitMentions(post, keywords, groups)
-	if post.UpdateAt >= timestamp {
-		if _, ok := mentions.Mentions[user.Id]; ok {
-			count += 1
-		}
-	}
+	posts = append(posts, post)
 
 	for _, p := range posts {
-		mentions = getExplicitMentions(p, keywords, groups)
-		if _, ok := mentions.Mentions[user.Id]; ok {
-			count += 1
+		if p.CreateAt >= timestamp {
+			mentions := getExplicitMentions(p, keywords, groups)
+			if _, ok := mentions.Mentions[user.Id]; ok {
+				count += 1
+			}
 		}
 	}
 
@@ -1413,7 +1427,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, in
 		return 0, 0, err
 	}
 
-	if channel.Type == model.CHANNEL_DIRECT {
+	if channel.Type == model.ChannelTypeDirect {
 		// In a DM channel, every post made by the other user is a mention
 		count, countRoot, nErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 		if nErr != nil {
@@ -1432,11 +1446,11 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, in
 		map[string][]string{},
 		user,
 		channelMember.NotifyProps,
-		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
+		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
 		true, // Assume channel mentions are always allowed for simplicity
 	)
-	commentMentions := user.NotifyProps[model.COMMENTS_NOTIFY_PROP]
-	checkForCommentMentions := commentMentions == model.COMMENTS_NOTIFY_ROOT || commentMentions == model.COMMENTS_NOTIFY_ANY
+	commentMentions := user.NotifyProps[model.CommentsNotifyProp]
+	checkForCommentMentions := commentMentions == model.CommentsNotifyRoot || commentMentions == model.CommentsNotifyAny
 
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
@@ -1502,7 +1516,7 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	mentioned := otherPosts[post.RootId].UserId == user.Id
 
 	// Or because they commented on it before this post
-	if !mentioned && user.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY {
+	if !mentioned && user.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny {
 		for _, otherPost := range otherPosts {
 			if otherPost.Id == post.Id {
 				continue
@@ -1537,8 +1551,8 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	}
 
 	// Check for mentions caused by being added to the channel
-	if post.Type == model.POST_ADD_TO_CHANNEL {
-		if addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string); ok && addedUserId == user.Id {
+	if post.Type == model.PostTypeAddToChannel {
+		if addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string); ok && addedUserId == user.Id {
 			return true
 		}
 	}

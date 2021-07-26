@@ -987,33 +987,6 @@
     "translation": "Los correos electrónicos por lotes han sido inhabilitados por el administrador de sistema."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Mensaje Directo de "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Ir al mensaje"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Mensaje Grupal de "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notificación de "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Tienes una nueva notificación.",
-      "other": "Tienes {{.Count}} nuevas notificaciones."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
@@ -1743,10 +1716,6 @@
     "translation": "No se pudo descodificar el icono de equipo."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "No se pudo descodificar la metadata del icono de equipo."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "No se pudo codificar el icono de equipo."
   },
@@ -1872,7 +1841,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Haz sido invitado"
+    "translation": "{{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1984,7 +1953,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android desde:"
+    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2211,24 +2180,8 @@
     "translation": "Ocurrió un error al enviar el correo electrónico de desactivación de cuenta"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del correo electrónico"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del nombre de usuario"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Error al enviar la notificación por correo electrónico para verificar el cambio satisfactorio del correo electrónico"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "No se puede enviar la notificación por correo electrónico para el cambio de MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio de contraseña"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2243,16 +2196,8 @@
     "translation": "Error al enviar la notificación por correo del cambio satisfactorio de contraseña"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Error al enviar el correo electrónico de token de acceso personal añadido correctamente"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Error al enviar la notificación por correo electrónico de la verificación del correo electrónico"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Error al enviar la notificación de bienvenida por correo electrónico"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2297,10 +2242,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "No se pudo descodificar la imagen del perfil."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "No se pudo guardar la imagen de perfil. El archivo no parece ser una imagen válida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2943,62 +2884,6 @@
     "translation": "Falta el nombre del equipo en la Membresía del equipo del usuario."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Tienes un nuevo Mensaje Directo."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Tienes un nuevo Mensaje Directo de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Tienes un nuevo Mensaje de Grupo."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Tienes un nuevo mensaje de Grupo de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Tienes una nueva notificación."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Tienes una nueva notificación de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}} {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}} {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nuevo Mensaje Directo de @{{.SenderDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
   },
@@ -3123,10 +3008,6 @@
     "translation": "No se puede descodificar los datos de la imagen."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "No se puede obtener los metadatos de la imagen."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "No se puede convertir los datos de imagen en formato PNG. Por favor, inténtelo de nuevo."
   },
@@ -3137,10 +3018,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "No se puede escribir el archivo de imagen en su almacenamiento de archivos. Por favor, compruebe su conexión e inténtelo de nuevo."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "No se puede leer el archivo de imagen. Asegúrese de que el tamaño de la imagen es de menos de 2 MB y pruebe de nuevo."
   },
   {
     "id": "cli.license.critical",
@@ -4843,10 +4720,6 @@
     "translation": "No se puede encontrar una cuenta existente con tus credenciales. Es posible que requieras una invitación por parte del dueño del equipo para poder unirte."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Este correo electrónico ya está siendo utilizado. Por favor escoge otro."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistema"
   },
@@ -5275,8 +5148,8 @@
     "translation": "El trabajo de Bleve falló al analizar la hora de finalización."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "El mensaje más antiguo no pudo ser recuperado de la base de datos."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "La entidad más vieja (usuario, canal o poste), no podría ser recuperado de la base de datos."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6759,10 +6632,6 @@
     "translation": "No se pudo obtener el rol."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "No se pudo obtener todos los roles."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "No se pudo obtener el rol."
   },
@@ -6869,10 +6738,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "No se pudo interpretar el tamaño de bloque de datos de la exportación de mensajes."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Encontramos un error mientras conectábamos al servidor."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7185,14 +7050,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "No se puede obtener la cantidad de equipos."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "No se puede obtener la cantidad de equipos públicos."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "No se puede obtener la cantidad de equipos privados."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -7751,10 +7608,6 @@
     "translation": "No se puede analizar el cuerpo de la solicitud."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "No pudimos poner todos los equipos privados en la página."
-  },
-  {
     "id": "api.user.login_cws.license.error",
     "translation": "Está prohibido iniciar sesión con CWS."
   },
@@ -8179,10 +8032,6 @@
     "translation": "Error al obtener la suscripción al cloud"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Esta funcionalidad esta en desarrollo, y solo está disponible usando una marca de funcionalidad."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "No fue posible analizar el cuerpo de la petición."
   },
@@ -8241,5 +8090,9 @@
   {
     "id": "api.cloud.get_admins_emails.error",
     "translation": "Error obteniendo el email de los administradores del sistema."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "No se ha podido restablecer el campo AuthData a Email."
   }
 ]

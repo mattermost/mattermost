@@ -9,10 +9,9 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/mattermost/go-i18n/i18n"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
-	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 type Routes struct {
@@ -131,23 +130,23 @@ type Routes struct {
 
 	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
 	SharedChannels *mux.Router // 'api/v4/sharedchannels'
+
+	Permissions *mux.Router // 'api/v4/permissions'
 }
 
 type API struct {
-	ConfigService       configservice.ConfigService
-	GetGlobalAppOptions app.AppOptionCreator
-	BaseRoutes          *Routes
+	app        app.AppIface
+	BaseRoutes *Routes
 }
 
-func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func Init(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		app:        a,
+		BaseRoutes: &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
-	api.BaseRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	api.BaseRoutes.ApiRoot = root.PathPrefix(model.ApiUrlSuffix).Subrouter()
 
 	api.BaseRoutes.Users = api.BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
@@ -250,6 +249,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
 	api.BaseRoutes.SharedChannels = api.BaseRoutes.ApiRoot.PathPrefix("/sharedchannels").Subrouter()
 
+	api.BaseRoutes.Permissions = api.BaseRoutes.ApiRoot.PathPrefix("/permissions").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -289,6 +290,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitImport()
 	api.InitRemoteCluster()
 	api.InitSharedChannels()
+	api.InitPermissions()
 	api.InitExport()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
@@ -296,15 +298,14 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	return api
 }
 
-func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func InitLocal(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		app:        a,
+		BaseRoutes: &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
-	api.BaseRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	api.BaseRoutes.ApiRoot = root.PathPrefix(model.ApiUrlSuffix).Subrouter()
 
 	api.BaseRoutes.Users = api.BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
@@ -363,6 +364,8 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
 
+	api.BaseRoutes.SAML = api.BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -381,6 +384,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitImportLocal()
 	api.InitExportLocal()
 	api.InitJobLocal()
+	api.InitSamlLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
@@ -388,7 +392,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
-	web.Handle404(api.ConfigService, w, r)
+	web.Handle404(api.app, w, r)
 }
 
 var ReturnStatusOK = web.ReturnStatusOK

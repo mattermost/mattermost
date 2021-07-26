@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "mysql:5.6"
+    image: "mysql:5.7.12"
     restart: always
     networks:
       - mm-test
@@ -19,7 +19,7 @@ services:
     volumes:
       - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
   mysql-read-replica:
-    image: "mysql:5.7"
+    image: "mysql:5.7.12"
     restart: always
     networks:
       - mm-test
@@ -65,8 +65,12 @@ services:
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
   inbucket:
-    image: "jhillyerd/inbucket:release-1.2.0"
+    image: "inbucket/inbucket:stable"
     restart: always
+    environment:
+      INBUCKET_WEB_ADDR: "0.0.0.0:10080"
+      INBUCKET_POP3_ADDR: "0.0.0.0:10110"
+      INBUCKET_SMTP_ADDR: "0.0.0.0:10025"
     networks:
       - mm-test
   openldap:

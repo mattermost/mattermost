@@ -13,11 +13,11 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mail"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mail"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -155,8 +155,8 @@ func (s *Server) InvalidateAllCaches() *model.AppError {
 	if s.Cluster != nil {
 
 		msg := &model.ClusterMessage{
-			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,
-			SendType:         model.CLUSTER_SEND_RELIABLE,
+			Event:            model.ClusterEventInvalidateAllCaches,
+			SendType:         model.ClusterSendReliable,
 			WaitForAllToSend: true,
 		}
 
@@ -168,7 +168,7 @@ func (s *Server) InvalidateAllCaches() *model.AppError {
 
 func (s *Server) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	s.sessionCache.Purge()
+	s.userService.ClearAllUsersSessionCacheLocal()
 	s.statusCache.Purge()
 	s.Store.Team().ClearCaches()
 	s.Store.Channel().ClearCaches()
@@ -211,7 +211,7 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection
-	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+	if *cfg.EmailSettings.SMTPPassword == model.FakeSetting {
 		if *cfg.EmailSettings.SMTPServer == *a.Config().EmailSettings.SMTPServer &&
 			*cfg.EmailSettings.SMTPPort == *a.Config().EmailSettings.SMTPPort &&
 			*cfg.EmailSettings.SMTPUsername == *a.Config().EmailSettings.SMTPUsername {

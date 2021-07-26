@@ -295,14 +295,11 @@ func (d *Durafmt) InternationalString() string {
 		v := durationMap[u]
 		strval := strconv.FormatInt(v, 10)
 		switch {
-		// add to the duration string if v > 1.
-		case v > 1:
+		// add to the duration string if v > 0.
+		case v > 0:
 			duration += strval + " " + u + " "
-		// remove the plural 's', if v is 1.
-		case v == 1:
-			duration += strval + " " + strings.TrimRight(u, "s") + " "
-		// omit any value with 0s or 0.
-		case d.duration.String() == "0" || d.duration.String() == "0s":
+		// omit any value with 0.
+		case d.duration.String() == "0":
 			pattern := fmt.Sprintf("^-?0%s$", unitsShort[i])
 			isMatch, err := regexp.MatchString(pattern, d.input)
 			if err != nil {

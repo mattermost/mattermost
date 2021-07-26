@@ -9,21 +9,21 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var sharedChannelEventsForSync model.StringArray = []string{
-	model.WEBSOCKET_EVENT_POSTED,
-	model.WEBSOCKET_EVENT_POST_EDITED,
-	model.WEBSOCKET_EVENT_POST_DELETED,
-	model.WEBSOCKET_EVENT_REACTION_ADDED,
-	model.WEBSOCKET_EVENT_REACTION_REMOVED,
+	model.WebsocketEventPosted,
+	model.WebsocketEventPostEdited,
+	model.WebsocketEventPostDeleted,
+	model.WebsocketEventReactionAdded,
+	model.WebsocketEventReactionRemoved,
 }
 
 var sharedChannelEventsForInvitation model.StringArray = []string{
-	model.WEBSOCKET_EVENT_DIRECT_ADDED,
+	model.WebsocketEventDirectAdded,
 }
 
 // SharedChannelSyncHandler is called when a websocket event is received by a cluster node.
@@ -117,7 +117,7 @@ func handleInvitation(s *Server, syncService SharedChannelServiceIFace, event *m
 		return errors.Wrap(err, fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId))
 	}
 
-	return syncService.SendChannelInvite(channel, creator.Id, "", rc, sharedchannel.WithDirectParticipantID(creator.Id), sharedchannel.WithDirectParticipantID(participant.Id))
+	return syncService.SendChannelInvite(channel, creator.Id, rc, sharedchannel.WithDirectParticipantID(creator.Id), sharedchannel.WithDirectParticipantID(participant.Id))
 }
 
 func getUserFromEvent(s *Server, event *model.WebSocketEvent, key string) (*model.User, error) {

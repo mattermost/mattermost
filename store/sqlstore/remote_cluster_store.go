@@ -10,8 +10,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type sqlRemoteClusterStore struct {
@@ -22,9 +22,10 @@ func newSqlRemoteClusterStore(sqlStore *SqlStore) store.RemoteClusterStore {
 	s := &sqlRemoteClusterStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.RemoteCluster{}, "RemoteClusters").SetKeys(false, "RemoteId")
+		table := db.AddTableWithName(model.RemoteCluster{}, "RemoteClusters").SetKeys(false, "RemoteId", "Name")
 		table.ColMap("RemoteId").SetMaxSize(26)
 		table.ColMap("RemoteTeamId").SetMaxSize(26)
+		table.ColMap("Name").SetMaxSize(64)
 		table.ColMap("DisplayName").SetMaxSize(64)
 		table.ColMap("SiteURL").SetMaxSize(512)
 		table.ColMap("Token").SetMaxSize(26)
@@ -179,7 +180,7 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 
 func (s *sqlRemoteClusterStore) createIndexesIfNotExists() {
 	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 	}
 	s.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)

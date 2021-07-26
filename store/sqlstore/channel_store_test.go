@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchtest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/searchtest"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
 
 func TestChannelStore(t *testing.T) {
@@ -31,8 +31,8 @@ func TestChannelSearchQuerySQLInjection(t *testing.T) {
 				SqlStore: st.SqlStore,
 			}
 
-			opts := store.ChannelSearchOpts{}
-			builder := s.channelSearchQuery("'or'1'=sleep(3))); -- -", opts, false)
+			opts := store.ChannelSearchOpts{Term: "'or'1'=sleep(3))); -- -"}
+			builder := s.channelSearchQuery(&opts)
 			query, _, err := builder.ToSql()
 			require.NoError(t, err)
 			assert.NotContains(t, query, "sleep")

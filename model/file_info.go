@@ -4,25 +4,19 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
 	"image"
 	"image/gif"
-	"image/jpeg"
 	"io"
 	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
-
-	"github.com/disintegration/imaging"
-
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	FILEINFO_SORT_BY_CREATED = "CreateAt"
-	FILEINFO_SORT_BY_SIZE    = "Size"
+	FileinfoSortByCreated = "CreateAt"
+	FileinfoSortBySize    = "Size"
 )
 
 // GetFileInfosOptions contains options for getting FileInfos
@@ -160,19 +154,6 @@ func NewInfo(name string) *FileInfo {
 	}
 
 	return info
-}
-
-func GenerateMiniPreviewImage(img image.Image) *[]byte {
-	preview := imaging.Resize(img, 16, 16, imaging.Lanczos)
-
-	buf := new(bytes.Buffer)
-
-	if err := jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90}); err != nil {
-		mlog.Info("Unable to encode image as mini preview jpg", mlog.Err(err))
-		return nil
-	}
-	data := buf.Bytes()
-	return &data
 }
 
 func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*FileInfo, *AppError) {

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestExtract(t *testing.T) {
@@ -29,7 +29,15 @@ func TestExtract(t *testing.T) {
 			"Plain text file",
 			"test-markdown-basics.md",
 			ExtractSettings{},
-			[]string{"followed", "separated"},
+			[]string{"followed", "separated", "Basic"},
+			[]string{},
+			false,
+		},
+		{
+			"Plain small text file",
+			"test-hashtags.md",
+			ExtractSettings{},
+			[]string{"should", "render", "strings"},
 			[]string{},
 			false,
 		},
@@ -92,6 +100,14 @@ func TestExtract(t *testing.T) {
 		{
 			"Docx file",
 			"sample-doc.docx",
+			ExtractSettings{},
+			[]string{"simple", "document", "contains"},
+			[]string{},
+			false,
+		},
+		{
+			"Odt file",
+			"sample-doc.odt",
 			ExtractSettings{},
 			[]string{"simple", "document", "contains"},
 			[]string{},

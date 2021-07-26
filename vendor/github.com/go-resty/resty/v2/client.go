@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
+// Copyright (c) 2015-2021 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
 // resty source code and usage is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -108,6 +108,7 @@ type Client struct {
 	RetryWaitTime         time.Duration
 	RetryMaxWaitTime      time.Duration
 	RetryConditions       []RetryConditionFunc
+	RetryHooks            []OnRetryFunc
 	RetryAfter            RetryAfterFunc
 	JSONMarshal           func(v interface{}) ([]byte, error)
 	JSONUnmarshal         func(data []byte, v interface{}) error
@@ -190,6 +191,21 @@ func (c *Client) SetHeaders(headers map[string]string) *Client {
 	for h, v := range headers {
 		c.Header.Set(h, v)
 	}
+	return c
+}
+
+// SetHeaderVerbatim method is to set a single header field and its value verbatim in the current request.
+//
+// For Example: To set `all_lowercase` and `UPPERCASE` as `available`.
+// 		client.R().
+//			SetHeaderVerbatim("all_lowercase", "available").
+//			SetHeaderVerbatim("UPPERCASE", "available")
+//
+// Also you can override header value, which was set at client instance level.
+//
+// Since v2.6.0
+func (c *Client) SetHeaderVerbatim(header, value string) *Client {
+	c.Header[header] = []string{value}
 	return c
 }
 
@@ -575,6 +591,26 @@ func (c *Client) SetRetryAfter(callback RetryAfterFunc) *Client {
 // retry if any of the functions return true and error is nil.
 func (c *Client) AddRetryCondition(condition RetryConditionFunc) *Client {
 	c.RetryConditions = append(c.RetryConditions, condition)
+	return c
+}
+
+// AddRetryAfterErrorCondition adds the basic condition of retrying after encountering
+// an error from the http response
+//
+// Since v2.6.0
+func (c *Client) AddRetryAfterErrorCondition() *Client {
+	c.AddRetryCondition(func(response *Response, err error) bool {
+		return response.IsError()
+	})
+	return c
+}
+
+// AddRetryHook adds a side-effecting retry hook to an array of hooks
+// that will be executed on each retry.
+//
+// Since v2.6.0
+func (c *Client) AddRetryHook(hook OnRetryFunc) *Client {
+	c.RetryHooks = append(c.RetryHooks, hook)
 	return c
 }
 

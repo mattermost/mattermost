@@ -107,6 +107,7 @@ services:
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
+      - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
     networks:
       - mm-test
     depends_on:
@@ -142,6 +143,7 @@ services:
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
+      - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
     networks:
       - mm-test
     depends_on:
@@ -177,6 +179,7 @@ services:
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
+      - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
     networks:
       - mm-test
     depends_on:

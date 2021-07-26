@@ -178,65 +178,74 @@ func TestUserGetFullName(t *testing.T) {
 func TestUserGetDisplayName(t *testing.T) {
 	user := User{Username: "username"}
 
-	assert.Equal(t, user.GetDisplayName(SHOW_FULLNAME), "username", "Display name should be username")
-	assert.Equal(t, user.GetDisplayName(SHOW_NICKNAME_FULLNAME), "username", "Display name should be username")
-	assert.Equal(t, user.GetDisplayName(SHOW_USERNAME), "username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayName(ShowFullName), "username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayName(ShowNicknameFullName), "username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayName(ShowUsername), "username", "Display name should be username")
 
 	user.FirstName = "first"
 	user.LastName = "last"
 
-	assert.Equal(t, user.GetDisplayName(SHOW_FULLNAME), "first last", "Display name should be full name")
-	assert.Equal(t, user.GetDisplayName(SHOW_NICKNAME_FULLNAME), "first last", "Display name should be full name since there is no nickname")
-	assert.Equal(t, user.GetDisplayName(SHOW_USERNAME), "username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayName(ShowFullName), "first last", "Display name should be full name")
+	assert.Equal(t, user.GetDisplayName(ShowNicknameFullName), "first last", "Display name should be full name since there is no nickname")
+	assert.Equal(t, user.GetDisplayName(ShowUsername), "username", "Display name should be username")
 
 	user.Nickname = "nickname"
-	assert.Equal(t, user.GetDisplayName(SHOW_NICKNAME_FULLNAME), "nickname", "Display name should be nickname")
+	assert.Equal(t, user.GetDisplayName(ShowNicknameFullName), "nickname", "Display name should be nickname")
 }
 
 func TestUserGetDisplayNameWithPrefix(t *testing.T) {
 	user := User{Username: "username"}
 
-	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_FULLNAME, "@"), "@username", "Display name should be username")
-	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"), "@username", "Display name should be username")
-	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_USERNAME, "@"), "@username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(ShowFullName, "@"), "@username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(ShowNicknameFullName, "@"), "@username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(ShowUsername, "@"), "@username", "Display name should be username")
 
 	user.FirstName = "first"
 	user.LastName = "last"
 
-	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_FULLNAME, "@"), "first last", "Display name should be full name")
-	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"), "first last", "Display name should be full name since there is no nickname")
-	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_USERNAME, "@"), "@username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(ShowFullName, "@"), "first last", "Display name should be full name")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(ShowNicknameFullName, "@"), "first last", "Display name should be full name since there is no nickname")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(ShowUsername, "@"), "@username", "Display name should be username")
 
 	user.Nickname = "nickname"
-	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"), "nickname", "Display name should be nickname")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(ShowNicknameFullName, "@"), "nickname", "Display name should be nickname")
 }
 
-var usernames = []struct {
-	value    string
-	expected bool
-}{
-	{"spin-punch", true},
-	{"sp", true},
-	{"s", true},
-	{"1spin-punch", true},
-	{"-spin-punch", true},
-	{".spin-punch", true},
-	{"Spin-punch", false},
-	{"spin punch-", false},
-	{"spin_punch", true},
-	{"spin", true},
-	{"PUNCH", false},
-	{"spin.punch", true},
-	{"spin'punch", false},
-	{"spin*punch", false},
-	{"all", false},
-	{"system", false},
+type usernamesTest struct {
+	value              string
+	expected           bool
+	expectedWhenRemote bool
+}
+
+var usernames = []usernamesTest{
+	{"spin-punch", true, true},
+	{"sp", true, true},
+	{"s", true, true},
+	{"1spin-punch", true, true},
+	{"-spin-punch", true, true},
+	{".spin-punch", true, true},
+	{"Spin-punch", false, false},
+	{"spin punch-", false, false},
+	{"spin_punch", true, true},
+	{"spin", true, true},
+	{"PUNCH", false, false},
+	{"spin.punch", true, true},
+	{"spin'punch", false, false},
+	{"spin*punch", false, false},
+	{"all", false, false},
+	{"system", false, false},
+	{"spin:punch", false, true},
 }
 
 func TestValidUsername(t *testing.T) {
 	for _, v := range usernames {
 		if IsValidUsername(v.value) != v.expected {
 			t.Errorf("expect %v as %v", v.value, v.expected)
+		}
+	}
+	for _, v := range usernames {
+		if IsValidUsernameAllowRemote(v.value) != v.expectedWhenRemote {
+			t.Errorf("expect %v as %v", v.value, v.expectedWhenRemote)
 		}
 	}
 }

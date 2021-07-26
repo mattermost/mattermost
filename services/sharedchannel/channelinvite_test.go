@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 type mockLogger struct {
@@ -59,7 +59,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{DisplayName: "test"}
+		remoteCluster := &model.RemoteCluster{Name: "test"}
 		invitation := channelInviteMsg{
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
@@ -84,8 +84,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
-		createPostPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_CREATE_POST.Id]
-		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_ADD_REACTION.Id]
+		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
+		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 		updateMap := model.ChannelModeratedRolesPatch{
 			Guests:  model.NewBool(false),
 			Members: model.NewBool(false),
@@ -119,7 +119,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{DisplayName: "test"}
+		remoteCluster := &model.RemoteCluster{Name: "test2"}
 		invitation := channelInviteMsg{
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
@@ -161,12 +161,12 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{DisplayName: "test", CreatorId: model.NewId()}
+		remoteCluster := &model.RemoteCluster{Name: "test3", CreatorId: model.NewId()}
 		invitation := channelInviteMsg{
 			ChannelId:            model.NewId(),
 			TeamId:               model.NewId(),
 			ReadOnly:             false,
-			Type:                 model.CHANNEL_DIRECT,
+			Type:                 model.ChannelTypeDirect,
 			DirectParticipantIDs: []string{model.NewId(), model.NewId()},
 		}
 		payload, err := json.Marshal(invitation)
@@ -188,7 +188,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
 
-		mockApp.On("GetOrCreateDirectChannel", invitation.DirectParticipantIDs[0], invitation.DirectParticipantIDs[1], mock.AnythingOfType("model.ChannelOption")).Return(channel, nil)
+		mockApp.On("GetOrCreateDirectChannel", mock.AnythingOfType("*request.Context"), invitation.DirectParticipantIDs[0], invitation.DirectParticipantIDs[1], mock.AnythingOfType("model.ChannelOption")).Return(channel, nil)
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)

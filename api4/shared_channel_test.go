@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 var (
@@ -35,7 +35,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 
 	// make some shared channels
 	for i := 0; i < pages*pageSize; i++ {
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.CHANNEL_OPEN, th.BasicTeam.Id)
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    channel.TeamId,
@@ -95,7 +95,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 	// create a remote cluster
 	rc := &model.RemoteCluster{
 		RemoteId:     model.NewId(),
-		DisplayName:  "Test1",
+		Name:         "Test1",
 		RemoteTeamId: model.NewId(),
 		SiteURL:      model.NewId(),
 		CreatorId:    model.NewId(),
@@ -130,7 +130,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 	t.Run("valid remote, user is member", func(t *testing.T) {
 		rcInfo, resp := th.Client.GetRemoteClusterInfo(rc.RemoteId)
 		CheckNoError(t, resp)
-		assert.Equal(t, rc.DisplayName, rcInfo.DisplayName)
+		assert.Equal(t, rc.Name, rcInfo.Name)
 	})
 
 	t.Run("invalid remote", func(t *testing.T) {
@@ -173,9 +173,9 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
 		rc := &model.RemoteCluster{
-			DisplayName: "test",
-			Token:       model.NewId(),
-			CreatorId:   localUser.Id,
+			Name:      "test",
+			Token:     model.NewId(),
+			CreatorId: localUser.Id,
 		}
 		rc, err := th.App.AddRemoteCluster(rc)
 		require.Nil(t, err)
@@ -206,9 +206,9 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
 		rc := &model.RemoteCluster{
-			DisplayName: "test",
-			Token:       model.NewId(),
-			CreatorId:   localUser.Id,
+			Name:      "test",
+			Token:     model.NewId(),
+			CreatorId: localUser.Id,
 		}
 		rc, err := th.App.AddRemoteCluster(rc)
 		require.Nil(t, err)

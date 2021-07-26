@@ -7,10 +7,11 @@ import (
 	"context"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type InviteProvider struct {
@@ -38,11 +39,11 @@ func (*InviteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_message.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -55,14 +56,14 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 		mlog.Error(nErr.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_user.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
 	if userProfile.DeleteAt != 0 {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_user.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -77,7 +78,7 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 				Text: args.T("api.command_invite.channel.error", map[string]interface{}{
 					"Channel": targetChannelName,
 				}),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	} else {
@@ -85,25 +86,25 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 		if err != nil {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_invite.channel.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	}
 
 	// Permissions Check
 	switch channelToJoin.Type {
-	case model.CHANNEL_OPEN:
-		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+	case model.ChannelTypeOpen:
+		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PermissionManagePublicChannelMembers) {
 			return &model.CommandResponse{
 				Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{
 					"User":    userProfile.Username,
 					"Channel": channelToJoin.Name,
 				}),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
-	case model.CHANNEL_PRIVATE:
-		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+	case model.ChannelTypePrivate:
+		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PermissionManagePrivateChannelMembers) {
 			if _, err = a.GetChannelMember(context.Background(), channelToJoin.Id, args.UserId); err == nil {
 				// User doing the inviting is a member of the channel.
 				return &model.CommandResponse{
@@ -111,7 +112,7 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 						"User":    userProfile.Username,
 						"Channel": channelToJoin.Name,
 					}),
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					ResponseType: model.CommandResponseTypeEphemeral,
 				}
 			}
 			// User doing the inviting is *not* a member of the channel.
@@ -119,13 +120,13 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 				Text: args.T("api.command_invite.private_channel.app_error", map[string]interface{}{
 					"Channel": channelToJoin.Name,
 				}),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	default:
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.directchannel.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -136,11 +137,11 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 			Text: args.T("api.command_invite.user_already_in_channel.app_error", map[string]interface{}{
 				"User": userProfile.Username,
 			}),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
-	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, app.ChannelMemberOpts{
+	if _, err := a.AddChannelMember(c, userProfile.Id, channelToJoin, app.ChannelMemberOpts{
 		UserRequestorID: args.UserId,
 	}); err != nil {
 		var text string
@@ -156,7 +157,7 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 		}
 		return &model.CommandResponse{
 			Text:         text,
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -166,7 +167,7 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 				"User":    userProfile.Username,
 				"Channel": channelToJoin.Name,
 			}),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
