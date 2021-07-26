@@ -99,7 +99,7 @@ func (us *UserService) ClearUserSessionCache(userID string) {
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventClearSessionCacheForUser,
 			SendType: model.ClusterSendReliable,
-			Data:     userID,
+			Data:     []byte(userID),
 		}
 		us.cluster.SendClusterMessage(msg)
 	}
