@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 )
 
 type ChannelData struct {
@@ -25,10 +24,4 @@ func (o *ChannelData) Etag() string {
 func (o *ChannelData) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
-}
-
-func ChannelDataFromJson(data io.Reader) *ChannelData {
-	var o *ChannelData
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
