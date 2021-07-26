@@ -1571,7 +1571,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, "false", preferences[0].Value)
 
 		assert.Equal(t, testUser.Id, preferences[1].UserId)
-		assert.Equal(t, model.PREFERENCE_RECOMMENDED_NEXT_STEPS, preferences[1].Category)
+		assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[1].Category)
 		assert.Equal(t, testUser.Id, preferences[1].Name)
 		assert.Equal(t, "0", preferences[1].Value)
 	})
