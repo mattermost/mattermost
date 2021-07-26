@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -25,7 +25,7 @@ func TestGetClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
@@ -53,7 +53,7 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed, but not for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
@@ -76,7 +76,7 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					AllowCustomThemes: model.NewBool(false),
@@ -115,7 +115,7 @@ func TestGetClientConfig(t *testing.T) {
 			"default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceUrl: model.NewString(model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+					MarketplaceUrl: model.NewString(model.PluginSettingsDefaultMarketplaceUrl),
 				},
 			},
 			"tag1",
@@ -186,7 +186,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.

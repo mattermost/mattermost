@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
@@ -129,7 +129,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["CWSUrl"] = ""
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
-	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
+	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PluginSettingsDefaultMarketplaceUrl)
 	props["ExperimentalSharedChannels"] = "false"
 	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
 

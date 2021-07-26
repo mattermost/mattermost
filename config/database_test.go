@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func getDsn(driver string, source string) string {
-	if driver == model.DATABASE_DRIVER_MYSQL {
+	if driver == model.DatabaseDriverMysql {
 		return driver + "://" + source
 	}
 	return source
@@ -321,7 +321,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		assert.Equal(t, model.TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM, *ds.Get().TeamSettings.MaxUsersPerTeam)
+		assert.Equal(t, model.TeamSettingsDefaultMaxUsersPerTeam, *ds.Get().TeamSettings.MaxUsersPerTeam)
 		assert.Empty(t, ds.GetEnvironmentOverrides())
 
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
@@ -451,7 +451,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = model.NewString(model.FAKE_SETTING)
+		newCfg.LdapSettings.BindPassword = model.NewString(model.FakeSetting)
 
 		_, _, err = ds.Set(newCfg)
 		require.NoError(t, err)
@@ -745,7 +745,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, ds.GetEnvironmentOverrides())
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
-		assert.Equal(t, model.TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM, *actualConfig.TeamSettings.MaxUsersPerTeam)
+		assert.Equal(t, model.TeamSettingsDefaultMaxUsersPerTeam, *actualConfig.TeamSettings.MaxUsersPerTeam)
 	})
 
 	t.Run("do not persist environment variables - int64", func(t *testing.T) {

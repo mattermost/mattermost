@@ -6,7 +6,7 @@ package app
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {
@@ -90,13 +90,13 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *Lin
 func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *UserTeamImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {
-		rolesList = append(rolesList, model.TEAM_ADMIN_ROLE_ID)
+		rolesList = append(rolesList, model.TeamAdminRoleId)
 	}
 	if member.SchemeUser {
-		rolesList = append(rolesList, model.TEAM_USER_ROLE_ID)
+		rolesList = append(rolesList, model.TeamUserRoleId)
 	}
 	if member.SchemeGuest {
-		rolesList = append(rolesList, model.TEAM_GUEST_ROLE_ID)
+		rolesList = append(rolesList, model.TeamGuestRoleId)
 	}
 	roles := strings.Join(rolesList, " ")
 	return &UserTeamImportData{
@@ -108,26 +108,26 @@ func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *UserTe
 func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelMemberForExport, preferences *model.Preferences) *UserChannelImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {
-		rolesList = append(rolesList, model.CHANNEL_ADMIN_ROLE_ID)
+		rolesList = append(rolesList, model.ChannelAdminRoleId)
 	}
 	if member.SchemeUser {
-		rolesList = append(rolesList, model.CHANNEL_USER_ROLE_ID)
+		rolesList = append(rolesList, model.ChannelUserRoleId)
 	}
 	if member.SchemeGuest {
-		rolesList = append(rolesList, model.CHANNEL_GUEST_ROLE_ID)
+		rolesList = append(rolesList, model.ChannelGuestRoleId)
 	}
 	props := member.NotifyProps
 	notifyProps := UserChannelNotifyPropsImportData{}
 
-	desktop, exist := props[model.DESKTOP_NOTIFY_PROP]
+	desktop, exist := props[model.DesktopNotifyProp]
 	if exist {
 		notifyProps.Desktop = &desktop
 	}
-	mobile, exist := props[model.PUSH_NOTIFY_PROP]
+	mobile, exist := props[model.PushNotifyProp]
 	if exist {
 		notifyProps.Mobile = &mobile
 	}
-	markUnread, exist := props[model.MARK_UNREAD_NOTIFY_PROP]
+	markUnread, exist := props[model.MarkUnreadNotifyProp]
 	if exist {
 		notifyProps.MarkUnread = &markUnread
 	}

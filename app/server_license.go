@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (s *Server) License() *model.License {

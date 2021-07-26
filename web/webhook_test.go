@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestIncomingWebhook(t *testing.T) {
@@ -136,7 +136,7 @@ func TestIncomingWebhook(t *testing.T) {
 		})
 
 		// Read only default channel should fail.
-		resp, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
+		resp, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DefaultChannelName)))
 		require.NoError(t, err)
 		assert.True(t, resp.StatusCode != http.StatusOK)
 
@@ -150,7 +150,7 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Nil(t, appErr)
 		adminUrl := ApiClient.Url + "/hooks/" + adminHook.Id
 
-		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
+		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DefaultChannelName)))
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -236,7 +236,7 @@ func TestIncomingWebhook(t *testing.T) {
 	})
 
 	t.Run("ChannelLockedWebhook", func(t *testing.T) {
-		channel, err := th.App.CreateChannel(th.Context, &model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.CHANNEL_OPEN, CreatorId: th.BasicUser.Id}, true)
+		channel, err := th.App.CreateChannel(th.Context, &model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.ChannelTypeOpen, CreatorId: th.BasicUser.Id}, true)
 		require.Nil(t, err)
 
 		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})
@@ -275,7 +275,7 @@ func TestCommandWebhooks(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "delayed"})
 	require.Nil(t, appErr)
 

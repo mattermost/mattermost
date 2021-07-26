@@ -38,6 +38,9 @@ type FeatureFlags struct {
 
 	// Enable timed dnd support for user status
 	TimedDND bool
+
+	// Enable the Global Header
+	GlobalHeader bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -48,11 +51,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
 
-	f.PluginIncidentManagement = "1.14.2"
+	f.PluginIncidentManagement = "1.14.3"
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.CustomDataRetentionEnabled = false
 	f.TimedDND = false
+	f.GlobalHeader = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

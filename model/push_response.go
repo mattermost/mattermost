@@ -9,31 +9,31 @@ import (
 )
 
 const (
-	PUSH_STATUS           = "status"
-	PUSH_STATUS_OK        = "OK"
-	PUSH_STATUS_FAIL      = "FAIL"
-	PUSH_STATUS_REMOVE    = "REMOVE"
-	PUSH_STATUS_ERROR_MSG = "error"
+	PushStatus         = "status"
+	PushStatusOk       = "OK"
+	PushStatusFail     = "FAIL"
+	PushStatusRemove   = "REMOVE"
+	PushStatusErrorMsg = "error"
 )
 
 type PushResponse map[string]string
 
 func NewOkPushResponse() PushResponse {
 	m := make(map[string]string)
-	m[PUSH_STATUS] = PUSH_STATUS_OK
+	m[PushStatus] = PushStatusOk
 	return m
 }
 
 func NewRemovePushResponse() PushResponse {
 	m := make(map[string]string)
-	m[PUSH_STATUS] = PUSH_STATUS_REMOVE
+	m[PushStatus] = PushStatusRemove
 	return m
 }
 
 func NewErrorPushResponse(message string) PushResponse {
 	m := make(map[string]string)
-	m[PUSH_STATUS] = PUSH_STATUS_FAIL
-	m[PUSH_STATUS_ERROR_MSG] = message
+	m[PushStatus] = PushStatusFail
+	m[PushStatusErrorMsg] = message
 	return m
 }
 

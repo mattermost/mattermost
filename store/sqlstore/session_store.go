@@ -11,9 +11,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -283,7 +283,7 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	mlog.Debug("Cleaning up session store.")
 
 	var query string
-	if me.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if me.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
 	} else {
 		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit"

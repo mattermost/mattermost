@@ -5,15 +5,14 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 )
 
 const (
-	AUTHCODE_EXPIRE_TIME   = 60 * 10 // 10 minutes
-	AUTHCODE_RESPONSE_TYPE = "code"
-	IMPLICIT_RESPONSE_TYPE = "token"
-	DEFAULT_SCOPE          = "user"
+	AuthCodeExpireTime   = 60 * 10 // 10 minutes
+	AuthCodeResponseType = "code"
+	ImplicitResponseType = "token"
+	DefaultScope         = "user"
 )
 
 type AuthData struct {
@@ -103,7 +102,7 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 
 func (ad *AuthData) PreSave() {
 	if ad.ExpiresIn == 0 {
-		ad.ExpiresIn = AUTHCODE_EXPIRE_TIME
+		ad.ExpiresIn = AuthCodeExpireTime
 	}
 
 	if ad.CreateAt == 0 {
@@ -111,7 +110,7 @@ func (ad *AuthData) PreSave() {
 	}
 
 	if ad.Scope == "" {
-		ad.Scope = DEFAULT_SCOPE
+		ad.Scope = DefaultScope
 	}
 }
 
@@ -120,21 +119,9 @@ func (ad *AuthData) ToJson() string {
 	return string(b)
 }
 
-func AuthDataFromJson(data io.Reader) *AuthData {
-	var ad *AuthData
-	json.NewDecoder(data).Decode(&ad)
-	return ad
-}
-
 func (ar *AuthorizeRequest) ToJson() string {
 	b, _ := json.Marshal(ar)
 	return string(b)
-}
-
-func AuthorizeRequestFromJson(data io.Reader) *AuthorizeRequest {
-	var ar *AuthorizeRequest
-	json.NewDecoder(data).Decode(&ar)
-	return ar
 }
 
 func (ad *AuthData) IsExpired() bool {

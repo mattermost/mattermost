@@ -7,9 +7,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
@@ -34,7 +34,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 			return nil, err
 		}
 
-		if !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		if !a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
 			return nil, model.NewAppError("saveReactionForPost", "api.reaction.town_square_read_only", nil, "", http.StatusForbidden)
 		}
 	}
@@ -64,7 +64,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	}
 
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post)
+		a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
 	})
 
 	return reaction, nil
@@ -127,7 +127,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 			return err
 		}
 
-		if !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		if !a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
 			return model.NewAppError("DeleteReactionForPost", "api.reaction.town_square_read_only", nil, "", http.StatusForbidden)
 		}
 	}
@@ -150,7 +150,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 	}
 
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
+		a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)
 	})
 
 	return nil

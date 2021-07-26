@@ -14,7 +14,7 @@ import (
 func TestPreferenceIsValid(t *testing.T) {
 	preference := Preference{
 		UserId:   "1234garbage",
-		Category: PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+		Category: PreferenceCategoryDirectChannelShow,
 		Name:     NewId(),
 	}
 
@@ -26,7 +26,7 @@ func TestPreferenceIsValid(t *testing.T) {
 	preference.Category = strings.Repeat("01234567890", 20)
 	require.NotNil(t, preference.IsValid())
 
-	preference.Category = PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	preference.Category = PreferenceCategoryDirectChannelShow
 	require.Nil(t, preference.IsValid())
 
 	preference.Name = strings.Repeat("01234567890", 20)
@@ -41,7 +41,7 @@ func TestPreferenceIsValid(t *testing.T) {
 	preference.Value = "1234garbage"
 	require.Nil(t, preference.IsValid())
 
-	preference.Category = PREFERENCE_CATEGORY_THEME
+	preference.Category = PreferenceCategoryTheme
 	require.NotNil(t, preference.IsValid())
 
 	preference.Value = `{"color": "#ff0000", "color2": "#faf"}`
@@ -50,7 +50,7 @@ func TestPreferenceIsValid(t *testing.T) {
 
 func TestPreferencePreUpdate(t *testing.T) {
 	preference := Preference{
-		Category: PREFERENCE_CATEGORY_THEME,
+		Category: PreferenceCategoryTheme,
 		Value:    `{"color": "#ff0000", "color2": "#faf", "codeTheme": "github", "invalid": "invalid"}`,
 	}
 

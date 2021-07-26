@@ -11,11 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("ThreadSQLOperations", func(t *testing.T) { testThreadSQLOperations(t, ss, s) })
 	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 	t.Run("ThreadStorePermanentDeleteBatchForRetentionPolicies", func(t *testing.T) {
 		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, ss)
@@ -38,7 +39,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		c, err2 := ss.Channel().Save(&model.Channel{
 			DisplayName: model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			Name:        model.NewId(),
 		}, 999)
 		require.NoError(t, err2)
@@ -418,6 +419,24 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 }
 
+func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("Save", func(t *testing.T) {
+		threadToSave := &model.Thread{
+			PostId:       model.NewId(),
+			ChannelId:    model.NewId(),
+			LastReplyAt:  10,
+			ReplyCount:   5,
+			Participants: model.StringArray{model.NewId(), model.NewId()},
+		}
+		_, err := ss.Thread().Save(threadToSave)
+		require.NoError(t, err)
+
+		th, err := ss.Thread().Get(threadToSave.PostId)
+		require.NoError(t, err)
+		require.Equal(t, threadToSave, th)
+	})
+}
+
 func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID string, createAt int64) *model.Post {
 	reply, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
@@ -436,14 +455,14 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 
@@ -525,14 +544,14 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 	post, err := ss.Post().Save(&model.Post{
@@ -587,7 +606,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.Error(t, err, "thread membership should have been deleted by team policy")
 
 	// create a new thread membership
-	threadMembership = createThreadMembership(userID, post.Id)
+	createThreadMembership(userID, post.Id)
 
 	// Delete team policy and thread
 	err = ss.RetentionPolicy().Delete(teamPolicy.ID)
