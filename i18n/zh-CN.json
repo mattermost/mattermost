@@ -9056,5 +9056,25 @@
   {
     "id": "api.command_share.remote_id.help",
     "translation": "现有安全连接 ID。请参阅 `secure-connection`命令以添加安全连接。"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "立刻更新"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "您的 Mattermost 14 天免费试用即将结束"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost 云试用结束"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "添加付款方式"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "您的 Mattermost 14 天免费试用已于今天结束"
   }
 ]

@@ -6237,19 +6237,19 @@
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "{{.Username}} felhasználónak nincs email címe a Slack exportban. {{.Email}} használva helyőrzőnek. A felhasználónak frissítenie kell az email címét amikor bejelentkeztek a rendszerbe.\n"
+    "translation": "{{.Username}} felhasználónak nincs e-mail címe a Slack exportban. {{.Email}} használva helyőrzőnek. A felhasználónak frissítenie kell az e-mail címét amikor legközelebb bejelentkezik a rendszerbe.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező emailcímmel {{.Email}} és felhasználónévvel {{.Username}}, de nem sikerült hozzáadni a csapatukhoz.\n"
+    "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező e-mail címmel {{.Email}} és felhasználónévvel {{.Username}}, de nem sikerült hozzáadni a csapatukhoz.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező emailcímmel {{.Email}} és felhasználónévvel {{.Username}}.\n"
+    "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező e-mail címmel {{.Email}} és felhasználónévvel {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} importálva.\n"
+    "translation": "Slack felhasználó a {{.Email}} e-mail címmel és {{.Password}} jelszóval sikeresen importálva.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -6265,7 +6265,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Nem lehet hozzáadni a Slack felhasználót{{.Username}} a csatornához.\n"
+    "translation": "Nem lehet hozzáadni a Slack felhasználót {{.Username}} a csatornához.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
@@ -6273,19 +6273,19 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Nem lehet importálni a/Slack Bot felhasználót{{.Username}}.\n"
+    "translation": "Nem lehet importálni az integráció/Slack Bot felhasználót {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Az integráció/Slack Bot felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} importálva.\n"
+    "translation": "Az integráció/Slack Bot felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} sikeresen importálva.\n"
   },
   {
     "id": "api.server.warn_metric.starting_trial",
-    "translation": "Próba szerzé"
+    "translation": "Próbaidőszak szerzése"
   },
   {
     "id": "api.server.warn_metric.start_trial",
-    "translation": "Próba elkezdése"
+    "translation": "Próbaidőszak elkezdése"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -6369,11 +6369,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak most 500 felhasználója van, és a Mattermost Enterprise Editiont fontolgatom.\n"
+    "translation": "Mattermost kapcsolat kérés. A csapatomnak most 500 felhasználója van, és a Mattermost Enterprise kiadást fontolgatom.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "írásvédett Bejelentési csatornák"
+    "translation": "Csak olvasható bejelentés csatornák"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
@@ -6389,7 +6389,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Legfőbb kapcsolat kérelem. Szeretnék többet megtudni az írásvédett csatornák létrehozásáról.\n"
+    "translation": ".Mattermost kapcsolat kérés. Szeretnék többet megtudni az írásvédett csatornák létrehozásáról.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
@@ -6409,7 +6409,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 200felhasználója van, és fontolóra veszem a Mattermost Enterprise Edition-t.\n"
+    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 200 felhasználója van, és fontolóra veszem a Mattermost Enterprise kiadást.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
@@ -6429,7 +6429,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 100 felhasználója van, és fontolóra veszem a Mattermost Enterprise Edition-t.\n"
+    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 100 felhasználója van, és fontolóra veszem a Mattermost Enterprise kiadást.\n"
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
@@ -6453,7 +6453,7 @@
   },
   {
     "id": "api.server.warn_metric.email_us",
-    "translation": "Küldjön nekünk emailt"
+    "translation": "Küldjön nekünk e-mailt"
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
@@ -6489,7 +6489,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Köszönjük, hogy felvette a kapcsolatot a Mattermost-nal. Hamarosan jelentkezni fogunk."
+    "translation": "Köszönjük, hogy felvette a kapcsolatot a Mattermost-tal. Hamarosan jelentkezni fogunk."
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -6537,11 +6537,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Nem lehet inicializálni a sebességkorlátozó memóriát. Ellenőrizze a MemoryStoreSize konfigurációs beállításait."
+    "translation": "Nem lehet inicializálni a sebességkorlátozó memóriát. Ellenőrizze a MemoryStoreSize konfiguráció beállítását."
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Nem lehet továbbítani a 80-as portot a 443-masra miközben a %s porton hallhatunk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
+    "translation": "Nem lehet továbbítani a 80-as portot a 443-masra miközben a %s porton figyelünk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -6549,7 +6549,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "A licenc nem támogatja a jogosultság séma frissítését"
+    "translation": "Az Ön licence nem támogatja a jogosultság séma frissítését"
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
@@ -6561,7 +6561,7 @@
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "A licenc nem támogatja a jogosultság sémák törlését"
+    "translation": "Az Ön licence nem támogatja a jogosultság sémák törlését"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
@@ -6577,7 +6577,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "Ez a művelet meg van tagadva egy korlátozott rendszeradminisztrátornak."
+    "translation": "Ez a művelet meg van tagadva egy korlátozott rendszer adminisztrátornak."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -6641,11 +6641,11 @@
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "Hiba történt a nyugta kézbesítésének a push értesítési szolgáltatásnak történő elküldése során."
+    "translation": "Hiba történt a visszaigazolás kézbesítésének a push értesítési szolgáltatásnak történő elküldése során."
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} oldalak munkamenetei úgy vannak beállítva a rendszergazda által hogy minden {{.daysCount}} nap lejárjanak."
+    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} munkamenetei úgy vannak beállítva a rendszergazda által hogy minden {{.daysCount}} nap lejárjanak."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -6665,7 +6665,7 @@
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
-    "translation": "Nem lehet frissíteni az oldalsávot, hogy a frissített beállításokat tükrözze"
+    "translation": "Nem lehet frissíteni az oldalsávot, hogy a frissített beállításokkal működjön"
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
@@ -6693,7 +6693,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "A bejegyzések szerkesztése csak {{.timeLimit}} másodpercig engedélyezett. A részletekért kérjük keresse a rendszeradminisztrátort."
+    "translation": "A bejegyzések szerkesztése csak {{.timeLimit}} másodpercig engedélyezett. A részletekért kérjük keresse a rendszer adminisztrátort."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -6769,7 +6769,7 @@
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": "Nincsen fájl-meghajtórendszer kiválasztva."
+    "translation": "Nincsen fájl meghajtórendszer kiválasztva."
   },
   {
     "id": "api.file.move_file.app_error",
@@ -7036,7 +7036,7 @@
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "A kliens konfiguráció új formátuma még nem támogatott. Kérjük, adja meg a format=old a lekérdezési karakterláncban."
+    "translation": "A kliens konfiguráció új formátuma még nem támogatott. Kérjük, adja meg a format=old paramétert a kérés szövegében."
   },
   {
     "id": "api.command_shrug.name",
@@ -8110,7 +8110,7 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all csatorna le lett tiltva mert a csatornának több mint {{.Users}} felhasználója van."
+    "translation": "@all le lett tiltva mert a csatornának több mint {{.Users}} felhasználója van."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -8118,7 +8118,7 @@
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Bejegyzés elutasítva mivel egy másik kliens ugyanazt a kérést csinálja."
+    "translation": "Bejegyzés elutasítva mivel egy másik kliens ugyanazt a kérést küldte be."
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
@@ -8130,7 +8130,7 @@
   },
   {
     "id": "api.post.create_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Csak a jogosultsággal rendelkező tagok jegyezhetnek be ide."
+    "translation": "Ez a csatorna írásvédett. Csak a jogosultsággal rendelkező tagok írhatnak ide."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -8154,7 +8154,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} és @{{.LastUsername}} nem lettek értesítve az említésről mert nincsenek a csatornában."
+    "translation": "@{{.Usernames}} és @{{.LastUsername}} nem lettek értesítve az említésről, mert nincsenek a csatornában."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
@@ -8222,7 +8222,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "A rendszeradminisztrátor kikapcsolta az OAuth2 azonosítás szolgáltatást."
+    "translation": "A rendszer adminisztrátor kikapcsolta az OAuth2 hitelesítés szolgáltatást."
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -8250,15 +8250,15 @@
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error: Belső szerverhiba történt, miközben a felhasználót az adatbázisból lehívtuk."
+    "translation": "server_error: Belső szerverhiba történt a felhasználó adatbázisból lekérése közben."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error: Belső szerverhiba történt a munkamenet adatbázisba mentése közben."
+    "translation": "server_error: Belső szerverhiba történt a munkamenet adatbázisba írása közben."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": "server_error: Belső szerverhiba történt az adatbázishoz hozzáférési token mentése közben."
+    "translation": "server_error: Belső szerverhiba történt a hozzáférési token adatbázisba írása közben."
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
@@ -8270,7 +8270,7 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "A rendszeradminisztrátor kikapcsolta az OAuth2 szolgáltatót."
+    "translation": "A rendszer adminisztrátor kikapcsolta az OAuth2 hitelesítés szolgáltatót."
   },
   {
     "id": "api.oauth.get_access_token.credentials.app_error",
@@ -8322,7 +8322,7 @@
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nem kérhető próbalicenc. Kérjük, konfigurálja a Webhely URL-jét a Mattermost Rendszer konzol webkiszolgáló részében."
+    "translation": "Nem kérhető próba licenc. Kérjük, konfigurálja a Webhely URL-jét a Mattermost Rendszerkonzol webkiszolgáló részében."
   },
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
@@ -8354,7 +8354,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Ez a licence csak {{.Users}} felhasználót engedélyez, de a te rendszereden {{.Count}} egyedi felhasználó található. Az Egyedi felhasználók email cím alapján vannak megkülönböztetve. Te magad is ellenőrizheted a felhasználók számát az Oldal Jelentések -> Statisztika megtekintése oldalon."
+    "translation": "Ez a licence csak {{.Users}} felhasználót engedélyez, de ebben a rendszerben {{.Count}} egyedi felhasználó található. Az egyedi felhasználókat e-mail címeik alapján különböztetjük meg. Te magad is ellenőrizheted a felhasználók számát az Oldal Jelentések -> Statisztika megtekintése oldalon."
   },
   {
     "id": "api.license.add_license.save_active.app_error",
@@ -8462,7 +8462,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Fájl feltöltése sikertelen: {{.Filename}}. {{.Length}} byte-al haladja meg a megengedett maximális {{.Limit}} byte méretet."
+    "translation": "{{.Filename}} fájl feltöltése sikertelen. {{.Length}} byte-al haladja meg a megengedett maximális {{.Limit}} byte méretet."
   },
   {
     "id": "api.file.upload_file.storage.app_error",

@@ -9176,7 +9176,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Kon de limiet niet controleren van het aantal toegelaten gebruikers."
+    "translation": "Kan het aantal gebruikers in jouw Mattermost cloud instance niet controleren."
   },
   {
     "id": "app.system.system_bot.bot_displayname",
