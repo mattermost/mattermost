@@ -79,8 +79,9 @@ func (api *API) InitChannel() {
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	channel := model.ChannelFromJson(r.Body)
-	if channel == nil {
+	var channel *model.Channel
+	err := json.NewDecoder(r.Body).Decode(&channel)
+	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
@@ -99,9 +100,9 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc, err := c.App.CreateChannelWithUser(c.AppContext, channel, c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	sc, appErr := c.App.CreateChannelWithUser(c.AppContext, channel, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -110,7 +111,9 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("name=" + channel.Name)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(sc.ToJson()))
+	if err := json.NewEncoder(w).Encode(sc); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -119,9 +122,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel := model.ChannelFromJson(r.Body)
-
-	if channel == nil {
+	var channel *model.Channel
+	err := json.NewDecoder(r.Body).Decode(&channel)
+	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
@@ -135,9 +138,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	originalOldChannel, err := c.App.GetChannel(channel.Id)
-	if err != nil {
-		c.Err = err
+	originalOldChannel, appErr := c.App.GetChannel(channel.Id)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	oldChannel := originalOldChannel.DeepCopy()
@@ -204,9 +207,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannel.GroupConstrained = channel.GroupConstrained
 	}
 
-	updatedChannel, err := c.App.UpdateChannel(oldChannel)
-	if err != nil {
-		c.Err = err
+	updatedChannel, appErr := c.App.UpdateChannel(oldChannel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddMeta("update", updatedChannel)
@@ -220,7 +223,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
-	w.Write([]byte(oldChannel.ToJson()))
+	if err := json.NewEncoder(w).Encode(oldChannel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -272,7 +277,9 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec.Success()
 	c.LogAudit("name=" + rchannel.Name)
 
-	w.Write([]byte(rchannel.ToJson()))
+	if err := json.NewEncoder(w).Encode(rchannel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -332,7 +339,9 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("name=" + updatedChannel.Name)
 
-	w.Write([]byte(updatedChannel.ToJson()))
+	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -340,15 +349,16 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	patch := model.ChannelPatchFromJson(r.Body)
-	if patch == nil {
+	var patch *model.ChannelPatch
+	err := json.NewDecoder(r.Body).Decode(&patch)
+	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
 
-	originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	originalOldChannel, appErr := c.App.GetChannel(c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	oldChannel := originalOldChannel.DeepCopy()
@@ -372,7 +382,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
-		if _, err = c.App.GetChannelMember(context.Background(), c.Params.ChannelId, c.AppContext.Session().UserId); err != nil {
+		if _, appErr = c.App.GetChannelMember(context.Background(), c.Params.ChannelId, c.AppContext.Session().UserId); appErr != nil {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
@@ -382,15 +392,15 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rchannel, err := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	err = c.App.FillInChannelProps(rchannel)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.FillInChannelProps(rchannel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -398,7 +408,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 	auditRec.AddMeta("patch", rchannel)
 
-	w.Write([]byte(rchannel.ToJson()))
+	if err := json.NewEncoder(w).Encode(rchannel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -432,7 +444,9 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
-	w.Write([]byte(channel.ToJson()))
+	if err := json.NewEncoder(w).Encode(channel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -495,23 +509,28 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("channel", sc)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(sc.ToJson()))
+	if err := json.NewEncoder(w).Encode(sc); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}
 
-	groupChannels, err := c.App.SearchGroupChannels(c.AppContext.Session().UserId, props.Term)
-	if err != nil {
-		c.Err = err
+	groupChannels, appErr := c.App.SearchGroupChannels(c.AppContext.Session().UserId, props.Term)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(groupChannels.ToJson()))
+	if err := json.NewEncoder(w).Encode(groupChannels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -574,7 +593,9 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("channel", groupChannel)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(groupChannel.ToJson()))
+	if err := json.NewEncoder(w).Encode(groupChannel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -607,7 +628,9 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(channel.ToJson()))
+	if err := json.NewEncoder(w).Encode(channel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -632,7 +655,9 @@ func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(channelUnread.ToJson()))
+	if err := json.NewEncoder(w).Encode(channelUnread); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -664,8 +689,15 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats := model.ChannelStats{ChannelId: c.Params.ChannelId, MemberCount: memberCount, GuestCount: guestCount, PinnedPostCount: pinnedPostCount}
-	w.Write([]byte(stats.ToJson()))
+	stats := model.ChannelStats{
+		ChannelId:       c.Params.ChannelId,
+		MemberCount:     memberCount,
+		GuestCount:      guestCount,
+		PinnedPostCount: pinnedPostCount,
+	}
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -697,7 +729,9 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
-	w.Write([]byte(clientPostList.ToJson()))
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -731,7 +765,6 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload []byte
 	if c.Params.IncludeTotalCount {
 		totalCount, err := c.App.GetAllChannelsCount(opts)
 		if err != nil {
@@ -742,12 +775,15 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 			Channels:   channels,
 			TotalCount: totalCount,
 		}
-		payload = cwc.ToJson()
-	} else {
-		payload = []byte(channels.ToJson())
+		if err := json.NewEncoder(w).Encode(cwc); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
 	}
 
-	w.Write(payload)
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -773,7 +809,9 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -794,7 +832,9 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPrivateChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -820,7 +860,9 @@ func getPrivateChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -859,7 +901,9 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -905,7 +949,9 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set(model.HeaderEtagServer, channels.Etag())
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -929,7 +975,9 @@ func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Requ
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -946,7 +994,9 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -955,34 +1005,37 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}
 
 	var channels *model.ChannelList
-	var err *model.AppError
+	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, err = c.App.SearchChannels(c.Params.TeamId, props.Term)
+		channels, appErr = c.App.SearchChannels(c.Params.TeamId, props.Term)
 	} else {
 		// If the user is not a team member, return a 404
-		if _, err = c.App.GetTeamMember(c.Params.TeamId, c.AppContext.Session().UserId); err != nil {
-			c.Err = err
+		if _, appErr = c.App.GetTeamMember(c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
+			c.Err = appErr
 			return
 		}
 
-		channels, err = c.App.SearchChannelsForUser(c.AppContext.Session().UserId, c.Params.TeamId, props.Term)
+		channels, appErr = c.App.SearchChannelsForUser(c.AppContext.Session().UserId, c.Params.TeamId, props.Term)
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -991,39 +1044,43 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}
 
 	var channels *model.ChannelList
-	var err *model.AppError
+	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
+		channels, appErr = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
 	} else {
 		// If the user is not a team member, return a 404
-		if _, err = c.App.GetTeamMember(c.Params.TeamId, c.AppContext.Session().UserId); err != nil {
-			c.Err = err
+		if _, appErr = c.App.GetTeamMember(c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
+			c.Err = appErr
 			return
 		}
 
-		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
+		channels, appErr = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}
@@ -1065,15 +1122,18 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
-	var payload []byte
 	if props.Page != nil && props.PerPage != nil {
 		data := model.ChannelsWithCount{Channels: channels, TotalCount: totalCount}
-		payload = data.ToJson()
-	} else {
-		payload = []byte(channels.ToJson())
+
+		if err := json.NewEncoder(w).Encode(data); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
 	}
 
-	w.Write(payload)
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1158,7 +1218,9 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(channel.ToJson()))
+	if err := json.NewEncoder(w).Encode(channel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1193,7 +1255,9 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	w.Write([]byte(channel.ToJson()))
+	if err := json.NewEncoder(w).Encode(channel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1213,7 +1277,9 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(members.ToJson()))
+	if err := json.NewEncoder(w).Encode(members); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1259,7 +1325,9 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(members.ToJson()))
+	if err := json.NewEncoder(w).Encode(members); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1279,7 +1347,9 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(member.ToJson()))
+	if err := json.NewEncoder(w).Encode(member); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1304,7 +1374,9 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write([]byte(members.ToJson()))
+	if err := json.NewEncoder(w).Encode(members); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1350,7 +1422,9 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		LastViewedAtTimes: times,
 	}
 
-	w.Write([]byte(resp.ToJson()))
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1577,7 +1651,9 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(cm.ToJson()))
+	if err := json.NewEncoder(w).Encode(cm); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1834,17 +1910,23 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	channel, err := c.App.GetChannel(c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	channel, appErr := c.App.GetChannel(c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddMeta("channel", channel)
 
-	channelModerationsPatch := model.ChannelModerationsPatchFromJson(r.Body)
-	channelModerations, err := c.App.PatchChannelModerationsForChannel(channel, channelModerationsPatch)
+	var channelModerationsPatch []*model.ChannelModerationPatch
+	err := json.NewDecoder(r.Body).Decode(&channelModerationsPatch)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	channelModerations, appErr := c.App.PatchChannelModerationsForChannel(channel, channelModerationsPatch)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddMeta("patch", channelModerationsPatch)
@@ -1937,5 +2019,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("channel=" + channel.Name)
 	c.LogAudit("team=" + team.Name)
 
-	w.Write([]byte(channel.ToJson()))
+	if err := json.NewEncoder(w).Encode(channel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

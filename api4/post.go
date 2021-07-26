@@ -96,7 +96,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
-	w.Write([]byte(rp.ToJson()))
+	if err := json.NewEncoder(w).Encode(rp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -131,7 +133,9 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	w.Write([]byte(rp.ToJson()))
+	if err := json.NewEncoder(w).Encode(rp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -223,7 +227,9 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(clientPostList.ToJson()))
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -287,7 +293,9 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
-	w.Write([]byte(clientPostList.ToJson()))
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -350,7 +358,9 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = err
 		return
 	}
-	w.Write([]byte(clientPostList.ToJson()))
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -395,7 +405,9 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
-	w.Write([]byte(post.ToJson()))
+	if err := json.NewEncoder(w).Encode(post); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
@@ -487,7 +499,9 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 
-	w.Write([]byte(clientPostList.ToJson()))
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -564,7 +578,9 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(results.ToJson()))
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -622,7 +638,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("update", rpost)
 
-	w.Write([]byte(rpost.ToJson()))
+	if err := json.NewEncoder(w).Encode(rpost); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -672,7 +690,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("patch", patchedPost)
 
-	w.Write([]byte(patchedPost.ToJson()))
+	if err := json.NewEncoder(w).Encode(patchedPost); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -698,7 +718,9 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	w.Write([]byte(state.ToJson()))
+	if err := json.NewEncoder(w).Encode(state); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {

@@ -58,10 +58,10 @@ const (
 	TeamCacheSize = 20000
 	TeamCacheSec  = 30 * 60
 
-	ClearCacheMessageData = ""
-
 	ChannelCacheSec = 15 * 60 // 15 mins
 )
+
+var clearCacheMessageData = []byte("")
 
 type LocalCacheStore struct {
 	store.Store
@@ -390,7 +390,7 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
-			Data:     key,
+			Data:     []byte(key),
 		}
 		s.cluster.SendClusterMessage(msg)
 	}
@@ -420,7 +420,7 @@ func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
-			Data:     ClearCacheMessageData,
+			Data:     clearCacheMessageData,
 		}
 		s.cluster.SendClusterMessage(msg)
 	}

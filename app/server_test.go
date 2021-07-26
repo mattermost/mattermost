@@ -167,7 +167,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
 	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
+		configStore, _ := config.NewFileStore("config.json")
 		store, _ := config.NewStoreFromBacking(configStore, nil, false)
 		server.configStore = store
 		server.UpdateConfig(func(cfg *model.Config) {
@@ -515,6 +515,7 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
+	t.Skip("MM-37378")
 	// Creating a temp file to collect logs
 	tmpfile, err := ioutil.TempFile("", "mlog")
 	if err != nil {

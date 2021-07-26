@@ -5551,7 +5551,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		require.Nil(t, resp.Error)
 		require.Len(t, uss.Threads, 10)
-		require.Equal(t, uss.Threads[0].PostId, rootIdBefore)
+		require.Equal(t, rootIdBefore, uss.Threads[0].PostId)
 
 		uss2, resp2 := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:  false,
@@ -5561,7 +5561,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.Nil(t, resp2.Error)
 		require.Len(t, uss2.Threads, 10)
 
-		require.Equal(t, uss2.Threads[0].PostId, rootIdAfter)
+		require.Equal(t, rootIdAfter, uss2.Threads[0].PostId)
 
 		uss3, resp3 := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:  false,
