@@ -4,7 +4,7 @@
 package app
 
 import (
-	"strings"
+	"bytes"
 	"testing"
 	"time"
 
@@ -116,7 +116,7 @@ type ClusterMock struct {
 }
 
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
-	sbs := model.ServerBusyStateFromJson(strings.NewReader(msg.Data))
+	sbs := model.ServerBusyStateFromJson(bytes.NewReader(msg.Data))
 	c.Busy.ClusterEventChanged(sbs)
 }
 

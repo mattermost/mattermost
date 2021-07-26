@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitPreference() {
@@ -35,7 +37,9 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(preferences.ToJson()))
+	if err := json.NewEncoder(w).Encode(preferences); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -55,7 +59,9 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write([]byte(preferences.ToJson()))
+	if err := json.NewEncoder(w).Encode(preferences); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -75,7 +81,9 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Write([]byte(preferences.ToJson()))
+	if err := json.NewEncoder(w).Encode(preferences); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
