@@ -485,8 +485,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
-					a.Log().Warn("Missing thread membership for participant in notifications.", mlog.String("user_id", uid), mlog.String("thread_id", post.RootId))
-					continue
+					threadMembership, err = a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
+					if err != nil {
+						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications.", mlog.String("user_id", uid), mlog.String("thread_id", post.RootId))
+					}
+					if threadMembership == nil {
+						continue
+					}
 				}
 				userThread, err := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
 				if err != nil {
