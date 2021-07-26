@@ -4,7 +4,7 @@
 package model
 
 import (
-	"strings"
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +20,7 @@ func TestWebSocketEvent(t *testing.T) {
 	}
 	m.Add("user", user)
 	json := m.ToJson()
-	result := WebSocketEventFromJson(strings.NewReader(json))
+	result := WebSocketEventFromJson(bytes.NewReader(json))
 
 	require.True(t, m.IsValid(), "should be valid")
 	require.Equal(t, m.GetBroadcast().TeamId, result.GetBroadcast().TeamId, "Team ids do not match")
@@ -73,10 +73,10 @@ func TestWebSocketEventImmutable(t *testing.T) {
 }
 
 func TestWebSocketEventFromJson(t *testing.T) {
-	ev := WebSocketEventFromJson(strings.NewReader("junk"))
+	ev := WebSocketEventFromJson(bytes.NewReader([]byte("junk")))
 	require.Nil(t, ev, "should not have parsed")
-	data := `{"event": "test", "data": {"key": "val"}, "seq": 45, "broadcast": {"user_id": "userid"}}`
-	ev = WebSocketEventFromJson(strings.NewReader(data))
+	data := []byte(`{"event": "test", "data": {"key": "val"}, "seq": 45, "broadcast": {"user_id": "userid"}}`)
+	ev = WebSocketEventFromJson(bytes.NewReader(data))
 	require.NotNil(t, ev, "should have parsed")
 	require.Equal(t, ev.EventType(), "test")
 	require.Equal(t, ev.GetSequence(), int64(45))
@@ -89,11 +89,11 @@ func TestWebSocketResponse(t *testing.T) {
 	e := NewWebSocketError(1, &AppError{})
 	m.Add("RootId", NewId())
 	json := m.ToJson()
-	result := WebSocketResponseFromJson(strings.NewReader(json))
+	result := WebSocketResponseFromJson(bytes.NewReader(json))
 	json2 := e.ToJson()
-	WebSocketResponseFromJson(strings.NewReader(json2))
+	WebSocketResponseFromJson(bytes.NewReader(json2))
 
-	badresult := WebSocketResponseFromJson(strings.NewReader("junk"))
+	badresult := WebSocketResponseFromJson(bytes.NewReader([]byte("junk")))
 	require.Nil(t, badresult, "should not have parsed")
 
 	require.True(t, m.IsValid(), "should be valid")
@@ -109,10 +109,10 @@ func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
 	event.PrecomputeJSON()
 	after := event.ToJson()
 
-	assert.JSONEq(t, before, after)
+	assert.Equal(t, before, after)
 }
 
-var stringSink string
+var stringSink []byte
 
 func BenchmarkWebSocketEvent_ToJson(b *testing.B) {
 	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil)

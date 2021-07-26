@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -45,7 +46,8 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryCreateRequest, err := model.SidebarCategoryFromJson(r.Body)
+	var categoryCreateRequest *model.SidebarCategoryWithChannels
+	err := json.NewDecoder(r.Body).Decode(&categoryCreateRequest)
 	if err != nil || c.Params.UserId != categoryCreateRequest.UserId || c.Params.TeamId != categoryCreateRequest.TeamId {
 		c.SetInvalidParam("category")
 		return
@@ -153,7 +155,8 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	auditRec := c.MakeAuditRecord("updateCategoriesForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoriesUpdateRequest, err := model.SidebarCategoriesFromJson(r.Body)
+	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
+	err := json.NewDecoder(r.Body).Decode(&categoriesUpdateRequest)
 	if err != nil {
 		c.SetInvalidParam("category")
 		return
@@ -241,7 +244,8 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryUpdateRequest, err := model.SidebarCategoryFromJson(r.Body)
+	var categoryUpdateRequest *model.SidebarCategoryWithChannels
+	err := json.NewDecoder(r.Body).Decode(&categoryUpdateRequest)
 	if err != nil || categoryUpdateRequest.TeamId != c.Params.TeamId || categoryUpdateRequest.UserId != c.Params.UserId {
 		c.SetInvalidParam("category")
 		return

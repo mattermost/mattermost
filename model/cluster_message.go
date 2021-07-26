@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type ClusterEvent string
 
 const (
@@ -62,17 +57,6 @@ type ClusterMessage struct {
 	Event            ClusterEvent      `json:"event"`
 	SendType         string            `json:"-"`
 	WaitForAllToSend bool              `json:"-"`
-	Data             string            `json:"data,omitempty"`
+	Data             []byte            `json:"data,omitempty"`
 	Props            map[string]string `json:"props,omitempty"`
-}
-
-func (o *ClusterMessage) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func ClusterMessageFromJson(data io.Reader) *ClusterMessage {
-	var o *ClusterMessage
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

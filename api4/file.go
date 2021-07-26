@@ -6,6 +6,7 @@ package api4
 import (
 	"bytes"
 	"crypto/subtle"
+	"encoding/json"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -18,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -146,7 +148,9 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Write the response values to the output upon return
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(fileUploadResponse.ToJson()))
+	if err := json.NewEncoder(w).Encode(fileUploadResponse); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // uploadFileSimple uploads a file from a simple POST with the file in the request body
@@ -626,7 +630,9 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
-	w.Write([]byte(info.ToJson()))
+	if err := json.NewEncoder(w).Encode(info); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -793,5 +799,7 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(results.ToJson()))
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
