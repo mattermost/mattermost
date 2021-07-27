@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS FileInfo (
     KEY idx_fileinfo_update_at (UpdateAt),
     KEY idx_fileinfo_create_at (CreateAt),
     KEY idx_fileinfo_delete_at (DeleteAt),
-    KEY idx_fileinfo_postid_at (PostId),
+    KEY idx_fileinfo_postid_at (PostId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @preparedStatement = (SELECT IF(
@@ -96,3 +96,18 @@ SET @preparedStatement = (SELECT IF(
 PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'FileInfo'
+        AND table_schema = DATABASE()
+        AND column_name = 'RemoteId'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE FileInfo ADD COLUMN RemoteId varchar(26);'
+));
+
+PREPARE alterNotIfExists FROM @preparedStatement;
+EXECUTE alterNotIfExists;
+DEALLOCATE PREPARE alterNotIfExists;

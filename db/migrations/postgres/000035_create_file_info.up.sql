@@ -28,3 +28,5 @@ ALTER TABLE fileinfo ADD COLUMN IF NOT EXISTS minipreview bytea;
 ALTER TABLE fileinfo ADD COLUMN IF NOT EXISTS content text;
 
 CREATE INDEX IF NOT EXISTS idx_fileinfo_content_txt ON fileinfo USING gin(to_tsvector('english', content));
+
+ALTER TABLE fileinfo ADD COLUMN IF NOT EXISTS remoteid varchar(26);

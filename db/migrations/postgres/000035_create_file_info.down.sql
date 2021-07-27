@@ -1,3 +1,5 @@
+ALTER TABLE fileinfo DROP COLUMN IF EXISTS remoteid;
+
 DROP INDEX IF EXISTS idx_fileinfo_content_txt;
 ALTER TABLE fileinfo DROP COLUMN IF EXISTS content;
 ALTER TABLE fileinfo DROP COLUMN IF EXISTS minipreview;
