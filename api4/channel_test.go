@@ -1780,67 +1780,6 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	}, "Permanent deletion with EnableAPIChannelDeletion set")
 }
 
-func TestConvertChannelToPrivate(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-
-	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, th.BasicTeam.Id, false)
-	_, resp := Client.ConvertChannelToPrivate(defaultChannel.Id)
-	CheckForbiddenStatus(t, resp)
-
-	privateChannel := th.CreatePrivateChannel()
-	_, resp = Client.ConvertChannelToPrivate(privateChannel.Id)
-	CheckForbiddenStatus(t, resp)
-
-	publicChannel := th.CreatePublicChannel()
-	_, resp = Client.ConvertChannelToPrivate(publicChannel.Id)
-	CheckForbiddenStatus(t, resp)
-
-	th.LoginTeamAdmin()
-	th.RemovePermissionFromRole(model.PermissionConvertPublicChannelToPrivate.Id, model.TeamAdminRoleId)
-
-	_, resp = Client.ConvertChannelToPrivate(publicChannel.Id)
-	CheckForbiddenStatus(t, resp)
-
-	th.AddPermissionToRole(model.PermissionConvertPublicChannelToPrivate.Id, model.TeamAdminRoleId)
-
-	rchannel, resp := Client.ConvertChannelToPrivate(publicChannel.Id)
-	CheckOKStatus(t, resp)
-	require.Equal(t, model.ChannelTypePrivate, rchannel.Type, "channel should be converted from public to private")
-
-	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(privateChannel.Id)
-	CheckBadRequestStatus(t, resp)
-	require.Nil(t, rchannel, "should not return a channel")
-
-	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(defaultChannel.Id)
-	CheckBadRequestStatus(t, resp)
-	require.Nil(t, rchannel, "should not return a channel")
-
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
-	WebSocketClient.Listen()
-
-	publicChannel2 := th.CreatePublicChannel()
-	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(publicChannel2.Id)
-	CheckOKStatus(t, resp)
-	require.Equal(t, model.ChannelTypePrivate, rchannel.Type, "channel should be converted from public to private")
-
-	timeout := time.After(10 * time.Second)
-
-	for {
-		select {
-		case resp := <-WebSocketClient.EventChannel:
-			if resp.EventType() == model.WebsocketEventChannelConverted && resp.GetData()["channel_id"].(string) == publicChannel2.Id {
-				return
-			}
-		case <-timeout:
-			require.Fail(t, "timed out waiting for channel_converted event")
-			return
-		}
-	}
-}
-
 func TestUpdateChannelPrivacy(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
