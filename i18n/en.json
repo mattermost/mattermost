@@ -2001,6 +2001,10 @@
     "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
   },
   {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
