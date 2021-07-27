@@ -11,14 +11,14 @@ import (
 )
 
 const (
-	COMPLIANCE_STATUS_CREATED  = "created"
-	COMPLIANCE_STATUS_RUNNING  = "running"
-	COMPLIANCE_STATUS_FINISHED = "finished"
-	COMPLIANCE_STATUS_FAILED   = "failed"
-	COMPLIANCE_STATUS_REMOVED  = "removed"
+	ComplianceStatusCreated  = "created"
+	ComplianceStatusRunning  = "running"
+	ComplianceStatusFinished = "finished"
+	ComplianceStatusFailed   = "failed"
+	ComplianceStatusRemoved  = "removed"
 
-	COMPLIANCE_TYPE_DAILY = "daily"
-	COMPLIANCE_TYPE_ADHOC = "adhoc"
+	ComplianceTypeDaily = "daily"
+	ComplianceTypeAdhoc = "adhoc"
 )
 
 type Compliance struct {
@@ -61,7 +61,7 @@ func (c *Compliance) PreSave() {
 	}
 
 	if c.Status == "" {
-		c.Status = COMPLIANCE_STATUS_CREATED
+		c.Status = ComplianceStatusCreated
 	}
 
 	c.Count = 0
@@ -78,7 +78,7 @@ func (c *Compliance) DeepCopy() *Compliance {
 
 func (c *Compliance) JobName() string {
 	jobName := c.Type
-	if c.Type == COMPLIANCE_TYPE_DAILY {
+	if c.Type == ComplianceTypeDaily {
 		jobName += "-" + c.Desc
 	}
 

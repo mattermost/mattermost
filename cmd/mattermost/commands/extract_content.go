@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var ExtractContentCmd = &cobra.Command{
@@ -66,7 +66,7 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 	for {
 		opts := model.GetFileInfosOptions{
 			Since:          since,
-			SortBy:         model.FILEINFO_SORT_BY_CREATED,
+			SortBy:         model.FileinfoSortByCreated,
 			IncludeDeleted: false,
 		}
 		fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(0, 1000, &opts)

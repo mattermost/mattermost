@@ -14,12 +14,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const noSettingsNamed = "unable to find a setting named: %s"
@@ -147,7 +147,7 @@ func getConfigStore(command *cobra.Command) (*config.Store, error) {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}
 
-	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, false, nil)
+	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize config store")
 	}

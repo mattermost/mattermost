@@ -4,24 +4,10 @@
 package model
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-func TestAccessJson(t *testing.T) {
-	a1 := AccessData{}
-	a1.ClientId = NewId()
-	a1.UserId = NewId()
-	a1.Token = NewId()
-	a1.RefreshToken = NewId()
-
-	json := a1.ToJson()
-	ra1 := AccessDataFromJson(strings.NewReader(json))
-
-	require.Equal(t, a1.Token, ra1.Token)
-}
 
 func TestAccessIsValid(t *testing.T) {
 	ad := AccessData{}

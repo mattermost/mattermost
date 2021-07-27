@@ -4,14 +4,16 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitBot() {
@@ -30,8 +32,9 @@ func (api *API) InitBot() {
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	botPatch := model.BotPatchFromJson(r.Body)
-	if botPatch == nil {
+	var botPatch *model.BotPatch
+	err := json.NewDecoder(r.Body).Decode(&botPatch)
+	if err != nil {
 		c.SetInvalidParam("bot")
 		return
 	}
@@ -45,14 +48,14 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("bot", bot)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_BOT) {
-		c.SetPermissionError(model.PERMISSION_CREATE_BOT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateBot) {
+		c.SetPermissionError(model.PermissionCreateBot)
 		return
 	}
 
 	if user, err := c.App.GetUser(c.AppContext.Session().UserId); err == nil {
 		if user.IsBot {
-			c.SetPermissionError(model.PERMISSION_CREATE_BOT)
+			c.SetPermissionError(model.PermissionCreateBot)
 			return
 		}
 	}
@@ -62,9 +65,9 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdBot, err := c.App.CreateBot(c.AppContext, bot)
-	if err != nil {
-		c.Err = err
+	createdBot, appErr := c.App.CreateBot(c.AppContext, bot)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -72,7 +75,9 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("bot", createdBot) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(createdBot.ToJson())
+	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -82,8 +87,9 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	botPatch := model.BotPatchFromJson(r.Body)
-	if botPatch == nil {
+	var botPatch *model.BotPatch
+	err := json.NewDecoder(r.Body).Decode(&botPatch)
+	if err != nil {
 		c.SetInvalidParam("bot")
 		return
 	}
@@ -97,16 +103,18 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedBot, err := c.App.PatchBot(botUserId, botPatch)
-	if err != nil {
-		c.Err = err
+	updatedBot, appErr := c.App.PatchBot(botUserId, botPatch)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
 	auditRec.AddMeta("bot", updatedBot)
 
-	w.Write(updatedBot.ToJson())
+	if err := json.NewEncoder(w).Encode(updatedBot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -124,10 +132,10 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_OTHERS_BOTS) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOthersBots) {
 		// Allow access to any bot.
 	} else if bot.OwnerId == c.AppContext.Session().UserId {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_BOTS) {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadBots) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
 			// but we don't have read bot permissions.
@@ -145,7 +153,9 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(bot.ToJson())
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -153,14 +163,14 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	onlyOrphaned, _ := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
 
 	var OwnerId string
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_OTHERS_BOTS) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOthersBots) {
 		// Get bots created by any user.
 		OwnerId = ""
-	} else if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_BOTS) {
+	} else if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadBots) {
 		// Only get bots created by this user.
 		OwnerId = c.AppContext.Session().UserId
 	} else {
-		c.SetPermissionError(model.PERMISSION_READ_BOTS)
+		c.SetPermissionError(model.PermissionReadBots)
 		return
 	}
 
@@ -180,7 +190,9 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(bots.ToJson())
+	if err := json.NewEncoder(w).Encode(bots); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func disableBot(c *Context, w http.ResponseWriter, _ *http.Request) {
@@ -217,7 +229,9 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	auditRec.Success()
 	auditRec.AddMeta("bot", bot)
 
-	w.Write(bot.ToJson())
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
@@ -241,7 +255,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	if user, err := c.App.GetUser(userId); err == nil {
 		if user.IsBot {
-			c.SetPermissionError(model.PERMISSION_ASSIGN_BOT)
+			c.SetPermissionError(model.PermissionAssignBot)
 			return
 		}
 	}
@@ -255,7 +269,9 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("bot", bot)
 
-	w.Write(bot.ToJson())
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -272,7 +288,7 @@ func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !canSee {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
 
@@ -294,7 +310,7 @@ func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	w.Header().Set(model.HeaderEtagServer, etag)
 	w.Header().Set("Content-Type", "image/svg+xml")
 	w.Write(img)
 }
@@ -406,8 +422,8 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("userPatch", userPatch)
 	auditRec.AddMeta("set_system_admin", systemAdmin)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -420,5 +436,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("convertedTo", user)
 
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

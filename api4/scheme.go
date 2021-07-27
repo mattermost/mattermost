@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitScheme() {
@@ -36,8 +38,8 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}
 
@@ -51,7 +53,9 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("scheme", scheme) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(scheme); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -60,8 +64,8 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementPermissions)
 		return
 	}
 
@@ -71,17 +75,19 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(scheme); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementPermissions)
 		return
 	}
 
 	scope := c.Params.Scope
-	if scope != "" && scope != model.SCHEME_SCOPE_TEAM && scope != model.SCHEME_SCOPE_CHANNEL {
+	if scope != "" && scope != model.SchemeScopeTeam && scope != model.SchemeScopeChannel {
 		c.SetInvalidParam("scope")
 		return
 	}
@@ -101,8 +107,8 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementTeams) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementTeams)
 		return
 	}
 
@@ -112,7 +118,7 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if scheme.Scope != model.SCHEME_SCOPE_TEAM {
+	if scheme.Scope != model.SchemeScopeTeam {
 		c.Err = model.NewAppError("Api4.GetTeamsForScheme", "api.scheme.get_teams_for_scheme.scope.error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -132,8 +138,8 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
 
@@ -143,7 +149,7 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if scheme.Scope != model.SCHEME_SCOPE_CHANNEL {
+	if scheme.Scope != model.SchemeScopeChannel {
 		c.Err = model.NewAppError("Api4.GetChannelsForScheme", "api.scheme.get_channels_for_scheme.scope.error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -154,7 +160,9 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -184,8 +192,8 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("scheme", scheme)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}
 
@@ -199,7 +207,9 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("")
 
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(scheme); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -216,8 +226,8 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}
 

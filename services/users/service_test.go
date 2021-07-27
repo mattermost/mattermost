@@ -6,7 +6,7 @@ package users
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,11 +20,16 @@ func TestNew(t *testing.T) {
 		return &model.Config{}
 	}
 
+	lfn := func() *model.License {
+		return model.NewTestLicense()
+	}
+
 	_, err = New(ServiceConfig{
 		UserStore:    dbStore.User(),
 		SessionStore: dbStore.Session(),
 		OAuthStore:   dbStore.OAuth(),
 		ConfigFn:     cfn,
+		LicenseFn:    lfn,
 	})
 	require.NoError(t, err)
 }
