@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS sidebarchannels (
     channelid VARCHAR(26),
     userid VARCHAR(26),
-    categoryid VARCHAR(128),
+    categoryid VARCHAR(26),
     sortorder bigint,
     PRIMARY KEY (channelid, userid, categoryid)
 );

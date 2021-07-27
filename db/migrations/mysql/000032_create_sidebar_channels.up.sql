@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS SidebarChannels (
     ChannelId varchar(26) NOT NULL,
     UserId varchar(26) NOT NULL,
-    CategoryId varchar(128) NOT NULL,
+    CategoryId varchar(26) NOT NULL,
     SortOrder bigint(20) DEFAULT NULL,
     PRIMARY KEY (ChannelId, UserId, CategoryId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
