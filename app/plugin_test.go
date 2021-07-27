@@ -20,9 +20,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -37,38 +37,38 @@ func TestPluginKeyValueStore(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	pluginId := "testpluginid"
+	pluginID := "testpluginid"
 
 	defer func() {
-		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
-		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key2"))
-		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key3"))
-		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key4"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginID, "key"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginID, "key2"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginID, "key3"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginID, "key4"))
 	}()
 
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test")))
-	ret, err := th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, th.App.SetPluginKey(pluginID, "key", []byte("test")))
+	ret, err := th.App.GetPluginKey(pluginID, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test"), ret)
 
 	// Test inserting over existing entries
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test2")))
-	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, th.App.SetPluginKey(pluginID, "key", []byte("test2")))
+	ret, err = th.App.GetPluginKey(pluginID, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test2"), ret)
 
 	// Test getting non-existent key
-	ret, err = th.App.GetPluginKey(pluginId, "notakey")
+	ret, err = th.App.GetPluginKey(pluginID, "notakey")
 	assert.Nil(t, err)
 	assert.Nil(t, ret)
 
 	// Test deleting non-existent keys.
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "notrealkey"))
+	assert.Nil(t, th.App.DeletePluginKey(pluginID, "notrealkey"))
 
 	// Verify behaviour for the old approach that involved storing the hashed keys.
 	hashedKey2 := getHashedKey("key2")
 	kv := &model.PluginKeyValue{
-		PluginId: pluginId,
+		PluginId: pluginID,
 		Key:      hashedKey2,
 		Value:    []byte("test"),
 		ExpireAt: 0,
@@ -78,57 +78,57 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.NoError(t, nErr)
 
 	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
-	ret, err = th.App.GetPluginKey(pluginId, "key2")
+	ret, err = th.App.GetPluginKey(pluginID, "key2")
 	assert.Nil(t, err)
 	assert.Equal(t, kv.Value, ret)
 
 	// Test fetch by hashed keyname
-	ret, err = th.App.GetPluginKey(pluginId, hashedKey2)
+	ret, err = th.App.GetPluginKey(pluginID, hashedKey2)
 	assert.Nil(t, err)
 	assert.Equal(t, kv.Value, ret)
 
 	// Test ListKeys
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "key3", []byte("test3")))
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "key4", []byte("test4")))
+	assert.Nil(t, th.App.SetPluginKey(pluginID, "key3", []byte("test3")))
+	assert.Nil(t, th.App.SetPluginKey(pluginID, "key4", []byte("test4")))
 
-	list, err := th.App.ListPluginKeys(pluginId, 0, 1)
+	list, err := th.App.ListPluginKeys(pluginID, 0, 1)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key"}, list)
 
-	list, err = th.App.ListPluginKeys(pluginId, 1, 1)
+	list, err = th.App.ListPluginKeys(pluginID, 1, 1)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key3"}, list)
 
-	list, err = th.App.ListPluginKeys(pluginId, 0, 4)
+	list, err = th.App.ListPluginKeys(pluginID, 0, 4)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 
-	list, err = th.App.ListPluginKeys(pluginId, 0, 2)
+	list, err = th.App.ListPluginKeys(pluginID, 0, 2)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key", "key3"}, list)
 
-	list, err = th.App.ListPluginKeys(pluginId, 1, 2)
+	list, err = th.App.ListPluginKeys(pluginID, 1, 2)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key4", hashedKey2}, list)
 
-	list, err = th.App.ListPluginKeys(pluginId, 2, 2)
+	list, err = th.App.ListPluginKeys(pluginID, 2, 2)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{}, list)
 
 	// List Keys bad input
-	list, err = th.App.ListPluginKeys(pluginId, 0, 0)
+	list, err = th.App.ListPluginKeys(pluginID, 0, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 
-	list, err = th.App.ListPluginKeys(pluginId, 0, -1)
+	list, err = th.App.ListPluginKeys(pluginID, 0, -1)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 
-	list, err = th.App.ListPluginKeys(pluginId, -1, 1)
+	list, err = th.App.ListPluginKeys(pluginID, -1, 1)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key"}, list)
 
-	list, err = th.App.ListPluginKeys(pluginId, -1, 0)
+	list, err = th.App.ListPluginKeys(pluginID, -1, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 }
@@ -137,72 +137,72 @@ func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	pluginId := "testpluginid"
+	pluginID := "testpluginid"
 
 	defer func() {
-		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginID, "key"))
 	}()
 
 	// Set using Set api for key2
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "key2", []byte("test")))
-	ret, err := th.App.GetPluginKey(pluginId, "key2")
+	assert.Nil(t, th.App.SetPluginKey(pluginID, "key2", []byte("test")))
+	ret, err := th.App.GetPluginKey(pluginID, "key2")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test"), ret)
 
 	// Attempt to insert value for key2
-	updated, err := th.App.CompareAndSetPluginKey(pluginId, "key2", nil, []byte("test2"))
+	updated, err := th.App.CompareAndSetPluginKey(pluginID, "key2", nil, []byte("test2"))
 	assert.Nil(t, err)
 	assert.False(t, updated)
-	ret, err = th.App.GetPluginKey(pluginId, "key2")
+	ret, err = th.App.GetPluginKey(pluginID, "key2")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test"), ret)
 
 	// Insert new value for key
-	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", nil, []byte("test"))
+	updated, err = th.App.CompareAndSetPluginKey(pluginID, "key", nil, []byte("test"))
 	assert.Nil(t, err)
 	assert.True(t, updated)
-	ret, err = th.App.GetPluginKey(pluginId, "key")
+	ret, err = th.App.GetPluginKey(pluginID, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test"), ret)
 
 	// Should fail to insert again
-	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", nil, []byte("test3"))
+	updated, err = th.App.CompareAndSetPluginKey(pluginID, "key", nil, []byte("test3"))
 	assert.Nil(t, err)
 	assert.False(t, updated)
-	ret, err = th.App.GetPluginKey(pluginId, "key")
+	ret, err = th.App.GetPluginKey(pluginID, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test"), ret)
 
 	// Test updating using incorrect old value
-	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", []byte("oldvalue"), []byte("test3"))
+	updated, err = th.App.CompareAndSetPluginKey(pluginID, "key", []byte("oldvalue"), []byte("test3"))
 	assert.Nil(t, err)
 	assert.False(t, updated)
-	ret, err = th.App.GetPluginKey(pluginId, "key")
+	ret, err = th.App.GetPluginKey(pluginID, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test"), ret)
 
 	// Test updating using correct old value
-	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", []byte("test"), []byte("test2"))
+	updated, err = th.App.CompareAndSetPluginKey(pluginID, "key", []byte("test"), []byte("test2"))
 	assert.Nil(t, err)
 	assert.True(t, updated)
-	ret, err = th.App.GetPluginKey(pluginId, "key")
+	ret, err = th.App.GetPluginKey(pluginID, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test2"), ret)
 }
 
 func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
-	pluginId := "testpluginid"
+	pluginID := "testpluginid"
 
 	t.Run("storing a value without providing options works", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{})
+		result, err := th.App.SetPluginKeyWithOptions(pluginID, "key", []byte("value-1"), model.PluginKVSetOptions{})
 		assert.True(t, result)
 		assert.Nil(t, err)
 
 		// and I can get it back!
-		ret, err := th.App.GetPluginKey(pluginId, "key")
+		ret, err := th.App.GetPluginKey(pluginID, "key")
 		assert.Nil(t, err)
 		assert.Equal(t, []byte(`value-1`), ret)
 	})
@@ -211,10 +211,10 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		err := th.App.SetPluginKey(pluginId, "key", []byte("value-1"))
+		err := th.App.SetPluginKey(pluginID, "key", []byte("value-1"))
 		require.Nil(t, err)
 
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-3"), model.PluginKVSetOptions{
+		result, err := th.App.SetPluginKeyWithOptions(pluginID, "key", []byte("value-3"), model.PluginKVSetOptions{
 			Atomic:   true,
 			OldValue: []byte("value-2"),
 		})
@@ -222,7 +222,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		assert.Nil(t, err)
 
 		// test that the value didn't change
-		ret, err := th.App.GetPluginKey(pluginId, "key")
+		ret, err := th.App.GetPluginKey(pluginID, "key")
 		assert.Nil(t, err)
 		assert.Equal(t, []byte(`value-1`), ret)
 	})
@@ -231,10 +231,10 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		err := th.App.SetPluginKey(pluginId, "key", []byte("value-2"))
+		err := th.App.SetPluginKey(pluginID, "key", []byte("value-2"))
 		require.Nil(t, err)
 
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-3"), model.PluginKVSetOptions{
+		result, err := th.App.SetPluginKeyWithOptions(pluginID, "key", []byte("value-3"), model.PluginKVSetOptions{
 			Atomic:   true,
 			OldValue: []byte("value-2"),
 		})
@@ -242,7 +242,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		assert.Nil(t, err)
 
 		// test that the value did change
-		ret, err := th.App.GetPluginKey(pluginId, "key")
+		ret, err := th.App.GetPluginKey(pluginID, "key")
 		assert.Nil(t, err)
 		assert.Equal(t, []byte(`value-3`), ret)
 	})
@@ -252,19 +252,19 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		defer th.TearDown()
 
 		// first set a value.
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", []byte("value-1"), model.PluginKVSetOptions{})
+		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-2", []byte("value-1"), model.PluginKVSetOptions{})
 		require.Nil(t, err)
 		require.True(t, result)
 
 		// now it should delete the set value.
-		result, err = th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", nil, model.PluginKVSetOptions{
+		result, err = th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-2", nil, model.PluginKVSetOptions{
 			Atomic:   true,
 			OldValue: []byte("value-1"),
 		})
 		assert.Nil(t, err)
 		assert.True(t, result)
 
-		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-2")
+		ret, err := th.App.GetPluginKey(pluginID, "nil-test-key-2")
 		assert.Nil(t, err)
 		assert.Nil(t, ret)
 	})
@@ -274,22 +274,22 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		defer th.TearDown()
 
 		// first set a value.
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", []byte("value-1"), model.PluginKVSetOptions{})
+		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-3", []byte("value-1"), model.PluginKVSetOptions{})
 		require.Nil(t, err)
 		require.True(t, result)
 
 		// now it should delete the set value.
-		result, err = th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", nil, model.PluginKVSetOptions{})
+		result, err = th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-3", nil, model.PluginKVSetOptions{})
 		assert.Nil(t, err)
 		assert.True(t, result)
 
 		// verify a nil value is returned
-		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-3")
+		ret, err := th.App.GetPluginKey(pluginID, "nil-test-key-3")
 		assert.Nil(t, err)
 		assert.Nil(t, ret)
 
 		// verify the row is actually gone
-		list, err := th.App.ListPluginKeys(pluginId, 0, 1)
+		list, err := th.App.ListPluginKeys(pluginID, 0, 1)
 		assert.Nil(t, err)
 		assert.Empty(t, list)
 	})
@@ -298,14 +298,14 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-4", []byte("value-1"), model.PluginKVSetOptions{
+		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-4", []byte("value-1"), model.PluginKVSetOptions{
 			Atomic:   true,
 			OldValue: nil,
 		})
 		assert.Nil(t, err)
 		assert.True(t, result)
 
-		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-4")
+		ret, err := th.App.GetPluginKey(pluginID, "nil-test-key-4")
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("value-1"), ret)
 	})
@@ -314,21 +314,21 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{
+		result, err := th.App.SetPluginKeyWithOptions(pluginID, "key", []byte("value-1"), model.PluginKVSetOptions{
 			ExpireInSeconds: 1,
 		})
 		assert.True(t, result)
 		assert.Nil(t, err)
 
 		// test that the value is set
-		ret, err := th.App.GetPluginKey(pluginId, "key")
+		ret, err := th.App.GetPluginKey(pluginID, "key")
 		assert.Nil(t, err)
 		assert.Equal(t, []byte(`value-1`), ret)
 
 		// test that the value is not longer
 		time.Sleep(1500 * time.Millisecond)
 
-		ret, err = th.App.GetPluginKey(pluginId, "key")
+		ret, err = th.App.GetPluginKey(pluginID, "key")
 		assert.Nil(t, err)
 		assert.Nil(t, ret)
 	})
@@ -342,7 +342,7 @@ func TestServePluginRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ServePluginRequest(w, r)
+	th.App.srv.ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
 }
 
@@ -386,7 +386,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 
 			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
 
-			th.App.servePluginRequest(recorder, request, handler)
+			th.App.srv.servePluginRequest(recorder, request, handler)
 		})
 	}
 
@@ -409,7 +409,7 @@ func TestHandlePluginRequest(t *testing.T) {
 	var assertions func(*http.Request)
 	router := mux.NewRouter()
 	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
+		th.App.srv.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
 			assertions(r)
 		})
 	})
@@ -527,7 +527,7 @@ func TestPluginSync(t *testing.T) {
 				require.NoError(t, err)
 				defer fileReader.Close()
 
-				_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
+				_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -545,7 +545,7 @@ func TestPluginSync(t *testing.T) {
 					*cfg.PluginSettings.RequirePluginSignature = false
 				})
 
-				appErr := th.App.RemoveFile(th.App.getBundleStorePath("testplugin"))
+				appErr := th.App.RemoveFile(getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -565,7 +565,7 @@ func TestPluginSync(t *testing.T) {
 				pluginFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
 				require.NoError(t, err)
 				defer pluginFileReader.Close()
-				_, appErr := th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin"))
+				_, appErr := th.App.WriteFile(pluginFileReader, getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -583,7 +583,7 @@ func TestPluginSync(t *testing.T) {
 				signatureFileReader, err := os.Open(filepath.Join(path, "testplugin2.tar.gz.sig"))
 				require.NoError(t, err)
 				defer signatureFileReader.Close()
-				_, appErr := th.App.WriteFile(signatureFileReader, th.App.getSignatureStorePath("testplugin"))
+				_, appErr := th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -607,7 +607,7 @@ func TestPluginSync(t *testing.T) {
 				signatureFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
 				require.NoError(t, err)
 				defer signatureFileReader.Close()
-				_, appErr = th.App.WriteFile(signatureFileReader, th.App.getSignatureStorePath("testplugin"))
+				_, appErr = th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -648,7 +648,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 	require.NoError(t, err)
 	defer fileReader.Close()
 
-	_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
+	_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
 	checkNoError(t, appErr)
 
 	// Sync with file store so the plugin environment has access to this plugin.
@@ -691,6 +691,7 @@ func TestPluginPanicLogs(t *testing.T) {
 	t.Run("should panic", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 		package main
@@ -713,7 +714,7 @@ func TestPluginPanicLogs(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 		`,
-		}, th.App, th.App.NewPluginAPI)
+		}, th.App, th.NewPluginAPI)
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -721,7 +722,7 @@ func TestPluginPanicLogs(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
 		assert.Nil(t, err)
 		// We shutdown plugins first so that the read on the log buffer is race-free.
 		th.App.Srv().ShutDownPlugins()
@@ -771,7 +772,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
 		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
 		require.Empty(t, plugins[0].Signature, 0)
@@ -798,7 +799,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
 		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
 		require.Empty(t, plugins[0].Signature, 0)
@@ -831,7 +832,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -880,7 +881,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -917,7 +918,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)

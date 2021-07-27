@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -57,7 +58,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().Delete(uat.Id)
 	require.NoError(t, nErr)
 
-	_, err = ss.Session().Get(s1.Token)
+	_, err = ss.Session().Get(context.Background(), s1.Token)
 	require.Error(t, err, "should error - session should be deleted")
 
 	_, nErr = ss.UserAccessToken().GetByToken(s1.Token)
@@ -76,7 +77,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().DeleteAllForUser(uat.UserId)
 	require.NoError(t, nErr)
 
-	_, err = ss.Session().Get(s2.Token)
+	_, err = ss.Session().Get(context.Background(), s2.Token)
 	require.Error(t, err, "should error - session should be deleted")
 
 	_, nErr = ss.UserAccessToken().GetByToken(s2.Token)
@@ -103,7 +104,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().UpdateTokenDisable(uat.Id)
 	require.NoError(t, nErr)
 
-	_, err = ss.Session().Get(s1.Token)
+	_, err = ss.Session().Get(context.Background(), s1.Token)
 	require.Error(t, err, "should error - session should be deleted")
 
 	s2 := &model.Session{}

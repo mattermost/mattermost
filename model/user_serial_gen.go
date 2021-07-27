@@ -17,8 +17,8 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 31 {
-		err = msgp.ArrayError{Wanted: 31, Got: zb0001}
+	if zb0001 != 32 {
+		err = msgp.ArrayError{Wanted: 32, Got: zb0001}
 		return
 	}
 	z.Id, err = dc.ReadString()
@@ -158,6 +158,23 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err, "MfaSecret")
 		return
 	}
+	if dc.IsNil() {
+		err = dc.ReadNil()
+		if err != nil {
+			err = msgp.WrapError(err, "RemoteId")
+			return
+		}
+		z.RemoteId = nil
+	} else {
+		if z.RemoteId == nil {
+			z.RemoteId = new(string)
+		}
+		*z.RemoteId, err = dc.ReadString()
+		if err != nil {
+			err = msgp.WrapError(err, "RemoteId")
+			return
+		}
+	}
 	z.LastActivityAt, err = dc.ReadInt64()
 	if err != nil {
 		err = msgp.WrapError(err, "LastActivityAt")
@@ -193,8 +210,8 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
-	// array header, size 31
-	err = en.Append(0xdc, 0x0, 0x1f)
+	// array header, size 32
+	err = en.Append(0xdc, 0x0, 0x20)
 	if err != nil {
 		return
 	}
@@ -330,6 +347,18 @@ func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "MfaSecret")
 		return
 	}
+	if z.RemoteId == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteString(*z.RemoteId)
+		if err != nil {
+			err = msgp.WrapError(err, "RemoteId")
+			return
+		}
+	}
 	err = en.WriteInt64(z.LastActivityAt)
 	if err != nil {
 		err = msgp.WrapError(err, "LastActivityAt")
@@ -366,8 +395,8 @@ func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *User) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// array header, size 31
-	o = append(o, 0xdc, 0x0, 0x1f)
+	// array header, size 32
+	o = append(o, 0xdc, 0x0, 0x20)
 	o = msgp.AppendString(o, z.Id)
 	o = msgp.AppendInt64(o, z.CreateAt)
 	o = msgp.AppendInt64(o, z.UpdateAt)
@@ -409,6 +438,11 @@ func (z *User) MarshalMsg(b []byte) (o []byte, err error) {
 	}
 	o = msgp.AppendBool(o, z.MfaActive)
 	o = msgp.AppendString(o, z.MfaSecret)
+	if z.RemoteId == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendString(o, *z.RemoteId)
+	}
 	o = msgp.AppendInt64(o, z.LastActivityAt)
 	o = msgp.AppendBool(o, z.IsBot)
 	o = msgp.AppendString(o, z.BotDescription)
@@ -426,8 +460,8 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 31 {
-		err = msgp.ArrayError{Wanted: 31, Got: zb0001}
+	if zb0001 != 32 {
+		err = msgp.ArrayError{Wanted: 32, Got: zb0001}
 		return
 	}
 	z.Id, bts, err = msgp.ReadStringBytes(bts)
@@ -566,6 +600,22 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err, "MfaSecret")
 		return
 	}
+	if msgp.IsNil(bts) {
+		bts, err = msgp.ReadNilBytes(bts)
+		if err != nil {
+			return
+		}
+		z.RemoteId = nil
+	} else {
+		if z.RemoteId == nil {
+			z.RemoteId = new(string)
+		}
+		*z.RemoteId, bts, err = msgp.ReadStringBytes(bts)
+		if err != nil {
+			err = msgp.WrapError(err, "RemoteId")
+			return
+		}
+	}
 	z.LastActivityAt, bts, err = msgp.ReadInt64Bytes(bts)
 	if err != nil {
 		err = msgp.WrapError(err, "LastActivityAt")
@@ -608,7 +658,13 @@ func (z *User) Msgsize() (s int) {
 	} else {
 		s += msgp.StringPrefixSize + len(*z.AuthData)
 	}
-	s += msgp.StringPrefixSize + len(z.AuthService) + msgp.StringPrefixSize + len(z.Email) + msgp.BoolSize + msgp.StringPrefixSize + len(z.Nickname) + msgp.StringPrefixSize + len(z.FirstName) + msgp.StringPrefixSize + len(z.LastName) + msgp.StringPrefixSize + len(z.Position) + msgp.StringPrefixSize + len(z.Roles) + msgp.BoolSize + z.Props.Msgsize() + z.NotifyProps.Msgsize() + msgp.Int64Size + msgp.Int64Size + msgp.IntSize + msgp.StringPrefixSize + len(z.Locale) + z.Timezone.Msgsize() + msgp.BoolSize + msgp.StringPrefixSize + len(z.MfaSecret) + msgp.Int64Size + msgp.BoolSize + msgp.StringPrefixSize + len(z.BotDescription) + msgp.Int64Size + msgp.StringPrefixSize + len(z.TermsOfServiceId) + msgp.Int64Size
+	s += msgp.StringPrefixSize + len(z.AuthService) + msgp.StringPrefixSize + len(z.Email) + msgp.BoolSize + msgp.StringPrefixSize + len(z.Nickname) + msgp.StringPrefixSize + len(z.FirstName) + msgp.StringPrefixSize + len(z.LastName) + msgp.StringPrefixSize + len(z.Position) + msgp.StringPrefixSize + len(z.Roles) + msgp.BoolSize + z.Props.Msgsize() + z.NotifyProps.Msgsize() + msgp.Int64Size + msgp.Int64Size + msgp.IntSize + msgp.StringPrefixSize + len(z.Locale) + z.Timezone.Msgsize() + msgp.BoolSize + msgp.StringPrefixSize + len(z.MfaSecret)
+	if z.RemoteId == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.StringPrefixSize + len(*z.RemoteId)
+	}
+	s += msgp.Int64Size + msgp.BoolSize + msgp.StringPrefixSize + len(z.BotDescription) + msgp.Int64Size + msgp.StringPrefixSize + len(z.TermsOfServiceId) + msgp.Int64Size
 	return
 }
 

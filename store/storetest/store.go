@@ -20,9 +20,11 @@ type Store struct {
 	ChannelStore              mocks.ChannelStore
 	PostStore                 mocks.PostStore
 	UserStore                 mocks.UserStore
+	RetentionPolicyStore      mocks.RetentionPolicyStore
 	BotStore                  mocks.BotStore
 	AuditStore                mocks.AuditStore
 	ClusterDiscoveryStore     mocks.ClusterDiscoveryStore
+	RemoteClusterStore        mocks.RemoteClusterStore
 	ComplianceStore           mocks.ComplianceStore
 	SessionStore              mocks.SessionStore
 	OAuthStore                mocks.OAuthStore
@@ -49,6 +51,7 @@ type Store struct {
 	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
 	LinkMetadataStore         mocks.LinkMetadataStore
+	SharedChannelStore        mocks.SharedChannelStore
 	ProductNoticesStore       mocks.ProductNoticesStore
 	context                   context.Context
 }
@@ -59,10 +62,12 @@ func (s *Store) Team() store.TeamStore                             { return &s.T
 func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }
 func (s *Store) User() store.UserStore                             { return &s.UserStore }
+func (s *Store) RetentionPolicy() store.RetentionPolicyStore       { return &s.RetentionPolicyStore }
 func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
 func (s *Store) ProductNotices() store.ProductNoticesStore         { return &s.ProductNoticesStore }
 func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
 func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
+func (s *Store) RemoteCluster() store.RemoteClusterStore           { return &s.RemoteClusterStore }
 func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
 func (s *Store) Session() store.SessionStore                       { return &s.SessionStore }
 func (s *Store) OAuth() store.OAuthStore                           { return &s.OAuthStore }
@@ -89,22 +94,25 @@ func (s *Store) UserTermsOfService() store.UserTermsOfServiceStore { return &s.U
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
-func (s *Store) Group() store.GroupStore               { return &s.GroupStore }
-func (s *Store) LinkMetadata() store.LinkMetadataStore { return &s.LinkMetadataStore }
-func (s *Store) MarkSystemRanUnitTests()               { /* do nothing */ }
-func (s *Store) Close()                                { /* do nothing */ }
-func (s *Store) LockToMaster()                         { /* do nothing */ }
-func (s *Store) UnlockFromMaster()                     { /* do nothing */ }
-func (s *Store) DropAllTables()                        { /* do nothing */ }
-func (s *Store) GetDbVersion(bool) (string, error)     { return "", nil }
-func (s *Store) RecycleDBConnections(time.Duration)    {}
-func (s *Store) TotalMasterDbConnections() int         { return 1 }
-func (s *Store) TotalReadDbConnections() int           { return 1 }
-func (s *Store) TotalSearchDbConnections() int         { return 1 }
-func (s *Store) GetCurrentSchemaVersion() string       { return "" }
+func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
+func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
+func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
+func (s *Store) MarkSystemRanUnitTests()                 { /* do nothing */ }
+func (s *Store) Close()                                  { /* do nothing */ }
+func (s *Store) LockToMaster()                           { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                       { /* do nothing */ }
+func (s *Store) DropAllTables()                          { /* do nothing */ }
+func (s *Store) GetDbVersion(bool) (string, error)       { return "", nil }
+func (s *Store) RecycleDBConnections(time.Duration)      {}
+func (s *Store) TotalMasterDbConnections() int           { return 1 }
+func (s *Store) TotalReadDbConnections() int             { return 1 }
+func (s *Store) TotalSearchDbConnections() int           { return 1 }
+func (s *Store) GetCurrentSchemaVersion() string         { return "" }
 func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return make(chan model.IntegrityCheckResult)
 }
+func (s *Store) ReplicaLagAbs() error  { return nil }
+func (s *Store) ReplicaLagTime() error { return nil }
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
@@ -115,6 +123,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.BotStore,
 		&s.AuditStore,
 		&s.ClusterDiscoveryStore,
+		&s.RemoteClusterStore,
 		&s.ComplianceStore,
 		&s.SessionStore,
 		&s.OAuthStore,
@@ -138,5 +147,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.SchemeStore,
 		&s.ThreadStore,
 		&s.ProductNoticesStore,
+		&s.SharedChannelStore,
 	)
 }

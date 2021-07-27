@@ -76,7 +76,7 @@ func TestSearchChannelStore(t *testing.T, s store.Store, testEngine *SearchTestE
 }
 
 func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "Channel Alternate", model.CHANNEL_OPEN, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)

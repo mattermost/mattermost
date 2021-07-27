@@ -29,9 +29,6 @@ func newSqlLicenseStore(sqlStore *SqlStore) store.LicenseStore {
 	return ls
 }
 
-func (ls SqlLicenseStore) createIndexesIfNotExists() {
-}
-
 // Save validates and stores the license instance in the database. The Id
 // and Bytes fields are mandatory. The Bytes field is limited to a maximum
 // of 10000 bytes. If the license ID matches an existing license in the
@@ -74,4 +71,22 @@ func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 		return nil, store.NewErrNotFound("License", id)
 	}
 	return obj.(*model.LicenseRecord), nil
+}
+
+func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
+	query := ls.getQueryBuilder().
+		Select("*").
+		From("Licenses")
+
+	queryString, _, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "license_tosql")
+	}
+
+	var licenses []*model.LicenseRecord
+	if _, err := ls.GetReplica().Select(&licenses, queryString); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch licenses")
+	}
+
+	return licenses, nil
 }

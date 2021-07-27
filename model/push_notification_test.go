@@ -16,19 +16,19 @@ func TestPushNotification(t *testing.T) {
 		json := msg.ToJson()
 		result, err := PushNotificationFromJson(strings.NewReader(json))
 
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, msg.Platform, result.Platform, "ids do not match")
 	})
 
 	t.Run("should throw an error when the message is nil", func(t *testing.T) {
 		_, err := PushNotificationFromJson(nil)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, "push notification data can't be nil", err.Error())
 	})
 
 	t.Run("should throw an error when the message parsing fails", func(t *testing.T) {
 		_, err := PushNotificationFromJson(strings.NewReader(""))
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, "EOF", err.Error())
 	})
 }
@@ -39,19 +39,19 @@ func TestPushNotificationAck(t *testing.T) {
 		json := msg.ToJson()
 		result, err := PushNotificationAckFromJson(strings.NewReader(json))
 
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, msg.ClientPlatform, result.ClientPlatform, "ids do not match")
 	})
 
 	t.Run("should throw an error when the message is nil", func(t *testing.T) {
 		_, err := PushNotificationAckFromJson(nil)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, "push notification data can't be nil", err.Error())
 	})
 
 	t.Run("should throw an error when the message parsing fails", func(t *testing.T) {
 		_, err := PushNotificationAckFromJson(strings.NewReader(""))
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, "EOF", err.Error())
 	})
 }

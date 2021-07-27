@@ -988,34 +988,6 @@
     "translation": "Masowa wysyłka maili została wyłączona przez administratora systemu."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Wiadomość bezpośrednia od "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Do wiadomości"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Wiadomość grupowa od "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Powiadomienie od "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "Masz {{.Count}} nowe powiadomienia.",
-      "many": "",
-      "one": "Masz nowe powiadomienie."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
@@ -1748,10 +1720,6 @@
     "translation": "Nie udało się zdekodować ikony zespołu"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Nie można odszyfrować metadanych ikon zespołu"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Nie można zakodować ikony zespołu"
   },
@@ -1876,14 +1844,6 @@
     "translation": "Dołącz zespół"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost pozwala na wymianę wiadomości i plików z komputera lub telefonu wraz z natychmiastową wyszukiwarką i archiwizacją. Po dołączeniu do [[{{.TeamDisplayName}}]], możesz zalogować się do swojego nowego zespołu i uzyskać dostęp do tych funkcji w dowolnym momencie za pomocą adresu internetowego:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "{{.SenderStatus}} zespołu [[{{.SenderName}}]], zaprosił Cię do dołączenia do [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Jesteś już zaproszony"
   },
@@ -1930,14 +1890,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Zresetuj hasło"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Aby zmienić hasło, kliknij \"Zresetuj hasło\" poniżej."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Jeśli nie chcesz resetować hasła, zignoruj tę wiadomość, a Twoje hasło pozostanie niezmienione. Link do resetowania hasła wygasa za 24 godziny."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2014,14 +1966,6 @@
   {
     "id": "api.templates.welcome_body.info",
     "translation": "Zweryfikuj swój adres email klikając poniżej."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Możesz się zalogować z:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost pozwala na wymianę wiadomości i plików z komputera lub telefonu wraz z błyskawicznym wyszukiwaniem i archiwizacją."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -2326,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Nie można było zdekodować obrazu profilu"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Nie można zapisać obrazka profilowego. Plik nie jest obrazem."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2972,62 +2912,6 @@
     "translation": "Brakuje nazwy zespołu w Członkostwie Zespołu Użytkownika."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Masz nową Wiadomość Bezpośrednią."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Masz nową Wiadomość Bezpośrednią od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Masz nową Wiadomość Grupową."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Masz nową Wiadomość Grupową od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Masz nowe powiadomienie."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Masz nowe powiadomienie od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanał: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanał: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nowa Wiadomość Bezpośrednia od @{{.SenderDisplayName}} z {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3152,10 +3036,6 @@
     "translation": "Nie można zdekodować danych obrazu."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Nie można pobrać metadanych obrazka."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Nie można przekonwertować danych obrazu na format PNG. Proszę spróbuj ponownie."
   },
@@ -3166,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Nie można zapisać pliku obrazu do magazynu plików. Proszę sprawdź swoje połączenie i spróbuj ponownie."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Nie można odczytać pliku obrazu. Upewnij się, że rozmiar obrazu jest mniejszy niż 2 MB i spróbuj ponownie."
   },
   {
     "id": "cli.license.critical",
@@ -4208,11 +4084,11 @@
     "translation": "Czas pomiędzy aktualizacjami podczas wprowadzania tekstu przez użytkownika nie może być mniejszy niż 1000 milisekund."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Nieprawidłowa wartość dla pliku certyfikatu TLS - użyj LetsEncrypt lub ustaw ścieżkę do istniejącego pliku certyfikatu"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Nieprawidłowa wartość dla pliku klucza TLS - użyj LetsEncrypt lub ustaw ścieżkę do istniejącego pliku klucza"
   },
   {
@@ -4872,10 +4748,6 @@
     "translation": "Nie można znaleźć istniejącego konta pasującego do poświadczeń. Ten zespół może wymagać zaproszenia od właściciela zespołu do dołączenia."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Ten adres e-mail jest już zajęty. Proszę wybrać inny."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -5348,10 +5220,6 @@
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu zakończenia"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Najstarszego postu nie można było pobrać z bazy danych."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -5802,10 +5670,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprasza Cię do dołączenia do zespołu {{ .TeamDisplayName }} jako gość"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], zaprasza Cię do dołączenia do zespołu [[{{.TeamDisplayName}}]] jako gość."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -6552,10 +6416,6 @@
     "translation": "Nie można uzyskać roli"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Nie udało się pobrać wszystkich ról"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Nie można uzyskać roli"
   },
@@ -6662,10 +6522,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Napotkano błąd podczas podłączania się do serwera"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7076,10 +6932,6 @@
     "translation": "Nie mogliśmy pobrać wszystkich zespołów"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
   },
@@ -7098,14 +6950,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Nie można policzyć zespołów"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Nie można policzyć publicznych zespołów"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Nie można policzyć prywatnych zespołów"
   },
   {
     "id": "api.user.login_cws.license.error",
