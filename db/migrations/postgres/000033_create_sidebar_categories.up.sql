@@ -1,13 +1,11 @@
 CREATE TABLE IF NOT EXISTS sidebarcategories (
-    id VARCHAR(128),
+    id VARCHAR(26),
     userid VARCHAR(26),
     teamid VARCHAR(26),
     sortorder bigint,
     sorting VARCHAR(64),
     type VARCHAR(64),
     displayname VARCHAR(64),
-    muted boolean,
-    collapsed boolean,
     PRIMARY KEY (id)
 );
 
@@ -28,5 +26,5 @@ BEGIN
     END IF;
 END modify_column_type_if_type_is_different $$;
 
-ALTER TABLE sidebarcategories ADD COLUMN IF NOT EXISTS muted boolean DEFAULT false;
-ALTER TABLE sidebarcategories ADD COLUMN IF NOT EXISTS collapsed boolean DEFAULT false;
+ALTER TABLE sidebarcategories ADD COLUMN IF NOT EXISTS muted boolean;
+ALTER TABLE sidebarcategories ADD COLUMN IF NOT EXISTS collapsed boolean;
