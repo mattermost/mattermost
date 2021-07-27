@@ -37,7 +37,7 @@ func TestHealthCheckJob(t *testing.T) {
 				plugin.ClientMain(&MyPlugin{})
 			}
 			`,
-	}, th.App, th.App.NewPluginAPI)
+	}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	env := th.App.GetPluginsEnvironment()

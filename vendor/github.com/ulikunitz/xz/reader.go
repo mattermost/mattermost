@@ -1,4 +1,4 @@
-// Copyright 2014-2019 Ulrich Kunitz. All rights reserved.
+// Copyright 2014-2021 Ulrich Kunitz. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -160,17 +160,14 @@ func (c ReaderConfig) newStreamReader(xz io.Reader) (r *streamReader, err error)
 
 // readTail reads the index body and the xz footer.
 func (r *streamReader) readTail() error {
-	index, n, err := readIndexBody(r.xz)
+	index, n, err := readIndexBody(r.xz, len(r.index))
 	if err != nil {
 		if err == io.EOF {
 			err = io.ErrUnexpectedEOF
 		}
 		return err
 	}
-	if len(index) != len(r.index) {
-		return fmt.Errorf("xz: index length is %d; want %d",
-			len(index), len(r.index))
-	}
+
 	for i, rec := range r.index {
 		if rec != index[i] {
 			return fmt.Errorf("xz: record %d is %v; want %v",

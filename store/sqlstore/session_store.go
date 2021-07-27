@@ -11,8 +11,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -40,14 +40,6 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	return us
 }
 
-func (me SqlSessionStore) createIndexesIfNotExists() {
-	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
-	me.CreateIndexIfNotExists("idx_sessions_token", "Sessions", "Token")
-	me.CreateIndexIfNotExists("idx_sessions_expires_at", "Sessions", "ExpiresAt")
-	me.CreateIndexIfNotExists("idx_sessions_create_at", "Sessions", "CreateAt")
-	me.CreateIndexIfNotExists("idx_sessions_last_activity_at", "Sessions", "LastActivityAt")
-}
-
 func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
@@ -73,10 +65,10 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	return session, nil
 }
 
-func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
+func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error) {
 	var sessions []*model.Session
 
-	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
+	if _, err := me.DBFromContext(ctx).Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
 	} else if len(sessions) == 0 {
 		return nil, store.NewErrNotFound("Session", fmt.Sprintf("sessionIdOrToken=%s", sessionIdOrToken))
@@ -249,7 +241,7 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, err := me.Get(session.Id)
+	oldSession, err := me.Get(context.Background(), session.Id)
 	if err != nil {
 		return err
 	}

@@ -42,6 +42,13 @@ func (c *FakeClusterInterface) SendClusterMessage(message *model.ClusterMessage)
 	c.messages = append(c.messages, message)
 }
 
+func (c *FakeClusterInterface) SendClusterMessageToNode(nodeID string, message *model.ClusterMessage) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.messages = append(c.messages, message)
+	return nil
+}
+
 func (c *FakeClusterInterface) NotifyMsg(buf []byte) {}
 
 func (c *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.AppError) {
@@ -72,6 +79,19 @@ func (c *FakeClusterInterface) GetMessages() []*model.ClusterMessage {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.messages
+}
+
+func (c *FakeClusterInterface) SelectMessages(filterCond func(message *model.ClusterMessage) bool) []*model.ClusterMessage {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	filteredMessages := []*model.ClusterMessage{}
+	for _, msg := range c.messages {
+		if filterCond(msg) {
+			filteredMessages = append(filteredMessages, msg)
+		}
+	}
+	return filteredMessages
 }
 
 func (c *FakeClusterInterface) ClearMessages() {

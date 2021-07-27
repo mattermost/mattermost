@@ -269,9 +269,7 @@ type typeQueue struct {
 // A copying append that creates a new slice each time.
 func apnd(is []int, i int) []int {
 	x := make([]int, len(is)+1)
-	for p, n := range is {
-		x[p] = n
-	}
+	copy(x, is)
 	x[len(x)-1] = i
 	return x
 }
@@ -431,9 +429,14 @@ QueueLoop:
 
 	flds := &StructMap{Index: m, Tree: root, Paths: map[string]*FieldInfo{}, Names: map[string]*FieldInfo{}}
 	for _, fi := range flds.Index {
-		flds.Paths[fi.Path] = fi
-		if fi.Name != "" && !fi.Embedded {
-			flds.Names[fi.Path] = fi
+		// check if nothing has already been pushed with the same path
+		// sometimes you can choose to override a type using embedded struct
+		fld, ok := flds.Paths[fi.Path]
+		if !ok || fld.Embedded {
+			flds.Paths[fi.Path] = fi
+			if fi.Name != "" && !fi.Embedded {
+				flds.Names[fi.Path] = fi
+			}
 		}
 	}
 

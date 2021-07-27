@@ -245,6 +245,8 @@ func (i *InmemSink) Data() []*IntervalMetrics {
 	copyCurrent := intervals[n-1]
 	current.RLock()
 	*copyCurrent = *current
+	// RWMutex is not safe to copy, so create a new instance on the copy
+	copyCurrent.RWMutex = sync.RWMutex{}
 
 	copyCurrent.Gauges = make(map[string]GaugeValue, len(current.Gauges))
 	for k, v := range current.Gauges {

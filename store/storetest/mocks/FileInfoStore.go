@@ -14,13 +14,13 @@ type FileInfoStore struct {
 	mock.Mock
 }
 
-// AttachToPost provides a mock function with given fields: fileID, postID, creatorId
-func (_m *FileInfoStore) AttachToPost(fileID string, postID string, creatorId string) error {
-	ret := _m.Called(fileID, postID, creatorId)
+// AttachToPost provides a mock function with given fields: fileID, postID, creatorID
+func (_m *FileInfoStore) AttachToPost(fileID string, postID string, creatorID string) error {
+	ret := _m.Called(fileID, postID, creatorID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(fileID, postID, creatorId)
+		r0 = rf(fileID, postID, creatorID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -190,13 +190,13 @@ func (_m *FileInfoStore) GetForPost(postID string, readFromMaster bool, includeD
 	return r0, r1
 }
 
-// GetForUser provides a mock function with given fields: userId
-func (_m *FileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
-	ret := _m.Called(userId)
+// GetForUser provides a mock function with given fields: userID
+func (_m *FileInfoStore) GetForUser(userID string) ([]*model.FileInfo, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.FileInfo
 	if rf, ok := ret.Get(0).(func(string) []*model.FileInfo); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.FileInfo)
@@ -205,7 +205,30 @@ func (_m *FileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFromMaster provides a mock function with given fields: id
+func (_m *FileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
+	ret := _m.Called(id)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(string) *model.FileInfo); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -276,20 +299,20 @@ func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64
 	return r0, r1
 }
 
-// PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *FileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
-	ret := _m.Called(userId)
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *FileInfoStore) PermanentDeleteByUser(userID string) (int64, error) {
+	ret := _m.Called(userID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -320,13 +343,13 @@ func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	return r0, r1
 }
 
-// Search provides a mock function with given fields: paramsList, userId, teamID, page, perPage
-func (_m *FileInfoStore) Search(paramsList []*model.SearchParams, userId string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
-	ret := _m.Called(paramsList, userId, teamID, page, perPage)
+// Search provides a mock function with given fields: paramsList, userID, teamID, page, perPage
+func (_m *FileInfoStore) Search(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
+	ret := _m.Called(paramsList, userID, teamID, page, perPage)
 
 	var r0 *model.FileInfoList
 	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) *model.FileInfoList); ok {
-		r0 = rf(paramsList, userId, teamID, page, perPage)
+		r0 = rf(paramsList, userID, teamID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.FileInfoList)
@@ -335,7 +358,7 @@ func (_m *FileInfoStore) Search(paramsList []*model.SearchParams, userId string,
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, int, int) error); ok {
-		r1 = rf(paramsList, userId, teamID, page, perPage)
+		r1 = rf(paramsList, userID, teamID, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}

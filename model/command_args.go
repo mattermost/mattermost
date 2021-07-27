@@ -7,21 +7,21 @@ import (
 	"encoding/json"
 	"io"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type CommandArgs struct {
-	UserId          string               `json:"user_id"`
-	ChannelId       string               `json:"channel_id"`
-	TeamId          string               `json:"team_id"`
-	RootId          string               `json:"root_id"`
-	ParentId        string               `json:"parent_id"`
-	TriggerId       string               `json:"trigger_id,omitempty"`
-	Command         string               `json:"command"`
-	SiteURL         string               `json:"-"`
-	T               goi18n.TranslateFunc `json:"-"`
-	UserMentions    UserMentionMap       `json:"-"`
-	ChannelMentions ChannelMentionMap    `json:"-"`
+	UserId          string             `json:"user_id"`
+	ChannelId       string             `json:"channel_id"`
+	TeamId          string             `json:"team_id"`
+	RootId          string             `json:"root_id"`
+	ParentId        string             `json:"parent_id"`
+	TriggerId       string             `json:"trigger_id,omitempty"`
+	Command         string             `json:"command"`
+	SiteURL         string             `json:"-"`
+	T               i18n.TranslateFunc `json:"-"`
+	UserMentions    UserMentionMap     `json:"-"`
+	ChannelMentions ChannelMentionMap  `json:"-"`
 
 	// DO NOT USE Session field is deprecated. MM-26398
 	Session Session `json:"-"`

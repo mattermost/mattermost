@@ -1,11 +1,14 @@
 package msgpack
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
 	"github.com/vmihailenco/msgpack/v5/msgpcode"
 )
+
+var errArrayStruct = errors.New("msgpack: number of fields in array-encoded struct has changed")
 
 var (
 	mapStringStringPtrType = reflect.TypeOf((*map[string]string)(nil))
@@ -274,43 +277,43 @@ func decodeStructValue(d *Decoder, v reflect.Value) error {
 		return err
 	}
 
-	var isArray bool
-
 	n, err := d.mapLen(c)
-	if err != nil {
-		var err2 error
-		n, err2 = d.arrayLen(c)
-		if err2 != nil {
+	if err == nil {
+		return d.decodeStruct(v, n)
+	}
+
+	var err2 error
+	n, err2 = d.arrayLen(c)
+	if err2 != nil {
+		return err
+	}
+
+	if n <= 0 {
+		v.Set(reflect.Zero(v.Type()))
+		return nil
+	}
+
+	fields := structs.Fields(v.Type(), d.structTag)
+	if n != len(fields.List) {
+		return errArrayStruct
+	}
+
+	for _, f := range fields.List {
+		if err := f.DecodeValue(d, v); err != nil {
 			return err
 		}
-		isArray = true
 	}
+
+	return nil
+}
+
+func (d *Decoder) decodeStruct(v reflect.Value, n int) error {
 	if n == -1 {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
 	}
 
 	fields := structs.Fields(v.Type(), d.structTag)
-	if isArray {
-		for i, f := range fields.List {
-			if i >= n {
-				break
-			}
-			if err := f.DecodeValue(d, v); err != nil {
-				return err
-			}
-		}
-
-		// Skip extra values.
-		for i := len(fields.List); i < n; i++ {
-			if err := d.Skip(); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-
 	for i := 0; i < n; i++ {
 		name, err := d.decodeStringTemp()
 		if err != nil {
@@ -321,9 +324,13 @@ func decodeStructValue(d *Decoder, v reflect.Value) error {
 			if err := f.DecodeValue(d, v); err != nil {
 				return err
 			}
-		} else if d.flags&disallowUnknownFieldsFlag != 0 {
+			continue
+		}
+
+		if d.flags&disallowUnknownFieldsFlag != 0 {
 			return fmt.Errorf("msgpack: unknown field %q", name)
-		} else if err := d.Skip(); err != nil {
+		}
+		if err := d.Skip(); err != nil {
 			return err
 		}
 	}

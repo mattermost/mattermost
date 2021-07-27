@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -80,12 +81,12 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 	}()
 
 	for _, emoji := range emojis {
-		_, err := ss.Emoji().Get(emoji.Id, false)
+		_, err := ss.Emoji().Get(context.Background(), emoji.Id, false)
 		require.NoErrorf(t, err, "failed to get emoji with id %v", emoji.Id)
 	}
 
 	for _, emoji := range emojis {
-		_, err := ss.Emoji().Get(emoji.Id, true)
+		_, err := ss.Emoji().Get(context.Background(), emoji.Id, true)
 		require.NoErrorf(t, err, "failed to get emoji with id %v", emoji.Id)
 	}
 }
@@ -119,7 +120,7 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 	}()
 
 	for _, emoji := range emojis {
-		_, err := ss.Emoji().GetByName(emoji.Name, true)
+		_, err := ss.Emoji().GetByName(context.Background(), emoji.Name, true)
 		require.NoErrorf(t, err, "failed to get emoji with name %v", emoji.Name)
 	}
 }
