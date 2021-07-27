@@ -764,7 +764,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 	user = result.Data.(*model.User)
 
 	if a.Srv().License() != nil && *a.Config().TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly &&
-		channel.Name == model.DEFAULT_CHANNEL && !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		channel.Name == model.DefaultChannelName && !a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
 		return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 

@@ -111,7 +111,7 @@ func (s *Server) doEmojisPermissionsMigration() {
 	mlog.Info("Migrating emojis config to database.")
 
 	// Emoji creation is set to all by default
-	role, err = s.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
+	role, err = s.GetRoleByName(context.Background(), model.SystemUserRoleId)
 	if err != nil {
 		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return

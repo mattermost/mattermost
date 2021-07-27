@@ -2853,7 +2853,7 @@ func (s *ImageProxySettings) SetDefaults() {
 	}
 
 	if s.ImageProxyType == nil {
-		s.ImageProxyType = NewString(IMAGE_PROXY_TYPE_LOCAL)
+		s.ImageProxyType = NewString(ImageProxyTypeLocal)
 	}
 
 	if s.RemoteImageProxyURL == nil {

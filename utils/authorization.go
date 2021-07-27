@@ -8,60 +8,60 @@ import (
 )
 
 func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Config, isLicensed bool) map[string]*model.Role {
-	roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-		roles[model.TEAM_USER_ROLE_ID].Permissions,
-		model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
+	roles[model.TeamUserRoleId].Permissions = append(
+		roles[model.TeamUserRoleId].Permissions,
+		model.PermissionCreatePublicChannel.Id,
 	)
-	roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-		model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+	roles[model.ChannelUserRoleId].Permissions = append(
+		roles[model.ChannelUserRoleId].Permissions,
+		model.PermissionManagePublicChannelProperties.Id,
 	)
-	roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-		model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+	roles[model.ChannelUserRoleId].Permissions = append(
+		roles[model.ChannelUserRoleId].Permissions,
+		model.PermissionDeletePublicChannel.Id,
 	)
-	roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-		roles[model.TEAM_USER_ROLE_ID].Permissions,
-		model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
+	roles[model.TeamUserRoleId].Permissions = append(
+		roles[model.TeamUserRoleId].Permissions,
+		model.PermissionCreatePrivateChannel.Id,
 	)
-	roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-		model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+	roles[model.ChannelUserRoleId].Permissions = append(
+		roles[model.ChannelUserRoleId].Permissions,
+		model.PermissionManagePrivateChannelProperties.Id,
 	)
-	roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-		model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+	roles[model.ChannelUserRoleId].Permissions = append(
+		roles[model.ChannelUserRoleId].Permissions,
+		model.PermissionDeletePrivateChannel.Id,
 	)
-	roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-		model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+	roles[model.ChannelUserRoleId].Permissions = append(
+		roles[model.ChannelUserRoleId].Permissions,
+		model.PermissionManagePrivateChannelMembers.Id,
 	)
-	roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-		roles[model.TEAM_USER_ROLE_ID].Permissions,
-		model.PERMISSION_INVITE_USER.Id,
-		model.PERMISSION_ADD_USER_TO_TEAM.Id,
+	roles[model.TeamUserRoleId].Permissions = append(
+		roles[model.TeamUserRoleId].Permissions,
+		model.PermissionInviteUser.Id,
+		model.PermissionAddUserToTeam.Id,
 	)
-	roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-		model.PERMISSION_DELETE_POST.Id,
+	roles[model.ChannelUserRoleId].Permissions = append(
+		roles[model.ChannelUserRoleId].Permissions,
+		model.PermissionDeletePost.Id,
 	)
-	roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
-		roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
-		model.PERMISSION_DELETE_POST.Id,
-		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+	roles[model.TeamAdminRoleId].Permissions = append(
+		roles[model.TeamAdminRoleId].Permissions,
+		model.PermissionDeletePost.Id,
+		model.PermissionDeleteOthersPosts.Id,
 	)
 
-	roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(
-		roles[model.SYSTEM_USER_ROLE_ID].Permissions,
-		model.PERMISSION_CREATE_TEAM.Id,
+	roles[model.SystemUserRoleId].Permissions = append(
+		roles[model.SystemUserRoleId].Permissions,
+		model.PermissionCreateTeam.Id,
 	)
-	roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-		roles[model.CHANNEL_USER_ROLE_ID].Permissions,
-		model.PERMISSION_EDIT_POST.Id,
+	roles[model.ChannelUserRoleId].Permissions = append(
+		roles[model.ChannelUserRoleId].Permissions,
+		model.PermissionEditPost.Id,
 	)
-	roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions = append(
-		roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions,
-		model.PERMISSION_EDIT_POST.Id,
+	roles[model.SystemAdminRoleId].Permissions = append(
+		roles[model.SystemAdminRoleId].Permissions,
+		model.PermissionEditPost.Id,
 	)
 
 	return roles
