@@ -242,6 +242,8 @@ const (
 	OpenidSettingsDefaultScope    = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
+
+	AlwaysShowTeamSidebar = ""
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -376,6 +378,7 @@ type ServiceSettings struct {
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableLegacySidebar                               *bool   `access:"experimental_features"`
 	EnableReliableWebSockets                          *bool   `access:"experimental_features"` // telemetry: none
+	AlwaysShowTeamSidebar                             *bool   `access:"experimental_features"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -824,6 +827,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableReliableWebSockets == nil {
 		s.EnableReliableWebSockets = NewBool(true)
+	}
+
+	if s.AlwaysShowTeamSidebar == nil {
+		s.AlwaysShowTeamSidebar = NewBool(true)
 	}
 }
 
