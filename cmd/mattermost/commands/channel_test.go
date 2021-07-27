@@ -320,7 +320,7 @@ func TestModifyChannel(t *testing.T) {
 
 	th.CheckCommand(t, "channel", "modify", "--public", th.BasicTeam.Name+":"+channel1.Name, "--username", th.BasicUser2.Email)
 	res, err := th.App.Srv().Store.Channel().Get(channel1.Id, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, model.CHANNEL_OPEN, res.Type)
 
 	// should fail because user doesn't exist
@@ -331,7 +331,7 @@ func TestModifyChannel(t *testing.T) {
 
 	th.CheckCommand(t, "channel", "modify", "--private", th.BasicTeam.Name+":"+pchannel1.Name, "--username", th.BasicUser2.Email)
 	res, err = th.App.Srv().Store.Channel().Get(pchannel1.Id, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, model.CHANNEL_PRIVATE, res.Type)
 
 	// should fail because user doesn't exist

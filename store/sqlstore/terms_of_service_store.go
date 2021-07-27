@@ -31,9 +31,6 @@ func newSqlTermsOfServiceStore(sqlStore *SqlStore, metrics einterfaces.MetricsIn
 	return s
 }
 
-func (s SqlTermsOfServiceStore) createIndexesIfNotExists() {
-}
-
 func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
 	if termsOfService.Id != "" {
 		return nil, store.NewErrInvalidInput("TermsOfService", "Id", termsOfService.Id)
@@ -55,8 +52,18 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	var termsOfService *model.TermsOfService
 
-	err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM TermsOfService ORDER BY CreateAt DESC LIMIT 1")
+	query := s.getQueryBuilder().
+		Select("*").
+		From("TermsOfService").
+		OrderBy("CreateAt DESC").
+		Limit(uint64(1))
+
+	queryString, args, err := query.ToSql()
 	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get latest TOS")
+	}
+
+	if err := s.GetReplica().SelectOne(&termsOfService, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "CreateAt=latest")
 		}

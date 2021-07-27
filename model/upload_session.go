@@ -42,6 +42,10 @@ type UploadSession struct {
 	// The amount of received data in bytes. If equal to FileSize it means the
 	// upload has finished.
 	FileOffset int64 `json:"file_offset"`
+	// Id of remote cluster if uploading for shared channel
+	RemoteId string `json:"remote_id"`
+	// Requested file id if uploading for shared channel
+	ReqFileId string `json:"req_file_id"`
 }
 
 // ToJson serializes the UploadSession into JSON and returns it as string.

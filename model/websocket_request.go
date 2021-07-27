@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"io"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 // WebSocketRequest represents a request made to the server through a websocket.
@@ -18,9 +18,9 @@ type WebSocketRequest struct {
 	Data   map[string]interface{} `json:"data"`   // The metadata for an action.
 
 	// Server-provided fields
-	Session Session              `json:"-"`
-	T       goi18n.TranslateFunc `json:"-"`
-	Locale  string               `json:"-"`
+	Session Session            `json:"-"`
+	T       i18n.TranslateFunc `json:"-"`
+	Locale  string             `json:"-"`
 }
 
 func (o *WebSocketRequest) ToJson() string {

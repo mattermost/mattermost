@@ -3,7 +3,7 @@ package conf
 import (
 	"strings"
 
-	"github.com/splitio/go-split-commons/v2/conf"
+	"github.com/splitio/go-split-commons/v3/conf"
 )
 
 // NormalizeSDKConf compares against SDK Config to set defaults
@@ -41,6 +41,9 @@ func NormalizeSDKConf(sdkConfig AdvancedConfig) conf.AdvancedConfig {
 	}
 	if strings.TrimSpace(sdkConfig.StreamingServiceURL) != "" {
 		config.StreamingServiceURL = sdkConfig.StreamingServiceURL
+	}
+	if strings.TrimSpace(sdkConfig.TelemetryServiceURL) != "" {
+		config.TelemetryServiceURL = sdkConfig.TelemetryServiceURL
 	}
 	config.StreamingEnabled = sdkConfig.StreamingEnabled
 

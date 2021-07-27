@@ -12,8 +12,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func (w *Web) InitWebhooks() {
@@ -49,7 +49,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging {
 			if c.Err != nil {
-				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.App.RequestId()), mlog.String("payload", incomingWebhookPayload.ToJson()))
+				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId()), mlog.String("payload", incomingWebhookPayload.ToJson()))
 			}
 		}
 	}()
@@ -85,7 +85,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)
+	err = c.App.HandleIncomingWebhook(c.AppContext, id, incomingWebhookPayload)
 	if err != nil {
 		c.Err = err
 		return
@@ -105,7 +105,7 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.HandleCommandWebhook(id, response)
+	appErr := c.App.HandleCommandWebhook(c.AppContext, id, response)
 	if appErr != nil {
 		c.Err = appErr
 		return
