@@ -665,12 +665,6 @@ func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppErro
 		return err
 	}
 
-	if storedData, err := api.app.ReadFile("users/" + userID + "/profile.png"); err == nil {
-		if buf, err := api.app.AdjustImage(bytes.NewReader(data)); err == nil && bytes.Equal(storedData, buf.Bytes()) {
-			return nil
-		}
-	}
-
 	return api.app.SetProfileImageFromFile(userID, bytes.NewReader(data))
 }
 
@@ -954,14 +948,6 @@ func (api *PluginAPI) GetBotIconImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetBotIconImage(userID string, data []byte) *model.AppError {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return err
-	}
-
-	if storedData, err := api.app.ReadFile("bots/" + userID + "/icon.svg"); err == nil && bytes.Equal(storedData, data) {
-		return nil
-	}
-
 	return api.app.SetBotIconImage(userID, bytes.NewReader(data))
 }
 

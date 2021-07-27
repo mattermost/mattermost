@@ -212,6 +212,10 @@
     "translation": "Could not parse multipart form."
   },
   {
+    "id": "api.bot.set_bot_icon_image.read.app_error",
+    "translation": "Could not read image data."
+  },
+  {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
     "translation": "Unable to upload icon image. File is too large."
   },
