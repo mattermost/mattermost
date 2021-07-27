@@ -15,7 +15,7 @@ func TestGetEmoji(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetEmoji", "1").Return(&model.Emoji{Id: "2"}, nil)
 
@@ -27,7 +27,7 @@ func TestGetEmoji(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		appErr := newAppError()
 
@@ -43,7 +43,7 @@ func TestGetEmojiByName(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetEmojiByName", "1").Return(&model.Emoji{Id: "2"}, nil)
 
@@ -55,7 +55,7 @@ func TestGetEmojiByName(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		appErr := newAppError()
 
@@ -71,7 +71,7 @@ func TestGetEmojiImage(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetEmojiImage", "1").Return([]byte{1}, "jpg", nil)
 
@@ -86,7 +86,7 @@ func TestGetEmojiImage(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		appErr := newAppError()
 
@@ -103,7 +103,7 @@ func TestListEmojis(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetEmojiList", "1", 2, 3).Return([]*model.Emoji{
 			{Id: "4"},
@@ -118,7 +118,7 @@ func TestListEmojis(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		appErr := newAppError()
 

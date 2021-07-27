@@ -138,7 +138,7 @@ func TestKVSet(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			api := &plugintest.API{}
-			client := pluginapi.NewClient(api)
+			client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 			api.On("KVSetWithOptions", test.key, test.expectedValue, test.expectedOptions).Return(test.upserted, test.err)
 
@@ -158,7 +158,7 @@ func TestKVSet(t *testing.T) {
 func TestSetWithExpiry(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	api.On("KVSetWithOptions", "1", []byte(`2`), model.PluginKVSetOptions{
 		ExpireInSeconds: 60,
@@ -171,7 +171,7 @@ func TestSetWithExpiry(t *testing.T) {
 func TestCompareAndSet(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	api.On("KVSetWithOptions", "1", []byte("2"), model.PluginKVSetOptions{
 		Atomic:   true,
@@ -186,7 +186,7 @@ func TestCompareAndSet(t *testing.T) {
 func TestCompareAndDelete(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	api.On("KVSetWithOptions", "1", []byte(nil), model.PluginKVSetOptions{
 		Atomic:   true,
@@ -442,7 +442,7 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			api := &plugintest.API{}
 			defer api.AssertExpectations(t)
-			client := pluginapi.NewClient(api)
+			client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 			tt.setupAPI(api)
 
@@ -462,7 +462,7 @@ func TestSetAtomicWithRetries(t *testing.T) {
 func TestGet(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	aStringJSON, _ := json.Marshal("2")
 
@@ -477,7 +477,7 @@ func TestGet(t *testing.T) {
 func TestGetNilKey(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	api.On("KVGet", "1").Return(nil, nil)
 
@@ -490,7 +490,7 @@ func TestGetNilKey(t *testing.T) {
 func TestGetInBytes(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	api.On("KVGet", "1").Return([]byte{2}, nil)
 
@@ -504,7 +504,7 @@ func TestGetInBytes(t *testing.T) {
 func TestDelete(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	api.On("KVSetWithOptions", "1", []byte(nil), model.PluginKVSetOptions{}).Return(true, nil)
 
@@ -515,7 +515,7 @@ func TestDelete(t *testing.T) {
 func TestDeleteAll(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	api.On("KVDeleteAll").Return(nil)
 
@@ -527,7 +527,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("No keys", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return(nil, nil)
 
@@ -540,7 +540,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("Basic Success, one page", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 1, 2).Return(getKeys(2), nil)
 
@@ -552,7 +552,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("success, two page, filter prefix, one", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return(getKeys(100), nil)
 
@@ -564,7 +564,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("success, two page, filter prefix, all", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return(getKeys(100), nil)
 
@@ -576,7 +576,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("success, two page, filter prefix, none", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return(getKeys(100), nil)
 
@@ -588,7 +588,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("success, two page, checker func, one", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return(getKeys(100), nil)
 
@@ -607,7 +607,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("success, two page, checker func, all", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return(getKeys(100), nil)
 
@@ -623,7 +623,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("success, two page, checker func, none", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return(getKeys(100), nil)
 
@@ -639,7 +639,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("error, checker func", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return([]string{"key1"}, nil)
 
@@ -655,7 +655,7 @@ func TestListKeys(t *testing.T) {
 	t.Run("success, filter and checker func, partial on both", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("KVList", 0, 100).Return([]string{"key1", "key2", "notkey3", "key4", "key5"}, nil)
 

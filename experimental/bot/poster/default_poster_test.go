@@ -22,7 +22,8 @@ const (
 func TestInterface(t *testing.T) {
 	t.Run("Plugin API satisfy the interface", func(t *testing.T) {
 		api := &plugintest.API{}
-		client := pluginapi.NewClient(api)
+		driver := &plugintest.Driver{}
+		client := pluginapi.NewClient(api, driver)
 		_ = NewPoster(&client.Post, botID)
 	})
 }
