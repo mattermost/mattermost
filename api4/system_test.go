@@ -734,7 +734,7 @@ func TestServerBusy503(t *testing.T) {
 }
 
 func TestPushNotificationAck(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()
