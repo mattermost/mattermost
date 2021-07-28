@@ -105,7 +105,7 @@ func (s SearchFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error)
 func (s SearchFileInfoStore) SetContent(fileID, content string) error {
 	err := s.FileInfoStore.SetContent(fileID, content)
 	if err == nil {
-		nfile, err2 := s.FileInfoStore.Get(fileID)
+		nfile, err2 := s.FileInfoStore.GetFromMaster(fileID)
 		if err2 == nil {
 			nfile.Content = content
 			s.indexFile(nfile)
@@ -117,7 +117,7 @@ func (s SearchFileInfoStore) SetContent(fileID, content string) error {
 func (s SearchFileInfoStore) AttachToPost(fileId, postId, creatorId string) error {
 	err := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
 	if err == nil {
-		nFileInfo, err2 := s.FileInfoStore.Get(fileId)
+		nFileInfo, err2 := s.FileInfoStore.GetFromMaster(fileId)
 		if err2 == nil {
 			s.indexFile(nFileInfo)
 		}

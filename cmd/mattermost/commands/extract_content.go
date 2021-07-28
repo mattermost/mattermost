@@ -16,14 +16,22 @@ import (
 var ExtractContentCmd = &cobra.Command{
 	Use:     "extract-documents-content",
 	Short:   "Extracts the documents content",
-	Long:    "Extracts the documents content and stores it in the database for document searche",
+	Long:    "Extracts the documents content and stores it in the database for document search",
 	Example: "extract-documents-content --from=12345",
 	RunE:    extractContentCmdF,
 }
 
+var ignoredFiles map[string]bool
+
 func init() {
+	ignoredFiles = map[string]bool{
+		"png": true, "jpg": true, "jpeg": true, "gif": true, "wmv": true,
+		"mpg": true, "mpeg": true, "mp3": true, "mp4": true, "ogg": true,
+		"ogv": true, "mov": true, "apk": true, "svg": true, "webm": true,
+		"mkv": true,
+	}
 	ExtractContentCmd.Flags().Int64("from", 0, "The timestamp of the earliest file to extract, expressed in seconds since the unix epoch.")
-	ExtractContentCmd.Flags().Int64("to", model.GetMillis(), "The timestamp of the latest file to extract, expressed in seconds since the unix epoch.")
+	ExtractContentCmd.Flags().Int64("to", model.GetMillis()/1000, "The timestamp of the latest file to extract, expressed in seconds since the unix epoch.")
 	RootCmd.AddCommand(ExtractContentCmd)
 }
 
@@ -34,7 +42,7 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	if !*a.Config().FileSettings.ExtractContent || !a.Config().FeatureFlags.FilesSearch {
+	if !*a.Config().FileSettings.ExtractContent {
 		return errors.New("ERROR: Document extraction is not enabled")
 	}
 
@@ -54,7 +62,7 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 		return errors.New("\"to\" must be greater than from")
 	}
 
-	since := startTime
+	since := startTime * 1000
 	for {
 		opts := model.GetFileInfosOptions{
 			Since:          since,
@@ -69,14 +77,16 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 			break
 		}
 		for _, fileInfo := range fileInfos {
-			fmt.Println("extracting file", fileInfo.Name, fileInfo.Path)
-			err = a.ExtractContentFromFileInfo(fileInfo)
-			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", fileInfo.Id))
+			if !ignoredFiles[fileInfo.Extension] {
+				fmt.Println("extracting file", fileInfo.Name, fileInfo.Path)
+				err = a.ExtractContentFromFileInfo(fileInfo)
+				if err != nil {
+					mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", fileInfo.Id))
+				}
 			}
 		}
 		lastFileInfo := fileInfos[len(fileInfos)-1]
-		if lastFileInfo.CreateAt > endTime {
+		if lastFileInfo.CreateAt > endTime*1000 {
 			break
 		}
 		since = lastFileInfo.CreateAt + 1

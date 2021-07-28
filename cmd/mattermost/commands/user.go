@@ -13,8 +13,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 )
 
 var UserCmd = &cobra.Command{
@@ -305,7 +307,7 @@ func changeUserActiveStatus(a *app.App, user *model.User, userArg string, activa
 	if user.IsSSOUser() {
 		fmt.Println("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
 	}
-	updatedUser, err := a.UpdateActive(user, activate)
+	updatedUser, err := a.UpdateActive(&request.Context{}, user, activate)
 	if err != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
@@ -371,7 +373,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		Locale:    locale,
 	}
 
-	ruser, err := a.CreateUser(user)
+	ruser, err := a.CreateUser(&request.Context{}, user)
 	if ruser == nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
@@ -479,7 +481,7 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 		user.Locale = locale
 	}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !app.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !users.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		return nil, errors.New("The email does not belong to an accepted domain.")
 	}
 
@@ -775,7 +777,7 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 				return err
 			}
 		} else {
-			if err := a.PermanentDeleteUser(user); err != nil {
+			if err := a.PermanentDeleteUser(&request.Context{}, user); err != nil {
 				return err
 			}
 		}
@@ -816,7 +818,7 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := a.PermanentDeleteAllUsers(); err != nil {
+	if err := a.PermanentDeleteAllUsers(&request.Context{}); err != nil {
 		return err
 	}
 	CommandPrettyPrintln("All user accounts successfully deleted.")

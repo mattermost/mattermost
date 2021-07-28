@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS teammembers (
     PRIMARY KEY (teamid, userid)
 );
 
-CREATE INDEX IF NOT EXISTS idx_teammembers_team_id ON TeamMembers (teamid);
 CREATE INDEX IF NOT EXISTS idx_teammembers_user_id ON TeamMembers (userid);
 CREATE INDEX IF NOT EXISTS idx_teammembers_delete_at ON TeamMembers (deleteat);
 

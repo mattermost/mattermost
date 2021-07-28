@@ -13,24 +13,21 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type Web struct {
-	GetGlobalAppOptions app.AppOptionCreator
-	ConfigService       configservice.ConfigService
-	MainRouter          *mux.Router
+	app        app.AppIface
+	MainRouter *mux.Router
 }
 
-func New(config configservice.ConfigService, globalOptions app.AppOptionCreator, root *mux.Router) *Web {
+func New(a app.AppIface, root *mux.Router) *Web {
 	mlog.Debug("Initializing web routes")
 
 	web := &Web{
-		GetGlobalAppOptions: globalOptions,
-		ConfigService:       config,
-		MainRouter:          root,
+		app:        a,
+		MainRouter: root,
 	}
 
 	web.InitOAuth()
@@ -60,24 +57,24 @@ func CheckClientCompatibility(agentString string) bool {
 	return true
 }
 
-func Handle404(config configservice.ConfigService, w http.ResponseWriter, r *http.Request) {
+func Handle404(a app.AppIface, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-	ipAddress := utils.GetIPAddress(r, config.Config().ServiceSettings.TrustedProxyIPHeader)
+	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
 	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
-	if IsApiCall(config, r) {
+	if IsApiCall(a, r) {
 		w.WriteHeader(err.StatusCode)
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
-	} else if *config.Config().ServiceSettings.WebserverMode == "disabled" {
+	} else if *a.Config().ServiceSettings.WebserverMode == "disabled" {
 		http.NotFound(w, r)
 	} else {
-		utils.RenderWebAppError(config.Config(), w, r, err, config.AsymmetricSigningKey())
+		utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
 	}
 }
 
-func IsApiCall(config configservice.ConfigService, r *http.Request) bool {
-	subpath, _ := utils.GetSubpathFromConfig(config.Config())
+func IsApiCall(a app.AppIface, r *http.Request) bool {
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "api")+"/")
 }
@@ -88,8 +85,8 @@ func IsWebhookCall(a app.AppIface, r *http.Request) bool {
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "hooks")+"/")
 }
 
-func IsOAuthApiCall(config configservice.ConfigService, r *http.Request) bool {
-	subpath, _ := utils.GetSubpathFromConfig(config.Config())
+func IsOAuthApiCall(a app.AppIface, r *http.Request) bool {
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	if r.Method == "POST" && r.URL.Path == path.Join(subpath, "oauth", "authorize") {
 		return true

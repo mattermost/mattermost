@@ -282,6 +282,28 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 	a.SaveAndBroadcastStatus(status)
 }
 
+// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
+// and sets status of given userId to dnd which will be restored back after endtime
+func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	status, err := a.GetStatus(userId)
+
+	if err != nil {
+		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	}
+
+	status.PrevStatus = status.Status
+	status.Status = model.STATUS_DND
+	status.Manual = true
+
+	status.DNDEndTime = endtime
+
+	a.SaveAndBroadcastStatus(status)
+}
+
 func (a *App) SetStatusDoNotDisturb(userID string) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
@@ -363,6 +385,21 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *a.Config().TeamSettings.UserStatusAwayTimeout*1000
+}
+
+// UpdateDNDStatusOfUsers is a recurring task which is started when server starts
+// which unsets dnd status of users if needed and saves and broadcasts it
+func (a *App) UpdateDNDStatusOfUsers() {
+	mlog.Debug("UpdateDNDStatusOfUsers: scheduled run started")
+	statuses, err := a.UpdateExpiredDNDStatuses()
+	if err != nil {
+		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
+		return
+	}
+	for i := range statuses {
+		a.AddStatusCache(statuses[i])
+		a.BroadcastStatus(statuses[i])
+	}
 }
 
 func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {

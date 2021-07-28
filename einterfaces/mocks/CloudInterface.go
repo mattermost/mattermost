@@ -14,6 +14,29 @@ type CloudInterface struct {
 	mock.Mock
 }
 
+// ChangeSubscription provides a mock function with given fields: userID, subscriptionID, subscriptionChange
+func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error) {
+	ret := _m.Called(userID, subscriptionID, subscriptionChange)
+
+	var r0 *model.Subscription
+	if rf, ok := ret.Get(0).(func(string, string, *model.SubscriptionChange) *model.Subscription); ok {
+		r0 = rf(userID, subscriptionID, subscriptionChange)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Subscription)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, *model.SubscriptionChange) error); ok {
+		r1 = rf(userID, subscriptionID, subscriptionChange)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ConfirmCustomerPayment provides a mock function with given fields: userID, confirmRequest
 func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error {
 	ret := _m.Called(userID, confirmRequest)

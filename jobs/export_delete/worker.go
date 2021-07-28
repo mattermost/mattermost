@@ -15,7 +15,8 @@ import (
 )
 
 func init() {
-	app.RegisterJobsExportDeleteInterface(func(a *app.App) tjobs.ExportDeleteInterface {
+	app.RegisterJobsExportDeleteInterface(func(s *app.Server) tjobs.ExportDeleteInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ExportDeleteInterfaceImpl{a}
 	})
 }

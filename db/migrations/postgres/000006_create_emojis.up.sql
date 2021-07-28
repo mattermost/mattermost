@@ -11,7 +11,5 @@ CREATE TABLE IF NOT EXISTS emoji (
 CREATE INDEX IF NOT EXISTS idx_emoji_update_at ON emoji (updateat);
 CREATE INDEX IF NOT EXISTS idx_emoji_create_at ON emoji (createat);
 CREATE INDEX IF NOT EXISTS idx_emoji_delete_at ON emoji (deleteat);
-CREATE INDEX IF NOT EXISTS idx_emoji_name ON emoji (name);
 
 DROP INDEX IF EXISTS Name_2;
-
