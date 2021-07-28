@@ -2348,7 +2348,7 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "reply with mention @" + user2.Username}, channel, false, false)
 	require.Nil(t, err)
 
-	// User2 should now be following the thread because they were explicity mentioned
+	// User2 should now be following the thread because they were explicitly mentioned
 	m, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, err)
 	require.True(t, m.Following)
