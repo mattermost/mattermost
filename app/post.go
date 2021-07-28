@@ -1554,3 +1554,27 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error) {
 	return a.Srv().Store.Thread().GetMembershipsForUser(userID, teamID)
 }
+
+func (a *App) GetPostIfAuthorized(postID string, session *model.Session) (*model.Post, *model.AppError) {
+	post, err := a.GetSinglePost(postID)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !a.SessionHasPermissionToChannel(*session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+		if channel.Type == model.CHANNEL_OPEN {
+			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+				return nil, a.MakePermissionError([]*model.Permission{model.PERMISSION_READ_PUBLIC_CHANNEL})
+			}
+		} else {
+			return nil, a.MakePermissionError([]*model.Permission{model.PERMISSION_READ_CHANNEL})
+		}
+	}
+
+	return post, nil
+}
