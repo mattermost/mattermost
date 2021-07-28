@@ -4,16 +4,17 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 var writeFilter func(c *Context, structField reflect.StructField) bool
@@ -69,8 +70,10 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -173,8 +176,11 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -291,8 +297,11 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

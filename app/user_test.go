@@ -17,13 +17,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/v5/model/gitlab"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/gitlab"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -1535,5 +1535,44 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, threadMembership)
 		assert.True(t, threadMembership.Following)
+	})
+}
+
+func TestCreateUserWithInitialPreferences(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		testUser := th.CreateUser()
+		defer th.App.PermanentDeleteUser(th.Context, testUser)
+
+		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		require.Nil(t, appErr)
+
+		tutorialStepPref := preferences[1]
+		recommendedNextStepsPref := preferences[0]
+
+		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
+		assert.Equal(t, recommendedNextStepsPref.Category, model.PreferenceRecommendedNextSteps)
+		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
+		assert.Equal(t, recommendedNextStepsPref.Value, "false")
+	})
+
+	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		testUser := th.CreateGuest()
+		defer th.App.PermanentDeleteUser(th.Context, testUser)
+
+		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		require.Nil(t, appErr)
+
+		assert.Equal(t, testUser.Id, preferences[0].UserId)
+		assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+		assert.Equal(t, "hide", preferences[0].Name)
+		assert.Equal(t, "false", preferences[0].Value)
+
+		assert.Equal(t, testUser.Id, preferences[1].UserId)
+		assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+		assert.Equal(t, testUser.Id, preferences[1].Name)
+		assert.Equal(t, "0", preferences[1].Value)
 	})
 }

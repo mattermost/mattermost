@@ -4,19 +4,19 @@
 package slashcommands
 
 import (
-	"strings"
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestShareProviderDoCommand(t *testing.T) {
@@ -50,7 +50,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		require.Equal(t, "##### "+args.T("api.command_share.channel_shared"), response.Text)
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
-			event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
+			event := model.WebSocketEventFromJson(bytes.NewReader(msg.Data))
 			return event != nil && event.EventType() == model.WebsocketEventChannelConverted
 		})
 		assert.Len(t, channelConvertedMessages, 1)
@@ -85,7 +85,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		require.Equal(t, "##### "+args.T("api.command_share.shared_channel_unavailable"), response.Text)
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
-			event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
+			event := model.WebSocketEventFromJson(bytes.NewReader(msg.Data))
 			return event != nil && event.EventType() == model.WebsocketEventChannelConverted
 		})
 		require.Len(t, channelConvertedMessages, 1)

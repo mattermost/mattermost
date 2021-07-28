@@ -4,8 +4,10 @@
 package localcachelayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"bytes"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type LocalCacheReactionStore struct {
@@ -14,10 +16,10 @@ type LocalCacheReactionStore struct {
 }
 
 func (s *LocalCacheReactionStore) handleClusterInvalidateReaction(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.reactionCache.Purge()
 	} else {
-		s.rootStore.reactionCache.Remove(msg.Data)
+		s.rootStore.reactionCache.Remove(string(msg.Data))
 	}
 }
 

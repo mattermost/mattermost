@@ -4,9 +4,11 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitStatus() {
@@ -41,7 +43,9 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(statusMap[0].ToJson()))
+	if err := json.NewEncoder(w).Encode(statusMap[0]); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {

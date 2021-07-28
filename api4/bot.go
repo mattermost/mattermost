@@ -11,8 +11,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitBot() {
@@ -74,7 +75,9 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("bot", createdBot) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(createdBot.ToJson())
+	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -109,7 +112,9 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("bot", updatedBot)
 
-	w.Write(updatedBot.ToJson())
+	if err := json.NewEncoder(w).Encode(updatedBot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -148,7 +153,9 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(bot.ToJson())
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -183,7 +190,9 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(bots.ToJson())
+	if err := json.NewEncoder(w).Encode(bots); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func disableBot(c *Context, w http.ResponseWriter, _ *http.Request) {
@@ -220,7 +229,9 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	auditRec.Success()
 	auditRec.AddMeta("bot", bot)
 
-	w.Write(bot.ToJson())
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
@@ -258,7 +269,9 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("bot", bot)
 
-	w.Write(bot.ToJson())
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -423,5 +436,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("convertedTo", user)
 
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

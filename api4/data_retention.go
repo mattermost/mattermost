@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitDataRetention() {
@@ -302,8 +302,9 @@ func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
-	props := model.ChannelSearchFromJson(r.Body)
-	if props == nil {
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil {
 		c.SetInvalidParam("channel_search")
 		return
 	}

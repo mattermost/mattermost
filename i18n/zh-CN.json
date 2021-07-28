@@ -2176,24 +2176,8 @@
     "translation": "无法发送帐号注销邮件"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "无法发送电子邮件通知电子邮件"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "无法发送用户名更改通知邮件"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "无法发送电子邮件更改验证电子邮件"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "无法发送 MFA 更改邮件通知。"
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "无法发送更新密码电子邮件"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2208,16 +2192,8 @@
     "translation": "无法发送更新密码电子邮件"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "发送邮件 \"已添加个人访问令牌\" 失败"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "无法发送验证电子邮件"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "无法成功发送欢迎电子邮件"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -8356,10 +8332,6 @@
     "translation": "请求缺少 AuthData 或 AuthService 参数。"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "给管理员发送用户限制通知邮件失败"
-  },
-  {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "从发现文档检索端点时出错。"
   },
@@ -9084,5 +9056,25 @@
   {
     "id": "api.command_share.remote_id.help",
     "translation": "现有安全连接 ID。请参阅 `secure-connection`命令以添加安全连接。"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "立刻更新"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "您的 Mattermost 14 天免费试用即将结束"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost 云试用结束"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "添加付款方式"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "您的 Mattermost 14 天免费试用已于今天结束"
   }
 ]

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -13,7 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -621,7 +623,9 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rc := &model.CommandResponse{}
 
-		w.Write([]byte(rc.ToJson()))
+		if err := json.NewEncoder(w).Encode(rc); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	}))
 	defer ts.Close()
 
@@ -699,7 +703,9 @@ func TestExecuteGetCommand(t *testing.T) {
 		require.Equal(t, "ourCommand", values.Get("cmd"))
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(expectedCommandResponse.ToJson()))
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	}))
 	defer ts.Close()
 
@@ -757,7 +763,9 @@ func TestExecutePostCommand(t *testing.T) {
 		require.Equal(t, th.BasicTeam.Name, r.FormValue("team_domain"))
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(expectedCommandResponse.ToJson()))
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	}))
 	defer ts.Close()
 
@@ -809,7 +817,9 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(expectedCommandResponse.ToJson()))
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	}))
 	defer ts.Close()
 
@@ -858,7 +868,9 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(expectedCommandResponse.ToJson()))
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	}))
 	defer ts.Close()
 
@@ -915,7 +927,9 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(expectedCommandResponse.ToJson()))
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	}))
 	defer ts.Close()
 
@@ -977,7 +991,9 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 		require.Equal(t, team2.Name, r.FormValue("team_domain"))
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(expectedCommandResponse.ToJson()))
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	}))
 	defer ts.Close()
 

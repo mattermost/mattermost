@@ -13,10 +13,10 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/pkg/errors"
 )
 
@@ -171,7 +171,9 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec.AddMeta("plugin_desc", manifest.Description)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(manifest.ToJson()))
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -191,7 +193,9 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(response.ToJson()))
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -211,7 +215,9 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(response.ToJson()))
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -395,7 +401,9 @@ func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, forc
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(manifest.ToJson()))
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -453,5 +461,7 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 	}
 
 	auditRec.Success()
-	w.Write([]byte(firstAdminVisitMarketplaceObj.ToJson()))
+	if err := json.NewEncoder(w).Encode(firstAdminVisitMarketplaceObj); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

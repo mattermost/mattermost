@@ -13,12 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (api *API) InitUser() {
@@ -176,7 +176,9 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", ruser) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(ruser.ToJson()))
+	if err := json.NewEncoder(w).Encode(ruser); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -228,7 +230,9 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -288,7 +292,9 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	}
 	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -337,7 +343,9 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -546,7 +554,9 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(stats.ToJson()))
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -608,7 +618,9 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(stats.ToJson()))
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1069,7 +1081,9 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result
 	}
 
-	w.Write([]byte((autocomplete.ToJson())))
+	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1147,7 +1161,9 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("update", ruser)
 	c.LogAudit("")
 
-	w.Write([]byte(ruser.ToJson()))
+	if err := json.NewEncoder(w).Encode(ruser); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1224,7 +1240,9 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("patch", ruser)
 	c.LogAudit("")
 
-	w.Write([]byte(ruser.ToJson()))
+	if err := json.NewEncoder(w).Encode(ruser); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1458,7 +1476,9 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("auth_service", user.AuthService)
 	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
 
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // Deprecated: checkUserMfa is deprecated and should not be used anymore, starting with version 6.0 it will be disabled.
@@ -1575,7 +1595,9 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
-	w.Write([]byte(secret.ToJson()))
+	if err := json.NewEncoder(w).Encode(secret); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1841,7 +1863,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	user.Sanitize(map[string]bool{})
 
 	auditRec.Success()
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2105,7 +2129,9 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
-	w.Write([]byte(audits.ToJson()))
+	if err := json.NewEncoder(w).Encode(audits); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2265,7 +2291,9 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("token_id", accessToken.Id)
 	c.LogAudit("success - token_id=" + accessToken.Id)
 
-	w.Write([]byte(accessToken.ToJson()))
+	if err := json.NewEncoder(w).Encode(accessToken); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2355,7 +2383,9 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(accessToken.ToJson()))
+	if err := json.NewEncoder(w).Encode(accessToken); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2539,7 +2569,9 @@ func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	w.Write([]byte(result.ToJson()))
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2687,7 +2719,9 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 	c.LogAudit("user verified")
 
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2885,7 +2919,9 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(thread.ToJson()))
+	if err := json.NewEncoder(w).Encode(thread); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2950,7 +2986,9 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(threads.ToJson()))
+	if err := json.NewEncoder(w).Encode(threads); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2976,7 +3014,9 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	w.Write([]byte(thread.ToJson()))
+	if err := json.NewEncoder(w).Encode(thread); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 
 	auditRec.Success()
 }

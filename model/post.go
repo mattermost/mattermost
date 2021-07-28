@@ -14,7 +14,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/shared/markdown"
+	"github.com/mattermost/mattermost-server/v6/shared/markdown"
 )
 
 const (
@@ -92,7 +92,7 @@ type Post struct {
 	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
 	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
-	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
+	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`

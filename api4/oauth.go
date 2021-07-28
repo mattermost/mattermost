@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitOAuth() {
@@ -55,7 +57,9 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("client_id=" + rapp.Id)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rapp.ToJson()))
+	if err := json.NewEncoder(w).Encode(rapp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -112,7 +116,9 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("update", updatedOAuthApp)
 	c.LogAudit("success")
 
-	w.Write([]byte(updatedOAuthApp.ToJson()))
+	if err := json.NewEncoder(w).Encode(updatedOAuthApp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -162,7 +168,9 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(oauthApp.ToJson()))
+	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -178,7 +186,9 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	oauthApp.Sanitize()
-	w.Write([]byte(oauthApp.ToJson()))
+	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -257,7 +267,9 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(oauthApp.ToJson()))
+	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {

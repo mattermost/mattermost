@@ -4,12 +4,14 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitCommand() {
@@ -56,7 +58,9 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("command", rcmd)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rcmd.ToJson()))
+	if err := json.NewEncoder(w).Encode(rcmd); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -111,7 +115,9 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(rcmd.ToJson()))
+	if err := json.NewEncoder(w).Encode(rcmd); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -284,7 +290,9 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetCommandNotFoundError()
 		return
 	}
-	w.Write([]byte(cmd.ToJson()))
+	if err := json.NewEncoder(w).Encode(cmd); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -344,7 +352,9 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.Write([]byte(response.ToJson()))
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -8,11 +8,11 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mfa"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mfa"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type UserCreateOptions struct {
@@ -216,7 +216,7 @@ func (us *UserService) InvalidateCacheForUser(userID string) {
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventInvalidateCacheForUser,
 			SendType: model.ClusterSendBestEffort,
-			Data:     userID,
+			Data:     []byte(userID),
 		}
 		us.cluster.SendClusterMessage(msg)
 	}

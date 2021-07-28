@@ -17,11 +17,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/upgrader"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/cache"
+	"github.com/mattermost/mattermost-server/v6/services/upgrader"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -260,7 +260,9 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
-	w.Write([]byte(audits.ToJson()))
+	if err := json.NewEncoder(w).Encode(audits); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -397,7 +399,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(rows.ToJson()))
+	if err := json.NewEncoder(w).Encode(rows); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -539,7 +543,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.Write([]byte(msg.ToJson()))
+		if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err2))
+		}
 
 		return
 	} else if err != nil {
@@ -600,7 +606,12 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
-	w.Write([]byte(c.App.Srv().Busy.ToJson()))
+
+	// We call to ToJson because it actually returns a different struct
+	// along with doing some computations.
+	if _, err := w.Write([]byte(c.App.Srv().Busy.ToJson())); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {

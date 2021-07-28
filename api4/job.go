@@ -4,14 +4,15 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitJob() {
@@ -45,7 +46,9 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(job.ToJson()))
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -132,7 +135,9 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("job", job) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(job.ToJson()))
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {

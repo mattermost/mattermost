@@ -10,8 +10,9 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitSaml() {
@@ -230,7 +231,9 @@ func getSamlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	status := c.App.GetSamlCertificateStatus()
-	w.Write([]byte(status.ToJson()))
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -252,7 +255,9 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(metadata.ToJson()))
+	if err := json.NewEncoder(w).Encode(metadata); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {

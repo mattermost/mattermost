@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var notAllowedPermissions = []string{
@@ -35,7 +37,9 @@ func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(role.ToJson()))
+	if err := json.NewEncoder(w).Encode(role); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -50,7 +54,9 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(role.ToJson()))
+	if err := json.NewEncoder(w).Encode(role); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -167,5 +173,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("patch", role)
 	c.LogAudit("")
 
-	w.Write([]byte(role.ToJson()))
+	if err := json.NewEncoder(w).Encode(role); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetConfig(t *testing.T) {
@@ -770,11 +770,11 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStoreFromDSN("from.json", false, false, nil)
+		f, err := config.NewStoreFromDSN("from.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStoreFromDSN("to.json", false, false, nil)
+		_, err = config.NewStoreFromDSN("to.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 

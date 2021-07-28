@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -241,7 +241,7 @@ func (a *App) invalidateCacheForChannelMembersNotifyProps(channelID string) {
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventInvalidateCacheForChannelMembersNotifyProps,
 			SendType: model.ClusterSendBestEffort,
-			Data:     channelID,
+			Data:     []byte(channelID),
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}
@@ -266,7 +266,7 @@ func (a *App) invalidateCacheForUserTeams(userID string) {
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventInvalidateCacheForUserTeams,
 			SendType: model.ClusterSendBestEffort,
-			Data:     userID,
+			Data:     []byte(userID),
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}

@@ -4,16 +4,18 @@
 package model
 
 import (
-	"strings"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamSearchJson(t *testing.T) {
 	teamSearch := TeamSearch{Term: NewId()}
-	json := teamSearch.ToJson()
-	rteamSearch := ChannelSearchFromJson(strings.NewReader(json))
+	var rteamSearch *ChannelSearch
+	err := json.Unmarshal([]byte(teamSearch.ToJson()), &rteamSearch)
+	require.NoError(t, err)
 
 	assert.Equal(t, teamSearch.Term, rteamSearch.Term, "Terms do not match")
 }

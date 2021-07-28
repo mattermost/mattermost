@@ -6,7 +6,7 @@ package cache
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // CacheOptions contains options for initializaing a cache

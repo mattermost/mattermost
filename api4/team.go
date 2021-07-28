@@ -15,8 +15,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -105,7 +106,9 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rteam.ToJson()))
+	if err := json.NewEncoder(w).Encode(rteam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -126,7 +129,9 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), team)
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -147,7 +152,9 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), team)
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -189,7 +196,9 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("update", updatedTeam)
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), updatedTeam)
-	w.Write([]byte(updatedTeam.ToJson()))
+	if err := json.NewEncoder(w).Encode(updatedTeam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -230,7 +239,9 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("patched", patchedTeam)
 	c.LogAudit("")
 
-	w.Write([]byte(patchedTeam.ToJson()))
+	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -264,7 +275,9 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team)
 	auditRec.Success()
 
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -316,7 +329,9 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team)
 	auditRec.Success()
 
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -345,7 +360,9 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("team", patchedTeam)
 	c.LogAudit("")
 
-	w.Write([]byte(patchedTeam.ToJson()))
+	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -420,8 +437,9 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// optional team id to be excluded from the result
 	teamId := r.URL.Query().Get("exclude_team")
+	includeCollapsedThreads := r.URL.Query().Get("include_collapsed_threads") == "true"
 
-	unreadTeamsList, err := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId)
+	unreadTeamsList, err := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId, includeCollapsedThreads)
 	if err != nil {
 		c.Err = err
 		return
@@ -458,7 +476,9 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -643,7 +663,9 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(member.ToJson()))
+	if err := json.NewEncoder(w).Encode(member); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -681,7 +703,9 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(member.ToJson()))
+	if err := json.NewEncoder(w).Encode(member); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -853,7 +877,9 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(unreadTeam.ToJson()))
+	if err := json.NewEncoder(w).Encode(unreadTeam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -879,7 +905,9 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(stats.ToJson()))
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
