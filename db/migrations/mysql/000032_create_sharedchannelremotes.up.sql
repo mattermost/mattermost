@@ -12,3 +12,33 @@ CREATE TABLE IF NOT EXISTS SharedChannelRemotes (
   PRIMARY KEY (Id, ChannelId),
   UNIQUE KEY ChannelId (ChannelId, RemoteId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'SharedChannelRemotes'
+        AND table_schema = DATABASE()
+        AND column_name = 'LastPostUpdateAt'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE SharedChannelRemotes ADD LastPostUpdateAt bigint;'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'SharedChannelRemotes'
+        AND table_schema = DATABASE()
+        AND column_name = 'LastPostId'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE SharedChannelRemotes ADD LastPostId VARCHAR(26);'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
