@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -700,6 +701,7 @@ func TestPushNotificationAck(t *testing.T) {
 	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()
+
 	t.Run("should return error when the ack body is not passed", func(t *testing.T) {
 		handler := api.ApiHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
@@ -708,6 +710,22 @@ func TestPushNotificationAck(t *testing.T) {
 
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.NotNil(t, resp.Body)
+	})
+
+	t.Run("should return error when the ack post is not authorized for the user", func(t *testing.T) {
+		privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+		privatePost := th.CreatePostWithClient(th.SystemAdminClient, privateChannel)
+
+		handler := api.ApiHandler(pushNotificationAck)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+		req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
+		req.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s"}`, privatePost.Id)))
+
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusForbidden, resp.Code)
+		fmt.Printf("DEBUG/resp.Body: %+v\n", resp.Body)
 		assert.NotNil(t, resp.Body)
 	})
 }

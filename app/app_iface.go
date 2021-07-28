@@ -626,6 +626,7 @@ type AppIface interface {
 	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
 	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
+	GetPostIfAuthorized(postID string, session *model.Session) (*model.Post, *model.AppError)
 	GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError)
 	GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
