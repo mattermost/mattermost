@@ -3159,16 +3159,16 @@ type Config struct {
 }
 
 func (o *Config) Clone() *Config {
+	buf, err := json.Marshal(o)
+	if err != nil {
+		panic(err)
+	}
 	var ret Config
-	if err := json.Unmarshal([]byte(o.ToJson()), &ret); err != nil {
+	err = json.Unmarshal(buf, &ret)
+	if err != nil {
 		panic(err)
 	}
 	return &ret
-}
-
-func (o *Config) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func (o *Config) ToJsonFiltered(tagType, tagValue string) string {
