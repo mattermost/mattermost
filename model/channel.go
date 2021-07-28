@@ -170,16 +170,6 @@ func (o *Channel) ToJson() string {
 	return string(b)
 }
 
-func (o *ChannelPatch) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *ChannelsWithCount) ToJson() []byte {
-	b, _ := json.Marshal(o)
-	return b
-}
-
 func (o *Channel) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }

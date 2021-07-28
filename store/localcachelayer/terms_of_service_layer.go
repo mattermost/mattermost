@@ -4,6 +4,8 @@
 package localcachelayer
 
 import (
+	"bytes"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -18,10 +20,10 @@ type LocalCacheTermsOfServiceStore struct {
 }
 
 func (s *LocalCacheTermsOfServiceStore) handleClusterInvalidateTermsOfService(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.termsOfServiceCache.Purge()
 	} else {
-		s.rootStore.termsOfServiceCache.Remove(msg.Data)
+		s.rootStore.termsOfServiceCache.Remove(string(msg.Data))
 	}
 }
 
