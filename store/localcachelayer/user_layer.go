@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"bytes"
 	"context"
 	"sort"
 	"sync"
@@ -21,21 +22,21 @@ type LocalCacheUserStore struct {
 }
 
 func (s *LocalCacheUserStore) handleClusterInvalidateScheme(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.userProfileByIdsCache.Purge()
 	} else {
 		s.userProfileByIdsMut.Lock()
-		s.userProfileByIdsInvalidations[msg.Data] = true
+		s.userProfileByIdsInvalidations[string(msg.Data)] = true
 		s.userProfileByIdsMut.Unlock()
-		s.rootStore.userProfileByIdsCache.Remove(msg.Data)
+		s.rootStore.userProfileByIdsCache.Remove(string(msg.Data))
 	}
 }
 
 func (s *LocalCacheUserStore) handleClusterInvalidateProfilesInChannel(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.profilesInChannelCache.Purge()
 	} else {
-		s.rootStore.profilesInChannelCache.Remove(msg.Data)
+		s.rootStore.profilesInChannelCache.Remove(string(msg.Data))
 	}
 }
 

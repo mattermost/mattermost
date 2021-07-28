@@ -77,7 +77,7 @@ const (
 )
 
 type WebSocketMessage interface {
-	ToJson() string
+	ToJson() []byte
 	IsValid() bool
 	EventType() string
 }
@@ -199,9 +199,9 @@ func (ev *WebSocketEvent) EventType() string {
 	return ev.event
 }
 
-func (ev *WebSocketEvent) ToJson() string {
+func (ev *WebSocketEvent) ToJson() []byte {
 	if ev.precomputedJSON != nil {
-		return fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.GetSequence())
+		return []byte(fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.GetSequence()))
 	}
 	b, _ := json.Marshal(webSocketEventJSON{
 		ev.event,
@@ -209,7 +209,7 @@ func (ev *WebSocketEvent) ToJson() string {
 		ev.broadcast,
 		ev.sequence,
 	})
-	return string(b)
+	return b
 }
 
 // Encode encodes the event to the given encoder.
@@ -280,9 +280,9 @@ func (m *WebSocketResponse) EventType() string {
 	return WebsocketEventResponse
 }
 
-func (m *WebSocketResponse) ToJson() string {
+func (m *WebSocketResponse) ToJson() []byte {
 	b, _ := json.Marshal(m)
-	return string(b)
+	return b
 }
 
 func WebSocketResponseFromJson(data io.Reader) *WebSocketResponse {

@@ -304,11 +304,13 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	expectedPluginData := model.PluginEventData{
 		Id: manifest.Id,
 	}
+
+	buf, _ := json.Marshal(expectedPluginData)
 	expectedInstallMessage := &model.ClusterMessage{
 		Event:            model.ClusterEventInstallPlugin,
 		SendType:         model.ClusterSendReliable,
 		WaitForAllToSend: true,
-		Data:             expectedPluginData.ToJson(),
+		Data:             buf,
 	}
 	actualMessages := findClusterMessages(model.ClusterEventInstallPlugin, messages)
 	require.Equal(t, []*model.ClusterMessage{expectedInstallMessage}, actualMessages)
@@ -354,7 +356,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		Event:            model.ClusterEventRemovePlugin,
 		SendType:         model.ClusterSendReliable,
 		WaitForAllToSend: true,
-		Data:             expectedPluginData.ToJson(),
+		Data:             buf,
 	}
 	actualMessages = findClusterMessages(model.ClusterEventRemovePlugin, messages)
 	require.Equal(t, []*model.ClusterMessage{expectedRemoveMessage}, actualMessages)

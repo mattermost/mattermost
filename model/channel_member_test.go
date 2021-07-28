@@ -4,19 +4,10 @@
 package model
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-func TestChannelMemberJson(t *testing.T) {
-	o := ChannelMember{ChannelId: NewId(), UserId: NewId()}
-	json := o.ToJson()
-	ro := ChannelMemberFromJson(strings.NewReader(json))
-
-	require.Equal(t, o.ChannelId, ro.ChannelId, "ids do not match")
-}
 
 func TestChannelMemberIsValid(t *testing.T) {
 	o := ChannelMember{}
@@ -46,13 +37,4 @@ func TestChannelMemberIsValid(t *testing.T) {
 
 	o.Roles = ""
 	require.Nil(t, o.IsValid(), "should be invalid")
-}
-
-func TestChannelUnreadJson(t *testing.T) {
-	o := ChannelUnread{ChannelId: NewId(), TeamId: NewId(), MsgCount: 5, MentionCount: 3}
-	json := o.ToJson()
-	ro := ChannelUnreadFromJson(strings.NewReader(json))
-
-	require.Equal(t, o.TeamId, ro.TeamId, "team Ids do not match")
-	require.Equal(t, o.MentionCount, ro.MentionCount, "mention count do not match")
 }

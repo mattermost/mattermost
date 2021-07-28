@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"bytes"
 	"context"
 	"sort"
 	"strings"
@@ -18,18 +19,18 @@ type LocalCacheRoleStore struct {
 }
 
 func (s *LocalCacheRoleStore) handleClusterInvalidateRole(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.roleCache.Purge()
 	} else {
-		s.rootStore.roleCache.Remove(msg.Data)
+		s.rootStore.roleCache.Remove(string(msg.Data))
 	}
 }
 
 func (s *LocalCacheRoleStore) handleClusterInvalidateRolePermissions(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.rolePermissionsCache.Purge()
 	} else {
-		s.rootStore.rolePermissionsCache.Remove(msg.Data)
+		s.rootStore.rolePermissionsCache.Remove(string(msg.Data))
 	}
 }
 

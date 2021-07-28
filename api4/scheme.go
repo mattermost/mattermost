@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitScheme() {
@@ -51,7 +53,9 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("scheme", scheme) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(scheme); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -71,7 +75,9 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(scheme); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -154,7 +160,9 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -199,7 +207,9 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("")
 
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(scheme); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
