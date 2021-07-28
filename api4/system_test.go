@@ -751,13 +751,13 @@ func TestPushNotificationAck(t *testing.T) {
 	})
 
 	t.Run("should return error when the ack post is not authorized for the user", func(t *testing.T) {
-		privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
+		privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 		privatePost := th.CreatePostWithClient(th.SystemAdminClient, privateChannel)
 
 		handler := api.ApiHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
-		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+		req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
 		req.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s"}`, privatePost.Id)))
 
 		handler.ServeHTTP(resp, req)
