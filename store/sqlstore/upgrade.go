@@ -212,6 +212,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion600(sqlStore)
 
 	return nil
 }
@@ -1296,4 +1297,21 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().ExecNoTimeout("INSERT INTO Systems VALUES ('CRTChannelMembershipCountsMigrationComplete', 'true')"); err != nil {
 		mlog.Error("Error marking migration as done", mlog.Err(err))
 	}
+}
+
+func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+
+	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+
+	// saveSchemaVersion(sqlStore, Version600)
+	// }
 }
