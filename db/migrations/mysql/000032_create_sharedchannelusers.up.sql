@@ -4,9 +4,7 @@ CREATE TABLE IF NOT EXISTS SharedChannelUsers (
   RemoteId varchar(26) DEFAULT NULL,
   CreateAt bigint(20) DEFAULT NULL,
   LastSyncAt bigint(20) DEFAULT NULL,
-  PRIMARY KEY (Id),
-  KEY idx_sharedchannelusers_user_id (UserId),
-  KEY idx_sharedchannelusers_remote_id (RemoteId)
+  PRIMARY KEY (Id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @preparedStatement = (SELECT IF(
@@ -38,3 +36,5 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfUniqueNotExists FROM @preparedStatement;
 EXECUTE alterIfUniqueNotExists;
 DEALLOCATE PREPARE alterIfUniqueNotExists;
+
+

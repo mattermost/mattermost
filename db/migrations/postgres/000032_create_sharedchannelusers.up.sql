@@ -8,9 +8,6 @@ CREATE TABLE IF NOT EXISTS sharedchannelusers (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_sharedchannelusers_remote_id ON sharedchannelusers (remoteid);
-CREATE INDEX IF NOT EXISTS idx_sharedchannelusers_user_id ON sharedchannelusers (userid);
-
 ALTER TABLE sharedchannelusers ADD COLUMN IF NOT EXISTS channelid varchar(26) DEFAULT '';
 
 DO $$
