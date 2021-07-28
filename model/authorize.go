@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -112,16 +111,6 @@ func (ad *AuthData) PreSave() {
 	if ad.Scope == "" {
 		ad.Scope = DefaultScope
 	}
-}
-
-func (ad *AuthData) ToJson() string {
-	b, _ := json.Marshal(ad)
-	return string(b)
-}
-
-func (ar *AuthorizeRequest) ToJson() string {
-	b, _ := json.Marshal(ar)
-	return string(b)
 }
 
 func (ad *AuthData) IsExpired() bool {

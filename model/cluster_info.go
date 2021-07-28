@@ -16,11 +16,6 @@ type ClusterInfo struct {
 	Hostname   string `json:"hostname"`
 }
 
-func (ci *ClusterInfo) ToJson() string {
-	b, _ := json.Marshal(ci)
-	return string(b)
-}
-
 func ClusterInfoFromJson(data io.Reader) *ClusterInfo {
 	var ci *ClusterInfo
 	json.NewDecoder(data).Decode(&ci)
