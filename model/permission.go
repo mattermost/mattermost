@@ -100,7 +100,7 @@ var PERMISSION_USE_GROUP_MENTIONS *Permission
 var PERMISSION_READ_OTHER_USERS_TEAMS *Permission
 var PERMISSION_EDIT_BRAND *Permission
 var PERMISSION_MANAGE_SHARED_CHANNELS *Permission
-var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
+var PERMISSION_MANAGE_SECURE_CONNECTIONS *Permission
 var PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT *Permission
 var PERMISSION_CREATE_DATA_RETENTION_JOB *Permission
 var PERMISSION_READ_DATA_RETENTION_JOB *Permission
@@ -711,10 +711,10 @@ func initializePermissions() {
 		"authentication.permissions.manage_shared_channels.description",
 		PermissionScopeSystem,
 	}
-	PERMISSION_MANAGE_REMOTE_CLUSTERS = &Permission{
-		"manage_remote_clusters",
-		"authentication.permissions.manage_remote_clusters.name",
-		"authentication.permissions.manage_remote_clusters.description",
+	PERMISSION_MANAGE_SECURE_CONNECTIONS = &Permission{
+		"manage_secure_connections",
+		"authentication.permissions.manage_secure_connections.name",
+		"authentication.permissions.manage_secure_connections.description",
 		PermissionScopeSystem,
 	}
 
@@ -2041,7 +2041,7 @@ func initializePermissions() {
 		PERMISSION_DEMOTE_TO_GUEST,
 		PERMISSION_EDIT_BRAND,
 		PERMISSION_MANAGE_SHARED_CHANNELS,
-		PERMISSION_MANAGE_REMOTE_CLUSTERS,
+		PERMISSION_MANAGE_SECURE_CONNECTIONS,
 		PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT,
 		PERMISSION_CREATE_DATA_RETENTION_JOB,
 		PERMISSION_READ_DATA_RETENTION_JOB,

@@ -351,6 +351,29 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userID string) ([]*
 	return r0, r1
 }
 
+// GetCommonTeamIDsForTwoUsers provides a mock function with given fields: userID, otherUserID
+func (_m *TeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUserID string) ([]string, error) {
+	ret := _m.Called(userID, otherUserID)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
+		r0 = rf(userID, otherUserID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, otherUserID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMember provides a mock function with given fields: ctx, teamID, userID
 func (_m *TeamStore) GetMember(ctx context.Context, teamID string, userID string) (*model.TeamMember, error) {
 	ret := _m.Called(ctx, teamID, userID)

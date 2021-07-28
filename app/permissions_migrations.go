@@ -70,7 +70,8 @@ const (
 	PermissionReadPrivateChannelGroups       = "read_private_channel_groups"
 	PermissionEditBrand                      = "edit_brand"
 	PermissionManageSharedChannels           = "manage_shared_channels"
-	PermissionManageRemoteClusters           = "manage_remote_clusters"
+	PermissionManageSecureConnections        = "manage_secure_connections"
+	PermissionManageRemoteClusters           = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -156,8 +157,8 @@ func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, m
 	return result
 }
 
-func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
-	if _, err := a.Srv().Store.System().GetByName(key); err == nil {
+func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
+	if _, err := s.Store.System().GetByName(key); err == nil {
 		return nil
 	}
 
@@ -171,7 +172,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, ro
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := a.Srv().Store.Role().Save(role); err != nil {
+		if _, err := s.Store.Role().Save(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
@@ -182,7 +183,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, ro
 		}
 	}
 
-	if err := a.Srv().Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
+	if err := s.Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
 		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
@@ -525,13 +526,24 @@ func (a *App) getBillingPermissionsMigration() (permissionsMap, error) {
 	}, nil
 }
 
-func (a *App) getAddManageRemoteClustersPermissionsMigration() (permissionsMap, error) {
-	return permissionsMap{
+func (a *App) getAddManageSecureConnectionsPermissionsMigration() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	// add the new permission to system admin
+	transformations = append(transformations,
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{PermissionManageRemoteClusters},
-		},
-	}, nil
+			Add: []string{PermissionManageSecureConnections},
+		})
+
+	// remote the decprecated permission from system admin
+	transformations = append(transformations,
+		permissionTransformation{
+			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Remove: []string{PermissionManageRemoteClusters},
+		})
+
+	return transformations, nil
 }
 
 func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
@@ -570,16 +582,14 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 
 	// Give the new subsection READ permissions to any user with READ_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id),
-		Add:    permissionsExperimentalRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id),
+		Add: permissionsExperimentalRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id),
-		Add:    permissionsExperimentalWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id),
+		Add: permissionsExperimentalWrite,
 	})
 
 	// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
@@ -599,16 +609,14 @@ func (a *App) getAddIntegrationsSubsectionPermissions() (permissionsMap, error) 
 
 	// Give the new subsection READ permissions to any user with READ_INTEGRATIONS
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id),
-		Add:    permissionsIntegrationsRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id),
+		Add: permissionsIntegrationsRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id),
-		Add:    permissionsIntegrationsWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id),
+		Add: permissionsIntegrationsWrite,
 	})
 
 	return transformations, nil
@@ -622,16 +630,14 @@ func (a *App) getAddSiteSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with READ_SITE
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_SITE.Id),
-		Add:    permissionsSiteRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_SITE.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_SITE.Id),
+		Add: permissionsSiteRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_SITE
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id),
-		Add:    permissionsSiteWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id),
+		Add: permissionsSiteWrite,
 	})
 
 	// Give the ancillary permissions EDIT_BRAND to anyone with WRITE_SITE_CUSTOMIZATION
@@ -651,16 +657,14 @@ func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with READ_COMPLIANCE
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
-		Add:    permissionsComplianceRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
+		Add: permissionsComplianceRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_COMPLIANCE
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
-		Add:    permissionsComplianceWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
+		Add: permissionsComplianceWrite,
 	})
 
 	// Ancilary permissions
@@ -728,16 +732,14 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with READ_ENVIRONMENT
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id),
-		Add:    permissionsEnvironmentRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id),
+		Add: permissionsEnvironmentRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_ENVIRONMENT
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id),
-		Add:    permissionsEnvironmentWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id),
+		Add: permissionsEnvironmentWrite,
 	})
 
 	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_ELASTICSEARCH
@@ -792,15 +794,13 @@ func (a *App) getAddAboutSubsectionPermissions() (permissionsMap, error) {
 	permissionsAboutWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id}
 
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id),
-		Add:    permissionsAboutRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id),
+		Add: permissionsAboutRead,
 	})
 
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id),
-		Add:    permissionsAboutWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id),
+		Add: permissionsAboutWrite,
 	})
 
 	transformations = append(transformations, permissionTransformation{
@@ -832,16 +832,14 @@ func (a *App) getAddReportingSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with READ_REPORTING
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id),
-		Add:    permissionsReportingRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id),
+		Add: permissionsReportingRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_REPORTING
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id),
-		Add:    permissionsReportingWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id),
+		Add: permissionsReportingWrite,
 	})
 
 	// Give the ancillary permissions PERMISSION_GET_ANALYTICS to anyone with PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS or PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS
@@ -867,16 +865,14 @@ func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error
 
 	// Give the new subsection READ permissions to any user with READ_AUTHENTICATION
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id),
-		Add:    permissionsAuthenticationRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id),
+		Add: permissionsAuthenticationRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_AUTHENTICATION
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id),
-		Add:    permissionsAuthenticationWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id),
+		Add: permissionsAuthenticationWrite,
 	})
 
 	// Give the ancillary permissions for LDAP to anyone with WRITE_AUTHENTICATION_LDAP
@@ -906,8 +902,26 @@ func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error
 	return transformations, nil
 }
 
+// This migration fixes https://github.com/mattermost/mattermost-server/issues/17642 where this particular ancillary permission was forgotten during the initial migrations
+func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_SMTP
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP.Id),
+		Add: []string{model.PERMISSION_TEST_EMAIL.Id},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
+	return a.Srv().doPermissionsMigrations()
+}
+
+func (s *Server) doPermissionsMigrations() error {
+	a := New(ServerConnector(s))
 	PermissionsMigrations := []struct {
 		Key       string
 		Migration func() (permissionsMap, error)
@@ -926,7 +940,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS, Migration: a.getAddSystemConsolePermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS, Migration: a.getAddConvertChannelPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Migration: a.getAddManageSharedChannelsPermissionsMigration},
-		{Key: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Migration: a.getAddManageRemoteClustersPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS, Migration: a.getAddManageSecureConnectionsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Migration: a.getSystemRolesPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Migration: a.getBillingPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
@@ -938,9 +952,10 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Migration: a.getAddEnvironmentSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Migration: a.getAddAboutSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Migration: a.getAddReportingSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION, Migration: a.getAddTestEmailAncillaryPermission},
 	}
 
-	roles, err := a.GetAllRoles()
+	roles, err := s.Store.Role().GetAll()
 	if err != nil {
 		return err
 	}
@@ -950,7 +965,7 @@ func (a *App) DoPermissionsMigrations() error {
 		if err != nil {
 			return err
 		}
-		if err := a.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
+		if err := s.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
 			return err
 		}
 	}

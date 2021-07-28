@@ -39,8 +39,6 @@ func init() {
 
 func serverCmdF(command *cobra.Command, args []string) error {
 	disableConfigWatch, _ := command.Flags().GetBool("disableconfigwatch")
-	usedPlatform, _ := command.Flags().GetBool("platform")
-
 	interruptChan := make(chan os.Signal, 1)
 
 	if err := utils.TranslationsPreInit(); err != nil {
@@ -52,16 +50,16 @@ func serverCmdF(command *cobra.Command, args []string) error {
 		mlog.Warn("Error loading custom configuration defaults: " + err.Error())
 	}
 
-	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, false, customDefaults)
+	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, false, customDefaults)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
 	defer configStore.Close()
 
-	return runServer(configStore, usedPlatform, interruptChan)
+	return runServer(configStore, interruptChan)
 }
 
-func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan os.Signal) error {
+func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 	// Setting the highest traceback level from the code.
 	// This is done to print goroutines from all threads (see golang.org/issue/13161)
 	// and also preserve a crash dump for later investigation.
@@ -96,27 +94,18 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 		}
 	}()
 
-	if usedPlatform {
-		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
-	}
+	a := app.New(app.ServerConnector(server))
+	api := api4.Init(a, server.Router)
 
-	api := api4.Init(server, server.AppOptions, server.Router)
 	wsapi.Init(server)
-	web.New(server, server.AppOptions, server.Router)
-	api4.InitLocal(server, server.AppOptions, server.LocalRouter)
+	web.New(a, server.Router)
+	api4.InitLocal(a, server.LocalRouter)
 
 	serverErr := server.Start()
 	if serverErr != nil {
 		mlog.Critical(serverErr.Error())
 		return serverErr
 	}
-
-	// TODO: remove this and handle all required initialization while creating
-	// the server. In theory, we shouldn't depend on App to have a fully-featured
-	// server. This initialization is added so that cluster handlers are registered
-	// and job schedulers are initialized.
-	fakeApp := app.New(app.ServerConnector(server))
-	fakeApp.InitServer()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

@@ -27,3 +27,5 @@ BEGIN
             ADD PRIMARY KEY (postid, userid, emojiname);
     END IF;
 END alter_pk $$;
+
+ALTER TABLE reactions ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);

@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS Teams (
     SchemeId varchar(26) DEFAULT NULL,
     PRIMARY KEY (Id),
     UNIQUE KEY Name (Name),
-    KEY idx_teams_name (Name),
     KEY idx_teams_invite_id (InviteId),
     KEY idx_teams_update_at (UpdateAt),
     KEY idx_teams_create_at (CreateAt),

@@ -10,7 +10,7 @@ import (
 
 // factoryInstances factory tracker instantiations
 var factoryInstances = make(map[string]int64)
-var mutex = &sync.Mutex{}
+var mutex = &sync.RWMutex{}
 
 func setFactory(apikey string, logger logging.LoggerInterface) {
 	mutex.Lock()
@@ -67,6 +67,15 @@ func NewSplitFactory(apikey string, cfg *conf.SplitSdkConfig) (*SplitFactory, er
 	}
 
 	splitFactory, err := newFactory(apikey, cfg, logger)
-	setFactory(apikey, logger)
 	return splitFactory, err
+}
+
+func getFactories() map[string]int64 {
+	toReturn := make(map[string]int64)
+	mutex.RLock()
+	defer mutex.RUnlock()
+	for k, v := range factoryInstances {
+		toReturn[k] = v
+	}
+	return toReturn
 }

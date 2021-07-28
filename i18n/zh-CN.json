@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "更新当前频道错误。"
+    "translation": "更新频道标题错误。"
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "更新当前频道错误。"
+    "translation": "更新频道用途错误。"
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -984,32 +984,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
     "translation": "系统管理员禁用了批量电子邮件。"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "私信来自 "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "转至发文"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "群组消息来自 "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "通知来自 "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "other": "您有新通知。您有 {{.Count}} 条新通知。"
-    }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -1738,10 +1712,6 @@
     "translation": "无法解码团队图标。"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "无法解码团队图标元数据。"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "无法编码团队图标。"
   },
@@ -2292,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "无法解码个人资料图片。"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "无法保存个人资料图片。文件不是有效的图片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2938,62 +2904,6 @@
     "translation": "用户的团队成员资格中缺少团队名称。"
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "你有一条新私信。"
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新私信"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "你有一条新团体消息。"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新团体消息"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "您有新通知。"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新通知"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "频道：{{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "频道：{{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] 来自 @{{ .SenderDisplayName}} 于 {{.Month}} {{.Day}}, {{.Year}} 发送的新私信消息"
   },
@@ -3118,10 +3028,6 @@
     "translation": "无法解码图片数据。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "无法获取图片元数据。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "无法转换图片数据到 PNG 格式。请重试。"
   },
@@ -3132,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "无法写入图片文件到您的文件储存。请检查您的连接后再尝试。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "无法读取图片文件。请确定图片大小小于 2MB 并重试。"
   },
   {
     "id": "cli.license.critical",
@@ -5122,8 +5024,8 @@
     "translation": "批量索引用户失败。"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "无法从数据库获取最旧的消息。"
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "无法从数据库中获取最早的实体（用户，频道或帖子）。"
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
@@ -6658,10 +6560,6 @@
     "translation": "无法获取角色。"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "无法获取所有角色。"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "无法获取角色。"
   },
@@ -6768,10 +6666,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "无法解析 BatchSize 导出任务消息。"
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "连接到服务器时遇到错误。"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -6998,10 +6892,6 @@
     "translation": "无法获取所有的团队。"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "无法获取页面中的所有私有团队。"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "无法获取所有私有团队。"
   },
@@ -7028,14 +6918,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "无法统计团队数。"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "无法统计公开团队数。"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "无法统计私有团队数。"
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -8106,14 +7988,6 @@
     "translation": "CollapsedThreads设置必须为disabled，default_on或default_off"
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "无法处理导入：无法解压文件。"
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "无法处理导入：无法创建临时目录。"
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "无法处理导入：无法打开文件。"
   },
@@ -8554,10 +8428,6 @@
     "translation": "获取云订阅时出错"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "此功能正在开发中，仅可通过功能标志使用。"
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "无法解析请求内容。"
   },
@@ -8631,7 +8501,7 @@
   },
   {
     "id": "api.templates.questions_footer.title",
-    "translation": "疑问？"
+    "translation": "有什么疑问吗？"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -8756,5 +8626,185 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "清除缓存时出错"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "未设置站点网址。请在系统控制台设置。"
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| 安全连接 | 显示名 | 连接 ID | 站点网址 | 已接受邀请 | 在线 | 上次 ping |"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "您需要 `{{.Permission}}` 权限才能管理安全连接。"
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "安全连接的唯一名称"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "缺少或空 `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "来自安全连接的加密邀请"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[操作]"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "可用操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "未知操作 `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "显示所有安全连接的状态"
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "无法启用远程集群服务。"
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "远程集群服务已停用。"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "无法移除安全连接：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "移除安全连接"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "未找到安全连接。"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "添加或移除安全连接。可用操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "安全连接名"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "secure-connection"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "缺少命令。可用的操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "将以下加密的（AES256 + Base64）Blob 与密码一起发送给远程站点管理员。他们将使用 `{{.Command}}` 斜杠命令来接受邀请。\n\n```\n{{.Invitation}}\n```\n\n**确保远程站点可以通过 {{.SiteURL}} 访问您的集群**"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "用于加密邀请的密码"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "邀请密码"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "创建安全连接"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "已创建邀请。"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "来自安全连接的邀请"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "无法解密邀请。错误的密码或破损的邀请：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[操作]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "无法获取安全连接：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "无法加密邀请：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "安全连接的显示名"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "安全连接显示名"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "邀请远程 Mattermost 集群进行集群间通信。"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "接受来自外部 Mattermost 的邀请"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "无法解码邀请：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "安全连接 {{.RemoteId}} {{.Result}}。"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "无法添加安全连接：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "无法接受邀请：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "邀请已接受并确认。\n站点网址：{{.SiteURL}}"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "输入的文本超出字符数限制。频道用途不得超过 {{.MaxLength}} 个字符。"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "输入的文本超出字符数限制。频道标题不得超过 {{.MaxLength}} 个字符。"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "显示此共享频道的状态"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "现在已共享此频道。"
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "邀请 `{{.Name}}` 到此频道出错：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "要删除的安全连接 Id。"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "无法在这些用户之间创建直连频道因为他们不属于同一个团队。"
   }
 ]

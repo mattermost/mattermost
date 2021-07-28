@@ -7,10 +7,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -33,7 +35,7 @@ type SqlPostStore struct {
 
 type postWithExtra struct {
 	ThreadReplyCount   int64
-	IsFollowing        bool
+	IsFollowing        *bool
 	ThreadParticipants model.StringArray
 	model.Post
 }
@@ -41,8 +43,34 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
-func postSliceColumns() []string {
-	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions", "RemoteId"}
+func postSliceColumnsWithTypes() []struct {
+	Name string
+	Type reflect.Kind
+} {
+	return []struct {
+		Name string
+		Type reflect.Kind
+	}{
+		{"Id", reflect.String},
+		{"CreateAt", reflect.Int64},
+		{"UpdateAt", reflect.Int64},
+		{"EditAt", reflect.Int64},
+		{"DeleteAt", reflect.Int64},
+		{"IsPinned", reflect.Bool},
+		{"UserId", reflect.String},
+		{"ChannelId", reflect.String},
+		{"RootId", reflect.String},
+		{"ParentId", reflect.String},
+		{"OriginalId", reflect.String},
+		{"Message", reflect.String},
+		{"Type", reflect.String},
+		{"Props", reflect.Map},
+		{"Hashtags", reflect.String},
+		{"Filenames", reflect.Slice},
+		{"FileIds", reflect.Slice},
+		{"HasReactions", reflect.Bool},
+		{"RemoteId", reflect.String},
+	}
 }
 
 func postToSlice(post *model.Post) []interface{} {
@@ -67,6 +95,37 @@ func postToSlice(post *model.Post) []interface{} {
 		post.HasReactions,
 		post.RemoteId,
 	}
+}
+
+func postSliceColumns() []string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		cols[i] = colInfo.Name
+	}
+	return cols
+}
+
+func postSliceCoalesceQuery() string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		var defaultValue string
+		switch colInfo.Type {
+		case reflect.String:
+			defaultValue = "''"
+		case reflect.Int64:
+			defaultValue = "0"
+		case reflect.Bool:
+			defaultValue = "false"
+		case reflect.Map:
+			defaultValue = "'{}'"
+		case reflect.Slice:
+			defaultValue = "'[]'"
+		}
+		cols[i] = "COALESCE(Posts." + colInfo.Name + "," + defaultValue + ") AS " + colInfo.Name
+	}
+	return strings.Join(cols, ",")
 }
 
 func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
@@ -457,7 +516,22 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 
 		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 	}
-	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+
+	var posts []*model.Post
+	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Posts.RootId = :RootId AND DeleteAt = 0", map[string]interface{}{"RootId": id})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts for thread %s", id)
+	}
+
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+	return list, nil
 }
 
 func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
@@ -708,7 +782,9 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	}
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
-		p.Post.IsFollowing = p.IsFollowing
+		if p.IsFollowing != nil {
+			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
+		}
 		for _, th := range p.ThreadParticipants {
 			var participant *model.User
 			for _, u := range users {
@@ -942,26 +1018,46 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, _ /* allowFromCache */ bool) ([]*model.Post, error) {
-	if options.Limit < 0 || options.Limit > 1000 {
-		return nil, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
+func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+	query := `
+		SELECT 1
+		FROM
+			Posts
+		WHERE
+			UpdateAt >= :Time
+			AND
+			ChannelId = :ChannelId
+			AND
+			UserId = :UserId
+			AND
+			Type = :Type
+		LIMIT 1`
+
+	exist, err := s.GetReplica().SelectInt(query, map[string]interface{}{
+		"ChannelId": options.ChannelId,
+		"Time":      options.Time,
+		"UserId":    userId,
+		"Type":      model.POST_AUTO_RESPONDER,
+	})
+
+	if err != nil {
+		return false, errors.Wrapf(err,
+			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
 	}
 
-	order := " ASC"
-	if options.SortDescending {
-		order = " DESC"
-	}
+	return exist > 0, nil
+}
 
+func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.GtOrEq{"UpdateAt": options.Since}).
-		Where(sq.Eq{"ChannelId": options.ChannelId}).
-		Limit(uint64(options.Limit)).
-		OrderBy("CreateAt"+order, "DeleteAt", "Id")
+		Where(sq.Or{sq.Gt{"UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Id": cursor.LastPostId}}}).
+		OrderBy("UpdateAt", "Id").
+		Limit(uint64(limit))
 
-	if options.Until > 0 {
-		query = query.Where(sq.LtOrEq{"UpdateAt": options.Until})
+	if options.ChannelId != "" {
+		query = query.Where(sq.Eq{"ChannelId": options.ChannelId})
 	}
 
 	if !options.IncludeDeleted {
@@ -972,24 +1068,22 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
 	}
 
-	if options.Offset > 0 {
-		query = query.Offset(uint64(options.Offset))
-	}
-
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "getpostssinceforsync_tosql")
+		return nil, cursor, errors.Wrap(err, "getpostssinceforsync_tosql")
 	}
 
 	var posts []*model.Post
-
 	_, err = s.GetReplica().Select(&posts, queryString, args...)
-
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
 	}
 
-	return posts, nil
+	if len(posts) != 0 {
+		cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
+		cursor.LastPostId = posts[len(posts)-1].Id
+	}
+	return posts, cursor, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
@@ -1874,6 +1968,46 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 	return posts, nil
+}
+
+// PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
+// the global or a granular retention policy.
+// See `genericPermanentDeleteBatchForRetentionPolicies` for details.
+func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("Posts.Id").
+		From("Posts")
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "Posts",
+		TimeColumn:          "CreateAt",
+		PrimaryKeys:         []string{"Id"},
+		ChannelIDTable:      "Posts",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
+}
+
+// DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.
+func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const query = `
+	DELETE FROM Posts WHERE Id IN (
+		SELECT * FROM (
+			SELECT Posts.Id FROM Posts
+			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(query, props)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	return
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {

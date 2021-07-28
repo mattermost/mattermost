@@ -363,11 +363,11 @@ their parameters appropriately named.
 
 Approvers:
 
-- [Liz Fong-Jones](https://github.com/lizthegrey), Honeycomb
 - [Evan Torrie](https://github.com/evantorrie), Verizon Media
 - [Josh MacDonald](https://github.com/jmacd), LightStep
 - [Sam Xie](https://github.com/XSAM)
 - [David Ashpole](https://github.com/dashpole), Google
+- [Gustavo Silva Paiva](https://github.com/paivagustavo), LightStep
 
 Maintainers:
 

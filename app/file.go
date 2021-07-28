@@ -11,10 +11,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"image/color"
-	"image/draw"
 	"image/gif"
-	"image/jpeg"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -27,13 +24,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/disintegration/imaging"
-	_ "github.com/oov/psd"
-	"github.com/pkg/errors"
-	"github.com/rwcarlsen/goexif/exif"
-	_ "golang.org/x/image/bmp"
-	_ "golang.org/x/image/tiff"
-
+	"github.com/mattermost/mattermost-server/v5/app/imaging"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/docextractor"
@@ -41,41 +33,20 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
+
+	"github.com/pkg/errors"
 )
 
 const (
-	/*
-	  EXIF Image Orientations
-	  1        2       3      4         5            6           7          8
-
-	  888888  888888      88  88      8888888888  88                  88  8888888888
-	  88          88      88  88      88  88      88  88          88  88      88  88
-	  8888      8888    8888  8888    88          8888888888  8888888888          88
-	  88          88      88  88
-	  88          88  888888  888888
-	*/
-	Upright            = 1
-	UprightMirrored    = 2
-	UpsideDown         = 3
-	UpsideDownMirrored = 4
-	RotatedCWMirrored  = 5
-	RotatedCCW         = 6
-	RotatedCCWMirrored = 7
-	RotatedCW          = 8
-
-	MaxImageSize         = int64(6048 * 4032) // 24 megapixels, roughly 36MB as a raw image
-	ImageThumbnailWidth  = 120
-	ImageThumbnailHeight = 100
-	ImageThumbnailRatio  = float64(ImageThumbnailHeight) / float64(ImageThumbnailWidth)
-	ImagePreviewWidth    = 1920
-
-	maxUploadInitialBufferSize = 1024 * 1024 // 1Mb
-
-	// Deprecated
-	ImageThumbnailPixelWidth  = 120
-	ImageThumbnailPixelHeight = 100
-	ImagePreviewPixelWidth    = 1920
-	MaxContentExtractionSize  = 1024 * 1024 // 1Mb
+	maxImageRes                = int64(6048 * 4032) // 24 megapixels, up to ~196MB as a raw image
+	imageThumbnailWidth        = 120
+	imageThumbnailHeight       = 100
+	imagePreviewWidth          = 1920
+	miniPreviewImageWidth      = 16
+	miniPreviewImageHeight     = 16
+	jpegEncQuality             = 90
+	maxUploadInitialBufferSize = 1024 * 1024 // 1MB
+	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
 func (a *App) FileBackend() (filestore.FileBackend, *model.AppError) {
@@ -128,20 +99,11 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return nil, err
-	}
-	result, nErr := backend.ReadFile(path)
-	if nErr != nil {
-		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-	return result, nil
+	return a.srv.ReadFile(path)
 }
 
-// Caller must close the first return value
-func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
-	backend, err := a.FileBackend()
+func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +114,17 @@ func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppErro
 	return result, nil
 }
 
+// Caller must close the first return value
+func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	return a.Srv().fileReader(path)
+}
+
 func (a *App) FileExists(path string) (bool, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().fileExists(path)
+}
+
+func (s *Server) fileExists(path string) (bool, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return false, err
 	}
@@ -202,7 +173,11 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 }
 
 func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().writeFile(fr, path)
+}
+
+func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return 0, err
 	}
@@ -228,7 +203,11 @@ func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
 }
 
 func (a *App) RemoveFile(path string) *model.AppError {
-	backend, err := a.FileBackend()
+	return a.Srv().removeFile(path)
+}
+
+func (s *Server) removeFile(path string) *model.AppError {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return err
 	}
@@ -240,7 +219,11 @@ func (a *App) RemoveFile(path string) *model.AppError {
 }
 
 func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().listDirectory(path)
+}
+
+func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +474,7 @@ func GeneratePublicLinkHash(fileID, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadMultipartFiles(teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadMultipartFiles(c *request.Context, teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	files := make([]io.ReadCloser, len(fileHeaders))
 	filenames := make([]string, len(fileHeaders))
 
@@ -509,13 +492,13 @@ func (a *App) UploadMultipartFiles(teamID string, channelID string, userID strin
 		filenames[i] = fileHeader.Filename
 	}
 
-	return a.UploadFiles(teamID, channelID, userID, files, filenames, clientIds, now)
+	return a.UploadFiles(c, teamID, channelID, userID, files, filenames, clientIds, now)
 }
 
 // Uploads some files to the given team and channel as the given user. files and filenames should have
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(teamID string, channelID string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(c *request.Context, teamID string, channelID string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -538,7 +521,7 @@ func (a *App) UploadFiles(teamID string, channelID string, userID string, files 
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, data, err := a.DoUploadFileExpectModification(now, teamID, channelID, userID, filenames[i], data)
+		info, data, err := a.DoUploadFileExpectModification(c, now, teamID, channelID, userID, filenames[i], data)
 		if err != nil {
 			return nil, err
 		}
@@ -562,14 +545,14 @@ func (a *App) UploadFiles(teamID string, channelID string, userID string, files 
 }
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
-func (a *App) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadFile(c *request.Context, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
 	_, err := a.GetChannel(channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
 			map[string]interface{}{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelID, "nouser", filename, data)
+	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
 	if appError != nil {
 		return nil, appError
 	}
@@ -585,8 +568,8 @@ func (a *App) UploadFile(data []byte, channelID string, filename string) (*model
 	return info, nil
 }
 
-func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-	info, _, err := a.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+func (a *App) DoUploadFile(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 	return info, err
 }
 
@@ -670,6 +653,9 @@ type UploadFileTask struct {
 	pluginsEnvironment *plugin.Environment
 	writeFile          func(io.Reader, string) (int64, *model.AppError)
 	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, error)
+
+	imgDecoder *imaging.Decoder
+	imgEncoder *imaging.Encoder
 }
 
 func (t *UploadFileTask) init(a *App) {
@@ -708,7 +694,7 @@ func (t *UploadFileTask) init(a *App) {
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
-func (a *App) UploadFileX(channelID, name string, input io.Reader,
+func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
 
 	t := &UploadFileTask{
@@ -716,6 +702,8 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 		Name:        filepath.Base(name),
 		Input:       input,
 		maxFileSize: *a.Config().FileSettings.MaxFileSize,
+		imgDecoder:  a.srv.imgDecoder,
+		imgEncoder:  a.srv.imgEncoder,
 	}
 	for _, o := range opts {
 		o(t)
@@ -758,7 +746,7 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 	}
 	defer file.Close()
 
-	aerr = a.runPluginsHook(t.fileinfo, file)
+	aerr = a.runPluginsHook(c, t.fileinfo, file)
 	if aerr != nil {
 		return nil, aerr
 	}
@@ -782,7 +770,7 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
@@ -798,7 +786,7 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// If SVG, attempt to extract dimensions and then return
 	if t.fileinfo.MimeType == "image/svg+xml" {
-		svgInfo, err := parseSVG(t.teeInput)
+		svgInfo, err := imaging.ParseSVG(t.teeInput)
 		if err != nil {
 			mlog.Warn("Failed to parse SVG", mlog.Err(err))
 		}
@@ -811,21 +799,17 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	}
 
 	// If we fail to decode, return "as is".
-	config, _, err := image.DecodeConfig(t.teeInput)
+	w, h, err := imaging.GetDimensions(t.teeInput)
 	if err != nil {
 		return nil
 	}
+	t.fileinfo.Width = w
+	t.fileinfo.Height = h
 
-	t.fileinfo.Width = config.Width
-	t.fileinfo.Height = config.Height
-
-	// Check dimensions before loading the whole thing into memory later on.
-	// This casting is done to prevent overflow on 32 bit systems (not needed
-	// in 64 bits systems because images can't have more than 32 bits height or
-	// width)
-	if int64(t.fileinfo.Width)*int64(t.fileinfo.Height) > MaxImageSize {
+	if err = checkImageResolutionLimit(w, h); err != nil {
 		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
 	}
+
 	t.fileinfo.HasPreviewImage = true
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
 	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview.jpg"
@@ -834,11 +818,11 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// check the image orientation with goexif; consume the bytes we
 	// already have first, then keep Tee-ing from input.
 	// TODO: try to reuse exif's .Raw buffer rather than Tee-ing
-	if t.imageOrientation, err = getImageOrientation(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)); err == nil &&
-		(t.imageOrientation == RotatedCWMirrored ||
-			t.imageOrientation == RotatedCCW ||
-			t.imageOrientation == RotatedCCWMirrored ||
-			t.imageOrientation == RotatedCW) {
+	if t.imageOrientation, err = imaging.GetImageOrientation(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)); err == nil &&
+		(t.imageOrientation == imaging.RotatedCWMirrored ||
+			t.imageOrientation == imaging.RotatedCCW ||
+			t.imageOrientation == imaging.RotatedCCWMirrored ||
+			t.imageOrientation == imaging.RotatedCW) {
 		t.fileinfo.Width, t.fileinfo.Height = t.fileinfo.Height, t.fileinfo.Width
 	}
 
@@ -864,35 +848,32 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		return
 	}
 
-	decoded, typ := t.decoded, t.imageType
+	decoded, imgType := t.decoded, t.imageType
 	if decoded == nil {
 		var err error
-		decoded, typ, err = image.Decode(file)
+		var release func()
+		decoded, imgType, release, err = t.imgDecoder.DecodeMemBounded(file)
 		if err != nil {
 			mlog.Error("Unable to decode image", mlog.Err(err))
 			return
 		}
+		defer release()
 	}
 
-	// Fill in the background of a potentially-transparent png file as
-	// white.
-	if typ == "png" {
-		dst := image.NewRGBA(decoded.Bounds())
-		draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
-		draw.Draw(dst, dst.Bounds(), decoded, decoded.Bounds().Min, draw.Over)
-		decoded = dst
+	// Fill in the background of a potentially-transparent png file as white
+	if imgType == "png" {
+		imaging.FillImageTransparency(decoded, image.White)
 	}
 
-	decoded = makeImageUpright(decoded, t.imageOrientation)
+	decoded = imaging.MakeImageUpright(decoded, t.imageOrientation)
 	if decoded == nil {
 		return
 	}
 
-	const jpegQuality = 90
 	writeJPEG := func(img image.Image, path string) {
 		r, w := io.Pipe()
 		go func() {
-			err := jpeg.Encode(w, img, &jpeg.Options{Quality: jpegQuality})
+			err := t.imgEncoder.EncodeJPEG(w, img, jpegEncQuality)
 			if err != nil {
 				mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
 				w.CloseWithError(err)
@@ -913,18 +894,23 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	// This is needed on mobile in case of animated GIFs.
 	go func() {
 		defer wg.Done()
-		writeJPEG(genThumbnail(decoded), t.fileinfo.ThumbnailPath)
+		writeJPEG(imaging.GenerateThumbnail(decoded, imageThumbnailWidth, imageThumbnailHeight), t.fileinfo.ThumbnailPath)
 	}()
 
 	go func() {
 		defer wg.Done()
-		writeJPEG(genPreview(decoded), t.fileinfo.PreviewPath)
+		writeJPEG(imaging.GeneratePreview(decoded, imagePreviewWidth), t.fileinfo.PreviewPath)
 	}()
 
 	go func() {
 		defer wg.Done()
 		if t.fileinfo.MiniPreview == nil {
-			t.fileinfo.MiniPreview = model.GenerateMiniPreviewImage(decoded)
+			if miniPreview, err := imaging.GenerateMiniPreviewImage(decoded,
+				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
+				mlog.Info("Unable to generate mini preview image", mlog.Err(err))
+			} else {
+				t.fileinfo.MiniPreview = &miniPreview
+			}
 		}
 	}()
 	wg.Wait()
@@ -959,7 +945,7 @@ func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interfac
 	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelID := filepath.Base(rawChannelId)
@@ -971,11 +957,11 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		return nil, data, err
 	}
 
-	if orientation, err := getImageOrientation(bytes.NewReader(data)); err == nil &&
-		(orientation == RotatedCWMirrored ||
-			orientation == RotatedCCW ||
-			orientation == RotatedCCWMirrored ||
-			orientation == RotatedCW) {
+	if orientation, err := imaging.GetImageOrientation(bytes.NewReader(data)); err == nil &&
+		(orientation == imaging.RotatedCWMirrored ||
+			orientation == imaging.RotatedCCW ||
+			orientation == imaging.RotatedCCWMirrored ||
+			orientation == imaging.RotatedCW) {
 		info.Width, info.Height = info.Height, info.Width
 	}
 
@@ -987,12 +973,8 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() {
-		// Check dimensions before loading the whole thing into memory later on
-		// This casting is done to prevent overflow on 32 bit systems (not needed
-		// in 64 bits systems because images can't have more than 32 bits height or
-		// width)
-		if int64(info.Width)*int64(info.Height) > MaxImageSize {
-			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
+		if limitErr := checkImageResolutionLimit(info.Width, info.Height); limitErr != nil {
+			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
 			return nil, data, err
 		}
 
@@ -1003,7 +985,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
-		pluginContext := a.PluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			var newBytes bytes.Buffer
 			replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
@@ -1040,7 +1022,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
@@ -1057,113 +1039,75 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, _, _ := prepareImage(fileData[i])
-		if img != nil {
-			wg.Add(2)
-			go func(img image.Image, path string) {
-				defer wg.Done()
-				a.generateThumbnailImage(img, path)
-			}(img, thumbnailPathList[i])
-
-			go func(img image.Image, path string) {
-				defer wg.Done()
-				a.generatePreviewImage(img, path)
-			}(img, previewPathList[i])
+		img, release, err := prepareImage(a.srv.imgDecoder, bytes.NewReader(fileData[i]))
+		if err != nil {
+			mlog.Debug("Failed to prepare image", mlog.Err(err))
+			continue
 		}
+		wg.Add(2)
+		go func(img image.Image, path string) {
+			defer wg.Done()
+			a.generateThumbnailImage(img, path)
+		}(img, thumbnailPathList[i])
+
+		go func(img image.Image, path string) {
+			defer wg.Done()
+			a.generatePreviewImage(img, path)
+		}(img, previewPathList[i])
+
+		wg.Wait()
+		release()
 	}
-	wg.Wait()
 }
 
-func prepareImage(fileData []byte) (image.Image, int, int) {
+func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, release func(), err error) {
 	// Decode image bytes into Image object
-	img, imgType, err := image.Decode(bytes.NewReader(fileData))
+	var imgType string
+	img, imgType, release, err = imgDecoder.DecodeMemBounded(imgData)
 	if err != nil {
-		mlog.Error("Unable to decode image", mlog.Err(err))
-		return nil, 0, 0
+		return nil, nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
 	}
-
-	width := img.Bounds().Dx()
-	height := img.Bounds().Dy()
 
 	// Fill in the background of a potentially-transparent png file as white
 	if imgType == "png" {
-		dst := image.NewRGBA(img.Bounds())
-		draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
-		draw.Draw(dst, dst.Bounds(), img, img.Bounds().Min, draw.Over)
-		img = dst
+		imaging.FillImageTransparency(img, image.White)
 	}
+
+	imgData.Seek(0, io.SeekStart)
 
 	// Flip the image to be upright
-	orientation, _ := getImageOrientation(bytes.NewReader(fileData))
-	img = makeImageUpright(img, orientation)
-
-	return img, width, height
-}
-
-func makeImageUpright(img image.Image, orientation int) image.Image {
-	switch orientation {
-	case UprightMirrored:
-		return imaging.FlipH(img)
-	case UpsideDown:
-		return imaging.Rotate180(img)
-	case UpsideDownMirrored:
-		return imaging.FlipV(img)
-	case RotatedCWMirrored:
-		return imaging.Transpose(img)
-	case RotatedCCW:
-		return imaging.Rotate270(img)
-	case RotatedCCWMirrored:
-		return imaging.Transverse(img)
-	case RotatedCW:
-		return imaging.Rotate90(img)
-	default:
-		return img
-	}
-}
-
-func getImageOrientation(input io.Reader) (int, error) {
-	exifData, err := exif.Decode(input)
+	orientation, err := imaging.GetImageOrientation(imgData)
 	if err != nil {
-		return Upright, err
+		mlog.Debug("GetImageOrientation failed", mlog.Err(err))
 	}
+	img = imaging.MakeImageUpright(img, orientation)
 
-	tag, err := exifData.Get("Orientation")
-	if err != nil {
-		return Upright, err
-	}
-
-	orientation, err := tag.Int(0)
-	if err != nil {
-		return Upright, err
-	}
-
-	return orientation, nil
+	return img, release, nil
 }
 
 func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
-	buf := new(bytes.Buffer)
-	if err := jpeg.Encode(buf, genThumbnail(img), &jpeg.Options{Quality: 90}); err != nil {
+	var buf bytes.Buffer
+	if err := a.srv.imgEncoder.EncodeJPEG(&buf, imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight), jpegEncQuality); err != nil {
 		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
 
-	if _, err := a.WriteFile(buf, thumbnailPath); err != nil {
+	if _, err := a.WriteFile(&buf, thumbnailPath); err != nil {
 		mlog.Error("Unable to upload thumbnail", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
 }
 
 func (a *App) generatePreviewImage(img image.Image, previewPath string) {
-	preview := genPreview(img)
+	var buf bytes.Buffer
+	preview := imaging.GeneratePreview(img, imagePreviewWidth)
 
-	buf := new(bytes.Buffer)
-
-	if err := jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90}); err != nil {
+	if err := a.srv.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
 		mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
 		return
 	}
 
-	if _, err := a.WriteFile(buf, previewPath); err != nil {
+	if _, err := a.WriteFile(&buf, previewPath); err != nil {
 		mlog.Error("Unable to upload preview", mlog.Err(err), mlog.String("path", previewPath))
 		return
 	}
@@ -1173,18 +1117,26 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 // will save fileinfo with the preview added
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
 	if fi.IsImage() && fi.MiniPreview == nil {
-		data, err := a.ReadFile(fi.Path)
+		file, err := a.FileReader(fi.Path)
 		if err != nil {
-			mlog.Error("error reading image file", mlog.Err(err))
+			mlog.Debug("error reading image file", mlog.Err(err))
 			return
 		}
-		img, _, _ := prepareImage(data)
-		if img == nil {
+		defer file.Close()
+		img, release, imgErr := prepareImage(a.srv.imgDecoder, file)
+		if imgErr != nil {
+			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(imgErr))
 			return
 		}
-		fi.MiniPreview = model.GenerateMiniPreviewImage(img)
+		defer release()
+		if miniPreview, err := imaging.GenerateMiniPreviewImage(img,
+			miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
+			mlog.Info("Unable to generate mini preview image", mlog.Err(err))
+		} else {
+			fi.MiniPreview = &miniPreview
+		}
 		if _, appErr := a.Srv().Store.FileInfo().Upsert(fi); appErr != nil {
-			mlog.Error("creating mini preview failed", mlog.Err(appErr))
+			mlog.Debug("creating mini preview failed", mlog.Err(appErr))
 		} else {
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
 		}
@@ -1339,7 +1291,7 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *App) SearchFilesInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
+func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -1355,8 +1307,8 @@ func (a *App) SearchFilesInTeamForUser(terms string, userId string, teamId strin
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
-			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userId, teamId, includeDeletedChannels)
-			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userId, teamId, includeDeletedChannels)
+			params.InChannels = a.convertChannelNamesToChannelIds(c, params.InChannels, userId, teamId, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(c, params.ExcludedChannels, userId, teamId, includeDeletedChannels)
 
 			// Convert usernames to user IDs
 			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
@@ -1398,8 +1350,8 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 		return errors.Wrap(err, "failed to extract file content")
 	}
 	if text != "" {
-		if len(text) > MaxContentExtractionSize {
-			text = text[0:MaxContentExtractionSize]
+		if len(text) > maxContentExtractionSize {
+			text = text[0:maxContentExtractionSize]
 		}
 		if storeErr := a.Srv().Store.FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
 			return errors.Wrap(storeErr, "failed to save the extracted file content")

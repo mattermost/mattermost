@@ -101,7 +101,7 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 
 func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 	query := fs.getQueryBuilder().
-		Select(append(fs.queryFields, "P.ChannelId")...).
+		Select(append(fs.queryFields, "COALESCE(P.ChannelId, '') as ChannelId")...).
 		From("FileInfo").
 		LeftJoin("Posts as P ON FileInfo.PostId=P.Id").
 		Where(sq.Eq{"FileInfo.Id": ids}).
@@ -138,7 +138,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
+func (fs SqlFileInfoStore) get(id string, fromMaster bool) (*model.FileInfo, error) {
 	info := &model.FileInfo{}
 
 	query := fs.getQueryBuilder().
@@ -152,13 +152,26 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
 		return nil, errors.Wrap(err, "file_info_tosql")
 	}
 
-	if err := fs.GetReplica().SelectOne(info, queryString, args...); err != nil {
+	db := fs.GetReplica()
+	if fromMaster {
+		db = fs.GetMaster()
+	}
+
+	if err := db.SelectOne(info, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("FileInfo", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get FileInfo with id=%s", id)
 	}
 	return info, nil
+}
+
+func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
+	return fs.get(id, false)
+}
+
+func (fs SqlFileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
+	return fs.get(id, true)
 }
 
 func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
@@ -428,7 +441,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		return nil, err
 	}
 	query := fs.getQueryBuilder().
-		Select(append(fs.queryFields, "P.ChannelId as ChannelId")...).
+		Select(append(fs.queryFields, "Coalesce(P.ChannelId, '') AS ChannelId")...).
 		From("FileInfo").
 		LeftJoin("Posts as P ON FileInfo.PostId=P.Id").
 		LeftJoin("Channels as C ON C.Id=P.ChannelId").
@@ -614,7 +627,7 @@ func (fs SqlFileInfoStore) CountAll() (int64, error) {
 func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime, endTime int64, limit int) ([]*model.FileForIndexing, error) {
 	var files []*model.FileForIndexing
 	sql, args, _ := fs.getQueryBuilder().
-		Select(append(fs.queryFields, "p.ChannelId")...).
+		Select(append(fs.queryFields, "Coalesce(p.ChannelId, '') AS ChannelId")...).
 		From("FileInfo").
 		LeftJoin("Posts AS p ON FileInfo.PostId = p.Id").
 		Where(sq.GtOrEq{"FileInfo.CreateAt": startTime}).

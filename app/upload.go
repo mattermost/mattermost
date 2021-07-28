@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -21,7 +22,7 @@ import (
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
 const IncompleteUploadSuffix = ".tmp"
 
-func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppError {
+func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil
@@ -39,7 +40,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 		defer close(errChan)
 		var rejErr *model.AppError
 		var once sync.Once
-		pluginContext := a.PluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
@@ -162,7 +163,7 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 	return uss, nil
 }
 
-func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
 	a.Srv().uploadLockMapMut.Lock()
@@ -258,20 +259,17 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 	}
 
 	// run plugins upload hook
-	if err := a.runPluginsHook(info, file); err != nil {
+	if err := a.runPluginsHook(c, info, file); err != nil {
 		return nil, err
 	}
 
 	// image post-processing
 	if info.IsImage() {
-		// Check dimensions before loading the whole thing into memory later on
-		// This casting is done to prevent overflow on 32 bit systems (not needed
-		// in 64 bits systems because images can't have more than 32 bits height or
-		// width)
-		if int64(info.Width)*int64(info.Height) > MaxImageSize {
+		if limitErr := checkImageResolutionLimit(info.Width, info.Height); limitErr != nil {
 			return nil, model.NewAppError("uploadData", "app.upload.upload_data.large_image.app_error",
 				map[string]interface{}{"Filename": us.Filename, "Width": info.Width, "Height": info.Height}, "", http.StatusBadRequest)
 		}
+
 		nameWithoutExtension := info.Name[:strings.LastIndex(info.Name, ".")]
 		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview.jpg"
 		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb.jpg"
@@ -299,7 +297,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)

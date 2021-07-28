@@ -415,10 +415,11 @@ func Serve(opts *ServeConfig) {
 		// quite ready if they connect immediately but the client should
 		// retry a few times.
 		ch <- &ReattachConfig{
-			Protocol: protoType,
-			Addr:     listener.Addr(),
-			Pid:      os.Getpid(),
-			Test:     true,
+			Protocol:        protoType,
+			ProtocolVersion: protoVersion,
+			Addr:            listener.Addr(),
+			Pid:             os.Getpid(),
+			Test:            true,
 		}
 	}
 

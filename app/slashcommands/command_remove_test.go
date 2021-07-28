@@ -17,7 +17,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 
 	rp := RemoveProvider{}
 
-	publicChannel, _ := th.App.CreateChannel(&model.Channel{
+	publicChannel, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
@@ -25,7 +25,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		CreatorId:   th.BasicUser.Id,
 	}, false)
 
-	privateChannel, _ := th.App.CreateChannel(&model.Channel{
+	privateChannel, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "BB",
 		Name:        "aa" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
@@ -34,7 +34,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	}, false)
 
 	targetUser := th.createUser()
-	th.App.AddUserToTeam(th.BasicTeam.Id, targetUser.Id, targetUser.Id)
+	th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, targetUser.Id, targetUser.Id)
 	th.App.AddUserToChannel(targetUser, publicChannel, false)
 	th.App.AddUserToChannel(targetUser, privateChannel, false)
 
@@ -45,7 +45,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual := rp.DoCommand(th.App, args, targetUser.Username).Text
+	actual := rp.DoCommand(th.App, th.Context, args, targetUser.Username).Text
 	assert.Equal(t, "api.command_remove.permission.app_error", actual)
 
 	// Try a public channel *with* permission.
@@ -56,7 +56,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, targetUser.Username).Text
+	actual = rp.DoCommand(th.App, th.Context, args, targetUser.Username).Text
 	assert.Equal(t, "", actual)
 
 	// Try a private channel *without* permission.
@@ -66,7 +66,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, targetUser.Username).Text
+	actual = rp.DoCommand(th.App, th.Context, args, targetUser.Username).Text
 	assert.Equal(t, "api.command_remove.permission.app_error", actual)
 
 	// Try a private channel *with* permission.
@@ -77,7 +77,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, targetUser.Username).Text
+	actual = rp.DoCommand(th.App, th.Context, args, targetUser.Username).Text
 	assert.Equal(t, "", actual)
 
 	// Try a group channel
@@ -92,7 +92,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, user1.Username).Text
+	actual = rp.DoCommand(th.App, th.Context, args, user1.Username).Text
 	assert.Equal(t, "api.command_remove.direct_group.app_error", actual)
 
 	// Try a direct channel *with* being a member.
@@ -104,14 +104,14 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, user1.Username).Text
+	actual = rp.DoCommand(th.App, th.Context, args, user1.Username).Text
 	assert.Equal(t, "api.command_remove.direct_group.app_error", actual)
 
 	// Try a public channel with a deactivated user.
 	deactivatedUser := th.createUser()
-	th.App.AddUserToTeam(th.BasicTeam.Id, deactivatedUser.Id, deactivatedUser.Id)
+	th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, deactivatedUser.Id, deactivatedUser.Id)
 	th.App.AddUserToChannel(deactivatedUser, publicChannel, false)
-	th.App.UpdateActive(deactivatedUser, false)
+	th.App.UpdateActive(th.Context, deactivatedUser, false)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
@@ -119,6 +119,6 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = rp.DoCommand(th.App, args, deactivatedUser.Username).Text
+	actual = rp.DoCommand(th.App, th.Context, args, deactivatedUser.Username).Text
 	assert.Equal(t, "api.command_remove.missing.app_error", actual)
 }
