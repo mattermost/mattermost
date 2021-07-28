@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ func TestSendNotifications(t *testing.T) {
 
 	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
 
-	post1, appErr := th.App.CreatePostMissingChannel(&model.Post{
+	post1, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
@@ -35,10 +36,10 @@ func TestSendNotifications(t *testing.T) {
 	require.NotNil(t, mentions)
 	require.True(t, utils.StringInSlice(th.BasicUser2.Id, mentions), "mentions", mentions)
 
-	dm, appErr := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 
-	post2, appErr := th.App.CreatePostMissingChannel(&model.Post{
+	post2, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
@@ -49,12 +50,12 @@ func TestSendNotifications(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 
-	_, appErr = th.App.UpdateActive(th.BasicUser2, false)
+	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser2, false)
 	require.Nil(t, appErr)
 	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
 
-	post3, appErr := th.App.CreatePostMissingChannel(&model.Post{
+	post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
@@ -81,7 +82,7 @@ func TestSendNotifications(t *testing.T) {
 				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
 			}
 
-			rootPost, appErr = th.App.CreatePostMissingChannel(rootPost, false)
+			rootPost, appErr = th.App.CreatePostMissingChannel(th.Context, rootPost, false)
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
@@ -90,7 +91,7 @@ func TestSendNotifications(t *testing.T) {
 				RootId:    rootPost.Id,
 				Message:   "a reply",
 			}
-			childPost, appErr = th.App.CreatePostMissingChannel(childPost, false)
+			childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false)
 			require.Nil(t, appErr)
 
 			postList := model.PostList{
@@ -130,7 +131,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		users = append(users, user)
 	}
 
-	_, appErr1 := th.App.CreatePostMissingChannel(&model.Post{
+	_, appErr1 := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
@@ -150,7 +151,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		}
 	})
 
-	_, appErr1 = th.App.CreatePostMissingChannel(&model.Post{
+	_, appErr1 = th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
@@ -213,7 +214,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	guest := th.CreateGuest()
 	user4 := th.CreateUser()
 	guestAndUser4Channel := th.CreateChannel(th.BasicTeam)
-	defer th.App.PermanentDeleteUser(guest)
+	defer th.App.PermanentDeleteUser(th.Context, guest)
 	th.LinkUserToTeam(user3, th.BasicTeam)
 	th.LinkUserToTeam(user4, th.BasicTeam)
 	th.LinkUserToTeam(guest, th.BasicTeam)
@@ -289,7 +290,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 	t.Run("should not return inactive users", func(t *testing.T) {
 		inactiveUser := th.CreateUser()
-		inactiveUser, appErr := th.App.UpdateActive(inactiveUser, false)
+		inactiveUser, appErr := th.App.UpdateActive(th.Context, inactiveUser, false)
 		require.Nil(t, appErr)
 
 		post := &model.Post{}
@@ -2607,5 +2608,77 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		require.Equal(t, groupsMap[*group1.Name], group1)
 		require.Equal(t, groupsMap[*group2.Name], group2)
 		require.Equal(t, groupsMap[*group3.Name], group3)
+	})
+}
+
+func TestReplyPostNotificationsWithCRT(t *testing.T) {
+	t.Run("Reply posts only shows badges for explicit mentions in collapsed threads", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		u1 := th.BasicUser
+		u2 := th.BasicUser2
+		c1 := th.BasicChannel
+		th.AddUserToChannel(u2, c1)
+
+		// Enable "Trigger notifications on messages in
+		// reply threads that I start or participate in"
+		// for the second user
+		oldValue := th.BasicUser2.NotifyProps[model.COMMENTS_NOTIFY_PROP]
+		newNotifyProps := th.BasicUser2.NotifyProps
+		newNotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		u2, appErr := th.App.PatchUser(th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
+		require.Nil(t, appErr)
+		require.Equal(t, model.COMMENTS_NOTIFY_ANY, u2.NotifyProps[model.COMMENTS_NOTIFY_PROP])
+		defer func() {
+			newNotifyProps := th.BasicUser2.NotifyProps
+			newNotifyProps[model.COMMENTS_NOTIFY_PROP] = oldValue
+			_, nAppErr := th.App.PatchUser(th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
+			require.Nil(t, nAppErr)
+		}()
+
+		// Enable CRT
+		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		})
+
+		rootPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}
+		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, false, true)
+		require.Nil(t, appErr)
+
+		replyPost1 := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user2",
+			UserId:    u2.Id,
+			RootId:    rpost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+		require.Nil(t, appErr)
+
+		replyPost2 := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user1",
+			UserId:    u1.Id,
+			RootId:    rpost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+		require.Nil(t, appErr)
+
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, appErr)
+		thread, appErr := th.App.GetThreadForUser(c1.TeamId, threadMembership, false)
+		require.Nil(t, appErr)
+		// Then: with notifications set to "all" we should
+		// not see a mention badge
+		require.Equal(t, int64(0), thread.UnreadMentions)
+		// Then: last post is still marked as unread
+		require.Equal(t, int64(1), thread.UnreadReplies)
 	})
 }

@@ -82,6 +82,22 @@
       }
     }
   </style>
+  <style media="screen and (min-width:480px)">
+    .moz-text-html .mj-column-per-100 {
+      width: 100% !important;
+      max-width: 100%;
+    }
+
+    .moz-text-html .mj-column-per-50 {
+      width: 50% !important;
+      max-width: 50%;
+    }
+
+    .moz-text-html .mj-column-per-90 {
+      width: 90% !important;
+      max-width: 90%;
+    }
+  </style>
   <style type="text/css">
     @media only screen and (max-width:480px) {
       table.mj-full-width-mobile {
@@ -109,7 +125,7 @@
       font-weight: 600 !important;
       font-size: 28px !important;
       line-height: 36px !important;
-      letter-spacing: -0.02em !important;
+      letter-spacing: -0.01em !important;
       color: #3D3C40 !important;
     }
 
@@ -126,6 +142,17 @@
       line-height: 18px !important;
       color: #FFFFFF !important;
       padding: 15px 24px !important;
+    }
+
+    .messageButton a {
+      background-color: #FFFFFF !important;
+      border: 1px solid #FFFFFF !important;
+      box-sizing: border-box !important;
+      color: #166DE0 !important;
+      padding: 12px 20px !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 14px !important;
     }
 
     .info div {
@@ -196,13 +223,52 @@
       width: 32px !important;
     }
 
-    .senderName div {
+    .postNameAndTime {
+      padding: 0px 0px 4px 0px !important;
+      display: flex;
+    }
+
+    .senderName {
+      font-family: Open Sans, sans-serif;
       text-align: left !important;
       font-weight: 600 !important;
       font-size: 14px !important;
       line-height: 20px !important;
       color: #3D3C40 !important;
-      padding: 0px 0px 4px 0px !important;
+    }
+
+    .time {
+      font-family: Open Sans, sans-serif;
+      font-size: 12px;
+      line-height: 16px;
+      color: rgba(61, 60, 64, 0.56);
+      padding: 2px 6px;
+      align-items: center;
+      float: left;
+    }
+
+    .channelBg {
+      background: rgba(61, 60, 64, 0.08);
+      border-radius: 4px;
+      display: flex;
+    }
+
+    .channelLogo {
+      width: 10px;
+      height: 10px;
+      padding: 5px 4px 5px 6px;
+      float: left;
+    }
+
+    .channelName {
+      font-family: Open Sans, sans-serif;
+      font-weight: 600;
+      font-size: 10px;
+      line-height: 16px;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: rgba(61, 60, 64, 0.64);
+      padding: 2px 6px 2px 0px;
     }
 
     .senderMessage div {
@@ -367,7 +433,7 @@
                                         <tbody>
                                           <tr>
                                             <td style="width:276px;">
-                                              <img alt="" height="auto" src="cid:user-avatar.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="276" />
+                                              <img alt="" height="auto" src="cid:{{.Props.SenderPhoto}}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="276" />
                                             </td>
                                           </tr>
                                         </tbody>
@@ -382,8 +448,19 @@
                               <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                                 <tbody>
                                   <tr>
-                                    <td align="center" class="senderName" style="font-size:0px;padding:0px;word-break:break-word;">
-                                      <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SenderName}}</div>
+                                    <td>
+                                      <div class="postNameAndTime">
+                                        <div class="senderName">{{.Props.SenderName}}</div>
+                                        {{if .Props.Time}}
+                                        <div class="time">{{.Props.Time}}</div>
+                                        {{end}}
+                                        {{if .Props.ChannelName}}
+                                        <div class="channelBg">
+                                          <div class="channelLogo"><img src="{{$.Props.SiteURL}}/static/images/channel_icon.png" width=10px height=10px></img></div>
+                                          <div class="channelName">{{.Props.ChannelName}}</div>
+                                        </div>
+                                        {{end}}
+                                      </div>
                                     </td>
                                   </tr>
                                   <tr>

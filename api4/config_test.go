@@ -4,6 +4,9 @@
 package api4
 
 import (
+	"context"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -12,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -101,7 +105,7 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	defer th.TearDown()
 
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	cfg, resp := th.Client.GetConfig()
+	_, resp := th.Client.GetConfig()
 
 	t.Run("Check permissions error with no sysconsole read permission", func(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
@@ -111,7 +115,7 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
 	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
 
-	cfg, resp = th.Client.GetConfig()
+	cfg, resp := th.Client.GetConfig()
 	CheckNoError(t, resp)
 	t.Run("Can read value with permission", func(t *testing.T) {
 		assert.NotNil(t, cfg.FeatureFlags)
@@ -436,6 +440,49 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	})
 }
 
+func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
+	logFile, err := ioutil.TempFile("", "adv.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
+
+	options := []app.Option{
+		func(s *app.Server) error {
+			s.SetLicense(model.NewTestLicense("advanced_logging"))
+			return nil
+		},
+	}
+	th := SetupWithServerOptions(t, options)
+	defer th.TearDown()
+
+	cfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	timeoutVal := *cfg.ServiceSettings.ReadTimeout
+	cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal + 1)
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal)
+	})
+	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
+
+	// Forcing a flush before attempting to read log's content.
+	err = th.Server.Log.Flush(context.Background())
+	require.NoError(t, err)
+
+	data, err := ioutil.ReadAll(logFile)
+	require.NoError(t, err)
+	require.NotEmpty(t, data)
+	require.Contains(t, string(data),
+		fmt.Sprintf(`"diff":"[{Path:ServiceSettings.ReadTimeout BaseVal:%d ActualVal:%d}]"`,
+			timeoutVal, timeoutVal+1))
+}
+
 func TestGetEnvironmentConfig(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
 	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
@@ -721,11 +768,11 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStore("from.json", false, false, nil)
+		f, err := config.NewStoreFromDSN("from.json", false, false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStore("to.json", false, false, nil)
+		_, err = config.NewStoreFromDSN("to.json", false, false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 

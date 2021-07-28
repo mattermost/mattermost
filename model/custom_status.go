@@ -5,7 +5,9 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"time"
 )
 
 const (
@@ -13,14 +15,34 @@ const (
 
 	CustomStatusTextMaxRunes = 100
 	MaxRecentCustomStatuses  = 5
+	DefaultCustomStatusEmoji = "speech_balloon"
 )
 
-type CustomStatus struct {
-	Emoji string `json:"emoji"`
-	Text  string `json:"text"`
+var validCustomStatusDuration = map[string]bool{
+	"thirty_minutes": true,
+	"one_hour":       true,
+	"four_hours":     true,
+	"today":          true,
+	"this_week":      true,
+	"date_and_time":  true,
 }
 
-func (cs *CustomStatus) TrimMessage() {
+type CustomStatus struct {
+	Emoji     string    `json:"emoji"`
+	Text      string    `json:"text"`
+	Duration  string    `json:"duration"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+func (cs *CustomStatus) PreSave() {
+	if cs.Emoji == "" {
+		cs.Emoji = DefaultCustomStatusEmoji
+	}
+
+	if cs.Duration == "" && !cs.ExpiresAt.Before(time.Now()) {
+		cs.Duration = "date_and_time"
+	}
+
 	runes := []rune(cs.Text)
 	if len(runes) > CustomStatusTextMaxRunes {
 		cs.Text = string(runes[:CustomStatusTextMaxRunes])
@@ -33,10 +55,26 @@ func (cs *CustomStatus) ToJson() string {
 	return string(b)
 }
 
+func (cs *CustomStatus) AreDurationAndExpirationTimeValid() bool {
+	if cs.Duration == "" && (cs.ExpiresAt.IsZero() || !cs.ExpiresAt.Before(time.Now())) {
+		return true
+	}
+
+	if validCustomStatusDuration[cs.Duration] && !cs.ExpiresAt.Before(time.Now()) {
+		return true
+	}
+
+	return false
+}
+
 func CustomStatusFromJson(data io.Reader) *CustomStatus {
 	var cs *CustomStatus
 	_ = json.NewDecoder(data).Decode(&cs)
 	return cs
+}
+
+func RuneToHexadecimalString(r rune) string {
+	return fmt.Sprintf("%04x", r)
 }
 
 type RecentCustomStatuses []CustomStatus

@@ -17,7 +17,8 @@ import (
 )
 
 func init() {
-	app.RegisterJobsImportDeleteInterface(func(a *app.App) tjobs.ImportDeleteInterface {
+	app.RegisterJobsImportDeleteInterface(func(s *app.Server) tjobs.ImportDeleteInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ImportDeleteInterfaceImpl{a}
 	})
 }
