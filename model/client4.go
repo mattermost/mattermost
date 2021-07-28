@@ -823,9 +823,13 @@ func (c *Client4) Logout() (bool, *Response) {
 
 // SwitchAccountType changes a user's login type from one type to another.
 func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Response) {
-	r, err := c.DoApiPost(c.GetUsersRoute()+"/login/switch", switchRequest.ToJson())
+	buf, err := json.Marshal(switchRequest)
 	if err != nil {
-		return "", BuildErrorResponse(r, err)
+		return "", BuildErrorResponse(nil, NewAppError("SwitchAccountType", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+"/login/switch", buf)
+	if appErr != nil {
+		return "", BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return MapFromJson(r.Body)["follow_link"], BuildResponse(r)
@@ -835,9 +839,9 @@ func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Resp
 
 // CreateUser creates a user in the system based on the provided user struct.
 func (c *Client4) CreateUser(user *User) (*User, *Response) {
-	r, err := c.DoApiPost(c.GetUsersRoute(), user.ToJson())
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiPost(c.GetUsersRoute(), user.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return UserFromJson(r.Body), BuildResponse(r)
@@ -851,9 +855,13 @@ func (c *Client4) CreateUserWithToken(user *User, tokenId string) (*User, *Respo
 	}
 
 	query := fmt.Sprintf("?t=%v", tokenId)
-	r, err := c.DoApiPost(c.GetUsersRoute()+query, user.ToJson())
+	buf, err := json.Marshal(user)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateUserWithToken", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+query, buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
@@ -868,9 +876,13 @@ func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *R
 	}
 
 	query := fmt.Sprintf("?iid=%v", url.QueryEscape(inviteId))
-	r, err := c.DoApiPost(c.GetUsersRoute()+query, user.ToJson())
+	buf, err := json.Marshal(user)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateUserWithInviteId", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+query, buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
@@ -1158,9 +1170,13 @@ func (c *Client4) GetUsersByGroupChannelIds(groupChannelIds []string) (map[strin
 
 // SearchUsers returns a list of users based on some search criteria.
 func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
-	r, err := c.doApiPostBytes(c.GetUsersRoute()+"/search", search.ToJson())
+	buf, err := json.Marshal(search)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("SearchUsers", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+"/search", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return UserListFromJson(r.Body), BuildResponse(r)
@@ -1168,9 +1184,13 @@ func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
 
 // UpdateUser updates a user in the system based on the provided user struct.
 func (c *Client4) UpdateUser(user *User) (*User, *Response) {
-	r, err := c.DoApiPut(c.GetUserRoute(user.Id), user.ToJson())
+	buf, err := json.Marshal(user)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetUserRoute(user.Id), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return UserFromJson(r.Body), BuildResponse(r)
@@ -1178,9 +1198,13 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 
 // PatchUser partially updates a user in the system. Any missing fields are not updated.
 func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response) {
-	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/patch", patch.ToJson())
+	buf, err := json.Marshal(patch)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("PatchUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetUserRoute(userId)+"/patch", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return UserFromJson(r.Body), BuildResponse(r)
@@ -1188,9 +1212,13 @@ func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response) 
 
 // UpdateUserAuth updates a user AuthData (uthData, authService and password) in the system.
 func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, *Response) {
-	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/auth", userAuth.ToJson())
+	buf, err := json.Marshal(userAuth)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateUserAuth", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetUserRoute(userId)+"/auth", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return UserAuthFromJson(r.Body), BuildResponse(r)
@@ -1350,9 +1378,13 @@ func (c *Client4) ConvertBotToUser(userId string, userPatch *UserPatch, setSyste
 	if setSystemAdmin {
 		query = "?set_system_admin=true"
 	}
-	r, err := c.DoApiPost(c.GetBotRoute(userId)+"/convert_to_user"+query, userPatch.ToJson())
+	buf, err := json.Marshal(userPatch)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("ConvertBotToUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetBotRoute(userId)+"/convert_to_user"+query, buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return UserFromJson(r.Body), BuildResponse(r)
@@ -1636,9 +1668,13 @@ func (c *Client4) RevokeUserAccessToken(tokenId string) (bool, *Response) {
 
 // SearchUserAccessTokens returns user access tokens matching the provided search term.
 func (c *Client4) SearchUserAccessTokens(search *UserAccessTokenSearch) ([]*UserAccessToken, *Response) {
-	r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/search", search.ToJson())
+	buf, err := json.Marshal(search)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("SearchUserAccessTokens", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+"/tokens/search", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return UserAccessTokenListFromJson(r.Body), BuildResponse(r)
@@ -1912,9 +1948,13 @@ func (c *Client4) DeleteBotIconImage(botUserId string) (bool, *Response) {
 
 // CreateTeam creates a team in the system based on the provided team struct.
 func (c *Client4) CreateTeam(team *Team) (*Team, *Response) {
-	r, err := c.DoApiPost(c.GetTeamsRoute(), team.ToJson())
+	buf, err := json.Marshal(team)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetTeamsRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return TeamFromJson(r.Body), BuildResponse(r)
@@ -1977,9 +2017,13 @@ func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 
 // SearchTeams returns teams matching the provided search term.
 func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
-	r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson())
+	buf, err := json.Marshal(search)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("SearchTeams", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetTeamsRoute()+"/search", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return TeamListFromJson(r.Body), BuildResponse(r)
@@ -1993,9 +2037,13 @@ func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Respons
 	if search.PerPage == nil {
 		search.PerPage = NewInt(100)
 	}
-	r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson())
+	buf, err := json.Marshal(search)
 	if err != nil {
-		return nil, 0, BuildErrorResponse(r, err)
+		return nil, 0, BuildErrorResponse(nil, NewAppError("SearchTeamsPaged", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetTeamsRoute()+"/search", buf)
+	if appErr != nil {
+		return nil, 0, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	twc := TeamsWithCountFromJson(r.Body)
@@ -2046,9 +2094,13 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 
 // UpdateTeamMemberSchemeRoles will update the scheme-derived roles on a team for a user.
 func (c *Client4) UpdateTeamMemberSchemeRoles(teamId string, userId string, schemeRoles *SchemeRoles) (bool, *Response) {
-	r, err := c.DoApiPut(c.GetTeamMemberRoute(teamId, userId)+"/schemeRoles", schemeRoles.ToJson())
+	buf, err := json.Marshal(schemeRoles)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("UpdateTeamMemberSchemeRoles", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetTeamMemberRoute(teamId, userId)+"/schemeRoles", buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -2056,9 +2108,13 @@ func (c *Client4) UpdateTeamMemberSchemeRoles(teamId string, userId string, sche
 
 // UpdateTeam will update a team.
 func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
-	r, err := c.DoApiPut(c.GetTeamRoute(team.Id), team.ToJson())
+	buf, err := json.Marshal(team)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetTeamRoute(team.Id), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return TeamFromJson(r.Body), BuildResponse(r)
@@ -2066,9 +2122,13 @@ func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
 
 // PatchTeam partially updates a team. Any missing fields are not updated.
 func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) {
-	r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/patch", patch.ToJson())
+	buf, err := json.Marshal(patch)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("PatchTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetTeamRoute(teamId)+"/patch", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return TeamFromJson(r.Body), BuildResponse(r)
@@ -2174,9 +2234,13 @@ func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamM
 // AddTeamMember adds user to a team and return a team member.
 func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response) {
 	member := &TeamMember{TeamId: teamId, UserId: userId}
-	r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId), member.ToJson())
+	buf, err := json.Marshal(member)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("AddTeamMember", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetTeamMembersRoute(teamId), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return TeamMemberFromJson(r.Body), BuildResponse(r)
@@ -2335,9 +2399,13 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 		Channels: channels,
 		Message:  message,
 	}
-	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite-guests/email", guestsInvite.ToJson())
+	buf, err := json.Marshal(guestsInvite)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("InviteGuestsToTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetTeamRoute(teamId)+"/invite-guests/email", buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -2360,9 +2428,13 @@ func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []strin
 		Channels: channels,
 		Message:  message,
 	}
-	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite-guests/email?graceful="+c.boolString(true), guestsInvite.ToJson())
+	buf, err := json.Marshal(guestsInvite)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("InviteGuestsToTeamGracefully", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetTeamRoute(teamId)+"/invite-guests/email?graceful="+c.boolString(true), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r)
@@ -2541,14 +2613,18 @@ func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response) {
 
 // PatchChannel partially updates a channel. Any missing fields are not updated.
 func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel, *Response) {
-	r, appErr := c.DoApiPut(c.GetChannelRoute(channelId)+"/patch", patch.ToJson())
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("PatchChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetChannelRoute(channelId)+"/patch", buf)
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("PatchChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
 	}
@@ -3037,14 +3113,18 @@ func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*Channe
 // ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
 func (c *Client4) ViewChannel(userId string, view *ChannelView) (*ChannelViewResponse, *Response) {
 	url := fmt.Sprintf(c.GetChannelsRoute()+"/members/%v/view", userId)
-	r, appErr := c.DoApiPost(url, view.ToJson())
+	buf, err := json.Marshal(view)
+	if err != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("ViewChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(url, buf)
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
 	var ch *ChannelViewResponse
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("ViewChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
 	}
@@ -3081,9 +3161,13 @@ func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Re
 
 // UpdateChannelMemberSchemeRoles will update the scheme-derived roles on a channel for a user.
 func (c *Client4) UpdateChannelMemberSchemeRoles(channelId string, userId string, schemeRoles *SchemeRoles) (bool, *Response) {
-	r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/schemeRoles", schemeRoles.ToJson())
+	buf, err := json.Marshal(schemeRoles)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("UpdateChannelMemberSchemeRoles", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetChannelMemberRoute(channelId, userId)+"/schemeRoles", buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -3211,9 +3295,13 @@ func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
 
 // PatchPost partially updates a post. Any missing fields are not updated.
 func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) {
-	r, err := c.DoApiPut(c.GetPostRoute(postId)+"/patch", patch.ToJson())
+	buf, err := json.Marshal(patch)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("PatchPost", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetPostRoute(postId)+"/patch", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return PostFromJson(r.Body), BuildResponse(r)
@@ -3221,10 +3309,13 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 
 // SetPostUnread marks channel where post belongs as unread on the time of the provided post.
 func (c *Client4) SetPostUnread(userId string, postId string, collapsedThreadsSupported bool) *Response {
-	b, _ := json.Marshal(map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported})
-	r, err := c.DoApiPost(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", string(b))
+	b, err := json.Marshal(map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported})
 	if err != nil {
-		return BuildErrorResponse(r, err)
+		return BuildErrorResponse(nil, NewAppError("SetPostUnread", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", b)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return BuildResponse(r)
@@ -3722,9 +3813,13 @@ func (c *Client4) GetPingWithFullServerStatus() (map[string]string, *Response) {
 
 // TestEmail will attempt to connect to the configured SMTP server.
 func (c *Client4) TestEmail(config *Config) (bool, *Response) {
-	r, err := c.DoApiPost(c.GetTestEmailRoute(), config.ToJson())
+	buf, err := json.Marshal(config)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("TestEmail", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetTestEmailRoute(), buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -3744,9 +3839,13 @@ func (c *Client4) TestSiteURL(siteURL string) (bool, *Response) {
 
 // TestS3Connection will attempt to connect to the AWS S3.
 func (c *Client4) TestS3Connection(config *Config) (bool, *Response) {
-	r, err := c.DoApiPost(c.GetTestS3Route(), config.ToJson())
+	buf, err := json.Marshal(config)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("TestS3Connection", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetTestS3Route(), buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -3828,9 +3927,13 @@ func (c *Client4) InvalidateCaches() (bool, *Response) {
 
 // UpdateConfig will update the server configuration.
 func (c *Client4) UpdateConfig(config *Config) (*Config, *Response) {
-	r, err := c.DoApiPut(c.GetConfigRoute(), config.ToJson())
+	buf, err := json.Marshal(config)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateConfig", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetConfigRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return ConfigFromJson(r.Body), BuildResponse(r)
@@ -3925,9 +4028,13 @@ func (c *Client4) GetAnalyticsOld(name, teamId string) (AnalyticsRows, *Response
 
 // CreateIncomingWebhook creates an incoming webhook for a channel.
 func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response) {
-	r, err := c.DoApiPost(c.GetIncomingWebhooksRoute(), hook.ToJson())
+	buf, err := json.Marshal(hook)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateIncomingWebhook", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetIncomingWebhooksRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return IncomingWebhookFromJson(r.Body), BuildResponse(r)
@@ -3935,9 +4042,13 @@ func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 
 // UpdateIncomingWebhook updates an incoming webhook for a channel.
 func (c *Client4) UpdateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response) {
-	r, err := c.DoApiPut(c.GetIncomingWebhookRoute(hook.Id), hook.ToJson())
+	buf, err := json.Marshal(hook)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateIncomingWebhook", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetIncomingWebhookRoute(hook.Id), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return IncomingWebhookFromJson(r.Body), BuildResponse(r)
@@ -3987,9 +4098,13 @@ func (c *Client4) DeleteIncomingWebhook(hookID string) (bool, *Response) {
 
 // CreateOutgoingWebhook creates an outgoing webhook for a team or channel.
 func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook, *Response) {
-	r, err := c.DoApiPost(c.GetOutgoingWebhooksRoute(), hook.ToJson())
+	buf, err := json.Marshal(hook)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateOutgoingWebhook", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetOutgoingWebhooksRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
@@ -3997,9 +4112,13 @@ func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 
 // UpdateOutgoingWebhook creates an outgoing webhook for a team or channel.
 func (c *Client4) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook, *Response) {
-	r, err := c.DoApiPut(c.GetOutgoingWebhookRoute(hook.Id), hook.ToJson())
+	buf, err := json.Marshal(hook)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateOutgoingWebhook", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetOutgoingWebhookRoute(hook.Id), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
@@ -4083,9 +4202,13 @@ func (c *Client4) GetPreferences(userId string) (Preferences, *Response) {
 
 // UpdatePreferences saves the user's preferences.
 func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bool, *Response) {
-	r, err := c.DoApiPut(c.GetPreferencesRoute(userId), preferences.ToJson())
+	buf, err := json.Marshal(preferences)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("UpdatePreferences", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetPreferencesRoute(userId), buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return true, BuildResponse(r)
@@ -4093,9 +4216,13 @@ func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bo
 
 // DeletePreferences deletes the user's preferences.
 func (c *Client4) DeletePreferences(userId string, preferences *Preferences) (bool, *Response) {
-	r, err := c.DoApiPost(c.GetPreferencesRoute(userId)+"/delete", preferences.ToJson())
+	buf, err := json.Marshal(preferences)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("DeletePreferences", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetPreferencesRoute(userId)+"/delete", buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return true, BuildResponse(r)
@@ -4272,9 +4399,13 @@ func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, use
 
 // CreateComplianceReport creates an incoming webhook for a channel.
 func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Response) {
-	r, err := c.DoApiPost(c.GetComplianceReportsRoute(), report.ToJson())
+	buf, err := json.Marshal(report)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateComplianceReport", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetComplianceReportsRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return ComplianceFromJson(r.Body), BuildResponse(r)
@@ -4735,9 +4866,13 @@ func (c *Client4) PostLog(message map[string]string) (map[string]string, *Respon
 
 // CreateOAuthApp will register a new OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
-	r, err := c.DoApiPost(c.GetOAuthAppsRoute(), app.ToJson())
+	buf, err := json.Marshal(app)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateOAuthApp", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetOAuthAppsRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return OAuthAppFromJson(r.Body), BuildResponse(r)
@@ -4745,9 +4880,13 @@ func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
 
 // UpdateOAuthApp updates a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
-	r, err := c.DoApiPut(c.GetOAuthAppRoute(app.Id), app.ToJson())
+	buf, err := json.Marshal(app)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateOAuthApp", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetOAuthAppRoute(app.Id), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return OAuthAppFromJson(r.Body), BuildResponse(r)
@@ -4817,9 +4956,13 @@ func (c *Client4) GetAuthorizedOAuthAppsForUser(userId string, page, perPage int
 
 // AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
 func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Response) {
-	r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/authorize", authRequest.ToJson(), "")
+	buf, err := json.Marshal(authRequest)
 	if err != nil {
-		return "", BuildErrorResponse(r, err)
+		return "", BuildErrorResponse(nil, NewAppError("AuthorizeOAuthApp", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiRequestBytes(http.MethodPost, c.Url+"/oauth/authorize", buf, "")
+	if appErr != nil {
+		return "", BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return MapFromJson(r.Body)["redirect"], BuildResponse(r)
@@ -5141,9 +5284,13 @@ func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*
 
 // CreateCommand will create a new command if the user have the right permissions.
 func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
-	r, err := c.DoApiPost(c.GetCommandsRoute(), cmd.ToJson())
+	buf, err := json.Marshal(cmd)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetCommandsRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CommandFromJson(r.Body), BuildResponse(r)
@@ -5151,9 +5298,13 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 
 // UpdateCommand updates a command based on the provided Command struct.
 func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response) {
-	r, err := c.DoApiPut(c.GetCommandRoute(cmd.Id), cmd.ToJson())
+	buf, err := json.Marshal(cmd)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetCommandRoute(cmd.Id), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CommandFromJson(r.Body), BuildResponse(r)
@@ -5162,9 +5313,13 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response) {
 // MoveCommand moves a command to a different team.
 func (c *Client4) MoveCommand(teamId string, commandId string) (bool, *Response) {
 	cmr := CommandMoveRequest{TeamId: teamId}
-	r, err := c.DoApiPut(c.GetCommandMoveRoute(commandId), cmr.ToJson())
+	buf, err := json.Marshal(cmr)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("MoveCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetCommandMoveRoute(commandId), buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -5219,13 +5374,20 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 		ChannelId: channelId,
 		Command:   command,
 	}
-	r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson())
+	buf, err := json.Marshal(commandArgs)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("ExecuteCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetCommandsRoute()+"/execute", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
-	response, _ := CommandResponseFromJson(r.Body)
+	response, err := CommandResponseFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("ExecuteCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
 	return response, BuildResponse(r)
 }
 
@@ -5237,13 +5399,20 @@ func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*Co
 		TeamId:    teamId,
 		Command:   command,
 	}
-	r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson())
+	buf, err := json.Marshal(commandArgs)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetCommandsRoute()+"/execute", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
-	response, _ := CommandResponseFromJson(r.Body)
+	response, err := CommandResponseFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
 	return response, BuildResponse(r)
 }
 
@@ -5291,9 +5460,13 @@ func (c *Client4) GetUsersStatusesByIds(userIds []string) ([]*Status, *Response)
 
 // UpdateUserStatus sets a user's status based on the provided user id string.
 func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, *Response) {
-	r, err := c.DoApiPut(c.GetUserStatusRoute(userId), userStatus.ToJson())
+	buf, err := json.Marshal(userStatus)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateUserStatus", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetUserStatusRoute(userId), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return StatusFromJson(r.Body), BuildResponse(r)
@@ -5383,9 +5556,9 @@ func (c *Client4) GetEmojiByName(name string) (*Emoji, *Response) {
 
 // GetEmojiImage returns the emoji image.
 func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response) {
-	r, apErr := c.DoApiGet(c.GetEmojiRoute(emojiId)+"/image", "")
-	if apErr != nil {
-		return nil, BuildErrorResponse(r, apErr)
+	r, appErr := c.DoApiGet(c.GetEmojiRoute(emojiId)+"/image", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
@@ -5399,9 +5572,13 @@ func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response) {
 
 // SearchEmoji returns a list of emoji matching some search criteria.
 func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response) {
-	r, err := c.DoApiPost(c.GetEmojisRoute()+"/search", search.ToJson())
+	buf, err := json.Marshal(search)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("SearchEmoji", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetEmojisRoute()+"/search", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return EmojiListFromJson(r.Body), BuildResponse(r)
@@ -5410,9 +5587,9 @@ func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response) {
 // AutocompleteEmoji returns a list of emoji starting with or matching name.
 func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Response) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoApiGet(c.GetEmojisRoute()+"/autocomplete"+query, "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+	r, appErr := c.DoApiGet(c.GetEmojisRoute()+"/autocomplete"+query, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return EmojiListFromJson(r.Body), BuildResponse(r)
@@ -5422,9 +5599,13 @@ func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Respon
 
 // SaveReaction saves an emoji reaction for a post. Returns the saved reaction if successful, otherwise an error will be returned.
 func (c *Client4) SaveReaction(reaction *Reaction) (*Reaction, *Response) {
-	r, err := c.DoApiPost(c.GetReactionsRoute(), reaction.ToJson())
+	buf, err := json.Marshal(reaction)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("SaveReaction", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetReactionsRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return ReactionFromJson(r.Body), BuildResponse(r)
@@ -5523,9 +5704,13 @@ func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, 
 
 // CreateJob creates a job based on the provided job struct.
 func (c *Client4) CreateJob(job *Job) (*Job, *Response) {
-	r, err := c.DoApiPost(c.GetJobsRoute(), job.ToJson())
+	buf, err := json.Marshal(job)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateJob", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetJobsRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return JobFromJson(r.Body), BuildResponse(r)
@@ -5590,9 +5775,13 @@ func (c *Client4) GetRolesByNames(roleNames []string) ([]*Role, *Response) {
 
 // PatchRole partially updates a role in the system. Any missing fields are not updated.
 func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response) {
-	r, err := c.DoApiPut(c.GetRolesRoute()+fmt.Sprintf("/%v/patch", roleId), patch.ToJson())
+	buf, err := json.Marshal(patch)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("PatchRole", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetRolesRoute()+fmt.Sprintf("/%v/patch", roleId), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return RoleFromJson(r.Body), BuildResponse(r)
@@ -5602,9 +5791,13 @@ func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response) 
 
 // CreateScheme creates a new Scheme.
 func (c *Client4) CreateScheme(scheme *Scheme) (*Scheme, *Response) {
-	r, err := c.DoApiPost(c.GetSchemesRoute(), scheme.ToJson())
+	buf, err := json.Marshal(scheme)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetSchemesRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return SchemeFromJson(r.Body), BuildResponse(r)
@@ -5642,9 +5835,13 @@ func (c *Client4) DeleteScheme(id string) (bool, *Response) {
 
 // PatchScheme partially updates a scheme in the system. Any missing fields are not updated.
 func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response) {
-	r, err := c.DoApiPut(c.GetSchemeRoute(id)+"/patch", patch.ToJson())
+	buf, err := json.Marshal(patch)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("PatchScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetSchemeRoute(id)+"/patch", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return SchemeFromJson(r.Body), BuildResponse(r)
@@ -5679,7 +5876,6 @@ func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (
 // Plugin Section
 
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
 	return c.uploadPlugin(file, false)
 }
@@ -5748,7 +5944,6 @@ func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifes
 }
 
 // InstallMarketplacePlugin will install marketplace plugin.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequest) (*Manifest, *Response) {
 	json, err := request.ToJson()
 	if err != nil {
@@ -5763,7 +5958,6 @@ func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequ
 }
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {
 	r, err := c.DoApiGet(c.GetPluginsRoute(), "")
 	if err != nil {
@@ -5775,7 +5969,6 @@ func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {
 
 // GetPluginStatuses will return the plugins installed on any server in the cluster, for reporting
 // to the administrator via the system console.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response) {
 	r, err := c.DoApiGet(c.GetPluginsRoute()+"/statuses", "")
 	if err != nil {
@@ -5786,7 +5979,6 @@ func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response) {
 }
 
 // RemovePlugin will disable and delete a plugin.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) RemovePlugin(id string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetPluginRoute(id))
 	if err != nil {
@@ -5797,7 +5989,6 @@ func (c *Client4) RemovePlugin(id string) (bool, *Response) {
 }
 
 // GetWebappPlugins will return a list of plugins that the webapp should download.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
 	r, err := c.DoApiGet(c.GetPluginsRoute()+"/webapp", "")
 	if err != nil {
@@ -5808,7 +5999,6 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
 }
 
 // EnablePlugin will enable an plugin installed.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) EnablePlugin(id string) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetPluginRoute(id)+"/enable", "")
 	if err != nil {
@@ -5819,7 +6009,6 @@ func (c *Client4) EnablePlugin(id string) (bool, *Response) {
 }
 
 // DisablePlugin will disable an enabled plugin.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetPluginRoute(id)+"/disable", "")
 	if err != nil {
@@ -5830,7 +6019,6 @@ func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 }
 
 // GetMarketplacePlugins will return a list of plugins that an admin can install.
-// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*MarketplacePlugin, *Response) {
 	route := c.GetPluginsRoute() + "/marketplace"
 	u, parseErr := url.Parse(route)
@@ -5857,9 +6045,13 @@ func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*Mar
 // UpdateChannelScheme will update a channel's scheme.
 func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (bool, *Response) {
 	sip := &SchemeIDPatch{SchemeID: &schemeId}
-	r, err := c.DoApiPut(c.GetChannelSchemeRoute(channelId), sip.ToJson())
+	buf, err := json.Marshal(sip)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("UpdateChannelScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetChannelSchemeRoute(channelId), buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -5868,9 +6060,13 @@ func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (bool, *Respon
 // UpdateTeamScheme will update a team's scheme.
 func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (bool, *Response) {
 	sip := &SchemeIDPatch{SchemeID: &schemeId}
-	r, err := c.DoApiPut(c.GetTeamSchemeRoute(teamId), sip.ToJson())
+	buf, err := json.Marshal(sip)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("UpdateTeamScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetTeamSchemeRoute(teamId), buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -6076,9 +6272,13 @@ func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []s
 }
 
 func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
-	r, err := c.DoApiPut(c.GetConfigRoute()+"/patch", config.ToJson())
+	buf, err := json.Marshal(config)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("PatchConfig", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetConfigRoute()+"/patch", buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return ConfigFromJson(r.Body), BuildResponse(r)
@@ -6132,9 +6332,13 @@ func (c *Client4) GetKnownUsers() ([]string, *Response) {
 
 // PublishUserTyping publishes a user is typing websocket event based on the provided TypingRequest.
 func (c *Client4) PublishUserTyping(userID string, typingRequest TypingRequest) (bool, *Response) {
-	r, err := c.DoApiPost(c.GetPublishUserTypingRoute(userID), typingRequest.ToJson())
+	buf, err := json.Marshal(typingRequest)
 	if err != nil {
-		return false, BuildErrorResponse(r, err)
+		return false, BuildErrorResponse(nil, NewAppError("PublishUserTyping", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetPublishUserTypingRoute(userID), buf)
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
@@ -6320,9 +6524,13 @@ func (c *Client4) MarkNoticesViewed(ids []string) *Response {
 
 // CreateUpload creates a new upload session.
 func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response) {
-	r, err := c.DoApiPost(c.GetUploadsRoute(), us.ToJson())
+	buf, err := json.Marshal(us)
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(nil, NewAppError("CreateUpload", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetUploadsRoute(), buf)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return UploadSessionFromJson(r.Body), BuildResponse(r)

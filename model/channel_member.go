@@ -69,24 +69,6 @@ type ChannelMemberForExport struct {
 	Username    string
 }
 
-func (o *ChannelMembers) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func (o *ChannelUnread) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *ChannelUnreadAt) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
 func (o *ChannelMember) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
