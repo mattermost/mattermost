@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ func TestMuteCommandNoChannel(t *testing.T) {
 	}
 
 	channel1 := th.BasicChannel
-	channel1M, channel1MError := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+	channel1M, channel1MError := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
 
 	assert.Nil(t, channel1MError, "User is not a member of channel 1")
 	assert.NotEqual(
@@ -33,7 +34,7 @@ func TestMuteCommandNoChannel(t *testing.T) {
 	)
 
 	cmd := &MuteProvider{}
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:      i18n.IdentityTfunc(),
 		UserId: th.BasicUser.Id,
 	}, "")
@@ -45,14 +46,14 @@ func TestMuteCommandNoArgs(t *testing.T) {
 	defer th.tearDown()
 
 	channel1 := th.BasicChannel
-	channel1M, _ := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+	channel1M, _ := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
 
 	assert.Equal(t, model.CHANNEL_NOTIFY_ALL, channel1M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -61,7 +62,7 @@ func TestMuteCommandNoArgs(t *testing.T) {
 
 	// Now unmute the channel
 	time.Sleep(time.Millisecond)
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -79,7 +80,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 	}
 
 	channel1 := th.BasicChannel
-	channel2, _ := th.App.CreateChannel(&model.Channel{
+	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
@@ -87,31 +88,31 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 		CreatorId:   th.BasicUser.Id,
 	}, true)
 
-	channel2M, _ := th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+	channel2M, _ := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 
 	assert.Equal(t, model.CHANNEL_NOTIFY_ALL, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
 	}, channel2.Name)
 	assert.Equal(t, "api.command_mute.success_mute", resp.Text)
-	channel2M, _ = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+	channel2M, _ = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.CHANNEL_NOTIFY_MENTION, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
 	// Now unmute the channel
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
 	}, "~"+channel2.Name)
 
 	assert.Equal(t, "api.command_mute.success_unmute", resp.Text)
-	channel2M, _ = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+	channel2M, _ = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.CHANNEL_NOTIFY_ALL, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 }
 
@@ -124,7 +125,7 @@ func TestMuteCommandNotMember(t *testing.T) {
 	}
 
 	channel1 := th.BasicChannel
-	channel2, _ := th.App.CreateChannel(&model.Channel{
+	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
@@ -135,7 +136,7 @@ func TestMuteCommandNotMember(t *testing.T) {
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -156,7 +157,7 @@ func TestMuteCommandNotChannel(t *testing.T) {
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -172,26 +173,26 @@ func TestMuteCommandDMChannel(t *testing.T) {
 		t.SkipNow()
 	}
 
-	channel2, _ := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
-	channel2M, _ := th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+	channel2, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+	channel2M, _ := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 
 	assert.Equal(t, model.CHANNEL_NOTIFY_ALL, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
 	}, "")
 	assert.Equal(t, "api.command_mute.success_mute_direct_msg", resp.Text)
 	time.Sleep(time.Millisecond)
-	channel2M, _ = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+	channel2M, _ = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.CHANNEL_NOTIFY_MENTION, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
 	// Now unmute the channel
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
@@ -199,6 +200,6 @@ func TestMuteCommandDMChannel(t *testing.T) {
 
 	assert.Equal(t, "api.command_mute.success_unmute_direct_msg", resp.Text)
 	time.Sleep(time.Millisecond)
-	channel2M, _ = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+	channel2M, _ = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.CHANNEL_NOTIFY_ALL, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 }

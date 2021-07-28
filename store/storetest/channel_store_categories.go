@@ -23,9 +23,9 @@ func TestChannelStoreCategories(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, ss) })
 	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss) })
 	t.Run("ClearSidebarOnTeamLeave", func(t *testing.T) { testClearSidebarOnTeamLeave(t, ss, s) })
-	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
+	t.Run("SidebarCategoryDeadlock", func(t *testing.T) { testSidebarCategoryDeadlock(t, ss) })
 }
 
 func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
@@ -363,6 +363,22 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 }
 
 func testCreateSidebarCategory(t *testing.T, ss store.Store) {
+	t.Run("Creating category without initial categories should fail", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		// Create the category
+		created, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: model.NewId(),
+			},
+		})
+		require.Error(t, err)
+		var errNotFound *store.ErrNotFound
+		require.ErrorAs(t, err, &errNotFound)
+		require.Nil(t, created)
+	})
+
 	t.Run("should place the new category second if Favorites comes first", func(t *testing.T) {
 		userId := model.NewId()
 		teamId := model.NewId()
@@ -2040,4 +2056,69 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, ss store.Store) {
 			})
 		})
 	})
+}
+
+// testSidebarCategoryDeadlock tries to delete and update a category at the same time
+// in the hope of triggering a deadlock. This is a best-effort test case, and is not guaranteed
+// to catch a bug.
+func testSidebarCategoryDeadlock(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	teamID := model.NewId()
+
+	// Join a channel
+	channel, err := ss.Channel().Save(&model.Channel{
+		Name:   "channel",
+		Type:   model.CHANNEL_OPEN,
+		TeamId: teamID,
+	}, 10)
+	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		UserId:      userID,
+		ChannelId:   channel.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	// And then create the initial categories so that it includes the channel
+	res, err := ss.Channel().CreateInitialSidebarCategories(userID, teamID)
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+
+	initialCategories, err := ss.Channel().GetSidebarCategories(userID, teamID)
+	require.NoError(t, err)
+
+	channelsCategory := initialCategories.Categories[1]
+	require.Equal(t, []string{channel.Id}, channelsCategory.Channels)
+
+	customCategory, err := ss.Channel().CreateSidebarCategory(userID, teamID, &model.SidebarCategoryWithChannels{})
+	require.NoError(t, err)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		_, _, err := ss.Channel().UpdateSidebarCategories(userID, teamID, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: channelsCategory.SidebarCategory,
+				Channels:        []string{},
+			},
+			{
+				SidebarCategory: customCategory.SidebarCategory,
+				Channels:        []string{channel.Id},
+			},
+		})
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			require.True(t, errors.As(err, &nfErr))
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		err := ss.Channel().DeleteSidebarCategory(customCategory.Id)
+		require.NoError(t, err)
+	}()
+
+	wg.Wait()
 }

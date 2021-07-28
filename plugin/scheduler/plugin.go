@@ -13,7 +13,8 @@ type PluginsJobInterfaceImpl struct {
 }
 
 func init() {
-	app.RegisterJobsPluginsJobInterface(func(a *app.App) tjobs.PluginsJobInterface {
+	app.RegisterJobsPluginsJobInterface(func(s *app.Server) tjobs.PluginsJobInterface {
+		a := app.New(app.ServerConnector(s))
 		return &PluginsJobInterfaceImpl{a}
 	})
 }

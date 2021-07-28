@@ -12,10 +12,12 @@ package sqlx
 //  * bindArgs, bindMapArgs, bindAnyArgs - given a list of names, return an arglist
 //
 import (
+	"bytes"
 	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"unicode"
 
@@ -144,8 +146,22 @@ func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
 	}, nil
 }
 
+// convertMapStringInterface attempts to convert v to map[string]interface{}.
+// Unlike v.(map[string]interface{}), this function works on named types that
+// are convertible to map[string]interface{} as well.
+func convertMapStringInterface(v interface{}) (map[string]interface{}, bool) {
+	var m map[string]interface{}
+	mtype := reflect.TypeOf(m)
+	t := reflect.TypeOf(v)
+	if !t.ConvertibleTo(mtype) {
+		return nil, false
+	}
+	return reflect.ValueOf(v).Convert(mtype).Interface().(map[string]interface{}), true
+
+}
+
 func bindAnyArgs(names []string, arg interface{}, m *reflectx.Mapper) ([]interface{}, error) {
-	if maparg, ok := arg.(map[string]interface{}); ok {
+	if maparg, ok := convertMapStringInterface(arg); ok {
 		return bindMapArgs(names, maparg)
 	}
 	return bindArgs(names, arg, m)
@@ -200,11 +216,87 @@ func bindStruct(bindType int, query string, arg interface{}, m *reflectx.Mapper)
 		return "", []interface{}{}, err
 	}
 
-	arglist, err := bindArgs(names, arg, m)
+	arglist, err := bindAnyArgs(names, arg, m)
 	if err != nil {
 		return "", []interface{}{}, err
 	}
 
+	return bound, arglist, nil
+}
+
+var valuesReg = regexp.MustCompile(`\)\s*(?i)VALUES\s*\(`)
+
+func findMatchingClosingBracketIndex(s string) int {
+	count := 0
+	for i, ch := range s {
+		if ch == '(' {
+			count++
+		}
+		if ch == ')' {
+			count--
+			if count == 0 {
+				return i
+			}
+		}
+	}
+	return 0
+}
+
+func fixBound(bound string, loop int) string {
+	loc := valuesReg.FindStringIndex(bound)
+	// defensive guard when "VALUES (...)" not found
+	if len(loc) < 2 {
+		return bound
+	}
+
+	openingBracketIndex := loc[1] - 1
+	index := findMatchingClosingBracketIndex(bound[openingBracketIndex:])
+	// defensive guard. must have closing bracket
+	if index == 0 {
+		return bound
+	}
+	closingBracketIndex := openingBracketIndex + index + 1
+
+	var buffer bytes.Buffer
+
+	buffer.WriteString(bound[0:closingBracketIndex])
+	for i := 0; i < loop-1; i++ {
+		buffer.WriteString(",")
+		buffer.WriteString(bound[openingBracketIndex:closingBracketIndex])
+	}
+	buffer.WriteString(bound[closingBracketIndex:])
+	return buffer.String()
+}
+
+// bindArray binds a named parameter query with fields from an array or slice of
+// structs argument.
+func bindArray(bindType int, query string, arg interface{}, m *reflectx.Mapper) (string, []interface{}, error) {
+	// do the initial binding with QUESTION;  if bindType is not question,
+	// we can rebind it at the end.
+	bound, names, err := compileNamedQuery([]byte(query), QUESTION)
+	if err != nil {
+		return "", []interface{}{}, err
+	}
+	arrayValue := reflect.ValueOf(arg)
+	arrayLen := arrayValue.Len()
+	if arrayLen == 0 {
+		return "", []interface{}{}, fmt.Errorf("length of array is 0: %#v", arg)
+	}
+	var arglist = make([]interface{}, 0, len(names)*arrayLen)
+	for i := 0; i < arrayLen; i++ {
+		elemArglist, err := bindAnyArgs(names, arrayValue.Index(i).Interface(), m)
+		if err != nil {
+			return "", []interface{}{}, err
+		}
+		arglist = append(arglist, elemArglist...)
+	}
+	if arrayLen > 1 {
+		bound = fixBound(bound, arrayLen)
+	}
+	// adjust binding type if we weren't on question
+	if bindType != QUESTION {
+		bound = Rebind(bindType, bound)
+	}
 	return bound, arglist, nil
 }
 
@@ -259,7 +351,7 @@ func compileNamedQuery(qs []byte, bindType int) (query string, names []string, e
 			}
 			inName = true
 			name = []byte{}
-		} else if inName && i > 0 && b == '=' {
+		} else if inName && i > 0 && b == '=' && len(name) == 0 {
 			rebound = append(rebound, ':', '=')
 			inName = false
 			continue
@@ -327,10 +419,20 @@ func Named(query string, arg interface{}) (string, []interface{}, error) {
 }
 
 func bindNamedMapper(bindType int, query string, arg interface{}, m *reflectx.Mapper) (string, []interface{}, error) {
-	if maparg, ok := arg.(map[string]interface{}); ok {
-		return bindMap(bindType, query, maparg)
+	t := reflect.TypeOf(arg)
+	k := t.Kind()
+	switch {
+	case k == reflect.Map && t.Key().Kind() == reflect.String:
+		m, ok := convertMapStringInterface(arg)
+		if !ok {
+			return "", nil, fmt.Errorf("sqlx.bindNamedMapper: unsupported map type: %T", arg)
+		}
+		return bindMap(bindType, query, m)
+	case k == reflect.Array || k == reflect.Slice:
+		return bindArray(bindType, query, arg, m)
+	default:
+		return bindStruct(bindType, query, arg, m)
 	}
-	return bindStruct(bindType, query, arg, m)
 }
 
 // NamedQuery binds a named query and then runs Query on the result using the
@@ -346,7 +448,7 @@ func NamedQuery(e Ext, query string, arg interface{}) (*Rows, error) {
 
 // NamedExec uses BindStruct to get a query executable by the driver and
 // then runs Exec on the result.  Returns an error from the binding
-// or the query excution itself.
+// or the query execution itself.
 func NamedExec(e Ext, query string, arg interface{}) (sql.Result, error) {
 	q, args, err := bindNamedMapper(BindType(e.DriverName()), query, arg, mapperFor(e))
 	if err != nil {

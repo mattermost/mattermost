@@ -10,6 +10,7 @@ webapp/yarn-error.log
 mattermost.mattermost-license
 config/mattermost.mattermost-license
 config/config.json
+config/*.crt
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
@@ -17,10 +18,15 @@ web/static/js/libs*.js
 
 config/active.dat
 config/config.json
+config/logging.json
 /plugins
 
 # Enterprise imports file
 imports/imports.go
+
+#license files
+*.license
+*.mattermost-license
 
 # Build Targets
 .prebuild

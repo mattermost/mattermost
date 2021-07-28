@@ -279,13 +279,13 @@ func TestUserStoreGetManyCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUsers, err := cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		assert.Contains(t, gotUsers, fakeUser)
 		assert.Contains(t, gotUsers, otherFakeUser)
 
 		gotUsers, err = cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetMany", 1)
 	})
@@ -297,7 +297,7 @@ func TestUserStoreGetManyCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUsers, err := cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		assert.Contains(t, gotUsers, fakeUser)
 		assert.Contains(t, gotUsers, otherFakeUser)

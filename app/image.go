@@ -4,47 +4,29 @@
 package app
 
 import (
-	"image"
+	"fmt"
+	"io"
 
-	"github.com/disintegration/imaging"
+	"github.com/mattermost/mattermost-server/v5/app/imaging"
 )
 
-func genThumbnail(img image.Image) image.Image {
-	thumb := img
-	w := img.Bounds().Dx()
-	h := img.Bounds().Dy()
-
-	if h > ImageThumbnailHeight || w > ImageThumbnailWidth {
-		ratio := float64(h) / float64(w)
-		if ratio < ImageThumbnailRatio {
-			// we pre-calculate the thumbnail's width to make sure we are not upscaling.
-			targetWidth := int(float64(ImageThumbnailHeight) * float64(w) / float64(h))
-			if targetWidth <= w {
-				thumb = imaging.Resize(img, 0, ImageThumbnailHeight, imaging.Lanczos)
-			} else {
-				thumb = imaging.Resize(img, ImageThumbnailWidth, 0, imaging.Lanczos)
-			}
-		} else {
-			// we pre-calculate the thumbnail's height to make sure we are not upscaling.
-			targetHeight := int(float64(ImageThumbnailWidth) * float64(h) / float64(w))
-			if targetHeight <= h {
-				thumb = imaging.Resize(img, ImageThumbnailWidth, 0, imaging.Lanczos)
-			} else {
-				thumb = imaging.Resize(img, 0, ImageThumbnailHeight, imaging.Lanczos)
-			}
-		}
+func checkImageResolutionLimit(w, h int) error {
+	// This casting is done to prevent overflow on 32 bit systems (not needed
+	// in 64 bits systems because images can't have more than 32 bits height or
+	// width)
+	imageRes := int64(w) * int64(h)
+	if imageRes > maxImageRes {
+		return fmt.Errorf("image resolution is too high: %d, max allowed is %d", imageRes, maxImageRes)
 	}
 
-	return thumb
+	return nil
 }
 
-func genPreview(img image.Image) image.Image {
-	preview := img
-	w := img.Bounds().Dx()
-
-	if w > ImagePreviewWidth {
-		preview = imaging.Resize(img, ImagePreviewWidth, 0, imaging.Lanczos)
+func checkImageLimits(imageData io.Reader) error {
+	w, h, err := imaging.GetDimensions(imageData)
+	if err != nil {
+		return fmt.Errorf("failed to get image dimensions: %w", err)
 	}
 
-	return preview
+	return checkImageResolutionLimit(w, h)
 }

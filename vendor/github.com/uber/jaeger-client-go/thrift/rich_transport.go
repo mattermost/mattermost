@@ -19,7 +19,10 @@
 
 package thrift
 
-import "io"
+import (
+	"errors"
+	"io"
+)
 
 type RichTransport struct {
 	TTransport
@@ -49,7 +52,7 @@ func (r *RichTransport) RemainingBytes() (num_bytes uint64) {
 func readByte(r io.Reader) (c byte, err error) {
 	v := [1]byte{0}
 	n, err := r.Read(v[0:1])
-	if n > 0 && (err == nil || err == io.EOF) {
+	if n > 0 && (err == nil || errors.Is(err, io.EOF)) {
 		return v[0], nil
 	}
 	if n > 0 && err != nil {
@@ -66,4 +69,3 @@ func writeByte(w io.Writer, c byte) error {
 	_, err := w.Write(v[0:1])
 	return err
 }
-

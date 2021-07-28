@@ -248,10 +248,8 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	categoriesWithOrder, err := s.getSidebarCategoriesT(transaction, userId, teamId)
 	if err != nil {
 		return nil, err
-	}
-
-	if len(categoriesWithOrder.Categories) < 1 {
-		return nil, errors.Wrap(err, "categories not found")
+	} else if len(categoriesWithOrder.Categories) == 0 {
+		return nil, store.NewErrNotFound("categories not found", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
 	}
 
 	newOrder := categoriesWithOrder.Order
@@ -480,6 +478,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId str
 	if _, err = db.Select(&categories, query, args...); err != nil {
 		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
 	}
+
 	for _, category := range categories {
 		var prevCategory *model.SidebarCategoryWithChannels
 		for _, existing := range oc.Categories {
@@ -640,11 +639,17 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			updatedCategory.Muted = category.Muted
 		}
 
+		// The order in which the queries are executed in the transaction is important.
+		// SidebarCategories need to be update first, and then SidebarChannels should be deleted.
+		// The net effect remains the same, but it prevents deadlocks from other transactions
+		// operating on the tables in reverse order.
+
 		updateQuery, updateParams, _ := s.getQueryBuilder().
 			Update("SidebarCategories").
 			Set("DisplayName", updatedCategory.DisplayName).
 			Set("Sorting", updatedCategory.Sorting).
 			Set("Muted", updatedCategory.Muted).
+			Set("Collapsed", updatedCategory.Collapsed).
 			Where(sq.Eq{"Id": updatedCategory.Id}).ToSql()
 
 		if _, err = transaction.Exec(updateQuery, updateParams...); err != nil {
@@ -1002,28 +1007,31 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) error {
 		return store.NewErrInvalidInput("SidebarCategory", "id", categoryId)
 	}
 
-	// Delete the channels in the category
-	query, args, err := s.getQueryBuilder().
-		Delete("SidebarChannels").
-		Where(sq.Eq{"CategoryId": categoryId}).ToSql()
-	if err != nil {
-		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
-	}
-
-	if _, err = transaction.Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to delete SidebarChannel")
-	}
+	// The order in which the queries are executed in the transaction is important.
+	// SidebarCategories need to be deleted first, and then SidebarChannels.
+	// The net effect remains the same, but it prevents deadlocks from other transactions
+	// operating on the tables in reverse order.
 
 	// Delete the category itself
-	query, args, err = s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Delete("SidebarCategories").
 		Where(sq.Eq{"Id": categoryId}).ToSql()
 	if err != nil {
 		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
 	}
-
 	if _, err = transaction.Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete SidebarCategory")
+	}
+
+	// Delete the channels in the category
+	query, args, err = s.getQueryBuilder().
+		Delete("SidebarChannels").
+		Where(sq.Eq{"CategoryId": categoryId}).ToSql()
+	if err != nil {
+		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
+	}
+	if _, err = transaction.Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to delete SidebarChannel")
 	}
 
 	if err := transaction.Commit(); err != nil {
