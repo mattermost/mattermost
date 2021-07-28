@@ -4610,8 +4610,11 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		} else if i == 3 || i == 4 {
 			timeZone["manualTimezone"] = "PST"
 			timeZone["useAutomaticTimezone"] = "false"
-		} else if i == 5 || i == 6 {
-			timeZone["autoTimezone"] = "PST"
+		} else if i == 5 {
+			timeZone["autoTimezone"] = "CET"
+			timeZone["useAutomaticTimezone"] = "true"
+		} else if i == 6 {
+			timeZone["automaticTimezone"] = "CET"
 			timeZone["useAutomaticTimezone"] = "true"
 		} else {
 			// Give every user with auto timezone set to true a random manual timezone to ensure that manual timezone is not looked at if auto is set

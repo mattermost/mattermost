@@ -121,7 +121,9 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.EmojiListToJson(listEmoji)))
+	if err := json.NewEncoder(w).Encode(listEmoji); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -270,7 +272,9 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.EmojiListToJson(emojis)))
+	if err := json.NewEncoder(w).Encode(emojis); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -287,5 +291,7 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.EmojiListToJson(emojis)))
+	if err := json.NewEncoder(w).Encode(emojis); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
