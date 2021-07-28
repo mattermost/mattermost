@@ -1562,13 +1562,13 @@ func (a *App) GetPostIfAuthorized(postID string, session *model.Session) (*model
 		return nil, err
 	}
 
-	if !a.SessionHasPermissionToChannel(*session, channel.Id, model.PermissionReadChannel) {
-		if channel.Type == model.ChannelTypeOpen {
-			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
-				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
+	if !a.SessionHasPermissionToChannel(*session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+		if channel.Type == model.CHANNEL_OPEN {
+			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+				return nil, a.MakePermissionError(session, []*model.Permission{model.PERMISSION_READ_PUBLIC_CHANNEL})
 			}
 		} else {
-			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
+			return nil, a.MakePermissionError(session, []*model.Permission{model.PERMISSION_READ_CHANNEL})
 		}
 	}
 
