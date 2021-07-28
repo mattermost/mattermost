@@ -42,8 +42,8 @@ type FeatureFlags struct {
 	// Enable the Global Header
 	GlobalHeader bool
 
-	// Enable the Invite Members Call To Action button on the left panel
-	InviteMembersCTAButton string
+	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
+	InviteMembersButton string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -60,7 +60,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CustomDataRetentionEnabled = false
 	f.TimedDND = false
 	f.GlobalHeader = false
-	f.InviteMembersCTAButton = "none"
+	f.InviteMembersButton = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
