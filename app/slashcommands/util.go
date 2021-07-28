@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 const (
@@ -72,12 +73,25 @@ func parseBool(s string) (bool, error) {
 	return false, fmt.Errorf("cannot parse '%s' as a boolean", s)
 }
 
-func formatTimestamp(ts time.Time) string {
+func formatBool(fn i18n.TranslateFunc, b bool) string {
+	if b {
+		return fn("True")
+	}
+	return fn("False")
+}
+
+func formatTimestamp(timestamp int64) string {
+	if timestamp == 0 {
+		return "--"
+	}
+
+	ts := model.GetTimeForMillis(timestamp)
+
 	if !isToday(ts) {
 		return ts.Format("Jan 2 15:04:05 MST 2006")
 	}
 	date := ts.Format("15:04:05 MST 2006")
-	return fmt.Sprintf("today %s", date)
+	return fmt.Sprintf("Today %s", date)
 }
 
 func isToday(ts time.Time) bool {

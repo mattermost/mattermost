@@ -40,21 +40,6 @@ SET @preparedStatement = (SELECT IF(
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
         WHERE table_name = 'Status'
         AND table_schema = DATABASE()
-        AND index_name = 'idx_status_user_id'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_status_user_id ON Status(UserId);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Status'
-        AND table_schema = DATABASE()
         AND index_name = 'idx_status_status'
     ) > 0,
     'SELECT 1',
@@ -64,3 +49,34 @@ SET @preparedStatement = (SELECT IF(
 PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Status'
+        AND table_schema = DATABASE()
+        AND column_name = 'DNDEndTime'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE Status ADD COLUMN DNDEndTime BIGINT;'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Status'
+        AND table_schema = DATABASE()
+        AND column_name = 'PrevStatus'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE Status ADD COLUMN PrevStatus VARCHAR(32);'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;

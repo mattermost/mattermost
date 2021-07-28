@@ -1048,33 +1048,15 @@ func TestGetPublicFile(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
 }
 
-func TestSearchFilesOnFeatureFlagDisabled(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	terms := "search"
-	isOrSearch := false
-	timezoneOffset := 5
-	searchParams := model.SearchParameter{
-		Terms:          &terms,
-		IsOrSearch:     &isOrSearch,
-		TimeZoneOffset: &timezoneOffset,
-	}
-	_, resp := th.Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
-	require.NotNil(t, resp.Error)
-}
-
 func TestSearchFiles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
-		os.Unsetenv("MM_FEATUREFLAGS_FILESSEARCH")
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
 		})
 	}()
-	os.Setenv("MM_FEATUREFLAGS_FILESSEARCH", "true")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
 	})
@@ -1085,31 +1067,31 @@ func TestSearchFiles(t *testing.T) {
 	Client := th.Client
 
 	filename := "search for fileInfo1"
-	fileInfo1, appErr := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	fileInfo1, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "search for fileInfo2"
-	fileInfo2, appErr := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	fileInfo2, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged search for fileInfo3"
-	fileInfo3, appErr := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	fileInfo3, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged for fileInfo4"
-	fileInfo4, appErr := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	fileInfo4, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	archivedChannel := th.CreatePublicChannel()
-	fileInfo5, appErr := th.App.UploadFile(data, archivedChannel.Id, "tagged for fileInfo3")
+	fileInfo5, appErr := th.App.UploadFile(th.Context, data, archivedChannel.Id, "tagged for fileInfo3")
 	require.Nil(t, appErr)
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)

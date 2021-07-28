@@ -150,7 +150,7 @@ func TestIncomingWebhook(t *testing.T) {
 
 		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
 		require.NoError(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
@@ -232,7 +232,7 @@ func TestIncomingWebhook(t *testing.T) {
 	})
 
 	t.Run("ChannelLockedWebhook", func(t *testing.T) {
-		channel, err := th.App.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.CHANNEL_OPEN, CreatorId: th.BasicUser.Id}, true)
+		channel, err := th.App.CreateChannel(th.Context, &model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.CHANNEL_OPEN, CreatorId: th.BasicUser.Id}, true)
 		require.Nil(t, err)
 
 		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})

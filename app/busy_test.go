@@ -120,6 +120,10 @@ func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
 	c.Busy.ClusterEventChanged(sbs)
 }
 
+func (c *ClusterMock) SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error {
+	return nil
+}
+
 func (c *ClusterMock) StartInterNodeCommunication() {}
 func (c *ClusterMock) StopInterNodeCommunication()  {}
 func (c *ClusterMock) RegisterClusterMessageHandler(event string, crm einterfaces.ClusterMessageHandler) {

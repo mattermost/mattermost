@@ -133,7 +133,8 @@ func (srv *JobServer) InitWorkers() error {
 // Synchronization should be implemented by the caller.
 func (workers *Workers) Start() {
 	mlog.Info("Starting workers")
-	if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
+
+	if workers.DataRetention != nil {
 		go workers.DataRetention.Run()
 	}
 

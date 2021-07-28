@@ -573,6 +573,10 @@ func (c *Client4) GetSharedChannelsRoute() string {
 	return "/sharedchannels"
 }
 
+func (c *Client4) GetPermissionsRoute() string {
+	return "/permissions"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -2911,8 +2915,9 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 }
 
 // SetPostUnread marks channel where post belongs as unread on the time of the provided post.
-func (c *Client4) SetPostUnread(userId string, postId string) *Response {
-	r, err := c.DoApiPost(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", "")
+func (c *Client4) SetPostUnread(userId string, postId string, collapsedThreadsSupported bool) *Response {
+	b, _ := json.Marshal(map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported})
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", string(b))
 	if err != nil {
 		return BuildErrorResponse(r, err)
 	}
@@ -4029,8 +4034,13 @@ func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response) {
 // LDAP Section
 
 // SyncLdap will force a sync with the configured LDAP server.
-func (c *Client4) SyncLdap() (bool, *Response) {
-	r, err := c.DoApiPost(c.GetLdapRoute()+"/sync", "")
+// If includeRemovedMembers is true, then group members who left or were removed from a
+// synced team/channel will be re-joined; otherwise, they will be excluded.
+func (c *Client4) SyncLdap(includeRemovedMembers bool) (bool, *Response) {
+	reqBody, _ := json.Marshal(map[string]interface{}{
+		"include_removed_members": includeRemovedMembers,
+	})
+	r, err := c.doApiPostBytes(c.GetLdapRoute()+"/sync", reqBody)
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -5795,7 +5805,7 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 
 // RequestTrialLicense will request a trial license and install it in the server
 func (c *Client4) RequestTrialLicense(users int) (bool, *Response) {
-	b, _ := json.Marshal(map[string]int{"users": users})
+	b, _ := json.Marshal(map[string]interface{}{"users": users, "terms_accepted": true})
 	r, err := c.DoApiPost("/trial-license", string(b))
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
@@ -6311,4 +6321,17 @@ func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Res
 	json.NewDecoder(r.Body).Decode(&rci)
 
 	return rci, BuildResponse(r)
+}
+
+func (c *Client4) GetAncillaryPermissions(subsectionPermissions []string) ([]string, *Response) {
+	var returnedPermissions []string
+	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.GetPermissionsRoute(), strings.Join(subsectionPermissions, ","))
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return returnedPermissions, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	json.NewDecoder(r.Body).Decode(&returnedPermissions)
+	return returnedPermissions, BuildResponse(r)
 }

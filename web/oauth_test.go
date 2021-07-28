@@ -5,6 +5,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"io"
 	"io/ioutil"
@@ -17,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -365,6 +367,52 @@ func TestOAuthAccessToken(t *testing.T) {
 	ApiClient.ClearOAuthToken()
 }
 
+func TestMobileLoginWithOAuth(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	c := &Context{
+		App:        th.App,
+		AppContext: &request.Context{},
+		Params: &Params{
+			Service: "gitlab",
+		},
+	}
+
+	var siteURL = "http://localhost:8065"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = siteURL })
+
+	translationFunc := i18n.GetUserTranslations("en")
+	c.AppContext.SetT(translationFunc)
+	buffer := &bytes.Buffer{}
+	c.Logger = mlog.NewTestingLogger(t, buffer)
+	provider := &MattermostTestProvider{}
+	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
+
+	t.Run("Should include redirect URL in the output when valid URL Scheme is passed", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.Contains(t, responseWriter.Body.String(), "randomScheme://")
+		assert.NotContains(t, responseWriter.Body.String(), siteURL)
+	})
+
+	t.Run("Should not include the redirect URL consisting of javascript protocol", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.NotContains(t, responseWriter.Body.String(), "javascript:alert('hello')")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
+	})
+
+	t.Run("Should not include the redirect URL consisting of javascript protocol in mixed case", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.NotContains(t, responseWriter.Body.String(), "JaVasCript:alert('hello')")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
+	})
+}
+
 func TestOAuthComplete(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
@@ -529,14 +577,15 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := &Context{
-		App: th.App,
+		App:        th.App,
+		AppContext: &request.Context{},
 		Params: &Params{
 			Service: "gitlab",
 		},
 	}
 
 	translationFunc := i18n.GetUserTranslations("en")
-	c.App.SetT(translationFunc)
+	c.AppContext.SetT(translationFunc)
 	buffer := &bytes.Buffer{}
 	c.Logger = mlog.NewTestingLogger(t, buffer)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
@@ -615,6 +664,10 @@ func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, 
 	return nil, nil
 }
 
+func (m *MattermostTestProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+	return dbUser.AuthData == oauthUser.AuthData
+}
+
 func GenerateTestAppName() string {
 	return "fakeoauthapp" + model.NewRandomString(10)
 }
@@ -677,7 +730,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(roleName)
+		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
 			utils.EnableDebugLogForTest()
 			panic(err1)
@@ -694,7 +747,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 	utils.DisableDebugLogForTest()
 
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(roleName)
+		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
 			utils.EnableDebugLogForTest()
 			panic(err1)
@@ -751,7 +804,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
-	role, err1 := th.App.GetRoleByName(roleName)
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		utils.EnableDebugLogForTest()
 		panic(err1)

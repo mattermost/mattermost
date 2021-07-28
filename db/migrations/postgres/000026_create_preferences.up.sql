@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS preferences (
     PRIMARY KEY (userid, category, name)
 );
 
-CREATE INDEX IF NOT EXISTS idx_preferences_user_id ON preferences(userid);
 CREATE INDEX IF NOT EXISTS idx_preferences_category ON preferences(category);
 CREATE INDEX IF NOT EXISTS idx_preferences_name ON preferences(name);
 
