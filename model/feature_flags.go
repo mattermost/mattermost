@@ -33,9 +33,6 @@ type FeatureFlags struct {
 	PluginApps               string `plugin_id:"com.mattermost.apps"`
 	PluginFocalboard         string `plugin_id:"focalboard"`
 
-	// Control support for custom data retention policies
-	CustomDataRetentionEnabled bool
-
 	// Enable timed dnd support for user status
 	TimedDND bool
 }
@@ -47,11 +44,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
-
 	f.PluginIncidentManagement = "1.14.3"
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.CustomDataRetentionEnabled = false
 	f.TimedDND = false
 }
 
