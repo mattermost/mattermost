@@ -4,10 +4,10 @@
 package app
 
 import (
-	"time"
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
