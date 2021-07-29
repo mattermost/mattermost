@@ -14,6 +14,7 @@ func (api *API) InitStatus() {
 	api.BaseRoutes.Users.Handle("/status/ids", api.ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
 	// DND Schedule update
+	api.BaseRoutes.User.Handle("/status/schedule", api.ApiSessionRequired(getUserSchedule)).Methods("GET")
 	api.BaseRoutes.User.Handle("/status/schedule", api.ApiSessionRequired(getUserStatusSchedule)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/schedule/periods", api.ApiSessionRequired(updateStatusSchedule)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(updateUserCustomStatus)).Methods("PUT")
@@ -120,6 +121,28 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	getUserStatus(c, w, r)
+}
+
+func getUserSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// No permission check required
+
+	schedule, err := c.App.GetUserScheduleById(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if schedule == nil {
+		c.Err = model.NewAppError("UserStatus", "api.statusSchedule.user_not_found.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	w.Write([]byte(schedule.ToJson()))
 }
 
 func getUserStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -155,6 +155,22 @@ func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.Ap
 	return statusMap, nil
 }
 
+func (a *App) GetUserScheduleById(userID string) (*model.StatusSchedule, *model.AppError) {
+
+	schedule, err := a.Srv().Store.StatusSchedule().Get(userID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUserScheduleById", "app.statusschedule.get.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetUserScheduleById", "app.statusschedule.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return schedule, nil
+}
+
 // SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 // status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 // while an 'away' device is still connected
