@@ -12,11 +12,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/users"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
 )
 
 var UserCmd = &cobra.Command{
@@ -524,10 +524,10 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 	}
 
 	systemAdmin, _ := command.Flags().GetBool("system_admin")
-	if systemAdmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
+	if systemAdmin && !user.IsInRole(model.SystemAdminRoleId) {
 		if _, appErr = a.UpdateUserRoles(
 			user.Id,
-			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
+			fmt.Sprintf("%s %s", user.Roles, model.SystemAdminRoleId),
 			false); appErr != nil {
 			return fmt.Errorf("Unable to make user system admin. Error: %s" + appErr.Error())
 		}

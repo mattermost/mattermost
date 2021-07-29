@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitCloud() {
@@ -51,8 +51,8 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
 		return
 	}
 
@@ -77,8 +77,8 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
 		return
 	}
 
@@ -133,8 +133,8 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
 		return
 	}
 
@@ -159,8 +159,8 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
 		return
 	}
 
@@ -185,8 +185,8 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
 		return
 	}
 
@@ -223,8 +223,8 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
 		return
 	}
 
@@ -261,8 +261,8 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
 		return
 	}
 
@@ -292,8 +292,8 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
 		return
 	}
 
@@ -329,8 +329,8 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
 		return
 	}
 
@@ -360,8 +360,8 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
 		return
 	}
 

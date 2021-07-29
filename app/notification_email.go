@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/pkg/errors"
 )
 
@@ -48,12 +48,12 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 
 	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-		if data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); err != nil {
+		if data, err := a.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval); err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
 			sendBatched = true
 		} else {
 			// if the user has chosen to receive notifications immediately, don't batch them
-			sendBatched = data.Value != model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
+			sendBatched = data.Value != model.PreferenceEmailIntervalNoBatchingSeconds
 		}
 
 		if sendBatched {
@@ -68,7 +68,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	translateFunc := i18n.GetUserTranslations(user.Locale)
 
 	var useMilitaryTime bool
-	if data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); err != nil {
+	if data, err := a.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
 		useMilitaryTime = true
 	} else {
 		useMilitaryTime = data.Value == "true"
@@ -79,15 +79,15 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	channelName := notification.GetChannelName(nameFormat, "")
 	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
 
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 
 	var subjectText string
-	if channel.Type == model.CHANNEL_DIRECT {
+	if channel.Type == model.ChannelTypeDirect {
 		subjectText = getDirectMessageNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, senderName, useMilitaryTime)
-	} else if channel.Type == model.CHANNEL_GROUP {
+	} else if channel.Type == model.ChannelTypeGroup {
 		subjectText = getGroupMessageNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType, useMilitaryTime)
 	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
 		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channelName+")", useMilitaryTime)
@@ -97,7 +97,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 
 	senderPhoto := ""
 	embeddedFiles := make(map[string]io.Reader)
-	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL && senderProfileImage != nil {
+	if emailNotificationContentsType == model.EmailNotificationContentsFull && senderProfileImage != nil {
 		senderPhoto = "user-avatar.png"
 		embeddedFiles = map[string]io.Reader{
 			senderPhoto: bytes.NewReader(senderProfileImage),
@@ -165,7 +165,7 @@ func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post,
 		"Day":      t.Day,
 		"Year":     t.Year,
 	}
-	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		subjectParameters["ChannelName"] = channelName
 		return translateFunc("app.notification.subject.group_message.full", subjectParameters)
 	}
@@ -198,7 +198,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		"TimeZone": t.TimeZone,
 	}
 
-	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
 		normalizedPostMessage, err := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
@@ -224,11 +224,11 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	data.Props["NotificationFooterInfoLogin"] = translateFunc("app.notification.footer.infoLogin")
 	data.Props["NotificationFooterInfo"] = translateFunc("app.notification.footer.info")
 
-	if channel.Type == model.CHANNEL_DIRECT {
+	if channel.Type == model.ChannelTypeDirect {
 		// Direct Messages
 		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]interface{}{"SenderName": senderName})
-	} else if channel.Type == model.CHANNEL_GROUP {
+	} else if channel.Type == model.ChannelTypeGroup {
 		// Group Messages
 		data.Props["Title"] = translateFunc("app.notification.body.group.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.group.subTitle", map[string]interface{}{"SenderName": senderName})
@@ -240,7 +240,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	}
 
 	// only include posts in notification email if email notification contents type is set to full
-	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		data.Props["Posts"] = []postData{pData}
 	} else {
 		data.Props["Posts"] = []postData{}
@@ -309,7 +309,7 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 
 	visited := make(map[string]bool)
 	for _, ch := range channels {
-		if !visited[ch.Id] && ch.Type == model.CHANNEL_OPEN {
+		if !visited[ch.Id] && ch.Type == model.ChannelTypeOpen {
 			channelURL := teamURL + "/channels/" + ch.Name
 			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
 			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)

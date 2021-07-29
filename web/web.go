@@ -11,10 +11,10 @@ import (
 	"github.com/avct/uasurfer"
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type Web struct {
@@ -102,6 +102,6 @@ func IsOAuthApiCall(a app.AppIface, r *http.Request) bool {
 
 func ReturnStatusOK(w http.ResponseWriter) {
 	m := make(map[string]string)
-	m[model.STATUS] = model.STATUS_OK
+	m[model.STATUS] = model.StatusOk
 	w.Write([]byte(model.MapToJson(m)))
 }

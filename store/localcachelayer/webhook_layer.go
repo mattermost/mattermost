@@ -4,8 +4,10 @@
 package localcachelayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"bytes"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type LocalCacheWebhookStore struct {
@@ -14,10 +16,10 @@ type LocalCacheWebhookStore struct {
 }
 
 func (s *LocalCacheWebhookStore) handleClusterInvalidateWebhook(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.webhookCache.Purge()
 	} else {
-		s.rootStore.webhookCache.Remove(msg.Data)
+		s.rootStore.webhookCache.Remove(string(msg.Data))
 	}
 }
 

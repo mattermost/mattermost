@@ -16,19 +16,19 @@ import (
 // If "home" is false, then the shared channel is homed remotely, and "RemoteId"
 // field points to the remote cluster connection in "RemoteClusters" table.
 type SharedChannel struct {
-	ChannelId        string `json:"id"`
-	TeamId           string `json:"team_id"`
-	Home             bool   `json:"home"`
-	ReadOnly         bool   `json:"readonly"`
-	ShareName        string `json:"name"`
-	ShareDisplayName string `json:"display_name"`
-	SharePurpose     string `json:"purpose"`
-	ShareHeader      string `json:"header"`
-	CreatorId        string `json:"creator_id"`
-	CreateAt         int64  `json:"create_at"`
-	UpdateAt         int64  `json:"update_at"`
-	RemoteId         string `json:"remote_id,omitempty"` // if not "home"
-	Type             string `db:"-"`
+	ChannelId        string      `json:"id"`
+	TeamId           string      `json:"team_id"`
+	Home             bool        `json:"home"`
+	ReadOnly         bool        `json:"readonly"`
+	ShareName        string      `json:"name"`
+	ShareDisplayName string      `json:"display_name"`
+	SharePurpose     string      `json:"purpose"`
+	ShareHeader      string      `json:"header"`
+	CreatorId        string      `json:"creator_id"`
+	CreateAt         int64       `json:"create_at"`
+	UpdateAt         int64       `json:"update_at"`
+	RemoteId         string      `json:"remote_id,omitempty"` // if not "home"
+	Type             ChannelType `db:"-"`
 }
 
 func (sc *SharedChannel) ToJson() string {
@@ -47,7 +47,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if sc.Type != CHANNEL_DIRECT && !IsValidId(sc.TeamId) {
+	if sc.Type != ChannelTypeDirect && !IsValidId(sc.TeamId) {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "TeamId="+sc.TeamId, http.StatusBadRequest)
 	}
 
@@ -59,7 +59,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(sc.ShareDisplayName) > CHANNEL_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(sc.ShareDisplayName) > ChannelDisplayNameMaxRunes {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
@@ -67,11 +67,11 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(sc.ShareHeader) > CHANNEL_HEADER_MAX_RUNES {
+	if utf8.RuneCountInString(sc.ShareHeader) > ChannelHeaderMaxRunes {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.header.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(sc.SharePurpose) > CHANNEL_PURPOSE_MAX_RUNES {
+	if utf8.RuneCountInString(sc.SharePurpose) > ChannelPurposeMaxRunes {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.purpose.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 

@@ -12,16 +12,14 @@ import (
 )
 
 const (
-	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
-	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
-	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
-	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
+	ExpiredLicenseError = "api.license.add_license.expired.app_error"
+	InvalidLicenseError = "api.license.add_license.invalid.app_error"
+	LicenseGracePeriod  = 1000 * 60 * 60 * 24 * 10 //10 days
+	LicenseRenewalLink  = "https://mattermost.com/renew/"
 )
 
 const (
-	SIXTY_DAYS                        = 60
-	FIFTY_EIGHT                       = 58
-	LICENSE_UP_FOR_RENEWAL_EMAIL_SENT = "LicenseUpForRenewalEmailSent"
+	LicenseUpForRenewalEmailSent = "LicenseUpForRenewalEmailSent"
 )
 
 var (
@@ -269,12 +267,12 @@ func (l *License) IsExpired() bool {
 
 func (l *License) IsPastGracePeriod() bool {
 	timeDiff := GetMillis() - l.ExpiresAt
-	return timeDiff > LICENSE_GRACE_PERIOD
+	return timeDiff > LicenseGracePeriod
 }
 
 func (l *License) IsWithinExpirationPeriod() bool {
 	days := l.DaysToExpiration()
-	return days <= SIXTY_DAYS && days >= FIFTY_EIGHT
+	return days <= 60 && days >= 58
 }
 
 func (l *License) DaysToExpiration() int {

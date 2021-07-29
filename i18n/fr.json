@@ -2180,24 +2180,8 @@
     "translation": "Impossible d'envoyer l'e-mail de désactivation de compte"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Impossible d'envoyer l'e-mail de notification de changement d'adresse e-mail"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Impossible d'envoyer l'e-mail de notification de changement de nom d'utilisateur"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Impossible d'envoyer l'e-mail de vérification de changement d'adresse e-mail"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Impossible d'envoyer une notification par e-mail pour le changement de méthode d'authentification multi-facteurs (MFA)."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Impossible d'envoyer l'e-mail de modification du mot de passe"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "Impossible d'envoyer l'e-mail de modification du mot de passe"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Impossible d'envoyer l'email indiquant que le jeton d'accès personnel a été ajouté"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Impossible d'envoyer l'e-mail de vérification"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Impossible d'envoyer l'e-mail de bienvenue"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -7960,14 +7936,6 @@
     "translation": "Impossible d'effectuer une vérification du nombre d'utilisateurs cloud autorisés."
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Une erreur s'est produite lors de l'envoi à l'administrateur de l'e-mail d'avertissement de limite du nombre d'utilisateurs atteinte"
-  },
-  {
-    "id": "api.user.send_license_up_for_renewal_email.error",
-    "translation": "Une erreur s'est produite lors de l'envoi de l'e-mail de demande de renouvellement de licence"
-  },
-  {
     "id": "api.user.send_cloud_welcome_email.error",
     "translation": "Une erreur s'est produite lors de l'envoi de l'e-mail de bienvenue à la version cloud"
   },
@@ -8010,14 +7978,6 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "La fonction de suppression permanente des canaux n'est pas activée. Veuillez contacter votre administrateur système."
-  },
-  {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Impossible d'envoyer l'e-mail d'avertissement d'expiration prochaine de version d'essai"
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Impossible d'envoyer l'e-mail d'avertissement d'expiration de version d'essai"
   },
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",

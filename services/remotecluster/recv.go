@@ -6,8 +6,8 @@ package remotecluster
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // ReceiveIncomingMsg is called by the Rest API layer, or websocket layer (future), when a Remote Cluster

@@ -2176,24 +2176,8 @@
     "translation": "無効化されたアカウントへ電子メールを送信できませんでした"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "電子メールアドレス変更通知の電子メールを送信できませんでした"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "ユーザー名変更通知の電子メールを送信できませんでした"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "電子メールアドレス変更確認の電子メールを送信できませんでした"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "多要素認証変更に関する電子メール通知を送信できません。"
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "パスワード更新の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2208,16 +2192,8 @@
     "translation": "パスワード更新の電子メールを送信できませんでした"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "パーソナルアクセストークン追加の電子メールを送信できませんでした"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "確認の電子メールを送信できませんでした"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "歓迎の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -8352,10 +8328,6 @@
     "translation": "エクスポート中にファイルをコピーできませんでした。"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "ユーザー制限通知の電子メールを管理者に送信できませんでした"
-  },
-  {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} があなたのワークスペースにメンバーを招待したいようです"
   },
@@ -9036,14 +9008,6 @@
     "translation": "ユーザーからの自動返信を送信できませんでした。"
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "トライアル終了警告の電子メールを送信できませんでした"
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "トライアル終了の電子メールを送信できませんでした"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Mattermostの14日間のトライアルは、まもなく終了します"
   },
@@ -9240,10 +9204,6 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "トライアルが開始可能か確認できませんでした"
-  },
-  {
-    "id": "api.user.send_license_up_for_renewal_email.error",
-    "translation": "ライセンスの確認メールを送信できませんでした"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle_two",
