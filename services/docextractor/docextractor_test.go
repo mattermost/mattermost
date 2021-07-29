@@ -98,14 +98,6 @@ func TestExtract(t *testing.T) {
 			false,
 		},
 		{
-			"Doc file",
-			"sample-doc.doc",
-			ExtractSettings{},
-			[]string{"simple", "document", "contains"},
-			[]string{},
-			false,
-		},
-		{
 			"Docx file",
 			"sample-doc.docx",
 			ExtractSettings{},
