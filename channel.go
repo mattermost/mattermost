@@ -219,7 +219,7 @@ func (c *ChannelService) UpdateChannelMemberNotifications(channelID, userID stri
 
 // CreateSidebarCategory creates a new sidebar category for a set of channels.
 //
-// Minimum server version: 5.37
+// Minimum server version: 5.38
 func (c *ChannelService) CreateSidebarCategory(
 	userID, teamID string, newCategory *model.SidebarCategoryWithChannels) error {
 	category, appErr := c.api.CreateChannelSidebarCategory(userID, teamID, newCategory)
@@ -233,7 +233,7 @@ func (c *ChannelService) CreateSidebarCategory(
 
 // GetSidebarCategories returns sidebar categories.
 //
-// Minimum server version: 5.37
+// Minimum server version: 5.38
 func (c *ChannelService) GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, error) {
 	categories, appErr := c.api.GetChannelSidebarCategories(userID, teamID)
 
@@ -242,7 +242,7 @@ func (c *ChannelService) GetSidebarCategories(userID, teamID string) (*model.Ord
 
 // UpdateSidebarCategories updates the channel sidebar categories.
 //
-// Minimum server version: 5.37
+// Minimum server version: 5.38
 func (c *ChannelService) UpdateSidebarCategories(
 	userID, teamID string, categories []*model.SidebarCategoryWithChannels) error {
 	updatedCategories, appErr := c.api.UpdateChannelSidebarCategories(userID, teamID, categories)
