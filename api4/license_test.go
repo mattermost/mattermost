@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	mocks2 "github.com/mattermost/mattermost-server/v5/utils/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	mocks2 "github.com/mattermost/mattermost-server/v6/utils/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetOldClientLicense(t *testing.T) {
@@ -228,5 +228,13 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
 		require.False(t, ok)
+	})
+
+	th.App.Srv().LicenseManager = nil
+	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.RequestTrialLicense(1)
+		CheckForbiddenStatus(t, resp)
+		require.False(t, ok)
+		require.Equal(t, "api.license.upgrade_needed.app_error", resp.Error.Id)
 	})
 }

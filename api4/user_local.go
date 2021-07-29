@@ -4,12 +4,14 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (api *API) InitUserLocal() {
@@ -141,7 +143,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if etag != "" {
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 	w.Write([]byte(model.UserListToJson(profiles)))
 }
@@ -208,8 +210,10 @@ func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(user.ToJson()))
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -287,8 +291,10 @@ func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(user.ToJson()))
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -316,8 +322,10 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(user.ToJson()))
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localGetUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {

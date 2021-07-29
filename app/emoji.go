@@ -21,10 +21,10 @@ import (
 
 	"github.com/disintegration/imaging"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
@@ -77,7 +77,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("CreateEmoji", "app.emoji.create.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EMOJI_ADDED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventEmojiAdded, "", "", "", nil)
 	message.Add("emoji", emoji.ToJson())
 	a.Publish(message)
 	return emoji, nil

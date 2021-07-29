@@ -11,8 +11,8 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type apiTimerLayer struct {
@@ -214,6 +214,20 @@ func (api *apiTimerLayer) DeletePreferencesForUser(userID string, preferences []
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeletePreferencesForUser(userID, preferences)
 	api.recordTime(startTime, "DeletePreferencesForUser", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateUserAccessToken(token)
+	api.recordTime(startTime, "CreateUserAccessToken", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RevokeUserAccessToken(tokenID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RevokeUserAccessToken(tokenID)
+	api.recordTime(startTime, "RevokeUserAccessToken", _returnsA == nil)
 	return _returnsA
 }
 
@@ -1139,6 +1153,34 @@ func (api *apiTimerLayer) DeleteCommand(commandID string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeleteCommand(commandID)
 	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateOAuthApp(app)
+	api.recordTime(startTime, "CreateOAuthApp", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetOAuthApp(appID)
+	api.recordTime(startTime, "GetOAuthApp", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateOAuthApp(app)
+	api.recordTime(startTime, "UpdateOAuthApp", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteOAuthApp(appID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeleteOAuthApp(appID)
+	api.recordTime(startTime, "DeleteOAuthApp", _returnsA == nil)
 	return _returnsA
 }
 

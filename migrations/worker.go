@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -100,7 +100,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 			return
 
 		case <-time.After(TimeBetweenBatches * time.Millisecond):
-			done, progress, err := worker.runMigration(job.Data[JobDataKeyMigration], job.Data[JobDataKeyMigration_LAST_DONE])
+			done, progress, err := worker.runMigration(job.Data[JobDataKeyMigration], job.Data[JobDataKeyMigrationLastDone])
 			if err != nil {
 				mlog.Error("Worker: Failed to run migration", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 				worker.setJobError(job, err)
@@ -110,7 +110,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 				worker.setJobSuccess(job)
 				return
 			} else {
-				job.Data[JobDataKeyMigration_LAST_DONE] = progress
+				job.Data[JobDataKeyMigrationLastDone] = progress
 				if err := worker.srv.Jobs.UpdateInProgressJobData(job); err != nil {
 					mlog.Error("Worker: Failed to update migration status data for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 					worker.setJobError(job, err)
@@ -150,7 +150,7 @@ func (worker *Worker) runMigration(key string, lastDone string) (bool, string, *
 	var err *model.AppError
 
 	switch key {
-	case model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2:
+	case model.MigrationKeyAdvancedPermissionsPhase2:
 		done, progress, err = worker.runAdvancedPermissionsPhase2Migration(lastDone)
 	default:
 		return false, "", model.NewAppError("MigrationsWorker.runMigration", "migrations.worker.run_migration.unknown_key", map[string]interface{}{"key": key}, "", http.StatusInternalServerError)

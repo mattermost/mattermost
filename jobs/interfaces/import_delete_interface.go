@@ -3,7 +3,7 @@
 
 package interfaces
 
-import "github.com/mattermost/mattermost-server/v5/model"
+import "github.com/mattermost/mattermost-server/v6/model"
 
 type ImportDeleteInterface interface {
 	MakeWorker() model.Worker

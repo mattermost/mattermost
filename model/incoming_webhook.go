@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DEFAULT_WEBHOOK_USERNAME = "webhook"
+	DefaultWebhookUsername = "webhook"
 )
 
 type IncomingWebhook struct {

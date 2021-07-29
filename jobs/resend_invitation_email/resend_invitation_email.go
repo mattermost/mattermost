@@ -3,8 +3,8 @@
 package resend_invitation_email
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
+	"github.com/mattermost/mattermost-server/v6/app"
+	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
 )
 
 type ResendInvitationEmailJobInterfaceImpl struct {
