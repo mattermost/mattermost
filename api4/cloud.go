@@ -91,6 +91,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	var subscriptionChange *model.SubscriptionChange
 	if err = json.Unmarshal(bodyBytes, &subscriptionChange); err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
@@ -102,11 +103,13 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	json, err := json.Marshal(changedSub)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Write(json)
@@ -432,8 +435,8 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if appErr := c.App.Srv().EmailService.SendCloudWelcomeEmail(user.Email, user.Locale, team.InviteId, subscription.GetWorkSpaceNameFromDNS(), subscription.DNS, *c.App.Config().ServiceSettings.SiteURL); appErr != nil {
-			c.Err = appErr
+		if err := c.App.Srv().EmailService.SendCloudWelcomeEmail(user.Email, user.Locale, team.InviteId, subscription.GetWorkSpaceNameFromDNS(), subscription.DNS, *c.App.Config().ServiceSettings.SiteURL); err != nil {
+			c.Err = model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	case model.EventTypeTrialWillEnd:

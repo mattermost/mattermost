@@ -89,8 +89,6 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMx
 github.com/advancedlogic/GoOse v0.0.0-20191112112754-e742535969c1/go.mod h1:f3HCSN1fBWjcpGtXyM119MJgeQl838v6so/PQOqvE1w=
 github.com/advancedlogic/GoOse v0.0.0-20200830213114-1225d531e0ad h1:gyzOmx++wVkSj5kLzYtvNN2ooeJGTFTtV37t5Do4sdM=
 github.com/advancedlogic/GoOse v0.0.0-20200830213114-1225d531e0ad/go.mod h1:f3HCSN1fBWjcpGtXyM119MJgeQl838v6so/PQOqvE1w=
-github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627 h1:Z5Cd4rshcYMKhKuGaVeSaJ4sAiLHzB5YXF10+TvJDU4=
-github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627/go.mod h1:4M/YtupetXsgPzt5YlR87whvFSHtYj1eBFUgcXiwrOY=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
@@ -251,6 +249,8 @@ github.com/dsnet/golib v0.0.0-20171103203638-1ea166775780/go.mod h1:Lj+Z9rebOhdf
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dvyukov/go-fuzz v0.0.0-20210429054444-fca39067bc72/go.mod h1:11Gm+ccJnvAhCNLlf5+cS9KjtbaD5I5zaZpFMsTHWTw=
+github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09 h1:AQLr//nh20BzN3hIWj2+/Gt3FwSs8Nwo/nz4hMIcLPg=
+github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09/go.mod h1:nYia/MIs9OyvXXYboPmNOj0gVWo97Wx0sde+ZuKkoM4=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=

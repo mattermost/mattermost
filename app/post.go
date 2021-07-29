@@ -353,6 +353,16 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	// to be done when we send the post over the websocket in handlePostEvents
 	rpost = a.PreparePostForClient(rpost, true, false)
 
+	// Make sure poster is following the thread
+	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
+		_, err := a.Srv().Store.Thread().MaintainMembership(user.Id, rpost.RootId, store.ThreadMembershipOpts{
+			Following: true,
+		})
+		if err != nil {
+			mlog.Warn("Failed to update thread membership", mlog.Err(err))
+		}
+	}
+
 	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
 		mlog.Warn("Failed to handle post events", mlog.Err(err))
 	}

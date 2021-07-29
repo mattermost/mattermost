@@ -36,6 +36,7 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v5/app/email"
 	"github.com/mattermost/mattermost-server/v5/app/featureflag"
 	"github.com/mattermost/mattermost-server/v5/app/imaging"
 	"github.com/mattermost/mattermost-server/v5/app/request"
@@ -113,7 +114,7 @@ type Server struct {
 	PluginConfigListenerId string
 	PluginsLock            sync.RWMutex
 
-	EmailService *EmailService
+	EmailService *email.Service
 
 	hubs     []*Hub
 	hashSeed maphash.Seed
@@ -416,6 +417,7 @@ func NewServer(options ...Option) (*Server, error) {
 		ConfigFn:     s.Config,
 		Metrics:      s.Metrics,
 		Cluster:      s.Cluster,
+		LicenseFn:    s.License,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
@@ -452,7 +454,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
-	emailService, err := NewEmailService(s)
+	emailService, err := email.NewService(email.ServiceConfig{
+		ConfigFn:           s.Config,
+		LicenseFn:          s.License,
+		GoFn:               s.Go,
+		TemplatesContainer: s.TemplatesContainer(),
+		UserService:        s.userService,
+		Store:              s.GetStore(),
+	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")
 	}
@@ -1781,6 +1790,51 @@ func (s *Server) startMetricsServer() {
 	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
+func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
+	key := model.LICENSE_UP_FOR_RENEWAL_EMAIL_SENT + license.Id
+	if _, err := s.Store.System().GetByName(key); err == nil {
+		// return early because the key already exists and that means we already executed the code below to send email successfully
+		return nil
+	}
+
+	daysToExpiration := license.DaysToExpiration()
+
+	renewalLink, appErr := s.GenerateLicenseRenewalLink()
+	if appErr != nil {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for _, user := range users {
+		name := user.FirstName
+		if name == "" {
+			name = user.Username
+		}
+		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration); err != nil {
+			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(users) {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_sending_email", nil, "", http.StatusInternalServerError)
+	}
+
+	system := model.System{
+		Name:  key,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Debug("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
+	}
+
+	return nil
+}
+
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
 	license := s.License()
@@ -1790,14 +1844,21 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if !license.IsPastGracePeriod() {
-		mlog.Debug("License is not past the grace period.")
-		return
-	}
-
 	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
+		return
+	}
+
+	if license.IsWithinExpirationPeriod() {
+		appErr := s.sendLicenseUpForRenewalEmail(users, license)
+		if appErr != nil {
+			mlog.Debug(appErr.Error())
+		}
+	}
+
+	if !license.IsPastGracePeriod() {
+		mlog.Debug("License is not past the grace period.")
 		return
 	}
 
@@ -1811,7 +1872,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
-			if err := s.EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
+			if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1819,6 +1880,21 @@ func (s *Server) doLicenseExpirationCheck() {
 
 	//remove the license
 	s.RemoveLicense()
+}
+
+// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
+// to renew the user license
+func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
+	renewalLink, err := s.GenerateLicenseRenewalLink()
+	if err != nil {
+		return err
+	}
+
+	if err := s.EmailService.SendRemoveExpiredLicenseEmail(renewalLink, email, locale, siteURL); err != nil {
+		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s *Server) StartSearchEngine() (string, string) {
