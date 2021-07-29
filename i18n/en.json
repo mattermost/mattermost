@@ -2001,6 +2001,10 @@
     "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
   },
   {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -6919,18 +6923,6 @@
     "translation": "Compliance export failed for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Failed to purge records."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "We encountered an error cleaning up the batch of flags."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention."
   },
@@ -6941,14 +6933,6 @@
   {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "Policy is invalid."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions."
   },
   {
     "id": "ent.data_retention.run_failed.error",
