@@ -83,11 +83,14 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 		return nil, err
 	}
 
-	// Update the LastViewAt only if the post does not have from_webhook prop set (e.g. Zapier app),
-	// or if it does not have from_bot set (e.g. from discovering the user is a bot within CreatePost).
+	// Update the Channel LastViewAt only if:
+	// the post does NOT have from_webhook prop set (e.g. Zapier app), and
+	// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and
+	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	if !fromWebhook && !fromBot {
+	isCRTReply := post.RootId != "" && a.isCRTEnabledForUser(post.UserId)
+	if !fromWebhook && !fromBot && !isCRTReply {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
 				"Encountered error updating last viewed",

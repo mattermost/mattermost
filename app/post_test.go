@@ -964,6 +964,77 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		testlib.AssertNoLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
 	})
+
+	t.Run("marks channel as viewed for reply post when CRT is off", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_OFF
+		})
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    th.BasicUser2.Id,
+		}
+		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		time.Sleep(1 * time.Millisecond)
+		replyPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test reply",
+			UserId:    th.BasicUser.Id,
+			RootId:    rootPost.Id,
+		}
+		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		require.NotEqual(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
+
+	t.Run("does not mark channel as viewed for reply post when CRT is on", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		})
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    th.BasicUser2.Id,
+		}
+		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		time.Sleep(1 * time.Millisecond)
+		replyPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test reply",
+			UserId:    th.BasicUser.Id,
+			RootId:    rootPost.Id,
+		}
+		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
 }
 
 func TestPatchPostInArchivedChannel(t *testing.T) {
