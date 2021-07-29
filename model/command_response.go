@@ -32,11 +32,6 @@ type CommandResponse struct {
 	ExtraResponses   []*CommandResponse `json:"extra_responses"`
 }
 
-func (o *CommandResponse) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
 func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandResponse, error) {
 	if strings.TrimSpace(strings.Split(contentType, ";")[0]) == "application/json" {
 		return CommandResponseFromJson(body)

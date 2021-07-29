@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -220,5 +222,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rteam.ToJson()))
+	if err := json.NewEncoder(w).Encode(rteam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

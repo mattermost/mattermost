@@ -1300,8 +1300,23 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+
+	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+
 	sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
 	sqlStore.RemoveColumnIfExists("Posts", "ParentId")
 	sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
 	sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
+
+	// saveSchemaVersion(sqlStore, Version600)
+	// }
 }

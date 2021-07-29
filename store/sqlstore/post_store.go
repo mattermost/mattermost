@@ -143,7 +143,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Message").SetMaxSize(model.PostMessageMaxBytesV2)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
-		table.ColMap("Props").SetMaxSize(8000)
+		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("Filenames").SetMaxSize(model.PostFilenamesMaxRunes)
 		table.ColMap("FileIds").SetMaxSize(300)
 		table.ColMap("RemoteId").SetMaxSize(26)

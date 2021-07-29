@@ -183,7 +183,7 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 }
 
 func (api *PluginAPI) GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError) {
-	return api.app.GetTeamsUnreadForUser("", userID)
+	return api.app.GetTeamsUnreadForUser("", userID, false)
 }
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -1139,7 +1139,7 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 			"PluginID": api.id,
 			"EventID":  ev.Id,
 		},
-		Data: string(ev.Data),
+		Data: ev.Data,
 	}
 
 	// If TargetId is empty we broadcast to all other cluster nodes.

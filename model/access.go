@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -71,14 +70,4 @@ func (ad *AccessData) IsExpired() bool {
 	}
 
 	return false
-}
-
-func (ad *AccessData) ToJson() string {
-	b, _ := json.Marshal(ad)
-	return string(b)
-}
-
-func (ar *AccessResponse) ToJson() string {
-	b, _ := json.Marshal(ar)
-	return string(b)
 }
