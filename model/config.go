@@ -1848,28 +1848,27 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                                               *string  `access:"site_customization"`
-	MaxUsersPerTeam                                        *int     `access:"site_users_and_teams"`
-	EnableUserCreation                                     *bool    `access:"authentication_signup"`
-	EnableOpenServer                                       *bool    `access:"authentication_signup"`
-	EnableUserDeactivation                                 *bool    `access:"experimental_features"`
-	RestrictCreationToDomains                              *string  `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses                               *bool    `access:"site_users_and_teams"`
-	EnableCustomBrand                                      *bool    `access:"site_customization"`
-	CustomBrandText                                        *string  `access:"site_customization"`
-	CustomDescriptionText                                  *string  `access:"site_customization"`
-	RestrictDirectMessage                                  *string  `access:"site_users_and_teams"`
-	UserStatusAwayTimeout                                  *int64   `access:"experimental_features"`
-	MaxChannelsPerTeam                                     *int64   `access:"site_users_and_teams"`
-	MaxNotificationsPerChannel                             *int64   `access:"environment_push_notification_server"`
-	EnableConfirmNotificationsToChannel                    *bool    `access:"site_notifications"`
-	TeammateNameDisplay                                    *string  `access:"site_users_and_teams"`
-	ExperimentalViewArchivedChannels                       *bool    `access:"experimental_features,site_users_and_teams"`
-	ExperimentalEnableAutomaticReplies                     *bool    `access:"experimental_features"`
-	DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly *bool    `access:"experimental_features"`
-	LockTeammateNameDisplay                                *bool    `access:"site_users_and_teams"`
-	ExperimentalPrimaryTeam                                *string  `access:"experimental_features"`
-	ExperimentalDefaultChannels                            []string `access:"experimental_features"`
+	SiteName                            *string  `access:"site_customization"`
+	MaxUsersPerTeam                     *int     `access:"site_users_and_teams"`
+	EnableUserCreation                  *bool    `access:"authentication_signup"`
+	EnableOpenServer                    *bool    `access:"authentication_signup"`
+	EnableUserDeactivation              *bool    `access:"experimental_features"`
+	RestrictCreationToDomains           *string  `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses            *bool    `access:"site_users_and_teams"`
+	EnableCustomBrand                   *bool    `access:"site_customization"`
+	CustomBrandText                     *string  `access:"site_customization"`
+	CustomDescriptionText               *string  `access:"site_customization"`
+	RestrictDirectMessage               *string  `access:"site_users_and_teams"`
+	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
+	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
+	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
+	EnableConfirmNotificationsToChannel *bool    `access:"site_notifications"`
+	TeammateNameDisplay                 *string  `access:"site_users_and_teams"`
+	ExperimentalViewArchivedChannels    *bool    `access:"experimental_features,site_users_and_teams"`
+	ExperimentalEnableAutomaticReplies  *bool    `access:"experimental_features"`
+	LockTeammateNameDisplay             *bool    `access:"site_users_and_teams"`
+	ExperimentalPrimaryTeam             *string  `access:"experimental_features"`
+	ExperimentalDefaultChannels         []string `access:"experimental_features"`
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -1936,10 +1935,6 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.ExperimentalEnableAutomaticReplies == nil {
 		s.ExperimentalEnableAutomaticReplies = NewBool(false)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly == nil {
-		s.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = NewBool(false)
 	}
 
 	if s.ExperimentalPrimaryTeam == nil {

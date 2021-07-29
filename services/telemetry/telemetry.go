@@ -457,7 +457,6 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_custom_description_text":       isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TeamSettingsDefaultCustomDescriptionText),
 		"isdefault_user_status_away_timeout":      isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TeamSettingsDefaultUserStatusAwayTimeout),
 		"experimental_enable_automatic_replies":   *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
-		"experimental_town_square_is_read_only":   *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly,
 		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
 		"experimental_default_channels":           len(cfg.TeamSettings.ExperimentalDefaultChannels),
 	})

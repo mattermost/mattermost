@@ -129,36 +129,6 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
-	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = true
-		})
-
-		// Read only default channel should fail.
-		resp, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DefaultChannelName)))
-		require.NoError(t, err)
-		assert.True(t, resp.StatusCode != http.StatusOK)
-
-		// None-default channel should still work.
-		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
-		require.NoError(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
-
-		// System-Admin Owned Hook
-		adminHook, appErr := th.App.CreateIncomingWebhookForChannel(th.SystemAdminUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
-		require.Nil(t, appErr)
-		adminUrl := ApiClient.Url + "/hooks/" + adminHook.Id
-
-		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DefaultChannelName)))
-		require.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly = false
-		})
-	})
-
 	t.Run("WebhookAttachments", func(t *testing.T) {
 		attachmentPayload := `{
 	       "text": "this is a test",

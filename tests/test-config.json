@@ -76,7 +76,6 @@
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
         "ExperimentalEnableAutomaticReplies": false,
-        "ExperimentalTownSquareIsReadOnly": false,
         "ExperimentalPrimaryTeam": ""
     },
     "ClientRequirements": {

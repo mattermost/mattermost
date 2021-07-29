@@ -97,7 +97,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableReliableWebSockets"] = strconv.FormatBool(*c.ServiceSettings.EnableReliableWebSockets)
 
 	// Set default values for all options that require a license.
-	props["ExperimentalTownSquareIsReadOnly"] = "false"
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
@@ -134,7 +133,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
 
 	if license != nil {
-		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.DEPRECATED_DO_NOT_USE_ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 
 		if *license.Features.LDAP {
