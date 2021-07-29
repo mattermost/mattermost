@@ -398,7 +398,7 @@ func (a *App) SetStatusDoNotDisturbScheduled(userID string) {
 		return
 	}
 
-	status.Status = model.STATUS_DND
+	status.Status = model.StatusDnd
 	status.Manual = true
 
 	a.SaveAndBroadcastStatus(status)
