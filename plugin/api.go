@@ -525,14 +525,14 @@ type API interface {
 	// @tag Channel
 	// @tag User
 	// Minimum server version: 5.6
-	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+	GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError)
 
 	// GetChannelMembersByIds gets a channel membership for a particular User
 	//
 	// @tag Channel
 	// @tag User
 	// Minimum server version: 5.6
-	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+	GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError)
 
 	// GetChannelMembersForUser returns all channel memberships on a team for a user.
 	//

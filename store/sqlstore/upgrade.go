@@ -329,7 +329,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 					data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
 				}
 
-				sqlStore.Preference().Save(&data)
+				sqlStore.Preference().Save(data)
 			}
 		}
 

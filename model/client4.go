@@ -2563,7 +2563,7 @@ func (c *Client4) getAllChannels(page int, perPage int, etag string, opts Channe
 }
 
 // GetAllChannelsWithCount get all the channels including the total count. Must be a system administrator.
-func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*ChannelListWithTeamData, int64, *Response) {
+func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (ChannelListWithTeamData, int64, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
 	r, appErr := c.DoApiGet(c.GetChannelsRoute()+query, etag)
 	if appErr != nil {
@@ -2571,7 +2571,7 @@ func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*
 	}
 	defer closeBody(r)
 
-	var cwc *ChannelsWithCount
+	var cwc ChannelsWithCount
 	err := json.NewDecoder(r.Body).Decode(&cwc)
 	if err != nil {
 		return nil, 0, BuildErrorResponse(r, NewAppError("GetAllChannelsWithCount", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))

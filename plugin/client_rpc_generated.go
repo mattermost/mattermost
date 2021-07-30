@@ -2828,11 +2828,11 @@ type Z_GetChannelMembersArgs struct {
 }
 
 type Z_GetChannelMembersReturns struct {
-	A *model.ChannelMembers
+	A model.ChannelMembers
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (g *apiRPCClient) GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	_args := &Z_GetChannelMembersArgs{channelId, page, perPage}
 	_returns := &Z_GetChannelMembersReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembers", _args, _returns); err != nil {
@@ -2843,7 +2843,7 @@ func (g *apiRPCClient) GetChannelMembers(channelId string, page, perPage int) (*
 
 func (s *apiRPCServer) GetChannelMembers(args *Z_GetChannelMembersArgs, returns *Z_GetChannelMembersReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+		GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembers(args.A, args.B, args.C)
 	} else {
@@ -2858,11 +2858,11 @@ type Z_GetChannelMembersByIdsArgs struct {
 }
 
 type Z_GetChannelMembersByIdsReturns struct {
-	A *model.ChannelMembers
+	A model.ChannelMembers
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError) {
 	_args := &Z_GetChannelMembersByIdsArgs{channelId, userIds}
 	_returns := &Z_GetChannelMembersByIdsReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembersByIds", _args, _returns); err != nil {
@@ -2873,7 +2873,7 @@ func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string
 
 func (s *apiRPCServer) GetChannelMembersByIds(args *Z_GetChannelMembersByIdsArgs, returns *Z_GetChannelMembersByIdsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+		GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembersByIds(args.A, args.B)
 	} else {

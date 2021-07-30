@@ -242,7 +242,7 @@ func TestMsgCountRootMigration(t *testing.T) {
 						members, err := ss.Channel().GetMembersByIds(channel.Id, userIds)
 						require.NoError(t, err)
 
-						for _, m := range *members {
+						for _, m := range members {
 							for i, uid := range userIds {
 								if m.UserId == uid {
 									assert.Equal(t, testChannel.ExpectedMembershipMsgCountRoot[i], m.MsgCountRoot)

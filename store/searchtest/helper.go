@@ -466,10 +466,10 @@ func (th *SearchTestHelper) checkFileInfoInSearchResults(t *testing.T, fileID st
 	assert.Contains(t, fileIDS, fileID, "Did not find expected file in search results.")
 }
 
-func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string, results *model.ChannelList) {
+func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string, results model.ChannelList) {
 	t.Helper()
-	channelIds := make([]string, len(*results))
-	for i, channel := range *results {
+	channelIds := make([]string, len(results))
+	for i, channel := range results {
 		channelIds[i] = channel.Id
 	}
 	require.ElementsMatch(t, expected, channelIds)

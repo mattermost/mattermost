@@ -831,15 +831,15 @@ func (_m *API) GetChannelMember(channelId string, userID string) (*model.Channel
 }
 
 // GetChannelMembers provides a mock function with given fields: channelId, page, perPage
-func (_m *API) GetChannelMembers(channelId string, page int, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (_m *API) GetChannelMembers(channelId string, page int, perPage int) (model.ChannelMembers, *model.AppError) {
 	ret := _m.Called(channelId, page, perPage)
 
-	var r0 *model.ChannelMembers
-	if rf, ok := ret.Get(0).(func(string, int, int) *model.ChannelMembers); ok {
+	var r0 model.ChannelMembers
+	if rf, ok := ret.Get(0).(func(string, int, int) model.ChannelMembers); ok {
 		r0 = rf(channelId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelMembers)
+			r0 = ret.Get(0).(model.ChannelMembers)
 		}
 	}
 
@@ -856,15 +856,15 @@ func (_m *API) GetChannelMembers(channelId string, page int, perPage int) (*mode
 }
 
 // GetChannelMembersByIds provides a mock function with given fields: channelId, userIds
-func (_m *API) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (_m *API) GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError) {
 	ret := _m.Called(channelId, userIds)
 
-	var r0 *model.ChannelMembers
-	if rf, ok := ret.Get(0).(func(string, []string) *model.ChannelMembers); ok {
+	var r0 model.ChannelMembers
+	if rf, ok := ret.Get(0).(func(string, []string) model.ChannelMembers); ok {
 		r0 = rf(channelId, userIds)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelMembers)
+			r0 = ret.Get(0).(model.ChannelMembers)
 		}
 	}
 

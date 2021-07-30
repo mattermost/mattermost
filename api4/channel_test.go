@@ -519,7 +519,7 @@ func TestCreateGroupChannel(t *testing.T) {
 	require.Equal(t, model.ChannelTypeGroup, rgc.Type, "should have created a channel of group type")
 
 	m, _ := th.App.GetChannelMembersPage(rgc.Id, 0, 10)
-	require.Len(t, *m, 3, "should have 3 channel members")
+	require.Len(t, m, 3, "should have 3 channel members")
 
 	// saving duplicate group channel
 	rgc2, resp := Client.CreateGroupChannel([]string{user3.Id, user2.Id})
@@ -1105,23 +1105,23 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// At least, all the not-deleted channels created during the InitBasic
-	require.True(t, len(*channels) >= 3)
-	for _, c := range *channels {
+	require.True(t, len(channels) >= 3)
+	for _, c := range channels {
 		require.NotEqual(t, c.TeamId, "")
 	}
 	require.Equal(t, int64(6), total)
 
 	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(0, 10, "")
 	CheckNoError(t, resp)
-	require.True(t, len(*channels) >= 3)
+	require.True(t, len(channels) >= 3)
 
 	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(1, 1, "")
 	CheckNoError(t, resp)
-	require.Len(t, *channels, 1)
+	require.Len(t, channels, 1)
 
 	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(10000, 10000, "")
 	CheckNoError(t, resp)
-	require.Empty(t, *channels)
+	require.Empty(t, channels)
 
 	_, _, resp = Client.GetAllChannelsWithCount(0, 20, "")
 	CheckForbiddenStatus(t, resp)
@@ -1512,7 +1512,7 @@ func TestSearchAllChannelsPaged(t *testing.T) {
 	search.PerPage = model.NewInt(2)
 	channelsWithCount, resp := th.SystemAdminClient.SearchAllChannelsPaged(search)
 	CheckNoError(t, resp)
-	require.Len(t, *channelsWithCount.Channels, 2)
+	require.Len(t, channelsWithCount.Channels, 2)
 
 	search.Term = th.BasicChannel.Name
 	_, resp = Client.SearchAllChannels(search)

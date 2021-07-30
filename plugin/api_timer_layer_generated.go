@@ -574,14 +574,14 @@ func (api *apiTimerLayer) GetChannelMember(channelId, userID string) (*model.Cha
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetChannelMembers(channelId, page, perPage)
 	api.recordTime(startTime, "GetChannelMembers", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetChannelMembersByIds(channelId, userIds)
 	api.recordTime(startTime, "GetChannelMembersByIds", _returnsB == nil)

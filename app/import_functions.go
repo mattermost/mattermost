@@ -510,7 +510,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
-		if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
+		if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
 			mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
 
@@ -683,7 +683,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	if len(preferences) > 0 {
-		if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+		if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -837,7 +837,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	for _, team := range allTeams {
 		if len(teamThemePreferencesByID[team.Id]) > 0 {
 			pref := teamThemePreferencesByID[team.Id]
-			if err := a.Srv().Store.Preference().Save(&pref); err != nil {
+			if err := a.Srv().Store.Preference().Save(pref); err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -878,7 +878,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 		return model.NewAppError("importUserChannels", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	existingMembershipsByChannelId := map[string]model.ChannelMember{}
-	for _, channelMembership := range *existingMemberships {
+	for _, channelMembership := range existingMemberships {
 		existingMembershipsByChannelId[channelMembership.ChannelId] = channelMembership
 	}
 	for _, cdata := range *data {
@@ -1011,7 +1011,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 	for _, channel := range allChannels {
 		if len(channelPreferencesByID[channel.Id]) > 0 {
 			pref := channelPreferencesByID[channel.Id]
-			if err := a.Srv().Store.Preference().Save(&pref); err != nil {
+			if err := a.Srv().Store.Preference().Save(pref); err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -1453,7 +1453,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			}
 
 			if len(preferences) > 0 {
-				if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+				if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
@@ -1561,7 +1561,7 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 		}
 	}
 
-	if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -1747,7 +1747,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			}
 
 			if len(preferences) > 0 {
-				if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+				if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}

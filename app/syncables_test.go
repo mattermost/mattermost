@@ -440,8 +440,8 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	cmembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 99)
 	require.Nil(t, err)
-	require.Len(t, (*cmembers), 1)
-	require.Equal(t, th.SystemAdminUser.Id, (*cmembers)[0].UserId)
+	require.Len(t, cmembers, 1)
+	require.Equal(t, th.SystemAdminUser.Id, cmembers[0].UserId)
 }
 
 func TestSyncSyncableRoles(t *testing.T) {
