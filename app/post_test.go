@@ -964,6 +964,77 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		testlib.AssertNoLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
 	})
+
+	t.Run("marks channel as viewed for reply post when CRT is off", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
+		})
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    th.BasicUser2.Id,
+		}
+		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		time.Sleep(1 * time.Millisecond)
+		replyPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test reply",
+			UserId:    th.BasicUser.Id,
+			RootId:    rootPost.Id,
+		}
+		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		require.NotEqual(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
+
+	t.Run("does not mark channel as viewed for reply post when CRT is on", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    th.BasicUser2.Id,
+		}
+		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		time.Sleep(1 * time.Millisecond)
+		replyPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test reply",
+			UserId:    th.BasicUser.Id,
+			RootId:    rootPost.Id,
+		}
+		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
 }
 
 func TestPatchPostInArchivedChannel(t *testing.T) {
@@ -2301,6 +2372,32 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	m, err = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, err)
 	require.True(t, m.Following)
+}
+
+func TestGetPostIfAuthorized(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
+	post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, false, false)
+	require.Nil(t, err)
+	require.NotNil(t, post)
+
+	session1, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	require.Nil(t, err)
+	require.NotNil(t, session1)
+
+	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+	require.Nil(t, err)
+	require.NotNil(t, session2)
+
+	// User is not authorized to get post
+	_, err = th.App.GetPostIfAuthorized(post.Id, session2)
+	require.NotNil(t, err)
+
+	// User is authorized to get post
+	_, err = th.App.GetPostIfAuthorized(post.Id, session1)
+	require.Nil(t, err)
 }
 
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {

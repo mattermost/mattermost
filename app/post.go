@@ -86,11 +86,14 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 		return nil, err
 	}
 
-	// Update the LastViewAt only if the post does not have from_webhook prop set (e.g. Zapier app),
-	// or if it does not have from_bot set (e.g. from discovering the user is a bot within CreatePost).
+	// Update the Channel LastViewAt only if:
+	// the post does NOT have from_webhook prop set (e.g. Zapier app), and
+	// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and
+	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	if !fromWebhook && !fromBot {
+	isCRTReply := post.RootId != "" && a.isCRTEnabledForUser(post.UserId)
+	if !fromWebhook && !fromBot && !isCRTReply {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
 				"Encountered error updating last viewed",
@@ -1568,4 +1571,28 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 
 func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error) {
 	return a.Srv().Store.Thread().GetMembershipsForUser(userID, teamID)
+}
+
+func (a *App) GetPostIfAuthorized(postID string, session *model.Session) (*model.Post, *model.AppError) {
+	post, err := a.GetSinglePost(postID)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !a.SessionHasPermissionToChannel(*session, channel.Id, model.PermissionReadChannel) {
+		if channel.Type == model.ChannelTypeOpen {
+			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
+				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
+			}
+		} else {
+			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
+		}
+	}
+
+	return post, nil
 }
