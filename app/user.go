@@ -2271,7 +2271,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 
 	opts := store.ThreadMembershipOpts{
 		Following:       true,
-		UpdateFollowing: false,
+		UpdateFollowing: true,
 	}
 	membership, storeErr := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
 	if storeErr != nil {
@@ -2286,7 +2286,6 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	if err != nil {
 		return nil, err
 	}
-	membership.Following = true
 	_, nErr := a.Srv().Store.Thread().UpdateMembership(membership)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
