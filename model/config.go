@@ -364,7 +364,6 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableLegacySidebar                               *bool   `access:"experimental_features"`
 	EnableReliableWebSockets                          *bool   `access:"experimental_features"` // telemetry: none
 }
 
@@ -765,10 +764,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
-	}
-
-	if s.EnableLegacySidebar == nil {
-		s.EnableLegacySidebar = NewBool(false)
 	}
 
 	if s.EnableReliableWebSockets == nil {
