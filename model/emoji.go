@@ -107,11 +107,6 @@ func EmojiFromJson(data io.Reader) *Emoji {
 	return emoji
 }
 
-func EmojiListToJson(emojiList []*Emoji) string {
-	b, _ := json.Marshal(emojiList)
-	return string(b)
-}
-
 func EmojiListFromJson(data io.Reader) []*Emoji {
 	var emojiList []*Emoji
 	json.NewDecoder(data).Decode(&emojiList)

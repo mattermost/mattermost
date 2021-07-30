@@ -4,6 +4,10 @@
 package plugin
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -24,7 +28,17 @@ func (p *HelpersImpl) CheckRequiredServerConfiguration(req *model.Config) (bool,
 	}
 
 	mergedCfg := mc.(model.Config)
-	if mergedCfg.ToJson() != cfg.ToJson() {
+	cfgBuf, err := json.Marshal(cfg)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal config: %v", err)
+	}
+
+	mergedCfgBuf, err := json.Marshal(mergedCfg)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal merged config: %v", err)
+	}
+
+	if !bytes.Equal(cfgBuf, mergedCfgBuf) {
 		return false, nil
 	}
 
