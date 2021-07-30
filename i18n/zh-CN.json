@@ -9250,5 +9250,13 @@
   {
     "id": "app.recent_searches.app_error",
     "translation": "获取最近搜索错误"
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": ""
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": ""
   }
 ]
