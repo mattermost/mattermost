@@ -934,7 +934,7 @@ type ThreadMembershipOpts struct {
 	// IncrementMentions indicates whether or not the mentions count for
 	// the thread should be incremented.
 	IncrementMentions bool
-	// UpdateFollowing indicates whether or not a membership update should be forced.
+	// UpdateFollowing indicates whether or not the following state should be changed.
 	UpdateFollowing bool
 	// UpdateViewedTimestamp indicates whether or not the LastViewed field of the
 	// membership should be updated.

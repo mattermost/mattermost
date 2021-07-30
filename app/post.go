@@ -359,7 +359,8 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
 		_, err := a.Srv().Store.Thread().MaintainMembership(user.Id, rpost.RootId, store.ThreadMembershipOpts{
-			Following: true,
+			Following:       true,
+			UpdateFollowing: true,
 		})
 		if err != nil {
 			mlog.Warn("Failed to update thread membership", mlog.Err(err))
