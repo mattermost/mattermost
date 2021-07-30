@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf8"
 
@@ -171,6 +172,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
+	participantMemberships := map[string]*model.ThreadMembership{}
+	membershipsMutex := &sync.Mutex{}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
@@ -203,25 +206,33 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					}
 
 					if membership != nil && !membership.Following {
+						membershipsMutex.Lock()
+						participantMemberships[userID] = membership
+						membershipsMutex.Unlock()
 						return
 					}
 				}
+
+				updateFollowing := *a.Config().ServiceSettings.ThreadAutoFollow
 				if mentionType == ThreadMention || mentionType == CommentMention {
 					incrementMentions = false
+					updateFollowing = false
 				}
-
 				opts := store.ThreadMembershipOpts{
 					Following:             true,
 					IncrementMentions:     incrementMentions,
-					UpdateFollowing:       *a.Config().ServiceSettings.ThreadAutoFollow,
+					UpdateFollowing:       updateFollowing,
 					UpdateViewedTimestamp: userID == post.UserId,
 					UpdateParticipants:    userID == post.UserId,
 				}
-				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
+				threadMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
 				}
+				membershipsMutex.Lock()
+				participantMemberships[userID] = threadMembership
+				membershipsMutex.Unlock()
 
 				mac <- nil
 			}(id)
@@ -469,14 +480,20 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for _, uid := range followers {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
 			// check if a participant has overridden collapsed threads settings
-			if preference, err := a.Srv().Store.Preference().Get(uid, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); err == nil {
+			if preference, prefErr := a.Srv().Store.Preference().Get(uid, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); prefErr == nil {
 				sendEvent = preference.Value == "on"
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
-				threadMembership, err := a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
-				if err != nil {
-					return nil, errors.Wrapf(err, "cannot get thread membership %q for user %q", post.RootId, uid)
+				threadMembership := participantMemberships[uid]
+				if threadMembership == nil {
+					threadMembership, err = a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
+					if err != nil {
+						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications. user_id=%q thread_id=%q", uid, post.RootId)
+					}
+					if threadMembership == nil {
+						continue
+					}
 				}
 				userThread, err := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
 				if err != nil {

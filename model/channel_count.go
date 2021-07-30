@@ -5,7 +5,6 @@ package model
 
 import (
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -40,9 +39,4 @@ func (o *ChannelCounts) Etag() string {
 	}
 
 	return Etag(md5Counts, update)
-}
-
-func (o *ChannelCounts) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }

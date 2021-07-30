@@ -391,7 +391,7 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		tablem.ColMap("ChannelId").SetMaxSize(26)
 		tablem.ColMap("UserId").SetMaxSize(26)
 		tablem.ColMap("Roles").SetMaxSize(64)
-		tablem.ColMap("NotifyProps").SetMaxSize(2000)
+		tablem.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 
 		tablePublicChannels := db.AddTableWithName(publicChannel{}, "PublicChannels").SetKeys(false, "Id")
 		tablePublicChannels.ColMap("Id").SetMaxSize(26)
@@ -1898,45 +1898,27 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
-		// Length of default timezone (len {"automaticTimezone":"","manualTimezone":"","useAutomaticTimezone":"true"})
-		defaultTimezoneLength := `74`
-
-		// Beginning and end of the value for the automatic and manual timezones respectively
-		autoTimezone := `LOCATE(':', Users.Timezone) + 2`
-		autoTimezoneEnd := `LOCATE(',', Users.Timezone) - LOCATE(':', Users.Timezone) - 3`
-		manualTimezone := `LOCATE(',', Users.Timezone) + 19`
-		manualTimezoneEnd := `LOCATE('useAutomaticTimezone', Users.Timezone) - 22 - LOCATE(',', Users.Timezone)`
-
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			autoTimezone = `POSITION(':' IN Users.Timezone) + 2`
-			autoTimezoneEnd = `POSITION(',' IN Users.Timezone) - POSITION(':' IN Users.Timezone) - 3`
-			manualTimezone = `POSITION(',' IN Users.Timezone) + 19`
-			manualTimezoneEnd = `POSITION('useAutomaticTimezone' IN Users.Timezone) - 22 - POSITION(',' IN Users.Timezone)`
-		}
-
-		selectStr = `
-			GroupMembers.GroupId,
-			COUNT(ChannelMembers.UserId) AS ChannelMemberCount,
-			COUNT(DISTINCT
+		if s.DriverName() == model.DatabaseDriverMysql {
+			selectStr += `, 
+				COUNT(DISTINCT
 				(
-					CASE WHEN Timezone like '%"useAutomaticTimezone":"true"}' AND LENGTH(Timezone) > ` + defaultTimezoneLength + `
-					THEN
-					SUBSTRING(
-						Timezone
-						FROM ` + autoTimezone + `
-						FOR ` + autoTimezoneEnd + `
-					)
-					WHEN Timezone like '%"useAutomaticTimezone":"false"}' AND LENGTH(Timezone) > ` + defaultTimezoneLength + `
-					THEN
-						SUBSTRING(
-						Timezone
-						FROM ` + manualTimezone + `
-						FOR ` + manualTimezoneEnd + `
-					)
+					CASE WHEN Timezone->"$.useAutomaticTimezone" = 'true' AND LENGTH(JSON_UNQUOTE(Timezone->"$.automaticTimezone")) > 0
+					THEN Timezone->"$.automaticTimezone"
+					WHEN Timezone->"$.useAutomaticTimezone" = 'false' AND LENGTH(JSON_UNQUOTE(Timezone->"$.manualTimezone")) > 0
+					THEN Timezone->"$.manualTimezone"
 					END
-				)
-			) AS ChannelMemberTimezonesCount
-		`
+				)) AS ChannelMemberTimezonesCount`
+		} else if s.DriverName() == model.DatabaseDriverPostgres {
+			selectStr += `, 
+				COUNT(DISTINCT
+				(
+					CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
+					THEN Timezone->>'automaticTimezone'
+					WHEN Timezone->>'useAutomaticTimezone' = 'false' AND length(Timezone->>'manualTimezone') > 0
+					THEN Timezone->>'manualTimezone'
+					END
+				)) AS ChannelMemberTimezonesCount`
+		}
 	}
 
 	query := s.getQueryBuilder().
@@ -1954,6 +1936,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
+
 	var data []*model.ChannelMemberCountByGroup
 	if _, err = s.DBFromContext(ctx).Select(&data, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to count ChannelMembers with channelId=%s", channelID)
