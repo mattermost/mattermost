@@ -186,25 +186,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, role.Permissions, permissions, fmt.Sprintf("role %q didn't match", name))
 	}
-	// Add a license and change the policy config.
-	// restrictPublicChannel := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement
-	// restrictPrivateChannel := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement
 
-	// defer func() {
-	// 	th.App.UpdateConfig(func(cfg *model.Config) {
-	// 		*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement = restrictPublicChannel
-	// 	})
-	// 	th.App.UpdateConfig(func(cfg *model.Config) {
-	// 		*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = restrictPrivateChannel
-	// 	})
-	// }()
-
-	// th.App.UpdateConfig(func(cfg *model.Config) {
-	// 	*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement = model.PERMISSIONS_TEAM_ADMIN
-	// })
-	// th.App.UpdateConfig(func(cfg *model.Config) {
-	// 	*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
-	// })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	// Check the migration doesn't change anything if run again.
@@ -213,123 +195,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	roles2, err2 := th.App.GetRolesByNames(roleNames)
 	assert.Nil(t, err2)
 	assert.Equal(t, len(roles2), len(roleNames))
-
-	for name, permissions := range expected1 {
-		role, err := th.App.GetRoleByName(context.Background(), name)
-		assert.Nil(t, err)
-		assert.Equal(t, permissions, role.Permissions)
-	}
-
-	// Reset the database
-	th.ResetRoleMigration()
-
-	// Do the migration again with different policy config settings and a license.
-	th.App.DoAdvancedPermissionsMigration()
-
-	// Check the role permissions.
-	expected2 := map[string][]string{
-		"channel_user": {
-			model.PermissionReadChannel.Id,
-			model.PermissionAddReaction.Id,
-			model.PermissionRemoveReaction.Id,
-			model.PermissionManagePublicChannelMembers.Id,
-			model.PermissionUploadFile.Id,
-			model.PermissionGetPublicLink.Id,
-			model.PermissionCreatePost.Id,
-			model.PermissionUseChannelMentions.Id,
-			model.PermissionUseSlashCommands.Id,
-			model.PermissionDeletePublicChannel.Id,
-			model.PermissionDeletePrivateChannel.Id,
-			model.PermissionManagePrivateChannelMembers.Id,
-			model.PermissionDeletePost.Id,
-			model.PermissionEditPost.Id,
-		},
-		"channel_admin": {
-			model.PermissionManageChannelRoles.Id,
-			model.PermissionUseGroupMentions.Id,
-		},
-		"team_user": {
-			model.PermissionListTeamChannels.Id,
-			model.PermissionJoinPublicChannels.Id,
-			model.PermissionReadPublicChannel.Id,
-			model.PermissionViewTeam.Id,
-			model.PermissionCreatePublicChannel.Id,
-			model.PermissionCreatePrivateChannel.Id,
-			model.PermissionInviteUser.Id,
-			model.PermissionAddUserToTeam.Id,
-		},
-		"team_post_all": {
-			model.PermissionCreatePost.Id,
-			model.PermissionUseChannelMentions.Id,
-		},
-		"team_post_all_public": {
-			model.PermissionCreatePostPublic.Id,
-			model.PermissionUseChannelMentions.Id,
-		},
-		"team_admin": {
-			model.PermissionRemoveUserFromTeam.Id,
-			model.PermissionManageTeam.Id,
-			model.PermissionImportTeam.Id,
-			model.PermissionManageTeamRoles.Id,
-			model.PermissionManageChannelRoles.Id,
-			model.PermissionManageOthersIncomingWebhooks.Id,
-			model.PermissionManageOthersOutgoingWebhooks.Id,
-			model.PermissionManageSlashCommands.Id,
-			model.PermissionManageOthersSlashCommands.Id,
-			model.PermissionManageIncomingWebhooks.Id,
-			model.PermissionManageOutgoingWebhooks.Id,
-			model.PermissionConvertPublicChannelToPrivate.Id,
-			model.PermissionConvertPrivateChannelToPublic.Id,
-			model.PermissionManagePublicChannelProperties.Id,
-			model.PermissionManagePrivateChannelProperties.Id,
-			model.PermissionDeletePost.Id,
-			model.PermissionDeleteOthersPosts.Id,
-		},
-		"system_user": {
-			model.PermissionListPublicTeams.Id,
-			model.PermissionJoinPublicTeams.Id,
-			model.PermissionCreateDirectChannel.Id,
-			model.PermissionCreateGroupChannel.Id,
-			model.PermissionViewMembers.Id,
-			model.PermissionCreateTeam.Id,
-		},
-		"system_post_all": {
-			model.PermissionCreatePost.Id,
-			model.PermissionUseChannelMentions.Id,
-		},
-		"system_post_all_public": {
-			model.PermissionCreatePostPublic.Id,
-			model.PermissionUseChannelMentions.Id,
-		},
-		"system_user_access_token": {
-			model.PermissionCreateUserAccessToken.Id,
-			model.PermissionReadUserAccessToken.Id,
-			model.PermissionRevokeUserAccessToken.Id,
-		},
-		"system_admin": allPermissionIDs,
-	}
-
-	roles3, err3 := th.App.GetRolesByNames(roleNames)
-	assert.Nil(t, err3)
-	assert.Equal(t, len(roles3), len(roleNames))
-
-	for name, permissions := range expected2 {
-		role, err := th.App.GetRoleByName(context.Background(), name)
-		assert.Nil(t, err)
-		assert.Equal(t, permissions, role.Permissions, fmt.Sprintf("'%v' did not have expected permissions", name))
-	}
-
-	// Remove the license.
-	th.App.Srv().SetLicense(nil)
-
-	// Do the migration again.
-	th.ResetRoleMigration()
-	th.App.DoAdvancedPermissionsMigration()
-
-	// Check the role permissions.
-	roles4, err4 := th.App.GetRolesByNames(roleNames)
-	assert.Nil(t, err4)
-	assert.Equal(t, len(roles4), len(roleNames))
 
 	for name, permissions := range expected1 {
 		role, err := th.App.GetRoleByName(context.Background(), name)
