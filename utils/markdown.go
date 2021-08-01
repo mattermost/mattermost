@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/yuin/goldmark"
@@ -31,6 +32,18 @@ func StripMarkdown(markdown string) (string, error) {
 	}
 
 	return strings.TrimSpace(buf.String()), nil
+}
+
+// MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
+func MarkdownToHTML(markdown string) (string, error) {
+	md := goldmark.New()
+	var buf bytes.Buffer
+
+	err := md.Convert([]byte(markdown), &buf)
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 type notificationRenderer struct {
