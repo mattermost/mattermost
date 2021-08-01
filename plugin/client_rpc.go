@@ -25,8 +25,8 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var hookNameToId map[string]int = make(map[string]int)

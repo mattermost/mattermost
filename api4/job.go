@@ -4,14 +4,15 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitJob() {
@@ -45,7 +46,9 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(job.ToJson()))
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -71,10 +74,10 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently, this endpoint only supports downloading the compliance report.
 	// If you need to download another job type, you will need to alter this section of the code to accommodate it.
-	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
-		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
+	if job.Type == model.JobTypeMessageExport && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
+		c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
 		return
-	} else if job.Type != model.JOB_TYPE_MESSAGE_EXPORT {
+	} else if job.Type != model.JobTypeMessageExport {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -132,7 +135,9 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("job", job) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(job.ToJson()))
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -141,7 +146,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var validJobTypes []string
-	for _, jobType := range model.ALL_JOB_TYPES {
+	for _, jobType := range model.AllJobTypes {
 		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jobType)
 		if permissionRequired == nil {
 			mlog.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jobType))

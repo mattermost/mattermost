@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
@@ -369,7 +369,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		assert.Equal(t, model.TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM, *fs.Get().TeamSettings.MaxUsersPerTeam)
+		assert.Equal(t, model.TeamSettingsDefaultMaxUsersPerTeam, *fs.Get().TeamSettings.MaxUsersPerTeam)
 		assert.Empty(t, fs.GetEnvironmentOverrides())
 
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
@@ -485,7 +485,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = model.NewString(model.FAKE_SETTING)
+		newCfg.LdapSettings.BindPassword = model.NewString(model.FakeSetting)
 
 		_, newConfig, err := configStore.Set(newCfg)
 		require.NoError(t, err)
@@ -730,7 +730,7 @@ func TestFileStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
-		assert.Equal(t, model.TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM, *actualConfig.TeamSettings.MaxUsersPerTeam)
+		assert.Equal(t, model.TeamSettingsDefaultMaxUsersPerTeam, *actualConfig.TeamSettings.MaxUsersPerTeam)
 	})
 
 	t.Run("do not persist environment variables - int64", func(t *testing.T) {

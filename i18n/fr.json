@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Une erreur s'est produite lors de la modification du canal courant."
+    "translation": "Une erreur s'est produite lors de la modification de l'entête du canal."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Une erreur s'est produite lors de la modification du canal courant."
+    "translation": "Une erreur s'est produite lors de la modification de la description du canal."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -980,7 +980,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "Le canal recevant les e-mail envoyés par lot est plein. Veuillez augmenter le paramètre EmailBatchingBufferSize."
+    "translation": "Le canal recevant les e-mails envoyés par lot est plein. Veuillez augmenter le paramètre EmailBatchingBufferSize."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -1837,11 +1837,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Rejoindre l'équipe"
+    "translation": "Rejoindre maintenant"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Vous avez reçu une invitation"
+    "translation": "{{ .SenderName }} vous a invité à rejoindre l'équipe {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1881,7 +1881,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Aller au message"
+    "translation": "Afficher le message"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1941,11 +1941,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Veuillez vérifier votre adresse e-mail en cliquant ci-dessous."
+    "translation": "Cette adresse e-mail a été utilisée pour créer un compte Mattermost."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Bienvenue sur {{ .ServerURL }}"
+    "translation": "Vérifiez votre adresse e-mail"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1953,7 +1953,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Pour votre confort, téléchargez les applications PC, Mac, iOS et Android depuis :"
+    "translation": "Pour votre confort, téléchargez les applications PC, Mac, iOS et Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1961,11 +1961,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Veuillez vérifier votre adresse e-mail en cliquant ci-dessous."
+    "translation": "Cette adresse e-mail a été utilisée pour créer un compte Mattermost."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Bienvenue sur {{ .ServerURL }}"
+    "translation": "Bienvenue dans l'équipe"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -2009,7 +2009,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Fournisseur de service OAuth non supporté"
+    "translation": "Le service {{.Service}} d'authentification unique (SSO) avec OAuth 2.0 n'est pas disponible sur ce serveur."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -3261,7 +3261,7 @@
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "erreur lors du peuplement des données à synchroniser (syncables)"
+    "translation": "erreur lors du remplissage des données synchronisables"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -6937,7 +6937,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "Vous devez accepter la politique d'évaluation logicielle et de respect de la confidentialité Mattermost pour demander une licence."
+    "translation": "Vous devez accepter la contrat d'évaluation du logiciel Mattermost et la politique de confidentialité pour demander une licence."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -7325,7 +7325,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Félicitations - votre espace de travail {{.WorkSpace}} est prêt !"
+    "translation": "Votre essai de 14 jours de l'espace de travail {{.WorkSpace}} est prêt à démarrer !"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7441,7 +7441,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Name | SiteURL  | RemoteId   | Invite Accepted | Online | Last Ping  |"
+    "translation": "| Connexion sécurisée | Nom d'affichage | ID de la connexion | URL du site | Invitation acceptée | En ligne | Dernier ping |"
   },
   {
     "id": "api.command_remote.missing_command",
@@ -7457,11 +7457,11 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Un nom d'affichage pour le cluster distant"
+    "translation": "Un nom unique pour la connexion sécurisée"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Nom du cluster distant"
+    "translation": "Nom de la connexion sécurisée"
   },
   {
     "id": "api.command_remote.name",
@@ -7489,7 +7489,7 @@
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Invitation d'un cluster distant"
+    "translation": "Invitation à partir d'une connexion sécurisée"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -7497,7 +7497,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Impossible d'éxtraire les clusters distant : {{.Error}}"
+    "translation": "Impossible de récupérer les connexions sécurisées : {{.Erreur}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",

@@ -11,8 +11,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/plugin/checker/internal/asthelpers"
-	"github.com/mattermost/mattermost-server/v5/plugin/checker/internal/version"
+	"github.com/mattermost/mattermost-server/v6/plugin/checker/internal/asthelpers"
+	"github.com/mattermost/mattermost-server/v6/plugin/checker/internal/version"
 )
 
 func checkHelpersVersionComments(pkgPath string) (result, error) {

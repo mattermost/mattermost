@@ -7,12 +7,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestStoreUpgradeDotRelease(t *testing.T) {
@@ -148,7 +148,7 @@ func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastP
 	m.CreatorId = creatorId
 	m.DisplayName = "Name"
 	m.Name = "zz" + model.NewId() + "b"
-	m.Type = model.CHANNEL_OPEN
+	m.Type = model.ChannelTypeOpen
 	return ss.Channel().Save(&m, -1)
 }
 

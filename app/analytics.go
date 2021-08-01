@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -48,7 +48,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		var openChannelsCount int64
 		g.Go(func() error {
 			var err error
-			if openChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_OPEN); err != nil {
+			if openChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.ChannelTypeOpen); err != nil {
 				return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 			return nil
@@ -57,7 +57,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		var privateChannelsCount int64
 		g.Go(func() error {
 			var err error
-			if privateChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_PRIVATE); err != nil {
+			if privateChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.ChannelTypePrivate); err != nil {
 				return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 			return nil

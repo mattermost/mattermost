@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // TestWebSocket is intentionally made to skip -race mode
@@ -34,7 +34,7 @@ func TestWebSocket(t *testing.T) {
 	WebSocketClient.Listen()
 
 	resp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
+	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
 
 	WebSocketClient.SendMessage("ping", nil)
 	resp = <-WebSocketClient.ResponseChannel

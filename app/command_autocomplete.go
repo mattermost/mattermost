@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // AutocompleteDynamicArgProvider dynamically provides auto-completion args for built-in commands.
@@ -54,7 +54,7 @@ func (a *App) getSuggestions(c *request.Context, commandArgs *model.CommandArgs,
 
 	if index == -1 { // no space in input
 		for _, command := range commands {
-			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
+			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SystemAdminRoleId || roleID == "") {
 				s := model.AutocompleteSuggestion{
 					Complete:    inputParsed + command.Trigger,
 					Suggestion:  command.Trigger,
@@ -71,7 +71,7 @@ func (a *App) getSuggestions(c *request.Context, commandArgs *model.CommandArgs,
 		if command.Trigger != strings.ToLower(inputToBeParsed[:index]) {
 			continue
 		}
-		if roleID != "" && roleID != model.SYSTEM_ADMIN_ROLE_ID && roleID != command.RoleID {
+		if roleID != "" && roleID != model.SystemAdminRoleId && roleID != command.RoleID {
 			continue
 		}
 		toBeParsed := inputToBeParsed[index+1:]

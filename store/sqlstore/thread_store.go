@@ -12,9 +12,9 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type SqlThreadStore struct {
@@ -33,7 +33,7 @@ func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 		tableThreads := db.AddTableWithName(model.Thread{}, "Threads").SetKeys(false, "PostId")
 		tableThreads.ColMap("PostId").SetMaxSize(26)
 		tableThreads.ColMap("ChannelId").SetMaxSize(26)
-		tableThreads.ColMap("Participants").SetMaxSize(0)
+		tableThreads.ColMap("Participants").SetDataType(sqlStore.jsonDataType())
 		tableThreadMemberships := db.AddTableWithName(model.ThreadMembership{}, "ThreadMemberships").SetKeys(false, "PostId", "UserId")
 		tableThreadMemberships.ColMap("PostId").SetMaxSize(26)
 		tableThreadMemberships.ColMap("UserId").SetMaxSize(26)
@@ -611,7 +611,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	// b. mention count changed
 	// c. user viewed a thread
 	if err == nil {
-		followingNeedsUpdate := (opts.UpdateFollowing && !membership.Following || membership.Following != opts.Following)
+		followingNeedsUpdate := (opts.UpdateFollowing && (membership.Following != opts.Following))
 		if followingNeedsUpdate || opts.IncrementMentions || opts.UpdateViewedTimestamp {
 			if followingNeedsUpdate {
 				membership.Following = opts.Following

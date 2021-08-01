@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -17,10 +18,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 var coverprofileCounters map[string]int = make(map[string]int)
@@ -122,7 +123,11 @@ func (h *testHelper) SetConfig(config *model.Config) {
 
 	h.config = config
 
-	if err := ioutil.WriteFile(h.configFilePath, []byte(config.ToJson()), 0600); err != nil {
+	buf, err := json.Marshal(config)
+	if err != nil {
+		panic("failed to marshal config: " + err.Error())
+	}
+	if err := ioutil.WriteFile(h.configFilePath, buf, 0600); err != nil {
 		panic("failed to write file " + h.configFilePath + ": " + err.Error())
 	}
 }

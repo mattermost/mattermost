@@ -81,7 +81,7 @@ func TestPostIsValid(t *testing.T) {
 	err = o.IsValid(maxPostSize)
 	require.NotNil(t, err)
 
-	o.Type = POST_CUSTOM_TYPE_PREFIX + "type"
+	o.Type = PostCustomTypePrefix + "type"
 	err = o.IsValid(maxPostSize)
 	require.Nil(t, err)
 }
@@ -107,7 +107,7 @@ func TestPostIsSystemMessage(t *testing.T) {
 
 	require.False(t, post1.IsSystemMessage())
 
-	post2 := Post{Message: "test_2", Type: POST_JOIN_LEAVE}
+	post2 := Post{Message: "test_2", Type: PostTypeJoinLeave}
 	post2.PreSave()
 
 	require.True(t, post2.IsSystemMessage())
@@ -125,30 +125,30 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post1.SanitizeProps()
 
-	require.Nil(t, post1.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post1.GetProp(PropsAddChannelMember))
 
 	post2 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PROPS_ADD_CHANNEL_MEMBER: "test",
+			PropsAddChannelMember: "test",
 		},
 	}
 
 	post2.SanitizeProps()
 
-	require.Nil(t, post2.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post2.GetProp(PropsAddChannelMember))
 
 	post3 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PROPS_ADD_CHANNEL_MEMBER: "no good",
-			"attachments":            "good",
+			PropsAddChannelMember: "no good",
+			"attachments":         "good",
 		},
 	}
 
 	post3.SanitizeProps()
 
-	require.Nil(t, post3.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post3.GetProp(PropsAddChannelMember))
 
 	require.NotNil(t, post3.GetProp("attachments"))
 }
@@ -778,21 +778,21 @@ func TestPostDisableMentionHighlights(t *testing.T) {
 			"",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @here",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@here",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @channel",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@channel",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @all",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@all",
 		},
 	}
@@ -821,19 +821,19 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 			nil,
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @here",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @channel",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @all",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 	}
 	for _, tc := range testCases {
