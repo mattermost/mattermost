@@ -9249,5 +9249,9 @@
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "Unable to get tokens by type when invalidating email verification tokens"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Feature requires an upgrade to Enterprise Edition."
   }
 ]
