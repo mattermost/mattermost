@@ -121,7 +121,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
-    "translation": "无法上传文件。文件太大。"
+    "translation": "无法上传文件。文件过大。"
   },
   {
     "id": "api.channel.add_member.added",
@@ -2773,7 +2773,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
-    "translation": "用户频道会员资格中缺少频道名称。"
+    "translation": "用户频道身份中缺少频道名称。"
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
@@ -2789,7 +2789,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "用户频道成员资格的角色无效。"
+    "translation": "用户频道成员身份的角色无效。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -2873,11 +2873,11 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": "用户团队成员资格的角色无效。"
+    "translation": "用户团队成员身份的角色无效。"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "用户的团队成员资格中缺少团队名称。"
+    "translation": "用户的团队成员身份中缺少团队名称。"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -4057,7 +4057,7 @@
   },
   {
     "id": "model.config.is_valid.tls_key_file_missing.app_error",
-    "translation": "无效的 TLS 证书钥匙值 - 使用 LetsEncrypt 或设置为现有的钥匙文件路径。"
+    "translation": "无效的 TLS 证书钥匙文件值 - 使用 LetsEncrypt 或设置为现有的钥匙文件路径。"
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
@@ -5001,7 +5001,7 @@
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "无法从数据库中获取最早的实体（用户，频道或帖子）。"
+    "translation": "无法从数据库中获取最早的实体（用户、频道或帖子）。"
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
@@ -6049,7 +6049,7 @@
   },
   {
     "id": "app.audit.get.limit.app_error",
-    "translation": "已超过分页限制。"
+    "translation": "分页已超出限制。"
   },
   {
     "id": "app.audit.get.finding.app_error",
@@ -6161,11 +6161,11 @@
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "无法删除令牌。"
+    "translation": "无法删除用户。"
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
-    "translation": "无法删除令牌。"
+    "translation": "无法删除团队。"
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -6193,15 +6193,15 @@
   },
   {
     "id": "app.session.get_sessions.app_error",
-    "translation": "我们在查找用户会话时遇到错误。"
+    "translation": "查找用户会话时遇到错误。"
   },
   {
     "id": "app.session.get.app_error",
-    "translation": "我们在查找此会话时遇到错误。"
+    "translation": "查找会话时遇到错误。"
   },
   {
     "id": "app.session.analytics_session_count.app_error",
-    "translation": "无法会话计数。"
+    "translation": "无法计算会话数。"
   },
   {
     "id": "app.command.updatecommand.internal_error",
@@ -6237,7 +6237,7 @@
   },
   {
     "id": "ent.get_users_in_channel_during",
-    "translation": "获取频道在指定时间段的用户失败。"
+    "translation": "指定时间段内获取频道用户失败。"
   },
   {
     "id": "store.sql_command.update.missing.app_error",
@@ -6353,7 +6353,7 @@
   },
   {
     "id": "app.preference.delete.app_error",
-    "translation": "我们删除偏好设置时遇到错误。"
+    "translation": "我们在删除偏好设置时遇到错误。"
   },
   {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
@@ -6757,11 +6757,11 @@
   },
   {
     "id": "app.team.reset_all_team_schemes.app_error",
-    "translation": "我们无法重置团队方案。"
+    "translation": "无法重置团队方案。"
   },
   {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
-    "translation": "由于团队已达到成员数上限，因此无法创建新的团队成员资格"
+    "translation": "由于团队已达到成员数上限，因此无法创建新的团队成员身份"
   },
   {
     "id": "app.team.get_unread.app_error",
@@ -6769,7 +6769,7 @@
   },
   {
     "id": "app.team.get_member.missing.app_error",
-    "translation": "未找到该用户 ID 和团队 ID的 团队成员。"
+    "translation": "未找到该用户 ID 和团队 ID 的团队成员。"
   },
   {
     "id": "app.team.get_by_name.app_error",
@@ -6781,7 +6781,7 @@
   },
   {
     "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "无法上传文件，文件过大。"
+    "translation": "无法上传文件。文件过大。"
   },
   {
     "id": "app.upload.create.incorrect_channel_id.app_error",
@@ -6821,7 +6821,7 @@
   },
   {
     "id": "app.team.get_user_team_ids.app_error",
-    "translation": "无法列出用户的团队。"
+    "translation": "无法获取用户的团队列表。"
   },
   {
     "id": "app.team.get_members_by_ids.app_error",
@@ -6829,7 +6829,7 @@
   },
   {
     "id": "app.team.get_member_count.app_error",
-    "translation": "无法统计团队成员数。"
+    "translation": "无法计算团队成员数。"
   },
   {
     "id": "app.team.get_member.app_error",
@@ -6857,7 +6857,7 @@
   },
   {
     "id": "app.team.get_active_member_count.app_error",
-    "translation": "无法团队成员计数。"
+    "translation": "无法计算团队成员数。"
   },
   {
     "id": "app.team.get.finding.app_error",
@@ -6873,7 +6873,7 @@
   },
   {
     "id": "app.team.analytics_team_count.app_error",
-    "translation": "无法统计团队数。"
+    "translation": "无法计算团队数。"
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -6893,7 +6893,7 @@
   },
   {
     "id": "app.post.search.app_error",
-    "translation": "搜索消息错误"
+    "translation": "消息搜索错误"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -6925,11 +6925,11 @@
   },
   {
     "id": "app.post.get_posts.app_error",
-    "translation": "分页超出限制。"
+    "translation": "分页已超出限制。"
   },
   {
     "id": "app.post.get_post_id_around.app_error",
-    "translation": "无法从时间附近获取消息。"
+    "translation": "无法获取时间附近的消息。"
   },
   {
     "id": "app.post.get_post_after_time.app_error",
@@ -7261,7 +7261,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "无法获得所提供方案的频道。"
+    "translation": "无法用提供的方案获取频道。"
   },
   {
     "id": "api.server.warn_metric.starting_trial",
@@ -7469,7 +7469,7 @@
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",
-    "translation": "无效的创建时间"
+    "translation": "无效的 CreateAt"
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -7497,7 +7497,7 @@
   },
   {
     "id": "ent.ldap.do_login.certificate.app_error",
-    "translation": "加载 LDAP TLS 证书文件时出错。"
+    "translation": "加载 LDAP TLS 证书文件时发生错误。"
   },
   {
     "id": "app.upload.upload_data.update.app_error",
@@ -7537,11 +7537,11 @@
   },
   {
     "id": "ent.ldap.do_login.key.app_error",
-    "translation": "加载 LDAP TLS 密钥文件错误。"
+    "translation": "加载 LDAP TLS 密钥文件时发生错误。"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
-    "translation": "无法从数据库中获取最早的实体（用户，频道或帖子）"
+    "translation": "无法从数据库中获取最早的实体（用户、频道或帖子）"
   },
   {
     "id": "app.upload.upload_data.read_file.app_error",
@@ -9091,11 +9091,11 @@
   },
   {
     "id": "app.user.get_thread_membership_for_user.not_found",
-    "translation": "用户串成员资格不存在"
+    "translation": "用户串成员身份不存在"
   },
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
-    "translation": "无法获得用户串成员资格"
+    "translation": "无法获得用户串成员身份"
   },
   {
     "id": "app.team.get_common_team_ids_for_users.app_error",
@@ -9223,10 +9223,10 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "PC, Mac, iOS 和 Android 上的最好体验."
+    "translation": "登入工作区以在 PC、Mac、iOS 和 Android 上获得最好体验。"
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
-    "translation": "在我们的 登录你的工作空间"
+    "translation": "在我们的"
   }
 ]
