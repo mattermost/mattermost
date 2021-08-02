@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
@@ -596,7 +597,7 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 	}
 
 	file.Seek(0, 0)
-	data, readErr := io.ReadAll(file)
+	data, readErr := ioutil.ReadAll(file)
 	if readErr != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.read.app_error", nil, readErr.Error(), http.StatusInternalServerError)
 	}
