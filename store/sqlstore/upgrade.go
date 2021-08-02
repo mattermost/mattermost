@@ -1510,18 +1510,75 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
+	if hasMissingMigrationsVersion600(sqlStore) {
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+	}
+
 	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
-
-	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
-
-	// saveSchemaVersion(sqlStore, Version600)
+	//saveSchemaVersion(sqlStore, Version600)
 	// }
+}
+
+func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
+	jsonBFn := func(tableName, columnName string) bool {
+		info, err := sqlStore.GetColumnInfo(tableName, columnName)
+		if err != nil {
+			mlog.Error("Error getting column info for migration check",
+				mlog.String("table", tableName),
+				mlog.String("column", columnName),
+				mlog.Err(err),
+			)
+			return true
+		}
+
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+			if info.DataType != "jsonb" {
+				return true
+			}
+		} else if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			if info.DataType != "JSON" {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if jsonBFn("ChannelMembers", "NotifyProps") {
+		return true
+	}
+	if jsonBFn("Jobs", "Data") {
+		return true
+	}
+	if jsonBFn("LinkMetadata", "Data") {
+		return true
+	}
+	if jsonBFn("Posts", "Props") {
+		return true
+	}
+	if jsonBFn("Sessions", "Props") {
+		return true
+	}
+	if jsonBFn("Threads", "Participants") {
+		return true
+	}
+	if jsonBFn("Users", "Props") {
+		return true
+	}
+	if jsonBFn("Users", "NotifyProps") {
+		return true
+	}
+	if jsonBFn("Users", "Timezone") {
+		return true
+	}
+
+	return false
 }
