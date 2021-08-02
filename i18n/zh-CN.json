@@ -1385,7 +1385,7 @@
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "此频道为只读。只有拥有权限的成员可以置顶或取消置顶消息。"
+    "translation": "此频道为只读。只有拥有权限的成员可以标注或取消标注消息。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -6085,7 +6085,7 @@
   },
   {
     "id": "app.command.listteamcommands.internal_error",
-    "translation": "无法获取命令。"
+    "translation": "无法列出团队命令。"
   },
   {
     "id": "app.command_webhook.try_use.invalid",
@@ -6101,7 +6101,7 @@
   },
   {
     "id": "app.command_webhook.get.missing",
-    "translation": "无法获取 webhook。"
+    "translation": "无法查找 webhook。"
   },
   {
     "id": "app.command_webhook.get.internal_error",
@@ -6117,7 +6117,7 @@
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
-    "translation": "我们更新此应用时遇到错误。"
+    "translation": "更新此应用时遇到错误。"
   },
   {
     "id": "app.oauth.update_app.find.app_error",
@@ -6213,11 +6213,11 @@
   },
   {
     "id": "app.command.movecommand.internal_error",
-    "translation": "无法保存命令。"
+    "translation": "无法移动命令。"
   },
   {
     "id": "app.command.listallcommands.internal_error",
-    "translation": "无法获取命令。"
+    "translation": "无法列出命令。"
   },
   {
     "id": "app.command.getcommand.internal_error",
@@ -6265,7 +6265,7 @@
   },
   {
     "id": "app.command.regencommandtoken.internal_error",
-    "translation": "无法生成命令令牌。"
+    "translation": "无法重新生成命令令牌。"
   },
   {
     "id": "app.command.listautocompletecommands.internal_error",
@@ -6281,7 +6281,7 @@
   },
   {
     "id": "api.user.delete_team.not_enabled.app_error",
-    "translation": "永久删除功能未开启。请联系您的系统管理员。"
+    "translation": "永久删除团队功能未开启。请联系系统管理员。"
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -6381,7 +6381,7 @@
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
-    "translation": "永久删除功能未开启。请联系您的系统管理员。"
+    "translation": "永久删除用户功能未开启。请联系系统管理员。"
   },
   {
     "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
@@ -6657,27 +6657,27 @@
   },
   {
     "id": "app.job.update.app_error",
-    "translation": "无法更新任务。"
+    "translation": "无法更新作业。"
   },
   {
     "id": "app.job.save.app_error",
-    "translation": "无法保存任务。"
+    "translation": "无法保存作业。"
   },
   {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
-    "translation": "无法以状态和类型获取最新任务。"
+    "translation": "无法以状态和类型获取最新作业。"
   },
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
-    "translation": "无法以状态和类型获取任务数。"
+    "translation": "无法以状态和类型获取作业数。"
   },
   {
     "id": "app.job.get_all.app_error",
-    "translation": "无法获取任务。"
+    "translation": "无法获取作业。"
   },
   {
     "id": "app.job.get.app_error",
-    "translation": "无法获取任务。"
+    "translation": "无法获取作业。"
   },
   {
     "id": "ent.data_retention.file_infos_batch.internal_error",
@@ -6693,7 +6693,7 @@
   },
   {
     "id": "app.file_info.get_with_options.app_error",
-    "translation": "无法获取文件信息以及选项"
+    "translation": "无法使用选项获取文件信息"
   },
   {
     "id": "app.file_info.get_for_post.app_error",
@@ -6705,7 +6705,7 @@
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
-    "translation": "永久删除功能未开启。请联系您的系统管理员。"
+    "translation": "永久删除频道功能未开启。请联系系统管理员。"
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
@@ -6993,7 +6993,7 @@
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
-    "translation": "频率限制发送错误。"
+    "translation": "频率限制发生错误。"
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
@@ -7033,7 +7033,7 @@
   },
   {
     "id": "app.channel.pinned_posts.app_error",
-    "translation": "无法找到置顶的消息。"
+    "translation": "无法找到标注的消息。"
   },
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
@@ -7045,7 +7045,7 @@
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
-    "translation": "无法获取公开频道。"
+    "translation": "无法获取公共频道。"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
@@ -7053,7 +7053,7 @@
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
-    "translation": "无法获得该频道置顶消息数。"
+    "translation": "无法获得该频道标注消息数。"
   },
   {
     "id": "app.channel.get_members.app_error",
@@ -7073,7 +7073,7 @@
   },
   {
     "id": "app.channel.get_for_post.app_error",
-    "translation": "无法从提供的消息获得频道。"
+    "translation": "无法获得该消息的频道。"
   },
   {
     "id": "app.channel.get_channels_by_ids.not_found.app_error",
@@ -7409,7 +7409,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "无法为索引获取批量频道。"
+    "translation": "无法为索引批量获取频道。"
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -7421,11 +7421,11 @@
   },
   {
     "id": "app.channel.search.app_error",
-    "translation": "我们搜索频道时遇到错误。"
+    "translation": "搜索频道时遇到错误。"
   },
   {
     "id": "app.channel.reset_all_channel_schemes.app_error",
-    "translation": "我们无法重置频道方案。"
+    "translation": "无法重置频道方案。"
   },
   {
     "id": "app.channel.remove_all_deactivated_members.app_error",
@@ -7445,7 +7445,7 @@
   },
   {
     "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "无法为索引获取批量频道。"
+    "translation": "无法为索引批量获取频道。"
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
@@ -7589,7 +7589,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "您的 Mattermost 系统现有几个团队。许多团队都有自己喜欢的协调和协作方式，包括如何创建频道，谁可以邀请新的团队成员以及如何管理集成。使用团队覆盖方案，您可以自定义每个团队中的用户权限，以满足他们的特定需求。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)。\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/) ，并接收产品电子邮件。"
+    "translation": "您的 Mattermost 系统现有几个团队。许多团队都有自己喜欢的协调和协作方式，包括如何创建频道，谁可以邀请新的团队成员以及如何管理集成。使用团队覆盖方案，您可以自定义每个团队中的用户权限，以满足他们的特定需求。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)。\n\n单击开始试用，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/) ，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
@@ -9059,7 +9059,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "立刻更新"
+    "translation": "立刻续订"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -9076,5 +9076,169 @@
   {
     "id": "api.templates.cloud_trial_ended_email.title",
     "translation": "您的 Mattermost 14 天免费试用已于今天结束"
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "这帖子包含指向其他频道的永久链接，其他网站的用户可能无法看到。"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "一个或多个帖子无法传送到远程站点 {{.Remote}}，因为它处于离线状态。帖子将在网站上线时发送。"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "数据保留作业失败。"
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "无效的政策。"
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "在执行请求的操作时遇到错误。"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "图像限制检查失败。分辨率过高。"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "无效的密码"
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "无法从用户发送自动响应。"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "用户串成员资格不存在"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "无法获得用户串成员资格"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "无法获取公共团队 ID。"
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "系统"
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "创建共享私信频道时遇到错误。"
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "想要更改您的通知设置吗？"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "登入到 Mattermost"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " 并至账户设定 > 通知"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} 在消息中提到了您"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 在 {{.ChannelName}} 频道中提到了您。"
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} 向您发送了一条新的消息"
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} 向您发送了一条新的消息"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 向您的群组发送了一条消息。"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 向您发送了一条新的私信。"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "管理列表为空。"
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "管理列表为空。"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "图像限制检查失败。分辨率过高。"
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "字段 '{{.Field}}' 必须通过用户的登录提供商设置。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "由于云帐户超容，无法激活更多用户。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "无法检查您的 Mattermost 云实例中的用户数量。"
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "字段 '{{.Field}}' 必须通过用户的登录提供商设置。"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "无法在让电子邮件验证令牌无效时解析令牌"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "无法在让电子邮件验证令牌无效时移除令牌"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "无法在让电子邮件验证令牌无效时按类型获取令牌"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "您的 Mattermost 订阅即将需要续订"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "登录您的客户帐户进行续订"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}，您的订阅将在 {{.Days}} 天后到期。我们希望您体验到 Mattermost 支持的灵活、安全的团队协作。尽快续订以确保您的团队可以继续享受这些好处。"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "您的许可证需要续订"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost 是一个灵活的开源通讯平台，可实现安全的团队协作。"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Name}}，您对 Mattermost 专业云的 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受专业云的好处。"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}，您的 Mattermost 专业云 14 天免费试用已于今天结束，{{.TodayDate}}。请添加您的付款信息，以确保您的团队可以继续享受专业云的好处。"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "功能需要升级到企业版。"
   }
 ]
