@@ -270,6 +270,10 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 
 	// Post attachments
 	for _, attachment := range post.Attachments() {
+		if attachment.Title != "" {
+			names = append(names, getEmojiNamesForString(attachment.Title)...)
+		}
+
 		if attachment.Text != "" {
 			names = append(names, getEmojiNamesForString(attachment.Text)...)
 		}
