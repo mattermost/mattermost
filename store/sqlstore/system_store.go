@@ -69,18 +69,16 @@ func (s SqlSystemStore) SaveOrUpdate(system *model.System) error {
 }
 
 func (s SqlSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System) error {
-	if err := s.GetMaster().SelectOne(&model.System{}, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": system.Name}); err == nil {
-		if _, err := s.GetMaster().Update(system); err != nil {
-			return errors.Wrapf(err, "failed to update system property with name=%s", system.Name)
-		}
-	} else {
-		if err := s.GetMaster().Insert(system); err != nil {
-			return errors.Wrapf(err, "failed to save system property with name=%s", system.Name)
-		}
+	if err := s.SaveOrUpdate(system); err != nil {
+		return err
 	}
 
-	if strings.HasPrefix(system.Name, model.WarnMetricStatusStorePrefix) && (system.Value == model.WarnMetricStatusRunonce || system.Value == model.WarnMetricStatusLimitReached) {
-		if err := s.SaveOrUpdate(&model.System{Name: model.SystemWarnMetricLastRunTimestampKey, Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10)}); err != nil {
+	if strings.HasPrefix(system.Name, model.WarnMetricStatusStorePrefix) &&
+		(system.Value == model.WarnMetricStatusRunonce || system.Value == model.WarnMetricStatusLimitReached) {
+		if err := s.SaveOrUpdate(&model.System{
+			Name:  model.SystemWarnMetricLastRunTimestampKey,
+			Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
+		}); err != nil {
 			return errors.Wrapf(err, "failed to save system property with name=%s", model.SystemWarnMetricLastRunTimestampKey)
 		}
 	}
