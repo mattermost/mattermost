@@ -5952,10 +5952,6 @@
     "translation": "Leeres Array unterhalb von 'image' in der Anfrage."
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Konnte Reaktion nicht speichern."
   },
@@ -6172,10 +6168,6 @@
     "translation": "Fehler beim Abrufen der Mitglieder im Kanals während der spezifizierten Zeitperiode."
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Fehler beim Leeren der Datensätze."
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Konnte das Emoji nicht speichern."
   },
@@ -6250,10 +6242,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Markierungen aufgetreten."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6544,10 +6532,6 @@
     "translation": "Konnte den Job nicht abrufen."
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Dateiinformationen aufgetreten."
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Konnte die Dateiinformationen nicht speichern."
   },
@@ -6634,10 +6618,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Konnte den Nachrichtenstapel nicht zur Indizierung abrufen."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Nachrichtenstapels aufgetreten."
   },
   {
     "id": "app.post.overwrite.app_error",

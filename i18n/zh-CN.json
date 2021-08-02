@@ -6064,10 +6064,6 @@
     "translation": "无法移动私信或群组消息频道"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "批量永久删除互动时遇到错误。"
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "无法保存互动。"
   },
@@ -6244,10 +6240,6 @@
     "translation": "获取频道在指定时间段的用户失败。"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "清理记录失败。"
-  },
-  {
     "id": "store.sql_command.update.missing.app_error",
     "translation": "命令不存在。"
   },
@@ -6338,10 +6330,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "获取合规报告时遇到错误。"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "清理批量标记时遇到错误。"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6680,10 +6668,6 @@
     "translation": "无法获取作业。"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "批量永久删除文件信息时遇到错误。"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "无法保存文件信息。"
   },
@@ -6742,10 +6726,6 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "解析 multiform 请求错误"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "永久删除这批帖子时遇到错误。"
   },
   {
     "id": "app.user.convert_bot_to_user.app_error",

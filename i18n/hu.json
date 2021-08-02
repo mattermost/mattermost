@@ -3576,14 +3576,6 @@
     "translation": "Az Elasticsearch aggregator worker nem tudta létrehozni az indexelő munkát"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Hiba történt a reakciók kötegének végleges törlése során."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Hiba történt a bejegyzések kötegének végleges törlése során."
-  },
-  {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "Szabályzat érvénytelen."
   },
@@ -3594,18 +3586,6 @@
   {
     "id": "ent.data_retention.generic.license.error",
     "translation": "A licence nem támogatja az adatmegőrzést."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Hiba történt a fájlinfók kötegének végleges törlése során."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Hiba történt a fájlinfók kötegének végleges törlése során."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Nem sikerült megtisztítani a rekordokat."
   },
   {
     "id": "ent.compliance.run_failed.error",

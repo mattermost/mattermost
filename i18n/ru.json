@@ -5704,10 +5704,6 @@
     "translation": "Эта версия вашего браузера больше не поддерживается Mattermost"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Не удалось очистить записи."
-  },
-  {
     "id": "ent.get_users_in_channel_during",
     "translation": "Не удалось получить пользователей в канале в течение указанного периода времени."
   },
@@ -6074,10 +6070,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "Невозможно переместить каналы личных сообщений или групповые каналы"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета реакций."
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6488,10 +6480,6 @@
     "translation": "Невозможно скачать это задание"
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой при очистке пакета флагов."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Возникла ошибка при обновлении настроек."
   },
@@ -6868,10 +6856,6 @@
     "translation": "Не удалось получить задание."
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета информации о файлах."
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Не удалось сохранить информацию о файле."
   },
@@ -7022,10 +7006,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Невозможно получить пакет сообщений для индексации."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ошибка перманентного удаления пакета сообщений."
   },
   {
     "id": "app.post.overwrite.app_error",

@@ -5560,10 +5560,6 @@
     "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya devam etmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.daysCount}} günde bir dolacak şekilde ayarlanmış."
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Kayıtlar silinemedi."
-  },
-  {
     "id": "app.bot.permenent_delete.bad_id",
     "translation": "Bot silinemedi."
   },
@@ -6080,10 +6076,6 @@
     "translation": "Deneme isteği yapılamadı. Lütfen Mattermost sistem panosundaki web sunucu bölümünden bir site adresi yapılandırın."
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Tepki yığını kalıcı olarak silinirken bir sorun çıktı."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Tepki kaydedilemedi."
   },
@@ -6488,10 +6480,6 @@
     "translation": "Bu görev indirilemedi"
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "İşaretler toplu olarak temizlenirken bir sorun çıktı."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Ayarlar güncellenirken bir sorun çıktı."
   },
@@ -6812,10 +6800,6 @@
     "translation": "Görev alınamadı."
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Toplu dosya bilgileri kalıcı olarak silinirken bir sorun çıktı."
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Dosya bilgileri kaydedilemedi."
   },
@@ -7110,10 +7094,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Dizine eklenecek ileti topluluğu alınamadı."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Toplu iletiler kalıcı olarak silinirken bir sorun çıktı."
   },
   {
     "id": "app.post.overwrite.app_error",
