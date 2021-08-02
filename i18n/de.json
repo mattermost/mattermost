@@ -9249,5 +9249,9 @@
   {
     "id": "app.user.update.find.app_error",
     "translation": "Konnte kein vorhandenes Konto zur Aktualisierung finden."
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Diese Funktion erfordert ein Upgrade auf die Enterprise Edition."
   }
 ]
