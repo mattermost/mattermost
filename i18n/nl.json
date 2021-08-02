@@ -9229,5 +9229,9 @@
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "Kan tokens niet op type ophalen wanneer e-mailverificatietokens ongeldig worden gemaakt"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Voor deze functie is een upgrade naar Enterprise Editie vereist."
   }
 ]
