@@ -9220,5 +9220,13 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "功能需要升级到企业版。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "PC, Mac, iOS 和 Android 上的最好体验."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "在我们的 登录你的工作空间"
   }
 ]
