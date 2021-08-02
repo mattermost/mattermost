@@ -1095,7 +1095,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Dosya en büyük boyutları aştığından yüklenemedi: {{.Filename}}"
+    "translation": "Dosya izin verilen en büyük boyutları aştığından yüklenemedi: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Lisansta yalnız {{.Users}} kullanıcı destekleniyor. Ancak sisteminizde {{.Count}} tekil kullanıcı var. Tekil kullanıcı sayısı farklı e-posta adreslerine göre belirlenir. Toplam kullanıcı sayısını Site Raporları -> İstatistikleri Görüntüle bölümünden görebilirsiniz."
+    "translation": "Lisansta yalnız {{.Users}} kullanıcı destekleniyor. Ancak sisteminizde {{.Count}} tekil kullanıcı var. Tekil kullanıcı sayısı farklı e-posta adreslerine göre belirlenir. Toplam kullanıcı sayısını Site raporları -> İstatistikleri görüntüle bölümünden görebilirsiniz."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -1191,11 +1191,11 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "Sistem yöneticisi OAuth2 Hizmet Sağlayıcısını kapattı."
+    "translation": "OAuth2 hizmet sağlayıcısı sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
-    "translation": "Sistem yöneticisi OAuth2 Hizmet Sağlayıcısını kapattı."
+    "translation": "OAuth2 hizmet sağlayıcısı sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1215,7 +1215,7 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "Sistem yöneticisi OAuth2 Hizmet Sağlayıcısını kapattı."
+    "translation": "OAuth2 hizmet sağlayıcısı sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
@@ -1259,7 +1259,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "Sistem yöneticisi OAuth2 Hizmet Sağlayıcısını kapattı."
+    "translation": "OAuth2 hizmet sağlayıcısı sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -1315,7 +1315,7 @@
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": "RootID parametresi için Kanal Kodu Geçersiz."
+    "translation": "RootID parametresi için kanal kodu geçersiz."
   },
   {
     "id": "api.post.create_post.parent_id.app_error",
@@ -1457,7 +1457,7 @@
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "Arşivlenmiş bir kanaldaki tepkiyi silemezsiniz."
+    "translation": "Arşivlenmiş bir kanalda verilmiş bir tepkiyi silemezsiniz."
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
@@ -5293,7 +5293,7 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Bu sunucu üzerinde Anında Bildirimler devre dışı bırakılmış."
+    "translation": "Bu sunucu üzerinde anında bildirimler devre dışı bırakılmış."
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
@@ -5557,7 +5557,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Oturumun Süresi Doldu: Lütfen bildirimleri almaya devam etmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.daysCount}} günde bir dolacak şekilde ayarlanmış."
+    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya devam etmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.daysCount}} günde bir dolacak şekilde ayarlanmış."
   },
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
@@ -6101,7 +6101,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "Lisans isteğinde bulunmak için Mattermost Yazılım Değerlendirme Sözleşmesi ve Kişisel Verilerin Gizliliği İlkesini kabul etmelisiniz."
+    "translation": "Lisans isteğinde bulunmak için Mattermost yazılım değerlendirme sözleşmesi ve kişisel verilerin gizliliği ilkesini kabul etmelisiniz."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
@@ -6109,7 +6109,7 @@
   },
   {
     "id": "api.invalid_channel",
-    "translation": "İstekte listelenmiş kanal kullanıcıya ait değil"
+    "translation": "İstekte belirtilen kanal kullanıcıya ait değil"
   },
   {
     "id": "app.recover.save.app_error",
@@ -8221,7 +8221,7 @@
   },
   {
     "id": "api.oauth.redirecting_back",
-    "translation": "Uygulamaya geri yönlendiriliyorsunuz."
+    "translation": "Uygulamaya geri döndürülüyorsunuz."
   },
   {
     "id": "api.oauth.close_browser",
@@ -8277,7 +8277,7 @@
   },
   {
     "id": "api.getThreadsForUser.bad_params",
-    "translation": "getThreadsForUser için Before ve After parametreleri birbirini dışlar"
+    "translation": "getThreadsForUser için Before ve After parametreleri aynı anda kullanılamaz"
   },
   {
     "id": "model.config.is_valid.export.retention_days_too_low.app_error",
@@ -9249,5 +9249,9 @@
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "E-posta doğrulama kodları geçersiz kılınırken kodlar türe göre alınamadı"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Bu özellik Enterprise sürüme yükseltmesi ile kullanılabilir."
   }
 ]
