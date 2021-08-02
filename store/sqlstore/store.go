@@ -922,7 +922,7 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	if err != nil {
 		msg := "Failed to alter column type."
 		if mySqlColType == "JSON" && postgresColType == "jsonb" {
-			msg += " It is likely you might have invalid JSON values in the column. Please fix the values manually and run the migration again."
+			msg += " It is likely you have invalid JSON values in the column. Please fix the values manually and run the migration again."
 		}
 		mlog.Critical(msg, mlog.Err(err))
 		time.Sleep(time.Second)
