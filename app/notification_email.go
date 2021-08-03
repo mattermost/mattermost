@@ -202,9 +202,9 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
-		postMessage, err := utils.MarkdownToHTML(postMessage)
-		if err != nil {
-			return "", err
+		postMessage, mdErr := utils.MarkdownToHTML(postMessage)
+		if mdErr != nil {
+			return "", mdErr
 		}
 
 		normalizedPostMessage, err := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
