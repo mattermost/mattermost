@@ -463,19 +463,19 @@ type API interface {
 	// CreateChannelSidebarCategory creates a new sidebar category for a set of channels.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
 
 	// GetChannelSidebarCategories returns sidebar categories.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 
 	// UpdateChannelSidebarCategories updates the channel sidebar categories.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 
 	// SearchUsers returns a list of users based on some search criteria.

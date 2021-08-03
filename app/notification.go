@@ -212,14 +212,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						return
 					}
 				}
+
+				updateFollowing := *a.Config().ServiceSettings.ThreadAutoFollow
 				if mentionType == ThreadMention || mentionType == CommentMention {
 					incrementMentions = false
+					updateFollowing = false
 				}
-
 				opts := store.ThreadMembershipOpts{
 					Following:             true,
 					IncrementMentions:     incrementMentions,
-					UpdateFollowing:       *a.Config().ServiceSettings.ThreadAutoFollow,
+					UpdateFollowing:       updateFollowing,
 					UpdateViewedTimestamp: userID == post.UserId,
 					UpdateParticipants:    userID == post.UserId,
 				}
