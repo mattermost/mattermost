@@ -2530,22 +2530,22 @@ func (c *Client4) RemoveTeamIcon(teamId string) (bool, *Response) {
 // Channel Section
 
 // GetAllChannels get all the channels. Must be a system administrator.
-func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+func (c *Client4) GetAllChannels(page int, perPage int, etag string) (ChannelListWithTeamData, *Response) {
 	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{})
 }
 
 // GetAllChannelsIncludeDeleted get all the channels. Must be a system administrator.
-func (c *Client4) GetAllChannelsIncludeDeleted(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+func (c *Client4) GetAllChannelsIncludeDeleted(page int, perPage int, etag string) (ChannelListWithTeamData, *Response) {
 	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{IncludeDeleted: true})
 }
 
 // GetAllChannelsExcludePolicyConstrained gets all channels which are not part of a data retention policy.
 // Must be a system administrator.
-func (c *Client4) GetAllChannelsExcludePolicyConstrained(page, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+func (c *Client4) GetAllChannelsExcludePolicyConstrained(page, perPage int, etag string) (ChannelListWithTeamData, *Response) {
 	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{ExcludePolicyConstrained: true})
 }
 
-func (c *Client4) getAllChannels(page int, perPage int, etag string, opts ChannelSearchOpts) (*ChannelListWithTeamData, *Response) {
+func (c *Client4) getAllChannels(page int, perPage int, etag string, opts ChannelSearchOpts) (ChannelListWithTeamData, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v&exclude_policy_constrained=%v",
 		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained)
 	r, appErr := c.DoApiGet(c.GetChannelsRoute()+query, etag)
@@ -2554,7 +2554,7 @@ func (c *Client4) getAllChannels(page int, perPage int, etag string, opts Channe
 	}
 	defer closeBody(r)
 
-	var ch *ChannelListWithTeamData
+	var ch ChannelListWithTeamData
 	err := json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("getAllChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
@@ -2894,14 +2894,14 @@ func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) (
 }
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
-func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response) {
+func (c *Client4) SearchAllChannels(search *ChannelSearch) (ChannelListWithTeamData, *Response) {
 	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
-	var ch *ChannelListWithTeamData
+	var ch ChannelListWithTeamData
 	err := json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("SearchAllChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
@@ -3046,7 +3046,7 @@ func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamNam
 }
 
 // GetChannelMembers gets a page of channel members.
-func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag string) (*ChannelMembers, *Response) {
+func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag string) (ChannelMembers, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	r, appErr := c.DoApiGet(c.GetChannelMembersRoute(channelId)+query, etag)
 	if appErr != nil {
@@ -3054,7 +3054,7 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 	}
 	defer closeBody(r)
 
-	var ch *ChannelMembers
+	var ch ChannelMembers
 	err := json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("GetChannelMembers", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
@@ -3063,14 +3063,14 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 }
 
 // GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
-func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
+func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (ChannelMembers, *Response) {
 	r, appErr := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds))
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
-	var ch *ChannelMembers
+	var ch ChannelMembers
 	err := json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("GetChannelMembersByIds", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
@@ -3095,14 +3095,14 @@ func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMemb
 }
 
 // GetChannelMembersForUser gets all the channel members for a user on a team.
-func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*ChannelMembers, *Response) {
+func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (ChannelMembers, *Response) {
 	r, appErr := c.DoApiGet(fmt.Sprintf(c.GetUserRoute(userId)+"/teams/%v/channels/members", teamId), etag)
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
-	var ch *ChannelMembers
+	var ch ChannelMembers
 	err := json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("GetChannelMembersForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
@@ -3228,7 +3228,7 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 }
 
 // AutocompleteChannelsForTeam will return an ordered list of channels autocomplete suggestions.
-func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList, *Response) {
+func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (ChannelList, *Response) {
 	query := fmt.Sprintf("?name=%v", name)
 	r, app := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/autocomplete"+query, "")
 	if app != nil {
@@ -3236,7 +3236,7 @@ func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList
 	}
 	defer closeBody(r)
 
-	var ch *ChannelList
+	var ch ChannelList
 	err := json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("AutocompleteChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
@@ -3245,7 +3245,7 @@ func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList
 }
 
 // AutocompleteChannelsForTeamForSearch will return an ordered list of your channels autocomplete suggestions.
-func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (*ChannelList, *Response) {
+func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (ChannelList, *Response) {
 	query := fmt.Sprintf("?name=%v", name)
 	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/search_autocomplete"+query, "")
 	if appErr != nil {
@@ -3253,7 +3253,7 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (*Ch
 	}
 	defer closeBody(r)
 
-	var ch *ChannelList
+	var ch ChannelList
 	err := json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("AutocompleteChannelsForTeamForSearch", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
@@ -4201,7 +4201,7 @@ func (c *Client4) GetPreferences(userId string) (Preferences, *Response) {
 }
 
 // UpdatePreferences saves the user's preferences.
-func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bool, *Response) {
+func (c *Client4) UpdatePreferences(userId string, preferences Preferences) (bool, *Response) {
 	buf, err := json.Marshal(preferences)
 	if err != nil {
 		return false, BuildErrorResponse(nil, NewAppError("UpdatePreferences", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
@@ -4215,7 +4215,7 @@ func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bo
 }
 
 // DeletePreferences deletes the user's preferences.
-func (c *Client4) DeletePreferences(userId string, preferences *Preferences) (bool, *Response) {
+func (c *Client4) DeletePreferences(userId string, preferences Preferences) (bool, *Response) {
 	buf, err := json.Marshal(preferences)
 	if err != nil {
 		return false, BuildErrorResponse(nil, NewAppError("DeletePreferences", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
