@@ -2176,24 +2176,8 @@
     "translation": "發送停用帳號郵件時失敗"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "更改通知電子郵件傳送失敗"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "使用者名稱變更通知電子郵件以傳送失敗"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "更改驗證電子郵件傳送失敗"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "無法發送多重要素驗證變更的電子郵件通知。"
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "更新密碼電子郵件傳送失敗"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2208,16 +2192,8 @@
     "translation": "更新密碼電子郵件傳送失敗"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "寄送成功新增個人存取 Token 至帳號的通知郵件時失敗"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "認證電子郵件傳送失敗"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "歡迎電子郵件傳送失敗"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5976,10 +5952,6 @@
     "translation": "無法刪除品牌圖片，沒有找到檔案。"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "永久批次刪除回應時遇到錯誤"
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "無法儲存互動"
   },
@@ -6194,10 +6166,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "刪除頻道訊息失敗"
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "清除紀錄失敗。"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6438,10 +6406,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "取得規範報告時遇到錯誤"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "永久批次清除標記時遇到錯誤"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6770,10 +6734,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "無法取得工作"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "永久批次刪除檔案資訊時遇到錯誤"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7414,10 +7374,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "無法取得文章以建立索引"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "永久批次刪除訊息時遇到錯誤"
   },
   {
     "id": "app.post.search.app_error",

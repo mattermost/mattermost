@@ -2176,24 +2176,8 @@
     "translation": "Failed to send the deactivate account email successfully"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "전자우편 변경 알림을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "사용자명 변경 알림을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "전자우편 주소 변경 검증을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "비밀번호 변경 알림을 위한 전자우편을 발송하지 못했습니다"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2208,16 +2192,8 @@
     "translation": "비밀번호 변경 알림을 위한 전자우편을 발송하지 못했습니다"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send \"Personal access token added\" email successfully"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "전자우편 주소 검증을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "가입 환영 전자우편을 발송하지 못했습니다"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5972,10 +5948,6 @@
     "translation": "브랜드 이미지 파일을 찾을 수 없어 삭제 할 수 없습니다."
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions"
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "내용을 가져올수 없습니다."
   },
@@ -6190,10 +6162,6 @@
   {
     "id": "ent.get_users_in_channel_during",
     "translation": "지정된 기간 동안의 채널 사용자들을 가져오지 못했습니다."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "레코드를 제거하지 못했습니다."
   },
   {
     "id": "app.emoji.create.internal_error",
@@ -6472,10 +6440,6 @@
     "translation": "이 작업을 다운로드할 수 없음"
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "중요 메시지들의 일괄 정리 중에 오류가 발생했습니다."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "설정을 갱신하는 중에 오류가 발생했습니다."
   },
@@ -6742,10 +6706,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "작업을 가져올 수 없습니다."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "파일 정보를 배치를 영구적으로 삭제하는 중 오류가 발생했습니다."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7130,10 +7090,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "색인을 위한 게시글 배치를 가져올 수 없습니다."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "파일 정보 배치를 영구적으로 삭제하는 중 오류가 발생함"
   },
   {
     "id": "app.post.overwrite.app_error",

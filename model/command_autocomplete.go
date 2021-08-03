@@ -109,7 +109,7 @@ func NewAutocompleteData(trigger, hint, helpText string) *AutocompleteData {
 		Trigger:     trigger,
 		Hint:        hint,
 		HelpText:    helpText,
-		RoleID:      SYSTEM_USER_ROLE_ID,
+		RoleID:      SystemUserRoleId,
 		Arguments:   []*AutocompleteArg{},
 		SubCommands: []*AutocompleteData{},
 	}
@@ -234,7 +234,7 @@ func (ad *AutocompleteData) IsValid() error {
 	if strings.ToLower(ad.Trigger) != ad.Trigger {
 		return errors.New("Command should be lowercase")
 	}
-	roles := []string{SYSTEM_ADMIN_ROLE_ID, SYSTEM_USER_ROLE_ID, ""}
+	roles := []string{SystemAdminRoleId, SystemUserRoleId, ""}
 	if stringNotInSlice(ad.RoleID, roles) {
 		return errors.New("Wrong role in the autocomplete data")
 	}

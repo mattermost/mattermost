@@ -2180,24 +2180,8 @@
     "translation": "Erro ao enviar o email de conta desativada"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Erro ao enviar email de troca de notificação"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Erro ao enviar notificação por email sobre alteração do nome do usuário"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Erro ao enviar verificação de email"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Não é possível enviar email de notificação para mudança no MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Erro ao enviar uma atualização de senha por email"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "Erro ao enviar atualização de senha por email"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Falha ao enviar e-mail \"Token de acesso do usuário adicionado\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Erro ao enviar verificação de email"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Erro ao enviar boas vindas por email"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5984,10 +5960,6 @@
     "translation": "Não foi possível mover canais de mensagens diretas ou de grupo"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Encontramos um erro ao apagar o lote de reações."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Não é possível salvar a reação."
   },
@@ -6126,10 +6098,6 @@
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "O URL do site não pode ser limpo."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Falha ao limpar registros."
   },
   {
     "id": "app.recover.save.app_error",
@@ -6334,10 +6302,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Encontramos um erro ao obter o relatório de conformidade."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Encontramos um erro ao limpar o lote de flags."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6798,10 +6762,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Não foi possível obter o job."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Encontramos um erro ao apagar o lote de arquivos de informações."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -8036,10 +7996,6 @@
     "translation": "Não foi possível obter o lote de canais para indexação."
   },
   {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Encontramos um erro ao excluir permanentemente o lote de postagens."
-  },
-  {
     "id": "app.import.marshal.app_error",
     "translation": "Incapaz de organizar a resposta."
   },
@@ -8414,10 +8370,6 @@
   {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "A solicitação está sem o parâmetro AuthData ou AuthService."
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Falha ao enviar e-mail para notificação de limite do usuário ao administrador"
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",

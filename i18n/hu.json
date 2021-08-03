@@ -65,7 +65,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Érvénytelen képproxy típus. \"local” vagy \"atmos/camo” kell legyen."
+    "translation": "Érvénytelen kép proxy típus. \"local” vagy \"atmos/camo” kell legyen."
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
@@ -97,7 +97,7 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Érvénytelen e-mail értesítési tartalomtípus az e-mail beállításokhoz. A \"full” vagy a \"generic” egyikének kell lennie."
+    "translation": "Érvénytelen e-mail értesítési tartalom típus az e-mail beállításokhoz. A \"full” vagy a \"generic” egyikének kell lennie."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
@@ -109,15 +109,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Az Elasticsearch kérés időkorlátjának legalább 1 másodpercnek kell lennie."
+    "translation": "Az Elasticsearch Request Timeout beállításnak legalább 1 másodpercnek kell lennie."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Az Elasticsearch PostsAggregatorJobStartTime beállításnak \"hh: mm\" formátumúnak kell lennie."
+    "translation": "Az Elasticsearch PostsAggregatorJobStartTime beállításnak \"hh:mm\" formátumúnak kell lennie."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Az Elasticsearch élő indexelés kötegméretének legalább 1-nek kell lennie."
+    "translation": "Az Elasticsearch Live Indexing Batch Size beállítának legalább 1-nek kell lennie."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -133,7 +133,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Az Elasticsearch tömeges indexelésének időablakának legalább 1 másodpercnek kell lennie."
+    "translation": "Az Elasticsearch Bulk Indexing Time Window beállításnak legalább 1 másodpercnek kell lennie."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -141,7 +141,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "A {{.Scheme}} egyéni URL-séma érvénytelen. Az egyéni URL-sémáknak betűvel kell kezdődniük, és csak betűket, számokat, pluszjelet (+), pontot (.) És kötőjelet (-) tartalmazhatnak."
+    "translation": "A {{.Scheme}} egyéni URL séma érvénytelen. Az egyéni URL sémáknak betűvel kell kezdődniük, és csak betűket, számokat, pluszjelet (+), pontot (.) és kötőjelet (-) tartalmazhatnak."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -157,11 +157,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Az adatmegőrzési munka kezdési időpontjának 24 órás időbélyegzőnek kell lennie HH: MM formátumban."
+    "translation": "Az adatmegőrzési munka kezdési időpontjának 24 órás időbélyegzőnek kell lennie HH:MM formátumban."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.app_error",
-    "translation": "A CollapsedThreads beállításnak vagy disabled vagy default_on or default_off -on kell lennie"
+    "translation": "A CollapsedThreads beállításnak az értéke vagy disabled, vagy default_on, vagy default_off lehet"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -169,7 +169,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "A Bleve IndexingDir beállítást akkor kell beállítani, ha a Bleve EnableIndexing értéke igaz"
+    "translation": "A Bleve IndexingDir beállítást be kell állítani, ha a Bleve EnableIndexing értéke igaz"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
@@ -185,11 +185,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Érvénytelen RemoteImageProxyURL az atmos / camo számára. A megosztott kulcsra kell állítani."
+    "translation": "Érvénytelen RemoteImageProxyURL az atmos/camo számára. A megosztott kulcsra kell állítani."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Érvénytelen RemoteImageProxyOptions az atmos / camo számára. A megosztott kulcsra kell állítani."
+    "translation": "Érvénytelen RemoteImageProxyOptions az atmos/camo számára. A megosztott kulcsra kell állítani."
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
@@ -197,11 +197,11 @@
   },
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
-    "translation": "Az \"Eddig\"-nek nagyobbnak kell lennie mint az \"Ettől\"."
+    "translation": "A To -nak nagyobbnak kell lennie mint a From."
   },
   {
     "id": "model.compliance.is_valid.start_at.app_error",
-    "translation": "\"Ettől\" érvényes időnek kell lennie."
+    "translation": "From -nak érvényes időnek kell lennie."
   },
   {
     "id": "model.compliance.is_valid.id.app_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "model.compliance.is_valid.end_at.app_error",
-    "translation": "\"Eddig\" érvényes időnek kell lennie."
+    "translation": "To -nak érvényes időnek kell lennie."
   },
   {
     "id": "model.compliance.is_valid.desc.app_error",
@@ -245,7 +245,7 @@
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": "Érvénytelen csatornaazonosító."
+    "translation": "Érvénytelen csatorna azonosító."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
@@ -253,7 +253,7 @@
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "Érvénytelen URL."
+    "translation": "Érvénytelen URL. Érvényes URL-nek kell lennie és vagy http:// -el vagy https:// -el kell kezdődnie."
   },
   {
     "id": "model.command.is_valid.url.app_error",
@@ -265,7 +265,7 @@
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Érvénytelen indító."
+    "translation": "Érvénytelen kulcsszó."
   },
   {
     "id": "model.command.is_valid.token.app_error",
@@ -301,19 +301,19 @@
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "Érvénytelen automatikuskitöltés adat"
+    "translation": "Érvénytelen AutocompleteData"
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "A típust be kell állítani."
+    "translation": "Type -ot be kell állítani."
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "A fürtnevet be kell állítani."
+    "translation": "ClusterName -t be kell állítani."
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "Az utolsó pingelés idejét be kell állítani."
+    "translation": "LastPingAt -et be kell állítani."
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
@@ -321,11 +321,11 @@
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "A Hosztnevet be kell állítani."
+    "translation": "Hostname -t be kell állítani."
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejét be kell állítani."
+    "translation": "CreateAt -et be kell állítani."
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
@@ -345,11 +345,11 @@
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Érvénytelen csatorna megemlítések figyelmen kívül hagyása állapot."
+    "translation": "Érvénytelen csatorna említések figyelmen kívül hagyása állapot."
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Érvénytelen email értesítés érték."
+    "translation": "Érvénytelen e-mail értesítés érték."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
@@ -369,7 +369,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Érvénytelen csatorna név. A felhasználói azonosítók nem engedélyezettek a csatornanévben a nem közvetlen üzenetcsatornáknál."
+    "translation": "Érvénytelen csatorna név. A felhasználói azonosítók nem engedélyezettek a csatorna nevében a nem közvetlen üzenet csatornáknál."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": "A Létrehozás időpontjának érvényesnek kell lennie."
+    "translation": "A létrehozás időpontjának érvényesnek kell lennie."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -441,11 +441,11 @@
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": "A lejáratiot be kell állítani."
+    "translation": "A lejárati időtávot be kell állítani."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": "A Létrehozás időpontjának érvényesnek kell lennie."
+    "translation": "A létrehozás időpontjának érvényesnek kell lennie."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
@@ -477,7 +477,7 @@
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Ismeretlen migrációs kulcs miatt nem sikerült futtatni a migráció munkát."
+    "translation": "Nem sikerült futtatni a migrációs munkát ismeretlen migrációs kulcs miatt."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -493,7 +493,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "A többlépcsős hitelesítésre szükséges ezen a szerveren."
+    "translation": "A többtényezős hitelesítés kikapcoslásra került ezen a szerveren."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
@@ -553,11 +553,11 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "Nem sikerült dekódolni a base64 aláírást az interaktív párbeszédpanelhez."
+    "translation": "Nem sikerült dekódolni a base64 aláírást az interaktív párbeszédpanel trigger ID-ját."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Nem sikerült dekódolni az interaktív párbeszédpanel trigger ID azonosítóját."
+    "translation": "Nem sikerült base64 dekódolni az interaktív párbeszédpanel trigger ID azonosítóját."
   },
   {
     "id": "import_process.worker.do_job.open_file",
@@ -589,11 +589,11 @@
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Nem lehet befejezni a SAML bejelentkezést üres e-mail címmel."
+    "translation": "Nem lehet befejezni az SAML bejelentkezést üres e-mail címmel."
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "A SAML 2.0 nincs beállítva, vagy nem támogatja ez a szerver."
+    "translation": "Az SAML 2.0 nincs beállítva vagy nincs támogatva ezen a szerveren."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
@@ -609,35 +609,35 @@
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "A licenced nem támogatja a SAML hitelesítést."
+    "translation": "A licenced nem támogatja az SAML hitelesítést."
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Hiba történt az identitásszolgáltató válaszának érvényesítése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt az identitás szolgáltató válaszának ellenőrzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Hiba történt az identitásszolgáltató válaszának elemzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt az identitás szolgáltató válaszának elemzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "Érvénytelen időt kaptunk az identitásszolgáltató válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Érvénytelen időt kaptunk az identitás szolgáltató válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "Érvénytelen aláírást kaptunk az identitásszolgáltató válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Érvénytelen aláírást kaptunk az identitás szolgáltató válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "Üres választ kaptunk az identitásszolgáltatótól."
+    "translation": "Üres választ kaptunk az identitás szolgáltatótól."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "A SAML bejelentkezés sikertelen volt, mert hiba történt az Identitásszolgáltató válaszának visszafejtése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A SAML bejelentkezés sikertelen volt, mert hiba történt az Identitás szolgáltató válaszának visszafejtése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "A SAML bejelentkezés sikertelen volt, mivel az identitásszolgáltató válasza nincs titkosítva. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A SAML bejelentkezés sikertelen volt, mivel az identitás szolgáltató válasza nincs titkosítva. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -645,23 +645,23 @@
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "A identitásszolgáltató nyilvános tanúsítványfájlja nem található. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A identitás szolgáltató nyilvános tanúsítvány fájlja nem található. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "A SAML bejelentkezés sikertelen volt, mert a titkosítás nincs engedélyezve. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Az SAML bejelentkezés sikertelen volt, mert a titkosítás nincs engedélyezve. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Hiba történt az identitásszolgáltató iránti kérelem kódolása közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt az identitás szolgáltató iránti kérelem kódolása közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "Hiba történt az identitásszolgáltatóhoz intézett kérés kezdeményezése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt az identitás szolgáltatóhoz intézett kérés kezdeményezése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML bejelentkezés sikertelen mert egy vagy több tulajdonság helytelen. Kérjük vegye fel a kapcsolatot a rendszergazdával."
+    "translation": "SAML bejelentkezés sikertelen mert az egyik tulajdonság helytelen. Kérjük vegye fel a kapcsolatot a rendszergazdával."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
@@ -673,15 +673,15 @@
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": "Ez az email már használatban van egy másik SAML felhasználó által."
+    "translation": "Ez az e-mail már használatban van egy másik SAML felhasználó által."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Nem sikerült megtalálni a felhasználót a következő AD/LDAP szerveren: "
+    "translation": "Nem sikerült megtalálni a felhasználót az AD/LDAP szerveren: "
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Nem sikerült migrálni AD/LDAP felhasználókat a megadott mezővel. Duplikált bejegyzés észlelve. Kérjük távolítsa el a duplikált bejegyzéseket és próbálja újra."
+    "translation": "Nem sikerült migrálni AD/LDAP felhasználókat a megadott mezővel. Duplikált elem észlelve. Kérjük távolítsa el az összes duplikátumot és próbálja újra."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -693,11 +693,11 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Nem sikerült megnyitni az ideiglenes fájlt."
+    "translation": "Nem sikerült megnyitni az export ideiglenes fájlt."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Nem sikerült lekérni az emailt az ideiglenes fájlból."
+    "translation": "Nem sikerült lekérni az e-mailt az ideiglenes fájlból."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
@@ -709,27 +709,27 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Nem sikerül beállítani az email címzett címét."
+    "translation": "Nem sikerül beállítani az e-mail címzett címét."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Nem sikerült olvasni az email információt."
+    "translation": "Nem sikerült olvasni az e-mail információt."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Nem sikerült írni az email üzenetet."
+    "translation": "Nem sikerült írni az e-mail üzenetet."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Nem sikerült beállítani az email üzenetet."
+    "translation": "Nem sikerült beállítani az e-mail üzenetet."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Nem sikerül beállítani az email feladó címét."
+    "translation": "Nem sikerül beállítani az e-mail feladó címét."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Nem sikerült kézbesíteni az emailt a Global Relay-nek."
+    "translation": "Nem sikerült kézbesíteni az e-mailt a Global Relay-nek."
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
@@ -749,11 +749,11 @@
   },
   {
     "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Nem sikerült lekérni a fájlinfókat a bejegyzéshez."
+    "translation": "Nem sikerült lekérni a fájl infót a bejegyzéshez."
   },
   {
     "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Nem sikerült lekérni a fájlinfókat a bejegyzéshez."
+    "translation": "Nem sikerült lekérni a fájl infót a bejegyzéshez."
   },
   {
     "id": "ent.ldap_id_migrate.app_error",
@@ -797,7 +797,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Nem sikerült a felhasználók keresése az AD / LDAP-ban. Ellenőrizze, hogy a Mattermost szerver képes-e csatlakozni az AD / LDAP szerverhez, és próbálja újra."
+    "translation": "Nem sikerült a felhasználók keresése az AD/LDAP-ban. Ellenőrizze, hogy a Mattermost szerver képes-e csatlakozni az AD/LDAP szerverhez, és próbálja újra."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
@@ -809,7 +809,7 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Nem sikerült minden felhasználót lekérni az AD / LDAP használatával."
+    "translation": "Nem sikerült minden felhasználót lekérni az AD/LDAP használatával."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -821,7 +821,7 @@
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
-    "translation": "Ez a fiók nem használ AD / LDAP hitelesítést. Kérjük, jelentkezzen be e-maillel és jelszóval."
+    "translation": "Ez a fiók nem használ AD/LDAP hitelesítést. Kérjük jelentkezzen be e-maillel és jelszóval."
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
@@ -833,19 +833,19 @@
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Felhasználó nincs regisztrálva a AD/LDAP szerveren."
+    "translation": "Felhasználó nincs regisztrálva az AD/LDAP szerveren."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Az Ön AD/LDAP fiókjának nincs jogosultsága, hogy használja ezt a Mattermost szervert. Kérje meg a rendszergazdát, hogy ellenőrizze az AD / LDAP felhasználói szűrőt."
+    "translation": "Az Ön AD/LDAP fiókjának nincs jogosultsága, hogy használja ezt a Mattermost szervert. Kérje meg a rendszergazdát, hogy ellenőrizze az AD/LDAP felhasználói szűrőt."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Nem sikerült csatlakozni a AD/LDAP szerverhez."
+    "translation": "Nem sikerült csatlakozni az AD/LDAP szerverhez."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Nem sikerült megkeresni a AD/LDAP szervert."
+    "translation": "Nem sikerült megkeresni az AD/LDAP szervert."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -853,11 +853,11 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Az AD / LDAP funkcionalitást a jelenlegi licenc letiltotta. A vállalati licenc frissítésével kapcsolatban forduljon a rendszergazdához."
+    "translation": "Az AD/LDAP funkcionalitást a jelenlegi licenc letiltotta. Az enterprise licenc frissítésével kapcsolatban forduljon a rendszergazdához."
   },
   {
     "id": "ent.ldap.do_login.key.app_error",
-    "translation": "Hiba történt az LDAP TLS Key fájl betöltésekor."
+    "translation": "Hiba történt az LDAP TLS kulcs fájl betöltésekor."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -865,11 +865,11 @@
   },
   {
     "id": "ent.ldap.do_login.certificate.app_error",
-    "translation": "Hiba történt az LDAP TLS tanúsítványfájl betöltése közben."
+    "translation": "Hiba történt az LDAP TLS tanúsítvány fájl betöltése közben."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Nem lehet az AD / LDAP kiszolgálóhoz kötni. Jelölje be a BindUsername és a BindPassword elemeket."
+    "translation": "Nem lehet az AD/LDAP kiszolgálóhoz csatlakozni. Jelölje be a BindUsername és a BindPassword elemeket."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -885,7 +885,7 @@
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": "Elérte az AD / LDAP szinkronizálási munka időtúllépését."
+    "translation": "Elérte az AD/LDAP szinkronizálási munka időtúllépését."
   },
   {
     "id": "app.system.get_by_name.app_error",
@@ -901,7 +901,7 @@
   },
   {
     "id": "app.status.get.missing.app_error",
-    "translation": "Nem létezik ehhez az állapothoz bejegyzés."
+    "translation": "Nem létezik elem ehhez az állapothoz bejegyzés."
   },
   {
     "id": "app.status.get.app_error",
@@ -933,7 +933,7 @@
   },
   {
     "id": "app.session.permanent_delete_sessions_by_user.app_error",
-    "translation": "Nem sikerült eltávolítani a munkamaneteket a felhasználóhoz."
+    "translation": "Nem sikerült eltávolítani a felhasználó munkamaneteit."
   },
   {
     "id": "app.session.get_sessions.app_error",
@@ -989,7 +989,7 @@
   },
   {
     "id": "app.role.permanent_delete_all.app_error",
-    "translation": "Nem sikerült törölni az összes szerepet véglegesen."
+    "translation": "Nem sikerült véglegesen törölni az összes szerepet."
   },
   {
     "id": "app.role.get_by_names.app_error",
@@ -1065,7 +1065,7 @@
   },
   {
     "id": "app.post.save.existing.app_error",
-    "translation": "Nem sikerült frissíteni a bejegyzést."
+    "translation": "Nem sikerült frissíteni egy már létező bejegyzést."
   },
   {
     "id": "app.post.save.app_error",
@@ -1077,15 +1077,15 @@
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
-    "translation": "Nem sikerült törölni a bejegyzéseket csatonánként."
+    "translation": "Nem sikerült törölni a bejegyzéseket csatornánként."
   },
   {
     "id": "app.post.overwrite.app_error",
-    "translation": "Nem sikerölt felülírni a bejegyzést."
+    "translation": "Nem sikerült felülírni a bejegyzést."
   },
   {
     "id": "app.post.get_root_posts.app_error",
-    "translation": "Nem sikerült lekérni a bejegyzést a csatornához."
+    "translation": "Nem sikerült lekérni a bejegyzéseket a csatornához."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -1093,7 +1093,7 @@
   },
   {
     "id": "app.post.get_posts_created_at.app_error",
-    "translation": "Nem sikerült lekérni a bejegyzést a csatornához."
+    "translation": "Nem sikerült lekérni a bejegyzéseket a csatornához."
   },
   {
     "id": "app.post.get_posts_batch_for_indexing.get.app_error",
@@ -1229,11 +1229,11 @@
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
-    "translation": "Nem sikerült dekódolni a piactér plugin kérelmet."
+    "translation": "Nem sikerült dekódolni a piactér plugin kérést."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "A piactér le van tiltva, Kérjük ellenőrizze a naplókat a részletekért."
+    "translation": "A piactér le van tiltva. Kérjük ellenőrizze a naplókat a részletekért."
   },
   {
     "id": "app.plugin.marketplace_client.failed_to_fetch",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "A plugin azonosító legalább {{.Min}} karakter, legfeljebb {{.Max}} karakter lehet és egyeznie kell {{.Regex}}."
+    "translation": "A plugin azonosító legalább {{.Min}} karakter, legfeljebb {{.Max}} karakter lehet és egyeznie kell {{.Regex}} mintára."
   },
   {
     "id": "app.plugin.install_marketplace_plugin.app_error",
@@ -1297,11 +1297,11 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Hiba történt a plugin csomagok kicsomagolásakor."
+    "translation": "Hiba történt a plugin csomag kicsomagolásakor."
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Pluginok letiltva. Kérjük ellenőrizze a naplókat a részletekért."
+    "translation": "Pluginok letiltásra kerültek. Kérjük ellenőrizze a naplókat a részletekért."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -1317,7 +1317,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "A config.json fájl plugin konfigurációját manuálisan kell frissíteni, ha a fürtözés engedélyezett használata esetén használja a ReadOnlyConfig programot."
+    "translation": "A config.json fájl plugin konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -1369,11 +1369,11 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Értesítés a {{ .TeamName}} csapatban ekkor {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName }}] Értesítés a {{ .TeamName}} csapatban {{.Year}}-{{.Month}}-{{.Day}} napon"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Új csapat üzenet ekkor {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName}}] Új csoportos üzenet {{.Year}}-{{.Month}}-{{.Day}} napon"
   },
   {
     "id": "model.upload_session.is_valid.filename.app_error",
@@ -2133,23 +2133,23 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Érvénytelen kapcsolat biztonság az AD/LDAP beállításokhoz. ' 'TLS' vagy 'STARTTLS' -nek kell lennie."
+    "translation": "Érvénytelen kapcsolat biztonság az AD/LDAP beállításokhoz. '', 'TLS' vagy 'STARTTLS' -nek kell lennie."
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Új csapat üzenet a {{ .ChannelName}} csatornában ekkor {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName}}] Új csoportos üzenet a {{ .ChannelName}} csatornában {{.Year}}-{{.Month}}-{{.Day}} napon"
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Új értesítés {{.Year}}. {{.Month}} {{.Day}}. óta"
+    "translation": "[{{.SiteName}}] Új közvetlen üzenet {{.SenderDisplayName}} felhasználótól {{.Year}}-{{.Month}}-{{.Day}} napon"
   },
   {
     "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Nincs licence jelen"
+    "translation": "Nincs jelen licenc"
   },
   {
     "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Ez a típusú licence nem támogatja a megújítási token generálást"
+    "translation": "Ez a típusú licenc nem támogatja a megújítási token generálást"
   },
   {
     "id": "app.license.generate_renewal_token.app_error",
@@ -2165,11 +2165,11 @@
   },
   {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Nem sikerült lekérni a legújabb munkát állapot vagy típus szerint."
+    "translation": "Nem sikerült lekérni a legújabb munkát állapot és típus szerint."
   },
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
-    "translation": "Nem sikerült lekérni a munkát állapot vagy típus szerint."
+    "translation": "Nem sikerült lekérni a munkák mennyiségét állapot és típus szerint."
   },
   {
     "id": "app.job.get_all.app_error",
@@ -2209,7 +2209,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": "Érvénytelen felhasználó szerepek."
+    "translation": "Felhasználó szerepei érvénytelenek."
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
@@ -2221,31 +2221,31 @@
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
-    "translation": "Érvénytelen hosszúságú felhasználó jelszó."
+    "translation": "Felhasználó jelszó érvénytelen hosszúságú."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": "Érvénytelen mobil push állapot értesítés tulajdonság érték a felhasználó számára."
+    "translation": "Érvénytelen Mobile Push Status Notify érték a felhasználó számára."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
-    "translation": "Érvénytelen mobil értesítés tulajdonság érték a felhasználó számára."
+    "translation": "Érvénytelen Mobile Notify Prop érték a felhasználó számára."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
-    "translation": "Érvénytelen email értesítés tulajdonság érték a felhasználó számára."
+    "translation": "Érvénytelen Email Notify Prop érték a felhasználó számára."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Érvénytelen asztali hang értesítés tulajdonság érték a felhasználó számára."
+    "translation": "Érvénytelen Desktop Sound Notify Prop érték a felhasználó számára."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Érvénytelen asztali értesítés tulajdonság érték a felhasználó számára."
+    "translation": "Érvénytelen Desktop Notify Prop érték a felhasználó számára."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": "Érvénytelen hozzászólás tulajdonság érték a felhasználó számára."
+    "translation": "Érvénytelen Comments Prop érték a felhasználó számára."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
@@ -2269,7 +2269,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
-    "translation": "A felhasználó email címének hossza érvénytelen."
+    "translation": "A felhasználó e-mail címének hossza érvénytelen."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -2277,11 +2277,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "A felhasználói AuthService és az AuthData kölcsönösek egymással."
+    "translation": "A felhasználó AuthService és AuthData adatai kölcsönösen megkövetelik egymást."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "A felhasználói hitelesítési adatok és a jelszó kölcsönösen kizárják egymást."
+    "translation": "A felhasználó AuthData és Password adatai kölcsönösen kizárják egymást."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
@@ -2313,11 +2313,11 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Érvénytelen asztali NotifyProps a felhasználó csatorna tagságához."
+    "translation": "Érvénytelen Desktop NotifyProps a felhasználó csatorna tagságához."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
-    "translation": "Hiányzó csatornanév a felhasználó csatorna tagságából."
+    "translation": "Hiányzó csatorna neve a felhasználó csatorna tagságából."
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
@@ -2325,7 +2325,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
-    "translation": "Csapat típus nem érvényes."
+    "translation": "Csapat típusa nem érvényes."
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
@@ -2333,7 +2333,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": "A csapat név lefoglalt szavakat tartalmaz."
+    "translation": "A csapat neve lefoglalt szavakat tartalmaz."
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
@@ -2341,11 +2341,11 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_length.error",
-    "translation": "Csapat név túl hosszú."
+    "translation": "Csapat neve túl hosszú."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
-    "translation": "Csapatnév érvénytelen karaktereket tartalmaz."
+    "translation": "Csapat neve érvénytelen karaktereket tartalmaz."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
@@ -2357,7 +2357,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
-    "translation": "Csapat leírás túl hosszú."
+    "translation": "Csapat leírása túl hosszú."
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
@@ -2369,7 +2369,7 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": "Séma hatúkör kötelező."
+    "translation": "Séma hatóköre kötelező."
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
@@ -2409,7 +2409,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "Válasz üzenet tulajdonság hosszabb mint a maximális megengedett hosszúság."
+    "translation": "Válasz Message tulajdonsága hosszabb mint a maximális megengedett hosszúság."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
@@ -2421,7 +2421,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Válasz CreateAt tulajdonságának nagyobbnak kell lennie, mint a fő bejegyzés CreateAt."
+    "translation": "Válasz CreateAt tulajdonságának nagyobbnak kell lennie, mint a szülő bejegyzés CreateAt értéke."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -2445,7 +2445,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reakció CreateAt tulajdonságának nagyobbnak kell lennie, mint CreateAt."
+    "translation": "Reakció CreateAt tulajdonságának nagyobbnak kell lennie, mint a szülő CreateAt tulajdonsága."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
@@ -2469,7 +2469,7 @@
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "Az import adatsornak ismeretlen a tjpusa \"{{.Type}}\"."
+    "translation": "Az import adatsornak ismeretlen a típusa \"{{.Type}}\"."
   },
   {
     "id": "app.import.import_line.null_user.error",
@@ -2517,7 +2517,7 @@
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Nem sikerült csapat csatornát létrehoznni"
+    "translation": "Nem sikerült csapat csatornát létrehozni"
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
@@ -2537,7 +2537,7 @@
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
-    "translation": "Néhány felhasználónem található"
+    "translation": "Néhány felhasználó nem található"
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
@@ -2569,11 +2569,11 @@
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": "Hiba a fájl feltöltésekor : \"{{.FilePath}}\""
+    "translation": "Hiba a fájl feltöltésekor: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": "Hiba a fájl olvasásakor : \"{{.FilePath}}\""
+    "translation": "Hiba a fájl olvasásakor: \"{{.FilePath}}\""
   },
   {
     "id": "app.group.uniqueness_error",
@@ -2621,7 +2621,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "Hiba történt a JSON-adatok exportra rendezése során."
+    "translation": "Hiba történt a JSON-adatok exportra konvertálása során."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -2685,7 +2685,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Meghívó emailek sebességkorlátja túllépve. Az időzítő visszaáll {{.ResetAfter}} másodperc múlva. Kérjük próbálja meg {{.RetryAfter}} másodperc múlva."
+    "translation": "Meghívó e-mailek sebességkorlátja túllépve. Az időzítő visszaáll {{.ResetAfter}} másodperc múlva. Kérjük próbálja meg {{.RetryAfter}} másodperc múlva."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -2705,7 +2705,7 @@
   },
   {
     "id": "app.compliance.save.saving.app_error",
-    "translation": "Hiba történt a megfelelőségi jelentések mentése során."
+    "translation": "Hiba történt a megfelelőségi jelentés mentése során."
   },
   {
     "id": "app.compliance.get.finding.app_error",
@@ -2741,7 +2741,7 @@
   },
   {
     "id": "app.command.updatecommand.internal_error",
-    "translation": "Nem sikerült frissíteni a parancsokat."
+    "translation": "Nem sikerült frissíteni a parancsot."
   },
   {
     "id": "app.command.tryexecutecustomcommand.internal_error",
@@ -2761,7 +2761,7 @@
   },
   {
     "id": "app.command.listautocompletecommands.internal_error",
-    "translation": "Nem sikerült listázni az automatikus kitöltés parancsokat."
+    "translation": "Nem sikerült listázni az automatikus kiegészítés parancsokat."
   },
   {
     "id": "app.command.listallcommands.internal_error",
@@ -2773,7 +2773,7 @@
   },
   {
     "id": "app.command.deletecommand.internal_error",
-    "translation": "Nem sikerült törölnia parancsot."
+    "translation": "Nem sikerült törölni a parancsot."
   },
   {
     "id": "app.command.createcommand.internal_error",
@@ -2789,7 +2789,7 @@
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
-    "translation": "Nem sikerült megállapítani, hogy a felhasználó a csatornák listájához tartozik-e."
+    "translation": "Nem sikerült megállapítani, hogy a felhasználó a csatornák egy listájához tartozik-e."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -2841,23 +2841,23 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
-    "translation": "%s csatorna célja frissítve, új: %s"
+    "translation": "%s frissítette a csatorna célját erre: %s"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_from",
-    "translation": "%s csatorna célja frissítve, régi: %s új: %s"
+    "translation": "%s frissítette a csatorna célját erről: %s erre: %s"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-    "translation": "Nem sikerült lekérdezni a felhasználót amikor a csatorna fejléce frissítésre került, %v"
+    "translation": "Nem sikerült lekérdezni a felhasználót amikor a csatorna célja frissítésre került %v"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
-    "translation": "%s eltávolítva a csatorna célja (%s volt)"
+    "translation": "%s eltávolította a csatorna célját (%s volt)"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Nem sikerült elküldeni a csatorna célüzenetét"
+    "translation": "Nem sikerült elküldeni a csatorna cél üzenetét"
   },
   {
     "id": "app.channel.pinned_posts.app_error",
@@ -2873,7 +2873,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Csak akkor lehet áthelyezni egy csatornát, ha annak minden tagja már tagja a célcsapatnak."
+    "translation": "Csak akkor lehet áthelyezni egy csatornát, ha annak minden tagja már tagja a cél csapatnak."
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
@@ -2881,7 +2881,7 @@
   },
   {
     "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nem sikerült növelni az említések számát."
+    "translation": "Nem sikerült növelni az említések számlálóját."
   },
   {
     "id": "app.channel.get_unread.app_error",
@@ -2897,7 +2897,7 @@
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
-    "translation": "Nem sikerült lekérni a csatorna kitűzött bejegyzéseinek számár."
+    "translation": "Nem sikerült lekérni a csatorna kitűzött bejegyzéseinek mennyiségét."
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
@@ -2913,7 +2913,7 @@
   },
   {
     "id": "app.channel.get_member_count.app_error",
-    "translation": "Nem sikerült lekérni a csatorna tagok számát."
+    "translation": "Nem sikerült lekérni a csatorna tagok mennyiségét."
   },
   {
     "id": "app.channel.get_member.missing.app_error",
@@ -3337,11 +3337,11 @@
   },
   {
     "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Nem sikerült elemezni az ExportFromTimestamp üzenet exportálási feladatot."
+    "translation": "Nem sikerült feldolgozni az üzenet export munka ExportFromTimestamp értékét."
   },
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Nem sikerült elemezni a BatchSize üzenet exportálási feladatot."
+    "translation": "Nem sikerült feldolgozni az üzenet export BatchSize értékét."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -3349,7 +3349,7 @@
   },
   {
     "id": "ent.get_users_in_channel_during",
-    "translation": "Nem sikerült lekérni a felhasználókat a csatornában a megadott időszak alatt."
+    "translation": "Nem sikerült lekérni a felhasználókat a csatornában a megadott lejárati időn belül."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
@@ -3357,11 +3357,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Az Ön licensze nem támogatja az Elasticsearch-t."
+    "translation": "Az Ön licence nem támogatja az Elasticsearch-t."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Az Elasticsearch le van tíltva."
+    "translation": "Az Elasticsearch le van tiltva."
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3373,19 +3373,19 @@
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nem sikerült elindítani az Elasticsearch tömeges processzort."
+    "translation": "Nem sikerült elindítani az Elasticsearch tömeges feldolgozót."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Nem sikerült elemezni az Elasticsearch szerver verziót."
+    "translation": "Nem sikerült értelmezni az Elasticsearch szerver verzióját."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Nem sikerült lekérni az Elasticsearch szerver verziót."
+    "translation": "Nem sikerült lekérni az Elasticsearch szerver verzióját."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nem sikerült létrehozni az Elasticsearch tömeges processzort."
+    "translation": "Nem sikerült létrehozni az Elasticsearch tömeges feldolgozót."
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
@@ -3409,11 +3409,11 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Nem sikerült elemezni az keresési eredményeket"
+    "translation": "Nem sikerült feldolgozni a keresési eredményeket"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Az Elasticsearch fájlkeresés ki van kapcsolva ezen a szerveren"
+    "translation": "Elasticsearch keresés le van tiltva ezen a szerveren"
   },
   {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
@@ -3425,7 +3425,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Az Elasticsearch fájlkeresés ki van kapcsolva ezen a szerveren"
+    "translation": "Az Elasticsearch fájl keresés ki van kapcsolva ezen a szerveren"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -3465,15 +3465,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Az Elasticsearch indexelő dolgozó nem tudta elemezni a kezdési időt"
+    "translation": "Az Elasticsearch indexelő processze nem tudta értelmezni a kezdési időt"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Az Elasticsearch indexelő dolgozó nem tudta elemezni a befejezési időt"
+    "translation": "Az Elasticsearch indexelő processze nem tudta értelmezni a befejezési időt"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
-    "translation": "A legrégebbi entitást (felhasználó, csatorna vagy bejegyzést), nem sikerült lekérni az adatbázisból"
+    "translation": "A legrégebbi entitást (felhasználó, csatorna vagy bejegyzés), nem sikerült lekérni az adatbázisból"
   },
   {
     "id": "ent.elasticsearch.index_user.error",
@@ -3561,27 +3561,19 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Az Elasticsearch összesítő dolgozója meghiúsult az indexelő munka sikertelensége miatt"
+    "translation": "Az Elasticsearch aggregator worker meghiúsult az indexelő munka sikertelensége miatt"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Az Elasticsearch aggregátor dolgozójának nem sikerült lekérnie az indexeket"
+    "translation": "Az Elasticsearch aggregátor worker nem tudta lekérni az indexeket"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Az Elasticsearch összesítő dolgozója nem törölte az indexeket"
+    "translation": "Az Elasticsearch aggregator worker nem tudta törölni az indexeket"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Az Elasticsearch összesítő munkatársa nem tudta létrehozni az indexelő munkát"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Hiba történt a reakciók kötegének végleges törlése során."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Hiba történt a bejegyzések kötegének végleges törlése során."
+    "translation": "Az Elasticsearch aggregator worker nem tudta létrehozni az indexelő munkát"
   },
   {
     "id": "ent.data_retention.policies.invalid_policy",
@@ -3593,23 +3585,11 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "A Licenced nem támogatja az adatmegőrzést."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Hiba történt a fájlinfók kötegének végleges törlése során."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Hiba történt a fájlinfók kötegének végleges törlése során."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Nem sikerült megtisztítani a rekordokat."
+    "translation": "A licence nem támogatja az adatmegőrzést."
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": "Megfelelősségi exportálás munka nem sikerült '{{.JobName}}' itt: '{{.FilePath}}'"
+    "translation": "Megfelelősségi exportálás munka '{{.JobName}}' nem sikerült a '{{.FilePath}}' fájlban"
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
@@ -3617,7 +3597,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "A megfelelőségi funkciót a jelenlegi licenc letiltotta. A vállalati licenc frissítésével kapcsolatban forduljon a rendszergazdához."
+    "translation": "A megfelelőségi funkciót a jelenlegi licenc letiltotta. Az enterprise licenc frissítésével kapcsolatban forduljon a rendszergazdához."
   },
   {
     "id": "ent.compliance.global_relay.write_file.appError",
@@ -3645,7 +3625,7 @@
   },
   {
     "id": "ent.compliance.csv.warning.appError",
-    "translation": "Nem találtuk a csatornát."
+    "translation": "Nem sikerült létrehozni a figyelmeztetés fájlt."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -3665,7 +3645,7 @@
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": "Nem sikerült lekérni a SAML felhasználókat."
+    "translation": "Nem sikerült lekérni az SAML felhasználókat."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3673,7 +3653,7 @@
   },
   {
     "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "A kimenő webhook türülve, de valamilyen hiba miatt nem tud újat létrehozni."
+    "translation": "A kimenő webhook törölve lett, de valamilyen hiba miatt nem tud újat létrehozni."
   },
   {
     "id": "cli.license.critical",
@@ -3693,63 +3673,63 @@
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Nem sikerült dekódolni a képadatot."
+    "translation": "Nem sikerült dekódolni a kép adatot."
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Nem sikerült bezárni a felhasználóindexet."
+    "translation": "Nem sikerült lezárni a felhasználó indexet."
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Nem sikerült bezárni a bejegyzésindexet."
+    "translation": "Nem sikerült lezárni a bejegyzés indexet."
   },
   {
     "id": "bleveengine.stop_file_index.error",
-    "translation": "Nem sikerült bezárni a fájlindexet."
+    "translation": "Nem sikerült lezárni a fájl indexet."
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "Nem sikerült bezárni a csatornaindexet."
+    "translation": "Nem sikerült lezárni a csatorna indexet."
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "A felhasználókeresést nem sikerült befejezni."
+    "translation": "A felhasználó keresést nem sikerült befejezni."
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "A felhasználókeresést nem sikerült befejezni."
+    "translation": "A felhasználó keresést nem sikerült befejezni."
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "A felhasználókeresést nem sikerült befejezni."
+    "translation": "A felhasználó keresést nem sikerült befejezni."
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "A bejegyzéskeresést nem sikerült befejezni."
+    "translation": "A bejegyzés keresést nem sikerült befejezni."
   },
   {
     "id": "bleveengine.search_files.error",
-    "translation": "A fájlkeresést nem sikerült befejezni."
+    "translation": "A fájl keresést nem sikerült befejezni."
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "A csatornakeresést nem sikerült befejezni."
+    "translation": "A csatorna keresést nem sikerült befejezni."
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Nem sikerült megtisztítani a felhasználóindexeket."
+    "translation": "Nem sikerült törölni a felhasználó indexeket."
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Nem sikerült megtisztítani a bejegyzésindexeket."
+    "translation": "Nem sikerült törölni a bejegyzés indexeket."
   },
   {
     "id": "bleveengine.purge_file_index.error",
-    "translation": "Nem sikerült megtisztítani a fájlindexeket."
+    "translation": "Nem sikerült törölni a fájl indexeket."
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Nem sikerült megtisztítani a csatornaindexeket."
+    "translation": "Nem sikerült törölni a csatorna indexeket."
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
@@ -3757,11 +3737,11 @@
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "A Bleve indexelő munkás nem tudta elemezni a kezdési időt."
+    "translation": "A Bleve indexelő munkás nem tudta értelmezni a kezdési időt."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "A Bleve indexelő munkás nem tudta elemezni a befejezési időt."
+    "translation": "A Bleve indexelő munkás nem tudta értelmezni a befejezési időt."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -3853,7 +3833,7 @@
   },
   {
     "id": "bleveengine.already_started.error",
-    "translation": "Bleve már elkezdődött."
+    "translation": "Bleve már beindult."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -3989,7 +3969,7 @@
   },
   {
     "id": "app.user.verify_email.app_error",
-    "translation": "Nem sikerült frissíteni az email megerősítés mezőt."
+    "translation": "Nem sikerült frissíteni az e-mail megerősítés mezőt."
   },
   {
     "id": "app.user.update_update.app_error",
@@ -4005,15 +3985,15 @@
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
-    "translation": "Nem sikerült frissíteni a következő állapotot a szálhoz"
+    "translation": "Nem sikerült frissíteni a követők állapotot a szálhoz"
   },
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
-    "translation": "Nem sikerült frissíteni a failed_attempts."
+    "translation": "Nem sikerült frissíteni a failed_attempts -et."
   },
   {
     "id": "app.user.update_auth_data.email_exists.app_error",
-    "translation": "Nem sikerült átváltani a fiókot {{.Service}} szolgáltatásra. Egy fiók ami ezt az email címet használja {{.Email}} már létezik."
+    "translation": "Nem sikerült átváltani a fiókot {{.Service}} szolgáltatásra. Egy fiók ami a {{.Email}} e-mail címet használja már létezik."
   },
   {
     "id": "app.user.update_auth_data.app_error",
@@ -4029,7 +4009,7 @@
   },
   {
     "id": "app.user.update.find.app_error",
-    "translation": "Nem sikerült megkeresni a frissítendő létező fiókot."
+    "translation": "Nem sikerült megtalálni a frissítendő létező fiókot."
   },
   {
     "id": "app.user.send_emails.app_error",
@@ -4049,7 +4029,7 @@
   },
   {
     "id": "app.user.save.email_exists.app_error",
-    "translation": "Egy fiók ugyanezzel az email címmel már létezik."
+    "translation": "Egy fiók ugyanezzel az e-mail címmel már létezik."
   },
   {
     "id": "app.user.save.app_error",
@@ -4109,11 +4089,11 @@
   },
   {
     "id": "app.user.get_known_users.get_users.app_error",
-    "translation": "Nem sikerült megismerni a felhasználókat az adatbázisból."
+    "translation": "Nem sikerült lekérni az ismert felhasználókat az adatbázisból."
   },
   {
     "id": "app.user.get_by_username.app_error",
-    "translation": "Nem található meglévő fiók ami egyezne a felhasználónévvel ehhez a csapathoz. Ez a csapathoz való csatlakozáshoz meghívó kellhet a csapat tulajdonosától."
+    "translation": "Nem található meglévő fiók ami egyezne a felhasználónévvel ehhez a csapathoz. Ehhez a csapathoz való csatlakozáshoz meghívó kellhet a csapat tulajdonosától."
   },
   {
     "id": "app.user.get_by_auth.other.app_error",
@@ -4121,7 +4101,7 @@
   },
   {
     "id": "app.user.get_by_auth.missing_account.app_error",
-    "translation": "Nem található a csapat hitelesítési típusának megfelelő létező fiók. Ez a csapathoz való csatlakozáshoz meghívó kellhet a csapat tulajdonosától."
+    "translation": "Nem található a csapat hitelesítési típusának megfelelő létező fiók. Ehhez a csapathoz való csatlakozáshoz meghívó kellhet a csapat tulajdonosától."
   },
   {
     "id": "app.user.get.app_error",
@@ -4185,7 +4165,7 @@
   },
   {
     "id": "app.upload.get_for_user.app_error",
-    "translation": "Nem sikerült lekérni a feltöltéseket a felhasználó számára."
+    "translation": "Nem sikerült lekérni a felhasználó feltöltéseit."
   },
   {
     "id": "app.upload.get.app_error",
@@ -4281,7 +4261,7 @@
   },
   {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
-    "translation": "Nem sikerült új csapat tagságot létrehozni mert a csapat elérte a tagkorlátot"
+    "translation": "Nem sikerült új csapat tagságot létrehozni mert a csapat tagok száma elérte a korlátot"
   },
   {
     "id": "app.team.join_user_to_team.save_member.conflict.app_error",
@@ -4325,7 +4305,7 @@
   },
   {
     "id": "app.team.get_member.missing.app_error",
-    "translation": "Nem található csapat tag ehhez a felhasználó azonosítóhoz vagy csapat azonosítóhoz."
+    "translation": "Nem található csapat tag ehhez a felhasználó azonosítóhoz és csapat azonosítóhoz."
   },
   {
     "id": "app.team.get_member.app_error",
@@ -4385,11 +4365,11 @@
   },
   {
     "id": "app.system.warn_metric.store.app_error",
-    "translation": "Nem sikerült tárolni az értéket a következőhöz {{.WarnMetricName}}"
+    "translation": "Nem sikerült eltárolni az értéket {{.WarnMetricName}} számára"
   },
   {
     "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Nem található mérőszám."
+    "translation": "Nem található metrika."
   },
   {
     "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
@@ -4429,7 +4409,7 @@
   },
   {
     "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nem sikerült lekérni az csatorna számokat."
+    "translation": "Nem sikerült lekérni a csatornák mennyiségét."
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
@@ -4497,7 +4477,7 @@
   },
   {
     "id": "app.channel.autofollow.app_error",
-    "translation": "Nem sikerült frissíteni a szál tagságot az említett felhasználónak"
+    "translation": "Nem sikerült frissíteni az üzenetszál tagságot az említett felhasználónak"
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
@@ -4545,7 +4525,7 @@
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
-    "translation": "Nem sikerült lekérni az elemzéseket."
+    "translation": "Nem sikerült lekérni a statisztikát."
   },
   {
     "id": "app.admin.test_site_url.failure",
@@ -4557,11 +4537,11 @@
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Nem sikerült elolvasni a Identity Provider-től kapott választ."
+    "translation": "Nem sikerült beolvasni a Identity Provider-től kapott választ."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Hiba történt az identitásszolgáltatótól kapott választerhelés beolvasásakor."
+    "translation": "Hiba történt az identitás szolgáltatótól kapott válasz beolvasásakor."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
@@ -4577,7 +4557,7 @@
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Ugyanazon csatornáról a kimenő webhookoknak nem lehetnek ugyanazok az indító szavai / visszahívási URL-jei."
+    "translation": "Ugyanazon csatornáról a kimenő webhookoknak nem lehetnek ugyanazok a kulcsszavai/visszahívási URL-jei."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -4585,15 +4565,15 @@
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Nem sikerült dekódolni a bejövő webhook többrészes hasznos terhelését."
+    "translation": "Nem sikerült dekódolni a bejövő webhook többrészes adatát."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": "Vagy trigger_words, vagy channel_id értéket kell beállítani."
+    "translation": "Vagy trigger_words, vagy channel_id értéket kell adni."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Kimenő webhookokat csak nyilvános csatornákhoz lehet létrehozni."
+    "translation": "Nincs elegendő jogosultsága kimenő webhook létrehozásához."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -4601,7 +4581,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Ugyanazon csatornáról a kimenő webhookoknak nem lehetnek ugyanazok az indító szavai / visszahívási URL-jei."
+    "translation": "Ugyanazon csatornáról a kimenő webhookoknak nem lehetnek ugyanazok a kulcsszavai/visszahívási URL-jei."
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
@@ -4625,19 +4605,19 @@
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Nem sikerült értelmezni a token adatot az email megerősítésből"
+    "translation": "Nem sikerült értelmezni a token adatot az e-mail megerősítésből"
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "Az email megerősítő link lejárt."
+    "translation": "Az e-mail megerősítő link lejárt."
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": "Rossz email megerősítő token típus."
+    "translation": "Rossz e-mail megerősítő token típus."
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
-    "translation": "Rossz email megerősítő link."
+    "translation": "Rossz e-mail megerősítő link."
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
@@ -4649,11 +4629,11 @@
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
-    "translation": "Nem sikerült a kép feltöltése. A képek tárolása nincs beállítva."
+    "translation": "Nem sikerült a fájl feltöltése. A képek tárolása nincs beállítva."
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": "Nem sikerült elemezni a többrészes űrlapot."
+    "translation": "Nem sikerült feldolgozni a többrészes űrlapot."
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
@@ -4661,7 +4641,7 @@
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'kép' alatt a kérésben."
+    "translation": "Nincs megadva fájl a kérés 'image' paraméterében."
   },
   {
     "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
@@ -4669,15 +4649,15 @@
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
-    "translation": "Nem sikerült kódolni a profilképet."
+    "translation": "Nem sikerült bekódolni a profil képet."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "Nem sikerült dekódolni a képet."
+    "translation": "Nem sikerült dekódolni a profil képet."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "Üres a tömb a 'kép' alatt a kérésnél."
+    "translation": "Üres tömb a kérés 'image' paraméterében."
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -4693,11 +4673,11 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "A megadott email nem tartozik a vendég fiókok számára engedélyezett domainek közé. Kérjük vegye fel a kapcsolatot a rendszergazdával vagy regisztráljon egy másik email címmel."
+    "translation": "A megadott e-mail nem tartozik a vendég fiókok számára engedélyezett domainek közé. Kérjük vegye fel a kapcsolatot a rendszergazdával vagy regisztráljon egy másik e-mail címmel."
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": "A megadott email nem tartozik az engedélyezett domainek közé. Kérjük vegye fel a kapcsolatot a rendszergazdával vagy regisztráljon egy másik email címmel."
+    "translation": "A megadott e-mail nem tartozik az engedélyezett domainek közé. Kérjük vegye fel a kapcsolatot a rendszergazdával vagy regisztráljon egy másik e-mail címmel."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
@@ -4705,11 +4685,11 @@
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
-    "translation": "Csak rendszer adminisztrátorok állíthatnak be már ujjlenyomatozott jelszavakat."
+    "translation": "Csak rendszergazdák állíthatnak be már ujjlenyomatozott jelszavakat."
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "A jelszófrissítés sikertelen mert a felhasználó OAuth szolgáltatáson keresztűl jelentkezett be."
+    "translation": "A jelszófrissítés sikertelen mert a felhasználó OAuth szolgáltatáson keresztül jelentkezett be."
   },
   {
     "id": "api.user.update_password.menu",
@@ -4717,7 +4697,7 @@
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "A \"Jelenlegi jelszó\" amit megadott helytelen. Kérjük ellenőrizze, hogy be van e kapcsolva a Caps Lock és próbálja újra."
+    "translation": "A \"Jelenlegi jelszó\" amit megadott helytelen. Kérjük ellenőrizze, hogy be van-e kapcsolva a Caps Lock és próbálja újra."
   },
   {
     "id": "api.user.update_password.failed.app_error",
@@ -4744,48 +4724,28 @@
     "translation": "Nem aktiválhat vendégfiókot, mert a vendégelérés funkció nincs engedélyezve."
   },
   {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Nem sikerült elküldeni az üdvözlés emailt"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Nem sikerült elküldeni az email megerősítés emailt"
-  },
-  {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Nem sikerült elküldeni a \"Személyes hozzáférési token hozzáadva\" emailt"
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Nem sikerült elküldeni a felhasználói korlát emailt az adminnak"
+    "translation": "Nem sikerült elküldeni az e-mail megerősítés emailt"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Nem sikerült elküldeni a felszó frissítés emailt"
+    "translation": "Nem sikerült elküldeni a jelszó frissítés e-mailt"
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Nem lehet Jelszót visszaállítani az SSO fiókoknál."
+    "translation": "Nem lehet jelszót visszaállítani az SSO fiókoknál."
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": "Nem sikerült elküldeni a jelszó visszaállítás emailt."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Nem sikerült elküldeni a jelszó változtatás emailt"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Nem lehet elküldeni az MFA változtatás értesítés emailt."
+    "translation": "Nem sikerült elküldeni a jelszó visszaállítás e-mailt."
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Az email változtatás megerősítés email küldése sikertelen volt"
+    "translation": "Az e-mail változtatás megerősítés e-mail küldése sikertelen volt"
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
-    "translation": "Nem sikerült elküldeni a felhő üdvözlő e-mailt"
+    "translation": "Nem sikerült elküldeni a Cloud üdvözlő e-mailt"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -4793,7 +4753,7 @@
   },
   {
     "id": "api.user.reset_password.token_parse.error",
-    "translation": "Nem lehet elemezni a jelszó visszaállítás tokent"
+    "translation": "Nem lehet értelmezni a jelszó visszaállítás tokent"
   },
   {
     "id": "api.user.reset_password.sso.app_error",
@@ -4829,7 +4789,7 @@
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Jelszó frissítés sikertelen mert a context user_id nem egyezett a megadott felhasználó azonosítójával."
+    "translation": "Jelszó frissítés sikertelen mert a context user_id mezője nem egyezett a megadott felhasználó azonosítójával."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -4841,11 +4801,11 @@
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": "Nem sikerült elemezni a {{.Service}} felhasználói objektum hitelesítési adatait."
+    "translation": "Nem sikerült értelmezni a {{.Service}} felhasználói objektum hitelesítési adatait."
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "A {{.Service}} SSO az OAuth 2.0-n keresztül nem érhető el ezen a szerveren."
+    "translation": "{{.Service}} SSO az OAuth 2.0-n keresztül nem érhető el ezen a szerveren."
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
@@ -4861,7 +4821,7 @@
   },
   {
     "id": "api.user.login.not_verified.app_error",
-    "translation": "Bejelentkezés sikertelen mert az email cím nincs megerősítve."
+    "translation": "Bejelentkezés sikertelen mert az e-mail cím nincs megerősítve."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -4869,23 +4829,23 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Adjon meg érvényes emailt és felhasználónevet és/vagy jelszót, vagy jelentkezzen be másképp."
+    "translation": "Adjon meg érvényes e-mailt vagy felhasználónevet és/vagy jelszót, vagy jelentkezzen be másképp."
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Adjon meg érvényes emailt és felhasználónevet és/vagy jelszót."
+    "translation": "Adjon meg érvényes e-mailt vagy felhasználónevet és/vagy jelszót."
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Adjon meg egy érvényes emailt és/vagy jelszót"
+    "translation": "Adjon meg egy érvényes e-mailt és/vagy jelszót"
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "A bejelentkezés sikertelen, mert fiókját inaktiválták. Kérjük, lépjen kapcsolatba egy rendszergazdával."
+    "translation": "A bejelentkezés sikertelen, mert fiókját inaktiválták.  Kérjük, lépjen kapcsolatba egy rendszergazdával."
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "Az Ön licensze nem támogatja a vendég fiókokat"
+    "translation": "Az Ön licence nem támogatja a vendég fiókokat"
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
@@ -4909,15 +4869,15 @@
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Ez a felhasználó fiók nem használ AD/LDAP-ot."
+    "translation": "Ez a felhasználói fiók nem használ AD/LDAP-ot."
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "AD/LDAP nem elérhető a szerveren."
+    "translation": "AD/LDAP nem elérhető ezen a szerveren."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
-    "translation": "Felhasználó lekérése email szerint sikertelen."
+    "translation": "Felhasználó lekérése e-mail szerint sikertelen."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -4937,11 +4897,11 @@
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "A felhasználót nem lehet vendéggé alakítani mert már vendég."
+    "translation": "A felhasználót nem lehet vendéggé alakítani, mert már vendég."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
-    "translation": "A végleges felhasználótörlés funkció nincs engedélyezve. Kérjük vegye fel a kapcsolatot a rendszergazdával."
+    "translation": "A végleges felhasználó törlés funkció nincs engedélyezve. Kérjük vegye fel a kapcsolatot a rendszergazdával."
   },
   {
     "id": "api.user.delete_team.not_enabled.app_error",
@@ -4961,11 +4921,11 @@
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
-    "translation": "Felhasználó regisztrálás email címmel letíltva."
+    "translation": "Felhasználó regisztráció e-mail címmel le van tiltva."
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": "Ez a szerver nem nyíltan regisztrálható. Kérjük kérjen egy meghívót a rendszergazdától."
+    "translation": "Ezen a szerveren tiltott a szabad felhasználó regisztráció. Kérjük kérjen egy meghívót a rendszergazdától."
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
@@ -4985,7 +4945,7 @@
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
-    "translation": "A megadott email cím nem tartozik az engedélyezett domainekhez. Kérjük vegye fel a kapcsolatot a rendszergazdával vagy regisztráljon másik email címmel."
+    "translation": "A megadott e-mail cím nem tartozik az engedélyezett domainekhez. Kérjük vegye fel a kapcsolatot a rendszergazdával vagy regisztráljon másik e-mail címmel."
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
@@ -5005,11 +4965,11 @@
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Nem sikerült felhasználót létrehozni a (z) {{.Service}} felhasználói objektumból."
+    "translation": "Nem sikerült felhasználót létrehozni a(z) {{.Service}} felhasználói objektumból."
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Az e-mail címmel már van társítva egy fiók, a (z) {{.Service}} eltérő bejelentkezési módszerrel. Kérjük, jelentkezzen be az {{.Auth}} használatával."
+    "translation": "Az e-mail címmel már van társítva egy fiók, a(z) {{.Service}} eltérő bejelentkezési módszerrel. Kérjük, jelentkezzen be az {{.Auth}} használatával."
   },
   {
     "id": "api.user.create_email_token.error",
@@ -5017,15 +4977,11 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Nem sikerült elemezni a {{.Service}} felhasználói objektum hitelesítési adatait."
+    "translation": "Nem sikerült értelmezni a {{.Service}} felhasználói objektum hitelesítési adatait."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Üres email."
-  },
-  {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Nem sikerült elküldeni a próbaidőszak végére figyelmeztető e-mailt"
+    "translation": "Üres e-mail."
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -5077,7 +5033,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Nem sikerült hozzáadni a közvetlen csatorna-beállításokat a user_id = {{.UserId}}, team_id = {{.TeamId}}, err = {{.Error}} felhasználóhoz"
+    "translation": "Nem sikerült hozzáadni a közvetlen csatorna beállításokat a felhasználónál user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -5085,15 +5041,15 @@
   },
   {
     "id": "api.upload.upload_data.multipart_error",
-    "translation": "Nem sikerült feldolgozni a többrészed adatot."
+    "translation": "Nem sikerült feldolgozni a többrészes adatot."
   },
   {
     "id": "api.upload.upload_data.invalid_content_type",
-    "translation": "Érvénytelen Tartalom-Típus többrészes feltöltéshez.."
+    "translation": "Érvénytelen Tartalom-Típus többrészes feltöltéshez."
   },
   {
     "id": "api.upload.upload_data.invalid_content_length",
-    "translation": "Érvénytelen Tartalom-hossz."
+    "translation": "Érvénytelen tartalom hossz."
   },
   {
     "id": "api.upload.get_upload.forbidden.app_error",
@@ -5109,19 +5065,19 @@
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. Ez a szolgáltatás csak x86-64 architektúrájú Linux rendszereken fog működni."
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. Ez a szolgáltatás csak x86-64 architektúrájú Linux rendszereken működik."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A (z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A (z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A (z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási hozzáféréssel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
@@ -5133,11 +5089,11 @@
   },
   {
     "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
-    "translation": "Nem frissíthet, mert már fut a Mattermost Enterprise Edition fut."
+    "translation": "Nem frissíthet, mert már a Mattermost Enterprise Edition -t használja."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
-    "translation": "Már frissített a Mattermost Enterprise Edition-re. Kérjük, indítsa újra a szervert a frissítés befejezéséhez."
+    "translation": "Sikeresen frissített a Mattermost Enterprise Edition-re. Kérjük, indítsa újra a szervert a frissítés befejezéséhez."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -5149,7 +5105,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{ .SiteName }}] Ön csatlakozott{{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] Ön csatlakozott {{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -5173,11 +5129,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Ezt az e-mail címet használták a Mattermost fiók létrehozásához."
+    "translation": "Ezt az e-mail címet használták Mattermost fiók létrehozásához."
   },
   {
     "id": "api.templates.welcome_body.button",
-    "translation": "Email megerősítése"
+    "translation": "E-mail megerősítése"
   },
   {
     "id": "api.templates.welcome_body.app_download_title",
@@ -5217,15 +5173,15 @@
   },
   {
     "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
+    "translation": "E-mail: "
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .SiteName }}] Email megerősítés"
+    "translation": "[{{ .SiteName }}] E-mail megerősítés"
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Email cím megerősítése"
+    "translation": "E-mail cím megerősítése"
   },
   {
     "id": "api.templates.verify_body.subTitle2",
@@ -5241,15 +5197,15 @@
   },
   {
     "id": "api.templates.verify_body.info1",
-    "translation": "Ha nem Ön volt az, nyugodtan hagyja figyelmen kívül ez az emailt."
+    "translation": "Ha nem Ön volt az, nyugodtan hagyja figyelmen kívül ezt az e-mailt."
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Ez az email cím volt használva a Mattermost fiók létrehozásakor."
+    "translation": "Ez az e-mail cím volt használva a Mattermost fiók létrehozásakor."
   },
   {
     "id": "api.templates.verify_body.button",
-    "translation": "Email megerősítése"
+    "translation": "E-mail megerősítése"
   },
   {
     "id": "api.templates.username_change_subject",
@@ -5261,7 +5217,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "A (z) {{.TeamDisplayName}} felhasználóneve {{.NewUsername}} névre változott."
+    "translation": "A(z) {{.TeamDisplayName}} csapatban az Ön felhasználóneve {{.NewUsername}} névre változott."
   },
   {
     "id": "api.templates.user_access_token_subject",
@@ -5297,11 +5253,11 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "A Rendszerkonzol írásvédettrevan állítva, ha a Magas rendelkezésre állás engedélyezve van, kivéve, ha a ReadOnlyConfig le van tiltva a konfigurációs fájlban."
+    "translation": "A Rendszerkonzol írásvédettre van állítva, ha a Magas rendelkezésre állás engedélyezve van, kivéve, ha a ReadOnlyConfig le van tiltva a konfigurációs fájlban."
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "A fürt konfigurációja megváltozott az id = {{.id}} domainnél. A fürt instabillá válhat, és újra kell indítani. A fürt helyes beállításának biztosítása érdekében azonnal végezzen gördülő újraindítást."
+    "translation": "A fürt konfigurációja megváltozott az id={{.id}} elemnél. A fürt instabillá válhat, és újra kell indítani. A fürt helyes beállításának biztosítása érdekében azonnal végezzen gördülő újraindítást."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -5325,7 +5281,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.props_too_large.error",
-    "translation": "Bejegyzés tulajdonságok hosszabb mint a maximálisan megengedett hosszúság."
+    "translation": "Bejegyzés Props tulajdonsága hosszabb mint a maximálisan megengedett hosszúság."
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
@@ -5333,7 +5289,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
-    "translation": "Bejegyzés üzenet tulajdonság hosszabb mint a maximálisan megengedett hosszúság."
+    "translation": "Bejegyzés Message tulajdonsága hosszabb mint a maximálisan megengedett hosszúság."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
@@ -5349,19 +5305,19 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Emoji import név mező hiányzik vagy üres."
+    "translation": "Emoji import name mező hiányzik vagy üres."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Emoji import kép mező hiányzik vagy üres."
+    "translation": "Emoji import image mező hiányzik vagy üres."
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Emoji adat import üres."
+    "translation": "Emoji import adata üres."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Hiányzó kötelező közvetlen bejegyzés tulajdonság: user"
+    "translation": "Hiányzó kötelező közvetlen üzenet tulajdonság: user"
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
@@ -5369,7 +5325,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Hiányzó kötelező közvetlen bejegyzés tulajdonság: message"
+    "translation": "Hiányzó kötelező közvetlen üzenet tulajdonság: message"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
@@ -5381,15 +5337,15 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "Hiányzó kötelező közvetlen bejegyzés tulajdonság: create_at"
+    "translation": "Hiányzó kötelező közvetlen üzenet tulajdonság: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "A közvetlen bejegyzés csatorna tagok listája túl sok tételt tartalmaz"
+    "translation": "A közvetlen üzenet csatorna tagok listája túl sok tételt tartalmaz"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "A közvetlen bejegyzés csatorna tagok listája túl kevés tételt tartalmaz"
+    "translation": "A közvetlen üzenet csatorna tagok listája túl kevés tételt tartalmaz"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -5413,7 +5369,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "A közvetlen csatorna fejléc túl hosszú"
+    "translation": "A közvetlen csatorna fejléce túl hosszú"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -5421,7 +5377,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "A csatornatípus érvénytelen."
+    "translation": "A csatorna típusa érvénytelen."
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
@@ -5441,11 +5397,11 @@
   },
   {
     "id": "app.import.validate_channel_import_data.name_length.error",
-    "translation": "A csatornanév túl hosszú."
+    "translation": "A csatorna neve túl hosszú."
   },
   {
     "id": "app.import.validate_channel_import_data.name_characters.error",
-    "translation": "A csatornanév érvénytelen karaktereket tartalmaz."
+    "translation": "A csatorna neve érvénytelen karaktereket tartalmaz."
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -5461,7 +5417,7 @@
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": "Nem sikerült olvasni az import fájl verzióját."
+    "translation": "Nem sikerült kiolvasni az adat import fájl verzióját."
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -5469,7 +5425,7 @@
   },
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Nem sikerült importálni a csapat tagságot mert a abba a csapatba már nem engedélyezett több tag"
+    "translation": "Nem sikerült importálni a csapat tagságot mert abba a csapatba már nem engedélyezett több tag"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
@@ -5485,7 +5441,7 @@
   },
   {
     "id": "app.import.import_user_channels.channel_not_found.error",
-    "translation": "Hiba a felhasználó csatornák importálásakor. Csatorna nem található."
+    "translation": "Hiba a felhasználó csatornáinak importálásakor. Csatorna nem található."
   },
   {
     "id": "app.import.import_user.save_preferences.error",
@@ -5497,7 +5453,7 @@
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Nem lehet beállítani egy csapatot egy törölt séma használatára."
+    "translation": "Nem lehet beállítani egy csapatot, hogy egy törölt sémát használjon."
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
@@ -5505,11 +5461,11 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Személyes hozzáférési tokent adtunk a fiókjához a (z) {{.SiteURL}} webhelyen. Ezek felhasználhatók a (z) {{.SiteName}} fiókhoz való hozzáférésére."
+    "translation": "Személyes hozzáférési tokent adtunk a fiókjához a(z) {{.SiteURL}} webhelyen. Ezek felhasználhatók a(z) {{.SiteName}} fiókhoz való hozzáférésére."
   },
   {
     "id": "api.templates.upgrade_request_title2",
-    "translation": "Új felhasználók nem csatlakozhatnak a munkaterülethez"
+    "translation": "Új felhasználók nem tudnak csatlakozni a munkaterületéhez"
   },
   {
     "id": "api.templates.upgrade_request_title",
@@ -5517,19 +5473,19 @@
   },
   {
     "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermost felhasználó munkaterület frissítést kért"
+    "translation": "Mattermost felhasználó munkaterület előfizetés megemelést kért"
   },
   {
     "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Valaki nemrég megpróbált csatlakozni a munkaterületéhez, de nem sikerült, mivel a munkaterülete elérte az Mattermost felhő ingyenes verziójának felhasználói korlátját. Frissítsen most, hogy több felhasználó is csatlakozhasson a munkaterületéhez."
+    "translation": "Valaki nemrég megpróbált csatlakozni a munkaterületéhez, de nem sikerült, mivel a munkaterülete elérte az Mattermost Cloud ingyenes verziójának felhasználói korlátját. Emelje meg előfizetését most, hogy több felhasználó is csatlakozhasson a munkaterületéhez."
   },
   {
     "id": "api.templates.upgrade_request_info4",
-    "translation": "Mivel munkaterülete elérte a Mattermost felhő ingyenes verziójának felhasználói korlátját, a meghívókat nem lehet elküldeni. Frissítsen most, hogy több felhasználó is csatlakozhasson a munkaterületéhez."
+    "translation": "Mivel munkaterülete elérte a Mattermost felhő ingyenes verziójának felhasználói korlátját, a meghívókat nem lehet elküldeni. Emelje meg előfizetését most, hogy több felhasználó is csatlakozhasson a munkaterületéhez."
   },
   {
     "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Frissítés"
+    "translation": "Előfizetés megemelése"
   },
   {
     "id": "api.templates.signin_change_email.subject",
@@ -5541,11 +5497,11 @@
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
-    "translation": "email és jelszó"
+    "translation": "e-mail és jelszó"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Frissítette bejelentkezési módszerét a (z) {{.SiteName}} webhelyen a következőre: {{.Method}}."
+    "translation": "Frissítette bejelentkezési módszerét a(z) {{.SiteName}} webhelyen a következőre: {{.Method}}."
   },
   {
     "id": "api.templates.reset_subject",
@@ -5561,7 +5517,7 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "A jelszó-visszaállító link 24 órán belül lejár."
+    "translation": "A jelszó visszaállító link 24 órán belül le fog járni."
   },
   {
     "id": "api.templates.reset_body.button",
@@ -5569,11 +5525,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "A Mattermost Enterprise licenc letiltva."
+    "translation": "A Mattermost Enterprise licenc le van tiltva."
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Az Enterprise Edition licencje lejárt, és egyes funkciók le vannak tiltva. Kérjük, most újítsa meg a licencét."
+    "translation": "Az Enterprise Edition licencje lejárt, és egyes funkciók le vannak tiltva. Kérjük, újítsa meg a licencét most."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
@@ -5593,11 +5549,11 @@
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Az Ön Mattermost felhő számlája esedékes"
+    "translation": "Az Ön Mattermost Cloud számlája lejárt"
   },
   {
     "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Fizetés esedékes a Mattermost felhő előfizetésért"
+    "translation": "Fizetés esedékes a Mattermost Cloud előfizetéséhez"
   },
   {
     "id": "api.templates.payment_failed_no_card.info3",
@@ -5617,11 +5573,11 @@
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost felhőre"
+    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost Cloudra"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "A Mattermost felhő zavartalan előfizetésének biztosítása érdekében, kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
+    "translation": "A Mattermost Cloud zavartalan előfizetésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -5629,7 +5585,7 @@
   },
   {
     "id": "api.templates.payment_failed.info1",
-    "translation": "Pénzügyi intézménye elutasította a Mattermost felhő munkaterületéhez társított {{.CardBrand}} **** {{.LastFour}} kifizetését."
+    "translation": "Pénzintézete elutasította a Mattermost Cloud munkaterületéhez társított {{.CardBrand}} **** {{.LastFour}} kártyáról a fizetést."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -5649,11 +5605,11 @@
   },
   {
     "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost felhő munkaterület felfüggesztve"
+    "translation": "Mattermost Cloud munkaterület fel lett függesztve"
   },
   {
     "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Az Ön Mattermost munkaterületét felfüggesztették"
+    "translation": "Az Ön Mattermost Cloud munkaterületét felfüggesztették"
   },
   {
     "id": "api.templates.over_limit_suspended_info2",
@@ -5669,15 +5625,15 @@
   },
   {
     "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost felhő munkaterület meghaladja a felhasználó korlátot"
+    "translation": "Mattermost Cloud munkaterület meghaladja a felhasználói limitet"
   },
   {
     "id": "api.templates.over_limit_info2",
-    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, vagy az ingyenes felhasználói korlát alatt maradhasson."
+    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói korlát alatt maradhasson."
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Úgy tűnik, hogy több mint 10 felhasználója van a munkaterületén, amely meghaladja a Mattermost Cloud Professional ingyenes szintjeit. Kérjük, frissítse a Mattermost munkaterület a további zavartalan működés érdekében."
+    "translation": "Úgy tűnik, hogy több mint 10 felhasználója van a munkaterületén, amely meghaladja a Mattermost Cloud Professional ingyenes szintjét. Kérjük emelje meg előfizetését a Mattermost munkaterület további zavartalan működés érdekében."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -5685,11 +5641,11 @@
   },
   {
     "id": "api.templates.over_limit_90_days_title",
-    "translation": "A Mattermost felhő munkaterület felfüggesztését holnapra tervezik"
+    "translation": "A Mattermost Cloud munkaterület felfüggesztése holnap fog megtörténni"
   },
   {
     "id": "api.templates.over_limit_90_days_subject",
-    "translation": "A Mattermost felhő előfizetését hamarosan felfüggesztjük"
+    "translation": "A Mattermost Cloud előfizetését hamarosan fel fogjuk függeszteni"
   },
   {
     "id": "api.templates.over_limit_90_days_info4",
@@ -5705,7 +5661,7 @@
   },
   {
     "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Ez egy utolsó emlékeztető arra, hogy nem kaptunk fizetést a Mattermost felfő munkaterületéért, amely {{.OverLimitDate}} óta esedékes. Holnap felfüggesztjük szolgáltatását."
+    "translation": "Ez egy utolsó emlékeztető arra, hogy nem kaptunk fizetést a Mattermost Cloud munkaterületéért, amely {{ .OverLimitDate }} napja esedékes. Holnap felfüggesztjük szolgáltatását."
   },
   {
     "id": "api.templates.over_limit_7_days_title",
@@ -5713,15 +5669,15 @@
   },
   {
     "id": "api.templates.over_limit_7_days_subject",
-    "translation": "A fizetése lejárt a Mattermost felhő előfizetéséhez"
+    "translation": "A fizetési határidő lejárt a Mattermost Cloud előfizetéséhez"
   },
   {
     "id": "api.templates.over_limit_7_days_info1",
-    "translation": "A Mattermost nem tudta feldolgozni a legutóbbi automatikus fizetést. A szolgáltatás aktív állapotának fenntartása érdekében kérjük, a lehető leghamarabb adja meg a fizetési adatokat, különben a szolgáltatás fel lesz függesztve."
+    "translation": "A Mattermost nem tudta feldolgozni a legutóbbi automatikus fizetést. A szolgáltatás aktív állapotának fenntartása érdekében kérjük a lehető leghamarabb adja meg a fizetési adatokat, különben a szolgáltatás fel lesz függesztve."
   },
   {
     "id": "api.templates.over_limit_30_days_title",
-    "translation": "Mattermost felhő munaterület felfüggesztés"
+    "translation": "Mattermost Cloud munaterület felfüggesztés"
   },
   {
     "id": "api.templates.over_limit_30_days_subject",
@@ -5729,11 +5685,11 @@
   },
   {
     "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Elveszíti hozzáférését az üzenetelőzményekhez"
+    "translation": "Elveszíti hozzáférését az üzenet előzményekhez"
   },
   {
     "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Nem fogja tudni frissíteni a fizetési információkat anélkül, hogy kapcsolatba lépne ügyfélszolgálatunkkal"
+    "translation": "Nem fogja tudni frissíteni a fizetési információkat anélkül, hogy kapcsolatba ne lépne ügyfélszolgálatunkkal"
   },
   {
     "id": "api.templates.over_limit_30_days_info2_item1",
@@ -5753,11 +5709,11 @@
   },
   {
     "id": "api.templates.over_limit_14_days_subject",
-    "translation": "A fizetése lejárt a Mattermost felhő előfizetéséhez"
+    "translation": "A fizetése lejárt a Mattermost Cloud előfizetéséhez"
   },
   {
     "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Csak egy emlékeztető, hogy nem kaptunk fizetést a {{.OverLimitDate}} napon számlázott Mattermost előfizetésért. Hamarosan megkezdjük a szolgáltatás felfüggesztését, ha a fizetés nem érkezik meg."
+    "translation": "Csak egy emlékeztető, hogy nem kaptunk fizetést a {{ .OverLimitDate }} napon számlázott Mattermost előfizetésért. Hamarosan megkezdjük a szolgáltatás felfüggesztését, ha a fizetés nem érkezik meg."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -5765,11 +5721,11 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "A többtényezős hitelesítést eltávolítottuk fiókjából a (z) {{.SiteURL}} webhelyen."
+    "translation": "A többtényezős hitelesítést eltávolítottuk fiókjából a {{.SiteURL}} rendszerben."
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{.SiteName}}] Az Ön MFA-t frissítettük"
+    "translation": "[{{ .SiteName }}] Az MFA-t frissítettük"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -5777,19 +5733,19 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "A többtényezős hitelesítést hozzáadtuk fiókjához a (z) {{.SiteURL}} oldalon."
+    "translation": "A többtényezős hitelesítést hozzáadtuk fiókjához a {{.SiteURL}} rendszeren."
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} meghívta Önt a {{.TeamDisplayName}} csapatba"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} meghívta Önt a {{ .TeamDisplayName }} csapatba"
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} meghívta Önt, hogy csatlakozzon a (z) {{.TeamDisplayName}} csapathoz vendégként"
+    "translation": "[{{.SiteName}}] {{.SenderName}} meghívta Önt, hogy csatlakozzon a(z) {{.TeamDisplayName}} csapathoz vendégként"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
-    "translation": "Meghívást kapott vendégként, hogy működjön együtt a csapattal"
+    "translation": "Ön meghívást kapott vendégként, hogy működjön együtt a csapattal"
   },
   {
     "id": "api.templates.invite_body_footer.title",
@@ -5801,11 +5757,11 @@
   },
   {
     "id": "api.templates.invite_body_footer.info",
-    "translation": "A Mattermost egy rugalmas, nyílt forráskódú üzenetküldő platform, amely biztonságos csapat-együttműködést tesz lehetővé."
+    "translation": "A Mattermost egy rugalmas, nyílt forráskódú üzenetküldő platform, amely biztonságos csapat együttműködést tesz lehetővé."
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "{{.SenderName}} meghívta Önt, hogy csatlakozzon a {{.TeamDisplayName}} csapathoz."
+    "translation": "{{ .SenderName }} meghívta Önt hogy csatlakozzon a {{ .TeamDisplayName }} csapathoz."
   },
   {
     "id": "api.templates.invite_body.subTitle",
@@ -5813,11 +5769,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Csatlakozás most"
+    "translation": "Csatlakozás"
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "Ha nem hajtotta végre ezt a módosítást, kérjük, vegye fel a kapcsolatot a rendszergazdával."
+    "translation": "Ha nem Ön hajtotta végre ezt a módosítást, kérjük, vegye fel a kapcsolatot a rendszergazdával."
   },
   {
     "id": "api.templates.email_us_anytime_at",
@@ -5845,35 +5801,35 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Az értesítése beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Fiók beállítások > Értesítésekbe."
+    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Fiók beállítások > Értesítésekbe."
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}] Új email cím megerősítése"
+    "translation": "[{{ .SiteName }}] Új e-mail cím megerősítése"
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Frissítette az email címét"
+    "translation": "Frissítette az e-mail címét"
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "Az {{.TeamDisplayName}} email cím frissítés megerősítéséhez kérjük kattintson a lenti linkre ha ez a megfelelő email cím."
+    "translation": "A {{.TeamDisplayName}} e-mail cím frissítés megerősítéséhez kérjük kattintson a lenti linkre ha ez a megfelelő e-mail cím."
   },
   {
     "id": "api.templates.email_change_verify_body.button",
-    "translation": "Email cím megerősítése"
+    "translation": "E-mail cím megerősítése"
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "[{{ .SiteName }}] Az email címe megváltozott"
+    "translation": "[{{ .SiteName }}] Az e-mail címe megváltozott"
   },
   {
     "id": "api.templates.email_change_body.title",
-    "translation": "Frissítette az email címét"
+    "translation": "Frissítette az e-mail címét"
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Az email címét {{.TeamDisplayName}} módosították erre {{.NewEmail}}."
+    "translation": "Az {{.TeamDisplayName}} e-mail címét módosították a {{.NewEmail}} címre."
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -5881,7 +5837,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.mm_apps",
-    "translation": "mobil és asztali alkalmazások"
+    "translation": "mobil és asztali alkalmazásokkal"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
@@ -5897,7 +5853,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.info",
-    "translation": "Köszönőjük, hogy létrehozta "
+    "translation": "Köszönjük, hogy létrehozta "
   },
   {
     "id": "api.templates.cloud_welcome_email.download_mm_info",
@@ -5909,11 +5865,11 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
-    "translation": "alkalmazás piac."
+    "translation": "az alkalmazás piacon."
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Egyszerűsítse munkáját olyan eszközökkel, mint a Github, a Google Naptár és a Chrome. Fedezze fel a mi integrációinkat"
+    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint a Github, a Google Naptár és a Chrome. Fedezze fel a saját integrációinkat"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -5921,15 +5877,15 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "A Mattermost ingyenes, 14 napos próbaverziója hamarosan véget ér"
+    "translation": "A Mattermost 14 napos ingyenes próbaverziója hamarosan véget ér"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, a Mattermost Cloud Professional 14 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Professional előnyeit."
+    "translation": "{{.Name}}, a Mattermost Cloud Professional 14 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Professional előnyeit."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "A Mattermost cloud próbaideje véget ér"
+    "translation": "Mattermost cloud próbaidő vége"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
@@ -5937,31 +5893,31 @@
   },
   {
     "id": "api.templates.at_limit_title",
-    "translation": "Elérte az ingyenes felhasználókorlátot "
+    "translation": "Ön Eeérte az ingyenes felhasználói limitet "
   },
   {
     "id": "api.templates.at_limit_subject",
-    "translation": "Mattermost felhő felhasználókorlát limit elérve"
+    "translation": "Mattermost Cloud felhasználói limit elérve"
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Alternatív megoldásként letilthatja a felhasználókat a rendszerkonzolban, hogy több felhasználó számára nyíljon hely, és az ingyenes felhasználói korlát alatt maradhasson."
+    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói limit alatt maradhasson."
   },
   {
     "id": "api.templates.at_limit_info2",
-    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, vagy az ingyenes felhasználói korlát alatt maradhasson."
+    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói limit alatt maradhasson."
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Úgy tűnik, hogy 10 vagy több felhasználója van a munkaterületben — ez remek!Ha több csapattagot szeretne meghívni, fontolja meg a Mattermost Cloud Professional-ra való frissítést."
+    "translation": "Úgy tűnik, hogy 10 vagy több felhasználója van a munkaterületben — ez remek! Ha több csapattagot szeretne meghívni, fontolja meg a Mattermost Cloud Professional-ra való frissítést."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Nem lehet beállítani a sémát a csapatra, mert a mellékelt séma nem csapat séma."
+    "translation": "Nem lehet beállítani a sémát a csapathoz, mert a megadott séma nem csapat séma."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "A licenc nem támogatja a csapat séma frissítését"
+    "translation": "Az Ön licence nem támogatja a csapat séma frissítését"
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -5977,23 +5933,23 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "Hiba történt a csapatikon frissítésekor."
+    "translation": "Hiba történt a csapat ikon frissítésekor."
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "A csapatikont nem lehet elmenteni."
+    "translation": "A csapat ikont nem lehet elmenteni."
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
-    "translation": "Nem lehet feltölteni a csapat ikont. Az fájl túl nagy."
+    "translation": "Nem lehet feltölteni a csapat ikont. Fájl túl nagy."
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
-    "translation": "Nem sikerült a kép feltöltése. A kép tároló nincs beállítva."
+    "translation": "Nem sikerült a csapat ikon feltöltése. A kép tároló nincs beállítva."
   },
   {
     "id": "api.team.set_team_icon.parse.app_error",
-    "translation": "Nem sikerült elemezni a többrészes űrlapot."
+    "translation": "Nem sikerült feldolgozni a többrészes űrlapot."
   },
   {
     "id": "api.team.set_team_icon.open.app_error",
@@ -6001,7 +5957,7 @@
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'kép' alatt a kérésben."
+    "translation": "Nincs megadva fájl a kérés 'image' paraméterében."
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
@@ -6009,7 +5965,7 @@
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "A csapat ikont nem lehetett kódolni."
+    "translation": "A csapat ikont nem lehetett bekódolni."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -6017,15 +5973,15 @@
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "Üres a tömb a 'kép' alatt a kérésnél."
+    "translation": "Üres tömb a kérés 'image' paraméterében."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": "Az oldalszámozás nincs megvalósítva a csak nyilvános-csoportos kereséshez."
+    "translation": "Az oldalszámozás nincs megvalósítva a csak nyilvános csoport kereséshez."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
-    "translation": "Az oldalszámozás nincs megvalósítva a csak magán-csoportos kereséshez."
+    "translation": "Az oldalszámozás nincs megvalósítva a csak magán csoport kereséshez."
   },
   {
     "id": "api.team.remove_user_from_team.removed",
@@ -6041,15 +5997,15 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Nem lehet eltávolítani egy felhasználót egy csoport-korlátozott csatornáról."
+    "translation": "Nem lehet eltávolítani egy felhasználót egy csoport-korlátozott csatornából."
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "Ezt a csatornát áthelyezték ebbe a csapatba innen %v."
+    "translation": "Ezt a csatornát áthelyezték ebbe a csapatba a %v csapatból."
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": "Nem sikerült elküldeni a csatorna mozgatási üzenetet."
+    "translation": "Nem sikerült elküldeni a csatorna áthelyezési üzenetet."
   },
   {
     "id": "api.team.leave.left",
@@ -6069,7 +6025,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Csapat létrehozás letiltva. A részletekért kérjük keresse a rendszergazdát."
+    "translation": "Csapat létrehozás le van tiltva. A részletekért kérjük keresse a rendszergazdát."
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -6077,15 +6033,15 @@
   },
   {
     "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Elérte az ingyenes felhasználói korlátot"
+    "translation": "Elérte az ingyenes felhasználói limitet"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "A következő email cím nem tartozik elfoadott domainhez: {{.Addresses}}. A részletekért kérjük vegye fel a kapcsolatot a rendszergazdával."
+    "translation": "A következő e-mail cím nem tartozik elfogadott domainhez: {{.Addresses}}. A részletekért kérjük vegye fel a kapcsolatot a rendszergazdával."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "A vendég meghívások le vannak tíltva."
+    "translation": "E-mail meghívások le vannak tíltva."
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
@@ -6097,11 +6053,11 @@
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Az Ön licensze nem támogatja az LDAP csoportokat"
+    "translation": "Az Ön licence nem támogatja a vendég fiókokat"
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "A"
+    "translation": "A vendég fiókok le vannak tiltva"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -6129,7 +6085,7 @@
   },
   {
     "id": "api.team.import_team.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'fájl' alatt a kérésben."
+    "translation": "Nincs megadva fájl a kérés 'file' paraméterében."
   },
   {
     "id": "api.team.import_team.integer.app_error",
@@ -6137,15 +6093,15 @@
   },
   {
     "id": "api.team.import_team.array.app_error",
-    "translation": "Üres a tömb a 'fájl' alatt a kérésnél."
+    "translation": "Üres a tömb a kérés 'file' paraméterében."
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Nem lehet olvasni a csapat ikon fájlt."
+    "translation": "Nem lehet beolvasni a csapat ikon fájlt."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Érvénytelen driver név a fájlbeállításokhoz. Vagy 'local' vagy 'amazons3' kell legyen."
+    "translation": "Érvénytelen meghajtó név a fájltároló beállításokhoz. Vagy 'local' vagy 'amazons3' kell legyen."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -6157,7 +6113,7 @@
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "Az Ön licensze nem támogatja a vendég fiókokat"
+    "translation": "Az Ön licence nem támogatja a vendég fiókokat"
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -6185,7 +6141,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Ezt a csatornát csoportok kezelik. Ez a felhasználó nem része annak a csoportnak, amelyet ezzel a csatornával szinkronizáltak."
+    "translation": "Ezt a csatornát csoportok kezelik.  Ez a felhasználó nem része annak a csoportnak, amelyet ezzel a csatornával szinkronizáltak."
   },
   {
     "id": "api.team.add_members.error",
@@ -6197,7 +6153,7 @@
   },
   {
     "id": "api.system.update_notices.validating_failed",
-    "translation": "Termékismertetők feltételeinek jóváhagyása sikertelen"
+    "translation": "Termékismertetők feltételeinek ellenőrzése sikertelen"
   },
   {
     "id": "api.system.update_notices.parse_failed",
@@ -6221,7 +6177,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "A {{.Filename}} zip archívumban túl nagy a Slack importhoz való feldolgozáshoz\n"
+    "translation": "A {{.Filename}} a zip archívumban túl nagy a Slack importálás feldolgozásához\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
@@ -6261,19 +6217,19 @@
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "{{.Username}} felhasználónak nincs email címe a Slack exportban. {{.Email}} használva helyőrzőnek. A felhasználónak frissítenie kell az email címét amikor bejelentkeztek a rendszerbe.\n"
+    "translation": "{{.Username}} felhasználónak nincs e-mail címe a Slack exportban. {{.Email}} használva helyőrzőnek. A felhasználónak frissítenie kell az e-mail címét amikor legközelebb bejelentkezik a rendszerbe.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező emailcímmel {{.Email}} és felhasználónévvel {{.Username}}, de nem sikerült hozzáadni a csapatukhoz.\n"
+    "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező e-mail címmel {{.Email}} és felhasználónévvel {{.Username}}, de nem sikerült hozzáadni a csapatukhoz.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező emailcímmel {{.Email}} és felhasználónévvel {{.Username}}.\n"
+    "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező e-mail címmel {{.Email}} és felhasználónévvel {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} importálva.\n"
+    "translation": "Slack felhasználó a {{.Email}} e-mail címmel és {{.Password}} jelszóval sikeresen importálva.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -6289,31 +6245,31 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Nem lehet hozzáadni a Slack felhasználót{{.Username}} a csatornához.\n"
+    "translation": "Nem lehet hozzáadni a Slack felhasználót {{.Username}} a csatornához.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nCsatorna hozzáadva:\n"
+    "translation": "\nHozzáadott csatornák:\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Nem lehet importálni a/Slack Bot felhasználót{{.Username}}.\n"
+    "translation": "Nem lehet importálni az integráció/Slack Bot felhasználót {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Az integráció/Slack Bot felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} importálva.\n"
+    "translation": "Az integráció/Slack Bot felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} sikeresen importálva.\n"
   },
   {
     "id": "api.server.warn_metric.starting_trial",
-    "translation": "Próba szerzé"
+    "translation": "Próbaidőszak szerzése"
   },
   {
     "id": "api.server.warn_metric.start_trial",
-    "translation": "Próba elkezdése"
+    "translation": "Próbaidőszak elkezdése"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Menjen a **Rendszerkonzol > Jogosultságok ** menübe a haladó jogosultságok engedélyezéséhez."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Jogosultságok** menübe a haladó jogosultságok engedélyezéséhez."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
@@ -6333,7 +6289,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Ha rendelkezik Elasticsearch szerverrel, lépjen a ** Rendszerkonzol > Környezet> Elasticsearch ** oldalra az Elasticsearch beállításához."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Ha rendelkezik Elasticsearch szerverrel, lépjen a **Rendszerkonzol > Környezet > Elasticsearch** oldalra az Elasticsearch beállításához."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
@@ -6353,7 +6309,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Menjen a **Rendszerkonzol > Felhasználókezelés> Jogosultságok** menübe a haladó jogosultságok engedélyezéséhez."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Felhasználókezelés > Jogosultságok** menübe a haladó jogosultságok engedélyezéséhez."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
@@ -6364,16 +6320,8 @@
     "translation": "Haladó jogosultságok használata"
   },
   {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Az felhasználó változtatás értesítő email küldése sikertelen volt"
-  },
-  {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Az email változtatás értesítő email küldése sikertelen volt"
-  },
-  {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "A fiók deaktiválási email elküldése sikertelen volt"
+    "translation": "A fiók deaktiválási e-mail elküldése sikertelen volt"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
@@ -6385,7 +6333,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Menjen a Rendszerkonzolba a haladó funkciók engedélyezéséhez."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a Rendszerkonzolba a haladó funkciók engedélyezéséhez."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
@@ -6401,15 +6349,15 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak most 500 felhasználója van, és a Mattermost Enterprise Editiont fontolgatom.\n"
+    "translation": "Mattermost kapcsolat kérés. A csapatomnak most 500 felhasználója van, és a Mattermost Enterprise kiadást fontolgatom.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "írásvédett Bejelentési csatornák"
+    "translation": "Csak olvasható bejelentés csatornák"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Menjen a **Rendszerkonzol > Felhasználókezelés> Csatornák** menübe a bejegyzések csatorna adminra korlátozásához."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Felhasználókezelés > Csatornák** menübe a bejegyzések csatorna adminra korlátozásához."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
@@ -6421,11 +6369,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Legfőbb kapcsolat kérelem. Szeretnék többet megtudni az írásvédett csatornák létrehozásáról.\n"
+    "translation": ".Mattermost kapcsolat kérés. Szeretnék többet megtudni az írásvédett csatornák létrehozásáról.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Menjen a **Rendszerkonzol > Hitelesítés> SAML 2.0** a SAML 2.0 szolgáltató integrálásához."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Hitelesítés > SAML 2.0** a SAML 2.0 szolgáltató integrálásához."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
@@ -6441,11 +6389,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 200felhasználója van, és fontolóra veszem a Mattermost Enterprise Edition-t.\n"
+    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 200 felhasználója van, és fontolóra veszem a Mattermost Enterprise kiadást.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Menjen a **Rendszerkonzol> Hitelesítés> AD/LDAP** menübe az AD/LDAP integrálásához."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Hitelesítés > AD/LDAP** menübe az AD/LDAP integrálásához."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
@@ -6461,11 +6409,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 100 felhasználója van, és fontolóra veszem a Mattermost Enterprise Edition-t.\n"
+    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 100 felhasználója van, és fontolóra veszem a Mattermost Enterprise kiadást.\n"
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Menjen a **Rendszerkonzol> Hitelesítés> MFA** menübe a többtényezős hitelesítés engedélyezéséhez."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Hitelesítés > MFA** menübe a többtényezős hitelesítés kényszerítéséhez."
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
@@ -6473,7 +6421,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "A többtényezős hitelesítés kényszerítése"
+    "translation": "Többtényezős hitelesítés kényszerítése"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
@@ -6485,11 +6433,11 @@
   },
   {
     "id": "api.server.warn_metric.email_us",
-    "translation": "Küldjön nekünk emailt"
+    "translation": "Küldjön nekünk e-mailt"
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Az Ön Enterprise próbalicensze mostantól aktív. Menjen a **Rendszerkonzol> Hitelesítés> Vendéghozzáférés** menübe a Vendégfiókok engedélyezéséhez."
+    "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Hitelesítés > Vendéghozzáférés** menübe a Vendégfiókok engedélyezéséhez."
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
@@ -6509,7 +6457,7 @@
   },
   {
     "id": "api.server.warn_metric.contacting_us",
-    "translation": "Lépjen kapcsolatba velünk"
+    "translation": "Velünk kapcsolatba lépők"
   },
   {
     "id": "api.server.warn_metric.contact_us",
@@ -6517,11 +6465,11 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "A próbalicenszt nem lehet lekérni. Látogasson el a https://mattermost.com/trial/ egy licensz kéréséhez."
+    "translation": "A próba licenct nem lehet lekérni. Látogasson el a https://mattermost.com/trial/ címre egy licenc kéréséhez."
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Köszönjük, hogy felvette a kapcsolatot a Mattermost-nal. Hamarosan jelentkezni fogunk."
+    "translation": "Köszönjük, hogy felvette a kapcsolatot a Mattermost-tal. Hamarosan jelentkezni fogunk."
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -6529,7 +6477,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Kérjük küldjön nekünk emailt."
+    "translation": "Kérjük küldjön nekünk e-mailt."
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
@@ -6549,7 +6497,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
+    "translation": "E-mail: {{.Email}}"
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
@@ -6561,7 +6509,7 @@
   },
   {
     "id": "api.server.start_server.starting.critical",
-    "translation": "Hiba a szerver indításakor, err:%v"
+    "translation": "Hiba a szerver indításakor, hiba:%v"
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
@@ -6569,11 +6517,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Nem lehet inicializálni a sebességkorlátozó memóriát. Ellenőrizze a MemoryStoreSize konfigurációs beállításait."
+    "translation": "Nem lehet inicializálni a sebességkorlátozó memóriát. Ellenőrizze a MemoryStoreSize konfiguráció beállítását."
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Nem lehet továbbítani a 80-as portot a 443-masra miközben a %s porton hallhatunk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
+    "translation": "Nem lehet továbbítani a 80-as portot a 443-masra miközben a %s porton figyelünk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -6581,7 +6529,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "A licenc nem támogatja a jogosultság séma frissítését"
+    "translation": "Az Ön licence nem támogatja a jogosultság séma frissítését"
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
@@ -6593,7 +6541,7 @@
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "A licenc nem támogatja a jogosultság sémák törlését"
+    "translation": "Az Ön licence nem támogatja a jogosultság sémák törlését"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
@@ -6609,7 +6557,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "Ez a művelet meg van tagadva egy korlátozott rendszeradminisztrátornak."
+    "translation": "Ez a művelet meg van tagadva egy korlátozott rendszer adminisztrátornak."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -6669,15 +6617,15 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "Hiba történt a push értesítési ack üzenet létrehozása során."
+    "translation": "Hiba történt a push értesítés igazoló válasz üzenet létrehozása során."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "Hiba történt a nyugta kézbesítésének a push értesítési szolgáltatásnak történő elküldése során."
+    "translation": "Hiba történt a visszaigazolás kézbesítésének a push értesítési szolgáltatásnak történő elküldése során."
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} oldalak munkamenetei úgy vannak beállítva a rendszergazda által hogy minden {{.daysCount}} nap lejárjanak."
+    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} munkamenetei úgy vannak beállítva a rendszergazda által hogy minden {{.daysCount}} nap lejárjanak."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -6689,7 +6637,7 @@
   },
   {
     "id": "api.push_notification.id_loaded.default_message",
-    "translation": "Egy új üzenetet kapott."
+    "translation": "Önnek egy új üzenete érkezett."
   },
   {
     "id": "api.push_notification.disabled.app_error",
@@ -6697,7 +6645,7 @@
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
-    "translation": "Nem lehet frissíteni az oldalsávot, hogy a frissített beállításokat tükrözze"
+    "translation": "Nem lehet frissíteni az oldalsávot, hogy a frissített beállításokkal működjön"
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
@@ -6709,7 +6657,7 @@
   },
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
-    "translation": "Nem lehet frissíteni az oldalsávot, hogy a törölt beállításokat tükrözze"
+    "translation": "Nem lehet frissíteni az oldalsávot, hogy a törölt beállításokkal egyezzen"
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
@@ -6725,7 +6673,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "A bejegyzések szerkesztése csak {{.timeLimit}} másodpercig engedélyezett. A részletekért kérjük keresse a rendszeradminisztrátort."
+    "translation": "A bejegyzések szerkesztése csak {{.timeLimit}} másodpercig engedélyezett. A részletekért kérjük keresse a rendszer adminisztrátort."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -6765,11 +6713,11 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Nem sikerült feltölteni a fájlokat. Ennyi: {{.NumClientIds}} client_ids nem sikerült ennyi: {{.NumFiles}} a fájlból."
+    "translation": "Nem sikerült feltölteni a fájl(oka)t. {{.NumClientIds}} client_ids szerepel {{.NumFiles}} fájlhoz."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
-    "translation": "Nem lehet feltölteni a fájlt. Helytelen csatorna ID: {{.channelId}}"
+    "translation": "Nem lehet feltölteni a fájlt. Érvénytelen csatorna ID: {{.channelId}}"
   },
   {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
@@ -6781,7 +6729,7 @@
   },
   {
     "id": "api.file.test_connection.app_error",
-    "translation": "Nem lehet hozzáférni a fájltárolóhoz."
+    "translation": "Nem lehet hozzáférni a fájl tárolóhoz."
   },
   {
     "id": "api.file.remove_file.app_error",
@@ -6801,7 +6749,7 @@
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": "Nincsen fájl-meghajtórendszer kiválasztva."
+    "translation": "Nincsen fájl meghajtórendszer kiválasztva."
   },
   {
     "id": "api.file.move_file.app_error",
@@ -6809,11 +6757,11 @@
   },
   {
     "id": "api.file.list_directory.app_error",
-    "translation": "Nem lehet listázni a könyvtárt."
+    "translation": "Nem lehet listázni a könyvtárat."
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "Nem sikerült nyilvános linket lekérni a fájlhoz. A fájlt csatolni kell egy bejegyzéshez, amelyet az aktuális felhasználó elolvashat."
+    "translation": "Nem sikerült nyilvános linket lekérni a fájlhoz. A fájlnak olyan bejegyzéshez kell csatolva lennie, amelyet az aktuális felhasználó elolvashat."
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
@@ -6837,7 +6785,7 @@
   },
   {
     "id": "api.file.file_reader.app_error",
-    "translation": "Nem sikerült lekérni fájlolvasót."
+    "translation": "Nem sikerült lekérni fájl olvasót."
   },
   {
     "id": "api.file.file_mod_time.app_error",
@@ -6873,11 +6821,11 @@
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Nem lehet létrehozni emoji-t. A képnek kisebbnek kell lennie mint {{.MaxWidth}} x {{.MaxHeight}} ."
+    "translation": "Nem lehet létrehozni emoji-t. A képnek kisebbnek kell lennie mint {{.MaxWidth}} x {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Nem lehet létrehozni az emoji-t. Hiba történt a GIF kép enkódolása közben."
+    "translation": "Nem lehet létrehozni az emoji-t. Hiba történt a GIF kép bekódolása közben."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
@@ -6885,7 +6833,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Nem lehet létrehozni az emoji-t. Hiba történt a kép enkódolása közben."
+    "translation": "Nem lehet létrehozni az emoji-t. Hiba történt a kép bekódolása közben."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
@@ -6893,23 +6841,23 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Nem lehet létrehozni az emoji-t. A fájlnak PNG, JPEG, vagy GIF kiterjesztésűnek kell lennie."
+    "translation": "Nem lehet létrehozni az emoji-t. A fájlnak PNG, JPEG, vagy GIF formátumúnak kell lennie."
   },
   {
     "id": "api.emoji.storage.app_error",
-    "translation": "A fájltároló nem megfelelően van konfigurálva. Kérjük, állítson be S3 vagy a helyi szerver fájl tárolást."
+    "translation": "A fájltároló nem megfelelően van beállítva. Kérjük, állítson be S3 vagy a helyi szerver fájl tárolást."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Nem sikerült olvasni az emoji képfájlt."
+    "translation": "Nem sikerült olvasni a képfájlt az emojihot."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Nem sikerült dekódolni az emoji képfájlt."
+    "translation": "Nem sikerült dekódolni a képfájlt az emojihot."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Egyéni emoji letiltva a rendszergazda által."
+    "translation": "Egyéni emojik le vannak tiltva a rendszergazda által."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
@@ -6929,22 +6877,22 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Nem lehet emoji-t létrehozni. Már létezik egy másik azonos nevű emoji is."
+    "translation": "Nem lehet emoji-t létrehozni. Már létezik egy másik azonos nevű emoji."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "one": "[{{.SiteName}}] Új értesítés {{.Year}}. {{.Month}} {{.Day}}. óta",
-      "other": "[{{.SiteName}}] Új értesítések {{.Year}}. {{.Month}} {{.Day}}. óta"
+      "one": "[{{.SiteName}}] Új értesítés {{.Year}}-{{.Month}}-{{.Day}} napon",
+      "other": "[{{.SiteName}}] Új értesítések {{.Year}}-{{.Month}}-{{.Day}} napon"
     }
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Csoportos email küldés letiltva a rendszergazda által."
+    "translation": "Csoportos e-mail küldés le van tiltva a rendszergazda által."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "Az e-mail-kötegelt feladatok fogadó csatornája tele volt. Kérjük, növelje az EmailBatchingBufferSize-t."
+    "translation": "Az e-mail kötegelt feladatok fogadó csatornája tele volt. Kérjük, növelje meg az EmailBatchingBufferSize értékét."
   },
   {
     "id": "api.email.send_warn_metric_ack.missing_server.app_error",
@@ -6952,7 +6900,7 @@
   },
   {
     "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Nem található a figyelmeztető mutató."
+    "translation": "Nem található a figyelmeztetések mutató."
   },
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
@@ -6976,7 +6924,7 @@
   },
   {
     "id": "api.context.token_provided.app_error",
-    "translation": "A munkamenet nem OAuth, de token szerepel a lekérdezési karaktersorozatban."
+    "translation": "A munkamenet nem OAuth, de token szerepel a kérési szövegben."
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -7004,15 +6952,15 @@
   },
   {
     "id": "api.context.mfa_required.app_error",
-    "translation": "A többlépcsős hitelesítésre szükséges ezen a szerveren."
+    "translation": "Többtényezős hitelesítésre szükséges ezen a szerveren."
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "Ehhez a végponthoz helyi kérelmi helyre van szükség."
+    "translation": "Ehhez a végponthoz helyi forrásra (origin) van szükség a kérésben."
   },
   {
     "id": "api.context.json_encoding.app_error",
-    "translation": "Hiba a JSON kódolásakor."
+    "translation": "Hiba a JSON bekódolásakor."
   },
   {
     "id": "api.context.invitation_expired.error",
@@ -7020,11 +6968,11 @@
   },
   {
     "id": "api.context.invalid_url_param.app_error",
-    "translation": "Érvénytelen vagy hiányzó {{.Name}} paraméter a lekérés URL-ben."
+    "translation": "Érvénytelen vagy hiányzó {{.Name}} paraméter a kérés URL-ben."
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Érvénytelen munkafolyamat token={{.Token}}, err={{.Error}}"
+    "translation": "Érvénytelen munkafolyamat token={{.Token}}, hiba={{.Error}}"
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -7032,11 +6980,11 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "Érvénytelen vagy hiányzó {{.Name}} a lekérés törzsében."
+    "translation": "Érvénytelen vagy hiányzó {{.Name}} a kérés törzsében."
   },
   {
     "id": "api.context.get_user.app_error",
-    "translation": "A felhasználót nem sikerült lekérni a munkamenet UserID-ből."
+    "translation": "A felhasználót nem sikerült lekérni a munkamenet UserID-ból."
   },
   {
     "id": "api.context.404.app_error",
@@ -7048,7 +6996,7 @@
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
-    "translation": "A {{.Name}} módosítása biztonsági okokból nem engedélyezett."
+    "translation": "{{.Name}} módosítása biztonsági okokból nem engedélyezett."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -7068,7 +7016,7 @@
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "A kliens konfiguráció új formátuma még nem támogatott. Kérjük, adja meg a format=old a lekérdezési karakterláncban."
+    "translation": "A kliens konfiguráció új formátuma még nem támogatott. Kérjük, adja meg a format=old paramétert a kérés szövegében."
   },
   {
     "id": "api.command_shrug.name",
@@ -7084,7 +7032,7 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "A billentyűparancsok nem támogatottak az ön készülékén."
+    "translation": "A billentyűparancsok nem támogatottak az ön eszközén."
   },
   {
     "id": "api.command_shortcuts.name",
@@ -7120,7 +7068,7 @@
   },
   {
     "id": "api.command_share.share_read_only.hint",
-    "translation": "[readonly] - 'Y' vagy 'N'. Alapértelmezés szerint 'N'"
+    "translation": "[csakolvasható] - 'Y' vagy 'N'. Alapértelmezés szerint 'N'"
   },
   {
     "id": "api.command_share.share_read_only.help",
@@ -7196,7 +7144,7 @@
   },
   {
     "id": "api.command_share.hint",
-    "translation": "[action]"
+    "translation": "[művelet]"
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
@@ -7256,7 +7204,7 @@
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
-    "translation": "Nem sikerült visszavonni a meghívást `{{.RemoteId}} `: {{.Error}}"
+    "translation": "Nem sikerült visszavonni a meghívást `{{.RemoteId}}`: {{.Error}}"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
@@ -7284,7 +7232,7 @@
   },
   {
     "id": "api.command_share.channel_invite.error",
-    "translation": "Hiba történt \"{{.Name}}\" meghívásakor erre a csatornára: {{.Error}}"
+    "translation": "Hiba történt `{{.Name}}` meghívásakor erre a csatornára: {{.Error}}"
   },
   {
     "id": "api.command_share.available_actions",
@@ -7304,7 +7252,7 @@
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "A keresési parancs nem támogatott az Ön készülékén."
+    "translation": "A keresési parancs nem támogatott az Ön eszközén."
   },
   {
     "id": "api.command_search.name",
@@ -7324,7 +7272,7 @@
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "Nincs megfelelő jogosultsága a tag eltávolításához."
+    "translation": "Nincs elegendő jogosultsága a tag eltávolításához."
   },
   {
     "id": "api.command_remove.name",
@@ -7332,11 +7280,11 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Nem találtuk meg a felhasználót. Lehet, hogy a rendszeradminisztrátor deaktiválta őket."
+    "translation": "Nem találtuk meg a felhasználót. Lehet, hogy a rendszer adminisztrátor deaktiválta őket."
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "Az üzenetet el kell látni /remove, vagy /kick paranccsal."
+    "translation": "Az üzenetet el kell látni /eltávolítás, vagy /kick paranccsal."
   },
   {
     "id": "api.command_remove.hint",
@@ -7344,7 +7292,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "A felhasználó nem távolítható el a csatornáról, mert a tagja azon csoportnak ami hivatkozik erre a csatornára. Ahhoz hogy eltávolítsa, először a hivatkozott csoportból kell kiléptetni."
+    "translation": "A felhasználó nem távolítható el a csatornáról, mert tagja azon csoportnak ami hozzá van rendelve ehhez a csatornához. Az eltávolításhoz a kapcsolt csoportból kell kiléptetni."
   },
   {
     "id": "api.command_remove.direct_group.app_error",
@@ -7456,7 +7404,7 @@
   },
   {
     "id": "api.command_remote.hint",
-    "translation": "[action]"
+    "translation": "[művelet]"
   },
   {
     "id": "api.command_remote.fetch_status.error",
@@ -7488,7 +7436,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Az Kép-hivatkozások mostantól alapból össze vannak csukva"
+    "translation": "Az kép hivatkozások mostantól alapból össze vannak csukva"
   },
   {
     "id": "api.command_collapse.name",
@@ -7512,7 +7460,7 @@
   },
   {
     "id": "api.command_code.desc",
-    "translation": "Kódblokkként jelenítse meg a szöveget"
+    "translation": "A szöveget kód blokként jelenítse meg"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -7544,7 +7492,7 @@
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "A közvetlen üzenet küldési csatornából nem lehet kilépni."
+    "translation": "A közvetlen üzenet küldési csatornákat nem lehet átnevezno."
   },
   {
     "id": "api.command_channel_rename.desc",
@@ -7568,7 +7516,7 @@
   },
   {
     "id": "api.command_channel_purpose.name",
-    "translation": "célja"
+    "translation": "cél"
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
@@ -7580,7 +7528,7 @@
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "A közvetlen üzenetcsatornákra nem lehet célt beállítani. Inkább használja a /header parancsot a fejléc beállításához."
+    "translation": "A közvetlen üzenet csatornákra nem lehet célt beállítani. Inkább használja a /header parancsot a fejléc beállításához."
   },
   {
     "id": "api.command_channel_purpose.desc",
@@ -7620,7 +7568,7 @@
   },
   {
     "id": "api.command_away.success",
-    "translation": "Ön most nincs a gépnél"
+    "translation": "Ön mostantól nincs a gépnél"
   },
   {
     "id": "api.command_away.name",
@@ -7640,7 +7588,7 @@
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Kérem adjon meg egy, vagy több érvényes e-mail címet"
+    "translation": "Kérem adjon meg egy vagy több érvényes e-mail címet"
   },
   {
     "id": "api.command.invite_people.name",
@@ -7652,7 +7600,7 @@
   },
   {
     "id": "api.command.invite_people.hint",
-    "translation": "[name@domain.com ...]"
+    "translation": "[nev@webcim.hu ...]"
   },
   {
     "id": "api.command.invite_people.fail",
@@ -7664,15 +7612,15 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "Az e-mail meghívók le vannak tiltva, meghívó(k) nem let(ek) kiküldve"
+    "translation": "Az e-mail meghívók le vannak tiltva, a meghívó(k) nem lett(ek) kiküldve"
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Küldjön egy e-mail meghívót az ön Mattermost csapatához"
+    "translation": "Küldjön egy e-mail meghívót az Ön Mattermost csapatának"
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Parancs indító nem található."
+    "translation": "Parancs indító kulcsszó nem található."
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
@@ -7680,27 +7628,27 @@
   },
   {
     "id": "api.command.execute_command.format.app_error",
-    "translation": "A parancs elejéről hiányzik az indító perjel"
+    "translation": "A kulcsszó parancs elejéről hiányzik az indító perjel"
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "A '{{.Trigger}}' indítóval ellátott parancs a következő válassza tért vissza: {{.Status}}."
+    "translation": "A '{{.Trigger}}' kulcsszóval ellátott parancs válassza {{.Status}} volt."
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "A '{{.Trigger}}' indítóval ellátott parancs üres válasszal tért vissza."
+    "translation": "A '{{.Trigger}}' kulcsszóval ellátott parancs üres válasszal tért vissza."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "A '{{.Trigger}}' indítóval ellátott parancs sikertelen volt."
+    "translation": "A '{{.Trigger}}' kulcsszóval ellátott parancs sikertelen volt."
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "A {{.Trigger}} parancs nem válaszolt. Kérjük, forduljon a rendszergazdához."
+    "translation": "A '{{.Trigger}}' parancs nem küldött választ. Kérjük forduljon a rendszergazdához."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "Ez az indító szó már használva van. Kérem válasszon egy másik szót."
+    "translation": "Ez a kulcsszó már használva van. Kérem válasszon egy másik szót."
   },
   {
     "id": "api.command.disabled.app_error",
@@ -7712,7 +7660,7 @@
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Az integrációk csak a rendszergazdáknak megengedett."
+    "translation": "Az integrációk csak a rendszergazdáknak engedélyezettek."
   },
   {
     "id": "api.cloud.request_error",
@@ -7724,11 +7672,11 @@
   },
   {
     "id": "api.cloud.get_subscription.error",
-    "translation": "Hiba történt a felhő előfizetés lekérdezésekor."
+    "translation": "Hiba történt a cloud előfizetés lekérdezésekor."
   },
   {
     "id": "api.cloud.get_admins_emails.error",
-    "translation": "Hiba történt a rendszergazda emailcíme lekérdezésekor."
+    "translation": "Hiba történt a rendszergazdák e-mailcímeinek lekérdezésekor."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
@@ -7740,7 +7688,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "A megadott szerepkört egy rendszer-Séma látja el, éppen ezért nem lehet közvetlenül a csapattagra alkalmazni."
+    "translation": "A megadott szerepkört egy séma kezeli, éppen ezért nem lehet közvetlenül egy csatorna tagra alkalmazni."
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
@@ -7752,23 +7700,23 @@
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "A licenc nem támogatja a csatorna rendszer frissítését"
+    "translation": "A licence nem támogatja a csatorna sémájának frissítését"
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "Az alapértelmezett csatorna nem állítható be privátnak."
+    "translation": "Az alapértelmezett csatorna nem állítható át privátnak."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "A megadott szerepkört egy rendszer-Séma látja el, éppen ezért nem lehet közvetlenül a csatorna tagokra alkalmazni."
+    "translation": "A megadott szerepkört egy séma kezeli, éppen ezért nem lehet közvetlenül egy csatorna tagra alkalmazni."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "Érvénytelen csatornatag frissítés: A felhasználónak vendégnek vagy felhasználónak kell lennie, de nem lehet mindkettő."
+    "translation": "Érvénytelen csatorna tagság frissítés: A felhasználónak vendégnek vagy felhasználónak kell lennie, de nem lehet mindkettő."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Érvénytelen csatornatag frissítés: Nem lehet hozzáadni vagy eltávolítani a vendég szerepkört manuálisan."
+    "translation": "Érvénytelen csatorna tagság frissítés: Nem lehet hozzáadni vagy eltávolítani a vendég szerepkört manuálisan."
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
@@ -7784,15 +7732,15 @@
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} visszavonta a csatorna archiválását."
+    "translation": "{{.Username}} visszaállította a csatornát."
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "A csatorna archiválása nem lehetséges. A csatorna nem került archiválásra."
+    "translation": "A csatorna visszaállítása nem lehetséges. A csatorna nem archivált."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-    "translation": "Nem lehet átnevezni a csoportüzenet-csatornákat."
+    "translation": "Csoportos üzenetcsatorna átnevezése nem lehetséges."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -7800,11 +7748,11 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Ehhez a csatornatípushoz nem adható hozzá felhasználó."
+    "translation": "Ezen csatorna típusokból felhasználók nem távolíthatóak el."
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Csatorna-tagság eltávolítása a következő felhasználóknak nem engedélyezett, a csoportkorlátozások miatt: {{.UserIDs}}"
+    "translation": "Csatorna-tagság eltávolítása a következő felhasználóknak nem engedélyezett, a csoport tagság miatt: {{.UserIDs}}"
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -7820,7 +7768,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Az alapértelmezett csatorna nem törölhető, {{.Channel}}."
+    "translation": "Az alapértelmezett csatorna {{.Channel}} nem törölhető."
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
@@ -7828,11 +7776,11 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s csatorna fejléce frissítve: %s -re"
+    "translation": "%s frissítette a csatorna fejlécét %s -re"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-    "translation": "%s csatorna fejléce frissítve: %s -ről: %s -re"
+    "translation": "%s frissítette a csatorna fejlécét %s -ről %s -re"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
@@ -7848,15 +7796,15 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s csatorna neve frissítve: %s -ről: %s -re"
+    "translation": "%s frissítette a csatorna nevét %s -ről %s -re"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Nem sikerült lekérdezni a felhasználót a csatorna frissítést a MegjelenítésiNév mezőnél"
+    "translation": "Nem sikerült lekérdezni a felhasználót a csatorna DisplayName mezőjének frissítéséhez"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Nem sikerült beküldeni a megjelenítési nevet a frissítési üzenetnél"
+    "translation": "Nem sikerült beküldeni a megjelenítési név frissítési üzenetet"
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -7876,7 +7824,7 @@
   },
   {
     "id": "api.channel.move_channel.type.invalid",
-    "translation": "Nem lehet közvetlen vagy csoportos üzenetcsatornákat áthelyezni"
+    "translation": "Nem lehet közvetlen vagy csoportos üzenet csatornákat áthelyezni"
   },
   {
     "id": "api.channel.leave.left",
@@ -7884,15 +7832,15 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ön az egyetlen tag próbálkozzon a privát csatorna eltávolításával a kilépés helyett."
+    "translation": "Ön az egyetlen megmaradt tag, kilépés helyett próbálkozzon a privát csatorna eltávolításával."
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "A közvetlen üzenet küldési csatornából nem lehet kilépni."
+    "translation": "Közvetlen üzenet csatornából nem lehet kilépni."
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Az alapértelmezett csatornából nem lehet kilépni {{.Channel}}."
+    "translation": "Az alapértelmezett csatornából {{.Channel}} nem lehet kilépni."
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
@@ -7920,7 +7868,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Az alapértelmezett csatorna nem törölhető, {{.Channel}}."
+    "translation": "Az alapértelmezett csatorna {{.Channel}} nem törölhető."
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -7940,11 +7888,11 @@
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Közösségi tér"
+    "translation": "Főtér"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Más témák"
+    "translation": "Egyéb Téma"
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -7972,11 +7920,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Ez a csatorna nyilvános csatornává lett alakítva és bárki bármilyen csapatból csatlakozhat hozzá."
+    "translation": "Ez a csatorna nyilvános csatornává lett alakítva és bármilyen csapattag csatlakozhat hozzá."
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Ehhez a csatornatípushoz nem adható hozzá felhasználó."
+    "translation": "Ehhez a csatorna típushoz nem adható hozzá felhasználó."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -7984,11 +7932,11 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Nem sikerült hozzáadni a csatornához a felhasználót."
+    "translation": "Nem sikerült hozzáadni a felhasználót a csatornához."
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "A csatorna tagság megtagadva a következő felhasználóknak, csoportkorlátozások miatt: {{.UserIDs}}"
+    "translation": "A csatorna tagság megtagadva a következő felhasználóknak, csoport összeférhetetlenség miatt: {{.UserIDs}}"
   },
   {
     "id": "api.channel.add_members.error",
@@ -8004,27 +7952,27 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Kérem, adjon hozzá azokhoz a csapatokhoz és csatornához, amelyekben szeretné, hogy működjek. Ehhez kérem használjon egy böngészőt vagy a Mattermost alkalmazást."
+    "translation": "Kérem, adjon hozzá azokhoz a csapatokhoz és csatornákhoz, amelyekben szeretné, hogy részt vegyek. Ehhez használjon egy böngészőt vagy a Mattermost alkalmazást."
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "A profilképet nem lehetett feltölteni. A fájl túl nagy."
+    "translation": "Az ikon képet nem lehetett feltölteni. A fájl túl nagy."
   },
   {
     "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nem sikerült tagolnia többrészes űrlapot."
+    "translation": "Nem sikerült értelmezni a többrészes űrlapot."
   },
   {
     "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "A Képfájl nem nyitható meg.."
+    "translation": "A képfájl nem nyitható meg."
   },
   {
     "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'kép' mezőben."
+    "translation": "Nincs fájl a kérés 'image' mezőjében."
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Üres a tömb a 'kép' alatt a kérésnél."
+    "translation": "Üres tömb a kérés 'image' mezőjében."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
@@ -8056,19 +8004,19 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Nem sikerült tagolni a többrészes formot."
+    "translation": "Nem sikerült értelmezni a többrészes formot."
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'kép' mezőben."
+    "translation": "Nincs fájl a kérés 'image' elemében."
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Üres a tömb a 'kép' alatt a kérésben."
+    "translation": "Üres a tömb a kérés 'image' elemében."
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "Az S3 Bucket szükséges"
+    "translation": "S3 Bucket szükséges"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -8080,7 +8028,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " hozzászolt a bejegyzésedhez."
+    "translation": " hozzászólt a bejegyzésedhez."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -8096,7 +8044,7 @@
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Itt csak a jogosultággal rendelkező tagok távolíthatnak el kitűzött bejegyzéseket."
+    "translation": "Ez a csatorna írásvédett. Itt csak a jogosultággal rendelkező tagok tűzhetnek ki/szedhetnek le bejegyzéseket."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -8104,7 +8052,7 @@
   },
   {
     "id": "api.post.link_preview_disabled.app_error",
-    "translation": "A rendszeradminisztrátor letiltotta a hivatkozások előnézetét."
+    "translation": "A rendszer adminisztrátor letiltotta a hivatkozások előnézetét."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -8134,15 +8082,15 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@herecsatorna le lett tiltva mert a csatornának több mint {{.Users}} felhasználója van."
+    "translation": "@here le lett tiltva mert a csatornának több mint {{.Users}} tagja van."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel csatorna le lett tiltva mert a csatornának több mint {{.Users}} felhasználója van."
+    "translation": "@channel le lett tiltva mert a csatornának több mint {{.Users}} tagja van."
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all csatorna le lett tiltva mert a csatornának több mint {{.Users}} felhasználója van."
+    "translation": "@all le lett tiltva mert a csatornának több mint {{.Users}} felhasználója van."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -8150,7 +8098,7 @@
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Bejegyzés elutasítva mivel egy másik kliens ugyanazt a kérést csinálja."
+    "translation": "Bejegyzés elutasítva mivel egy másik kliens ugyanazt a kérést küldte be."
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
@@ -8162,7 +8110,7 @@
   },
   {
     "id": "api.post.create_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Csak a jogosultsággal rendelkező tagok jegyezhetnek be ide."
+    "translation": "Ez a csatorna írásvédett. Csak a jogosultsággal rendelkező tagok írhatnak ide."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -8178,7 +8126,7 @@
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": "Nem lehet bejegyezni egy törölt csatornába."
+    "translation": "Nem lehet üzenni egy törölt csatornába."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
@@ -8186,15 +8134,15 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} és @{{.LastUsername}} nem lettek értesítve az említésről mert nincsenek a csatornában."
+    "translation": "@{{.Usernames}} és @{{.LastUsername}} nem lettek értesítve az említésről, mert nincsenek a csatornában."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Usernames}}nem lett értesítve az említésről mert nincs a csatornában. Nem lehet hozzáadni a csatornához mert nem tagja a kapcsolódó csoportoknak. A csatornához adáshoz először hozzá kell adni a kapcsolódó csoportokhoz."
+    "translation": "@{{.Username}} nem lett értesítve az említésről mert nincsen a csatornában. Nem lehet őt hozzáadni a csatornához mert nem tagja a kapcsolódó csoportoknak. A csatornához adáshoz hozzá kell őt adni a kapcsolódó csoportok valamelyikéhez."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} és @{{.LastUsername}} nem lettek értesítve az említésről mert nincsenek a csatornában. Nem lehet őket hozzáadni a csatornához mert nem tagjai a kapcsolódó csoportoknak. A csatornához adásukhoz először hozzá kell őket adni a kapcsolódó csoportokhoz."
+    "translation": "@{{.Usernames}} és @{{.LastUsername}} nem lettek értesítve az említésről mert nincsenek a csatornában. Nem lehet őket hozzáadni a csatornához mert nem tagjai a kapcsolódó csoportoknak. A csatornához adásukhoz hozzá kell őket adni a kapcsolódó csoportok valamelyikéhez."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
@@ -8206,7 +8154,7 @@
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Hiányzó fájl a többrészes/űrlapkérésben."
+    "translation": "Hiányzó fájl a többrészes/űrlap kérésben."
   },
   {
     "id": "api.plugin.upload.file.app_error",
@@ -8214,7 +8162,7 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "A tömb üres a többrészes/űrlapkérés során."
+    "translation": "A fájl tömb üres a többrészes/űrlap kérés során."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -8242,7 +8190,7 @@
   },
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
-    "translation": "Hiba történt a hozzáférési jogkivonat beolvasásakor az adatbázisból történő törlés előtt."
+    "translation": "Hiba történt a hozzáférési token beolvasásakor az adatbázisból történő törlés előtt."
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
@@ -8254,7 +8202,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "A rendszeradminisztrátor kikapcsolta az OAuth2 azonosítás szolgáltatást."
+    "translation": "A rendszer adminisztrátor kikapcsolta az OAuth2 hitelesítés szolgáltatást."
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -8278,19 +8226,19 @@
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
-    "translation": "invalid_request: Hiányzó Kód."
+    "translation": "invalid_request: Hiányzó code."
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error: Belső szerverhiba történt, miközben a felhasználót az adatbázisból lehívtuk."
+    "translation": "server_error: Belső szerverhiba történt a felhasználó adatbázisból lekérése közben."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error: Belső szerverhiba történt a munkamenet adatbázisba mentése közben."
+    "translation": "server_error: Belső szerverhiba történt a munkamenet adatbázisba írása közben."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": "server_error: Belső szerverhiba történt az adatbázishoz hozzáférési token mentése közben."
+    "translation": "server_error: Belső szerverhiba történt a hozzáférési token adatbázisba írása közben."
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
@@ -8302,15 +8250,15 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "A rendszeradminisztrátor kikapcsolta az OAuth2 szolgáltatót."
+    "translation": "A rendszer adminisztrátor kikapcsolta az OAuth2 hitelesítés szolgáltatót."
   },
   {
     "id": "api.oauth.get_access_token.credentials.app_error",
-    "translation": "invalid_client: Érvénytelen kliens tanusítványok."
+    "translation": "invalid_client: Érvénytelen ügyfél hitelesítési adatok."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
-    "translation": "invalid_request: Rossz grant_type érték."
+    "translation": "invalid_request: Rossz grant_type."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_secret.app_error",
@@ -8326,7 +8274,7 @@
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
-    "translation": "A rendszeradminisztrátor kikapcsolta az OAuth2 Szolgáltatást."
+    "translation": "A rendszer adminisztrátor kikapcsolta az OAuth2 szolgáltatás biztosítót."
   },
   {
     "id": "api.oauth.auth_complete",
@@ -8334,7 +8282,7 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "A rendszeradminisztrátor kikapcsolta az OAuth2 Szolgáltatást."
+    "translation": "A rendszer adminisztrátor kikapcsolta az OAuth2 szolgáltatás biztosítót."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -8342,31 +8290,31 @@
   },
   {
     "id": "api.no_license",
-    "translation": "E10 vagy E20 -as licensz szükséges ennek a végpontnak a használatához."
+    "translation": "E10 vagy E20 -as licenc szükséges ennek a végpontnak a használatához."
   },
   {
     "id": "api.migrate_to_saml.error",
-    "translation": "Nem sikerült áttelepíteni a SAML-t."
+    "translation": "Nem sikerült migrálni az SAML-t."
   },
   {
     "id": "api.marshal_error",
-    "translation": "komoly hiba"
+    "translation": "értelmezési hiba"
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nem kérhető próbalicenc. Kérjük, konfigurálja a Webhely URL-jét a Mattermost Rendszer konzol webkiszolgáló részében."
+    "translation": "Nem kérhető próba licenc. Kérjük, konfigurálja a Webhely URL-jét a Mattermost Rendszerkonzol webkiszolgáló részében."
   },
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Nem sikerült megszerezni a próbalicencet, próbálkozzon újra, vagy forduljon a support@mattermost.com e-mail címhez. Nem lehet megszerezni a regisztrált felhasználók számát."
+    "translation": "Nem sikerült megszerezni a próba licencet, kérjük próbálkozzon újra, vagy írjon a support@mattermost.com címre. Nem lehet lekérni a regisztrált felhasználók számát."
   },
   {
     "id": "api.license.request_trial_license.app_error",
-    "translation": "Nem sikerült megszerezni a próbalicencet, próbálkozzon újra, vagy forduljon a support@mattermost.com e-mail címhez."
+    "translation": "Nem sikerült megszerezni a próba licencet, kérjük próbálkozzon újra, vagy írjon a support@mattermost.com címre."
   },
   {
     "id": "api.license.request_renewal_link.app_error",
-    "translation": "Hiba történt a licenszmegújítási link lekérése közben"
+    "translation": "Hiba történt a licenc megújítási link lekérése közben"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -8378,51 +8326,51 @@
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
-    "translation": "A licence eltávolítási email kérelem elküldése sikertelen volt."
+    "translation": "A licenc eltávolítási e-mail kérelem elküldése sikertelen volt."
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "A kliens konfiguráció új formátuma még nem támogatott. Kérjük, adja meg következőképpen: format=old a lekérdezési karakterláncban."
+    "translation": "Az ügyfél licenc új formátuma még nem támogatott. Kérjük, adja meg a format=old attribútumot a lekérdezésben."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Ez a licence csak {{.Users}} felhasználót engedélyez, de a te rendszereden {{.Count}} egyedi felhasználó található. Az Egyedi felhasználók email cím alapján vannak megkülönböztetve. Te magad is ellenőrizheted a felhasználók számát az Oldal Jelentések -> Statisztika megtekintése oldalon."
+    "translation": "Ez a licence csak {{.Users}} felhasználót engedélyez, de ebben a rendszerben {{.Count}} egyedi felhasználó található. Az egyedi felhasználókat e-mail címeik alapján különböztetjük meg. Te magad is ellenőrizheted a felhasználók számát az Oldal Jelentések -> Statisztika megtekintése oldalon."
   },
   {
     "id": "api.license.add_license.save_active.app_error",
-    "translation": "Az Aktív licence ID nem lett jól elmentve."
+    "translation": "Az aktív licenc ID nem lett jól elmentve."
   },
   {
     "id": "api.license.add_license.save.app_error",
-    "translation": "A Licence fájl hibásan lett mentve."
+    "translation": "A Licenc fájl hibásan lett mentve."
   },
   {
     "id": "api.license.add_license.open.app_error",
-    "translation": "A licence fájlt nem lehet megnyitni."
+    "translation": "A licenc fájlt nem lehet megnyitni."
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'licence' mezőben."
+    "translation": "Nincs megadva fájl a 'licenc' mezőben."
   },
   {
     "id": "api.license.add_license.invalid_count.app_error",
-    "translation": "Nem sikerült az összes felhasználó számot megállapítani."
+    "translation": "Nem sikerült az összes egyedi felhasználók számát megállapítani."
   },
   {
     "id": "api.license.add_license.invalid.app_error",
-    "translation": "Érvénytelen licensz fájl."
+    "translation": "Érvénytelen licenc fájl."
   },
   {
     "id": "api.license.add_license.expired.app_error",
-    "translation": "A licensz vagy lejárt, vagy nincs aktiválva."
+    "translation": "A licenc vagy lejárt, vagy nincs aktiválva."
   },
   {
     "id": "api.license.add_license.array.app_error",
-    "translation": "Üres a tömb a 'licence' alatt a kérésnél."
+    "translation": "Üres a tömb a 'licenc' alatt a kérésnél."
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "Az Ön licensze nem támogatja az LDAP csoportokat"
+    "translation": "az Ön licence nem támogatja az LDAP csoportokat"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
@@ -8446,7 +8394,7 @@
   },
   {
     "id": "api.job.unable_to_download_job",
-    "translation": "Nem lehet letölteni a munkát"
+    "translation": "Nem lehet letölteni ezt a munkát"
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -8458,7 +8406,7 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output hiba"
+    "translation": "bemenet/kimenet hiba"
   },
   {
     "id": "api.invalid_redirect_url",
@@ -8478,11 +8426,11 @@
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
-    "translation": "A rendszeradminisztrátor letiltotta a bejövő webhook-okat."
+    "translation": "A rendszer adminisztrátor letiltotta a bejövő webhook-okat."
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "A kért url nem értelmezhető."
+    "translation": "A kért kép url nem értelmezhető."
   },
   {
     "id": "api.getThreadsForUser.bad_params",
@@ -8494,7 +8442,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Fájl feltöltése sikertelen: {{.Filename}}. {{.Length}} byte-al haladja meg a megengedett maximális {{.Limit}} byte méretet."
+    "translation": "{{.Filename}} fájl feltöltése sikertelen. {{.Length}} byte-al haladja meg a megengedett maximális {{.Limit}} byte méretet."
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -8502,11 +8450,11 @@
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Fájlfeltöltési hiba. Hiba történt a kérelmek olvasása vagy elemzése során."
+    "translation": "Fájl feltöltési hiba. Hiba történt a kérés olvasása vagy feldolgozása során."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Sikertelen fájlfeltöltés. Érték olvasási hiba: {{.Formname}}."
+    "translation": "Sikertelen fájl feltöltés. Érték olvasási hiba: {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
@@ -8526,7 +8474,7 @@
   },
   {
     "id": "api.command_remote.accept_invitation",
-    "translation": "Meghívó elfogadva és megerősítve\nOldalURL: {{.SiteURL}}"
+    "translation": "Meghívó elfogadva és megerősítve.\nOldal URL: {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.accept.help",
@@ -8550,11 +8498,11 @@
   },
   {
     "id": "api.command_offline.success",
-    "translation": "Ön mostantól nem elérhető"
+    "translation": "Ön mostantól Nem elérhető"
   },
   {
     "id": "api.command_offline.name",
-    "translation": "offline"
+    "translation": "nemelérhető"
   },
   {
     "id": "api.command_offline.desc",
@@ -8566,15 +8514,15 @@
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "A(z) {{.Channel}} nincs többé elnémítva."
+    "translation": "{{.Channel}} csatorna nincs többé elnémítva."
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
-    "translation": "Nem fog kapni értesítéseket ezen a csatornán, amíg a csatorna el van némítva."
+    "translation": "Nem fog kapni értesítéseket ezen a csatornán, amíg a csatorna vissza nem lesz hangosítva."
   },
   {
     "id": "api.command_mute.success_mute",
-    "translation": "Nem fog kapni értesítéseket a(z) {{.Channel}} csatornán, amíg a csatorna el van némítva."
+    "translation": "Nem fog kapni értesítéseket a {{.Channel}} csatornán, amíg a csatorna el van némítva."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -8598,11 +8546,11 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Kikapcsolja az asztali, e-mail és push értesítéseket az aktuális csatornán vagy a(z) [channel] csatornán."
+    "translation": "Kikapcsolja az asztali, e-mail és push értesítéseket az aktuális csatornán vagy a megadott [channel] csatornán."
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "Nincs megfelelő jogosultsága, hogy közvetlen üzenetet küldjön a felhasználónak."
+    "translation": "Nincs megfelelő jogosultsága, hogy közvetlen üzenetet küldjön ennek a felhasználónak."
   },
   {
     "id": "api.command_msg.name",
@@ -8614,7 +8562,7 @@
   },
   {
     "id": "api.command_msg.hint",
-    "translation": "@[felhasználói név] 'üzenet'"
+    "translation": "@[felhasználónév] 'üzenet'"
   },
   {
     "id": "api.command_msg.fail.app_error",
@@ -8670,7 +8618,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Nem találtuk meg a keresett csatornát."
+    "translation": "Nem találtuk meg a csatornát."
   },
   {
     "id": "api.command_join.list.app_error",
@@ -8686,11 +8634,11 @@
   },
   {
     "id": "api.command_join.desc",
-    "translation": "Csatlakozzon a nyitott csatornához"
+    "translation": "Csatlakozzon a nyílt csatornához"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
-    "translation": "Nincs jogosultsága új felhasználók meghívására erre a kiszolgálóra."
+    "translation": "Nincs jogosultsága új felhasználók meghívására ebbe a kiszolgálóra."
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
@@ -8698,7 +8646,7 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "A(z) {{.User}} már a csatornában van."
+    "translation": "{{.User}} már a csatornában van."
   },
   {
     "id": "api.command_invite.success",
@@ -8718,7 +8666,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Nem találtuk meg a felhasználót. Lehet, hogy a rendszeradminisztrátor deaktiválta őket."
+    "translation": "Nem található meg a felhasználó. Lehet, hogy a rendszer adminisztrátor deaktiválta."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -8762,7 +8710,7 @@
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
-    "translation": "Nincs megfelelő jogosultsága új csoportüzenet létrehozásához."
+    "translation": "Nincs megfelelő jogosultsága új csoportos üzenet létrehozásához."
   },
   {
     "id": "api.command_groupmsg.name",
@@ -8780,7 +8728,7 @@
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
       "one": "Nem található a felhasználó: {{.Users}}",
-      "other": "Nem sikerült megtalálni a felhasználókat: {{.Users}}"
+      "other": "Nem találhatóak a felhasználók: {{.Users}}"
     }
   },
   {
@@ -8793,7 +8741,7 @@
   },
   {
     "id": "api.command_groupmsg.fail.app_error",
-    "translation": "Hiba történt a üzenetküldés közben."
+    "translation": "Hiba történt az üzenetküldés közben."
   },
   {
     "id": "api.command_groupmsg.desc",
@@ -8805,7 +8753,7 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Az kép-hivatkozások alapértelmezés szerint ki vannak nyitva"
+    "translation": "Az kép hivatkozások alapértelmezés szerint ki vannak nyitva"
   },
   {
     "id": "api.command_expand.name",
@@ -8813,7 +8761,7 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "Kapcsolja ki a képelőnézetek automatikus összecsukását"
+    "translation": "Kapcsolja ki a kép előnézetek automatikus összecsukását"
   },
   {
     "id": "api.command_echo.name",
@@ -8829,7 +8777,7 @@
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "Magas szintű echo kérelem, nem feldolgozható."
+    "translation": "Túl sok echo kérelem, a kérés nem feldolgozható."
   },
   {
     "id": "api.command_echo.desc",
@@ -8841,7 +8789,7 @@
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "A Ne zavarjanak engedélyezve van. Az asztali vagy mobil push értesítéseket nem kapja meg, amíg a Ne zavarjanak ki nincs kapcsolva."
+    "translation": "A Ne zavarj mód engedélyezve van. Az asztali vagy mobil push értesítéseket nem kapja meg, amíg a Ne zavarj mód ki nincs kapcsolva."
   },
   {
     "id": "api.command_dnd.name",
@@ -8849,11 +8797,11 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "A ne zavarjanak állapot az asztali és mobil push értesítések letiltja."
+    "translation": "A ne zavarj mód az asztali és mobil push értesítéseket letiltja."
   },
   {
     "id": "api.command_custom_status.success",
-    "translation": "Az Ön állapot “{{.EmojiName}} {{.StatusMessage}}” van állítva. Megváltoztathatja az állapotát az állapot ablakból a csatorna oldalsáv fejlécében."
+    "translation": "Az Ön állapota mostantól “{{.EmojiName}} {{.StatusMessage}}”. Megváltoztathatja az állapotát az állapot ablakból a csatorna oldalsáv fejlécében."
   },
   {
     "id": "api.command_custom_status.name",
@@ -8877,7 +8825,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Email beállítások tesztelése"
+    "translation": "Mattermost - E-mail beállítások tesztelése"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -8889,7 +8837,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "Úgy tűnik a Mattermost email helyesen be van állítva!"
+    "translation": "Úgy tűnik a Mattermost e-mail helyesen van beállítva!"
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
@@ -8901,7 +8849,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "A tanúsítvány szövege nem megfelelő."
+    "translation": "Érvénytelen tanúsítvány szöveg."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -8909,35 +8857,35 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Hiba történt a szolgáltatói metaadatok építése során."
+    "translation": "Hiba történt a szolgáltatói metaadatok felépítése során."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Hiányzó identitásszolgáltató SSO leíró csomópontok az XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató SSO szolgáltatások csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Hiányzó identitás-szolgáltató kulcsleírók a csomópont XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató kulcs infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Hiányzó identitásszolgáltató SSO leíró csomópontok az XML-ben."
+    "translation": "Hiányzó Személyazonossági Szolgáltató SSO infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
-    "translation": "Tanúsítványfájl mentése sikertelen."
+    "translation": "Nem sikerült a tanúsítvány fájl mentése."
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
-    "translation": "Nem sikerült visszaállítani az AuthData mezőt E-mailre."
+    "translation": "Nem sikerült visszaállítani az AuthData mezőt e-mailre."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Hiba történt a személyazonosság-szolgáltatótól kapott metaadat-adatok tanúsítványként történő elemzése során."
+    "translation": "Hiba történt a Személyazonossági Szolgáltatótól kapott metaadat-adatok tanúsítványként történő elemzése során."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Metadata beszerzése sikertelen a Személyazonossági Szolgáltató URL től."
+    "translation": "Metadata beszerzése sikertelen a Személyazonossági Szolgáltató URL-ből."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -8953,31 +8901,31 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Hiba a log-fájl beolvasása közben."
+    "translation": "Hiba a naplófájl beolvasása közben."
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Nem sikerült törölni az egyedi cég képét, nem található."
+    "translation": "Nem sikerült törölni az egyediesítés képét, nem található."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Tanúsítványfájl mentése sikertelen."
+    "translation": "Tanúsítvány fájl mentése sikertelen."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
-    "translation": "Hiba történt a multiform kérés tagolás közben"
+    "translation": "Hiba történt a multiform kérés értelmezése közben"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Tanúsítványfájl megnyitása sikertelen."
+    "translation": "Tanúsítvány fájl megnyitása sikertelen."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Nincs megadva fájl a 'tanúsítvány' mezőben."
+    "translation": "Nincs megadva fájl a kérés 'certificate' mezőjében."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Nincs megadva fájl a 'tanúsítvány' mezőben."
+    "translation": "Nincs megadva fájl a kérés 'certificate' mezőjében."
   },
   {
     "id": "September",
@@ -9062,10 +9010,6 @@
   {
     "id": "app.notification.body.dm.subTitle",
     "translation": "Amíg távol volt, {{.SenderName}} új közvetlen üzenetet küldött Önnek."
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Nem sikerült elküldeni a próbaverzió lejárt e-mailt"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -9188,7 +9132,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Nem lehet felhőellenőrzést végezni a határértéknél vagy a határérték felett."
+    "translation": "Nem lehet ellenőrizni a felhasználók számát a Mattermost cloud telepítésben."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -9245,5 +9189,49 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Adat megőrzési feladat hibára futott."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, az előfizetésed le fog járni {{.Days}} nap múlva. Reméljük, hogy sikeresen megismerted a rugalmas, biztonságos csoportmunkát, amit a Mattermost biztosít. Újítsd meg mihamarabb az előfizetésed, hogy a csapatod tovább élvezhesse eme szolgáltatások nyújtotta előnyöket."
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Hiba történt a licenc megújító e-mailek küldése közben"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "A Mattermost előfizetése megújításra szorul"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "A megújításhoz jelentkezzen be az Ügyfél fiókjába"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "A licence megújításra szorul"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Megújítás most"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Hiba történt a licenc megújító link elkészítése közben"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Nem lehetséges a token értelmezése az e-mail alapú visszaigazoló tokenek tiltása során"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Nem lehetséges a token eltávolítása az e-mail alapú visszaigazoló tokenek tiltása során"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Nem lehetséges a tokenek típus alapján lekérése az e-mail alapú visszaigazoló tokenek tiltása során"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Ehhez a funkcióhoz szükséges az Enterprise Kiadásra frissítenie."
   }
 ]

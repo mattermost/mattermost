@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 var GroupCmd = &cobra.Command{
@@ -129,7 +129,7 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	if channel.Type != model.CHANNEL_PRIVATE {
+	if channel.Type != model.ChannelTypePrivate {
 		return errors.New("Channel '" + args[0] + "' is not private. It cannot be group-constrained")
 	}
 

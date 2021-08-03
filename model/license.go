@@ -5,16 +5,21 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
 )
 
 const (
-	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
-	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
-	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
-	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
+	ExpiredLicenseError = "api.license.add_license.expired.app_error"
+	InvalidLicenseError = "api.license.add_license.invalid.app_error"
+	LicenseGracePeriod  = 1000 * 60 * 60 * 24 * 10 //10 days
+	LicenseRenewalLink  = "https://mattermost.com/renew/"
+)
+
+const (
+	LicenseUpForRenewalEmailSent = "LicenseUpForRenewalEmailSent"
 )
 
 var (
@@ -262,7 +267,19 @@ func (l *License) IsExpired() bool {
 
 func (l *License) IsPastGracePeriod() bool {
 	timeDiff := GetMillis() - l.ExpiresAt
-	return timeDiff > LICENSE_GRACE_PERIOD
+	return timeDiff > LicenseGracePeriod
+}
+
+func (l *License) IsWithinExpirationPeriod() bool {
+	days := l.DaysToExpiration()
+	return days <= 60 && days >= 58
+}
+
+func (l *License) DaysToExpiration() int {
+	dif := l.ExpiresAt - GetMillis()
+	d, _ := time.ParseDuration(fmt.Sprint(dif) + "ms")
+	days := d.Hours() / 24
+	return int(days)
 }
 
 func (l *License) IsStarted() bool {

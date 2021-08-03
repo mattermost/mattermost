@@ -2001,6 +2001,10 @@
     "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
   },
   {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -2457,6 +2461,14 @@
   {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "Your license does not support update permissions schemes"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Failed to generate the license renewal link"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Failed to send license up for renewal emails"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -3319,6 +3331,26 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
   },
   {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Renew now"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Your license is up for renewal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Log in to your Customer Account to renew"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Your Mattermost subscription is up for renewal"
+  },
+  {
     "id": "api.templates.mfa_activated_body.info",
     "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
   },
@@ -3839,14 +3871,6 @@
     "translation": "Login failed because of invalid password."
   },
   {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Failed to send trial ended email"
-  },
-  {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Failed to send trial ending warning email"
-  },
-  {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email."
   },
@@ -3953,6 +3977,18 @@
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
     "translation": "Unable to get user by email."
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating email verification tokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating email verification tokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating email verification tokens"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -4091,24 +4127,8 @@
     "translation": "Failed to send the deactivate account email successfully"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Failed to send email change notification email successfully"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Failed to send username change notification email successfully"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Failed to send update password email successfully"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -4123,20 +4143,8 @@
     "translation": "Failed to send update password email successfully"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Failed to send email to user limit notification to admin"
-  },
-  {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send \"Personal access token added\" email successfully"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Failed to send verification email successfully"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Failed to send welcome email successfully"
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
@@ -4144,7 +4152,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Unable to make cloud check for at or over the limit."
+    "translation": "Unable to check number of users in your Mattermost cloud instance."
   },
   {
     "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
@@ -6927,18 +6935,6 @@
     "translation": "Compliance export failed for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Failed to purge records."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "We encountered an error cleaning up the batch of flags."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention."
   },
@@ -6949,14 +6945,6 @@
   {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "Policy is invalid."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions."
   },
   {
     "id": "ent.data_retention.run_failed.error",

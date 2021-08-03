@@ -25,13 +25,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -143,7 +143,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -177,12 +177,17 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 1, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
-	assert.Equal(t, user1.Id, preferences[0].Name)
-	assert.Equal(t, "0", preferences[0].Value)
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+	assert.Equal(t, "hide", preferences[0].Name)
+	assert.Equal(t, "false", preferences[0].Value)
+
+	assert.Equal(t, user1.Id, preferences[1].UserId)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.Equal(t, user1.Id, preferences[1].Name)
+	assert.Equal(t, "0", preferences[1].Value)
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
@@ -200,7 +205,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 1, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	err = api.DeletePreferencesForUser(user1.Id, preferences)
 	require.Nil(t, err)
@@ -219,7 +224,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	preference := model.Preference{
 		Name:     user2.Id,
 		UserId:   user2.Id,
-		Category: model.PREFERENCE_CATEGORY_THEME,
+		Category: model.PreferenceCategoryTheme,
 		Value:    `{"color": "#ff0000", "color2": "#faf"}`,
 	}
 	err = api.UpdatePreferencesForUser(user2.Id, []model.Preference{preference})
@@ -227,14 +232,15 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 1, len(preferences))
-	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
+	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
@@ -252,16 +258,22 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 1, len(preferences))
+	assert.Equal(t, 2, len(preferences))
+
 	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
-	assert.Equal(t, user1.Id, preferences[0].Name)
-	assert.Equal(t, "0", preferences[0].Value)
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+	assert.Equal(t, "hide", preferences[0].Name)
+	assert.Equal(t, "false", preferences[0].Value)
+
+	assert.Equal(t, user1.Id, preferences[1].UserId)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.Equal(t, user1.Id, preferences[1].Name)
+	assert.Equal(t, "0", preferences[1].Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
 		UserId:   user1.Id,
-		Category: model.PREFERENCE_CATEGORY_THEME,
+		Category: model.PreferenceCategoryTheme,
 		Value:    `{"color": "#ff0000", "color2": "#faf"}`,
 	}
 
@@ -271,18 +283,11 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	preferences, err = api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
 
-	assert.Equal(t, 2, len(preferences))
-	expectedCategories := []string{model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, model.PREFERENCE_CATEGORY_THEME}
+	assert.Equal(t, 3, len(preferences))
+	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps}
 	for _, pref := range preferences {
 		assert.Contains(t, expectedCategories, pref.Category)
 		assert.Equal(t, user1.Id, pref.UserId)
-		assert.Equal(t, user1.Id, pref.Name)
-		if pref.Category == model.PREFERENCE_CATEGORY_TUTORIAL_STEPS {
-			assert.Equal(t, "0", pref.Value)
-		} else {
-			newTheme, _ := json.Marshal(map[string]string{"color": "#ff0000", "color2": "#faf"})
-			assert.Equal(t, string(newTheme), pref.Value)
-		}
 	}
 }
 
@@ -586,7 +591,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	t.Run("get file infos filtered by channel ordered by created at descending", func(t *testing.T) {
 		fileInfos, err := api.GetFileInfos(0, 5, &model.GetFileInfosOptions{
 			ChannelIds:     []string{th.BasicChannel.Id},
-			SortBy:         model.FILEINFO_SORT_BY_CREATED,
+			SortBy:         model.FileinfoSortByCreated,
 			SortDescending: true,
 		})
 		require.Nil(t, err)
@@ -755,7 +760,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/v5/plugin"
+      "github.com/mattermost/mattermost-server/v6/plugin"
     )
 
     type MyPlugin struct {
@@ -907,7 +912,7 @@ func TestInstallPlugin(t *testing.T) {
 
 			"github.com/pkg/errors"
 
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type configuration struct {
@@ -1316,33 +1321,33 @@ func TestPluginAPIGetConfig(t *testing.T) {
 
 	config := api.GetConfig()
 	if config.LdapSettings.BindPassword != nil && *config.LdapSettings.BindPassword != "" {
-		assert.Equal(t, *config.LdapSettings.BindPassword, model.FAKE_SETTING)
+		assert.Equal(t, *config.LdapSettings.BindPassword, model.FakeSetting)
 	}
 
-	assert.Equal(t, *config.FileSettings.PublicLinkSalt, model.FAKE_SETTING)
+	assert.Equal(t, *config.FileSettings.PublicLinkSalt, model.FakeSetting)
 
 	if *config.FileSettings.AmazonS3SecretAccessKey != "" {
-		assert.Equal(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FAKE_SETTING)
+		assert.Equal(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FakeSetting)
 	}
 
 	if config.EmailSettings.SMTPPassword != nil && *config.EmailSettings.SMTPPassword != "" {
-		assert.Equal(t, *config.EmailSettings.SMTPPassword, model.FAKE_SETTING)
+		assert.Equal(t, *config.EmailSettings.SMTPPassword, model.FakeSetting)
 	}
 
 	if *config.GitLabSettings.Secret != "" {
-		assert.Equal(t, *config.GitLabSettings.Secret, model.FAKE_SETTING)
+		assert.Equal(t, *config.GitLabSettings.Secret, model.FakeSetting)
 	}
 
-	assert.Equal(t, *config.SqlSettings.DataSource, model.FAKE_SETTING)
-	assert.Equal(t, *config.SqlSettings.AtRestEncryptKey, model.FAKE_SETTING)
-	assert.Equal(t, *config.ElasticsearchSettings.Password, model.FAKE_SETTING)
+	assert.Equal(t, *config.SqlSettings.DataSource, model.FakeSetting)
+	assert.Equal(t, *config.SqlSettings.AtRestEncryptKey, model.FakeSetting)
+	assert.Equal(t, *config.ElasticsearchSettings.Password, model.FakeSetting)
 
 	for i := range config.SqlSettings.DataSourceReplicas {
-		assert.Equal(t, config.SqlSettings.DataSourceReplicas[i], model.FAKE_SETTING)
+		assert.Equal(t, config.SqlSettings.DataSourceReplicas[i], model.FakeSetting)
 	}
 
 	for i := range config.SqlSettings.DataSourceSearchReplicas {
-		assert.Equal(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
+		assert.Equal(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FakeSetting)
 	}
 }
 
@@ -1353,33 +1358,33 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 
 	config := api.GetUnsanitizedConfig()
 	if config.LdapSettings.BindPassword != nil && *config.LdapSettings.BindPassword != "" {
-		assert.NotEqual(t, *config.LdapSettings.BindPassword, model.FAKE_SETTING)
+		assert.NotEqual(t, *config.LdapSettings.BindPassword, model.FakeSetting)
 	}
 
-	assert.NotEqual(t, *config.FileSettings.PublicLinkSalt, model.FAKE_SETTING)
+	assert.NotEqual(t, *config.FileSettings.PublicLinkSalt, model.FakeSetting)
 
 	if *config.FileSettings.AmazonS3SecretAccessKey != "" {
-		assert.NotEqual(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FAKE_SETTING)
+		assert.NotEqual(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FakeSetting)
 	}
 
 	if config.EmailSettings.SMTPPassword != nil && *config.EmailSettings.SMTPPassword != "" {
-		assert.NotEqual(t, *config.EmailSettings.SMTPPassword, model.FAKE_SETTING)
+		assert.NotEqual(t, *config.EmailSettings.SMTPPassword, model.FakeSetting)
 	}
 
 	if *config.GitLabSettings.Secret != "" {
-		assert.NotEqual(t, *config.GitLabSettings.Secret, model.FAKE_SETTING)
+		assert.NotEqual(t, *config.GitLabSettings.Secret, model.FakeSetting)
 	}
 
-	assert.NotEqual(t, *config.SqlSettings.DataSource, model.FAKE_SETTING)
-	assert.NotEqual(t, *config.SqlSettings.AtRestEncryptKey, model.FAKE_SETTING)
-	assert.NotEqual(t, *config.ElasticsearchSettings.Password, model.FAKE_SETTING)
+	assert.NotEqual(t, *config.SqlSettings.DataSource, model.FakeSetting)
+	assert.NotEqual(t, *config.SqlSettings.AtRestEncryptKey, model.FakeSetting)
+	assert.NotEqual(t, *config.ElasticsearchSettings.Password, model.FakeSetting)
 
 	for i := range config.SqlSettings.DataSourceReplicas {
-		assert.NotEqual(t, config.SqlSettings.DataSourceReplicas[i], model.FAKE_SETTING)
+		assert.NotEqual(t, config.SqlSettings.DataSourceReplicas[i], model.FakeSetting)
 	}
 
 	for i := range config.SqlSettings.DataSourceSearchReplicas {
-		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
+		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FakeSetting)
 	}
 }
 
@@ -1404,7 +1409,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1414,23 +1419,27 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		}
 
 		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path != "/api/v2/test" {
-				return
-			}
+			switch r.URL.Path {
+			case "/api/v2/test":
+				if r.URL.Query().Get("abc") != "xyz" {
+					return
+				}
 
-			if r.URL.Query().Get("abc") != "xyz" {
-				return
-			}
+				if r.Header.Get("Mattermost-Plugin-ID") != "testplugininterclient" {
+					return
+				}
 
-			if r.Header.Get("Mattermost-Plugin-ID") != "testplugininterclient" {
-				return
+				buf := bytes.Buffer{}
+				buf.ReadFrom(r.Body)
+				resp := "we got:" + buf.String()
+				w.WriteHeader(598)
+				w.Write([]byte(resp))
+				if r.URL.Path != "/api/v2/test" {
+					return
+				}
+			case "/nobody":
+				w.WriteHeader(599)
 			}
-
-			buf := bytes.Buffer{}
-			buf.ReadFrom(r.Body)
-			resp := "we got:" + buf.String()
-			w.WriteHeader(598)
-			w.Write([]byte(resp))
 		}
 
 		func main() {
@@ -1441,8 +1450,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 			"bytes"
 			"net/http"
 			"io/ioutil"
@@ -1474,7 +1483,26 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 			if resp.StatusCode != 598 {
 				return nil, "wrong status " + string(respbody)
 			}
-			return nil, string(respbody)
+
+			if string(respbody) !=  "we got:This is the request" {
+				return nil, "wrong response " + string(respbody)
+			}
+
+			req, err = http.NewRequest("GET", "/testplugininterserver/nobody", nil)
+			if err != nil {
+				return nil, err.Error()
+			}
+
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "Nil resp"
+			}
+
+			if resp.StatusCode != 599 {
+				return nil, "wrong status " + string(respbody)
+			}
+
+			return nil, "ok"
 		}
 
 		func main() {
@@ -1498,7 +1526,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugininterclient")
 	require.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
-	assert.Equal(t, "we got:This is the request", ret)
+	assert.Equal(t, "ok", ret)
 }
 
 func TestApiMetrics(t *testing.T) {
@@ -1527,8 +1555,8 @@ func TestApiMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v5/model"
-		"github.com/mattermost/mattermost-server/v5/plugin"
+		"github.com/mattermost/mattermost-server/v6/model"
+		"github.com/mattermost/mattermost-server/v6/plugin"
 	)
 
 	type MyPlugin struct {
@@ -1689,7 +1717,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	defer wsc.Close()
 
 	resp := <-wsc.ResponseChannel
-	require.Equal(t, resp.Status, model.STATUS_OK)
+	require.Equal(t, resp.Status, model.StatusOk)
 
 	for i := 0; i < 10; i++ {
 		wsc.SendMessage("custom_action", map[string]interface{}{"value": i})
@@ -1699,7 +1727,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 		case <-time.After(1 * time.Second):
 		}
 		require.NotNil(t, resp)
-		require.Equal(t, resp.Status, model.STATUS_OK)
+		require.Equal(t, resp.Status, model.StatusOk)
 		require.Equal(t, "custom_action", resp.Data["action"])
 		require.Equal(t, float64(i), resp.Data["value"])
 	}
@@ -1727,7 +1755,7 @@ func (mscp *MockSlashCommandProvider) DoCommand(a *App, c *request.Context, args
 	mscp.Message = message
 	return &model.CommandResponse{
 		Text:         "mock",
-		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		ResponseType: model.CommandResponseTypeEphemeral,
 	}
 }
 
