@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -39,18 +38,29 @@ func (s SqlStatusStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }
 
-func (s SqlStatusStore) SaveOrUpdate(status *model.Status) error {
-	if err := s.GetReplica().SelectOne(&model.Status{}, "SELECT * FROM Status WHERE UserId = :UserId", map[string]interface{}{"UserId": status.UserId}); err == nil {
-		if _, err := s.GetMaster().Update(status); err != nil {
-			return errors.Wrap(err, "failed to update Status")
-		}
+func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
+	query := s.getQueryBuilder().
+		Insert("Status").
+		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus").
+		Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Status = ?, Manual = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
+			st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
 	} else {
-		if err := s.GetMaster().Insert(status); err != nil {
-			if !(strings.Contains(err.Error(), "for key 'PRIMARY'") && strings.Contains(err.Error(), "Duplicate entry")) {
-				return errors.Wrap(err, "failed in save Status")
-			}
-		}
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = ?, Manual = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
+			st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
 	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "status_tosql")
+	}
+
+	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "failed to upsert Status")
+	}
+
 	return nil
 }
 
