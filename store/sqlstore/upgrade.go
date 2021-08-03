@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5370
+	CurrentSchemaVersion   = Version5380
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -212,6 +212,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion600(sqlStore)
 
 	return nil
 }
@@ -1215,13 +1216,12 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion538(sqlStore *SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.38
-	// if shouldPerformUpgrade(sqlStore, Version5370, Version5380) {
-	fixCRTChannelMembershipCounts(sqlStore)
-	fixCRTThreadCountsAndUnreads(sqlStore)
+	if shouldPerformUpgrade(sqlStore, Version5370, Version5380) {
+		fixCRTChannelMembershipCounts(sqlStore)
+		fixCRTThreadCountsAndUnreads(sqlStore)
 
-	// 	saveSchemaVersion(sqlStore, Version5380)
-	// }
+		saveSchemaVersion(sqlStore, Version5380)
+	}
 }
 
 // fixCRTThreadCountsAndUnreads Marks threads as read for users where the last
@@ -1296,4 +1296,21 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().ExecNoTimeout("INSERT INTO Systems VALUES ('CRTChannelMembershipCountsMigrationComplete', 'true')"); err != nil {
 		mlog.Error("Error marking migration as done", mlog.Err(err))
 	}
+}
+
+func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+
+	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+
+	// saveSchemaVersion(sqlStore, Version600)
+	// }
 }

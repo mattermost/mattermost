@@ -392,6 +392,8 @@ var reservedName = []string{
 	"plugins",
 	"post",
 	"signup",
+	"boards",
+	"playbooks",
 }
 
 func IsValidChannelIdentifier(s string) bool {

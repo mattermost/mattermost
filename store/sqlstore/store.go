@@ -911,11 +911,20 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
 	} else if ss.DriverName() == model.DatabaseDriverPostgres {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
+		query := "ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType
+		// We need to explicitly cast when moving from text based to jsonb datatypes.
+		if postgresColType == "jsonb" {
+			query += " USING " + strings.ToLower(columnName) + "::jsonb"
+		}
+		_, err = ss.GetMaster().ExecNoTimeout(query)
 	}
 
 	if err != nil {
-		mlog.Critical("Failed to alter column type", mlog.Err(err))
+		msg := "Failed to alter column type."
+		if mySqlColType == "JSON" && postgresColType == "jsonb" {
+			msg += " It is likely you have invalid JSON values in the column. Please fix the values manually and run the migration again."
+		}
+		mlog.Critical(msg, mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(ExitAlterColumn)
 	}
@@ -1741,4 +1750,11 @@ func versionString(v int, driver string) string {
 		return strconv.Itoa(major) + "." + strconv.Itoa(minor) + "." + strconv.Itoa(patch)
 	}
 	return ""
+}
+
+func (ss *SqlStore) jsonDataType() string {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		return "jsonb"
+	}
+	return "json"
 }
