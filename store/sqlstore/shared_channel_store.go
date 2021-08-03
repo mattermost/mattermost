@@ -64,10 +64,6 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 	return s
 }
 
-func (s SqlSharedChannelStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_sharedchannelusers_remote_id", "SharedChannelUsers", "RemoteId")
-}
-
 // Save inserts a new shared channel record.
 func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	sc.PreSave()
@@ -743,7 +739,7 @@ func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelA
 				(Id, FileId, RemoteId, CreateAt, LastSyncAt)
 			VALUES
 				(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)
-			ON CONFLICT (Id) 
+			ON CONFLICT (Id)
 				DO UPDATE SET LastSyncAt = :LastSyncAt`, params); err != nil {
 			return "", err
 		}
