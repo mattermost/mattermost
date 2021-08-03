@@ -266,7 +266,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
 	store.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()
 	store.stores.uploadSession.(*SqlUploadSessionStore).createIndexesIfNotExists()
-	store.stores.job.(*SqlJobStore).createIndexesIfNotExists()
 	store.stores.plugin.(*SqlPluginStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()

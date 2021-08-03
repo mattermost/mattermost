@@ -74,6 +74,8 @@
 // mysql/000036_create_sharedchannelusers.up.sql
 // mysql/000037_create_sharedchannelremotes.down.sql
 // mysql/000037_create_sharedchannelremotes.up.sql
+// mysql/000038_create_jobs.down.sql
+// mysql/000038_create_jobs.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -148,6 +150,8 @@
 // postgres/000036_create_sharedchannelusers.up.sql
 // postgres/000037_create_sharedchannelremotes.down.sql
 // postgres/000037_create_sharedchannelremotes.up.sql
+// postgres/000038_create_jobs.down.sql
+// postgres/000038_create_jobs.up.sql
 package migrations
 
 import (
@@ -1704,6 +1708,46 @@ func mysql000037_create_sharedchannelremotesUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000038_create_jobsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xf0\xca\x4f\x2a\xb6\xe6\x02\x04\x00\x00\xff\xff\x8a\x65\x19\xf0\x1b\x00\x00\x00")
+
+func mysql000038_create_jobsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000038_create_jobsDownSql,
+		"mysql/000038_create_jobs.down.sql",
+	)
+}
+
+func mysql000038_create_jobsDownSql() (*asset, error) {
+	bytes, err := mysql000038_create_jobsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000038_create_jobs.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000038_create_jobsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x90\xc1\x4b\xc3\x30\x14\xc6\xef\xfd\x2b\xbe\x63\x02\x1e\xa4\x8a\x08\xb2\x43\xd6\x66\x1a\x8d\x55\xda\x0c\xdc\x69\xa4\x6b\x9c\x11\x6c\x24\x79\x1b\xeb\x7f\x2f\x9d\x32\x3c\xc8\xe6\xf1\xbd\xef\xf7\x7e\xf0\xbe\xa2\x96\xc2\x48\x18\x31\xd5\x12\x6a\x86\xea\xc9\x40\xbe\xa8\xc6\x34\xb8\x0f\x6d\x02\xcb\x00\x40\x75\xd8\xda\xb8\x7a\xb3\x91\xe5\x57\x7c\x0f\x55\x73\xad\xcf\xf6\xa1\x19\x3e\xdd\x21\xbe\xc8\x39\x4a\x39\x13\x73\xfd\x1b\x79\x8e\x3e\x44\x4f\x03\x5a\xbf\xf6\x3d\xb1\xfc\xfc\x2f\xaa\x88\xce\x92\x13\x74\x9c\x6a\xc8\x46\x3a\x05\x69\x9b\x48\xac\xc8\x6f\x3d\x0d\xff\x10\xd2\x26\x9d\xfc\x20\xac\xa3\x4b\xe9\xb8\xaa\xb4\x64\x41\x6e\x47\x3f\x47\xb5\x7a\x14\xf5\x02\x0f\x72\x01\xa6\x3a\xfe\xbd\x1d\x27\xdf\xed\x96\xef\xa1\x4d\x4b\x1a\xcb\x63\x63\x85\x3c\xe3\x90\xd5\xad\xaa\xe4\x44\xf5\x7d\x28\xa7\x07\x7f\x71\x27\xea\x46\x9a\xc9\x86\x5e\xaf\x3f\xda\xcb\x9b\xec\x2b\x00\x00\xff\xff\x9b\xdc\x60\x42\xb5\x01\x00\x00")
+
+func mysql000038_create_jobsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000038_create_jobsUpSql,
+		"mysql/000038_create_jobs.up.sql",
+	)
+}
+
+func mysql000038_create_jobsUpSql() (*asset, error) {
+	bytes, err := mysql000038_create_jobsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000038_create_jobs.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\x72\x25\x81\x9a\xed\xc9\x5c\x40\xc8\xb4\x2b\x55\x80\x42\xa9\xc1\x40\x99\x8c\xea\x0e\x4b\xbe\x33\xd3\xfc\x8c\x2f\xdd\x18\x23\xef\x00\x00\x00\xff\xff\x38\xaf\xff\x77\xd4\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -3184,6 +3228,46 @@ func postgres000037_create_sharedchannelremotesUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000038_create_jobsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xc8\x4c\xa9\x88\xcf\xca\x4f\x2a\x8e\x2f\xa9\x2c\x48\xb5\xe6\xe2\x02\x2b\x0a\x71\x74\xf2\x71\x45\x52\x04\x52\x60\xcd\x05\x08\x00\x00\xff\xff\x97\x65\x86\x31\x40\x00\x00\x00")
+
+func postgres000038_create_jobsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000038_create_jobsDownSql,
+		"postgres/000038_create_jobs.down.sql",
+	)
+}
+
+func postgres000038_create_jobsDownSql() (*asset, error) {
+	bytes, err := postgres000038_create_jobsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000038_create_jobs.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000038_create_jobsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x4d\x4b\x80\x40\x10\x40\xef\xfb\x2b\xe6\xe8\x42\x87\xb2\xe8\xe2\x69\xb3\x8d\x96\x4a\x63\x5d\x42\x4f\xb2\xea\x22\x13\x91\xb2\x3b\x45\xfe\xfb\xf0\x03\x41\xeb\x38\x6f\x1e\x0c\x6f\x52\x2d\x85\x91\x60\xc4\xdd\xb3\x04\xf5\x00\x59\x6e\x40\x96\xaa\x30\x05\xbc\x0f\x4d\x80\x88\x01\x00\x60\x07\x6f\x42\xa7\x8f\x42\x47\xf1\x2d\x87\x57\xad\x5e\x84\xae\xe0\x49\x56\x17\xcb\x9e\xa6\xd1\xed\xc6\x75\xcc\x57\x3a\x7a\x1c\x3c\xd2\x04\x0d\xf6\xf8\x49\x2b\x6c\xbd\xb3\xe4\x2c\x1d\x60\x20\xeb\xe9\xc4\x3e\x6c\x20\xdb\x12\x7e\x23\x4d\x7f\x75\xfa\x0a\xff\x1d\x1c\x7a\xef\x42\x38\xc8\x9d\x25\xbb\xab\x57\x97\xf1\x0d\x67\x3c\x61\x6c\x0b\x57\xd9\xbd\x2c\x4f\xe1\xd8\xfd\xd4\x73\x7c\xbd\x64\xe5\xd9\xf6\x89\x79\xe2\x09\xfb\x0d\x00\x00\xff\xff\x96\x86\xdd\xeb\x32\x01\x00\x00")
+
+func postgres000038_create_jobsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000038_create_jobsUpSql,
+		"postgres/000038_create_jobs.up.sql",
+	)
+}
+
+func postgres000038_create_jobsUpSql() (*asset, error) {
+	bytes, err := postgres000038_create_jobsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000038_create_jobs.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -3310,6 +3394,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000036_create_sharedchannelusers.up.sql":             mysql000036_create_sharedchannelusersUpSql,
 	"mysql/000037_create_sharedchannelremotes.down.sql":         mysql000037_create_sharedchannelremotesDownSql,
 	"mysql/000037_create_sharedchannelremotes.up.sql":           mysql000037_create_sharedchannelremotesUpSql,
+	"mysql/000038_create_jobs.down.sql":                         mysql000038_create_jobsDownSql,
+	"mysql/000038_create_jobs.up.sql":                           mysql000038_create_jobsUpSql,
 	"postgres/000001_create_teams.down.sql":                     postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":                       postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":              postgres000002_create_team_membersDownSql,
@@ -3384,6 +3470,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000036_create_sharedchannelusers.up.sql":          postgres000036_create_sharedchannelusersUpSql,
 	"postgres/000037_create_sharedchannelremotes.down.sql":      postgres000037_create_sharedchannelremotesDownSql,
 	"postgres/000037_create_sharedchannelremotes.up.sql":        postgres000037_create_sharedchannelremotesUpSql,
+	"postgres/000038_create_jobs.down.sql":                      postgres000038_create_jobsDownSql,
+	"postgres/000038_create_jobs.up.sql":                        postgres000038_create_jobsUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -3502,6 +3590,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000036_create_sharedchannelusers.up.sql":          &bintree{mysql000036_create_sharedchannelusersUpSql, map[string]*bintree{}},
 		"000037_create_sharedchannelremotes.down.sql":      &bintree{mysql000037_create_sharedchannelremotesDownSql, map[string]*bintree{}},
 		"000037_create_sharedchannelremotes.up.sql":        &bintree{mysql000037_create_sharedchannelremotesUpSql, map[string]*bintree{}},
+		"000038_create_jobs.down.sql":                      &bintree{mysql000038_create_jobsDownSql, map[string]*bintree{}},
+		"000038_create_jobs.up.sql":                        &bintree{mysql000038_create_jobsUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":                     &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -3578,6 +3668,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000036_create_sharedchannelusers.up.sql":          &bintree{postgres000036_create_sharedchannelusersUpSql, map[string]*bintree{}},
 		"000037_create_sharedchannelremotes.down.sql":      &bintree{postgres000037_create_sharedchannelremotesDownSql, map[string]*bintree{}},
 		"000037_create_sharedchannelremotes.up.sql":        &bintree{postgres000037_create_sharedchannelremotesUpSql, map[string]*bintree{}},
+		"000038_create_jobs.down.sql":                      &bintree{postgres000038_create_jobsDownSql, map[string]*bintree{}},
+		"000038_create_jobs.up.sql":                        &bintree{postgres000038_create_jobsUpSql, map[string]*bintree{}},
 	}},
 }}
 
