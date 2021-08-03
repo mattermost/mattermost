@@ -59,7 +59,7 @@ func (s SqlSystemStore) SaveOrUpdate(system *model.System) error {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "status_tosql")
+		return errors.Wrap(err, "system_tosql")
 	}
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
