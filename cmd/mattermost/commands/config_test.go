@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type TestConfig struct {
@@ -81,7 +81,7 @@ type TestPluginSettings struct {
 }
 
 func getDsn(driver string, source string) string {
-	if driver == model.DATABASE_DRIVER_MYSQL {
+	if driver == model.DatabaseDriverMysql {
 		return driver + "://" + source
 	}
 	return source

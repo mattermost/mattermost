@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -39,7 +39,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		c, err2 := ss.Channel().Save(&model.Channel{
 			DisplayName: model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			Name:        model.NewId(),
 		}, 999)
 		require.NoError(t, err2)
@@ -455,14 +455,14 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 
@@ -544,14 +544,14 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 	post, err := ss.Post().Save(&model.Post{

@@ -1,9 +1,9 @@
-module github.com/mattermost/mattermost-server/v5
+module github.com/mattermost/mattermost-server/v6
 
 go 1.15
 
 require (
-	code.sajari.com/docconv v1.1.1-0.20200701232649-d9ea05fbd50a
+	code.sajari.com/docconv v1.1.1-0.20210427001343-7b3472bc323a
 	github.com/HdrHistogram/hdrhistogram-go v0.9.0 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/Masterminds/squirrel v1.5.0
@@ -68,7 +68,7 @@ require (
 	github.com/lib/pq v1.10.2
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattermost/go-i18n v1.11.0
-	github.com/mattermost/gorp v1.6.2-0.20210419141818-0904a6a388d3
+	github.com/mattermost/gorp v1.6.2-0.20210714143452-8b50f5209a7f
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d

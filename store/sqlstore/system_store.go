@@ -13,9 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type SqlSystemStore struct {
@@ -68,9 +68,9 @@ func (s SqlSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System)
 		}
 	}
 
-	if strings.HasPrefix(system.Name, model.WARN_METRIC_STATUS_STORE_PREFIX) && (system.Value == model.WARN_METRIC_STATUS_RUNONCE || system.Value == model.WARN_METRIC_STATUS_LIMIT_REACHED) {
-		if err := s.SaveOrUpdate(&model.System{Name: model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY, Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10)}); err != nil {
-			return errors.Wrapf(err, "failed to save system property with name=%s", model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	if strings.HasPrefix(system.Name, model.WarnMetricStatusStorePrefix) && (system.Value == model.WarnMetricStatusRunonce || system.Value == model.WarnMetricStatusLimitReached) {
+		if err := s.SaveOrUpdate(&model.System{Name: model.SystemWarnMetricLastRunTimestampKey, Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10)}); err != nil {
+			return errors.Wrapf(err, "failed to save system property with name=%s", model.SystemWarnMetricLastRunTimestampKey)
 		}
 	}
 

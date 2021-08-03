@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 type mockMarketplaceMeteringClient struct {
@@ -42,7 +42,7 @@ func String(i string) *string {
 func TestAwsMeterUsage(t *testing.T) {
 	startTime := time.Now()
 	endTime := time.Now()
-	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
+	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 
 	userStoreMock := mocks.UserStore{}
 	userStoreMock.On("AnalyticsActiveCountForPeriod", model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), mock.AnythingOfType("model.UserCountOptions")).Return(int64(2), nil)
@@ -52,7 +52,7 @@ func TestAwsMeterUsage(t *testing.T) {
 
 	reports := make([]*AWSMeterReport, 1)
 	reports[0] = &AWSMeterReport{
-		Dimension: model.AWS_METERING_DIMENSION_USAGE_HRS,
+		Dimension: model.AwsMeteringDimensionUsageHrs,
 		Value:     2,
 		Timestamp: startTime,
 	}
@@ -108,7 +108,7 @@ func TestAwsMeterUsage(t *testing.T) {
 func TestAwsMeterUsageWithDBError(t *testing.T) {
 	startTime := time.Now()
 	endTime := time.Now()
-	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
+	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 
 	userStoreMock := mocks.UserStore{}
 	userStoreMock.On("AnalyticsActiveCountForPeriod", model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), mock.AnythingOfType("model.UserCountOptions")).Return(int64(0), errors.New("error"))
@@ -118,7 +118,7 @@ func TestAwsMeterUsageWithDBError(t *testing.T) {
 
 	reports := make([]*AWSMeterReport, 1)
 	reports[0] = &AWSMeterReport{
-		Dimension: model.AWS_METERING_DIMENSION_USAGE_HRS,
+		Dimension: model.AwsMeteringDimensionUsageHrs,
 		Value:     2,
 		Timestamp: startTime,
 	}

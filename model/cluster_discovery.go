@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	CDS_OFFLINE_AFTER_MILLIS = 1000 * 60 * 30 // 30 minutes
-	CDS_TYPE_APP             = "mattermost_app"
+	CDSOfflineAfterMillis = 1000 * 60 * 30 // 30 minutes
+	CDSTypeApp            = "mattermost_app"
 )
 
 type ClusterDiscovery struct {
@@ -114,15 +114,6 @@ func (o *ClusterDiscovery) IsValid() *AppError {
 	}
 
 	return nil
-}
-
-func (o *ClusterDiscovery) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
 }
 
 func ClusterDiscoveryFromJson(data io.Reader) *ClusterDiscovery {

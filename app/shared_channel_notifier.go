@@ -9,21 +9,21 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var sharedChannelEventsForSync model.StringArray = []string{
-	model.WEBSOCKET_EVENT_POSTED,
-	model.WEBSOCKET_EVENT_POST_EDITED,
-	model.WEBSOCKET_EVENT_POST_DELETED,
-	model.WEBSOCKET_EVENT_REACTION_ADDED,
-	model.WEBSOCKET_EVENT_REACTION_REMOVED,
+	model.WebsocketEventPosted,
+	model.WebsocketEventPostEdited,
+	model.WebsocketEventPostDeleted,
+	model.WebsocketEventReactionAdded,
+	model.WebsocketEventReactionRemoved,
 }
 
 var sharedChannelEventsForInvitation model.StringArray = []string{
-	model.WEBSOCKET_EVENT_DIRECT_ADDED,
+	model.WebsocketEventDirectAdded,
 }
 
 // SharedChannelSyncHandler is called when a websocket event is received by a cluster node.

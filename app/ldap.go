@@ -8,9 +8,9 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // SyncLdap starts an LDAP sync job.
@@ -128,7 +128,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 		return "", err
 	}
 
-	if user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+	if user.AuthService != model.UserAuthServiceLdap {
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_ldap_account.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -200,12 +200,12 @@ func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *mo
 }
 
 func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeLdapFile(model.LDAP_PUBLIC_CERTIFICATE_NAME, fileData); err != nil {
+	if err := a.writeLdapFile(model.LdapPublicCertificateName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PublicCertificateFile = model.LDAP_PUBLIC_CERTIFICATE_NAME
+	*cfg.LdapSettings.PublicCertificateFile = model.LdapPublicCertificateName
 
 	if err := cfg.IsValid(); err != nil {
 		return err
@@ -217,12 +217,12 @@ func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 }
 
 func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeLdapFile(model.LDAP_PRIVATE_KEY_NAME, fileData); err != nil {
+	if err := a.writeLdapFile(model.LdapPrivateKeyName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PrivateKeyFile = model.LDAP_PRIVATE_KEY_NAME
+	*cfg.LdapSettings.PrivateKeyFile = model.LdapPrivateKeyName
 
 	if err := cfg.IsValid(); err != nil {
 		return err

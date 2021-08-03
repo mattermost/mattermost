@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type CommandArgs struct {
@@ -25,11 +25,6 @@ type CommandArgs struct {
 
 	// DO NOT USE Session field is deprecated. MM-26398
 	Session Session `json:"-"`
-}
-
-func (o *CommandArgs) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func CommandArgsFromJson(data io.Reader) *CommandArgs {

@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/users"
-	"github.com/mattermost/mattermost-server/v5/shared/mfa"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 )
 
 type TokenLocation int
@@ -249,7 +249,7 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 	license := a.Srv().License()
 	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
-	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
+	if user.AuthService == model.UserAuthServiceLdap {
 		if !ldapAvailable {
 			err := model.NewAppError("login", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 			return user, err
@@ -267,7 +267,7 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 
 	if user.AuthService != "" {
 		authService := user.AuthService
-		if authService == model.USER_AUTH_SERVICE_SAML {
+		if authService == model.UserAuthServiceSaml {
 			authService = strings.ToUpper(authService)
 		}
 		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "", http.StatusBadRequest)
@@ -283,20 +283,20 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 }
 
 func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
-	authHeader := r.Header.Get(model.HEADER_AUTH)
+	authHeader := r.Header.Get(model.HeaderAuth)
 
 	// Attempt to parse the token from the cookie
-	if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
+	if cookie, err := r.Cookie(model.SessionCookieToken); err == nil {
 		return cookie.Value, TokenLocationCookie
 	}
 
 	// Parse the token from the header
-	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
+	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HeaderBearer {
 		// Default session token
 		return authHeader[7:], TokenLocationHeader
 	}
 
-	if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
+	if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HeaderToken {
 		// OAuth token
 		return authHeader[6:], TokenLocationHeader
 	}
@@ -306,11 +306,11 @@ func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
 		return token, TokenLocationQueryString
 	}
 
-	if token := r.Header.Get(model.HEADER_CLOUD_TOKEN); token != "" {
+	if token := r.Header.Get(model.HeaderCloudToken); token != "" {
 		return token, TokenLocationCloudHeader
 	}
 
-	if token := r.Header.Get(model.HEADER_REMOTECLUSTER_TOKEN); token != "" {
+	if token := r.Header.Get(model.HeaderRemoteclusterToken); token != "" {
 		return token, TokenLocationRemoteClusterHeader
 	}
 

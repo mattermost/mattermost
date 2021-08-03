@@ -5,8 +5,8 @@ package resend_invitation_email
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const ResendInvitationEmailJob = "ResendInvitationEmailJob"
@@ -24,7 +24,7 @@ func (s *ResendInvitationEmailScheduler) Name() string {
 }
 
 func (s *ResendInvitationEmailScheduler) JobType() string {
-	return model.JOB_TYPE_RESEND_INVITATION_EMAIL
+	return model.JobTypeResendInvitationEmail
 }
 
 func (s *ResendInvitationEmailScheduler) Enabled(cfg *model.Config) bool {
