@@ -45,11 +45,11 @@ func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 		Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE UserId = ?, Status = ?, Manual = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
-			st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Status = ?, Manual = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
+			st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
 	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET UserId = ?, Status = ?, Manual = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
-			st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = ?, Manual = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
+			st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
 	}
 
 	queryString, args, err := query.ToSql()
