@@ -932,7 +932,6 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
-		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
 		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostUpdateAt", "bigint", "bigint", "0")
 		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostId", "VARCHAR(26)", "VARCHAR(26)", "")
 
