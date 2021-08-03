@@ -183,7 +183,7 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 		}
 	}
 
-	if err := s.Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
+	if err := s.Store.System().SaveOrUpdate(&model.System{Name: key, Value: "true"}); err != nil {
 		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
