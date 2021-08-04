@@ -929,4 +929,20 @@ func TestPostAttachments(t *testing.T) {
 		require.Equal(t, attachments[0].Actions[0].Id, "test1")
 		require.Equal(t, attachments[0].Actions[1].Id, "test2")
 	})
+
+	t.Run("nil fields", func(t *testing.T) {
+		p.Props["attachments"] = []interface{}{
+			map[string]interface{}{"fields": []interface{}{
+				map[string]interface{}{"value": ":emoji1:"},
+				nil,
+				map[string]interface{}{"value": ":emoji2:"},
+			},
+			},
+		}
+
+		attachments := p.Attachments()
+		require.Len(t, attachments[0].Fields, 2)
+		assert.Equal(t, attachments[0].Fields[0].Value, ":emoji1:")
+		assert.Equal(t, attachments[0].Fields[1].Value, ":emoji2:")
+	})
 }
