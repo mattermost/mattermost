@@ -9,17 +9,47 @@ const (
 	EventTypeFailedPayment         = "failed-payment"
 	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
 	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
+	EventTypeTrialWillEnd          = "trial-will-end"
+	EventTypeTrialEnded            = "trial-ended"
 	JoinLimitation                 = "join"
 	InviteLimitation               = "invite"
 )
 
+var MockCWS string
+
+type BillingScheme string
+
+const (
+	BillingSchemePerSeat = BillingScheme("per_seat")
+	BillingSchemeFlatFee = BillingScheme("flat_fee")
+)
+
+type RecurringInterval string
+
+const (
+	RecurringIntervalYearly  = RecurringInterval("year")
+	RecurringIntervalMonthly = RecurringInterval("month")
+)
+
+type SubscriptionFamily string
+
+const (
+	SubscriptionFamilyCloud  = SubscriptionFamily("cloud")
+	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
+)
+
 // Product model represents a product on the cloud system.
 type Product struct {
-	ID           string   `json:"id"`
-	Name         string   `json:"name"`
-	Description  string   `json:"description"`
-	PricePerSeat float64  `json:"price_per_seat"`
-	AddOns       []*AddOn `json:"add_ons"`
+	ID                string             `json:"id"`
+	Name              string             `json:"name"`
+	Description       string             `json:"description"`
+	PricePerSeat      float64            `json:"price_per_seat"`
+	AddOns            []*AddOn           `json:"add_ons"`
+	SKU               string             `json:"sku"`
+	PriceID           string             `json:"price_id"`
+	Family            SubscriptionFamily `json:"product_family"`
+	RecurringInterval RecurringInterval  `json:"recurring_interval"`
+	BillingScheme     BillingScheme      `json:"billing_scheme"`
 }
 
 // AddOn represents an addon to a product.
@@ -95,6 +125,8 @@ type Subscription struct {
 	DNS         string   `json:"dns"`
 	IsPaidTier  string   `json:"is_paid_tier"`
 	LastInvoice *Invoice `json:"last_invoice"`
+	IsFreeTrial string   `json:"is_free_trial"`
+	TrialEndAt  int64    `json:"trial_end_at"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
@@ -129,9 +161,10 @@ type InvoiceLineItem struct {
 }
 
 type CWSWebhookPayload struct {
-	Event               string               `json:"event"`
-	FailedPayment       *FailedPayment       `json:"failed_payment"`
-	CloudWorkspaceOwner *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	Event                             string               `json:"event"`
+	FailedPayment                     *FailedPayment       `json:"failed_payment"`
+	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 
 type FailedPayment struct {
@@ -147,4 +180,9 @@ type CloudWorkspaceOwner struct {
 type SubscriptionStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
 	IsPaidTier     string `json:"is_paid_tier"`
+	IsFreeTrial    string `json:"is_free_trial"`
+}
+
+type SubscriptionChange struct {
+	ProductID string `json:"product_id"`
 }

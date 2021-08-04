@@ -321,6 +321,7 @@ func (srv *Server) ListenAndServe() error {
 		}
 		u := l.(*net.UDPConn)
 		if e := setUDPSocketOptions(u); e != nil {
+			u.Close()
 			return e
 		}
 		srv.PacketConn = l

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -17,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func TestGetPing(t *testing.T) {
@@ -29,7 +30,7 @@ func TestGetPing(t *testing.T) {
 		t.Run("healthy", func(t *testing.T) {
 			status, resp := client.GetPing()
 			CheckNoError(t, resp)
-			assert.Equal(t, model.STATUS_OK, status)
+			assert.Equal(t, model.StatusOk, status)
 		})
 
 		t.Run("unhealthy", func(t *testing.T) {
@@ -41,7 +42,7 @@ func TestGetPing(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
 			status, resp := client.GetPing()
 			CheckInternalErrorStatus(t, resp)
-			assert.Equal(t, model.STATUS_UNHEALTHY, status)
+			assert.Equal(t, model.StatusUnhealthy, status)
 		})
 	}, "basic ping")
 
@@ -50,7 +51,7 @@ func TestGetPing(t *testing.T) {
 			status, resp := client.GetPingWithServerStatus()
 
 			CheckNoError(t, resp)
-			assert.Equal(t, model.STATUS_OK, status)
+			assert.Equal(t, model.StatusOk, status)
 		})
 
 		t.Run("unhealthy", func(t *testing.T) {
@@ -63,7 +64,7 @@ func TestGetPing(t *testing.T) {
 
 			status, resp := client.GetPingWithServerStatus()
 			CheckInternalErrorStatus(t, resp)
-			assert.Equal(t, model.STATUS_UNHEALTHY, status)
+			assert.Equal(t, model.StatusUnhealthy, status)
 		})
 	}, "with server status")
 
@@ -148,7 +149,7 @@ func TestEmailTest(t *testing.T) {
 			SMTPServerTimeout:                 model.NewInt(15),
 		},
 		FileSettings: model.FileSettings{
-			DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
+			DriverName: model.NewString(model.ImageDriverLocal),
 			Directory:  model.NewString(dir),
 		},
 	}
@@ -472,9 +473,9 @@ func TestS3TestConnection(t *testing.T) {
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 	config := model.Config{
 		FileSettings: model.FileSettings{
-			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-			AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
-			AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+			DriverName:              model.NewString(model.ImageDriverS3),
+			AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
+			AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
 			AmazonS3Bucket:          model.NewString(""),
 			AmazonS3Endpoint:        model.NewString(s3Endpoint),
 			AmazonS3Region:          model.NewString(""),
@@ -494,7 +495,7 @@ func TestS3TestConnection(t *testing.T) {
 		require.Equal(t, resp.Error.Message, "S3 Bucket is required", "should return error - missing s3 bucket")
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
-		*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
+		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
 		config.FileSettings.AmazonS3PathPrefix = model.NewString("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
@@ -507,12 +508,20 @@ func TestS3TestConnection(t *testing.T) {
 		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
-		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
+		assert.Equal(t, "api.file.test_connection_s3_bucket_does_not_exist.app_error", resp.Error.Id)
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
-		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
+		assert.Equal(t, "api.file.test_connection_s3_bucket_does_not_exist.app_error", resp.Error.Id)
+	})
+
+	t.Run("with incorrect credentials", func(t *testing.T) {
+		configCopy := config
+		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
+		_, resp := th.SystemAdminClient.TestS3Connection(&configCopy)
+		CheckInternalErrorStatus(t, resp)
+		assert.Equal(t, "api.file.test_connection_s3_auth.app_error", resp.Error.Id)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
@@ -521,7 +530,6 @@ func TestS3TestConnection(t *testing.T) {
 		_, resp := th.SystemAdminClient.TestS3Connection(&config)
 		CheckForbiddenStatus(t, resp)
 	})
-
 }
 
 func TestSupportedTimezones(t *testing.T) {
@@ -668,24 +676,6 @@ func TestGetServerBusy(t *testing.T) {
 	}, "as system admin")
 }
 
-func TestGetServerBusyExpires(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.Srv().Busy.Set(time.Second * 30)
-
-	t.Run("as system user", func(t *testing.T) {
-		_, resp := th.Client.GetServerBusyExpires()
-		CheckForbiddenStatus(t, resp)
-	})
-
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		expires, resp := c.GetServerBusyExpires()
-		CheckNoError(t, resp)
-		require.Greater(t, expires.Unix(), time.Now().Unix())
-	}, "as system admin")
-}
-
 func TestServerBusy503(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -726,18 +716,35 @@ func TestServerBusy503(t *testing.T) {
 }
 
 func TestPushNotificationAck(t *testing.T) {
-	th := Setup(t)
-	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
+	th := Setup(t).InitBasic()
+	api := Init(th.App, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()
+
 	t.Run("should return error when the ack body is not passed", func(t *testing.T) {
 		handler := api.ApiHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.NotNil(t, resp.Body)
+	})
+
+	t.Run("should return error when the ack post is not authorized for the user", func(t *testing.T) {
+		privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
+		privatePost := th.CreatePostWithClient(th.SystemAdminClient, privateChannel)
+
+		handler := api.ApiHandler(pushNotificationAck)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+		req.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s"}`, privatePost.Id)))
+
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusForbidden, resp.Code)
+		fmt.Printf("DEBUG/resp.Body: %+v\n", resp.Body)
 		assert.NotNil(t, resp.Body)
 	})
 }

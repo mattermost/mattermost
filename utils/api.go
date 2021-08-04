@@ -13,10 +13,9 @@ import (
 	"net/url"
 	"path"
 	"strings"
-	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
@@ -29,55 +28,16 @@ func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 		return true
 	}
 	for _, allowed := range strings.Split(allowedOrigins, " ") {
-		if equalASCIIFold(allowed, origin) {
+		if allowed == origin {
 			return true
 		}
 	}
 	return false
 }
 
-// equalASCIIFold returns true if s is equal to t with ASCII case folding as
-// defined in RFC 4790.
-// Copied from gorilla/websocket/util.go
-func equalASCIIFold(s, t string) bool {
-	for s != "" && t != "" {
-		sr, size := utf8.DecodeRuneInString(s)
-		s = s[size:]
-		tr, size := utf8.DecodeRuneInString(t)
-		t = t[size:]
-		if sr == tr {
-			continue
-		}
-		if 'A' <= sr && sr <= 'Z' {
-			sr = sr + 'a' - 'A'
-		}
-		if 'A' <= tr && tr <= 'Z' {
-			tr = tr + 'a' - 'A'
-		}
-		if sr != tr {
-			return false
-		}
-	}
-	return s == t
-}
-
 func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	return func(r *http.Request) bool {
 		return CheckOrigin(r, allowedOrigins)
-	}
-}
-
-func SameOriginChecker() func(*http.Request) bool {
-	return func(r *http.Request) bool {
-		origURL, err := url.Parse(r.Header.Get("Origin"))
-		if err != nil {
-			return false
-		}
-		u := url.URL{
-			Host:   r.Host,
-			Scheme: origURL.Scheme,
-		}
-		return CheckOrigin(r, u.String())
 	}
 }
 
@@ -118,20 +78,22 @@ func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request
 }
 
 func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
+	var link = template.HTMLEscapeString(redirectURL)
 	RenderMobileMessage(w, `
-		<div class="icon text-success" style="font-size: 4em">
-			<i class="fa fa-check-circle" title="Success Icon"></i>
-		</div>
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 64px; height: 64px; fill: #3c763d">
+			<!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) -->
+			<path stroke="green" d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"/>
+		</svg>
 		<h2> `+i18n.T("api.oauth.auth_complete")+` </h2>
 		<p id="redirecting-message"> `+i18n.T("api.oauth.redirecting_back")+` </p>
 		<p id="close-tab-message" style="display: none"> `+i18n.T("api.oauth.close_browser")+` </p>
-		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectURL)+`"></noscript>
+		<p> `+i18n.T("api.oauth.click_redirect", model.StringInterface{"Link": link})+` </p>
+		<meta http-equiv="refresh" content="2; url=`+link+`">
 		<script>
 			window.onload = function() {
 				setTimeout(function() {
 					document.getElementById('redirecting-message').style.display = 'none';
 					document.getElementById('close-tab-message').style.display = 'block';
-					window.location='`+template.HTMLEscapeString(template.JSEscapeString(redirectURL))+`';
 				}, 2000);
 			}
 		</script>
@@ -139,13 +101,24 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 }
 
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
+	var link = redirectURL
+	var invalidSchemes = map[string]bool{
+		"data":       true,
+		"javascript": true,
+		"vbscript":   true,
+	}
+	u, redirectErr := url.Parse(redirectURL)
+	if redirectErr != nil || invalidSchemes[u.Scheme] {
+		link = *config.ServiceSettings.SiteURL
+	}
 	RenderMobileMessage(w, `
-		<div class="icon" style="color: #ccc; font-size: 4em">
-			<span class="fa fa-warning"></span>
-		</div>
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" style="width: 64px; height: 64px; fill: #ccc">
+			<!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) -->
+			<path d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/>
+		</svg>
 		<h2> `+i18n.T("error")+` </h2>
 		<p> `+err.Message+` </p>
-		<a href="`+redirectURL+`">
+		<a href="`+link+`">
 			`+i18n.T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)
@@ -159,9 +132,31 @@ func RenderMobileMessage(w http.ResponseWriter, message string) {
 			<head>
 				<meta charset="utf-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-				<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha512-5A8nwdMOWrSz20fDsjczgUidUBR8liPYU+WymTZP1lmY9G6Oc7HlZv156XqnsgNUzTyMefFTcsFH/tnJE/+xBg==" crossorigin="anonymous" />
-				<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
 				<style>
+					body {
+						color: #333;
+						background-color: #fff;
+						font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+						font-size: 14px;
+						line-height: 1.42857143;
+					}
+					a {
+						color: #337ab7;
+						text-decoration: none;
+					}
+					a:focus, a:hover {
+						color: #23527c;
+						text-decoration: underline;
+					}
+					h2 {
+						font-size: 30px;
+						margin: 20px 0 10px 0;
+						font-weight: 500;
+						line-height: 1.1
+					}
+					p {
+						margin: 0 0 10px;
+					}
 					.message-container {
 						color: #555;
 						display: table-cell;
@@ -173,10 +168,8 @@ func RenderMobileMessage(w http.ResponseWriter, message string) {
 			</head>
 			<body>
 				<!-- mobile app message -->
-				<div class="container-fluid">
-					<div class="message-container">
-						`+message+`
-					</div>
+				<div class="message-container">
+					`+message+`
 				</div>
 			</body>
 		</html>

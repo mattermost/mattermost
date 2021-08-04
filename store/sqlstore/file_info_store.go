@@ -13,10 +13,10 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlFileInfoStore struct {
@@ -53,6 +53,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		"FileInfo.HasPreviewImage",
 		"FileInfo.MiniPreview",
 		"Coalesce(FileInfo.Content, '') AS Content",
+		"Coalesce(FileInfo.RemoteId, '') AS RemoteId",
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -67,6 +68,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		table.ColMap("Content").SetMaxSize(0)
 		table.ColMap("Extension").SetMaxSize(64)
 		table.ColMap("MimeType").SetMaxSize(256)
+		table.ColMap("RemoteId").SetMaxSize(26)
 	}
 
 	return s
@@ -79,7 +81,7 @@ func (fs SqlFileInfoStore) createIndexesIfNotExists() {
 	fs.CreateIndexIfNotExists("idx_fileinfo_postid_at", "FileInfo", "PostId")
 	fs.CreateIndexIfNotExists("idx_fileinfo_extension_at", "FileInfo", "Extension")
 	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_name_txt", "FileInfo", "Name")
-	if fs.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if fs.DriverName() == model.DatabaseDriverPostgres {
 		fs.CreateFullTextFuncIndexIfNotExists("idx_fileinfo_name_splitted", "FileInfo", "Translate(Name, '.,-', '   ')")
 	}
 	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_content_txt", "FileInfo", "Content")
@@ -99,12 +101,12 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 
 func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 	query := fs.getQueryBuilder().
-		Select("FI.*, P.ChannelId").
-		From("FileInfo as FI").
-		LeftJoin("Posts as P ON FI.PostId=P.Id").
-		Where(sq.Eq{"FI.Id": ids}).
-		Where(sq.Eq{"FI.DeleteAt": 0}).
-		OrderBy("FI.CreateAt DESC")
+		Select(append(fs.queryFields, "COALESCE(P.ChannelId, '') as ChannelId")...).
+		From("FileInfo").
+		LeftJoin("Posts as P ON FileInfo.PostId=P.Id").
+		Where(sq.Eq{"FileInfo.Id": ids}).
+		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
+		OrderBy("FileInfo.CreateAt DESC")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -136,7 +138,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
+func (fs SqlFileInfoStore) get(id string, fromMaster bool) (*model.FileInfo, error) {
 	info := &model.FileInfo{}
 
 	query := fs.getQueryBuilder().
@@ -150,13 +152,26 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
 		return nil, errors.Wrap(err, "file_info_tosql")
 	}
 
-	if err := fs.GetReplica().SelectOne(info, queryString, args...); err != nil {
+	db := fs.GetReplica()
+	if fromMaster {
+		db = fs.GetMaster()
+	}
+
+	if err := db.SelectOne(info, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("FileInfo", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get FileInfo with id=%s", id)
 	}
 	return info, nil
+}
+
+func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
+	return fs.get(id, false)
+}
+
+func (fs SqlFileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
+	return fs.get(id, true)
 }
 
 func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
@@ -195,7 +210,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 	}
 
 	if opt.SortBy == "" {
-		opt.SortBy = model.FILEINFO_SORT_BY_CREATED
+		opt.SortBy = model.FileinfoSortByCreated
 	}
 	sortDirection := "ASC"
 	if opt.SortDescending {
@@ -203,9 +218,9 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 	}
 
 	switch opt.SortBy {
-	case model.FILEINFO_SORT_BY_CREATED:
+	case model.FileinfoSortByCreated:
 		query = query.OrderBy("FileInfo.CreateAt " + sortDirection)
-	case model.FILEINFO_SORT_BY_SIZE:
+	case model.FileinfoSortBySize:
 		query = query.OrderBy("FileInfo.Size " + sortDirection)
 	default:
 		return nil, store.NewErrInvalidInput("FileInfo", "<sortOption>", opt.SortBy)
@@ -348,19 +363,11 @@ func (fs SqlFileInfoStore) SetContent(fileId, content string) error {
 		return errors.Wrap(err, "file_info_tosql")
 	}
 
-	sqlResult, err := fs.GetMaster().Exec(queryString, args...)
+	_, err = fs.GetMaster().Exec(queryString, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update FileInfo content with id=%s", fileId)
 	}
 
-	count, err := sqlResult.RowsAffected()
-	if err != nil {
-		// RowsAffected should never fail with the MySQL or Postgres drivers
-		return errors.Wrap(err, "unable to retrieve rows affected")
-	} else if count == 0 {
-		// Could not attach the file to the post
-		return store.NewErrInvalidInput("FileInfo", "<id>", fmt.Sprintf("<%s>", fileId))
-	}
 	return nil
 }
 
@@ -434,14 +441,14 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		return nil, err
 	}
 	query := fs.getQueryBuilder().
-		Select("FI.*, P.ChannelId as ChannelId").
-		From("FileInfo AS FI").
-		LeftJoin("Posts as P ON FI.PostId=P.Id").
+		Select(append(fs.queryFields, "Coalesce(P.ChannelId, '') AS ChannelId")...).
+		From("FileInfo").
+		LeftJoin("Posts as P ON FileInfo.PostId=P.Id").
 		LeftJoin("Channels as C ON C.Id=P.ChannelId").
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
 		Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}}).
-		Where(sq.Eq{"FI.DeleteAt": 0}).
-		OrderBy("FI.CreateAt DESC").
+		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
+		OrderBy("FileInfo.CreateAt DESC").
 		Limit(100)
 
 	for _, params := range paramsList {
@@ -460,11 +467,11 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		}
 
 		if len(params.Extensions) != 0 {
-			query = query.Where(sq.Eq{"FI.Extension": params.Extensions})
+			query = query.Where(sq.Eq{"FileInfo.Extension": params.Extensions})
 		}
 
 		if len(params.ExcludedExtensions) != 0 {
-			query = query.Where(sq.NotEq{"FI.Extension": params.ExcludedExtensions})
+			query = query.Where(sq.NotEq{"FileInfo.Extension": params.ExcludedExtensions})
 		}
 
 		if len(params.ExcludedChannels) != 0 {
@@ -472,41 +479,41 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		}
 
 		if len(params.FromUsers) != 0 {
-			query = query.Where(sq.Eq{"FI.CreatorId": params.FromUsers})
+			query = query.Where(sq.Eq{"FileInfo.CreatorId": params.FromUsers})
 		}
 
 		if len(params.ExcludedUsers) != 0 {
-			query = query.Where(sq.NotEq{"FI.CreatorId": params.ExcludedUsers})
+			query = query.Where(sq.NotEq{"FileInfo.CreatorId": params.ExcludedUsers})
 		}
 
 		// handle after: before: on: filters
 		if params.OnDate != "" {
 			onDateStart, onDateEnd := params.GetOnDateMillis()
-			query = query.Where(sq.Expr("FI.CreateAt BETWEEN ? AND ?", strconv.FormatInt(onDateStart, 10), strconv.FormatInt(onDateEnd, 10)))
+			query = query.Where(sq.Expr("FileInfo.CreateAt BETWEEN ? AND ?", strconv.FormatInt(onDateStart, 10), strconv.FormatInt(onDateEnd, 10)))
 		} else {
 			if params.ExcludedDate != "" {
 				excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
-				query = query.Where(sq.Expr("FI.CreateAt NOT BETWEEN ? AND ?", strconv.FormatInt(excludedDateStart, 10), strconv.FormatInt(excludedDateEnd, 10)))
+				query = query.Where(sq.Expr("FileInfo.CreateAt NOT BETWEEN ? AND ?", strconv.FormatInt(excludedDateStart, 10), strconv.FormatInt(excludedDateEnd, 10)))
 			}
 
 			if params.AfterDate != "" {
 				afterDate := params.GetAfterDateMillis()
-				query = query.Where(sq.GtOrEq{"FI.CreateAt": strconv.FormatInt(afterDate, 10)})
+				query = query.Where(sq.GtOrEq{"FileInfo.CreateAt": strconv.FormatInt(afterDate, 10)})
 			}
 
 			if params.BeforeDate != "" {
 				beforeDate := params.GetBeforeDateMillis()
-				query = query.Where(sq.LtOrEq{"FI.CreateAt": strconv.FormatInt(beforeDate, 10)})
+				query = query.Where(sq.LtOrEq{"FileInfo.CreateAt": strconv.FormatInt(beforeDate, 10)})
 			}
 
 			if params.ExcludedAfterDate != "" {
 				afterDate := params.GetExcludedAfterDateMillis()
-				query = query.Where(sq.Lt{"FI.CreateAt": strconv.FormatInt(afterDate, 10)})
+				query = query.Where(sq.Lt{"FileInfo.CreateAt": strconv.FormatInt(afterDate, 10)})
 			}
 
 			if params.ExcludedBeforeDate != "" {
 				beforeDate := params.GetExcludedBeforeDateMillis()
-				query = query.Where(sq.Gt{"FI.CreateAt": strconv.FormatInt(beforeDate, 10)})
+				query = query.Where(sq.Gt{"FileInfo.CreateAt": strconv.FormatInt(beforeDate, 10)})
 			}
 		}
 
@@ -521,7 +528,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
-		} else if fs.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		} else if fs.DriverName() == model.DatabaseDriverPostgres {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
@@ -541,11 +548,11 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 			}
 
 			query = query.Where(sq.Or{
-				sq.Expr("to_tsvector('english', FI.Name) @@  to_tsquery('english', ?)", queryTerms),
-				sq.Expr("to_tsvector('english', Translate(FI.Name, '.,-', '   ')) @@  to_tsquery('english', ?)", queryTerms),
-				sq.Expr("to_tsvector('english', FI.Content) @@  to_tsquery('english', ?)", queryTerms),
+				sq.Expr("to_tsvector('english', FileInfo.Name) @@  to_tsquery('english', ?)", queryTerms),
+				sq.Expr("to_tsvector('english', Translate(FileInfo.Name, '.,-', '   ')) @@  to_tsquery('english', ?)", queryTerms),
+				sq.Expr("to_tsvector('english', FileInfo.Content) @@  to_tsquery('english', ?)", queryTerms),
 			})
-		} else if fs.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		} else if fs.DriverName() == model.DatabaseDriverMysql {
 			var err error
 			terms, err = removeMysqlStopWordsFromTerms(terms)
 			if err != nil {
@@ -572,8 +579,8 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 				queryTerms = strings.Join(splitTerms, " ") + excludeClause
 			}
 			query = query.Where(sq.Or{
-				sq.Expr("MATCH (FI.Name) AGAINST (? IN BOOLEAN MODE)", queryTerms),
-				sq.Expr("MATCH (FI.Content) AGAINST (? IN BOOLEAN MODE)", queryTerms),
+				sq.Expr("MATCH (FileInfo.Name) AGAINST (? IN BOOLEAN MODE)", queryTerms),
+				sq.Expr("MATCH (FileInfo.Content) AGAINST (? IN BOOLEAN MODE)", queryTerms),
 			})
 		}
 	}
@@ -620,12 +627,12 @@ func (fs SqlFileInfoStore) CountAll() (int64, error) {
 func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime, endTime int64, limit int) ([]*model.FileForIndexing, error) {
 	var files []*model.FileForIndexing
 	sql, args, _ := fs.getQueryBuilder().
-		Select("fi.*, p.ChannelId").
-		From("FileInfo as fi").
-		LeftJoin("Posts AS p ON fi.PostId = p.Id").
-		Where(sq.GtOrEq{"fi.CreateAt": startTime}).
-		Where(sq.Lt{"fi.CreateAt": endTime}).
-		OrderBy("fi.CreateAt").
+		Select(append(fs.queryFields, "Coalesce(p.ChannelId, '') AS ChannelId")...).
+		From("FileInfo").
+		LeftJoin("Posts AS p ON FileInfo.PostId = p.Id").
+		Where(sq.GtOrEq{"FileInfo.CreateAt": startTime}).
+		Where(sq.Lt{"FileInfo.CreateAt": endTime}).
+		OrderBy("FileInfo.CreateAt").
 		Limit(uint64(limit)).
 		ToSql()
 	_, err := fs.GetSearchReplica().Select(&files, sql, args...)

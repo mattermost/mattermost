@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestExtract(t *testing.T) {
@@ -29,7 +29,15 @@ func TestExtract(t *testing.T) {
 			"Plain text file",
 			"test-markdown-basics.md",
 			ExtractSettings{},
-			[]string{"followed", "separated"},
+			[]string{"followed", "separated", "Basic"},
+			[]string{},
+			false,
+		},
+		{
+			"Plain small text file",
+			"test-hashtags.md",
+			ExtractSettings{},
+			[]string{"should", "render", "strings"},
 			[]string{},
 			false,
 		},
@@ -98,6 +106,14 @@ func TestExtract(t *testing.T) {
 			false,
 		},
 		{
+			"Odt file",
+			"sample-doc.odt",
+			ExtractSettings{},
+			[]string{"simple", "document", "contains"},
+			[]string{},
+			false,
+		},
+		{
 			"Pptx file",
 			"sample-doc.pptx",
 			ExtractSettings{},
@@ -134,7 +150,7 @@ func TestExtract(t *testing.T) {
 		require.Equal(t, "", text)
 	})
 
-	t.Run("Wrong extension", func(t *testing.T) {
+	t.Run("Wrong docx extension", func(t *testing.T) {
 		data, err := testutils.ReadTestFile("sample-doc.pdf")
 		require.NoError(t, err)
 		text, err := Extract("sample-doc.docx", bytes.NewReader(data), ExtractSettings{})
@@ -149,7 +165,7 @@ func (te *customTestPdfExtractor) Match(filename string) bool {
 	return strings.HasSuffix(filename, ".pdf")
 }
 
-func (te *customTestPdfExtractor) Extract(filename string, r io.Reader) (string, error) {
+func (te *customTestPdfExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
 	return "this is a text generated content", nil
 }
 
@@ -159,7 +175,7 @@ func (te *failingExtractor) Match(filename string) bool {
 	return true
 }
 
-func (te *failingExtractor) Extract(filename string, r io.Reader) (string, error) {
+func (te *failingExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
 	return "", errors.New("this always fail")
 }
 

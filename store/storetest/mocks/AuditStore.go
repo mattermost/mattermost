@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -37,13 +37,13 @@ func (_m *AuditStore) Get(user_id string, offset int, limit int) (model.Audits, 
 	return r0, r1
 }
 
-// PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *AuditStore) PermanentDeleteByUser(userId string) error {
-	ret := _m.Called(userId)
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *AuditStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}

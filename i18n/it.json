@@ -987,33 +987,6 @@
     "translation": "La spedizione di email programmata è stata disabilitata dall aministratore di sistema."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Messaggio Diretto da "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Vai alla pubblicazione"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Messaggio di Gruppo da "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notifica da "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Hai una nuova notifica.",
-      "other": "Hai {{.Count}} nuove notifiche."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Nuova notifica per {{.Day}} {{.Month}} {{.Year}}",
@@ -1743,10 +1716,6 @@
     "translation": "Impossibile decodificare l'icona del gruppo."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Impossibile decodificare i metadati dell'icona del gruppo."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Impossibile codificare l'icona del gruppo."
   },
@@ -2211,24 +2180,8 @@
     "translation": "Impossibile inviare la notifica di disattivazione account"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Invio notifica email di cambio email avvenuto con successo fallita"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Invio notifica email di cambio username avvenuto con successo, fallita"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Invio email di verifica per il cambio email fallita"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Impossibile inviare l'email di notifica del cambio MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Invio email per la verifica dell'update della password fallito"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2243,16 +2196,8 @@
     "translation": "Invio email per la verifica dell'update della password fallito"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Impossibile inviare l'email di notifica per la creazione del token di accesso"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Invio email di verifica fallita"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Invio email di benvenuto fallito"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2297,10 +2242,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Impossibile caricare l'immagine di profilo."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossibile salvare l'immagine profilo. Il file non sembra essere un'immagine valida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2943,62 +2884,6 @@
     "translation": "Nome gruppo mancante nelle iscrizioni al gruppo dell'utente."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Hai un nuovo messaggio diretto."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Hai un nuovo messaggio diretto da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Hai un nuovo messaggio di gruppo."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Hai un nuovo messaggio di gruppo da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Hai una nuova notifica."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Hai una nuova notifica da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}/{{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canale: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canale: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nuovo messaggio diretto da @{{.SenderDisplayName}} il {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3123,10 +3008,6 @@
     "translation": "Impossibile decodificare i dati dell'immagine."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Impossibile trovare i metadati dell'immagine."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Impossibile convertire l'immagine in PNG. Riprovare."
   },
@@ -3137,10 +3018,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Impossibile scrivere l'immagine nell'archivio file. Controllare la connessione e riprovare."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Impossibile leggere il file immagine. Assicurarsi che l'immagine sia più piccola di 2 MB e riprovare."
   },
   {
     "id": "cli.license.critical",
@@ -4843,10 +4720,6 @@
     "translation": "Non è stato possibile trovare un account con le credenziali fornite. Potrebbe essere necessario disporre di un invito da parte del proprietario del gruppo per l'accesso."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Questo indirizzo email è già in uso. Sceglierne un altro."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistema"
   },
@@ -5085,10 +4958,6 @@
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
     "translation": "Impossibile indicizzare gli utenti in batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Il post più vecchio non può essere recuperato dal database."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
@@ -6199,10 +6068,6 @@
     "translation": "Impossibile spostare i canali di gruppo o di messaggi diretti"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Si è verificato un errore durante la cancellazione delle reazioni"
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Impossibile salvare la reazione"
   },
@@ -6411,10 +6276,6 @@
     "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Impossibile cancellare i record"
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "Impossibile attivare il token di accesso."
   },
@@ -6571,10 +6432,6 @@
     "translation": "Non è stato possibile recuperare i rapporti di compliance."
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Si è verificato un errore pulendo i flag"
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Errore riscontrato nell'aggiornamento delle preferenze."
   },
@@ -6705,10 +6562,6 @@
   {
     "id": "app.role.get_by_name.app_error",
     "translation": "Impossibile recuperare il ruolo"
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossibile recuperare tutti i ruoli"
   },
   {
     "id": "app.role.get.app_error",
@@ -6891,10 +6744,6 @@
     "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "E' stato riscontrato un errore durante la connessione al server."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API non trovate."
   },
@@ -6929,10 +6778,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Impossibile ottenere il lavoro"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Si è verificato un errore durante la cancellazione delle informazioni sui file"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -6993,10 +6838,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Si è verifcato un errore durante la cancellazione delle pubblicazioni"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7279,10 +7120,6 @@
     "translation": "Non è stato possibile recuperare tutte le squadre"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Non è stato possibile recuperare tutte le squadre private"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Non è stato possibile recuperare tutte le squadre private"
   },
@@ -7301,14 +7138,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Impossibile contare le squadre"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Impossibile contare le squadre pubbliche"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Impossibile contare le squadre private"
   },
   {
     "id": "api.user.login_cws.license.error",

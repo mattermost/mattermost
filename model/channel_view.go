@@ -9,13 +9,9 @@ import (
 )
 
 type ChannelView struct {
-	ChannelId     string `json:"channel_id"`
-	PrevChannelId string `json:"prev_channel_id"`
-}
-
-func (o *ChannelView) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
+	ChannelId                 string `json:"channel_id"`
+	PrevChannelId             string `json:"prev_channel_id"`
+	CollapsedThreadsSupported bool   `json:"collapsed_threads_supported"`
 }
 
 func ChannelViewFromJson(data io.Reader) *ChannelView {
@@ -27,11 +23,6 @@ func ChannelViewFromJson(data io.Reader) *ChannelView {
 type ChannelViewResponse struct {
 	Status            string           `json:"status"`
 	LastViewedAtTimes map[string]int64 `json:"last_viewed_at_times"`
-}
-
-func (o *ChannelViewResponse) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func ChannelViewResponseFromJson(data io.Reader) *ChannelViewResponse {

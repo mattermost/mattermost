@@ -4,17 +4,19 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"encoding/json"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-// notifyClusterPluginEvent publishes `event` to other clusters.
-func (a *App) notifyClusterPluginEvent(event string, data model.PluginEventData) {
-	if a.Cluster() != nil {
-		a.Cluster().SendClusterMessage(&model.ClusterMessage{
+func (s *Server) notifyClusterPluginEvent(event model.ClusterEvent, data model.PluginEventData) {
+	buf, _ := json.Marshal(data)
+	if s.Cluster != nil {
+		s.Cluster.SendClusterMessage(&model.ClusterMessage{
 			Event:            event,
-			SendType:         model.CLUSTER_SEND_RELIABLE,
+			SendType:         model.ClusterSendReliable,
 			WaitForAllToSend: true,
-			Data:             data.ToJson(),
+			Data:             buf,
 		})
 	}
 }

@@ -12,8 +12,8 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlJobStore struct {
@@ -28,7 +28,7 @@ func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(32)
 		table.ColMap("Status").SetMaxSize(32)
-		table.ColMap("Data").SetMaxSize(1024)
+		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return s
@@ -97,7 +97,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 		Set("Status", newStatus).
 		Where(sq.Eq{"Id": id, "Status": currentStatus})
 
-	if newStatus == model.JOB_STATUS_IN_PROGRESS {
+	if newStatus == model.JobStatusInProgress {
 		builder = builder.Set("StartAt", model.GetMillis())
 	}
 	query, args, err := builder.ToSql()
@@ -154,6 +154,25 @@ func (jss SqlJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 		return nil, errors.Wrap(err, "failed to find Jobs")
 	}
 	return statuses, nil
+}
+
+func (jss SqlJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+	query, args, err := jss.getQueryBuilder().
+		Select("*").
+		From("Jobs").
+		Where(sq.Eq{"Type": jobTypes}).
+		OrderBy("CreateAt DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "job_tosql")
+	}
+
+	var jobs []*model.Job
+	if _, err = jss.GetReplica().Select(&jobs, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Jobs with types")
+	}
+	return jobs, nil
 }
 
 func (jss SqlJobStore) GetAllByType(jobType string) ([]*model.Job, error) {

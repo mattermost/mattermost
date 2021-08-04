@@ -7,21 +7,23 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type SqlPostStore struct {
@@ -33,6 +35,7 @@ type SqlPostStore struct {
 
 type postWithExtra struct {
 	ThreadReplyCount   int64
+	IsFollowing        *bool
 	ThreadParticipants model.StringArray
 	model.Post
 }
@@ -40,8 +43,34 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
-func postSliceColumns() []string {
-	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
+func postSliceColumnsWithTypes() []struct {
+	Name string
+	Type reflect.Kind
+} {
+	return []struct {
+		Name string
+		Type reflect.Kind
+	}{
+		{"Id", reflect.String},
+		{"CreateAt", reflect.Int64},
+		{"UpdateAt", reflect.Int64},
+		{"EditAt", reflect.Int64},
+		{"DeleteAt", reflect.Int64},
+		{"IsPinned", reflect.Bool},
+		{"UserId", reflect.String},
+		{"ChannelId", reflect.String},
+		{"RootId", reflect.String},
+		{"ParentId", reflect.String},
+		{"OriginalId", reflect.String},
+		{"Message", reflect.String},
+		{"Type", reflect.String},
+		{"Props", reflect.Map},
+		{"Hashtags", reflect.String},
+		{"Filenames", reflect.Slice},
+		{"FileIds", reflect.Slice},
+		{"HasReactions", reflect.Bool},
+		{"RemoteId", reflect.String},
+	}
 }
 
 func postToSlice(post *model.Post) []interface{} {
@@ -64,14 +93,46 @@ func postToSlice(post *model.Post) []interface{} {
 		model.ArrayToJson(post.Filenames),
 		model.ArrayToJson(post.FileIds),
 		post.HasReactions,
+		post.RemoteId,
 	}
+}
+
+func postSliceColumns() []string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		cols[i] = colInfo.Name
+	}
+	return cols
+}
+
+func postSliceCoalesceQuery() string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		var defaultValue string
+		switch colInfo.Type {
+		case reflect.String:
+			defaultValue = "''"
+		case reflect.Int64:
+			defaultValue = "0"
+		case reflect.Bool:
+			defaultValue = "false"
+		case reflect.Map:
+			defaultValue = "'{}'"
+		case reflect.Slice:
+			defaultValue = "'[]'"
+		}
+		cols[i] = "COALESCE(Posts." + colInfo.Name + "," + defaultValue + ") AS " + colInfo.Name
+	}
+	return strings.Join(cols, ",")
 }
 
 func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
-		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
+		maxPostSizeCached: model.PostMessageMaxRunesV1,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -82,12 +143,13 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("RootId").SetMaxSize(26)
 		table.ColMap("ParentId").SetMaxSize(26)
 		table.ColMap("OriginalId").SetMaxSize(26)
-		table.ColMap("Message").SetMaxSize(model.POST_MESSAGE_MAX_BYTES_V2)
+		table.ColMap("Message").SetMaxSize(model.PostMessageMaxBytesV2)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
-		table.ColMap("Props").SetMaxSize(8000)
-		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
+		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
+		table.ColMap("Filenames").SetMaxSize(model.PostFilenamesMaxRunes)
 		table.ColMap("FileIds").SetMaxSize(300)
+		table.ColMap("RemoteId").SetMaxSize(26)
 	}
 
 	return s
@@ -97,7 +159,6 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
 	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
@@ -111,11 +172,12 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 
 func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
+	channelNewRootPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
 	for idx, post := range posts {
-		if post.Id != "" {
+		if post.Id != "" && !post.IsRemote() {
 			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
 		}
 		post.PreSave()
@@ -124,8 +186,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 			return nil, idx, err
 		}
 
-		currentChannelCount, ok := channelNewPosts[post.ChannelId]
-		if !ok {
+		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
 				channelNewPosts[post.ChannelId] = 0
 			} else {
@@ -142,11 +203,21 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 
 		if post.RootId == "" {
+			if currentChannelCount, ok := channelNewRootPosts[post.ChannelId]; !ok {
+				if post.IsJoinLeaveMessage() {
+					channelNewRootPosts[post.ChannelId] = 0
+				} else {
+					channelNewRootPosts[post.ChannelId] = 1
+				}
+			} else {
+				if !post.IsJoinLeaveMessage() {
+					channelNewRootPosts[post.ChannelId] = currentChannelCount + 1
+				}
+			}
 			continue
 		}
 
-		currentRootCount, ok := rootIds[post.RootId]
-		if !ok {
+		if currentRootCount, ok := rootIds[post.RootId]; !ok {
 			rootIds[post.RootId] = 1
 			maxDateRootIds[post.RootId] = post.CreateAt
 		} else {
@@ -187,7 +258,9 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	}
 
 	for channelId, count := range channelNewPosts {
-		if _, err = s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
+		countRoot := channelNewRootPosts[channelId]
+
+		if _, err = s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count, TotalMsgCountRoot = TotalMsgCountRoot + :CountRoot WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count, "CountRoot": countRoot}); err != nil {
 			mlog.Warn("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	}
@@ -198,7 +271,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 	}
 
-	unknownRepliesPosts := []*model.Post{}
+	var unknownRepliesPosts []*model.Post
 	for _, post := range posts {
 		if post.RootId == "" {
 			count, ok := rootIds[post.Id]
@@ -345,7 +418,7 @@ func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*m
 	pl := model.NewPostList()
 
 	var posts []*model.Post
-	if _, err := s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
+	if _, err := s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PreferenceCategoryFlaggedPost, "Offset": offset, "Limit": limit}); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
@@ -388,7 +461,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
             ORDER BY CreateAt DESC
             LIMIT :Limit OFFSET :Offset`
 
-	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
+	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PreferenceCategoryFlaggedPost, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
@@ -415,7 +488,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 		ORDER BY CreateAt DESC
 		LIMIT :Limit OFFSET :Offset`
 
-	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PreferenceCategoryFlaggedPost, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 	for _, post := range posts {
@@ -425,7 +498,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 
 	return pl, nil
 }
-func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*model.PostList, error) {
+func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended bool) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
@@ -434,13 +507,19 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*m
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
+	columns = append(columns,
+		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+	)
 	var post postWithExtra
 
 	postFetchQuery, args, _ := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userID).
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.Eq{"Id": id}).ToSql()
 
@@ -452,12 +531,27 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*m
 
 		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 	}
-	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+
+	var posts []*model.Post
+	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Posts.RootId = :RootId AND DeleteAt = 0", map[string]interface{}{"RootId": id})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts for thread %s", id)
+	}
+
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+	return list, nil
 }
 
-func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error) {
+func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
 	if collapsedThreads {
-		return s.getPostWithCollapsedThreads(id, collapsedThreadsExtended)
+		return s.getPostWithCollapsedThreads(id, userID, collapsedThreadsExtended)
 	}
 	pl := model.NewPostList()
 
@@ -502,9 +596,29 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetSingle(id string) (*model.Post, error) {
+func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("p.*").
+		From("Posts p").
+		Where(sq.Eq{"p.Id": id})
+
+	replyCountSubQuery := s.getQueryBuilder().
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
+
+	if !inclDeleted {
+		query = query.Where(sq.Eq{"p.DeleteAt": 0})
+	}
+	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getsingleincldeleted_tosql")
+	}
+
 	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
+	err = s.GetReplica().SelectOne(&post, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)
@@ -555,7 +669,7 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) erro
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
 	}
 
-	post.AddProp(model.POST_PROPS_DELETE_BY, deleteByID)
+	post.AddProp(model.PostPropsDeleteBy, deleteByID)
 
 	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.GetProps())})
 	if err != nil {
@@ -689,6 +803,9 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	}
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
+		if p.IsFollowing != nil {
+			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
+		}
 		for _, th := range p.ThreadParticipants {
 			var participant *model.User
 			for _, u := range users {
@@ -728,7 +845,12 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
+	columns = append(columns,
+		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+	)
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
@@ -736,6 +858,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Eq{"RootId": ""}).
@@ -808,13 +931,19 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
+	columns = append(columns,
+		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+	)
 	var posts []*postWithExtra
 
 	postFetchQuery, args, _ := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"UpdateAt": options.Time}).
@@ -837,6 +966,11 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 
 	var posts []*model.Post
 
+	order := "DESC"
+	if options.SortAscending {
+		order = "ASC"
+	}
+
 	replyCountQuery1 := ""
 	replyCountQuery2 := ""
 	if options.SkipFetchThreads {
@@ -846,7 +980,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	var query string
 
 	// union of IDs and then join to get full posts is faster in mysql
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		query = `SELECT *` + replyCountQuery1 + ` FROM Posts p1 JOIN (
 			(SELECT
               Id
@@ -873,8 +1007,8 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 							  AND ChannelId = :ChannelId
 					  LIMIT 1000) temp_tab))
 			) j ON p1.Id = j.Id
-          ORDER BY CreateAt DESC`
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+          ORDER BY CreateAt ` + order
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		query = `WITH cte AS (SELECT
 		       *
 		FROM
@@ -885,7 +1019,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 		(SELECT *` + replyCountQuery2 + ` FROM cte)
 		UNION
 		(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
-		ORDER BY CreateAt DESC`
+		ORDER BY CreateAt ` + order
 	}
 	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time})
 
@@ -903,6 +1037,74 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	}
 
 	return list, nil
+}
+
+func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+	query := `
+		SELECT 1
+		FROM
+			Posts
+		WHERE
+			UpdateAt >= :Time
+			AND
+			ChannelId = :ChannelId
+			AND
+			UserId = :UserId
+			AND
+			Type = :Type
+		LIMIT 1`
+
+	exist, err := s.GetReplica().SelectInt(query, map[string]interface{}{
+		"ChannelId": options.ChannelId,
+		"Time":      options.Time,
+		"UserId":    userId,
+		"Type":      model.PostTypeAutoResponder,
+	})
+
+	if err != nil {
+		return false, errors.Wrapf(err,
+			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
+	}
+
+	return exist > 0, nil
+}
+
+func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Or{sq.Gt{"UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Id": cursor.LastPostId}}}).
+		OrderBy("UpdateAt", "Id").
+		Limit(uint64(limit))
+
+	if options.ChannelId != "" {
+		query = query.Where(sq.Eq{"ChannelId": options.ChannelId})
+	}
+
+	if !options.IncludeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if options.ExcludeRemoteId != "" {
+		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, cursor, errors.Wrap(err, "getpostssinceforsync_tosql")
+	}
+
+	var posts []*model.Post
+	_, err = s.GetReplica().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
+	}
+
+	if len(posts) != 0 {
+		cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
+		cursor.LastPostId = posts[len(posts)-1].Id
+	}
+	return posts, cursor, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
@@ -939,12 +1141,17 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
 	// See MM-27575.
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
 	columns := []string{"p.*"}
 	if options.CollapsedThreads {
-		columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
+		columns = append(columns,
+			"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+			"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+			"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+			"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+		)
 	}
 	query := s.getQueryBuilder().Select(columns...)
 	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
@@ -956,7 +1163,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 	if options.CollapsedThreads {
 		conditions = append(conditions, sq.Eq{"RootId": ""})
-		query = query.LeftJoin("Threads ON Threads.PostId = p.Id")
+		query = query.LeftJoin("Threads ON Threads.PostId = p.Id").LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = p.Id AND ThreadMemberships.UserId=?", options.UserId)
 	} else {
 		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 	}
@@ -1049,7 +1256,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
 	// See MM-27575.
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
 
@@ -1091,7 +1298,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
 	// See MM-27575.
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
 	conditions := sq.And{
@@ -1143,7 +1350,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 }
 
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, error) {
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		return s.getParentsPostsPostgreSQL(channelId, offset, limit, skipFetchThreads)
 	}
 
@@ -1423,7 +1630,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 				Posts q2
 			WHERE
 				DeleteAt = 0
-				AND Type NOT LIKE '` + model.POST_SYSTEM_MESSAGE_PREFIX + `%'
+				AND Type NOT LIKE '` + model.PostSystemMessagePrefix + `%'
 				POST_FILTER
 				AND ChannelId IN (
 					SELECT
@@ -1476,7 +1683,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		// Parse text for wildcards
 		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
@@ -1498,7 +1705,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
 			var err error
 			terms, err = removeMysqlStopWordsFromTerms(terms)
@@ -1593,7 +1800,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		ORDER BY Name DESC
 		LIMIT 30`
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		query =
 			`SELECT
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
@@ -1649,7 +1856,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 		ORDER BY Name DESC
 		LIMIT 30`
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		query =
 			`SELECT
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
@@ -1784,6 +1991,46 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 	return posts, nil
 }
 
+// PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
+// the global or a granular retention policy.
+// See `genericPermanentDeleteBatchForRetentionPolicies` for details.
+func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("Posts.Id").
+		From("Posts")
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "Posts",
+		TimeColumn:          "CreateAt",
+		PrimaryKeys:         []string{"Id"},
+		ChannelIDTable:      "Posts",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
+}
+
+// DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.
+func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const query = `
+	DELETE FROM Posts WHERE Id IN (
+		SELECT * FROM (
+			SELECT Posts.Id FROM Posts
+			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(query, props)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	return
+}
+
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {
@@ -1821,7 +2068,7 @@ func (s *SqlPostStore) GetOldest() (*model.Post, error) {
 func (s *SqlPostStore) determineMaxPostSize() int {
 	var maxPostSizeBytes int32
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		// The Post.Message column in Postgres has historically been VARCHAR(4000), but
 		// may be manually enlarged to support longer posts.
 		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
@@ -1835,7 +2082,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		`); err != nil {
 			mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if s.DriverName() == model.DatabaseDriverMysql {
 		// The Post.Message column in MySQL has historically been TEXT, with a maximum
 		// limit of 65535.
 		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
@@ -1861,8 +2108,8 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 	// To maintain backwards compatibility, don't yield a maximum post
 	// size smaller than the previous limit, even though it wasn't
 	// actually possible to store 4000 runes in all cases.
-	if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
-		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
+	if maxPostSize < model.PostMessageMaxRunesV1 {
+		maxPostSize = model.PostMessageMaxRunesV1
 	}
 
 	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int32("max_bytes", maxPostSizeBytes))
@@ -1993,7 +2240,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		channelIds = append(channelIds, post.ChannelId)
 	}
 	query = s.getQueryBuilder().
-		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
+		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 		From("ChannelMembers cm").
 		Join("Users u ON ( u.Id = cm.UserId )").
 		Where(sq.Eq{
@@ -2142,7 +2389,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 	if len(rootIds) == 0 {
 		return nil
 	}
-	now := model.GetMillis()
 	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": rootIds}).ToSql()
 	var threadsByRoots []*model.Thread
 	if _, err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
@@ -2166,23 +2412,30 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 			if err != nil {
 				return err
 			}
+			// calculate last reply at
+			lastReplyAt, err := transaction.SelectInt("SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE RootID=:RootId and DeleteAt=0", map[string]interface{}{"RootId": rootId})
+			if err != nil {
+				return err
+			}
 			// no metadata entry, create one
 			if err := transaction.Insert(&model.Thread{
 				PostId:       rootId,
 				ChannelId:    posts[0].ChannelId,
 				ReplyCount:   count,
-				LastReplyAt:  now,
+				LastReplyAt:  lastReplyAt,
 				Participants: participants,
 			}); err != nil {
 				return err
 			}
 		} else {
 			// metadata exists, update it
-			thread.LastReplyAt = now
 			for _, post := range posts {
 				thread.ReplyCount += 1
 				if !thread.Participants.Contains(post.UserId) {
 					thread.Participants = append(thread.Participants, post.UserId)
+				}
+				if post.CreateAt > thread.LastReplyAt {
+					thread.LastReplyAt = post.CreateAt
 				}
 			}
 			if _, err := transaction.Update(thread); err != nil {

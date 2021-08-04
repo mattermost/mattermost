@@ -8,10 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SearchChannelStore struct {
@@ -20,7 +20,7 @@ type SearchChannelStore struct {
 }
 
 func (c *SearchChannelStore) deleteChannelIndex(channel *model.Channel) {
-	if channel.Type == model.CHANNEL_OPEN {
+	if channel.Type == model.ChannelTypeOpen {
 		for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 			if engine.IsIndexingEnabled() {
 				runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
@@ -36,7 +36,7 @@ func (c *SearchChannelStore) deleteChannelIndex(channel *model.Channel) {
 }
 
 func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
-	if channel.Type == model.CHANNEL_OPEN {
+	if channel.Type == model.ChannelTypeOpen {
 		for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 			if engine.IsIndexingEnabled() {
 				runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
@@ -114,8 +114,8 @@ func (c *SearchChannelStore) RemoveMembers(channelId string, userIds []string) e
 	return nil
 }
 
-func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
-	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser)
+func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser, channelOptions...)
 	if err == nil {
 		c.rootStore.indexUserFromID(user.Id)
 		c.rootStore.indexUserFromID(otherUser.Id)

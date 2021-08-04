@@ -4,13 +4,15 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (api *API) InitConfigLocal() {
@@ -26,7 +28,9 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := c.App.GetSanitizedConfig()
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -57,19 +61,28 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(cfg, true)
+	oldCfg, newCfg, err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	cfg = c.App.GetSanitizedConfig()
+	diffs, diffErr := config.Diff(oldCfg, newCfg)
+	if diffErr != nil {
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	auditRec.AddMeta("diff", diffs)
+
+	newCfg.Sanitize()
 
 	auditRec.Success()
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	if err := json.NewEncoder(w).Encode(newCfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -106,14 +119,23 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(updatedCfg, true)
+	oldCfg, newCfg, err := c.App.SaveConfig(updatedCfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	diffs, diffErr := config.Diff(oldCfg, newCfg)
+	if diffErr != nil {
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	auditRec.AddMeta("diff", diffs)
+
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
+	if err := json.NewEncoder(w).Encode(c.App.GetSanitizedConfig()); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

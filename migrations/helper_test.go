@@ -6,15 +6,17 @@ package migrations
 import (
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type TestHelper struct {
 	App          *app.App
+	Context      *request.Context
 	Server       *app.Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -40,6 +42,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
+	options = append(options, app.SkipPostInitializiation())
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -52,8 +55,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App:    app.New(app.ServerConnector(s)),
-		Server: s,
+		App:     app.New(app.ServerConnector(s)),
+		Context: &request.Context{},
+		Server:  s,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -76,6 +80,8 @@ func setupTestHelper(enterprise bool) *TestHelper {
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.Srv().Jobs.InitWorkers()
+		th.App.Srv().Jobs.InitSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
@@ -93,7 +99,7 @@ func Setup() *TestHelper {
 
 func (th *TestHelper) InitBasic() *TestHelper {
 	th.SystemAdminUser = th.CreateUser()
-	th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 
 	th.BasicTeam = th.CreateTeam()
@@ -117,12 +123,12 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if team, err = th.App.CreateTeam(team); err != nil {
+	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -142,7 +148,7 @@ func (th *TestHelper) CreateUser() *model.User {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if user, err = th.App.CreateUser(user); err != nil {
+	if user, err = th.App.CreateUser(th.Context, user); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -150,10 +156,10 @@ func (th *TestHelper) CreateUser() *model.User {
 }
 
 func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_OPEN)
+	return th.createChannel(team, model.ChannelTypeOpen)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -166,7 +172,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if channel, err = th.App.CreateChannel(channel, true); err != nil {
+	if channel, err = th.App.CreateChannel(th.Context, channel, true); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -177,7 +183,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
+	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -196,7 +202,7 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
+	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -206,7 +212,7 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
 		panic(err)
 	}
@@ -217,7 +223,7 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
-	member, err := th.App.AddUserToChannel(user, channel)
+	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
@@ -244,13 +250,13 @@ func (*TestHelper) ResetRoleMigration() {
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.AdvancedPermissionsMigrationKey}); err != nil {
 		panic(err)
 	}
 }
 
 func (th *TestHelper) DeleteAllJobsByTypeAndMigrationKey(jobType string, migrationKey string) {
-	jobs, err := th.App.Srv().Store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS)
+	jobs, err := th.App.Srv().Store.Job().GetAllByType(model.JobTypeMigrations)
 	if err != nil {
 		panic(err)
 	}

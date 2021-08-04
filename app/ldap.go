@@ -8,17 +8,20 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (a *App) SyncLdap() {
+// SyncLdap starts an LDAP sync job.
+// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+// be re-added; otherwise, they will not be re-added.
+func (a *App) SyncLdap(includeRemovedMembers bool) {
 	a.Srv().Go(func() {
 
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap(); ldapI != nil {
-				ldapI.StartSynchronizeJob(false)
+				ldapI.StartSynchronizeJob(false, includeRemovedMembers)
 			} else {
 				mlog.Error("Not executing ldap sync because ldap is not available")
 			}
@@ -125,7 +128,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 		return "", err
 	}
 
-	if user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+	if user.AuthService != model.UserAuthServiceLdap {
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_ldap_account.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -197,12 +200,12 @@ func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *mo
 }
 
 func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeLdapFile(model.LDAP_PUBLIC_CERTIFICATE_NAME, fileData); err != nil {
+	if err := a.writeLdapFile(model.LdapPublicCertificateName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PublicCertificateFile = model.LDAP_PUBLIC_CERTIFICATE_NAME
+	*cfg.LdapSettings.PublicCertificateFile = model.LdapPublicCertificateName
 
 	if err := cfg.IsValid(); err != nil {
 		return err
@@ -214,12 +217,12 @@ func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 }
 
 func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeLdapFile(model.LDAP_PRIVATE_KEY_NAME, fileData); err != nil {
+	if err := a.writeLdapFile(model.LdapPrivateKeyName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PrivateKeyFile = model.LDAP_PRIVATE_KEY_NAME
+	*cfg.LdapSettings.PrivateKeyFile = model.LdapPrivateKeyName
 
 	if err := cfg.IsValid(); err != nil {
 		return err

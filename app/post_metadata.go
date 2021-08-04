@@ -16,11 +16,11 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/shared/markdown"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils/imgutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/cache"
+	"github.com/mattermost/mattermost-server/v6/shared/markdown"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/imgutils"
 )
 
 type linkMetadataCache struct {
@@ -36,9 +36,9 @@ var linkCache = cache.NewLRU(cache.LRUOptions{
 	Size: LinkCacheSize,
 })
 
-func (a *App) InitPostMetadata() {
+func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
-	a.AddConfigListener(func(before, after *model.Config) {
+	s.AddConfigListener(func(before, after *model.Config) {
 		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
 			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
 			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
@@ -68,7 +68,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 // so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
-	prop, ok := post.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+	prop, ok := post.GetProps()[model.PostPropsOverrideIconEmoji]
 	if !ok || prop == nil {
 		return
 	}
@@ -85,7 +85,7 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	emojiName = strings.ReplaceAll(emojiName, ":", "")
 
 	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
-		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
+		post.AddProp(model.PostPropsOverrideIconUrl, emojiUrl)
 	} else {
 		mlog.Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
@@ -167,7 +167,7 @@ func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []
 func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool) (*model.PostEmbed, error) {
 	if _, ok := post.GetProps()["attachments"]; ok {
 		return &model.PostEmbed{
-			Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+			Type: model.PostEmbedMessageAttachment,
 		}, nil
 	}
 
@@ -182,7 +182,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 
 	if og != nil {
 		return &model.PostEmbed{
-			Type: model.POST_EMBED_OPENGRAPH,
+			Type: model.PostEmbedOpengraph,
 			URL:  firstLink,
 			Data: og,
 		}, nil
@@ -191,13 +191,13 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 	if image != nil {
 		// Note that we're not passing the image info here since it'll be part of the PostMetadata.Images field
 		return &model.PostEmbed{
-			Type: model.POST_EMBED_IMAGE,
+			Type: model.PostEmbedImage,
 			URL:  firstLink,
 		}, nil
 	}
 
 	return &model.PostEmbed{
-		Type: model.POST_EMBED_LINK,
+		Type: model.PostEmbedLink,
 		URL:  firstLink,
 	}, nil
 }
@@ -207,14 +207,14 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 
 	for _, embed := range post.Metadata.Embeds {
 		switch embed.Type {
-		case model.POST_EMBED_IMAGE:
+		case model.PostEmbedImage:
 			// These dimensions will generally be cached by a previous call to getEmbedForPost
 			imageURLs = append(imageURLs, embed.URL)
 
-		case model.POST_EMBED_MESSAGE_ATTACHMENT:
+		case model.PostEmbedMessageAttachment:
 			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(post)...)
 
-		case model.POST_EMBED_OPENGRAPH:
+		case model.PostEmbedOpengraph:
 			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
 				var imageURL string
 				if image.SecureURL != "" {
@@ -250,7 +250,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 }
 
 func getEmojiNamesForString(s string) []string {
-	names := model.EMOJI_PATTERN.FindAllString(s, -1)
+	names := model.EmojiPattern.FindAllString(s, -1)
 
 	for i, name := range names {
 		names[i] = strings.Trim(name, ":")
@@ -270,6 +270,10 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 
 	// Post attachments
 	for _, attachment := range post.Attachments() {
+		if attachment.Title != "" {
+			names = append(names, getEmojiNamesForString(attachment.Title)...)
+		}
+
 		if attachment.Text != "" {
 			names = append(names, getEmojiNamesForString(attachment.Text)...)
 		}
@@ -422,12 +426,6 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 		client := a.HTTPService().MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
-		mmTransport := a.HTTPService().MakeTransport(false)
-		client.Transport = mmTransport.Transport
-
-		if strings.HasPrefix(requestURL, "https://twitter.com/") || strings.HasPrefix(requestURL, "https://mobile.twitter.com/") {
-			request.Header.Add("User-Agent", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)")
-		}
 
 		var res *http.Response
 		res, err = client.Do(request)
@@ -509,13 +507,13 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 	}
 
 	if og != nil {
-		metadata.Type = model.LINK_METADATA_TYPE_OPENGRAPH
+		metadata.Type = model.LinkMetadataTypeOpengraph
 		metadata.Data = og
 	} else if image != nil {
-		metadata.Type = model.LINK_METADATA_TYPE_IMAGE
+		metadata.Type = model.LinkMetadataTypeImage
 		metadata.Data = image
 	} else {
-		metadata.Type = model.LINK_METADATA_TYPE_NONE
+		metadata.Type = model.LinkMetadataTypeNone
 	}
 
 	_, err := a.Srv().Store.LinkMetadata().Save(metadata)

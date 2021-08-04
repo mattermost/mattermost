@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestUserStore(t *testing.T) {
@@ -279,13 +279,13 @@ func TestUserStoreGetManyCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUsers, err := cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		assert.Contains(t, gotUsers, fakeUser)
 		assert.Contains(t, gotUsers, otherFakeUser)
 
 		gotUsers, err = cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetMany", 1)
 	})
@@ -297,7 +297,7 @@ func TestUserStoreGetManyCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUsers, err := cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		assert.Contains(t, gotUsers, fakeUser)
 		assert.Contains(t, gotUsers, otherFakeUser)

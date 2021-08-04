@@ -142,18 +142,7 @@ func makeExtDecoder(
 	typ reflect.Type,
 	decoder func(d *Decoder, v reflect.Value, extLen int) error,
 ) decoderFunc {
-	nilable := typ.Kind() == reflect.Ptr
-
-	return func(d *Decoder, v reflect.Value) error {
-		if d.hasNilCode() {
-			v.Set(reflect.Zero(typ))
-			return d.DecodeNil()
-		}
-
-		if nilable && v.IsNil() {
-			v.Set(reflect.New(typ.Elem()))
-		}
-
+	return nilAwareDecoder(typ, func(d *Decoder, v reflect.Value) error {
 		extID, extLen, err := d.DecodeExtHeader()
 		if err != nil {
 			return err
@@ -162,7 +151,7 @@ func makeExtDecoder(
 			return fmt.Errorf("msgpack: got ext type=%d, wanted %d", extID, wantedExtID)
 		}
 		return decoder(d, v, extLen)
-	}
+	})
 }
 
 func makeExtDecoderAddr(extDecoder decoderFunc) decoderFunc {
@@ -266,7 +255,7 @@ func (d *Decoder) decodeInterfaceExt(c byte) (interface{}, error) {
 	}
 
 	v := reflect.New(info.Type).Elem()
-	if nilable(v) && v.IsNil() {
+	if nilable(v.Kind()) && v.IsNil() {
 		v.Set(reflect.New(info.Type.Elem()))
 	}
 

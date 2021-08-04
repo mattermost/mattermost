@@ -11,8 +11,8 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type hooksTimerLayer struct {
@@ -161,4 +161,10 @@ func (hooks *hooksTimerLayer) ReactionHasBeenRemoved(c *Context, reaction *model
 	startTime := timePkg.Now()
 	hooks.hooksImpl.ReactionHasBeenRemoved(c, reaction)
 	hooks.recordTime(startTime, "ReactionHasBeenRemoved", true)
+}
+
+func (hooks *hooksTimerLayer) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnPluginClusterEvent(c, ev)
+	hooks.recordTime(startTime, "OnPluginClusterEvent", true)
 }

@@ -12,14 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, ss) })
+	t.Run("JobGetAllByTypesPage", func(t *testing.T) { testJobGetAllByTypesPage(t, ss) })
 	t.Run("JobGetAllPage", func(t *testing.T) { testJobGetAllPage(t, ss) })
 	t.Run("JobGetAllByStatus", func(t *testing.T) { testJobGetAllByStatus(t, ss) })
 	t.Run("GetNewestJobByStatusAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusAndType(t, ss) })
@@ -122,6 +123,61 @@ func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
 	received, err = ss.Job().GetAllByTypePage(jobType, 2, 2)
+	require.NoError(t, err)
+	require.Len(t, received, 1)
+	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
+}
+
+func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
+	jobType := model.NewId()
+	jobType2 := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: 1000,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: 999,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType2,
+			CreateAt: 1001,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.NewId(),
+			CreateAt: 1002,
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := ss.Job().Save(job)
+		require.NoError(t, err)
+		defer ss.Job().Delete(job.Id)
+	}
+
+	// test return all
+	jobTypes := []string{jobType, jobType2}
+	received, err := ss.Job().GetAllByTypesPage(jobTypes, 0, 4)
+	require.NoError(t, err)
+	require.Len(t, received, 3)
+	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
+	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
+
+	// test paging
+	jobTypes = []string{jobType, jobType2}
+	received, err = ss.Job().GetAllByTypesPage(jobTypes, 0, 2)
+	require.NoError(t, err)
+	require.Len(t, received, 2)
+	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
+	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
+
+	received, err = ss.Job().GetAllByTypesPage(jobTypes, 2, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
@@ -389,9 +445,9 @@ func testJobStoreGetCountByStatusAndType(t *testing.T, ss store.Store) {
 func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 	job := &model.Job{
 		Id:       model.NewId(),
-		Type:     model.JOB_TYPE_DATA_RETENTION,
+		Type:     model.JobTypeDataRetention,
 		CreateAt: model.GetMillis(),
-		Status:   model.JOB_STATUS_PENDING,
+		Status:   model.JobStatusPending,
 	}
 
 	_, err := ss.Job().Save(job)
@@ -399,18 +455,18 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 	defer ss.Job().Delete(job.Id)
 
 	job.LastActivityAt = model.GetMillis()
-	job.Status = model.JOB_STATUS_IN_PROGRESS
+	job.Status = model.JobStatusInProgress
 	job.Progress = 50
 	job.Data = map[string]string{
 		"Foo": "Bar",
 	}
 
-	updated, err := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS)
+	updated, err := ss.Job().UpdateOptimistically(job, model.JobStatusSuccess)
 	require.False(t, err != nil && updated)
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err = ss.Job().UpdateOptimistically(job, model.JOB_STATUS_PENDING)
+	updated, err = ss.Job().UpdateOptimistically(job, model.JobStatusPending)
 	require.NoError(t, err)
 	require.True(t, updated)
 
@@ -428,9 +484,9 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store) {
 	job := &model.Job{
 		Id:       model.NewId(),
-		Type:     model.JOB_TYPE_DATA_RETENTION,
+		Type:     model.JobTypeDataRetention,
 		CreateAt: model.GetMillis(),
-		Status:   model.JOB_STATUS_SUCCESS,
+		Status:   model.JobStatusSuccess,
 	}
 
 	var lastUpdateAt int64
@@ -442,35 +498,35 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 
 	time.Sleep(2 * time.Millisecond)
 
-	received, err = ss.Job().UpdateStatus(job.Id, model.JOB_STATUS_PENDING)
+	received, err = ss.Job().UpdateStatus(job.Id, model.JobStatusPending)
 	require.NoError(t, err)
 
-	require.Equal(t, model.JOB_STATUS_PENDING, received.Status)
+	require.Equal(t, model.JobStatusPending, received.Status)
 	require.Greater(t, received.LastActivityAt, lastUpdateAt)
 	lastUpdateAt = received.LastActivityAt
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err := ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_SUCCESS)
+	updated, err := ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusInProgress, model.JobStatusSuccess)
 	require.NoError(t, err)
 	require.False(t, updated)
 
 	received, err = ss.Job().Get(job.Id)
 	require.NoError(t, err)
 
-	require.Equal(t, model.JOB_STATUS_PENDING, received.Status)
+	require.Equal(t, model.JobStatusPending, received.Status)
 	require.Equal(t, received.LastActivityAt, lastUpdateAt)
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS)
+	updated, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusPending, model.JobStatusInProgress)
 	require.NoError(t, err)
 	require.True(t, updated, "should have succeeded")
 
 	var startAtSet int64
 	received, err = ss.Job().Get(job.Id)
 	require.NoError(t, err)
-	require.Equal(t, model.JOB_STATUS_IN_PROGRESS, received.Status)
+	require.Equal(t, model.JobStatusInProgress, received.Status)
 	require.NotEqual(t, 0, received.StartAt)
 	require.Greater(t, received.LastActivityAt, lastUpdateAt)
 	lastUpdateAt = received.LastActivityAt
@@ -478,13 +534,13 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_SUCCESS)
+	updated, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusInProgress, model.JobStatusSuccess)
 	require.NoError(t, err)
 	require.True(t, updated, "should have succeeded")
 
 	received, err = ss.Job().Get(job.Id)
 	require.NoError(t, err)
-	require.Equal(t, model.JOB_STATUS_SUCCESS, received.Status)
+	require.Equal(t, model.JobStatusSuccess, received.Status)
 	require.Equal(t, startAtSet, received.StartAt)
 	require.Greater(t, received.LastActivityAt, lastUpdateAt)
 }

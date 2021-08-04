@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateJob(t *testing.T) {
@@ -19,14 +19,14 @@ func TestCreateJob(t *testing.T) {
 	defer th.TearDown()
 
 	job := &model.Job{
-		Type: model.JOB_TYPE_MESSAGE_EXPORT,
+		Type: model.JobTypeMessageExport,
 		Data: map[string]string{
 			"thing": "stuff",
 		},
 	}
 
 	_, resp := th.SystemManagerClient.CreateJob(job)
-	require.Nil(t, resp.Error)
+	CheckForbiddenStatus(t, resp)
 
 	received, resp := th.SystemAdminClient.CreateJob(job)
 	require.Nil(t, resp.Error)
@@ -40,6 +40,7 @@ func TestCreateJob(t *testing.T) {
 	_, resp = th.SystemAdminClient.CreateJob(job)
 	CheckBadRequestStatus(t, resp)
 
+	job.Type = model.JobTypeElasticsearchPostIndexing
 	_, resp = th.Client.CreateJob(job)
 	CheckForbiddenStatus(t, resp)
 }
@@ -50,7 +51,8 @@ func TestGetJob(t *testing.T) {
 
 	job := &model.Job{
 		Id:     model.NewId(),
-		Status: model.JOB_STATUS_PENDING,
+		Status: model.JobStatusPending,
+		Type:   model.JobTypeMessageExport,
 	}
 	_, err := th.App.Srv().Store.Job().Save(job)
 	require.NoError(t, err)
@@ -77,7 +79,7 @@ func TestGetJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	jobType := model.NewId()
+	jobType := model.JobTypeDataRetention
 
 	t0 := model.GetMillis()
 	jobs := []*model.Job{
@@ -124,7 +126,7 @@ func TestGetJobsByType(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	jobType := model.NewId()
+	jobType := model.JobTypeDataRetention
 
 	jobs := []*model.Job{
 		{
@@ -177,7 +179,7 @@ func TestGetJobsByType(t *testing.T) {
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MESSAGE_EXPORT, 0, 60)
+	_, resp = th.SystemManagerClient.GetJobsByType(model.JobTypeElasticsearchPostIndexing, 0, 60)
 	require.Nil(t, resp.Error)
 }
 
@@ -187,11 +189,11 @@ func TestDownloadJob(t *testing.T) {
 	jobName := model.NewId()
 	job := &model.Job{
 		Id:   jobName,
-		Type: model.JOB_TYPE_MESSAGE_EXPORT,
+		Type: model.JobTypeMessageExport,
 		Data: map[string]string{
 			"export_type": "csv",
 		},
-		Status: model.JOB_STATUS_SUCCESS,
+		Status: model.JobStatusSuccess,
 	}
 
 	// DownloadExportResults is not set to true so we should get a not implemented error status
@@ -233,7 +235,7 @@ func TestDownloadJob(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	job.Data["is_downloadable"] = "true"
-	updateStatus, err := th.App.Srv().Store.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS)
+	updateStatus, err := th.App.Srv().Store.Job().UpdateOptimistically(job, model.JobStatusSuccess)
 	require.True(t, updateStatus)
 	require.NoError(t, err)
 
@@ -254,11 +256,11 @@ func TestDownloadJob(t *testing.T) {
 	jobName = model.NewId()
 	job = &model.Job{
 		Id:   jobName,
-		Type: model.JOB_TYPE_CLOUD,
+		Type: model.JobTypeCloud,
 		Data: map[string]string{
 			"export_type": "csv",
 		},
-		Status: model.JOB_STATUS_SUCCESS,
+		Status: model.JobStatusSuccess,
 	}
 	_, err = th.App.Srv().Store.Job().Save(job)
 	require.NoError(t, err)
@@ -273,21 +275,22 @@ func TestCancelJob(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	jobType := model.JobTypeMessageExport
 	jobs := []*model.Job{
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
-			Status: model.JOB_STATUS_PENDING,
+			Type:   jobType,
+			Status: model.JobStatusPending,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
-			Status: model.JOB_STATUS_IN_PROGRESS,
+			Type:   jobType,
+			Status: model.JobStatusInProgress,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
-			Status: model.JOB_STATUS_SUCCESS,
+			Type:   jobType,
+			Status: model.JobStatusSuccess,
 		},
 	}
 
@@ -310,5 +313,5 @@ func TestCancelJob(t *testing.T) {
 	CheckInternalErrorStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.CancelJob(model.NewId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }

@@ -3,7 +3,10 @@
 
 package model
 
-import "reflect"
+import (
+	"reflect"
+	"strconv"
+)
 
 type FeatureFlags struct {
 	// Exists only for unit and manual testing.
@@ -19,19 +22,40 @@ type FeatureFlags struct {
 	// Toggle on and off support for Collapsed Threads
 	CollapsedThreads bool
 
+	// Enable the remote cluster service for shared channels.
+	EnableRemoteClusterService bool
+
+	// AppsEnabled toggle the Apps framework functionalities both in server and client side
+	AppsEnabled bool
+
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
-	// Toggle on and off support for Files search
-	FilesSearch bool
+	PluginApps               string `plugin_id:"com.mattermost.apps"`
+	PluginFocalboard         string `plugin_id:"focalboard"`
+
+	// Enable timed dnd support for user status
+	TimedDND bool
+
+	// Enable the Global Header
+	GlobalHeader bool
+
+	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
+	InviteMembersButton string
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
-	f.CollapsedThreads = false
-	f.FilesSearch = false
-	f.PluginIncidentManagement = "1.6.0"
+	f.CollapsedThreads = true
+	f.EnableRemoteClusterService = false
+	f.AppsEnabled = false
+	f.PluginIncidentManagement = "1.14.3"
+	f.PluginApps = ""
+	f.PluginFocalboard = ""
+	f.TimedDND = false
+	f.GlobalHeader = false
+	f.InviteMembersButton = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
@@ -52,4 +76,27 @@ func (f *FeatureFlags) Plugins() map[string]string {
 	}
 
 	return pluginVersions
+}
+
+// ToMap returns the feature flags as a map[string]string
+// Supports boolean and string feature flags.
+func (f *FeatureFlags) ToMap() map[string]string {
+	refStructVal := reflect.ValueOf(*f)
+	refStructType := reflect.TypeOf(*f)
+	ret := make(map[string]string)
+	for i := 0; i < refStructVal.NumField(); i++ {
+		refFieldVal := refStructVal.Field(i)
+		if !refFieldVal.IsValid() {
+			continue
+		}
+		refFieldType := refStructType.Field(i)
+		switch refFieldType.Type.Kind() {
+		case reflect.Bool:
+			ret[refFieldType.Name] = strconv.FormatBool(refFieldVal.Bool())
+		default:
+			ret[refFieldType.Name] = refFieldVal.String()
+		}
+	}
+
+	return ret
 }

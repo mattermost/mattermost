@@ -13,8 +13,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 )
 
 // Client is the programmatic interface to the marketplace server API.
@@ -26,11 +26,11 @@ type Client struct {
 // NewClient creates a client to the marketplace server at the given address.
 func NewClient(address string, httpService httpservice.HTTPService) (*Client, error) {
 	var httpClient *http.Client
-	addressUrl, err := url.Parse(address)
+	addressURL, err := url.Parse(address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse marketplace address")
 	}
-	if addressUrl.Hostname() == "localhost" || addressUrl.Hostname() == "127.0.0.1" {
+	if addressURL.Hostname() == "localhost" || addressURL.Hostname() == "127.0.0.1" {
 		httpClient = httpService.MakeClient(true)
 	} else {
 		httpClient = httpService.MakeClient(false)

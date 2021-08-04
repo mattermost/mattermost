@@ -6,12 +6,12 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 )
 
 func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
-	if *cfg.ElasticsearchSettings.Password == model.FAKE_SETTING {
+	if *cfg.ElasticsearchSettings.Password == model.FakeSetting {
 		if *cfg.ElasticsearchSettings.ConnectionUrl == *a.Config().ElasticsearchSettings.ConnectionUrl && *cfg.ElasticsearchSettings.Username == *a.Config().ElasticsearchSettings.Username {
 			*cfg.ElasticsearchSettings.Password = *a.Config().ElasticsearchSettings.Password
 		} else {

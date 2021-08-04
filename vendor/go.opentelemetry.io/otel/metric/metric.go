@@ -17,9 +17,9 @@ package metric // import "go.opentelemetry.io/otel/metric"
 import (
 	"context"
 
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric/number"
-	"go.opentelemetry.io/otel/unit"
+	"go.opentelemetry.io/otel/metric/unit"
 )
 
 // MeterProvider supports named Meter instances.
@@ -42,7 +42,7 @@ type Meter struct {
 }
 
 // RecordBatch atomically records a batch of measurements.
-func (m Meter) RecordBatch(ctx context.Context, ls []label.KeyValue, ms ...Measurement) {
+func (m Meter) RecordBatch(ctx context.Context, ls []attribute.KeyValue, ms ...Measurement) {
 	if m.impl == nil {
 		return
 	}
@@ -285,8 +285,8 @@ func (m Meter) newAsync(
 		return NoopAsync{}, nil
 	}
 	desc := NewDescriptor(name, mkind, nkind, opts...)
-	desc.config.InstrumentationName = m.name
-	desc.config.InstrumentationVersion = m.version
+	desc.config.instrumentationName = m.name
+	desc.config.instrumentationVersion = m.version
 	return m.impl.NewAsyncInstrument(desc, runner)
 }
 
@@ -304,8 +304,8 @@ func (m Meter) newSync(
 		return NoopSync{}, nil
 	}
 	desc := NewDescriptor(name, metricKind, numberKind, opts...)
-	desc.config.InstrumentationName = m.name
-	desc.config.InstrumentationVersion = m.version
+	desc.config.instrumentationName = m.name
+	desc.config.instrumentationVersion = m.version
 	return m.impl.NewSyncInstrument(desc)
 }
 
@@ -549,13 +549,13 @@ func (d Descriptor) InstrumentKind() InstrumentKind {
 // Description provides a human-readable description of the metric
 // instrument.
 func (d Descriptor) Description() string {
-	return d.config.Description
+	return d.config.Description()
 }
 
 // Unit describes the units of the metric instrument.  Unitless
 // metrics return the empty string.
 func (d Descriptor) Unit() unit.Unit {
-	return d.config.Unit
+	return d.config.Unit()
 }
 
 // NumberKind returns whether this instrument is declared over int64,
@@ -567,11 +567,11 @@ func (d Descriptor) NumberKind() number.Kind {
 // InstrumentationName returns the name of the library that provided
 // instrumentation for this instrument.
 func (d Descriptor) InstrumentationName() string {
-	return d.config.InstrumentationName
+	return d.config.InstrumentationName()
 }
 
 // InstrumentationVersion returns the version of the library that provided
 // instrumentation for this instrument.
 func (d Descriptor) InstrumentationVersion() string {
-	return d.config.InstrumentationVersion
+	return d.config.InstrumentationVersion()
 }

@@ -22,10 +22,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
-	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestPreparePostListForClient(t *testing.T) {
@@ -176,10 +176,11 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		fileInfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		fileInfo.Content = "test"
 		require.Nil(t, err)
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			FileIds:   []string{fileInfo.Id},
@@ -203,7 +204,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		emoji := th.CreateEmoji()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji.Name + ": :taco:",
@@ -247,7 +248,7 @@ func TestPreparePostForClient(t *testing.T) {
 		emoji3 := th.CreateEmoji()
 		emoji4 := th.CreateEmoji()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji3.Name + ": :taco:",
@@ -288,7 +289,7 @@ func TestPreparePostForClient(t *testing.T) {
 				*cfg.ServiceSettings.EnablePostIconOverride = override
 			})
 
-			post, err := th.App.CreatePost(&model.Post{
+			post, err := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "Test",
@@ -296,8 +297,8 @@ func TestPreparePostForClient(t *testing.T) {
 
 			require.Nil(t, err)
 
-			post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, url)
-			post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, emoji)
+			post.AddProp(model.PostPropsOverrideIconUrl, url)
+			post.AddProp(model.PostPropsOverrideIconEmoji, emoji)
 
 			return th.App.PreparePostForClient(post, false, false)
 		}
@@ -309,10 +310,10 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("does not override icon URL", func(t *testing.T) {
 			clientPost := prepare(false, url, emoji)
 
-			s, ok := clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_URL]
+			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconUrl]
 			assert.True(t, ok)
 			assert.EqualValues(t, url, s)
-			s, ok = clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
 		})
@@ -320,10 +321,10 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("overrides icon URL", func(t *testing.T) {
 			clientPost := prepare(true, url, emoji)
 
-			s, ok := clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_URL]
+			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconUrl]
 			assert.True(t, ok)
 			assert.EqualValues(t, overridenUrl, s)
-			s, ok = clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
 		})
@@ -332,10 +333,10 @@ func TestPreparePostForClient(t *testing.T) {
 			colonEmoji := ":basketball:"
 			clientPost := prepare(true, url, colonEmoji)
 
-			s, ok := clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_URL]
+			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconUrl]
 			assert.True(t, ok)
 			assert.EqualValues(t, overridenUrl, s)
-			s, ok = clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, colonEmoji, s)
 		})
@@ -346,7 +347,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("This is ![our logo](%s/test-image2.png) and ![our icon](%s/test-image1.png)", server.URL, server.URL),
@@ -375,7 +376,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "some post",
@@ -383,7 +384,7 @@ func TestPreparePostForClient(t *testing.T) {
 		require.Nil(t, err)
 
 		// this value expected to be a string
-		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, true)
+		post.AddProp(model.PostPropsOverrideIconEmoji, true)
 
 		require.NotPanics(t, func() {
 			_ = th.App.PreparePostForClient(post, false, false)
@@ -408,7 +409,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message: `This is our logo: ` + server.URL + `/test-image2.png
@@ -423,7 +424,7 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
 				{
-					Type: model.POST_EMBED_IMAGE,
+					Type: model.PostEmbedImage,
 					URL:  server.URL + "/test-image2.png",
 				},
 			}, clientPost.Metadata.Embeds)
@@ -444,7 +445,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our web page: ` + server.URL,
@@ -456,7 +457,7 @@ func TestPreparePostForClient(t *testing.T) {
 		ogData := firstEmbed.Data.(*opengraph.OpenGraph)
 
 		t.Run("populates embeds", func(t *testing.T) {
-			assert.Equal(t, firstEmbed.Type, model.POST_EMBED_OPENGRAPH)
+			assert.Equal(t, firstEmbed.Type, model.PostEmbedOpengraph)
 			assert.Equal(t, firstEmbed.URL, server.URL)
 			assert.Equal(t, ogData.Description, "Contribute to hmhealey/test-files development by creating an account on GitHub.")
 			assert.Equal(t, ogData.SiteName, "GitHub")
@@ -481,7 +482,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Props: map[string]interface{}{
@@ -499,7 +500,7 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
 				{
-					Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+					Type: model.PostEmbedMessageAttachment,
 				},
 			}, clientPost.Metadata.Embeds)
 		})
@@ -519,10 +520,10 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		fileInfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
 		require.Nil(t, err)
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			Message:   "test",
 			FileIds:   []string{fileInfo.Id},
 			UserId:    th.BasicUser.Id,
@@ -632,7 +633,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	serverURL = server.URL
 	defer server.Close()
 
-	post, err := th.App.CreatePost(&model.Post{
+	post, err := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   `This is our web page: ` + server.URL,
@@ -643,7 +644,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	require.Len(t, embeds, 1, "should have one embed")
 
 	embed := embeds[0]
-	assert.Equal(t, model.POST_EMBED_OPENGRAPH, embed.Type, "embed type should be OpenGraph")
+	assert.Equal(t, model.PostEmbedOpengraph, embed.Type, "embed type should be OpenGraph")
 	assert.Equal(t, server.URL, embed.URL, "embed URL should be correct")
 
 	og, ok := embed.Data.(*opengraph.OpenGraph)
@@ -717,7 +718,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			}, "", false)
 
 			assert.Equal(t, &model.PostEmbed{
-				Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+				Type: model.PostEmbedMessageAttachment,
 			}, embed)
 			assert.NoError(t, err)
 		})
@@ -726,7 +727,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, imageURL, false)
 
 			assert.Equal(t, &model.PostEmbed{
-				Type: model.POST_EMBED_IMAGE,
+				Type: model.PostEmbedImage,
 				URL:  imageURL,
 			}, embed)
 			assert.NoError(t, err)
@@ -736,7 +737,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
 
 			assert.Equal(t, &model.PostEmbed{
-				Type: model.POST_EMBED_OPENGRAPH,
+				Type: model.PostEmbedOpengraph,
 				URL:  ogURL,
 				Data: &opengraph.OpenGraph{
 					Title: "Title",
@@ -749,7 +750,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, otherURL, false)
 
 			assert.Equal(t, &model.PostEmbed{
-				Type: model.POST_EMBED_LINK,
+				Type: model.PostEmbedLink,
 				URL:  otherURL,
 			}, embed)
 			assert.NoError(t, err)
@@ -777,7 +778,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			}, "", false)
 
 			assert.Equal(t, &model.PostEmbed{
-				Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+				Type: model.PostEmbedMessageAttachment,
 			}, embed)
 			assert.NoError(t, err)
 		})
@@ -889,7 +890,7 @@ func TestGetImagesForPost(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Embeds: []*model.PostEmbed{
 					{
-						Type: model.POST_EMBED_OPENGRAPH,
+						Type: model.PostEmbedOpengraph,
 						URL:  ogURL,
 						Data: &opengraph.OpenGraph{
 							Images: []*opengraph.Image{
@@ -943,7 +944,7 @@ func TestGetImagesForPost(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Embeds: []*model.PostEmbed{
 					{
-						Type: model.POST_EMBED_OPENGRAPH,
+						Type: model.PostEmbedOpengraph,
 						URL:  ogURL,
 						Data: &opengraph.OpenGraph{
 							Images: []*opengraph.Image{
@@ -996,7 +997,7 @@ func TestGetImagesForPost(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Embeds: []*model.PostEmbed{
 					{
-						Type: model.POST_EMBED_OPENGRAPH,
+						Type: model.PostEmbedOpengraph,
 						URL:  ogURL,
 						Data: &opengraph.OpenGraph{
 							Images: []*opengraph.Image{
@@ -1129,10 +1130,13 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 								},
 							},
 						},
+						{
+							Title: "This is the title: :emoji5:",
+						},
 					},
 				},
 			},
-			Expected: []string{"emoji1", "emoji2", "emoji3", "emoji4"},
+			Expected: []string{"emoji1", "emoji2", "emoji3", "emoji4", "emoji5"},
 		},
 		{
 			Description: "with duplicates",

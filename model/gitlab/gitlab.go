@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type GitLabProvider struct {
@@ -27,7 +27,7 @@ type GitLabUser struct {
 
 func init() {
 	provider := &GitLabProvider{}
-	einterfaces.RegisterOauthProvider(model.USER_AUTH_SERVICE_GITLAB, provider)
+	einterfaces.RegisterOAuthProvider(model.UserAuthServiceGitlab, provider)
 }
 
 func userFromGitLabUser(glu *GitLabUser) *model.User {
@@ -51,7 +51,7 @@ func userFromGitLabUser(glu *GitLabUser) *model.User {
 	user.Email = strings.ToLower(user.Email)
 	userId := glu.getAuthData()
 	user.AuthData = &userId
-	user.AuthService = model.USER_AUTH_SERVICE_GITLAB
+	user.AuthService = model.UserAuthServiceGitlab
 
 	return user
 }
@@ -108,4 +108,8 @@ func (m *GitLabProvider) GetSSOSettings(config *model.Config, service string) (*
 
 func (m *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error) {
 	return nil, nil
+}
+
+func (m *GitLabProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+	return dbUser.AuthData == oauthUser.AuthData
 }

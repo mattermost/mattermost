@@ -988,34 +988,6 @@
     "translation": "Masowa wysyłka maili została wyłączona przez administratora systemu."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Wiadomość bezpośrednia od "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Do wiadomości"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Wiadomość grupowa od "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Powiadomienie od "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "Masz {{.Count}} nowe powiadomienia.",
-      "many": "",
-      "one": "Masz nowe powiadomienie."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
@@ -1748,10 +1720,6 @@
     "translation": "Nie udało się zdekodować ikony zespołu"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Nie można odszyfrować metadanych ikon zespołu"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Nie można zakodować ikony zespołu"
   },
@@ -2216,24 +2184,8 @@
     "translation": "Nie udało się wysłać e-maila z dezaktywacją konta"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila z powiadomieniem o zmianie adresu email"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila z powiadomieniem o zmianie nazwy użytkownika"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Nie udało się pomyślnie wysłać emaila z weryfikacją zmiany adresu email"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Nie można wysłać powiadomienia e-mail o zmianie MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila ze zmianą hasła"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2248,16 +2200,8 @@
     "translation": "Nie udało się pomyślnie wysłać emaila ze zmianą hasła"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Nie udało się wysłać maila \"Osobisty token dostępu został dodany\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Nie udało się pomyślnie wysłać emaila weryfikacyjnego"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila powitalnego"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2302,10 +2246,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Nie można było zdekodować obrazu profilu"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Nie można zapisać obrazka profilowego. Plik nie jest obrazem."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2948,62 +2888,6 @@
     "translation": "Brakuje nazwy zespołu w Członkostwie Zespołu Użytkownika."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Masz nową Wiadomość Bezpośrednią."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Masz nową Wiadomość Bezpośrednią od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Masz nową Wiadomość Grupową."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Masz nową Wiadomość Grupową od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Masz nowe powiadomienie."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Masz nowe powiadomienie od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanał: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanał: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nowa Wiadomość Bezpośrednia od @{{.SenderDisplayName}} z {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3128,10 +3012,6 @@
     "translation": "Nie można zdekodować danych obrazu."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Nie można pobrać metadanych obrazka."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Nie można przekonwertować danych obrazu na format PNG. Proszę spróbuj ponownie."
   },
@@ -3142,10 +3022,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Nie można zapisać pliku obrazu do magazynu plików. Proszę sprawdź swoje połączenie i spróbuj ponownie."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Nie można odczytać pliku obrazu. Upewnij się, że rozmiar obrazu jest mniejszy niż 2 MB i spróbuj ponownie."
   },
   {
     "id": "cli.license.critical",
@@ -4848,10 +4724,6 @@
     "translation": "Nie można znaleźć istniejącego konta pasującego do poświadczeń. Ten zespół może wymagać zaproszenia od właściciela zespołu do dołączenia."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Ten adres e-mail jest już zajęty. Proszę wybrać inny."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -5322,10 +5194,6 @@
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu zakończenia"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Najstarszego postu nie można było pobrać z bazy danych."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6104,10 +5972,6 @@
     "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Nie udało się zapisać reakcji"
   },
@@ -6320,10 +6184,6 @@
     "translation": "Nie udało się pobrać użytkowników na kanale w określonym przedziale czasowym"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Nie można wyczyścić rekordów"
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Nie można zapisać emoji"
   },
@@ -6382,10 +6242,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas czyszczenia partii flag"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6524,10 +6380,6 @@
     "translation": "Nie można uzyskać roli"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Nie udało się pobrać wszystkich ról"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Nie można uzyskać roli"
   },
@@ -6636,10 +6488,6 @@
     "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Napotkano błąd podczas podłączania się do serwera"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
   },
@@ -6674,10 +6522,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Nie można uzyskać zadania"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania informacji o wielu plikach"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -6766,10 +6610,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Nie można uzyskać wielu wpisów do indeksowania"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania partii wpisów"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7048,10 +6888,6 @@
     "translation": "Nie mogliśmy pobrać wszystkich zespołów"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
   },
@@ -7070,14 +6906,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Nie można policzyć zespołów"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Nie można policzyć publicznych zespołów"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Nie można policzyć prywatnych zespołów"
   },
   {
     "id": "api.user.login_cws.license.error",

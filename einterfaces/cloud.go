@@ -4,7 +4,7 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type CloudInterface interface {
@@ -20,4 +20,6 @@ type CloudInterface interface {
 	GetSubscription(userID string) (*model.Subscription, error)
 	GetInvoicesForSubscription(userID string) ([]*model.Invoice, error)
 	GetInvoicePDF(userID, invoiceID string) ([]byte, string, error)
+
+	ChangeSubscription(userID, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error)
 }

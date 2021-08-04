@@ -11,14 +11,14 @@ import (
 )
 
 const (
-	COMPLIANCE_STATUS_CREATED  = "created"
-	COMPLIANCE_STATUS_RUNNING  = "running"
-	COMPLIANCE_STATUS_FINISHED = "finished"
-	COMPLIANCE_STATUS_FAILED   = "failed"
-	COMPLIANCE_STATUS_REMOVED  = "removed"
+	ComplianceStatusCreated  = "created"
+	ComplianceStatusRunning  = "running"
+	ComplianceStatusFinished = "finished"
+	ComplianceStatusFailed   = "failed"
+	ComplianceStatusRemoved  = "removed"
 
-	COMPLIANCE_TYPE_DAILY = "daily"
-	COMPLIANCE_TYPE_ADHOC = "adhoc"
+	ComplianceTypeDaily = "daily"
+	ComplianceTypeAdhoc = "adhoc"
 )
 
 type Compliance struct {
@@ -37,9 +37,17 @@ type Compliance struct {
 
 type Compliances []Compliance
 
-func (c *Compliance) ToJson() string {
-	b, _ := json.Marshal(c)
-	return string(b)
+// ComplianceExportCursor is used for paginated iteration of posts
+// for compliance export.
+// We need to keep track of the last post ID in addition to the last post
+// CreateAt to break ties when two posts have the same CreateAt.
+type ComplianceExportCursor struct {
+	LastChannelsQueryPostCreateAt       int64
+	LastChannelsQueryPostID             string
+	ChannelsQueryCompleted              bool
+	LastDirectMessagesQueryPostCreateAt int64
+	LastDirectMessagesQueryPostID       string
+	DirectMessagesQueryCompleted        bool
 }
 
 func (c *Compliance) PreSave() {
@@ -48,7 +56,7 @@ func (c *Compliance) PreSave() {
 	}
 
 	if c.Status == "" {
-		c.Status = COMPLIANCE_STATUS_CREATED
+		c.Status = ComplianceStatusCreated
 	}
 
 	c.Count = 0
@@ -65,7 +73,7 @@ func (c *Compliance) DeepCopy() *Compliance {
 
 func (c *Compliance) JobName() string {
 	jobName := c.Type
-	if c.Type == COMPLIANCE_TYPE_DAILY {
+	if c.Type == ComplianceTypeDaily {
 		jobName += "-" + c.Desc
 	}
 
@@ -107,14 +115,6 @@ func ComplianceFromJson(data io.Reader) *Compliance {
 	var c *Compliance
 	json.NewDecoder(data).Decode(&c)
 	return c
-}
-
-func (c Compliances) ToJson() string {
-	b, err := json.Marshal(c)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
 }
 
 func CompliancesFromJson(data io.Reader) Compliances {

@@ -8,10 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var echoSem chan bool
@@ -41,9 +42,9 @@ func (*EchoProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*EchoProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*EchoProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
-		return &model.CommandResponse{Text: args.T("api.command_echo.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_echo.message.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	maxThreads := 100
@@ -65,7 +66,7 @@ func (*EchoProvider) DoCommand(a *app.App, args *model.CommandArgs, message stri
 	}
 
 	if delay > 10000 {
-		return &model.CommandResponse{Text: args.T("api.command_echo.delay.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_echo.delay.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	if echoSem == nil {
@@ -74,7 +75,7 @@ func (*EchoProvider) DoCommand(a *app.App, args *model.CommandArgs, message stri
 	}
 
 	if len(echoSem) >= maxThreads {
-		return &model.CommandResponse{Text: args.T("api.command_echo.high_volume.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_echo.high_volume.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	echoSem <- true
@@ -89,7 +90,7 @@ func (*EchoProvider) DoCommand(a *app.App, args *model.CommandArgs, message stri
 
 		time.Sleep(time.Duration(delay) * time.Second)
 
-		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
+		if _, err := a.CreatePostMissingChannel(c, post, true); err != nil {
 			mlog.Error("Unable to create /echo post.", mlog.Err(err))
 		}
 	})
