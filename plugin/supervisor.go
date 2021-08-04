@@ -84,7 +84,8 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		return nil, err
 	}
 
-	c, ok := raw.(*hooksRPCClient); if ok {
+	c, ok := raw.(*hooksRPCClient)
+	if ok {
 		sup.hooksClient = c
 	}
 
