@@ -242,7 +242,7 @@ type Z_OnActivateReturns struct {
 
 func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
-	g.doneWg.Add(2)
+	g.doneWg.Add(1)
 	go func() {
 		defer g.doneWg.Done()
 		g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
@@ -252,6 +252,7 @@ func (g *hooksRPCClient) OnActivate() error {
 	}()
 
 	nextID := g.muxBroker.NextId()
+	g.doneWg.Add(1)
 	go func() {
 		defer g.doneWg.Done()
 		g.muxBroker.AcceptAndServe(nextID, &dbRPCServer{
