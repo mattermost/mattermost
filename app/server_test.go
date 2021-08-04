@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
@@ -753,4 +754,18 @@ func TestAdminAdvisor(t *testing.T) {
 		assert.Nil(t, err, "No error should be generated")
 		assert.Equal(t, 0, len(posts.Posts))
 	})
+}
+
+func TestCheckWarnMetricStatusJobIsTemporarilyDisabled(t *testing.T) {
+	configStore, err := config.NewMemoryStore()
+	require.NoError(t, err)
+	store, err := config.NewStoreFromBacking(configStore, nil, false)
+	require.NoError(t, err)
+
+	s, err := NewServer(ConfigStore(store), RunEssentialJobs)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+
+	err = runCheckWarnMetricStatusJob(New(ServerConnector(s)), request.EmptyContext())
+	require.EqualError(t, err, "runCheckWarnMetricStatusJob is temporarily disabled (MM-37496)")
 }

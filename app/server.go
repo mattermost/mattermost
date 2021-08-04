@@ -1493,12 +1493,15 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
-//nolint:golint,unused,deadcode
-func runCheckWarnMetricStatusJob(a *App, c *request.Context) {
+func runCheckWarnMetricStatusJob(a *App, c *request.Context) error {
+	// TODO: re-enable this function.
+	return errors.New("runCheckWarnMetricStatusJob is temporarily disabled (MM-37496)")
+	//nolint:govet
 	doCheckWarnMetricStatus(a, c)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
 		doCheckWarnMetricStatus(a, c)
 	}, time.Hour*model.WarnMetricJobInterval)
+	return nil
 }
 
 func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
@@ -1528,7 +1531,6 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
-//nolint:golint,unused,deadcode
 func doCheckWarnMetricStatus(a *App, c *request.Context) {
 	license := a.Srv().License()
 	if license != nil {
