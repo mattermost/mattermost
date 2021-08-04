@@ -2061,6 +2061,10 @@ func (s *Server) initJobs() {
 		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
 	}
 
+	if jobsExtractContentInterface != nil {
+		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
+	}
+
 	s.Jobs.InitWorkers()
 	s.Jobs.InitSchedulers()
 }

@@ -7495,6 +7495,18 @@
     "translation": "Error"
   },
   {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "Invalid input value 'from'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "Invalid input value 'to'"
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "Failed to get file information for content extraction."
+  },
+  {
     "id": "group_not_associated_to_synced_team",
     "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },

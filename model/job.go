@@ -28,6 +28,7 @@ const (
 	JobTypeExportDelete                 = "export_delete"
 	JobTypeCloud                        = "cloud"
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
+	JobTypeExtractContent               = "extract_content"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -55,6 +56,7 @@ var AllJobTypes = [...]string{
 	JobTypeExportProcess,
 	JobTypeExportDelete,
 	JobTypeCloud,
+	JobTypeExtractContent,
 }
 
 type Job struct {
@@ -96,6 +98,7 @@ func (j *Job) IsValid() *AppError {
 	case JobTypeExportDelete:
 	case JobTypeCloud:
 	case JobTypeResendInvitationEmail:
+	case JobTypeExtractContent:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
