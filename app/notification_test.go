@@ -1806,6 +1806,13 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		},
 	}
 
+	overriddenPost3 := &model.Post{
+		Props: model.StringInterface{
+			"override_username": 10,
+			"from_webhook":      "true",
+		},
+	}
+
 	for name, testCase := range map[string]struct {
 		channel        *model.Channel
 		post           *model.Post
@@ -1850,6 +1857,11 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		},
 		"nil override_username": {
 			post:           overriddenPost2,
+			allowOverrides: true,
+			expected:       "@" + sender.Username,
+		},
+		"integer override_username": {
+			post:           overriddenPost3,
 			allowOverrides: true,
 			expected:       "@" + sender.Username,
 		},
