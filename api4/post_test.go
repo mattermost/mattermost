@@ -1208,10 +1208,10 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 		Name:     post1.Id,
 		Value:    "true",
 	}
-	_, resp := Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, resp := Client.UpdatePreferences(user.Id, model.Preferences{preference})
 	CheckNoError(t, resp)
 	preference.Name = post2.Id
-	_, resp = Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, resp = Client.UpdatePreferences(user.Id, model.Preferences{preference})
 	CheckNoError(t, resp)
 
 	opl := model.NewPostList()
@@ -1272,7 +1272,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	post4 := th.CreatePostWithClient(Client, channel3)
 
 	preference.Name = post4.Id
-	Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	Client.UpdatePreferences(user.Id, model.Preferences{preference})
 
 	opl.AddPost(post4)
 	opl.AddOrder(post4.Id)
@@ -1298,7 +1298,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	post5 := th.CreatePostWithClient(th.SystemAdminClient, channel4)
 
 	preference.Name = post5.Id
-	_, resp = Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, resp = Client.UpdatePreferences(user.Id, model.Preferences{preference})
 	CheckForbiddenStatus(t, resp)
 
 	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
@@ -1307,7 +1307,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Equal(t, opl.Posts, rpl.Posts, "posts should have matched")
 
 	th.AddUserToChannel(user, channel4)
-	_, resp = Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, resp = Client.UpdatePreferences(user.Id, model.Preferences{preference})
 	CheckNoError(t, resp)
 
 	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)

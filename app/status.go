@@ -437,11 +437,11 @@ func (a *App) RemoveCustomStatus(userID string) *model.AppError {
 }
 
 func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
-	var newRCS *model.RecentCustomStatuses
+	var newRCS model.RecentCustomStatuses
 
 	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
 	if err != nil || pref.Value == "" {
-		newRCS = &model.RecentCustomStatuses{*status}
+		newRCS = model.RecentCustomStatuses{*status}
 	} else {
 		existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
 		newRCS = existingRCS.Add(status)

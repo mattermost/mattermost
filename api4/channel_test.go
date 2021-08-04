@@ -990,28 +990,28 @@ func TestGetAllChannels(t *testing.T) {
 		CheckNoError(t, resp)
 
 		// At least, all the not-deleted channels created during the InitBasic
-		require.True(t, len(*channels) >= 3)
-		for _, c := range *channels {
+		require.True(t, len(channels) >= 3)
+		for _, c := range channels {
 			require.NotEqual(t, c.TeamId, "")
 		}
 
 		channels, resp = client.GetAllChannels(0, 10, "")
 		CheckNoError(t, resp)
-		require.True(t, len(*channels) >= 3)
+		require.True(t, len(channels) >= 3)
 
 		channels, resp = client.GetAllChannels(1, 1, "")
 		CheckNoError(t, resp)
-		require.Len(t, *channels, 1)
+		require.Len(t, channels, 1)
 
 		channels, resp = client.GetAllChannels(10000, 10000, "")
 		CheckNoError(t, resp)
-		require.Empty(t, *channels)
+		require.Empty(t, channels)
 
 		channels, resp = client.GetAllChannels(0, 10000, "")
 		require.Nil(t, resp.Error)
-		beforeCount := len(*channels)
+		beforeCount := len(channels)
 
-		firstChannel := (*channels)[0].Channel
+		firstChannel := channels[0].Channel
 
 		ok, resp := client.DeleteChannel(firstChannel.Id)
 		require.Nil(t, resp.Error)
@@ -1019,20 +1019,20 @@ func TestGetAllChannels(t *testing.T) {
 
 		channels, resp = client.GetAllChannels(0, 10000, "")
 		var ids []string
-		for _, item := range *channels {
+		for _, item := range channels {
 			ids = append(ids, item.Channel.Id)
 		}
 		require.Nil(t, resp.Error)
-		require.Len(t, *channels, beforeCount-1)
+		require.Len(t, channels, beforeCount-1)
 		require.NotContains(t, ids, firstChannel.Id)
 
 		channels, resp = client.GetAllChannelsIncludeDeleted(0, 10000, "")
 		ids = []string{}
-		for _, item := range *channels {
+		for _, item := range channels {
 			ids = append(ids, item.Channel.Id)
 		}
 		require.Nil(t, resp.Error)
-		require.True(t, len(*channels) > beforeCount)
+		require.True(t, len(channels) > beforeCount)
 		require.Contains(t, ids, firstChannel.Id)
 	})
 
@@ -1041,7 +1041,7 @@ func TestGetAllChannels(t *testing.T) {
 
 	sysManagerChannels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
 	CheckOKStatus(t, resp)
-	policyChannel := (*sysManagerChannels)[0]
+	policyChannel := sysManagerChannels[0]
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
@@ -1058,7 +1058,7 @@ func TestGetAllChannels(t *testing.T) {
 		channels, resp := th.SystemAdminClient.GetAllChannelsExcludePolicyConstrained(0, 10000, "")
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				break
@@ -1071,7 +1071,7 @@ func TestGetAllChannels(t *testing.T) {
 		channels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				require.Nil(t, channel.PolicyID)
@@ -1085,7 +1085,7 @@ func TestGetAllChannels(t *testing.T) {
 		channels, resp := th.SystemAdminClient.GetAllChannels(0, 10000, "")
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				require.Equal(t, *channel.PolicyID, policy.ID)
@@ -1443,9 +1443,9 @@ func TestSearchAllChannels(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			channels, resp := th.SystemAdminClient.SearchAllChannels(testCase.Search)
 			CheckNoError(t, resp)
-			assert.Equal(t, len(testCase.ExpectedChannelIds), len(*channels))
+			assert.Equal(t, len(testCase.ExpectedChannelIds), len(channels))
 			actualChannelIds := []string{}
-			for _, channelWithTeamData := range *channels {
+			for _, channelWithTeamData := range channels {
 				actualChannelIds = append(actualChannelIds, channelWithTeamData.Channel.Id)
 			}
 			assert.ElementsMatch(t, testCase.ExpectedChannelIds, actualChannelIds)
@@ -1455,7 +1455,7 @@ func TestSearchAllChannels(t *testing.T) {
 	// Searching with no terms returns all default channels
 	allChannels, resp := th.SystemAdminClient.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	CheckNoError(t, resp)
-	assert.True(t, len(*allChannels) >= 3)
+	assert.True(t, len(allChannels) >= 3)
 
 	_, resp = Client.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	CheckForbiddenStatus(t, resp)
@@ -1463,7 +1463,7 @@ func TestSearchAllChannels(t *testing.T) {
 	// Choose a policy which the system manager can read
 	sysManagerChannels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
 	CheckOKStatus(t, resp)
-	policyChannel := (*sysManagerChannels)[0]
+	policyChannel := sysManagerChannels[0]
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
@@ -1477,7 +1477,7 @@ func TestSearchAllChannels(t *testing.T) {
 		channels, resp := th.SystemManagerClient.SearchAllChannels(&model.ChannelSearch{Term: policyChannel.Name})
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				require.Nil(t, channel.PolicyID)
@@ -1490,7 +1490,7 @@ func TestSearchAllChannels(t *testing.T) {
 		channels, resp := th.SystemAdminClient.SearchAllChannels(&model.ChannelSearch{Term: policyChannel.Name})
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				require.Equal(t, *channel.PolicyID, policy.ID)
@@ -2067,19 +2067,19 @@ func TestGetChannelMembers(t *testing.T) {
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		members, resp := client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 		CheckNoError(t, resp)
-		require.Len(t, *members, 3, "should only be 3 users in channel")
+		require.Len(t, members, 3, "should only be 3 users in channel")
 
 		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 0, 2, "")
 		CheckNoError(t, resp)
-		require.Len(t, *members, 2, "should only be 2 users")
+		require.Len(t, members, 2, "should only be 2 users")
 
 		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 1, 1, "")
 		CheckNoError(t, resp)
-		require.Len(t, *members, 1, "should only be 1 user")
+		require.Len(t, members, 1, "should only be 1 user")
 
 		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 1000, 100000, "")
 		CheckNoError(t, resp)
-		require.Empty(t, *members, "should be 0 users")
+		require.Empty(t, members, "should be 0 users")
 
 		_, resp = client.GetChannelMembers("junk", 0, 60, "")
 		CheckBadRequestStatus(t, resp)
@@ -2111,22 +2111,22 @@ func TestGetChannelMembersByIds(t *testing.T) {
 
 	cm, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
 	CheckNoError(t, resp)
-	require.Equal(t, th.BasicUser.Id, (*cm)[0].UserId, "returned wrong user")
+	require.Equal(t, th.BasicUser.Id, cm[0].UserId, "returned wrong user")
 
 	_, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{})
 	CheckBadRequestStatus(t, resp)
 
 	cm1, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk"})
 	CheckNoError(t, resp)
-	require.Empty(t, *cm1, "no users should be returned")
+	require.Empty(t, cm1, "no users should be returned")
 
 	cm1, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk", th.BasicUser.Id})
 	CheckNoError(t, resp)
-	require.Len(t, *cm1, 1, "1 member should be returned")
+	require.Len(t, cm1, 1, "1 member should be returned")
 
 	cm1, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser2.Id, th.BasicUser.Id})
 	CheckNoError(t, resp)
-	require.Len(t, *cm1, 2, "2 members should be returned")
+	require.Len(t, cm1, 2, "2 members should be returned")
 
 	_, resp = Client.GetChannelMembersByIds("junk", []string{th.BasicUser.Id})
 	CheckBadRequestStatus(t, resp)
@@ -2190,7 +2190,7 @@ func TestGetChannelMembersForUser(t *testing.T) {
 
 	members, resp := Client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
-	require.Len(t, *members, 6, "should have 6 members on team")
+	require.Len(t, members, 6, "should have 6 members on team")
 
 	_, resp = Client.GetChannelMembersForUser("", th.BasicTeam.Id, "")
 	CheckNotFoundStatus(t, resp)
@@ -3169,8 +3169,8 @@ func TestAutocompleteChannels(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			channels, resp := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment)
 			require.Nil(t, resp.Error)
-			names := make([]string, len(*channels))
-			for i, c := range *channels {
+			names := make([]string, len(channels))
+			for i, c := range channels {
 				names[i] = c.Name
 			}
 			for _, name := range tc.expectedIncludes {
@@ -3284,8 +3284,8 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			channels, resp := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamID, tc.fragment)
 			require.Nil(t, resp.Error)
-			names := make([]string, len(*channels))
-			for i, c := range *channels {
+			names := make([]string, len(channels))
+			for i, c := range channels {
 				names[i] = c.Name
 			}
 			for _, name := range tc.expectedIncludes {
@@ -3416,8 +3416,8 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			channels, resp := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamID, tc.fragment)
 			require.Nil(t, resp.Error)
-			names := make([]string, len(*channels))
-			for i, c := range *channels {
+			names := make([]string, len(channels))
+			for i, c := range channels {
 				names[i] = c.Name
 			}
 			for _, name := range tc.expectedIncludes {
