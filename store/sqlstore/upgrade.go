@@ -795,9 +795,6 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 
 func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5281, Version5290) {
-		sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
-		sqlStore.RemoveDefaultIfColumnExists("SidebarCategories", "Id")
-
 		sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
 
 		updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
@@ -819,9 +816,7 @@ func upgradeDatabaseToVersion5291(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5290, Version5300) {
-		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
-
+	if shouldPerformUpgrade(sqlStore, Version5291, Version5300) {
 		saveSchemaVersion(sqlStore, Version5300)
 	}
 }
@@ -901,12 +896,9 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
-		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
 		// Shared channels support
 		sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
-		sqlStore.CreateColumnIfNotExists("UploadSessions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)", "")
-		sqlStore.CreateColumnIfNotExists("UploadSessions", "ReqFileId", "VARCHAR(26)", "VARCHAR(26)", "")
 		if _, err := sqlStore.GetMaster().ExecNoTimeout("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
 			mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
 		}

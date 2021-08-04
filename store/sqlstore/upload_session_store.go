@@ -35,12 +35,6 @@ func newSqlUploadSessionStore(sqlStore *SqlStore) store.UploadSessionStore {
 	return s
 }
 
-func (us SqlUploadSessionStore) createIndexesIfNotExists() {
-	us.CreateIndexIfNotExists("idx_uploadsessions_user_id", "UploadSessions", "Type")
-	us.CreateIndexIfNotExists("idx_uploadsessions_create_at", "UploadSessions", "CreateAt")
-	us.CreateIndexIfNotExists("idx_uploadsessions_user_id", "UploadSessions", "UserId")
-}
-
 func (us SqlUploadSessionStore) Save(session *model.UploadSession) (*model.UploadSession, error) {
 	if session == nil {
 		return nil, errors.New("SqlUploadSessionStore.Save: session should not be nil")
