@@ -1582,6 +1582,8 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 		return model.StringInterfaceToJson(t), nil
 	case map[string]interface{}:
 		return model.StringInterfaceToJson(model.StringInterface(t)), nil
+	case *model.PostImage:
+		return json.Marshal(t)
 	case JSONSerializable:
 		return t.ToJson(), nil
 	case *opengraph.OpenGraph:

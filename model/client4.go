@@ -2737,7 +2737,16 @@ func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Res
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetPinnedPosts", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetPrivateChannelsForTeam returns a list of private channels based on the provided team id string.
@@ -3245,32 +3254,65 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (*Ch
 
 // CreatePost creates a post based on the provided post struct.
 func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
-	r, err := c.DoApiPost(c.GetPostsRoute(), post.ToUnsanitizedJson())
+	postJSON, jsonErr := json.Marshal(post)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("CreatePost", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	r, err := c.DoApiPost(c.GetPostsRoute(), string(postJSON))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostFromJson(r.Body), BuildResponse(r)
+	var p Post
+	if r.StatusCode == http.StatusNotModified {
+		return &p, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("CreatePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &p, BuildResponse(r)
 }
 
 // CreatePostEphemeral creates a ephemeral post based on the provided post struct which is send to the given user id.
 func (c *Client4) CreatePostEphemeral(post *PostEphemeral) (*Post, *Response) {
-	r, err := c.DoApiPost(c.GetPostsEphemeralRoute(), post.ToUnsanitizedJson())
+	postJSON, jsonErr := json.Marshal(post)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("CreatePostEphemeral", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	r, err := c.DoApiPost(c.GetPostsEphemeralRoute(), string(postJSON))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostFromJson(r.Body), BuildResponse(r)
+	var p Post
+	if r.StatusCode == http.StatusNotModified {
+		return &p, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("CreatePostEphemeral", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &p, BuildResponse(r)
 }
 
 // UpdatePost updates a post based on the provided post struct.
 func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
-	r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToUnsanitizedJson())
+	postJSON, jsonErr := json.Marshal(post)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("UpdatePost", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	r, err := c.DoApiPut(c.GetPostRoute(postId), string(postJSON))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostFromJson(r.Body), BuildResponse(r)
+	var p Post
+	if r.StatusCode == http.StatusNotModified {
+		return &p, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("UpdatePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &p, BuildResponse(r)
 }
 
 // PatchPost partially updates a post. Any missing fields are not updated.
@@ -3284,7 +3326,14 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return PostFromJson(r.Body), BuildResponse(r)
+	var p Post
+	if r.StatusCode == http.StatusNotModified {
+		return &p, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("PatchPost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &p, BuildResponse(r)
 }
 
 // SetPostUnread marks channel where post belongs as unread on the time of the provided post.
@@ -3328,7 +3377,15 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostFromJson(r.Body), BuildResponse(r)
+
+	var post Post
+	if r.StatusCode == http.StatusNotModified {
+		return &post, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetPost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &post, BuildResponse(r)
 }
 
 // DeletePost deletes a post from the provided post id string.
@@ -3352,7 +3409,14 @@ func (c *Client4) GetPostThread(postId string, etag string, collapsedThreads boo
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetPostThread", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
@@ -3366,7 +3430,14 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetPostsForChannel", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
@@ -3377,7 +3448,14 @@ func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetFlaggedPostsForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetFlaggedPostsForUserInTeam returns flagged posts in team of a user based on user id string.
@@ -3392,7 +3470,14 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, pag
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetFlaggedPostsForUserInTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetFlaggedPostsForUserInChannel returns flagged posts in channel of a user based on user id string.
@@ -3407,7 +3492,14 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId strin
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetFlaggedPostsForUserInChannel", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
@@ -3421,7 +3513,14 @@ func (c *Client4) GetPostsSince(channelId string, time int64, collapsedThreads b
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetPostsSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetPostsAfter gets a page of posts that were posted after the post provided.
@@ -3435,7 +3534,14 @@ func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, eta
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetPostsAfter", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetPostsBefore gets a page of posts that were posted before the post provided.
@@ -3449,7 +3555,14 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetPostsBefore", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
@@ -3463,7 +3576,14 @@ func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetPostsAroundLastUnread", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // SearchFiles returns any posts with matching terms string.
@@ -3477,7 +3597,11 @@ func (c *Client4) SearchFiles(teamId string, terms string, isOrSearch bool) (*Fi
 
 // SearchFilesWithParams returns any posts with matching terms string.
 func (c *Client4) SearchFilesWithParams(teamId string, params *SearchParameter) (*FileInfoList, *Response) {
-	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/files/search", params.SearchParameterToJson())
+	js, jsonErr := json.Marshal(params)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/files/search", string(js))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -3496,12 +3620,23 @@ func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*Po
 
 // SearchPostsWithParams returns any posts with matching terms string.
 func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) (*PostList, *Response) {
-	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", params.SearchParameterToJson())
+	js, jsonErr := json.Marshal(params)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", string(js))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostListFromJson(r.Body), BuildResponse(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchFilesWithParams", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &list, BuildResponse(r)
 }
 
 // SearchPostsWithMatches returns any posts with matching terms string, including.
@@ -3512,7 +3647,11 @@ func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return PostSearchResultsFromJson(r.Body), BuildResponse(r)
+	var psr PostSearchResults
+	if jsonErr := json.NewDecoder(r.Body).Decode(&psr); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchPostsWithMatches", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &psr, BuildResponse(r)
 }
 
 // DoPostAction performs a post action.

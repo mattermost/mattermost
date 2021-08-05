@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -2958,7 +2959,8 @@ func TestRemoveChannelMember(t *testing.T) {
 						continue
 					}
 
-					post := model.PostFromJson(strings.NewReader(postData.(string)))
+					var post model.Post
+					json.Unmarshal([]byte(postData.(string)), &post)
 					if post.ChannelId == expectedPost.ChannelId && post.Message == expectedPost.Message {
 						return
 					}

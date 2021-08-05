@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -221,16 +220,11 @@ func (o *Post) Clone() *Post {
 	return copy
 }
 
-func (o *Post) ToJson() string {
+func (o *Post) ToJSON() (string, error) {
 	copy := o.Clone()
 	copy.StripActionIntegrations()
-	b, _ := json.Marshal(copy)
-	return string(b)
-}
-
-func (o *Post) ToUnsanitizedJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
+	b, err := json.Marshal(copy)
+	return string(b), err
 }
 
 type GetPostsSinceOptions struct {
@@ -263,12 +257,6 @@ type GetPostsOptions struct {
 	SkipFetchThreads         bool
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
-}
-
-func PostFromJson(data io.Reader) *Post {
-	var o *Post
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (o *Post) Etag() string {
@@ -521,45 +509,6 @@ func (o *Post) Patch(patch *PostPatch) {
 	}
 }
 
-func (o *PostPatch) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
-}
-
-func PostPatchFromJson(data io.Reader) *PostPatch {
-	decoder := json.NewDecoder(data)
-	var post PostPatch
-	err := decoder.Decode(&post)
-	if err != nil {
-		return nil
-	}
-
-	return &post
-}
-
-func (o *SearchParameter) SearchParameterToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
-}
-
-func SearchParameterFromJson(data io.Reader) (*SearchParameter, error) {
-	decoder := json.NewDecoder(data)
-	var searchParam SearchParameter
-	if err := decoder.Decode(&searchParam); err != nil {
-		return nil, err
-	}
-
-	return &searchParam, nil
-}
-
 func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
@@ -666,11 +615,6 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 		copy.MessageSource = o.Message
 	}
 	return copy
-}
-
-func (o *PostEphemeral) ToUnsanitizedJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced

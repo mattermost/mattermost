@@ -438,7 +438,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil)
 
 	// Note that PreparePostForClient should've already been called by this point
-	message.Add("post", post.ToJson())
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		return nil, errors.Wrapf(jsonErr, "failed to encode post to JSON")
+	}
+	message.Add("post", postJSON)
 
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", notification.GetChannelName(model.ShowUsername, ""))

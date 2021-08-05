@@ -515,7 +515,12 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	message.Add("post", post.ToJson())
+
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 
 	return post
@@ -533,7 +538,11 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	message.Add("post", post.ToJson())
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 
 	return post
@@ -549,7 +558,11 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", "", userID, nil)
-	message.Add("post", post.ToJson())
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 }
 
@@ -672,7 +685,12 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	rpost.IsFollowing = nil
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil)
-	message.Add("post", rpost.ToJson())
+
+	postJSON, jsonErr := rpost.ToJSON()
+	if jsonErr != nil {
+		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
@@ -1063,7 +1081,10 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 		}
 	}
 
-	postData := a.PreparePostForClient(post, false, false).ToJson()
+	postData, jsonErr := a.PreparePostForClient(post, false, false).ToJSON()
+	if jsonErr != nil {
+		return nil, model.NewAppError("DeletePost", "app.post.marshal.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil)
 	userMessage.Add("post", postData)
