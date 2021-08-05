@@ -38,16 +38,9 @@ func TestSendInviteEmails(t *testing.T) {
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
 
-	th.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableEmailInvitations = true
-		*cfg.EmailSettings.SendEmailNotifications = false
-	})
-	t.Run("SendInviteEmails", func(t *testing.T) {
-		emailTo := "test@example.com"
-		mail.DeleteMailBox(emailTo)
-
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
-		require.NoError(t, err)
+	emailTo := "test@example.com"
+	verifyMailbox := func(t *testing.T) {
+		t.Helper()
 
 		var resultsMailbox mail.JSONMessageHeaderInbucket
 		err2 := mail.RetryInbucket(5, func() error {
@@ -56,22 +49,33 @@ func TestSendInviteEmails(t *testing.T) {
 			return err
 		})
 		if err2 != nil {
-			t.Log(err2)
-			t.Log("No email was received, maybe due load on the server. Skipping this verification")
-		} else if len(resultsMailbox) > 0 {
-			require.Len(t, resultsMailbox, 1)
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.HTML, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
+			t.Skipf("No email was received, maybe due load on the server: %v", err2)
 		}
+
+		require.Len(t, resultsMailbox, 1)
+		require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+		resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+		require.NoError(t, err, "Could not get message from mailbox")
+		require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
+		require.Contains(t, resultsEmail.Body.HTML, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
+		require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
+		require.Contains(t, resultsEmail.Body.Text, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
+	}
+
+	th.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+		*cfg.EmailSettings.SendEmailNotifications = false
+	})
+	t.Run("SendInviteEmails", func(t *testing.T) {
+		mail.DeleteMailBox(emailTo)
+
+		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
+		require.NoError(t, err)
+
+		verifyMailbox(t)
 	})
 
 	t.Run("SendGuestInviteEmails", func(t *testing.T) {
-		emailTo := "test@example.com"
 		mail.DeleteMailBox(emailTo)
 
 		err := th.service.SendGuestInviteEmails(
@@ -86,25 +90,6 @@ func TestSendInviteEmails(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		var resultsMailbox mail.JSONMessageHeaderInbucket
-		err2 := mail.RetryInbucket(5, func() error {
-			var err error
-			resultsMailbox, err = mail.GetMailBox(emailTo)
-			return err
-		})
-		if err2 != nil {
-			t.Log(err2)
-			t.Log("No email was received, maybe due load on the server. Skipping this verification")
-		} else if len(resultsMailbox) > 0 {
-			require.Len(t, resultsMailbox, 1)
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.HTML, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
-		}
+		verifyMailbox(t)
 	})
-
 }
