@@ -797,16 +797,6 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 
 func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5281, Version5290) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
-
-		updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
-		}
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateThreadChannelsQuery); err != nil {
-			mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
-		}
-
 		saveSchemaVersion(sqlStore, Version5290)
 	}
 }
@@ -876,7 +866,6 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 		}
 
-		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 		// Shared channels support
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 	}
