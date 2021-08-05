@@ -6443,6 +6443,10 @@
     "translation": "No emails were successfully sent"
   },
   {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Failed to check if user store is empty."
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
