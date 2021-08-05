@@ -720,7 +720,7 @@ func (s *Server) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 	}
 
 	license := s.License()
-	if license != nil && license.HasEnterprisePluginFeatures() {
+	if license != nil && license.HasEnterpriseMarketplacePlugins() {
 		filter.EnterprisePlugins = true
 	}
 

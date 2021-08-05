@@ -307,7 +307,7 @@ func (l *License) IsSanctionedTrial() bool {
 		(duration >= sanctionedTrialDurationLowerBound.Milliseconds() || duration <= sanctionedTrialDurationUpperBound.Milliseconds())
 }
 
-func (l *License) HasEnterprisePluginFeatures() bool {
+func (l *License) HasEnterpriseMarketplacePlugins() bool {
 	return *l.Features.EnterprisePlugins ||
 		l.SkuShortName == LicenseShortSkuE20 ||
 		l.SkuShortName == LicenseShortSkuProfessional ||
