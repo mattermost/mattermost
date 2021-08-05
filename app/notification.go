@@ -1069,8 +1069,8 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 
 	if overridesAllowed && n.Channel.Type != model.ChannelTypeDirect {
 		if value := n.Post.GetProps()["override_username"]; value != nil && n.Post.GetProp("from_webhook") == "true" {
-			if _, ok := value.(string); ok {
-				return value.(string)
+			if s, ok := value.(string); ok {
+				return s
 			}
 		}
 	}
