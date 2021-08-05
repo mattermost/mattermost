@@ -854,18 +854,6 @@ func HashPassword(password string) string {
 	return string(hash)
 }
 
-// ComparePassword compares the hash
-// This function is deprecated and will be removed in a future release.
-func ComparePassword(hash string, password string) bool {
-
-	if password == "" || hash == "" {
-		return false
-	}
-
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
 
