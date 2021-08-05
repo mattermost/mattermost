@@ -78,7 +78,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`, `{"id": "testrejectfirstpost", "backend": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App, th.Context)
+		`, `{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App, th.Context)
 
 		pendingPostId := model.NewId()
 		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
@@ -128,7 +128,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App, th.Context)
+		`, `{"id": "testdelayfirstpost", "server": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App, th.Context)
 
 		var post *model.Post
 		pendingPostId := model.NewId()
