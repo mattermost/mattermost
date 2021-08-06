@@ -20,6 +20,11 @@ import (
 
 const CustomDefaultsEnvVar = "MM_CUSTOM_DEFAULTS_PATH"
 
+// prettyPrintStruct will return a prettyPrint version of a given struct
+func prettyPrintStruct(t interface{}) string {
+	return prettyPrintMap(structToMap(t))
+}
+
 // structToMap converts a struct into a map
 func structToMap(t interface{}) map[string]interface{} {
 	defer func() {
@@ -60,6 +65,12 @@ func structToMap(t interface{}) map[string]interface{} {
 	}
 
 	return out
+}
+
+// prettyPrintMap will return a prettyPrint version of a given map
+func prettyPrintMap(configMap map[string]interface{}) string {
+	value := reflect.ValueOf(configMap)
+	return printStringMap(value, 0)
 }
 
 // printStringMap takes a reflect.Value and prints it out alphabetically based on key values, which must be strings.
