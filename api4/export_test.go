@@ -29,8 +29,8 @@ func TestListExports(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		exports, resp, _ := c.ListExports()
-		require.Nil(t, resp.Error)
+		exports, _, err := c.ListExports()
+		require.NoError(t, err)
 		require.Empty(t, exports)
 	}, "no exports")
 
@@ -47,8 +47,8 @@ func TestListExports(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		exports, resp, _ := c.ListExports()
-		require.Nil(t, resp.Error)
+		exports, _, err := c.ListExports()
+		require.NoError(t, err)
 		require.Len(t, exports, 1)
 		require.Equal(t, exports[0], "export.zip")
 	}, "expected exports")
@@ -63,16 +63,16 @@ func TestListExports(t *testing.T) {
 		require.NoError(t, err)
 		defer os.RemoveAll(exportDir)
 
-		exports, resp, _ := c.ListExports()
-		require.Nil(t, resp.Error)
+		exports, _, err := c.ListExports()
+		require.NoError(t, err)
 		require.Empty(t, exports)
 
 		f, err := os.Create(filepath.Join(exportDir, "export.zip"))
 		require.NoError(t, err)
 		f.Close()
 
-		exports, resp, _ = c.ListExports()
-		require.Nil(t, resp.Error)
+		exports, _, err = c.ListExports()
+		require.NoError(t, err)
 		require.Len(t, exports, 1)
 		require.Equal(t, "export.zip", exports[0])
 	}, "change export directory")
@@ -102,22 +102,22 @@ func TestDeleteExport(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		exports, resp, _ := c.ListExports()
-		require.Nil(t, resp.Error)
+		exports, _, err := c.ListExports()
+		require.NoError(t, err)
 		require.Len(t, exports, 1)
 		require.Equal(t, exports[0], exportName)
 
-		ok, resp, _ := c.DeleteExport(exportName)
-		require.Nil(t, resp.Error)
+		ok, _, err := c.DeleteExport(exportName)
+		require.NoError(t, err)
 		require.True(t, ok)
 
-		exports, resp, _ = c.ListExports()
-		require.Nil(t, resp.Error)
+		exports, _, err = c.ListExports()
+		require.NoError(t, err)
 		require.Empty(t, exports)
 
 		// verify idempotence
-		ok, resp, _ = c.DeleteExport(exportName)
-		require.Nil(t, resp.Error)
+		ok, _, err = c.DeleteExport(exportName)
+		require.NoError(t, err)
 		require.True(t, ok)
 	}, "successfully delete export")
 }
@@ -157,8 +157,8 @@ func TestDownloadExport(t *testing.T) {
 		err = ioutil.WriteFile(filepath.Join(exportDir, exportName), data, 0600)
 		require.NoError(t, err)
 
-		n, resp, _ := c.DownloadExport(exportName, &buf, 0)
-		require.Nil(t, resp.Error)
+		n, _, err := c.DownloadExport(exportName, &buf, 0)
+		require.NoError(t, err)
 		require.Equal(t, len(data), int(n))
 		require.Equal(t, data, buf.Bytes())
 	}, "full download")
@@ -175,8 +175,8 @@ func TestDownloadExport(t *testing.T) {
 		require.NoError(t, err)
 
 		offset := 1024 * 512
-		n, resp, _ := c.DownloadExport(exportName, &buf, int64(offset))
-		require.Nil(t, resp.Error)
+		n, _, err := c.DownloadExport(exportName, &buf, int64(offset))
+		require.NoError(t, err)
 		require.Equal(t, len(data)-offset, int(n))
 		require.Equal(t, data[offset:], buf.Bytes())
 	}, "download with offset")

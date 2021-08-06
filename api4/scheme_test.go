@@ -770,27 +770,27 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		th.App.SetPhase2PermissionsMigrationStatus(true)
 
 		team := th.CreateTeam()
-		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
-		require.Nil(t, err)
+		_, _, appError := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appError)
 
 		teamScheme := th.SetupTeamScheme()
 
-		teamUserRole, err := th.App.GetRoleByName(context.Background(), teamScheme.DefaultTeamUserRole)
-		require.Nil(t, err)
+		teamUserRole, appError := th.App.GetRoleByName(context.Background(), teamScheme.DefaultTeamUserRole)
+		require.Nil(t, appError)
 		teamUserRole.Permissions = []string{}
-		_, err = th.App.UpdateRole(teamUserRole)
-		require.Nil(t, err)
+		_, appError = th.App.UpdateRole(teamUserRole)
+		require.Nil(t, appError)
 
 		th.LoginBasic()
 
-		_, resp, _ := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
-		require.Nil(t, resp.Error)
+		_, _, err := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
+		require.NoError(t, err)
 
 		team.SchemeId = &teamScheme.Id
-		team, err = th.App.UpdateTeamScheme(team)
-		require.Nil(t, err)
+		team, appError = th.App.UpdateTeamScheme(team)
+		require.Nil(t, appError)
 
-		_, resp, _ = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
-		require.NotNil(t, resp.Error)
+		_, _, err = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
+		require.Error(t, err)
 	})
 }

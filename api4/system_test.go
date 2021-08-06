@@ -196,8 +196,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		l := model.NewTestLicense()
 		th.App.Srv().SetLicense(l)
 
-		file, resp, _ := th.SystemAdminClient.GenerateSupportPacket()
-		require.Nil(t, resp.Error)
+		file, _, err := th.SystemAdminClient.GenerateSupportPacket()
+		require.NoError(t, err)
 		require.NotZero(t, len(file))
 	})
 

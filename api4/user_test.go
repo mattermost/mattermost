@@ -392,27 +392,27 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 			EmailVerified: true,
 		}
 
-		guest, err := th.App.CreateGuest(th.Context, guest)
-		require.Nil(t, err)
+		guest, appError := th.App.CreateGuest(th.Context, guest)
+		require.Nil(t, appError)
 
-		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
-		require.Nil(t, err)
+		_, _, appError = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
+		require.Nil(t, appError)
 
-		_, err = th.App.AddUserToChannel(guest, th.BasicChannel, false)
-		require.Nil(t, err)
+		_, appError = th.App.AddUserToChannel(guest, th.BasicChannel, false)
+		require.Nil(t, appError)
 
 		guestClient := th.CreateClient()
 
-		_, resp, _ := guestClient.Login(guest.Email, guestPassword)
-		require.Nil(t, resp.Error)
+		_, _, err := guestClient.Login(guest.Email, guestPassword)
+		require.NoError(t, err)
 
-		guestWSClient, err := th.CreateWebSocketClientWithClient(guestClient)
-		require.Nil(t, err)
+		guestWSClient, appError := th.CreateWebSocketClientWithClient(guestClient)
+		require.Nil(t, appError)
 		defer guestWSClient.Close()
 		guestWSClient.Listen()
 
-		userWSClient, err := th.CreateWebSocketClient()
-		require.Nil(t, err)
+		userWSClient, appError := th.CreateWebSocketClient()
+		require.Nil(t, appError)
 		defer userWSClient.Close()
 		userWSClient.Listen()
 
@@ -420,7 +420,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 
 		inviteId := th.BasicTeam.InviteId
 
-		_, resp, _ = th.Client.CreateUserWithInviteId(&user, inviteId)
+		_, resp, _ := th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
 
@@ -898,8 +898,8 @@ func TestGetUserByEmail(t *testing.T) {
 		})
 
 		t.Run("Get user with a / character in the email", func(t *testing.T) {
-			ruser, resp, _ := client.GetUserByEmail(userWithSlash.Email, "")
-			require.Nil(t, resp.Error)
+			ruser, _, err := client.GetUserByEmail(userWithSlash.Email, "")
+			require.NoError(t, err)
 			require.Equal(t, ruser.Id, userWithSlash.Id)
 		})
 
@@ -2021,21 +2021,21 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 
 	t.Run("The endpoint should permanently delete all users", func(t *testing.T) {
 		// Basic user creates a team and a channel
-		team, err := th.App.CreateTeamWithUser(th.Context, &model.Team{
+		team, appError := th.App.CreateTeamWithUser(th.Context, &model.Team{
 			DisplayName: "User Created Team",
 			Name:        "user-created-team",
 			Email:       "usercreatedteam@test.com",
 			Type:        model.TeamOpen,
 		}, th.BasicUser.Id)
-		require.Nil(t, err)
+		require.Nil(t, appError)
 
-		channel, err := th.App.CreateChannelWithUser(th.Context, &model.Channel{
+		channel, appError := th.App.CreateChannelWithUser(th.Context, &model.Channel{
 			DisplayName: "User Created Channel",
 			Name:        "user-created-channel",
 			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}, th.BasicUser.Id)
-		require.Nil(t, err)
+		require.Nil(t, appError)
 
 		// Check that we have users and posts in the database
 		users, nErr := th.App.Srv().Store.User().GetAll()
@@ -2047,8 +2047,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Greater(t, postCount, int64(0))
 
 		// Delete all users and their posts
-		_, resp, _ := th.LocalClient.PermanentDeleteAllUsers()
-		require.Nil(t, resp.Error)
+		_, _, err := th.LocalClient.PermanentDeleteAllUsers()
+		require.NoError(t, err)
 
 		// Check that both user and post tables are empty
 		users, nErr = th.App.Srv().Store.User().GetAll()
@@ -2060,12 +2060,12 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Equal(t, postCount, int64(0))
 
 		// Check that the channel and team created by the user were not deleted
-		rTeam, err := th.App.GetTeam(team.Id)
-		require.Nil(t, err)
+		rTeam, appError := th.App.GetTeam(team.Id)
+		require.Nil(t, appError)
 		require.NotNil(t, rTeam)
 
-		rChannel, err := th.App.GetChannel(channel.Id)
-		require.Nil(t, err)
+		rChannel, appError := th.App.GetChannel(channel.Id)
+		require.Nil(t, appError)
 		require.NotNil(t, rChannel)
 	})
 }
@@ -4684,23 +4684,23 @@ func TestGetUsersByStatus(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	team, err := th.App.CreateTeam(th.Context, &model.Team{
+	team, appError := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        GenerateTestTeamName(),
 		Email:       th.GenerateTestEmail(),
 		Type:        model.TeamOpen,
 	})
 
-	require.Nil(t, err, "failed to create team")
+	require.Nil(t, appError, "failed to create team")
 
-	channel, err := th.App.CreateChannel(th.Context, &model.Channel{
+	channel, appError := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 		TeamId:      team.Id,
 		CreatorId:   model.NewId(),
 	}, false)
-	require.Nil(t, err, "failed to create channel")
+	require.Nil(t, appError, "failed to create channel")
 
 	createUserWithStatus := func(username string, status string) *model.User {
 		id := model.NewId()
@@ -4736,12 +4736,12 @@ func TestGetUsersByStatus(t *testing.T) {
 	dndUser2 := createUserWithStatus("dnd2", model.StatusDnd)
 
 	client := th.CreateClient()
-	_, resp, _ := client.Login(onlineUser2.Username, "Password1")
-	require.Nil(t, resp.Error)
+	_, _, err := client.Login(onlineUser2.Username, "Password1")
+	require.NoError(t, err)
 
 	t.Run("sorting by status then alphabetical", func(t *testing.T) {
-		usersByStatus, resp, _ := client.GetUsersInChannelByStatus(channel.Id, 0, 8, "")
-		require.Nil(t, resp.Error)
+		usersByStatus, _, err := client.GetUsersInChannelByStatus(channel.Id, 0, 8, "")
+		require.NoError(t, err)
 
 		expectedUsersByStatus := []*model.User{
 			onlineUser1,
@@ -4761,22 +4761,22 @@ func TestGetUsersByStatus(t *testing.T) {
 	})
 
 	t.Run("paging", func(t *testing.T) {
-		usersByStatus, resp, _ := client.GetUsersInChannelByStatus(channel.Id, 0, 3, "")
-		require.Nil(t, resp.Error)
+		usersByStatus, _, err := client.GetUsersInChannelByStatus(channel.Id, 0, 3, "")
+		require.NoError(t, err)
 		require.Len(t, usersByStatus, 3)
 		require.Equal(t, onlineUser1.Id, usersByStatus[0].Id, "online users first")
 		require.Equal(t, onlineUser2.Id, usersByStatus[1].Id, "online users first")
 		require.Equal(t, awayUser1.Id, usersByStatus[2].Id, "expected to receive away users second")
 
-		usersByStatus, resp, _ = client.GetUsersInChannelByStatus(channel.Id, 1, 3, "")
-		require.Nil(t, resp.Error)
+		usersByStatus, _, err = client.GetUsersInChannelByStatus(channel.Id, 1, 3, "")
+		require.NoError(t, err)
 
 		require.Equal(t, awayUser2.Id, usersByStatus[0].Id, "expected to receive away users second")
 		require.Equal(t, dndUser1.Id, usersByStatus[1].Id, "expected to receive dnd users third")
 		require.Equal(t, dndUser2.Id, usersByStatus[2].Id, "expected to receive dnd users third")
 
-		usersByStatus, resp, _ = client.GetUsersInChannelByStatus(channel.Id, 1, 4, "")
-		require.Nil(t, resp.Error)
+		usersByStatus, _, err = client.GetUsersInChannelByStatus(channel.Id, 1, 4, "")
+		require.NoError(t, err)
 
 		require.Len(t, usersByStatus, 4)
 		require.Equal(t, dndUser1.Id, usersByStatus[0].Id, "expected to receive dnd users third")
@@ -5070,8 +5070,8 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
 		ruser, _, _ := th.Client.CreateUser(&user)
 
-		vuser, resp, _ := client.VerifyUserEmailWithoutToken(ruser.Id)
-		require.Nil(t, resp.Error)
+		vuser, _, err := client.VerifyUserEmailWithoutToken(ruser.Id)
+		require.NoError(t, err)
 		require.Equal(t, ruser.Id, vuser.Id)
 	}, "Should verify a new user")
 
@@ -5362,8 +5362,8 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-		uss, resp, _ := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-		require.Nil(t, resp.Error)
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
 		require.Len(t, uss.Threads, 0)
 	})
 
@@ -5379,8 +5379,8 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-		uss, resp, _ := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-		require.Nil(t, resp.Error)
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
 		require.Len(t, uss.Threads, 1)
 		require.Equal(t, uss.Threads[0].PostId, rpost.Id)
 		require.Equal(t, uss.Threads[0].ReplyCount, int64(1))

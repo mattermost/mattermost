@@ -1465,8 +1465,8 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			teams, count, resp, _ := th.SystemAdminClient.SearchTeamsPaged(tc.Search)
-			require.Nil(t, resp.Error)
+			teams, count, _, err := th.SystemAdminClient.SearchTeamsPaged(tc.Search)
+			require.NoError(t, err)
 			require.Equal(t, tc.ExpectedTotalCount, count)
 			require.Equal(t, len(tc.ExpectedTeams), len(teams))
 			for i, team := range teams {

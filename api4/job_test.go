@@ -28,8 +28,8 @@ func TestCreateJob(t *testing.T) {
 	_, resp, _ := th.SystemManagerClient.CreateJob(job)
 	CheckForbiddenStatus(t, resp)
 
-	received, resp, _ := th.SystemAdminClient.CreateJob(job)
-	require.Nil(t, resp.Error)
+	received, _, err := th.SystemAdminClient.CreateJob(job)
+	require.NoError(t, err)
 
 	defer th.App.Srv().Store.Job().Delete(received.Id)
 
@@ -59,13 +59,13 @@ func TestGetJob(t *testing.T) {
 
 	defer th.App.Srv().Store.Job().Delete(job.Id)
 
-	received, resp, _ := th.SystemAdminClient.GetJob(job.Id)
-	require.Nil(t, resp.Error)
+	received, _, err := th.SystemAdminClient.GetJob(job.Id)
+	require.NoError(t, err)
 
 	require.Equal(t, job.Id, received.Id, "incorrect job received")
 	require.Equal(t, job.Status, received.Status, "incorrect job received")
 
-	_, resp, _ = th.SystemAdminClient.GetJob("1234")
+	_, resp, _ := th.SystemAdminClient.GetJob("1234")
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, _ = th.Client.GetJob(job.Id)
@@ -106,19 +106,19 @@ func TestGetJobs(t *testing.T) {
 		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
-	received, resp, _ := th.SystemAdminClient.GetJobs(0, 2)
-	require.Nil(t, resp.Error)
+	received, _, err := th.SystemAdminClient.GetJobs(0, 2)
+	require.NoError(t, err)
 
 	require.Len(t, received, 2, "received wrong number of jobs")
 	require.Equal(t, jobs[2].Id, received[0].Id, "should've received newest job first")
 	require.Equal(t, jobs[0].Id, received[1].Id, "should've received second newest job second")
 
-	received, resp, _ = th.SystemAdminClient.GetJobs(1, 2)
-	require.Nil(t, resp.Error)
+	received, _, err = th.SystemAdminClient.GetJobs(1, 2)
+	require.NoError(t, err)
 
 	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
-	_, resp, _ = th.Client.GetJobs(0, 60)
+	_, resp, _ := th.Client.GetJobs(0, 60)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -157,20 +157,20 @@ func TestGetJobsByType(t *testing.T) {
 		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
-	received, resp, _ := th.SystemAdminClient.GetJobsByType(jobType, 0, 2)
-	require.Nil(t, resp.Error)
+	received, _, err := th.SystemAdminClient.GetJobsByType(jobType, 0, 2)
+	require.NoError(t, err)
 
 	require.Len(t, received, 2, "received wrong number of jobs")
 	require.Equal(t, jobs[2].Id, received[0].Id, "should've received newest job first")
 	require.Equal(t, jobs[0].Id, received[1].Id, "should've received second newest job second")
 
-	received, resp, _ = th.SystemAdminClient.GetJobsByType(jobType, 1, 2)
-	require.Nil(t, resp.Error)
+	received, _, err = th.SystemAdminClient.GetJobsByType(jobType, 1, 2)
+	require.NoError(t, err)
 
 	require.Len(t, received, 1, "received wrong number of jobs")
 	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
-	_, resp, _ = th.SystemAdminClient.GetJobsByType("", 0, 60)
+	_, resp, _ := th.SystemAdminClient.GetJobsByType("", 0, 60)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = th.SystemAdminClient.GetJobsByType(strings.Repeat("a", 33), 0, 60)
@@ -179,8 +179,8 @@ func TestGetJobsByType(t *testing.T) {
 	_, resp, _ = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.SystemManagerClient.GetJobsByType(model.JobTypeElasticsearchPostIndexing, 0, 60)
-	require.Nil(t, resp.Error)
+	_, _, err = th.SystemManagerClient.GetJobsByType(model.JobTypeElasticsearchPostIndexing, 0, 60)
+	require.NoError(t, err)
 }
 
 func TestDownloadJob(t *testing.T) {
@@ -249,8 +249,8 @@ func TestDownloadJob(t *testing.T) {
 	require.NoError(t, mkdirAllErr)
 	os.Create(filePath)
 
-	_, resp, _ = th.SystemAdminClient.DownloadJob(job.Id)
-	require.Nil(t, resp.Error)
+	_, _, err = th.SystemAdminClient.DownloadJob(job.Id)
+	require.NoError(t, err)
 
 	// Here we are creating a new job which doesn't have type of message export
 	jobName = model.NewId()
@@ -303,11 +303,11 @@ func TestCancelJob(t *testing.T) {
 	_, resp, _ := th.Client.CancelJob(jobs[0].Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.CancelJob(jobs[0].Id)
-	require.Nil(t, resp.Error)
+	_, _, err := th.SystemAdminClient.CancelJob(jobs[0].Id)
+	require.NoError(t, err)
 
-	_, resp, _ = th.SystemAdminClient.CancelJob(jobs[1].Id)
-	require.Nil(t, resp.Error)
+	_, _, err = th.SystemAdminClient.CancelJob(jobs[1].Id)
+	require.NoError(t, err)
 
 	_, resp, _ = th.SystemAdminClient.CancelJob(jobs[2].Id)
 	CheckInternalErrorStatus(t, resp)

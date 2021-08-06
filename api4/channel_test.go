@@ -1007,14 +1007,14 @@ func TestGetAllChannels(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Empty(t, *channels)
 
-		channels, resp, _ = client.GetAllChannels(0, 10000, "")
-		require.Nil(t, resp.Error)
+		channels, _, err := client.GetAllChannels(0, 10000, "")
+		require.NoError(t, err)
 		beforeCount := len(*channels)
 
 		firstChannel := (*channels)[0].Channel
 
-		ok, resp, _ := client.DeleteChannel(firstChannel.Id)
-		require.Nil(t, resp.Error)
+		ok, _, err := client.DeleteChannel(firstChannel.Id)
+		require.NoError(t, err)
 		require.True(t, ok)
 
 		channels, resp, _ = client.GetAllChannels(0, 10000, "")
@@ -3167,8 +3167,8 @@ func TestAutocompleteChannels(t *testing.T) {
 		},
 	} {
 		t.Run(tc.description, func(t *testing.T) {
-			channels, resp, _ := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment)
-			require.Nil(t, resp.Error)
+			channels, _, err := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment)
+			require.NoError(t, err)
 			names := make([]string, len(*channels))
 			for i, c := range *channels {
 				names[i] = c.Name
@@ -3282,8 +3282,8 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 		},
 	} {
 		t.Run(tc.description, func(t *testing.T) {
-			channels, resp, _ := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamID, tc.fragment)
-			require.Nil(t, resp.Error)
+			channels, _, err := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamID, tc.fragment)
+			require.NoError(t, err)
 			names := make([]string, len(*channels))
 			for i, c := range *channels {
 				names[i] = c.Name
@@ -3414,8 +3414,8 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 		},
 	} {
 		t.Run(tc.description, func(t *testing.T) {
-			channels, resp, _ := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamID, tc.fragment)
-			require.Nil(t, resp.Error)
+			channels, _, err := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamID, tc.fragment)
+			require.NoError(t, err)
 			names := make([]string, len(*channels))
 			for i, c := range *channels {
 				names[i] = c.Name
@@ -4090,15 +4090,15 @@ func TestMoveChannel(t *testing.T) {
 
 	t.Run("Should move channel", func(t *testing.T) {
 		publicChannel := th.CreatePublicChannel()
-		ch, resp, _ := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, false)
-		require.Nil(t, resp.Error)
+		ch, _, err := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, false)
+		require.NoError(t, err)
 		require.Equal(t, team2.Id, ch.TeamId)
 	})
 
 	t.Run("Should move private channel", func(t *testing.T) {
 		channel := th.CreatePrivateChannel()
-		ch, resp, _ := th.SystemAdminClient.MoveChannel(channel.Id, team1.Id, false)
-		require.Nil(t, resp.Error)
+		ch, _, err := th.SystemAdminClient.MoveChannel(channel.Id, team1.Id, false)
+		require.NoError(t, err)
 		require.Equal(t, team1.Id, ch.TeamId)
 	})
 
@@ -4137,8 +4137,8 @@ func TestMoveChannel(t *testing.T) {
 		_, resp, _ = client.AddChannelMember(publicChannel.Id, user.Id)
 		CheckNoError(t, resp)
 
-		_, resp, _ = client.MoveChannel(publicChannel.Id, team2.Id, false)
-		require.NotNil(t, resp.Error)
+		_, _, err := client.MoveChannel(publicChannel.Id, team2.Id, false)
+		require.Error(t, err)
 		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
 	}, "Should fail to move public channel due to a member not member of target team")
 
@@ -4152,8 +4152,8 @@ func TestMoveChannel(t *testing.T) {
 		_, resp, _ = client.AddChannelMember(privateChannel.Id, user.Id)
 		CheckNoError(t, resp)
 
-		_, resp, _ = client.MoveChannel(privateChannel.Id, team2.Id, false)
-		require.NotNil(t, resp.Error)
+		_, _, err := client.MoveChannel(privateChannel.Id, team2.Id, false)
+		require.Error(t, err)
 		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
 	}, "Should fail to move private channel due to a member not member of target team")
 
@@ -4167,8 +4167,8 @@ func TestMoveChannel(t *testing.T) {
 		_, resp, _ = client.AddChannelMember(publicChannel.Id, user.Id)
 		CheckNoError(t, resp)
 
-		newChannel, resp, _ := client.MoveChannel(publicChannel.Id, team2.Id, true)
-		require.Nil(t, resp.Error)
+		newChannel, _, err := client.MoveChannel(publicChannel.Id, team2.Id, true)
+		require.NoError(t, err)
 		require.Equal(t, team2.Id, newChannel.TeamId)
 	}, "Should be able to (force) move public channel by a member that is not member of target team")
 
@@ -4182,8 +4182,8 @@ func TestMoveChannel(t *testing.T) {
 		_, resp, _ = client.AddChannelMember(privateChannel.Id, user.Id)
 		CheckNoError(t, resp)
 
-		newChannel, resp, _ := client.MoveChannel(privateChannel.Id, team2.Id, true)
-		require.Nil(t, resp.Error)
+		newChannel, _, err := client.MoveChannel(privateChannel.Id, team2.Id, true)
+		require.NoError(t, err)
 		require.Equal(t, team2.Id, newChannel.TeamId)
 	}, "Should be able to (force) move private channel by a member that is not member of target team")
 }
