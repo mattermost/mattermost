@@ -91,6 +91,7 @@ func init() {
 		PluginAddPublicKeyCmd,
 		PluginDeletePublicKeyCmd,
 	)
+	PluginAddCmd.Flags().Bool("replace", false, "Allow replacement of existing plugin with the same ID.")
 	PluginCmd.AddCommand(
 		PluginAddCmd,
 		PluginDeleteCmd,
@@ -110,6 +111,8 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
+	replace, _ := command.Flags().GetBool("replace")
+
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -120,7 +123,7 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 			return err
 		}
 
-		if _, err := a.InstallPlugin(fileReader, false); err != nil {
+		if _, err := a.InstallPlugin(fileReader, replace); err != nil {
 			CommandPrintErrorln("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Added plugin: " + plugin)

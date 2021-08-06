@@ -33,6 +33,10 @@ func TestPlugin(t *testing.T) {
 
 	output := th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
 	assert.Contains(t, output, "Added plugin:")
+	output = th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
+	assert.Contains(t, output, "Unable to add plugin:")
+	output = th.CheckCommand(t, "plugin", "add", "--replace", filepath.Join(path, "testplugin.tar.gz"))
+	assert.Contains(t, output, "Added plugin:")
 	output = th.CheckCommand(t, "plugin", "enable", "testplugin")
 	assert.Contains(t, output, "Enabled plugin: testplugin")
 
