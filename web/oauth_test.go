@@ -587,6 +587,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	c.AppContext.SetT(translationFunc)
 	buffer := &bytes.Buffer{}
 	c.Logger, _ = mlog.CreateTestLogger(t, buffer, mlog.StdAll...)
+	defer c.Logger.Shutdown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	provider := &MattermostTestProvider{}

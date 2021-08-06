@@ -132,7 +132,8 @@ func (lgr *Logr) stopMetricsUpdater() {
 	lgr.metricsMux.RLock()
 	defer lgr.metricsMux.RUnlock()
 
-	if lgr.metrics != nil {
+	if lgr.metrics != nil && lgr.metrics.done != nil {
 		close(lgr.metrics.done)
+		lgr.metrics.done = nil
 	}
 }

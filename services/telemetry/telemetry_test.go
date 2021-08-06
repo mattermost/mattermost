@@ -271,6 +271,7 @@ func TestRudderTelemetry(t *testing.T) {
 	defer deferredAssertions(t)
 
 	testLogger, _ := mlog.CreateTestLogger(t, nil, mlog.StdAll...)
+	defer testLogger.Shutdown()
 
 	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
 	telemetryService.TelemetryID = telemetryID

@@ -84,6 +84,10 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 		cfg["_defAudit"] = targetCfg
 	}
 
+	if configSrc == nil {
+		return cfg, nil
+	}
+
 	// add advanced audit config
 	cfgAdv := configSrc.Get()
 	cfg.Append(cfgAdv)

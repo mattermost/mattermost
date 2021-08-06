@@ -6,6 +6,7 @@ package mlog
 import (
 	"io"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 
@@ -103,7 +104,8 @@ func (tt *testingTarget) Write(p []byte, rec *logr.LogRec) (int, error) {
 	}
 
 	if tt.tb != nil && !disabled {
-		tt.tb.Log(string(p))
+		tt.tb.Helper()
+		tt.tb.Log(strings.TrimSpace(string(p)))
 	}
 	return len(p), nil
 }
