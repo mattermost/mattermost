@@ -22,29 +22,29 @@ import (
 func TestGetOldClientLicense(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
-	license, resp := Client.GetOldClientLicense("")
+	license, resp, _ := client.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
 	require.NotEqual(t, license["IsLicensed"], "", "license not returned correctly")
 
-	Client.Logout()
+	client.Logout()
 
-	_, resp = Client.GetOldClientLicense("")
+	_, resp, _ = client.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
-	_, err := Client.DoApiGet("/license/client", "")
+	_, err := client.DoApiGet("/license/client", "")
 	require.NotNil(t, err, "get /license/client did not return an error")
 	require.Equal(t, err.StatusCode, http.StatusNotImplemented,
 		"expected 501 Not Implemented")
 
-	_, err = Client.DoApiGet("/license/client?format=junk", "")
+	_, err = client.DoApiGet("/license/client?format=junk", "")
 	require.NotNil(t, err, "get /license/client?format=junk did not return an error")
 	require.Equal(t, err.StatusCode, http.StatusBadRequest,
 		"expected 400 Bad Request")
 
-	license, resp = th.SystemAdminClient.GetOldClientLicense("")
+	license, resp, _ = th.SystemAdminClient.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
 	require.NotEmpty(t, license["IsLicensed"], "license not returned correctly")
@@ -53,17 +53,17 @@ func TestGetOldClientLicense(t *testing.T) {
 func TestUploadLicenseFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp := Client.UploadLicenseFile([]byte{})
+		ok, resp, _ := client.UploadLicenseFile([]byte{})
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		ok, resp := c.UploadLicenseFile([]byte{})
+		ok, resp, _ := c.UploadLicenseFile([]byte{})
 		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
 	}, "as system admin user")
@@ -71,14 +71,14 @@ func TestUploadLicenseFile(t *testing.T) {
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
+		ok, resp, _ := th.SystemAdminClient.UploadLicenseFile([]byte{})
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
 
 	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		ok, resp := LocalClient.UploadLicenseFile([]byte{})
+		ok, resp, _ := LocalClient.UploadLicenseFile([]byte{})
 		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
 	})
@@ -117,7 +117,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseManagerMock.On("CanStartTrial").Return(false, nil).Once()
 		th.App.Srv().LicenseManager = licenseManagerMock
 
-		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
+		ok, resp, _ := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
 		require.False(t, ok)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		require.Equal(t, "api.license.request-trial.can-start-trial.not-allowed", resp.Error.Id)
@@ -156,7 +156,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseManagerMock.On("CanStartTrial").Return(false, nil).Once()
 		th.App.Srv().LicenseManager = licenseManagerMock
 
-		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
+		ok, resp, _ := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
 		require.False(t, ok)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.Nil(t, resp.Error)
@@ -166,17 +166,17 @@ func TestUploadLicenseFile(t *testing.T) {
 func TestRemoveLicenseFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp := Client.RemoveLicenseFile()
+		ok, resp, _ := client.RemoveLicenseFile()
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		ok, resp := c.RemoveLicenseFile()
+		ok, resp, _ := c.RemoveLicenseFile()
 		CheckNoError(t, resp)
 		require.True(t, ok)
 	}, "as system admin user")
@@ -184,7 +184,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+		ok, resp, _ := th.SystemAdminClient.RemoveLicenseFile()
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
@@ -192,7 +192,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp := LocalClient.RemoveLicenseFile()
+		ok, resp, _ := LocalClient.RemoveLicenseFile()
 		CheckNoError(t, resp)
 		require.True(t, ok)
 	})
@@ -209,7 +209,7 @@ func TestRequestTrialLicense(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
 
 	t.Run("permission denied", func(t *testing.T) {
-		ok, resp := th.Client.RequestTrialLicense(1000)
+		ok, resp, _ := th.Client.RequestTrialLicense(1000)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
@@ -217,14 +217,14 @@ func TestRequestTrialLicense(t *testing.T) {
 	t.Run("blank site url", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
-		ok, resp := th.SystemAdminClient.RequestTrialLicense(1000)
+		ok, resp, _ := th.SystemAdminClient.RequestTrialLicense(1000)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.license.request_trial_license.no-site-url.app_error", resp.Error.Id)
 		require.False(t, ok)
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.RequestTrialLicense(1)
+		ok, resp, _ := th.SystemAdminClient.RequestTrialLicense(1)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
 		require.False(t, ok)
@@ -232,7 +232,7 @@ func TestRequestTrialLicense(t *testing.T) {
 
 	th.App.Srv().LicenseManager = nil
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.RequestTrialLicense(1)
+		ok, resp, _ := th.SystemAdminClient.RequestTrialLicense(1)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 		require.Equal(t, "api.license.upgrade_needed.app_error", resp.Error.Id)

@@ -40,18 +40,18 @@ func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *Au
 
 // Basic test team and user so you always know one
 func CreateBasicUser(a *app.App, client *model.Client4) *model.AppError {
-	found, _ := client.TeamExists(BTestTeamName, "")
+	found, _, _ := client.TeamExists(BTestTeamName, "")
 	if found {
 		return nil
 	}
 
 	newteam := &model.Team{DisplayName: BTestTeamDisplayName, Name: BTestTeamName, Email: BTestTeamEmail, Type: BTestTeamType}
-	basicteam, resp := client.CreateTeam(newteam)
+	basicteam, resp, _ := client.CreateTeam(newteam)
 	if resp.Error != nil {
 		return resp.Error
 	}
 	newuser := &model.User{Email: BTestUserEmail, Nickname: BTestUserName, Password: BTestUserPassword}
-	ruser, resp := client.CreateUser(newuser)
+	ruser, resp, _ := client.CreateUser(newuser)
 	if resp.Error != nil {
 		return resp.Error
 	}

@@ -77,12 +77,12 @@ func CreateTestEnvironmentInTeam(a *app.App, c *request.Context, client *model.C
 	// Have every user join every channel
 	for _, user := range users {
 		for _, channel := range channels {
-			_, resp := client.LoginById(user.Id, UserPassword)
+			_, resp, _ := client.LoginById(user.Id, UserPassword)
 			if resp.Error != nil {
 				return TeamEnvironment{}, resp.Error
 			}
 
-			_, resp = client.AddChannelMember(channel.Id, user.Id)
+			_, resp, _ = client.AddChannelMember(channel.Id, user.Id)
 			if resp.Error != nil {
 				return TeamEnvironment{}, resp.Error
 			}
@@ -93,7 +93,7 @@ func CreateTestEnvironmentInTeam(a *app.App, c *request.Context, client *model.C
 	numImages := utils.RandIntFromRange(rangePosts) / 4
 	for j := 0; j < numPosts; j++ {
 		user := users[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(users) - 1})]
-		_, resp := client.LoginById(user.Id, UserPassword)
+		_, resp, _ := client.LoginById(user.Id, UserPassword)
 		if resp.Error != nil {
 			return TeamEnvironment{}, resp.Error
 		}

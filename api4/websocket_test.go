@@ -98,7 +98,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	Client := th.Client
+	client := th.Client
 	user2 := th.BasicUser2
 
 	users := make([]*model.User, 0)
@@ -138,7 +138,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 
 	for _, user := range users {
 		time.Sleep(100 * time.Millisecond)
-		_, resp := Client.CreateDirectChannel(th.BasicUser.Id, user.Id)
+		_, resp, _ := client.CreateDirectChannel(th.BasicUser.Id, user.Id)
 		require.Nil(t, resp.Error, "failed to create DM channel")
 	}
 
@@ -203,7 +203,7 @@ func TestWebSocketStatuses(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	Client := th.Client
+	client := th.Client
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.Nil(t, err, err)
 	defer WebSocketClient.Close()
@@ -213,21 +213,21 @@ func TestWebSocketStatuses(t *testing.T) {
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "test@nowhere.com", Type: model.TeamOpen}
-	rteam, _ := Client.CreateTeam(&team)
+	rteam, _, _ := client.CreateTeam(&team)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser := Client.Must(Client.CreateUser(&user)).(*model.User)
+	ruser := client.Must(client.CreateUser(&user)).(*model.User)
 	th.LinkUserToTeam(ruser, rteam)
 	_, nErr := th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, nErr)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser2 := Client.Must(Client.CreateUser(&user2)).(*model.User)
+	ruser2 := client.Must(client.CreateUser(&user2)).(*model.User)
 	th.LinkUserToTeam(ruser2, rteam)
 	_, nErr = th.App.Srv().Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
 	require.NoError(t, nErr)
 
-	Client.Login(user.Email, user.Password)
+	client.Login(user.Email, user.Password)
 
 	th.LoginBasic2()
 

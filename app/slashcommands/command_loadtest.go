@@ -215,7 +215,7 @@ func (*LoadTestProvider) SetupCommand(a *app.App, c *request.Context, args *mode
 		if err := CreateBasicUser(a, client); err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-		_, resp := client.Login(BTestUserEmail, BTestUserPassword)
+		_, resp, _ := client.Login(BTestUserEmail, BTestUserPassword)
 		if resp.Error != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, resp.Error
 		}
@@ -443,7 +443,7 @@ func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, messag
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	_, resp := client.LoginById(user.Id, passwd)
+	_, resp, _ := client.LoginById(user.Id, passwd)
 	if resp.Error != nil {
 		return &model.CommandResponse{Text: "Failed to login a user", ResponseType: model.CommandResponseTypeEphemeral}, resp.Error
 	}
@@ -452,7 +452,7 @@ func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, messag
 		ChannelId: channel.Id,
 		Message:   textMessage,
 	}
-	_, resp = client.CreatePost(post)
+	_, resp, _ = client.CreatePost(post)
 	if resp.Error != nil {
 		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, resp.Error
 	}

@@ -115,7 +115,7 @@ func TestCreateCommand(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			actual, _ := th.RunCommandWithOutput(t, testCase.Args...)
 
-			cmds, response := th.SystemAdminClient.ListCommands(team.Id, true)
+			cmds, response, _ := th.SystemAdminClient.ListCommands(team.Id, true)
 
 			require.Nil(t, response.Error, "Failed to list commands")
 

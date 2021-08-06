@@ -22,14 +22,14 @@ func TestListExports(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		exports, resp := th.Client.ListExports()
+		exports, resp, _ := th.Client.ListExports()
 		require.NotNil(t, resp.Error)
 		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
 		require.Nil(t, exports)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		exports, resp := c.ListExports()
+		exports, resp, _ := c.ListExports()
 		require.Nil(t, resp.Error)
 		require.Empty(t, exports)
 	}, "no exports")
@@ -47,7 +47,7 @@ func TestListExports(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		exports, resp := c.ListExports()
+		exports, resp, _ := c.ListExports()
 		require.Nil(t, resp.Error)
 		require.Len(t, exports, 1)
 		require.Equal(t, exports[0], "export.zip")
@@ -63,7 +63,7 @@ func TestListExports(t *testing.T) {
 		require.NoError(t, err)
 		defer os.RemoveAll(exportDir)
 
-		exports, resp := c.ListExports()
+		exports, resp, _ := c.ListExports()
 		require.Nil(t, resp.Error)
 		require.Empty(t, exports)
 
@@ -71,7 +71,7 @@ func TestListExports(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		exports, resp = c.ListExports()
+		exports, resp, _ = c.ListExports()
 		require.Nil(t, resp.Error)
 		require.Len(t, exports, 1)
 		require.Equal(t, "export.zip", exports[0])
@@ -83,7 +83,7 @@ func TestDeleteExport(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		ok, resp := th.Client.DeleteExport("export.zip")
+		ok, resp, _ := th.Client.DeleteExport("export.zip")
 		require.NotNil(t, resp.Error)
 		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
 		require.False(t, ok)
@@ -102,21 +102,21 @@ func TestDeleteExport(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		exports, resp := c.ListExports()
+		exports, resp, _ := c.ListExports()
 		require.Nil(t, resp.Error)
 		require.Len(t, exports, 1)
 		require.Equal(t, exports[0], exportName)
 
-		ok, resp := c.DeleteExport(exportName)
+		ok, resp, _ := c.DeleteExport(exportName)
 		require.Nil(t, resp.Error)
 		require.True(t, ok)
 
-		exports, resp = c.ListExports()
+		exports, resp, _ = c.ListExports()
 		require.Nil(t, resp.Error)
 		require.Empty(t, exports)
 
 		// verify idempotence
-		ok, resp = c.DeleteExport(exportName)
+		ok, resp, _ = c.DeleteExport(exportName)
 		require.Nil(t, resp.Error)
 		require.True(t, ok)
 	}, "successfully delete export")
@@ -128,7 +128,7 @@ func TestDownloadExport(t *testing.T) {
 
 	t.Run("no permissions", func(t *testing.T) {
 		var buf bytes.Buffer
-		n, resp := th.Client.DownloadExport("export.zip", &buf, 0)
+		n, resp, _ := th.Client.DownloadExport("export.zip", &buf, 0)
 		require.NotNil(t, resp.Error)
 		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
 		require.Zero(t, n)
@@ -140,7 +140,7 @@ func TestDownloadExport(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		var buf bytes.Buffer
-		n, resp := c.DownloadExport("export.zip", &buf, 0)
+		n, resp, _ := c.DownloadExport("export.zip", &buf, 0)
 		require.NotNil(t, resp.Error)
 		require.Equal(t, "api.export.export_not_found.app_error", resp.Error.Id)
 		require.Zero(t, n)
@@ -157,7 +157,7 @@ func TestDownloadExport(t *testing.T) {
 		err = ioutil.WriteFile(filepath.Join(exportDir, exportName), data, 0600)
 		require.NoError(t, err)
 
-		n, resp := c.DownloadExport(exportName, &buf, 0)
+		n, resp, _ := c.DownloadExport(exportName, &buf, 0)
 		require.Nil(t, resp.Error)
 		require.Equal(t, len(data), int(n))
 		require.Equal(t, data, buf.Bytes())
@@ -175,7 +175,7 @@ func TestDownloadExport(t *testing.T) {
 		require.NoError(t, err)
 
 		offset := 1024 * 512
-		n, resp := c.DownloadExport(exportName, &buf, int64(offset))
+		n, resp, _ := c.DownloadExport(exportName, &buf, int64(offset))
 		require.Nil(t, resp.Error)
 		require.Equal(t, len(data)-offset, int(n))
 		require.Equal(t, data[offset:], buf.Bytes())

@@ -43,7 +43,7 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func TestPostActionCookies(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -127,7 +127,7 @@ func TestPostActionCookies(t *testing.T) {
 			assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 			post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
 
-			ok, resp := Client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
+			ok, resp, _ := client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
 			require.NotNil(t, resp)
 			if test.ExpectedSucess {
 				assert.True(t, ok)
@@ -146,7 +146,7 @@ func TestPostActionCookies(t *testing.T) {
 func TestOpenDialog(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -175,43 +175,43 @@ func TestOpenDialog(t *testing.T) {
 		},
 	}
 
-	pass, resp := Client.OpenInteractiveDialog(request)
+	pass, resp, _ := client.OpenInteractiveDialog(request)
 	CheckNoError(t, resp)
 	assert.True(t, pass)
 
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
-	pass, resp = Client.OpenInteractiveDialog(request)
+	pass, resp, _ = client.OpenInteractiveDialog(request)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
 
 	// URL is required
 	request.TriggerId = triggerId
 	request.URL = ""
-	pass, resp = Client.OpenInteractiveDialog(request)
+	pass, resp, _ = client.OpenInteractiveDialog(request)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
 
 	// Should pass with markdown formatted introduction text
 	request.URL = "http://localhost:8065"
 	request.Dialog.IntroductionText = "**Some** _introduction text"
-	pass, resp = Client.OpenInteractiveDialog(request)
+	pass, resp, _ = client.OpenInteractiveDialog(request)
 	CheckNoError(t, resp)
 	assert.True(t, pass)
 
 	// Should pass with empty introduction text
 	request.Dialog.IntroductionText = ""
-	pass, resp = Client.OpenInteractiveDialog(request)
+	pass, resp, _ = client.OpenInteractiveDialog(request)
 	CheckNoError(t, resp)
 	assert.True(t, pass)
 
 	// Should pass with no elements
 	request.Dialog.Elements = nil
-	pass, resp = Client.OpenInteractiveDialog(request)
+	pass, resp, _ = client.OpenInteractiveDialog(request)
 	CheckNoError(t, resp)
 	assert.True(t, pass)
 	request.Dialog.Elements = []model.DialogElement{}
-	pass, resp = Client.OpenInteractiveDialog(request)
+	pass, resp, _ = client.OpenInteractiveDialog(request)
 	CheckNoError(t, resp)
 	assert.True(t, pass)
 }
@@ -219,7 +219,7 @@ func TestOpenDialog(t *testing.T) {
 func TestSubmitDialog(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -253,25 +253,25 @@ func TestSubmitDialog(t *testing.T) {
 
 	submit.URL = ts.URL
 
-	submitResp, resp := Client.SubmitInteractiveDialog(submit)
+	submitResp, resp, _ := client.SubmitInteractiveDialog(submit)
 	CheckNoError(t, resp)
 	assert.NotNil(t, submitResp)
 
 	submit.URL = ""
-	submitResp, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp, _ = client.SubmitInteractiveDialog(submit)
 	CheckBadRequestStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
 	submit.ChannelId = model.NewId()
-	submitResp, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp, _ = client.SubmitInteractiveDialog(submit)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
 	submit.ChannelId = th.BasicChannel.Id
 	submit.TeamId = model.NewId()
-	submitResp, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp, _ = client.SubmitInteractiveDialog(submit)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
 }

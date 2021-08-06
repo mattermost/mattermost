@@ -23,13 +23,13 @@ import (
 func TestGetConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
-	_, resp := Client.GetConfig()
+	_, resp, _ := client.GetConfig()
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		cfg, resp := client.GetConfig()
+		cfg, resp, _ := client.GetConfig()
 		CheckNoError(t, resp)
 
 		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
@@ -84,7 +84,7 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
-	cfg, resp := th.Client.GetConfig()
+	cfg, resp, _ := th.Client.GetConfig()
 	CheckNoError(t, resp)
 
 	t.Run("Cannot read value without permission", func(t *testing.T) {
@@ -105,7 +105,7 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	defer th.TearDown()
 
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	_, resp := th.Client.GetConfig()
+	_, resp, _ := th.Client.GetConfig()
 
 	t.Run("Check permissions error with no sysconsole read permission", func(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
@@ -115,7 +115,7 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
-	cfg, resp := th.Client.GetConfig()
+	cfg, resp, _ := th.Client.GetConfig()
 	CheckNoError(t, resp)
 	t.Run("Can read value with permission", func(t *testing.T) {
 		assert.NotNil(t, cfg.FeatureFlags)
@@ -125,16 +125,16 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 func TestReloadConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp := Client.ReloadConfig()
+		ok, resp, _ := client.ReloadConfig()
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok, "should not Reload the config due no permission.")
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.ReloadConfig()
+		ok, resp, _ := th.SystemAdminClient.ReloadConfig()
 		CheckNoError(t, resp)
 		require.True(t, ok, "should Reload the config")
 	})
@@ -142,7 +142,7 @@ func TestReloadConfig(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp := Client.ReloadConfig()
+		ok, resp, _ := client.ReloadConfig()
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok, "should not Reload the config due no permission.")
 	})
@@ -151,26 +151,26 @@ func TestReloadConfig(t *testing.T) {
 func TestUpdateConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
-	cfg, resp := th.SystemAdminClient.GetConfig()
+	cfg, resp, _ := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
-	_, resp = Client.UpdateConfig(cfg)
+	_, resp, _ = client.UpdateConfig(cfg)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		SiteName := th.App.Config().TeamSettings.SiteName
 
 		*cfg.TeamSettings.SiteName = "MyFancyName"
-		cfg, resp = client.UpdateConfig(cfg)
+		cfg, resp, _ = client.UpdateConfig(cfg)
 		CheckNoError(t, resp)
 
 		require.Equal(t, "MyFancyName", *cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		//Revert the change
 		cfg.TeamSettings.SiteName = SiteName
-		cfg, resp = client.UpdateConfig(cfg)
+		cfg, resp, _ = client.UpdateConfig(cfg)
 		CheckNoError(t, resp)
 
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
@@ -185,7 +185,7 @@ func TestUpdateConfig(t *testing.T) {
 			badcfg := cfg.Clone()
 			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
 			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-			_, resp = client.UpdateConfig(badcfg)
+			_, resp, _ = client.UpdateConfig(badcfg)
 			CheckBadRequestStatus(t, resp)
 			CheckErrorMessage(t, resp, "model.config.is_valid.password_length.app_error")
 		})
@@ -194,13 +194,13 @@ func TestUpdateConfig(t *testing.T) {
 			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
 			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
 
-			cfg, resp = client.UpdateConfig(cfg)
+			cfg, resp, _ = client.UpdateConfig(cfg)
 			CheckNoError(t, resp)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 
 			cfg.PluginSettings.EnableUploads = nil
-			cfg, resp = client.UpdateConfig(cfg)
+			cfg, resp, _ = client.UpdateConfig(cfg)
 			CheckNoError(t, resp)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
@@ -210,13 +210,13 @@ func TestUpdateConfig(t *testing.T) {
 			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
 
-			cfg, resp = client.UpdateConfig(cfg)
+			cfg, resp, _ = client.UpdateConfig(cfg)
 			CheckNoError(t, resp)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 
 			cfg.PluginSettings.SignaturePublicKeyFiles = nil
-			cfg, resp = client.UpdateConfig(cfg)
+			cfg, resp, _ = client.UpdateConfig(cfg)
 			CheckNoError(t, resp)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
@@ -231,17 +231,17 @@ func TestUpdateConfig(t *testing.T) {
 		cfg.ServiceSettings.SiteURL = &nonEmptyURL
 
 		// Set the SiteURL
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		cfg, resp, _ = th.SystemAdminClient.UpdateConfig(cfg)
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 
 		// Check that the Site URL can't be cleared
 		cfg.ServiceSettings.SiteURL = sToP("")
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		cfg, resp, _ = th.SystemAdminClient.UpdateConfig(cfg)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.config.update_config.clear_siteurl.app_error")
 		// Check that the Site URL wasn't cleared
-		cfg, resp = th.SystemAdminClient.GetConfig()
+		cfg, resp, _ = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 	})
@@ -254,12 +254,12 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 
 	t.Run("any sysconsole read permission provides config read access", func(t *testing.T) {
 		// forbidden by default
-		_, resp := th.Client.GetConfig()
+		_, resp, _ := th.Client.GetConfig()
 		CheckForbiddenStatus(t, resp)
 
 		// add any sysconsole read permission
 		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SystemUserRoleId)
-		_, resp = th.Client.GetConfig()
+		_, resp, _ = th.Client.GetConfig()
 
 		// should be readable now
 		CheckNoError(t, resp)
@@ -277,17 +277,17 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 
 	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
-		cfg, resp := th.Client.GetConfig()
+		cfg, resp, _ := th.Client.GetConfig()
 		CheckNoError(t, resp)
 
-		_, resp = th.Client.UpdateConfig(cfg)
+		_, resp, _ = th.Client.UpdateConfig(cfg)
 
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("the wrong write permission does not grant access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
-		cfg, resp := th.SystemAdminClient.GetConfig()
+		cfg, resp, _ := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
 		originalValue := *cfg.ServiceSettings.AllowCorsFrom
@@ -299,18 +299,18 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
 		cfg.ServiceSettings.AllowCorsFrom = &mockVal
-		_, resp = th.Client.UpdateConfig(cfg)
+		_, resp, _ = th.Client.UpdateConfig(cfg)
 		CheckNoError(t, resp)
 
 		// ensure the config setting was not updated
-		cfg, resp = th.SystemAdminClient.GetConfig()
+		cfg, resp, _ = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, originalValue)
 	})
 
 	t.Run("config value is writeable by specific system console permission", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
-		cfg, resp := th.SystemAdminClient.GetConfig()
+		cfg, resp, _ := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
@@ -321,11 +321,11 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
 		cfg.ServiceSettings.AllowCorsFrom = &mockVal
-		_, resp = th.Client.UpdateConfig(cfg)
+		_, resp, _ = th.Client.UpdateConfig(cfg)
 		CheckNoError(t, resp)
 
 		// ensure the config setting was updated
-		cfg, resp = th.Client.GetConfig()
+		cfg, resp, _ = th.Client.GetConfig()
 		CheckNoError(t, resp)
 		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, mockVal)
 	})
@@ -349,22 +349,22 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	})
 
 	// Turn it on, timestamp should be updated.
-	cfg, resp := th.SystemAdminClient.GetConfig()
+	cfg, resp, _ := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
 	*cfg.MessageExportSettings.EnableExport = true
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	cfg, resp, _ = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
 	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
 	assert.NotEqual(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
 
 	// Turn it off, timestamp should be cleared.
-	cfg, resp = th.SystemAdminClient.GetConfig()
+	cfg, resp, _ = th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
 	*cfg.MessageExportSettings.EnableExport = false
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	cfg, resp, _ = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
 	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -377,22 +377,22 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	})
 
 	// Turn it on, timestamp should *not* be updated.
-	cfg, resp = th.SystemAdminClient.GetConfig()
+	cfg, resp, _ = th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
 	*cfg.MessageExportSettings.EnableExport = true
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	cfg, resp, _ = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
 	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
 	assert.Equal(t, int64(12345), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
 
 	// Turn it off, timestamp should be cleared.
-	cfg, resp = th.SystemAdminClient.GetConfig()
+	cfg, resp, _ = th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
 	*cfg.MessageExportSettings.EnableExport = false
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	cfg, resp, _ = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
 	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -405,34 +405,34 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 	t.Run("Restrict flag should be honored for sysadmin", func(t *testing.T) {
-		originalCfg, resp := th.SystemAdminClient.GetConfig()
+		originalCfg, resp, _ := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
 		cfg := originalCfg.Clone()
 		*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
 		*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
 
-		returnedCfg, resp := th.SystemAdminClient.UpdateConfig(cfg)
+		returnedCfg, resp, _ := th.SystemAdminClient.UpdateConfig(cfg)
 		CheckNoError(t, resp)
 
 		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
 		require.Equal(t, *originalCfg.ServiceSettings.SiteURL, *returnedCfg.ServiceSettings.SiteURL)
 
-		actualCfg, resp := th.SystemAdminClient.GetConfig()
+		actualCfg, resp, _ := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
 		require.Equal(t, returnedCfg, actualCfg)
 	})
 
 	t.Run("Restrict flag should be ignored by local mode", func(t *testing.T) {
-		originalCfg, resp := th.LocalClient.GetConfig()
+		originalCfg, resp, _ := th.LocalClient.GetConfig()
 		CheckNoError(t, resp)
 
 		cfg := originalCfg.Clone()
 		*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
 		*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
 
-		returnedCfg, resp := th.LocalClient.UpdateConfig(cfg)
+		returnedCfg, resp, _ := th.LocalClient.UpdateConfig(cfg)
 		CheckNoError(t, resp)
 
 		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
@@ -459,12 +459,12 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	th := SetupWithServerOptions(t, options)
 	defer th.TearDown()
 
-	cfg, resp := th.SystemAdminClient.GetConfig()
+	cfg, resp, _ := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
 	timeoutVal := *cfg.ServiceSettings.ReadTimeout
 	cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal + 1)
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	cfg, resp, _ = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 	defer th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal)
@@ -497,7 +497,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	t.Run("as system admin", func(t *testing.T) {
 		SystemAdminClient := th.SystemAdminClient
 
-		envConfig, resp := SystemAdminClient.GetEnvironmentConfig()
+		envConfig, resp, _ := SystemAdminClient.GetEnvironmentConfig()
 		CheckNoError(t, resp)
 
 		serviceSettings, ok := envConfig["ServiceSettings"]
@@ -528,23 +528,23 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		TeamAdminClient := th.CreateClient()
 		th.LoginTeamAdminWithClient(TeamAdminClient)
 
-		envConfig, resp := TeamAdminClient.GetEnvironmentConfig()
+		envConfig, resp, _ := TeamAdminClient.GetEnvironmentConfig()
 		CheckNoError(t, resp)
 		require.Empty(t, envConfig)
 	})
 
 	t.Run("as regular user", func(t *testing.T) {
-		Client := th.Client
+		client := th.Client
 
-		envConfig, resp := Client.GetEnvironmentConfig()
+		envConfig, resp, _ := client.GetEnvironmentConfig()
 		CheckNoError(t, resp)
 		require.Empty(t, envConfig)
 	})
 
 	t.Run("as not-regular user", func(t *testing.T) {
-		Client := th.CreateClient()
+		client := th.CreateClient()
 
-		_, resp := Client.GetEnvironmentConfig()
+		_, resp, _ := client.GetEnvironmentConfig()
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -561,9 +561,9 @@ func TestGetOldClientConfig(t *testing.T) {
 			*cfg.ServiceSettings.GoogleDeveloperKey = testKey
 		})
 
-		Client := th.Client
+		client := th.Client
 
-		config, resp := Client.GetOldClientConfig("")
+		config, resp, _ := client.GetOldClientConfig("")
 		CheckNoError(t, resp)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
@@ -575,9 +575,9 @@ func TestGetOldClientConfig(t *testing.T) {
 			*cfg.ServiceSettings.GoogleDeveloperKey = testKey
 		})
 
-		Client := th.CreateClient()
+		client := th.CreateClient()
 
-		config, resp := Client.GetOldClientConfig("")
+		config, resp, _ := client.GetOldClientConfig("")
 		CheckNoError(t, resp)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
@@ -585,17 +585,17 @@ func TestGetOldClientConfig(t *testing.T) {
 	})
 
 	t.Run("missing format", func(t *testing.T) {
-		Client := th.Client
+		client := th.Client
 
-		_, err := Client.DoApiGet("/config/client", "")
+		_, err := client.DoApiGet("/config/client", "")
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusNotImplemented, err.StatusCode)
 	})
 
 	t.Run("invalid format", func(t *testing.T) {
-		Client := th.Client
+		client := th.Client
 
-		_, err := Client.DoApiGet("/config/client?format=junk", "")
+		_, err := client.DoApiGet("/config/client?format=junk", "")
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
@@ -606,12 +606,12 @@ func TestPatchConfig(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("config is missing", func(t *testing.T) {
-		_, response := th.Client.PatchConfig(nil)
+		_, response, _ := th.Client.PatchConfig(nil)
 		CheckBadRequestStatus(t, response)
 	})
 
 	t.Run("user is not system admin", func(t *testing.T) {
-		_, response := th.Client.PatchConfig(&model.Config{})
+		_, response, _ := th.Client.PatchConfig(&model.Config{})
 		CheckForbiddenStatus(t, response)
 	})
 
@@ -622,7 +622,7 @@ func TestPatchConfig(t *testing.T) {
 			ConsoleLevel: model.NewString("INFO"),
 		}}
 
-		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
+		updatedConfig, _, _ := th.SystemAdminClient.PatchConfig(&config)
 
 		assert.Equal(t, "DEBUG", *updatedConfig.LogSettings.ConsoleLevel)
 	})
@@ -634,12 +634,12 @@ func TestPatchConfig(t *testing.T) {
 			ConsoleLevel: model.NewString("INFO"),
 		}}
 
-		oldConfig, _ := th.LocalClient.GetConfig()
-		updatedConfig, _ := th.LocalClient.PatchConfig(&config)
+		oldConfig, _, _ := th.LocalClient.GetConfig()
+		updatedConfig, _, _ := th.LocalClient.PatchConfig(&config)
 
 		assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
 		// reset the config
-		_, resp := th.LocalClient.UpdateConfig(oldConfig)
+		_, resp, _ := th.LocalClient.UpdateConfig(oldConfig)
 		CheckNoError(t, resp)
 	})
 
@@ -649,7 +649,7 @@ func TestPatchConfig(t *testing.T) {
 				MinimumLength: model.NewInt(4),
 			}}
 
-			_, response := client.PatchConfig(&config)
+			_, response, _ := client.PatchConfig(&config)
 
 			assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 			assert.NotNil(t, response.Error)
@@ -660,7 +660,7 @@ func TestPatchConfig(t *testing.T) {
 			*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalDefaultChannels = []string{"some-channel"} })
 
-			oldConfig, _ := client.GetConfig()
+			oldConfig, _, _ := th.Client.GetConfig()
 
 			assert.False(t, *oldConfig.PasswordSettings.Lowercase)
 			assert.NotEqual(t, 15, *oldConfig.PasswordSettings.MinimumLength)
@@ -683,9 +683,9 @@ func TestPatchConfig(t *testing.T) {
 				},
 			}
 
-			_, response := client.PatchConfig(&config)
+			_, response, _ := client.PatchConfig(&config)
 
-			updatedConfig, _ := client.GetConfig()
+			updatedConfig, _, _ := th.Client.GetConfig()
 			assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
 			assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
 			assert.Equal(t, []string{"another-channel"}, updatedConfig.TeamSettings.ExperimentalDefaultChannels)
@@ -693,7 +693,7 @@ func TestPatchConfig(t *testing.T) {
 			assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
 
 			// reset the config
-			_, resp := client.UpdateConfig(oldConfig)
+			_, resp, _ := client.UpdateConfig(oldConfig)
 			CheckNoError(t, resp)
 		})
 
@@ -702,7 +702,7 @@ func TestPatchConfig(t *testing.T) {
 				Symbol: model.NewBool(true),
 			}}
 
-			updatedConfig, _ := client.PatchConfig(&config)
+			updatedConfig, _, _ := th.Client.PatchConfig(&config)
 
 			assert.Equal(t, model.FakeSetting, *updatedConfig.SqlSettings.DataSource)
 		})
@@ -712,7 +712,7 @@ func TestPatchConfig(t *testing.T) {
 				EnableUploads: model.NewBool(true),
 			}}
 
-			updatedConfig, resp := client.PatchConfig(&config)
+			updatedConfig, resp, _ := client.PatchConfig(&config)
 			if client == th.LocalClient {
 				CheckOKStatus(t, resp)
 				assert.Equal(t, true, *updatedConfig.PluginSettings.EnableUploads)
@@ -723,7 +723,7 @@ func TestPatchConfig(t *testing.T) {
 	})
 
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
-		cfg, resp := th.SystemAdminClient.GetConfig()
+		cfg, resp, _ := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		siteURL := cfg.ServiceSettings.SiteURL
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
@@ -735,7 +735,7 @@ func TestPatchConfig(t *testing.T) {
 				SiteURL: model.NewString(nonEmptyURL),
 			},
 		}
-		updatedConfig, resp := th.SystemAdminClient.PatchConfig(&config)
+		updatedConfig, resp, _ := th.SystemAdminClient.PatchConfig(&config)
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *updatedConfig.ServiceSettings.SiteURL)
 
@@ -745,17 +745,17 @@ func TestPatchConfig(t *testing.T) {
 				SiteURL: model.NewString(""),
 			},
 		}
-		updatedConfig, resp = th.SystemAdminClient.PatchConfig(&config)
+		updatedConfig, resp, _ = th.SystemAdminClient.PatchConfig(&config)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.config.update_config.clear_siteurl.app_error")
 
 		// Check that the Site URL wasn't cleared
-		cfg, resp = th.SystemAdminClient.GetConfig()
+		cfg, resp, _ = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 
 		// Check that sending an empty config returns no error.
-		_, resp = th.SystemAdminClient.PatchConfig(&model.Config{})
+		_, resp, _ = th.SystemAdminClient.PatchConfig(&model.Config{})
 		CheckNoError(t, resp)
 	})
 }
@@ -765,7 +765,7 @@ func TestMigrateConfig(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("user is not system admin", func(t *testing.T) {
-		_, response := th.Client.MigrateConfig("from", "to")
+		_, response, _ := th.Client.MigrateConfig("from", "to")
 		CheckForbiddenStatus(t, response)
 	})
 
@@ -778,7 +778,7 @@ func TestMigrateConfig(t *testing.T) {
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 
-		_, response := client.MigrateConfig("from.json", "to.json")
+		_, response, _ := client.MigrateConfig("from.json", "to.json")
 		CheckNoError(t, response)
 	})
 }

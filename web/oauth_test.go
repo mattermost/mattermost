@@ -82,7 +82,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	}
 
 	// Test auth code flow
-	ruri, resp := ApiClient.AuthorizeOAuthApp(authRequest)
+	ruri, resp, _ := ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 
 	require.NotEmpty(t, ruri, "redirect url should be set")
@@ -94,7 +94,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 
 	// Test implicit flow
 	authRequest.ResponseType = model.ImplicitResponseType
-	ruri, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	ruri, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 	require.False(t, ruri == "", "redirect url should be set")
 
@@ -107,31 +107,31 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 
 	oldToken := ApiClient.AuthToken
 	ApiClient.AuthToken = values.Get("access_token")
-	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckForbiddenStatus(t, resp)
 
 	ApiClient.AuthToken = oldToken
 
 	authRequest.RedirectUri = ""
-	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.RedirectUri = "http://somewhereelse.com"
-	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.RedirectUri = rapp.CallbackUrls[0]
 	authRequest.ResponseType = ""
-	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ResponseType = model.AuthCodeResponseType
 	authRequest.ClientId = ""
-	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ClientId = model.NewId()
-	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -140,7 +140,7 @@ func TestNilAuthorizeOAuthApp(t *testing.T) {
 	th.Login(ApiClient, th.SystemAdminUser)
 	defer th.TearDown()
 
-	_, resp := ApiClient.AuthorizeOAuthApp(nil)
+	_, resp, _ := ApiClient.AuthorizeOAuthApp(nil)
 	require.NotNil(t, resp.Error)
 	assert.Equal(t, "api.context.invalid_body_param.app_error", resp.Error.Id)
 }
@@ -175,22 +175,22 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 		State:        "123",
 	}
 
-	_, resp := ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, _ := ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 
-	pass, resp := ApiClient.DeauthorizeOAuthApp(rapp.Id)
+	pass, resp, _ := ApiClient.DeauthorizeOAuthApp(rapp.Id)
 	require.Nil(t, resp.Error)
 
 	require.True(t, pass, "should have passed")
 
-	_, resp = ApiClient.DeauthorizeOAuthApp("junk")
+	_, resp, _ = ApiClient.DeauthorizeOAuthApp("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = ApiClient.DeauthorizeOAuthApp(model.NewId())
+	_, resp, _ = ApiClient.DeauthorizeOAuthApp(model.NewId())
 	require.Nil(t, resp.Error)
 
 	th.Logout(ApiClient)
-	_, resp = ApiClient.DeauthorizeOAuthApp(rapp.Id)
+	_, resp, _ = ApiClient.DeauthorizeOAuthApp(rapp.Id)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -229,7 +229,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
-	_, resp := ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ := ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - oauth providing turned off - response status code: %v", resp.StatusCode)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -241,7 +241,7 @@ func TestOAuthAccessToken(t *testing.T) {
 		State:        "123",
 	}
 
-	redirect, resp := ApiClient.AuthorizeOAuthApp(authRequest)
+	redirect, resp, _ := ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 	rurl, _ := url.Parse(redirect)
 
@@ -249,39 +249,39 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - bad grant type")
 
 	data.Set("grant_type", model.AccessTokenGrantType)
 	data.Set("client_id", "")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - missing client id")
 
 	data.Set("client_id", "junk")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - bad client id")
 
 	data.Set("client_id", oauthApp.Id)
 	data.Set("client_secret", "")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - missing client secret")
 
 	data.Set("client_secret", "junk")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - bad client secret")
 
 	data.Set("client_secret", oauthApp.ClientSecret)
 	data.Set("code", "")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - missing code")
 
 	data.Set("code", "junk")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - bad code")
 
 	data.Set("code", rurl.Query().Get("code"))
 	data.Set("redirect_uri", "junk")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - non-matching redirect uri")
 
 	// reset data for successful request
@@ -293,7 +293,7 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	token := ""
 	refreshToken := ""
-	rsp, resp := ApiClient.GetOAuthAccessToken(data)
+	rsp, resp, _ := ApiClient.GetOAuthAccessToken(data)
 	require.Nil(t, resp.Error)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
@@ -315,7 +315,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	_, err = ApiClient.DoApiGet("/oauth_test", "")
 	require.Nil(t, err)
 
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "should have failed - tried to reuse auth code")
 
 	data.Set("grant_type", model.RefreshTokenGrantType)
@@ -324,11 +324,11 @@ func TestOAuthAccessToken(t *testing.T) {
 	data.Set("refresh_token", "")
 	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 	data.Del("code")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "Should have failed - refresh token empty")
 
 	data.Set("refresh_token", refreshToken)
-	rsp, resp = ApiClient.GetOAuthAccessToken(data)
+	rsp, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.Nil(t, resp.Error)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
@@ -340,7 +340,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.Nil(t, err)
 
 	data.Set("refresh_token", rsp.RefreshToken)
-	rsp, resp = ApiClient.GetOAuthAccessToken(data)
+	rsp, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.Nil(t, resp.Error)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
@@ -361,7 +361,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 	data.Set("code", authData.Code)
 	data.Del("refresh_token")
-	_, resp = ApiClient.GetOAuthAccessToken(data)
+	_, resp, _ = ApiClient.GetOAuthAccessToken(data)
 	require.NotNil(t, resp.Error, "Should have failed - code is expired")
 
 	ApiClient.ClearOAuthToken()
@@ -507,7 +507,7 @@ func TestOAuthComplete(t *testing.T) {
 		State:        "123",
 	}
 
-	redirect, resp := ApiClient.AuthorizeOAuthApp(authRequest)
+	redirect, resp, _ := ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 	rurl, _ := url.Parse(redirect)
 
@@ -525,7 +525,7 @@ func TestOAuthComplete(t *testing.T) {
 
 	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
-	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	redirect, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 	rurl, _ = url.Parse(redirect)
 
@@ -539,7 +539,7 @@ func TestOAuthComplete(t *testing.T) {
 		th.BasicUser.Id, model.ServiceGitlab, &th.BasicUser.Email, th.BasicUser.Email, true)
 	require.NoError(t, nErr)
 
-	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	redirect, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 	rurl, _ = url.Parse(redirect)
 
@@ -550,7 +550,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	redirect, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 	rurl, _ = url.Parse(redirect)
 
@@ -561,7 +561,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
+	redirect, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
 	rurl, _ = url.Parse(redirect)
 

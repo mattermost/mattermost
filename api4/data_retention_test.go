@@ -11,6 +11,6 @@ func TestDataRetentionGetPolicy(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp := th.Client.GetDataRetentionPolicy()
+	_, resp, _ := th.Client.GetDataRetentionPolicy()
 	CheckNotImplementedStatus(t, resp)
 }

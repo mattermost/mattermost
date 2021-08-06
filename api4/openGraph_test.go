@@ -18,7 +18,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	Client := th.Client
+	client := th.Client
 
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
@@ -59,7 +59,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
 	} {
 
-		openGraph, resp := Client.OpenGraph(ts.URL + data["path"].(string))
+		openGraph, resp, _ := client.OpenGraph(ts.URL + data["path"].(string))
 		CheckNoError(t, resp)
 
 		require.Equalf(t, openGraph["title"], data["title"].(string),
@@ -70,6 +70,6 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = false })
-	_, resp := Client.OpenGraph(ts.URL + "/og-data/")
+	_, resp, _ := client.OpenGraph(ts.URL + "/og-data/")
 	CheckNotImplementedStatus(t, resp)
 }

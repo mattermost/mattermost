@@ -67,7 +67,7 @@ func TestClient4CreatePost(t *testing.T) {
 	}))
 
 	client := NewAPIv4Client(server.URL)
-	_, resp := client.CreatePost(post)
+	_, resp, _ := client.CreatePost(post)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
@@ -89,7 +89,7 @@ func TestClient4SetToken(t *testing.T) {
 	client := NewAPIv4Client(server.URL)
 	client.SetToken(expected)
 
-	_, resp := client.GetMe("")
+	_, resp, _ := client.GetMe("")
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
@@ -111,6 +111,6 @@ func TestClient4MockSession(t *testing.T) {
 	client := NewAPIv4Client(server.URL)
 	client.MockSession(expected)
 
-	_, resp := client.GetMe("")
+	_, resp, _ := client.GetMe("")
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

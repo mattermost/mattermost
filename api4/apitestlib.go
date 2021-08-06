@@ -501,7 +501,7 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 	}
 
 	utils.DisableDebugLogForTest()
-	rbot, resp := client.CreateBot(bot)
+	rbot, resp, _ := client.CreateBot(bot)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -527,7 +527,7 @@ func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 	}
 
 	utils.DisableDebugLogForTest()
-	rteam, resp := client.CreateTeam(team)
+	rteam, resp, _ := client.CreateTeam(team)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -548,7 +548,7 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	ruser, response := client.CreateUser(user)
+	ruser, response, _ := client.CreateUser(user)
 	if response.Error != nil {
 		panic(response.Error)
 	}
@@ -651,7 +651,7 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 	}
 
 	utils.DisableDebugLogForTest()
-	rchannel, resp := client.CreateChannel(channel)
+	rchannel, resp, _ := client.CreateChannel(channel)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -680,7 +680,7 @@ func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
+	rpost, resp, _ := client.CreatePost(post)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -698,7 +698,7 @@ func (th *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
+	rpost, resp, _ := client.CreatePost(post)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -713,7 +713,7 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
+	rpost, resp, _ := client.CreatePost(post)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -769,7 +769,7 @@ func (th *TestHelper) LoginSystemManager() {
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	_, resp, _ := client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -778,7 +778,7 @@ func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 
 func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
+	_, resp, _ := client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -787,7 +787,7 @@ func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
 
 func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+	_, resp, _ := client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -796,7 +796,7 @@ func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
 
 func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+	_, resp, _ := client.Login(th.SystemManagerUser.Email, th.SystemManagerUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -805,7 +805,7 @@ func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
 
 func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+	_, resp, _ := client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}

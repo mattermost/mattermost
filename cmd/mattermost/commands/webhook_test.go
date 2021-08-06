@@ -44,12 +44,12 @@ func TestListWebhooks(t *testing.T) {
 
 	dispName := "myhookinc"
 	hook := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
-	_, resp := adminClient.CreateIncomingWebhook(hook)
+	_, resp, _ := adminClient.CreateIncomingWebhook(hook)
 	api4.CheckNoError(t, resp)
 
 	dispName2 := "myhookout"
 	outHook := &model.OutgoingWebhook{DisplayName: dispName2, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
-	_, resp = adminClient.CreateOutgoingWebhook(outHook)
+	_, resp, _ = adminClient.CreateOutgoingWebhook(outHook)
 	api4.CheckNoError(t, resp)
 
 	output := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
@@ -91,7 +91,7 @@ func TestShowWebhook(t *testing.T) {
 		ChannelId:   th.BasicChannel.Id,
 		TeamId:      th.BasicChannel.TeamId,
 	}
-	incomingWebhook, resp := adminClient.CreateIncomingWebhook(hook)
+	incomingWebhook, resp, _ := adminClient.CreateIncomingWebhook(hook)
 	api4.CheckNoError(t, resp)
 
 	// should return an error when no webhookid is provided
@@ -114,7 +114,7 @@ func TestShowWebhook(t *testing.T) {
 		Username:     "some-user-name",
 		IconURL:      "http://some-icon-url/",
 	}
-	outgoingWebhook, resp := adminClient.CreateOutgoingWebhook(outgoingHook)
+	outgoingWebhook, resp, _ := adminClient.CreateOutgoingWebhook(outgoingHook)
 	api4.CheckNoError(t, resp)
 
 	// valid outgoing webhook should return webhook data
@@ -424,12 +424,12 @@ func TestDeleteWebhooks(t *testing.T) {
 
 	dispName := "myhookinc"
 	inHookStruct := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
-	incomingHook, resp := adminClient.CreateIncomingWebhook(inHookStruct)
+	incomingHook, resp, _ := adminClient.CreateIncomingWebhook(inHookStruct)
 	api4.CheckNoError(t, resp)
 
 	dispName2 := "myhookout"
 	outHookStruct := &model.OutgoingWebhook{DisplayName: dispName2, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
-	outgoingHook, resp := adminClient.CreateOutgoingWebhook(outHookStruct)
+	outgoingHook, resp, _ := adminClient.CreateOutgoingWebhook(outHookStruct)
 	api4.CheckNoError(t, resp)
 
 	hooksBeforeDeletion := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)

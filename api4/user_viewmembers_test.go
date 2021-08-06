@@ -60,7 +60,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 	th.App.SetStatusOnline(user4.Id, true)
 	th.App.SetStatusOnline(user5.Id, true)
 
-	_, resp := th.Client.Login(user1.Username, "test-password-1")
+	_, resp, _ := th.Client.Login(user1.Username, "test-password-1")
 	CheckNoError(t, resp)
 
 	t.Run("getUser", func(t *testing.T) {
@@ -134,7 +134,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetUser(tc.UserId, "")
+				_, resp, _ := th.Client.GetUser(tc.UserId, "")
 				require.Nil(t, err)
 				if tc.ExpectedError != "" {
 					CheckErrorMessage(t, resp, tc.ExpectedError)
@@ -216,7 +216,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetUserByUsername(tc.Username, "")
+				_, resp, _ := th.Client.GetUserByUsername(tc.Username, "")
 				require.Nil(t, err)
 				if tc.ExpectedError != "" {
 					CheckErrorMessage(t, resp, tc.ExpectedError)
@@ -298,7 +298,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetUserByEmail(tc.Email, "")
+				_, resp, _ := th.Client.GetUserByEmail(tc.Email, "")
 				require.Nil(t, err)
 				if tc.ExpectedError != "" {
 					CheckErrorMessage(t, resp, tc.ExpectedError)
@@ -380,7 +380,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetDefaultProfileImage(tc.UserId)
+				_, resp, _ := th.Client.GetDefaultProfileImage(tc.UserId)
 				require.Nil(t, err)
 				if tc.ExpectedError != "" {
 					CheckErrorMessage(t, resp, tc.ExpectedError)
@@ -462,7 +462,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetProfileImage(tc.UserId, "")
+				_, resp, _ := th.Client.GetProfileImage(tc.UserId, "")
 				require.Nil(t, err)
 				if tc.ExpectedError != "" {
 					CheckErrorMessage(t, resp, tc.ExpectedError)

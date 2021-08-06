@@ -20,7 +20,7 @@ func TestGetAncillaryPermissions(t *testing.T) {
 	t.Run("Valid Case, Passing in SubSection Permissions", func(t *testing.T) {
 		subsectionPermissions = []string{model.PermissionSysconsoleReadReportingSiteStatistics.Id}
 		expectedAncillaryPermissions = []string{model.PermissionGetAnalytics.Id}
-		actualAncillaryPermissions, resp := th.Client.GetAncillaryPermissions(subsectionPermissions)
+		actualAncillaryPermissions, resp, _ := th.Client.GetAncillaryPermissions(subsectionPermissions)
 		CheckNoError(t, resp)
 		assert.Equal(t, append(subsectionPermissions, expectedAncillaryPermissions...), actualAncillaryPermissions)
 	})
@@ -28,7 +28,7 @@ func TestGetAncillaryPermissions(t *testing.T) {
 	t.Run("Invalid Case, Passing in SubSection Permissions That Don't Exist", func(t *testing.T) {
 		subsectionPermissions = []string{"All", "The", "Things", "She", "Said", "Running", "Through", "My", "Head"}
 		expectedAncillaryPermissions = []string{}
-		actualAncillaryPermissions, resp := th.Client.GetAncillaryPermissions(subsectionPermissions)
+		actualAncillaryPermissions, resp, _ := th.Client.GetAncillaryPermissions(subsectionPermissions)
 		CheckNoError(t, resp)
 		assert.Equal(t, append(subsectionPermissions, expectedAncillaryPermissions...), actualAncillaryPermissions)
 	})
@@ -36,7 +36,7 @@ func TestGetAncillaryPermissions(t *testing.T) {
 	t.Run("Invalid Case, Passing in nothing", func(t *testing.T) {
 		subsectionPermissions = []string{}
 		expectedAncillaryPermissions = []string{}
-		_, resp := th.Client.GetAncillaryPermissions(subsectionPermissions)
+		_, resp, _ := th.Client.GetAncillaryPermissions(subsectionPermissions)
 		CheckBadRequestStatus(t, resp)
 	})
 }

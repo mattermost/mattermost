@@ -38,11 +38,11 @@ func TestListImports(t *testing.T) {
 			us.UserId = model.UploadNoUserID
 		}
 
-		u, resp := c.CreateUpload(us)
+		u, resp, _ := c.CreateUpload(us)
 		require.Nil(t, resp.Error)
 		require.NotNil(t, u)
 
-		finfo, resp := c.UploadData(u.Id, file)
+		finfo, resp, _ := c.UploadData(u.Id, file)
 		require.Nil(t, resp.Error)
 		require.NotNil(t, finfo)
 
@@ -50,7 +50,7 @@ func TestListImports(t *testing.T) {
 	}
 
 	t.Run("no permissions", func(t *testing.T) {
-		imports, resp := th.Client.ListImports()
+		imports, resp, _ := th.Client.ListImports()
 		require.NotNil(t, resp.Error)
 		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
 		require.Nil(t, imports)
@@ -60,7 +60,7 @@ func TestListImports(t *testing.T) {
 	require.True(t, found)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		imports, resp := c.ListImports()
+		imports, resp, _ := c.ListImports()
 		require.Nil(t, resp.Error)
 		require.Empty(t, imports)
 	}, "no imports")
@@ -74,7 +74,7 @@ func TestListImports(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		imports, resp := c.ListImports()
+		imports, resp, _ := c.ListImports()
 		require.Nil(t, resp.Error)
 		require.NotEmpty(t, imports)
 		require.Len(t, imports, 2)
@@ -90,12 +90,12 @@ func TestListImports(t *testing.T) {
 
 		importDir := filepath.Join(dataDir, "import_new")
 
-		imports, resp := c.ListImports()
+		imports, resp, _ := c.ListImports()
 		require.Nil(t, resp.Error)
 		require.Empty(t, imports)
 
 		id := uploadNewImport(c, t)
-		imports, resp = c.ListImports()
+		imports, resp, _ = c.ListImports()
 		require.Nil(t, resp.Error)
 		require.NotEmpty(t, imports)
 		require.Len(t, imports, 1)

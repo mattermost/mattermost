@@ -57,7 +57,7 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, error) {
 		Type:        model.TeamOpen,
 	}
 
-	createdTeam, resp := cfg.client.CreateTeam(team)
+	createdTeam, resp, _ := cfg.client.CreateTeam(team)
 	if resp.Error != nil {
 		return nil, resp.Error
 	}

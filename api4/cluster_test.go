@@ -16,12 +16,12 @@ func TestGetClusterStatus(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp := th.Client.GetClusterStatus()
+		_, resp, _ := th.Client.GetClusterStatus()
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		infos, resp := th.SystemAdminClient.GetClusterStatus()
+		infos, resp, _ := th.SystemAdminClient.GetClusterStatus()
 		CheckNoError(t, resp)
 
 		require.NotNil(t, infos, "cluster status should not be nil")
@@ -30,7 +30,7 @@ func TestGetClusterStatus(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp := th.SystemAdminClient.GetClusterStatus()
+		_, resp, _ := th.SystemAdminClient.GetClusterStatus()
 		CheckForbiddenStatus(t, resp)
 	})
 }

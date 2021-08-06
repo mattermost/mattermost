@@ -15,34 +15,34 @@ import (
 func TestGetBrandImage(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
-	_, resp := Client.GetBrandImage()
+	_, resp, _ := client.GetBrandImage()
 	CheckNotFoundStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.GetBrandImage()
+	client.Logout()
+	_, resp, _ = client.GetBrandImage()
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetBrandImage()
+	_, resp, _ = th.SystemAdminClient.GetBrandImage()
 	CheckNotFoundStatus(t, resp)
 }
 
 func TestUploadBrandImage(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	_, resp := Client.UploadBrandImage(data)
+	_, resp, _ := client.UploadBrandImage(data)
 	CheckForbiddenStatus(t, resp)
 
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetProfileImage when request is terminated early by server
-	Client.Logout()
-	_, resp = Client.UploadBrandImage(data)
+	client.Logout()
+	_, resp, _ = client.UploadBrandImage(data)
 	if resp.StatusCode == http.StatusForbidden {
 		CheckForbiddenStatus(t, resp)
 	} else if resp.StatusCode == http.StatusUnauthorized {
@@ -51,7 +51,7 @@ func TestUploadBrandImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	_, resp = th.SystemAdminClient.UploadBrandImage(data)
+	_, resp, _ = th.SystemAdminClient.UploadBrandImage(data)
 	CheckCreatedStatus(t, resp)
 }
 
@@ -62,20 +62,20 @@ func TestDeleteBrandImage(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	_, resp := th.SystemAdminClient.UploadBrandImage(data)
+	_, resp, _ := th.SystemAdminClient.UploadBrandImage(data)
 	CheckCreatedStatus(t, resp)
 
-	resp = th.Client.DeleteBrandImage()
+	resp, _ = th.Client.DeleteBrandImage()
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
 
-	resp = th.Client.DeleteBrandImage()
+	resp, _ = th.Client.DeleteBrandImage()
 	CheckUnauthorizedStatus(t, resp)
 
-	resp = th.SystemAdminClient.DeleteBrandImage()
+	resp, _ = th.SystemAdminClient.DeleteBrandImage()
 	CheckOKStatus(t, resp)
 
-	resp = th.SystemAdminClient.DeleteBrandImage()
+	resp, _ = th.SystemAdminClient.DeleteBrandImage()
 	CheckNotFoundStatus(t, resp)
 }
