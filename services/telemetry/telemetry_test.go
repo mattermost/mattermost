@@ -56,7 +56,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 		func(m *model.Manifest) plugin.API { return pluginsAPIMock },
 		nil,
 		pluginDir, webappPluginDir,
-		mlog.NewLogger(&mlog.LoggerConfiguration{}),
+		mlog.NewLogger(),
 		nil)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
 
@@ -270,7 +270,9 @@ func TestRudderTelemetry(t *testing.T) {
 	defer cleanUp()
 	defer deferredAssertions(t)
 
-	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
+	testLogger, _ := mlog.CreateTestLogger(t, nil, mlog.StdAll...)
+
+	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
 	telemetryService.TelemetryID = telemetryID
 	telemetryService.rudderClient = nil
 	telemetryService.initRudder(server.URL, RudderKey)

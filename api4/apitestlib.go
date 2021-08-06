@@ -32,7 +32,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
-	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/web"
 	"github.com/mattermost/mattermost-server/v6/wsapi"
 )
@@ -66,6 +65,8 @@ type TestHelper struct {
 	LocalClient *model.Client4
 
 	IncludeCacheLayer bool
+
+	DebugDisabler mlog.DebugDisabler
 }
 
 var mainHelper *testlib.MainHelper
@@ -74,7 +75,7 @@ func SetMainHelper(mh *testlib.MainHelper) {
 	mainHelper = mh
 }
 
-func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
+func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
 	updateConfig func(*model.Config), options []app.Option) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
@@ -119,6 +120,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		options = append(options, app.StoreOverride(dbStore))
 	}
 
+	testLogger, debugDisabler := mlog.CreateTestLogger(tb, nil, mlog.StdAll...)
+	options = append(options, app.SetLogger(testLogger))
+
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
@@ -130,6 +134,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
 		Context:           &request.Context{},
+		DebugDisabler:     debugDisabler,
 	}
 
 	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && searchEngine != nil {
@@ -215,7 +220,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, nil)
+	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, nil)
 	th.InitLogin()
 	return th
 }
@@ -234,7 +239,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
 	th.InitLogin()
 	return th
 }
@@ -252,13 +257,13 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, updateConfig, nil)
 	th.InitLogin()
 	return th
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -272,7 +277,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -286,7 +291,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -313,7 +318,7 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, options)
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, options)
 	th.InitLogin()
 	return th
 }
@@ -335,15 +340,15 @@ func (th *TestHelper) ShutdownApp() {
 }
 
 func (th *TestHelper) TearDown() {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()
 	}
 
 	th.ShutdownApp()
-
-	utils.EnableDebugLogForTest()
 }
 
 var initBasicOnce sync.Once
@@ -500,12 +505,13 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 		Description: "bot",
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	rbot, resp := client.CreateBot(bot)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 	return rbot
 }
 
@@ -526,12 +532,13 @@ func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	rteam, resp := client.CreateTeam(team)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 	return rteam
 }
 
@@ -547,7 +554,9 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Password:  "Pa$$word11",
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	ruser, response := client.CreateUser(user)
 	if response.Error != nil {
 		panic(response.Error)
@@ -558,7 +567,6 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	if err != nil {
 		return nil
 	}
-	utils.EnableDebugLogForTest()
 	return ruser
 }
 
@@ -650,12 +658,13 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 		TeamId:      teamId,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	rchannel, resp := client.CreateChannel(channel)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 	return rchannel
 }
 
@@ -679,12 +688,12 @@ func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 		Message:   "message_" + id,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 	rpost, resp := client.CreatePost(post)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 	return rpost
 }
 
@@ -697,12 +706,12 @@ func (th *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 		IsPinned:  true,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 	rpost, resp := client.CreatePost(post)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 	return rpost
 }
 
@@ -712,12 +721,13 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 		Message:   message,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	rpost, resp := client.CreatePost(post)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 	return rpost
 }
 
@@ -737,13 +747,14 @@ func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 }
 
 func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return channel
 }
 
@@ -768,82 +779,83 @@ func (th *TestHelper) LoginSystemManager() {
 }
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	_, resp := client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	_, resp := client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	_, resp := client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	_, resp := client.Login(th.SystemManagerUser.Email, th.SystemManagerUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	_, resp := client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	_, err := th.App.UpdateActive(th.Context, user, active)
 	if err != nil {
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
-
 	return member
 }
 
@@ -863,12 +875,13 @@ func (th *TestHelper) CreateGroup() *model.Group {
 		RemoteId:    "ri_" + id,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	group, err := th.App.CreateGroup(group)
 	if err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return group
 }
 
@@ -1098,58 +1111,50 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	if cm, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store.Channel().UpdateMember(cm); err != nil {
-			utils.EnableDebugLogForTest()
 			panic(err)
 		}
 	} else {
-		utils.EnableDebugLogForTest()
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store.Team().UpdateMember(tm); err != nil {
-			utils.EnableDebugLogForTest()
 			panic(err)
 		}
 	} else {
-		utils.EnableDebugLogForTest()
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
 		if _, err = th.App.Srv().Store.Team().UpdateMember(tm); err != nil {
-			utils.EnableDebugLogForTest()
 			panic(err)
 		}
 	} else {
-		utils.EnableDebugLogForTest()
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	results := make(map[string][]string)
 
@@ -1163,24 +1168,21 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 	} {
 		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
-			utils.EnableDebugLogForTest()
 			panic(err1)
 		}
 
 		results[roleName] = role.Permissions
 	}
-
-	utils.EnableDebugLogForTest()
 	return results
 }
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	for roleName, permissions := range data {
 		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
-			utils.EnableDebugLogForTest()
 			panic(err1)
 		}
 
@@ -1192,20 +1194,17 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 
 		_, err2 := th.App.UpdateRole(role)
 		if err2 != nil {
-			utils.EnableDebugLogForTest()
 			panic(err2)
 		}
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err1)
 	}
 
@@ -1217,7 +1216,6 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 	}
 
 	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
-		utils.EnableDebugLogForTest()
 		return
 	}
 
@@ -1225,25 +1223,21 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 
 	_, err2 := th.App.UpdateRole(role)
 	if err2 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err2)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err1)
 	}
 
 	for _, existingPermission := range role.Permissions {
 		if existingPermission == permission {
-			utils.EnableDebugLogForTest()
 			return
 		}
 	}
@@ -1252,11 +1246,8 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 
 	_, err2 := th.App.UpdateRole(role)
 	if err2 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err2)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) SetupTeamScheme() *model.Scheme {

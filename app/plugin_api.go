@@ -25,7 +25,7 @@ type PluginAPI struct {
 	id       string
 	app      *App
 	ctx      *request.Context
-	logger   *mlog.SugarLogger
+	logger   mlog.Sugar
 	manifest *model.Manifest
 }
 
@@ -35,7 +35,7 @@ func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginA
 		manifest: manifest,
 		ctx:      c,
 		app:      a,
-		logger:   a.Log().With(mlog.String("plugin_id", manifest.Id)).Sugar(),
+		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
 }
 

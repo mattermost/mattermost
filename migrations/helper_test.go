@@ -5,13 +5,14 @@ package migrations
 
 import (
 	"os"
+	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type TestHelper struct {
@@ -27,9 +28,11 @@ type TestHelper struct {
 	SystemAdminUser *model.User
 
 	tempWorkspace string
+
+	DebugDisabler mlog.DebugDisabler
 }
 
-func setupTestHelper(enterprise bool) *TestHelper {
+func setupTestHelper(tb testing.TB, enterprise bool) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
@@ -44,6 +47,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	options = append(options, app.StoreOverride(mainHelper.Store))
 	options = append(options, app.SkipPostInitializiation())
 
+	testLogger, debugDisabler := mlog.CreateTestLogger(tb, nil, mlog.StdAll...)
+	options = append(options, app.SetLogger(testLogger))
+
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
@@ -55,9 +61,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App:     app.New(app.ServerConnector(s)),
-		Context: &request.Context{},
-		Server:  s,
+		App:           app.New(app.ServerConnector(s)),
+		Context:       &request.Context{},
+		Server:        s,
+		DebugDisabler: debugDisabler,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -89,12 +96,12 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	return th
 }
 
-func SetupEnterprise() *TestHelper {
-	return setupTestHelper(true)
+func SetupEnterprise(tb testing.TB) *TestHelper {
+	return setupTestHelper(tb, true)
 }
 
-func Setup() *TestHelper {
-	return setupTestHelper(false)
+func Setup(tb testing.TB) *TestHelper {
+	return setupTestHelper(tb, false)
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
@@ -126,12 +133,13 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	var err *model.AppError
 	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return team
 }
 
@@ -146,12 +154,13 @@ func (th *TestHelper) CreateUser() *model.User {
 		EmailVerified: true,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	var err *model.AppError
 	if user, err = th.App.CreateUser(th.Context, user); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return user
 }
 
@@ -170,23 +179,25 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 		CreatorId:   th.BasicUser.Id,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	var err *model.AppError
 	if channel, err = th.App.CreateChannel(th.Context, channel, true); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return channel
 }
 
 func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return channel
 }
 
@@ -200,36 +211,34 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
+
 	var err *model.AppError
 	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return post
 }
 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	utils.DisableDebugLogForTest()
+	th.DebugDisabler(true)
+	defer th.DebugDisabler(false)
 
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
-
 	return member
 }
 

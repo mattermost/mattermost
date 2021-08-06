@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func TestMain(m *testing.M) {
@@ -21,8 +19,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("Failed to set current working directory to %s: %s", "../..", err.Error()))
 	}
-
-	mlog.DisableZap()
 
 	defer func() {
 		err := os.Chdir(prevDir)

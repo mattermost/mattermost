@@ -45,6 +45,9 @@ type TestHelper struct {
 	tempWorkspace string
 
 	IncludeCacheLayer bool
+
+	TestLogger    *mlog.Logger
+	DebugDisabler mlog.DebugDisabler
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
@@ -52,7 +55,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	th := setupTestHelper(false)
+	th := setupTestHelper(tb, false)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -65,10 +68,10 @@ func Setup(tb testing.TB) *TestHelper {
 	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
-	return setupTestHelper(true)
+	return setupTestHelper(tb, true)
 }
 
-func setupTestHelper(includeCacheLayer bool) *TestHelper {
+func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	memoryStore := config.NewTestMemoryStore()
 	newConfig := memoryStore.Get().Clone()
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
@@ -79,7 +82,8 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
 
-	mlog.DisableZap()
+	testLogger, debugDisabler := mlog.CreateTestLogger(tb, nil, mlog.StdAll...)
+	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -129,6 +133,8 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 		Server:            s,
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
+		TestLogger:        testLogger,
+		DebugDisabler:     debugDisabler,
 	}
 
 	return th

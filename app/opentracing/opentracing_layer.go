@@ -11256,7 +11256,7 @@ func (a *OpenTracingAppLayer) LogAuditRec(rec *audit.Record, err error) {
 	a.app.LogAuditRec(rec, err)
 }
 
-func (a *OpenTracingAppLayer) LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel, err error) {
+func (a *OpenTracingAppLayer) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LogAuditRecWithLevel")
 

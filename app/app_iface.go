@@ -236,7 +236,7 @@ type AppIface interface {
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
-	LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel, err error)
+	LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error)
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.

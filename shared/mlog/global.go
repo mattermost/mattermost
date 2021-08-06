@@ -4,95 +4,112 @@
 package mlog
 
 import (
-	"context"
-	"log"
 	"sync/atomic"
-
-	"github.com/mattermost/logr"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
-var globalLogger *Logger
+var (
+	globalLogger *Logger
+
+	useDefaultLogger int32 = 1
+)
 
 func InitGlobalLogger(logger *Logger) {
 	// Clean up previous instance.
-	if globalLogger != nil && globalLogger.logrLogger != nil {
-		globalLogger.logrLogger.Logr().Shutdown()
+	if globalLogger != nil {
+		globalLogger.Shutdown()
 	}
-	glob := *logger
-	glob.zap = glob.zap.WithOptions(zap.AddCallerSkip(1))
-	globalLogger = &glob
-	IsLevelEnabled = globalLogger.IsLevelEnabled
-	Debug = globalLogger.Debug
-	Info = globalLogger.Info
-	Warn = globalLogger.Warn
-	Error = globalLogger.Error
-	Critical = globalLogger.Critical
-	Log = globalLogger.Log
-	LogM = globalLogger.LogM
-	Flush = globalLogger.Flush
-	ConfigAdvancedLogging = globalLogger.ConfigAdvancedLogging
-	ShutdownAdvancedLogging = globalLogger.ShutdownAdvancedLogging
-	AddTarget = globalLogger.AddTarget
-	RemoveTargets = globalLogger.RemoveTargets
-	EnableMetrics = globalLogger.EnableMetrics
-}
+	globalLogger = logger
 
-// logWriterFunc provides access to mlog via io.Writer, so the standard logger
-// can be redirected to use mlog and whatever targets are defined.
-type logWriterFunc func([]byte) (int, error)
-
-func (lw logWriterFunc) Write(p []byte) (int, error) {
-	return lw(p)
-}
-
-func RedirectStdLog(logger *Logger) {
-	if atomic.LoadInt32(&disableZap) == 0 {
-		zap.RedirectStdLogAt(logger.zap.With(zap.String("source", "stdlog")).WithOptions(zap.AddCallerSkip(-2)), zapcore.ErrorLevel)
+	if logger == nil {
+		atomic.StoreInt32(&useDefaultLogger, 1)
 		return
 	}
 
-	writer := func(p []byte) (int, error) {
-		Log(LvlStdLog, string(p))
-		return len(p), nil
+	atomic.StoreInt32(&useDefaultLogger, 0)
+}
+
+// IsLevelEnabled returns true only if at least one log target is
+// configured to emit the specified log level. Use this check when
+// gathering the log info may be expensive.
+//
+// Note, transformations and serializations done via fields are already
+// lazily evaluated and don't require this check beforehand.
+func IsLevelEnabled(level Level) bool {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		return globalLogger.IsLevelEnabled(level)
 	}
-	log.SetOutput(logWriterFunc(writer))
+	return defaultIsLevelEnabled(level)
 }
 
-type IsLevelEnabledFunc func(LogLevel) bool
-type LogFunc func(string, ...Field)
-type LogFuncCustom func(LogLevel, string, ...Field)
-type LogFuncCustomMulti func([]LogLevel, string, ...Field)
-type FlushFunc func(context.Context) error
-type ConfigFunc func(cfg LogTargetCfg) error
-type ShutdownFunc func(context.Context) error
-type AddTargetFunc func(...logr.Target) error
-type RemoveTargetsFunc func(context.Context, func(TargetInfo) bool) error
-type EnableMetricsFunc func(logr.MetricsCollector) error
-
-// DON'T USE THIS Modify the level on the app logger
-func GloballyDisableDebugLogForTest() {
-	globalLogger.consoleLevel.SetLevel(zapcore.ErrorLevel)
+// Log emits the log record for any targets configured for the specified level.
+func Log(level Level, msg string, fields ...Field) {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		globalLogger.Log(level, msg, fields...)
+		return
+	}
+	defaultCustomLog(level, msg, fields...)
 }
 
-// DON'T USE THIS Modify the level on the app logger
-func GloballyEnableDebugLogForTest() {
-	globalLogger.consoleLevel.SetLevel(zapcore.DebugLevel)
+// LogM emits the log record for any targets configured for the specified levels.
+// Equivalent to calling `Log` once for each level.
+func LogM(levels []Level, msg string, fields ...Field) {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		globalLogger.LogM(levels, msg, fields...)
+		return
+	}
+	defaultCustomMultiLog(levels, msg, fields...)
 }
 
-var IsLevelEnabled IsLevelEnabledFunc = defaultIsLevelEnabled
-var Debug LogFunc = defaultDebugLog
-var Info LogFunc = defaultInfoLog
-var Warn LogFunc = defaultWarnLog
-var Error LogFunc = defaultErrorLog
-var Critical LogFunc = defaultCriticalLog
-var Log LogFuncCustom = defaultCustomLog
-var LogM LogFuncCustomMulti = defaultCustomMultiLog
-var Flush FlushFunc = defaultFlush
+// Convenience method equivalent to calling `Log` with the `Trace` level.
+func Trace(msg string, fields ...Field) {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		globalLogger.Trace(msg, fields...)
+		return
+	}
+	defaultTraceLog(msg, fields...)
+}
 
-var ConfigAdvancedLogging ConfigFunc = defaultAdvancedConfig
-var ShutdownAdvancedLogging ShutdownFunc = defaultAdvancedShutdown
-var AddTarget AddTargetFunc = defaultAddTarget
-var RemoveTargets RemoveTargetsFunc = defaultRemoveTargets
-var EnableMetrics EnableMetricsFunc = defaultEnableMetrics
+// Convenience method equivalent to calling `Log` with the `Debug` level.
+func Debug(msg string, fields ...Field) {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		globalLogger.Debug(msg, fields...)
+		return
+	}
+	defaultDebugLog(msg, fields...)
+}
+
+// Convenience method equivalent to calling `Log` with the `Info` level.
+func Info(msg string, fields ...Field) {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		globalLogger.Info(msg, fields...)
+		return
+	}
+	defaultInfoLog(msg, fields...)
+}
+
+// Convenience method equivalent to calling `Log` with the `Warn` level.
+func Warn(msg string, fields ...Field) {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		globalLogger.Warn(msg, fields...)
+		return
+	}
+	defaultWarnLog(msg, fields...)
+}
+
+// Convenience method equivalent to calling `Log` with the `Error` level.
+func Error(msg string, fields ...Field) {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		globalLogger.Error(msg, fields...)
+		return
+	}
+	defaultErrorLog(msg, fields...)
+}
+
+// Convenience method equivalent to calling `Log` with the `Critical` level.
+func Critical(msg string, fields ...Field) {
+	if atomic.LoadInt32(&useDefaultLogger) == 0 {
+		globalLogger.Critical(msg, fields...)
+		return
+	}
+	defaultCriticalLog(msg, fields...)
+}

@@ -521,24 +521,28 @@ func TestPanicLog(t *testing.T) {
 	if err != nil {
 		require.NoError(t, err)
 	}
+	tmpFilename := tmpfile.Name()
 
 	defer func() {
 		require.NoError(t, tmpfile.Close())
 		require.NoError(t, os.Remove(tmpfile.Name()))
 	}()
 
-	// This test requires Zap file target for now.
-	mlog.EnableZap()
-	defer mlog.DisableZap()
-
 	// Creating logger to log to console and temp file
-	logger := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		EnableFile:    true,
-		FileLocation:  tmpfile.Name(),
-		FileLevel:     mlog.LevelInfo,
-	})
+	logger := mlog.NewLogger()
+
+	logSettings := model.LogSettings{
+		EnableConsole: model.NewBool(true),
+		ConsoleJson:   model.NewBool(true),
+		EnableFile:    model.NewBool(true),
+		FileLocation:  &tmpFilename,
+		FileLevel:     &mlog.LvlInfo.Name,
+	}
+
+	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
+	require.NoError(t, err)
+	err = logger.ConfigureTargets(cfg)
+	require.NoError(t, err)
 
 	// Creating a server with logger
 	s, err := NewServer(SetLogger(logger))
@@ -567,6 +571,7 @@ func TestPanicLog(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	logger.Shutdown()
 	s.Shutdown()
 
 	// Checking whether panic was logged

@@ -146,7 +146,7 @@ type Server struct {
 	configStore             *config.Store
 	postActionCookieSecret  []byte
 
-	advancedLogListenerCleanup func()
+	advancedLogListenerCleanup map[string]func()
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -789,74 +789,100 @@ func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
 	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
 }
 
-// initLogging initializes and configures the logger. This may be called more than once.
+// initLogging initializes and configures the logger(s). This may be called more than once.
 func (s *Server) initLogging() error {
+	// create the app logger if needed
 	if s.Log == nil {
-		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
+		s.Log = mlog.NewLogger()
 	}
 
-	// Use this app logger as the global logger (eventually remove all instances of global logging).
-	// This is deferred because a copy is made of the logger and it must be fully configured before
-	// the copy is made.
-	defer mlog.InitGlobalLogger(s.Log)
-
-	// Redirect default Go logger to this logger.
-	defer mlog.RedirectStdLog(s.Log)
-
+	// create notification logger if needed
 	if s.NotificationsLog == nil {
-		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
-			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
+		s.NotificationsLog = mlog.NewLogger().With(mlog.String("logSource", "notifications"))
 	}
+
+	// configure app and notification loggers
+	s.onLoggingConfigChange(nil, s.Config())
+
+	// Redirect default Go logger to app logger.
+	s.Log.RedirectStdLog(mlog.LvlStdLog)
+
+	// Use the app logger as the global logger (eventually remove all instances of global logging).
+	mlog.InitGlobalLogger(s.Log)
 
 	if s.logListenerId != "" {
 		s.RemoveConfigListener(s.logListenerId)
 	}
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
-		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
-
-		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
-		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
+		s.onLoggingConfigChange(nil, after)
 	})
+	return nil
+}
 
-	// Configure advanced logging.
+// onLoggingConfigChange is called any time the configuration changes. All logging configuration is reloaded.
+func (s *Server) onLoggingConfigChange(_, after *model.Config) {
+	// configure main logger
+	if err := s.configureLogger("logging", s.Log, after.LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
+		// revert to default logger if the config is invalid
+		mlog.InitGlobalLogger(nil)
+		mlog.Error("Error configuring logger", mlog.Err(err))
+	}
+
+	// configure notification logger
+	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
+	if err := s.configureLogger("notification logging", s.NotificationsLog, *notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
+		mlog.Error("Error configuring notification logger", mlog.Err(err))
+	}
+}
+
+// configureLogger applies the specified configuration to a logger and watches for changes, reloading as needed.
+func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings model.LogSettings, configStore *config.Store, getPath func(string) string) error {
 	// Advanced logging is E20 only, however logging must be initialized before the license
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
-	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
-		dsn := *s.Config().LogSettings.AdvancedLoggingConfig
+	dsn := *logSettings.AdvancedLoggingConfig
+	logConfigSrc, err := config.NewLogConfigSrc(dsn, configStore)
+	if err != nil {
+		return fmt.Errorf("invalid config source for %s, %w", name, err)
+	}
 
-		cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
-		if err != nil {
-			return fmt.Errorf("invalid advanced logging config, %w", err)
+	if logConfigSrc != nil {
+		mlog.Info("Loaded configuration for "+name, mlog.String("source", dsn))
+	}
+
+	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
+	if err != nil {
+		return fmt.Errorf("invalid config source for %s, %w", name, err)
+	}
+
+	if err := logger.ConfigureTargets(cfg); err != nil {
+		return fmt.Errorf("invalid config for %s, %w", name, err)
+	}
+
+	// watch the advanced logging config and re-configure if changed
+	listenerId := logConfigSrc.AddListener(func(_, newCfg mlog.LoggerConfiguration) {
+		if err := logger.ConfigureTargets(newCfg); err != nil {
+			mlog.Error("Error re-configuring advanced logging for "+name, mlog.Err(err))
+		} else {
+			mlog.Info("Re-configured advanced logging for " + name)
 		}
+	})
 
-		if err := s.Log.ConfigAdvancedLogging(cfg.Get()); err != nil {
-			return fmt.Errorf("error configuring advanced logging, %w", err)
+	if len(s.advancedLogListenerCleanup) > 0 {
+		for _, cleanup := range s.advancedLogListenerCleanup {
+			cleanup()
 		}
+	} else {
+		s.advancedLogListenerCleanup = make(map[string]func())
+	}
 
-		mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
-
-		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
-			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
-				mlog.Error("Error re-configuring advanced logging", mlog.Err(err))
-			} else {
-				mlog.Info("Re-configured advanced logging")
-			}
-		})
-
-		// In case initLogging is called more than once.
-		if s.advancedLogListenerCleanup != nil {
-			s.advancedLogListenerCleanup()
-		}
-
-		s.advancedLogListenerCleanup = func() {
-			cfg.RemoveListener(listenerId)
-		}
+	s.advancedLogListenerCleanup[name] = func() {
+		logConfigSrc.RemoveListener(listenerId)
 	}
 	return nil
 }
 
+// removeUnlicensedLogTargets removes any unlicensed log target types.
 func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	if license != nil && *license.Features.AdvancedLogging {
 		// advanced logging enabled via license; no need to remove any targets
@@ -866,7 +892,11 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancelCtx()
 
-	mlog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+	s.Log.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+		return ti.Type != "*target.Writer" && ti.Type != "*target.File"
+	})
+
+	s.NotificationsLog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
 		return ti.Type != "*target.Writer" && ti.Type != "*target.File"
 	})
 }
@@ -941,11 +971,12 @@ func (s *Server) enableLoggingMetrics() {
 		return
 	}
 
-	if err := mlog.EnableMetrics(s.Metrics.GetLoggerMetricsCollector()); err != nil {
-		mlog.Error("Failed to enable advanced logging metrics", mlog.Err(err))
-	} else {
-		mlog.Debug("Advanced logging metrics enabled")
-	}
+	s.Log.SetMetricsCollector(s.Metrics.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+
+	// logging config needs to be reloaded when metrics collector is added or changed.
+	s.onLoggingConfigChange(nil, s.Config())
+
+	mlog.Debug("Logging metrics enabled")
 }
 
 const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
@@ -1016,8 +1047,10 @@ func (s *Server) Shutdown() {
 
 	s.WaitForGoroutines()
 
-	if s.advancedLogListenerCleanup != nil {
-		s.advancedLogListenerCleanup()
+	if len(s.advancedLogListenerCleanup) > 0 {
+		for _, cleanup := range s.advancedLogListenerCleanup {
+			cleanup()
+		}
 		s.advancedLogListenerCleanup = nil
 	}
 
@@ -1060,12 +1093,6 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
-	defer timeoutCancel()
-	if err := mlog.Flush(timeoutCtx); err != nil {
-		mlog.Warn("Error flushing logs", mlog.Err(err))
-	}
-
 	s.dndTaskMut.Lock()
 	if s.dndTask != nil {
 		s.dndTask.Cancel()
@@ -1074,10 +1101,11 @@ func (s *Server) Shutdown() {
 
 	mlog.Info("Server stopped")
 
-	// this should just write the "server stopped" record, the rest are already flushed.
-	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
-	defer timeoutCancel2()
-	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
+	// shutdown main and notification loggers which will flush any remaining log records.
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer timeoutCancel()
+	_ = s.NotificationsLog.ShutdownWithTimeout(timeoutCtx)
+	_ = s.Log.ShutdownWithTimeout(timeoutCtx)
 }
 
 func (s *Server) Restart() error {
@@ -1204,7 +1232,7 @@ func (s *Server) Start() error {
 
 		// If we have debugging of CORS turned on then forward messages to logs
 		if debug {
-			corsWrapper.Log = s.Log.StdLog(mlog.String("source", "cors"))
+			corsWrapper.Log = s.Log.With(mlog.String("source", "cors")).StdLogger(mlog.LvlDebug)
 		}
 
 		handler = corsWrapper.Handler(handler)
@@ -1224,10 +1252,7 @@ func (s *Server) Start() error {
 	s.Busy = NewBusy(s.Cluster)
 
 	// Creating a logger for logging errors from http.Server at error level
-	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
-	if err != nil {
-		return err
-	}
+	errStdLog := s.Log.With(mlog.String("source", "httpserver")).StdLogger(mlog.LvlError)
 
 	s.Server = &http.Server{
 		Handler:      handler,
@@ -1272,7 +1297,7 @@ func (s *Server) Start() error {
 				server := &http.Server{
 					Addr:     httpListenAddress,
 					Handler:  m.HTTPHandler(nil),
-					ErrorLog: s.Log.StdLog(mlog.String("source", "le_forwarder_server")),
+					ErrorLog: s.Log.With(mlog.String("source", "le_forwarder_server")).StdLogger(mlog.LvlError),
 				}
 				go server.ListenAndServe()
 			} else {
@@ -1286,7 +1311,7 @@ func (s *Server) Start() error {
 
 					server := &http.Server{
 						Handler:  http.HandlerFunc(handleHTTPRedirect),
-						ErrorLog: s.Log.StdLog(mlog.String("source", "forwarder_server")),
+						ErrorLog: s.Log.With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
 					}
 					server.Serve(redirectListener)
 				}()
@@ -2172,7 +2197,7 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 	// Getting notifications.log
 	if *a.Srv().Config().NotificationLogSettings.EnableFile {
 		// notifications.log
-		notificationsLog := utils.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		notificationsLog := config.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
 
 		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
 
@@ -2199,7 +2224,7 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 	// Getting mattermost.log
 	if *a.Srv().Config().LogSettings.EnableFile {
 		// mattermost.log
-		mattermostLog := utils.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		mattermostLog := config.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
 
 		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
 

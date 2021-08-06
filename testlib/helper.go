@@ -56,12 +56,16 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	// Setup a global logger to catch tests logging outside of app context
 	// The global logger will be stomped by apps initializing but that's fine for testing.
 	// Ideally this won't happen.
-	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	}))
+	cfg := mlog.TargetCfg{
+		Type:   "console",
+		Format: "json",
+		Levels: []mlog.Level{mlog.LvlPanic, mlog.LvlFatal, mlog.LvlCritical, mlog.LvlError},
+	}
+	logger := mlog.NewLogger()
+	_ = logger.ConfigureTargets(map[string]mlog.TargetCfg{"test": cfg})
+
+	defer logger.Shutdown()
+	mlog.InitGlobalLogger(logger)
 
 	utils.TranslationsPreInit()
 
