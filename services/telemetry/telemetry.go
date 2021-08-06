@@ -1338,6 +1338,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"memes",
 		"skype4business",
 		"zoom",
+		"focalboard",
 	}
 
 	marketplacePlugins, err := ts.getAllMarketplaceplugins(marketplaceURL)
