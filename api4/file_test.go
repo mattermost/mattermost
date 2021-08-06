@@ -59,7 +59,7 @@ func fileBytes(t *testing.T, path string) []byte {
 }
 
 func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
-	contentLength int64) (*model.FileUploadResponse, *model.Response) {
+	contentLength int64) (*model.FileUploadResponse, *model.Response, error) {
 	req, err := http.NewRequest("POST", c.ApiUrl+c.GetFilesRoute()+url, bytes.NewReader(blob))
 	require.NoError(t, err)
 
@@ -77,10 +77,10 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	defer closeBody(resp)
 
 	if resp.StatusCode >= 300 {
-		return nil, model.BuildErrorResponse(resp, model.AppErrorFromJson(resp.Body))
+		return nil, model.BuildResponse(resp), model.AppErrorFromJson(resp.Body)
 	}
 
-	return model.FileUploadResponseFromJson(resp.Body), model.BuildResponse(resp)
+	return model.FileUploadResponseFromJson(resp.Body), model.BuildResponse(resp), nil
 }
 
 func testUploadFilesPost(
@@ -91,7 +91,7 @@ func testUploadFilesPost(
 	blobs [][]byte,
 	clientIds []string,
 	useChunked bool,
-) (*model.FileUploadResponse, *model.Response) {
+) (*model.FileUploadResponse, *model.Response, error) {
 
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
@@ -116,9 +116,9 @@ func testUploadFilesPost(
 			postURL += fmt.Sprintf("&client_id=%v", url.QueryEscape(clientIds[i]))
 		}
 
-		fur, resp := testDoUploadFileRequest(t, c, postURL, blob, ct, cl)
-		if resp.Error != nil {
-			return nil, resp
+		fur, resp, err := testDoUploadFileRequest(t, c, postURL, blob, ct, cl)
+		if err != nil {
+			return nil, resp, err
 		}
 
 		fileUploadResponse.FileInfos = append(fileUploadResponse.FileInfos, fur.FileInfos[0])
@@ -131,7 +131,7 @@ func testUploadFilesPost(
 		}
 	}
 
-	return fileUploadResponse, nil
+	return fileUploadResponse, nil, nil
 }
 
 func testUploadFilesMultipart(
@@ -142,8 +142,9 @@ func testUploadFilesMultipart(
 	blobs [][]byte,
 	clientIds []string,
 ) (
-	fileUploadResponse *model.FileUploadResponse,
-	response *model.Response,
+	*model.FileUploadResponse,
+	*model.Response,
+	error,
 ) {
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
@@ -179,7 +180,12 @@ func testUploadFilesMultipart(
 	}
 
 	require.NoError(t, mw.Close())
-	return testDoUploadFileRequest(t, c, "", mwBody.Bytes(), mw.FormDataContentType(), -1)
+	fur, resp, err := testDoUploadFileRequest(t, c, "", mwBody.Bytes(), mw.FormDataContentType(), -1)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return fur, resp, nil
 }
 
 func TestUploadFiles(t *testing.T) {
@@ -589,18 +595,17 @@ func TestUploadFiles(t *testing.T) {
 
 				var fileResp *model.FileUploadResponse
 				var resp *model.Response
+				var err error
 				if useMultipart {
-					fileResp, resp = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds)
+					fileResp, resp, err = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds)
 				} else {
-					fileResp, resp = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
+					fileResp, resp, err = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
 				}
 
 				if tc.checkResponse != nil {
 					tc.checkResponse(t, resp)
 				} else {
-					if resp != nil {
-						require.Nil(t, resp.Error)
-					}
+					require.NoError(t, err)
 				}
 				if tc.skipSuccessValidation {
 					return
