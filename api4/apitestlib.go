@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -1020,6 +1021,18 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 
 	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
 	require.Equalf(t, errorId, resp.Error.Id, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
+}
+
+func CheckErrorMessage2(t *testing.T, err error, errorId string) {
+	t.Helper()
+
+	require.Error(t, err, "should have errored with id: %s", errorId)
+
+	var appError *model.AppError
+	ok := errors.As(err, &appError)
+	require.True(t, ok, "should have been a model.AppError")
+
+	require.Equalf(t, errorId, appError.Id, "incorrect error message, actual: %s, expected: %s", appError.Id, errorId)
 }
 
 func CheckStartsWith(t *testing.T, value, prefix, message string) {

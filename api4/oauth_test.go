@@ -577,3 +577,13 @@ func closeBody(r *http.Response) {
 		r.Body.Close()
 	}
 }
+
+func TestNilAuthorizeOAuthApp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	_, _, err := client.AuthorizeOAuthApp(nil)
+	require.Error(t, err)
+	CheckErrorMessage2(t, err, "api.context.invalid_body_param.app_error")
+}

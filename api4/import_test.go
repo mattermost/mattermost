@@ -50,9 +50,9 @@ func TestListImports(t *testing.T) {
 	}
 
 	t.Run("no permissions", func(t *testing.T) {
-		imports, resp, _ := th.Client.ListImports()
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+		imports, _, err := th.Client.ListImports()
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.context.permissions.app_error")
 		require.Nil(t, imports)
 	})
 

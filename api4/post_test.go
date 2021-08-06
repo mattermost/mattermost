@@ -1723,8 +1723,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}
 
 	// Setting limit_after to zero should fail with a 400 BadRequest.
-	posts, resp, _ := client.GetPostsAroundLastUnread(userId, channelId, 20, 0, false)
-	require.NotNil(t, resp.Error)
+	posts, _, err := client.GetPostsAroundLastUnread(userId, channelId, 20, 0, false)
+	require.Error(t, err)
 	require.Equal(t, "api.context.invalid_url_param.app_error", resp.Error.Id)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	require.Nil(t, posts)

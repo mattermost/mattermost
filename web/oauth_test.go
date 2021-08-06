@@ -135,16 +135,6 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
-func TestNilAuthorizeOAuthApp(t *testing.T) {
-	th := Setup(t).InitBasic()
-	th.Login(ApiClient, th.SystemAdminUser)
-	defer th.TearDown()
-
-	_, resp, _ := ApiClient.AuthorizeOAuthApp(nil)
-	require.NotNil(t, resp.Error)
-	assert.Equal(t, "api.context.invalid_body_param.app_error", resp.Error.Id)
-}
-
 func TestDeauthorizeOAuthApp(t *testing.T) {
 	th := Setup(t).InitBasic()
 	th.Login(ApiClient, th.SystemAdminUser)

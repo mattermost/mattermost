@@ -22,9 +22,9 @@ func TestListExports(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		exports, resp, _ := th.Client.ListExports()
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+		exports, _, err := th.Client.ListExports()
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.context.permissions.app_error")
 		require.Nil(t, exports)
 	})
 
@@ -83,9 +83,9 @@ func TestDeleteExport(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		ok, resp, _ := th.Client.DeleteExport("export.zip")
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+		ok, _, err := th.Client.DeleteExport("export.zip")
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.context.permissions.app_error")
 		require.False(t, ok)
 	})
 
@@ -128,9 +128,9 @@ func TestDownloadExport(t *testing.T) {
 
 	t.Run("no permissions", func(t *testing.T) {
 		var buf bytes.Buffer
-		n, resp, _ := th.Client.DownloadExport("export.zip", &buf, 0)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+		n, _, err := th.Client.DownloadExport("export.zip", &buf, 0)
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.context.permissions.app_error")
 		require.Zero(t, n)
 	})
 
@@ -140,9 +140,9 @@ func TestDownloadExport(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		var buf bytes.Buffer
-		n, resp, _ := c.DownloadExport("export.zip", &buf, 0)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.export.export_not_found.app_error", resp.Error.Id)
+		n, _, err := c.DownloadExport("export.zip", &buf, 0)
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.export.export_not_found.app_error")
 		require.Zero(t, n)
 	}, "not found")
 

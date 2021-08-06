@@ -5076,17 +5076,17 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 	}, "Should verify a new user")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		vuser, resp, _ := client.VerifyUserEmailWithoutToken("randomId")
-		require.NotNil(t, resp.Error)
-		CheckErrorMessage(t, resp, "api.context.invalid_url_param.app_error")
+		vuser, _, err := client.VerifyUserEmailWithoutToken("randomId")
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.context.invalid_url_param.app_error")
 		require.Nil(t, vuser)
 	}, "Should not be able to find user")
 
 	t.Run("Should not be able to verify user due to permissions", func(t *testing.T) {
 		user := th.CreateUser()
-		vuser, resp, _ := th.Client.VerifyUserEmailWithoutToken(user.Id)
-		require.NotNil(t, resp.Error)
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		vuser, _, err := th.Client.VerifyUserEmailWithoutToken(user.Id)
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.context.permissions.app_error")
 		require.Nil(t, vuser)
 	})
 }

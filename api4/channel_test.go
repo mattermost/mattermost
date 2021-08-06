@@ -4105,26 +4105,26 @@ func TestMoveChannel(t *testing.T) {
 	t.Run("Should fail when trying to move a DM channel", func(t *testing.T) {
 		user := th.CreateUser()
 		dmChannel := th.CreateDmChannel(user)
-		_, resp, _ := client.MoveChannel(dmChannel.Id, team1.Id, false)
-		require.NotNil(t, resp.Error)
-		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+		_, _, err := client.MoveChannel(dmChannel.Id, team1.Id, false)
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.channel.move_channel.type.invalid")
 	})
 
 	t.Run("Should fail when trying to move a group channel", func(t *testing.T) {
 		user := th.CreateUser()
 
-		gmChannel, err := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, user.Id)
-		require.Nil(t, err)
-		_, resp, _ := client.MoveChannel(gmChannel.Id, team1.Id, false)
-		require.NotNil(t, resp.Error)
-		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+		gmChannel, appError := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, user.Id)
+		require.Nil(t, appError)
+		_, _, err := client.MoveChannel(gmChannel.Id, team1.Id, false)
+		require.Error(t, err)
+		CheckErrorMessage2(t, appError, "api.channel.move_channel.type.invalid")
 	})
 
 	t.Run("Should fail due to permissions", func(t *testing.T) {
 		publicChannel := th.CreatePublicChannel()
-		_, resp, _ := client.MoveChannel(publicChannel.Id, team1.Id, false)
-		require.NotNil(t, resp.Error)
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		_, _, err := client.MoveChannel(publicChannel.Id, team1.Id, false)
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.context.permissions.app_error")
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {

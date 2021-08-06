@@ -141,9 +141,9 @@ func TestGetUploadsForUser(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		uss, resp, _ := th.Client.GetUploadsForUser(th.BasicUser2.Id)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.user.get_uploads_for_user.forbidden.app_error", resp.Error.Id)
+		uss, _, err := th.Client.GetUploadsForUser(th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckErrorMessage2(t, err, "api.user.get_uploads_for_user.forbidden.app_error")
 		require.Nil(t, uss)
 	})
 
