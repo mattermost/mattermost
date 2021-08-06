@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"image"
 	"image/png"
@@ -192,11 +191,9 @@ func TestPreparePostForClient(t *testing.T) {
 
 		var clientPost *model.Post
 		assert.Eventually(t, func() bool {
-			p, nErr := th.App.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false, "")
-			require.NoError(t, nErr)
-			clientPost = th.App.PreparePostForClient(p.Posts[post.Id], false, false)
+			clientPost = th.App.PreparePostForClient(post, false, false)
 			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
-		}, time.Second, 100*time.Millisecond)
+		}, time.Second, 10*time.Millisecond)
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
