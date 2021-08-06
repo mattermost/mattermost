@@ -51,10 +51,18 @@ func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
 	err := ss.System().SaveOrUpdate(system)
 	require.NoError(t, err)
 
+	res, err := ss.System().GetByName(system.Name)
+	require.NoError(t, err)
+	assert.Equal(t, system.Value, res.Value)
+
 	system.Value = "value2"
 
 	err = ss.System().SaveOrUpdate(system)
 	require.NoError(t, err)
+
+	res, err = ss.System().GetByName(system.Name)
+	require.NoError(t, err)
+	assert.Equal(t, system.Value, res.Value)
 }
 
 func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.Store) {

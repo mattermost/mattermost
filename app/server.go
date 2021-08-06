@@ -389,19 +389,18 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
-		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
-	} else {
-		htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
-		if err2 != nil {
-			return nil, errors.Wrap(err2, "cannot initialize server templates")
-		}
-		s.Go(func() {
-			for err2 := range errorsChan {
-				mlog.Warn("Server templates error", mlog.Err(err2))
-			}
-		})
-		s.htmlTemplateWatcher = htmlTemplateWatcher
+		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
 	}
+	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
+	if err2 != nil {
+		return nil, errors.Wrap(err2, "cannot initialize server templates")
+	}
+	s.Go(func() {
+		for err2 := range errorsChan {
+			mlog.Warn("Server templates error", mlog.Err(err2))
+		}
+	})
+	s.htmlTemplateWatcher = htmlTemplateWatcher
 
 	s.Store, err = s.newStore()
 	if err != nil {
@@ -2084,6 +2083,10 @@ func (s *Server) initJobs() {
 
 	if jobsResendInvitationEmailInterface != nil {
 		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
+	}
+
+	if jobsExtractContentInterface != nil {
+		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
 	}
 
 	s.Jobs.InitWorkers()

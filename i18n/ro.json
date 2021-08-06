@@ -5972,10 +5972,6 @@
     "translation": "Eroarea de a primi utilizatorii pe canal în perioada specificată."
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Eroare la ștergerea înregistrărilor."
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Identificatorul furnizorului de servicii este necesar"
   },
@@ -5986,10 +5982,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "Nu a reușit să ștergi postările canalului"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Am intalnit o eroare permanent a şterge lotul de reacţii."
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6468,10 +6460,6 @@
     "translation": "Am intalnit o eroare regăsirea rapoarte de conformitate."
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Am întâlnit o eroare la curățarea lotului de steaguri."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Am întâlnit o eroare la actualizarea preferințelor."
   },
@@ -6826,10 +6814,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Imposibil de obținut lucrarea."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Am întâlnit o eroare ștergând definitiv lotul de informații despre fișiere."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7234,10 +7218,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Imposibil de obținut lotul de postări pentru indexare."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Am întâmpinat o eroare la ștergerea definitivă a lotului de postări."
   },
   {
     "id": "app.post.overwrite.app_error",

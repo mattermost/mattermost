@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -45,31 +46,39 @@ func (s SqlSystemStore) Save(system *model.System) error {
 }
 
 func (s SqlSystemStore) SaveOrUpdate(system *model.System) error {
-	if err := s.GetMaster().SelectOne(&model.System{}, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": system.Name}); err == nil {
-		if _, err := s.GetMaster().Update(system); err != nil {
-			return errors.Wrapf(err, "failed to update system property with name=%s", system.Name)
-		}
+	query := s.getQueryBuilder().
+		Insert("Systems").
+		Columns("Name", "Value").
+		Values(system.Name, system.Value)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", system.Value))
 	} else {
-		if err := s.GetMaster().Insert(system); err != nil {
-			return errors.Wrapf(err, "failed to save system property with name=%s", system.Name)
-		}
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (name) DO UPDATE SET Value = ?", system.Value))
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "system_tosql")
+	}
+
+	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "failed to upsert system property")
 	}
 	return nil
 }
 
 func (s SqlSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System) error {
-	if err := s.GetMaster().SelectOne(&model.System{}, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": system.Name}); err == nil {
-		if _, err := s.GetMaster().Update(system); err != nil {
-			return errors.Wrapf(err, "failed to update system property with name=%s", system.Name)
-		}
-	} else {
-		if err := s.GetMaster().Insert(system); err != nil {
-			return errors.Wrapf(err, "failed to save system property with name=%s", system.Name)
-		}
+	if err := s.SaveOrUpdate(system); err != nil {
+		return err
 	}
 
-	if strings.HasPrefix(system.Name, model.WarnMetricStatusStorePrefix) && (system.Value == model.WarnMetricStatusRunonce || system.Value == model.WarnMetricStatusLimitReached) {
-		if err := s.SaveOrUpdate(&model.System{Name: model.SystemWarnMetricLastRunTimestampKey, Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10)}); err != nil {
+	if strings.HasPrefix(system.Name, model.WarnMetricStatusStorePrefix) &&
+		(system.Value == model.WarnMetricStatusRunonce || system.Value == model.WarnMetricStatusLimitReached) {
+		if err := s.SaveOrUpdate(&model.System{
+			Name:  model.SystemWarnMetricLastRunTimestampKey,
+			Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
+		}); err != nil {
 			return errors.Wrapf(err, "failed to save system property with name=%s", model.SystemWarnMetricLastRunTimestampKey)
 		}
 	}
