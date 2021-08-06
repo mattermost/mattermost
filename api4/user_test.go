@@ -2689,55 +2689,6 @@ func TestUpdateUserMfa(t *testing.T) {
 	})
 }
 
-// CheckUserMfa is deprecated and should not be used anymore, it will be disabled by default in version 6.0
-func TestCheckUserMfa(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(c *model.Config) {
-		*c.ServiceSettings.DisableLegacyMFA = false
-	})
-
-	required, resp := th.Client.CheckUserMfa(th.BasicUser.Email)
-	CheckNoError(t, resp)
-
-	require.False(t, required, "mfa not active")
-
-	_, resp = th.Client.CheckUserMfa("")
-	CheckBadRequestStatus(t, resp)
-
-	th.Client.Logout()
-
-	required, resp = th.Client.CheckUserMfa(th.BasicUser.Email)
-	CheckNoError(t, resp)
-
-	require.False(t, required, "mfa not active")
-
-	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
-
-	th.LoginBasic()
-
-	required, resp = th.Client.CheckUserMfa(th.BasicUser.Email)
-	CheckNoError(t, resp)
-
-	require.False(t, required, "mfa not active")
-
-	th.Client.Logout()
-
-	required, resp = th.Client.CheckUserMfa(th.BasicUser.Email)
-	CheckNoError(t, resp)
-
-	require.False(t, required, "mfa not active")
-
-	th.App.UpdateConfig(func(c *model.Config) {
-		*c.ServiceSettings.DisableLegacyMFA = true
-	})
-
-	_, resp = th.Client.CheckUserMfa(th.BasicUser.Email)
-	CheckNotFoundStatus(t, resp)
-}
-
 func TestUserLoginMFAFlow(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

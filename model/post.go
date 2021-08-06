@@ -595,6 +595,7 @@ func (o *Post) Attachments() []*SlackAttachment {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
+					// Ignoring nil actions
 					i := 0
 					for _, action := range decoded.Actions {
 						if action != nil {
@@ -603,6 +604,16 @@ func (o *Post) Attachments() []*SlackAttachment {
 						}
 					}
 					decoded.Actions = decoded.Actions[:i]
+
+					// Ignoring nil fields
+					i = 0
+					for _, field := range decoded.Fields {
+						if field != nil {
+							decoded.Fields[i] = field
+							i++
+						}
+					}
+					decoded.Fields = decoded.Fields[:i]
 					ret = append(ret, &decoded)
 				}
 			}

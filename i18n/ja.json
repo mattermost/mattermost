@@ -5964,10 +5964,6 @@
     "translation": "チャンネル投稿を削除できませんでした"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "リアクションの一括削除中にエラーが発生しました。"
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "クラスターのレスポンスがタイムアウトしました"
   },
@@ -6260,10 +6256,6 @@
     "translation": "指定日時内のチャンネル内ユーザーを取得できませんでした。"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "記録を破棄できませんでした。"
-  },
-  {
     "id": "app.command.listautocompletecommands.internal_error",
     "translation": "自動補完コマンドのリストを表示できませんでした。"
   },
@@ -6350,10 +6342,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "コンプライアンスリポートを取得する際にエラーが発生しました。"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "複数のフラグをクリーンアップする際にエラーが発生しました。"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6770,10 +6758,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "ジョブを取得できませんでした。"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "複数のファイル情報を完全に削除する際にエラーが発生しました。"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7554,10 +7538,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "複数の投稿を完全に削除する際にエラーが発生しました。"
   },
   {
     "id": "app.post.search.app_error",
