@@ -79,7 +79,6 @@ func (s *Server) doAdvancedPermissionsMigration() {
 	if err := s.Store.System().Save(&system); err != nil {
 		mlog.Critical("Failed to mark advanced permissions migration as completed.", mlog.Err(err))
 	}
-	mlog.Info("Looks like migration ran successfully.")
 }
 
 func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
