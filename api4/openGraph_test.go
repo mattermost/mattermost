@@ -59,8 +59,8 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
 	} {
 
-		openGraph, resp, _ := client.OpenGraph(ts.URL + data["path"].(string))
-		CheckNoError(t, resp)
+		openGraph, _, err = client.OpenGraph(ts.URL + data["path"].(string))
+		require.NoError(t, err)
 
 		require.Equalf(t, openGraph["title"], data["title"].(string),
 			"OG data title mismatch for path \"%s\".")

@@ -49,12 +49,12 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 		require.Len(t, categories.Order, 3)
 
 		// Have another user create a channel that user isn't a part of
-		channel, resp, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
+		channel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
 			TeamId: th.BasicTeam.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
 		})
-		require.Nil(t, resp.Error)
+		require.NoError(t, err)
 
 		// Attempt to create the category
 		category := &model.SidebarCategoryWithChannels{
@@ -95,14 +95,14 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			Channels:        []string{channelsCategory.Channels[1], channelsCategory.Channels[0], channelsCategory.Channels[4], channelsCategory.Channels[3], channelsCategory.Channels[2]},
 		}
 
-		received, resp, _ := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
-		assert.Nil(t, resp.Error)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		assert.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.Channels, received.Channels)
 
 		// And when requesting the category later
-		received, resp, _ = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, "")
-		assert.Nil(t, resp.Error)
+		received, _, err = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, "")
+		assert.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.Channels, received.Channels)
 	})
@@ -126,14 +126,14 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		}
 		updatedCategory.Sorting = model.SidebarCategorySortAlphabetical
 
-		received, resp, _ := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
-		assert.Nil(t, resp.Error)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
+		assert.NoError(t, err)
 		assert.Equal(t, dmsCategory.Id, received.Id)
 		assert.Equal(t, model.SidebarCategorySortAlphabetical, received.Sorting)
 
 		// And when requesting the category later
-		received, resp, _ = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, "")
-		assert.Nil(t, resp.Error)
+		received, _, err = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, "")
+		assert.NoError(t, err)
 		assert.Equal(t, dmsCategory.Id, received.Id)
 		assert.Equal(t, model.SidebarCategorySortAlphabetical, received.Sorting)
 	})
@@ -141,14 +141,14 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should update the display name of a custom category", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		customCategory, resp, _ := client.CreateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				UserId:      user.Id,
 				TeamId:      th.BasicTeam.Id,
 				DisplayName: "custom123",
 			},
 		})
-		require.Nil(t, resp.Error)
+		require.NoError(t, err)
 		require.Equal(t, "custom123", customCategory.DisplayName)
 
 		// Should return the correct values from the API
@@ -158,14 +158,14 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		}
 		updatedCategory.DisplayName = "abcCustom"
 
-		received, resp, _ := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, customCategory.Id, updatedCategory)
-		assert.Nil(t, resp.Error)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, customCategory.Id, updatedCategory)
+		assert.NoError(t, err)
 		assert.Equal(t, customCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.DisplayName, received.DisplayName)
 
 		// And when requesting the category later
-		received, resp, _ = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, customCategory.Id, "")
-		assert.Nil(t, resp.Error)
+		received, _, err = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, customCategory.Id, "")
+		assert.NoError(t, err)
 		assert.Equal(t, customCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.DisplayName, received.DisplayName)
 	})
@@ -233,12 +233,12 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Have another user create a channel that user isn't a part of
-		channel, resp, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
+		channel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
 			TeamId: th.BasicTeam.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
 		})
-		require.Nil(t, resp.Error)
+		require.NoError(t, err)
 
 		// Attempt to update the category
 		updatedCategory := &model.SidebarCategoryWithChannels{
@@ -379,12 +379,12 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Have another user create a channel that user isn't a part of
-		channel, resp, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
+		channel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
 			TeamId: th.BasicTeam.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
 		})
-		require.Nil(t, resp.Error)
+		require.NoError(t, err)
 
 		// Attempt to update the category
 		updatedCategory := &model.SidebarCategoryWithChannels{

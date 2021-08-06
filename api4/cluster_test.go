@@ -21,8 +21,8 @@ func TestGetClusterStatus(t *testing.T) {
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		infos, resp, _ := th.SystemAdminClient.GetClusterStatus()
-		CheckNoError(t, resp)
+		infos, _, err := th.SystemAdminClient.GetClusterStatus()
+		require.NoError(t, err)
 
 		require.NotNil(t, infos, "cluster status should not be nil")
 	})

@@ -60,8 +60,8 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 	th.App.SetStatusOnline(user4.Id, true)
 	th.App.SetStatusOnline(user5.Id, true)
 
-	_, resp, _ := th.Client.Login(user1.Username, "test-password-1")
-	CheckNoError(t, resp)
+	_, _, nErr := th.Client.Login(user1.Username, "test-password-1")
+	require.NoError(t, nErr)
 
 	t.Run("getUser", func(t *testing.T) {
 		testCases := []struct {
@@ -134,12 +134,11 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp, _ := th.Client.GetUser(tc.UserId, "")
-				require.Nil(t, err)
+				_, _, err := th.Client.GetUser(tc.UserId, "")
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -216,12 +215,11 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp, _ := th.Client.GetUserByUsername(tc.Username, "")
-				require.Nil(t, err)
+				_, _, err := th.Client.GetUserByUsername(tc.Username, "")
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -298,12 +296,11 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp, _ := th.Client.GetUserByEmail(tc.Email, "")
-				require.Nil(t, err)
+				_, _, err := th.Client.GetUserByEmail(tc.Email, "")
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -380,12 +377,11 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp, _ := th.Client.GetDefaultProfileImage(tc.UserId)
-				require.Nil(t, err)
+				_, _, err := th.Client.GetDefaultProfileImage(tc.UserId)
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -462,12 +458,12 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp, _ := th.Client.GetProfileImage(tc.UserId, "")
+				_, _, err := th.Client.GetProfileImage(tc.UserId, "")
 				require.Nil(t, err)
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}

@@ -34,8 +34,8 @@ func TestCreateOAuthApp(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
-	rapp, resp, _ := adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	assert.Equal(t, oapp.Name, rapp.Name, "names did not match")
 	assert.Equal(t, oapp.IsTrusted, rapp.IsTrusted, "trusted did no match")
@@ -48,8 +48,8 @@ func TestCreateOAuthApp(t *testing.T) {
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	rapp, resp, _ = client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
 	assert.False(t, rapp.IsTrusted, "trusted should be false - created by non admin")
@@ -107,8 +107,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	oapp.Description = "test_update"
 	oapp.CallbackUrls = []string{"https://callback_update.com", "https://another_callback.com"}
 
-	updatedApp, resp, _ := adminClient.UpdateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	updatedApp, _, err = adminClient.UpdateOAuthApp(oapp)
+	require.NoError(t, err)
 	assert.Equal(t, oapp.Id, updatedApp.Id, "Id should have not updated")
 	assert.Equal(t, oapp.CreatorId, updatedApp.CreatorId, "CreatorId should have not updated")
 	assert.Equal(t, oapp.CreateAt, updatedApp.CreateAt, "CreateAt should have not updated")
@@ -169,22 +169,22 @@ func TestUpdateOAuthApp(t *testing.T) {
 		CallbackUrls: []string{"https://callback.com"},
 	}
 
-	userOapp, resp, _ = client.CreateOAuthApp(userOapp)
-	CheckNoError(t, resp)
+	userOapp, _, err = client.CreateOAuthApp(userOapp)
+	require.NoError(t, err)
 
 	userOapp.IsTrusted = true
-	userOapp, resp, _ = client.UpdateOAuthApp(userOapp)
-	CheckNoError(t, resp)
+	userOapp, _, err = client.UpdateOAuthApp(userOapp)
+	require.NoError(t, err)
 	assert.False(t, userOapp.IsTrusted)
 
 	userOapp.IsTrusted = true
-	userOapp, resp, _ = adminClient.UpdateOAuthApp(userOapp)
-	CheckNoError(t, resp)
+	userOapp, _, err = adminClient.UpdateOAuthApp(userOapp)
+	require.NoError(t, err)
 	assert.True(t, userOapp.IsTrusted)
 
 	userOapp.IsTrusted = false
-	userOapp, resp, _ = client.UpdateOAuthApp(userOapp)
-	CheckNoError(t, resp)
+	userOapp, _, err = client.UpdateOAuthApp(userOapp)
+	require.NoError(t, err)
 	assert.True(t, userOapp.IsTrusted)
 }
 
@@ -207,15 +207,15 @@ func TestGetOAuthApps(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp, _ := adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp, _ := client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	apps, resp, _ := adminClient.GetOAuthApps(0, 1000)
-	CheckNoError(t, resp)
+	apps, _, err = adminClient.GetOAuthApps(0, 1000)
+	require.NoError(t, err)
 
 	found1 := false
 	found2 := false
@@ -230,12 +230,12 @@ func TestGetOAuthApps(t *testing.T) {
 	assert.Truef(t, found1, "missing oauth app %v", rapp.Id)
 	assert.Truef(t, found2, "missing oauth app %v", rapp2.Id)
 
-	apps, resp, _ = adminClient.GetOAuthApps(1, 1)
-	CheckNoError(t, resp)
+	apps, _, err = adminClient.GetOAuthApps(1, 1)
+	require.NoError(t, err)
 	require.Equal(t, 1, len(apps), "paging failed")
 
-	apps, resp, _ = client.GetOAuthApps(0, 1000)
-	CheckNoError(t, resp)
+	apps, _, err = client.GetOAuthApps(0, 1000)
+	require.NoError(t, err)
 	require.True(t, len(apps) == 1 || apps[0].Id == rapp2.Id, "wrong apps returned")
 
 	// Revoke permission from regular users.
@@ -273,25 +273,25 @@ func TestGetOAuthApp(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp, _ := adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp, _ := client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	rrapp, resp, _ := adminClient.GetOAuthApp(rapp.Id)
-	CheckNoError(t, resp)
+	rrapp, _, err = adminClient.GetOAuthApp(rapp.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rapp.Id, rrapp.Id, "wrong app")
 	assert.NotEqual(t, "", rrapp.ClientSecret, "should not be sanitized")
 
-	rrapp2, resp, _ := adminClient.GetOAuthApp(rapp2.Id)
-	CheckNoError(t, resp)
+	rrapp2, _, err = adminClient.GetOAuthApp(rapp2.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rapp2.Id, rrapp2.Id, "wrong app")
 	assert.NotEqual(t, "", rrapp2.ClientSecret, "should not be sanitized")
 
-	_, resp, _ = client.GetOAuthApp(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.GetOAuthApp(rapp2.Id)
+	require.NoError(t, err)
 
 	_, resp, _ = client.GetOAuthApp(rapp.Id)
 	CheckForbiddenStatus(t, resp)
@@ -337,34 +337,34 @@ func TestGetOAuthAppInfo(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp, _ := adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp, _ := client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	rrapp, resp, _ := adminClient.GetOAuthAppInfo(rapp.Id)
-	CheckNoError(t, resp)
+	rrapp, _, err = adminClient.GetOAuthAppInfo(rapp.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rapp.Id, rrapp.Id, "wrong app")
 	assert.Equal(t, "", rrapp.ClientSecret, "should be sanitized")
 
-	rrapp2, resp, _ := adminClient.GetOAuthAppInfo(rapp2.Id)
-	CheckNoError(t, resp)
+	rrapp2, _, err = adminClient.GetOAuthAppInfo(rapp2.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rapp2.Id, rrapp2.Id, "wrong app")
 	assert.Equal(t, "", rrapp2.ClientSecret, "should be sanitized")
 
-	_, resp, _ = client.GetOAuthAppInfo(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.GetOAuthAppInfo(rapp2.Id)
+	require.NoError(t, err)
 
-	_, resp, _ = client.GetOAuthAppInfo(rapp.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.GetOAuthAppInfo(rapp.Id)
+	require.NoError(t, err)
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp, _ = client.GetOAuthAppInfo(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.GetOAuthAppInfo(rapp2.Id)
+	require.NoError(t, err)
 
 	client.Logout()
 
@@ -401,32 +401,32 @@ func TestDeleteOAuthApp(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp, _ := adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp, _ := client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	pass, resp, _ := adminClient.DeleteOAuthApp(rapp.Id)
-	CheckNoError(t, resp)
+	pass, _, err = adminClient.DeleteOAuthApp(rapp.Id)
+	require.NoError(t, err)
 	assert.True(t, pass, "should have passed")
 
-	_, resp, _ = adminClient.DeleteOAuthApp(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = adminClient.DeleteOAuthApp(rapp2.Id)
+	require.NoError(t, err)
 
-	rapp, resp, _ = adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp, _ = client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	_, resp, _ = client.DeleteOAuthApp(rapp.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.DeleteOAuthApp(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.DeleteOAuthApp(rapp2.Id)
+	require.NoError(t, err)
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
@@ -468,33 +468,33 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp, _ := adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp, _ := client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	rrapp, resp, _ := adminClient.RegenerateOAuthAppSecret(rapp.Id)
-	CheckNoError(t, resp)
+	rrapp, _, err = adminClient.RegenerateOAuthAppSecret(rapp.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rrapp.Id, rapp.Id, "wrong app")
 	assert.NotEqual(t, rapp.ClientSecret, rrapp.ClientSecret, "secret didn't change")
 
-	_, resp, _ = adminClient.RegenerateOAuthAppSecret(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = adminClient.RegenerateOAuthAppSecret(rapp2.Id)
+	require.NoError(t, err)
 
-	rapp, resp, _ = adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp, _ = client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	_, resp, _ = client.RegenerateOAuthAppSecret(rapp.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.RegenerateOAuthAppSecret(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.RegenerateOAuthAppSecret(rapp2.Id)
+	require.NoError(t, err)
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
@@ -531,8 +531,8 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp, _ := adminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.AuthCodeResponseType,
@@ -542,11 +542,11 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 		State:        "123",
 	}
 
-	_, resp, _ = client.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	_, _, err = client.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 
-	apps, resp, _ := client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
-	CheckNoError(t, resp)
+	apps, _, err = client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	require.NoError(t, err)
 
 	found := false
 	for _, a := range apps {
@@ -567,8 +567,8 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	_, resp, _ = client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = adminClient.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
-	CheckNoError(t, resp)
+	_, _, err = adminClient.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	require.NoError(t, err)
 }
 
 func closeBody(r *http.Response) {
@@ -585,5 +585,5 @@ func TestNilAuthorizeOAuthApp(t *testing.T) {
 
 	_, _, err := client.AuthorizeOAuthApp(nil)
 	require.Error(t, err)
-	CheckErrorMessage2(t, err, "api.context.invalid_body_param.app_error")
+	CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 }

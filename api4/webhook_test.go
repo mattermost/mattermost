@@ -32,8 +32,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 
 	hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 
-	rhook, resp, _ := th.SystemAdminClient.CreateIncomingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	require.Equal(t, hook.ChannelId, rhook.ChannelId, "channel ids didn't match")
 	require.Equal(t, th.SystemAdminUser.Id, rhook.UserId, "user ids didn't match")
@@ -45,8 +45,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 
 	hook.ChannelId = th.BasicChannel.Id
 	th.LoginTeamAdmin()
-	_, resp, _ = client.CreateIncomingWebhook(hook)
-	CheckNoError(t, resp)
+	_, _, err = client.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	th.LoginBasic()
 	_, resp, _ = client.CreateIncomingWebhook(hook)
@@ -54,21 +54,21 @@ func TestCreateIncomingWebhook(t *testing.T) {
 
 	th.AddPermissionToRole(model.PermissionManageIncomingWebhooks.Id, model.TeamUserRoleId)
 
-	_, resp, _ = client.CreateIncomingWebhook(hook)
-	CheckNoError(t, resp)
+	_, _, err = client.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = false })
 
-	_, resp, _ = client.CreateIncomingWebhook(hook)
-	CheckNoError(t, resp)
+	_, _, err = client.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		hook.UserId = th.BasicUser2.Id
 		defer func() { hook.UserId = "" }()
 
-		newHook, response, _ := client.CreateIncomingWebhook(hook)
-		CheckNoError(t, response)
+		newHook, _, err = client.CreateIncomingWebhook(hook)
+		require.NoError(t, err)
 		require.Equal(t, th.BasicUser2.Id, newHook.UserId)
 	}, "Create an incoming webhook for a different user")
 
@@ -116,8 +116,8 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 
 	hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 
-	rhook, resp, _ := th.Client.CreateIncomingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.Client.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	require.Equal(t, rhook.ChannelId, hook.ChannelId)
 	require.Equal(t, rhook.UserId, th.BasicUser.Id)
@@ -149,11 +149,11 @@ func TestGetIncomingWebhooks(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionManageIncomingWebhooks.Id, model.TeamUserRoleId)
 
 	hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
-	rhook, resp, _ := th.SystemAdminClient.CreateIncomingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
-	hooks, resp, _ := th.SystemAdminClient.GetIncomingWebhooks(0, 1000, "")
-	CheckNoError(t, resp)
+	hooks, _, err = th.SystemAdminClient.GetIncomingWebhooks(0, 1000, "")
+	require.NoError(t, err)
 
 	found := false
 	for _, h := range hooks {
@@ -165,13 +165,13 @@ func TestGetIncomingWebhooks(t *testing.T) {
 	require.True(t, found, "missing hook")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		hooks, resp, _ = client.GetIncomingWebhooks(0, 1, "")
-		CheckNoError(t, resp)
+		hooks, _, err = client.GetIncomingWebhooks(0, 1, "")
+		require.NoError(t, err)
 
 		require.Len(t, hooks, 1, "should only be 1 hook")
 
-		hooks, resp, _ = client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-		CheckNoError(t, resp)
+		hooks, _, err = client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+		require.NoError(t, err)
 
 		found = false
 		for _, h := range hooks {
@@ -182,8 +182,8 @@ func TestGetIncomingWebhooks(t *testing.T) {
 
 		require.True(t, found, "missing hook")
 
-		hooks, resp, _ = client.GetIncomingWebhooksForTeam(model.NewId(), 0, 1000, "")
-		CheckNoError(t, resp)
+		hooks, _, err = client.GetIncomingWebhooksForTeam(model.NewId(), 0, 1000, "")
+		require.NoError(t, err)
 
 		require.Empty(t, hooks, "no hooks should be returned")
 	})
@@ -193,8 +193,8 @@ func TestGetIncomingWebhooks(t *testing.T) {
 
 	th.AddPermissionToRole(model.PermissionManageIncomingWebhooks.Id, model.TeamUserRoleId)
 
-	_, resp, _ = client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	_, _, err = client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 
 	_, resp, _ = client.GetIncomingWebhooksForTeam(model.NewId(), 0, 1000, "")
 	CheckForbiddenStatus(t, resp)
@@ -224,28 +224,28 @@ func TestGetIncomingWebhooksListByUser(t *testing.T) {
 
 	// Basic user webhook
 	bHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicTeam.Id, UserId: th.BasicUser.Id}
-	basicHook, resp, _ := BasicClient.CreateIncomingWebhook(bHook)
-	CheckNoError(t, resp)
+	basicHook, _, err = BasicClient.CreateIncomingWebhook(bHook)
+	require.NoError(t, err)
 
-	basicHooks, resp, _ := BasicClient.GetIncomingWebhooks(0, 1000, "")
-	CheckNoError(t, resp)
+	basicHooks, _, err = BasicClient.GetIncomingWebhooks(0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(basicHooks))
 	assert.Equal(t, basicHook.Id, basicHooks[0].Id)
 
 	// Admin User webhook
 	aHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicTeam.Id, UserId: th.SystemAdminUser.Id}
-	_, resp, _ = th.SystemAdminClient.CreateIncomingWebhook(aHook)
-	CheckNoError(t, resp)
+	_, _, err = th.SystemAdminClient.CreateIncomingWebhook(aHook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		adminHooks, rresp, _ := client.GetIncomingWebhooks(0, 1000, "")
-		CheckNoError(t, rresp)
+		adminHooks, _, err = client.GetIncomingWebhooks(0, 1000, "")
+		require.NoError(t, rresp)
 		assert.Equal(t, 2, len(adminHooks))
 	})
 
 	//Re-check basic user that has no MANAGE_OTHERS permission
-	filteredHooks, resp, _ := BasicClient.GetIncomingWebhooks(0, 1000, "")
-	CheckNoError(t, resp)
+	filteredHooks, _, err = BasicClient.GetIncomingWebhooks(0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(filteredHooks))
 	assert.Equal(t, basicHook.Id, filteredHooks[0].Id)
 }
@@ -266,28 +266,28 @@ func TestGetIncomingWebhooksByTeam(t *testing.T) {
 
 	// Basic user webhook
 	bHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicTeam.Id, UserId: th.BasicUser.Id}
-	basicHook, resp, _ := BasicClient.CreateIncomingWebhook(bHook)
-	CheckNoError(t, resp)
+	basicHook, _, err = BasicClient.CreateIncomingWebhook(bHook)
+	require.NoError(t, err)
 
-	basicHooks, resp, _ := BasicClient.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	basicHooks, _, err = BasicClient.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(basicHooks))
 	assert.Equal(t, basicHook.Id, basicHooks[0].Id)
 
 	// Admin User webhook
 	aHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicTeam.Id, UserId: th.SystemAdminUser.Id}
-	_, resp, _ = th.SystemAdminClient.CreateIncomingWebhook(aHook)
-	CheckNoError(t, resp)
+	_, _, err = th.SystemAdminClient.CreateIncomingWebhook(aHook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		adminHooks, rresp, _ := client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-		CheckNoError(t, rresp)
+		adminHooks, _, err = client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+		require.NoError(t, rresp)
 		assert.Equal(t, 2, len(adminHooks))
 	})
 
 	//Re-check basic user that has no MANAGE_OTHERS permission
-	filteredHooks, resp, _ := BasicClient.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	filteredHooks, _, err = BasicClient.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(filteredHooks))
 	assert.Equal(t, basicHook.Id, filteredHooks[0].Id)
 }
@@ -299,8 +299,8 @@ func TestGetIncomingWebhook(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
-	rhook, resp, _ := th.SystemAdminClient.CreateIncomingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		hook, resp, _ = client.GetIncomingWebhook(rhook.Id, "")
@@ -350,8 +350,8 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		// This request is performed by a system admin in both local
 		// and sysadmin cases as it's not currently possible to create
 		// a webhook via local mode
-		rhook, resp, _ = th.SystemAdminClient.CreateIncomingWebhook(hook)
-		CheckNoError(t, resp)
+		rhook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook)
+		require.NoError(t, err)
 
 		status, resp, _ = client.DeleteIncomingWebhook(rhook.Id)
 		require.True(t, status, "Delete should have succeeded")
@@ -365,8 +365,8 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 
 	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
 		hook = &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
-		rhook, resp, _ = th.SystemAdminClient.CreateIncomingWebhook(hook)
-		CheckNoError(t, resp)
+		rhook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook)
+		require.NoError(t, err)
 
 		th.LoginBasic()
 		_, resp, _ = th.Client.DeleteIncomingWebhook(rhook.Id)
@@ -390,8 +390,8 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 
 	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
 
-	rhook, resp, _ := th.SystemAdminClient.CreateOutgoingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	require.NoError(t, err)
 
 	assert.Equal(t, hook.ChannelId, rhook.ChannelId, "channel ids didn't match")
 	assert.Equal(t, th.SystemAdminUser.Id, rhook.CreatorId, "user ids didn't match")
@@ -403,8 +403,8 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 
 	hook.ChannelId = th.BasicChannel.Id
 	th.LoginTeamAdmin()
-	_, resp, _ = client.CreateOutgoingWebhook(hook)
-	CheckNoError(t, resp)
+	_, _, err = client.CreateOutgoingWebhook(hook)
+	require.NoError(t, err)
 
 	th.LoginBasic()
 	_, resp, _ = client.CreateOutgoingWebhook(hook)
@@ -412,15 +412,15 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 
 	th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamUserRoleId)
 
-	_, resp, _ = client.CreateOutgoingWebhook(hook)
-	CheckNoError(t, resp)
+	_, _, err = client.CreateOutgoingWebhook(hook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		hook.CreatorId = th.BasicUser2.Id
 		defer func() { hook.CreatorId = "" }()
 
-		newHook, response, _ := client.CreateOutgoingWebhook(hook)
-		CheckNoError(t, response)
+		newHook, _, err = client.CreateOutgoingWebhook(hook)
+		require.NoError(t, err)
 		require.Equal(t, th.BasicUser2.Id, newHook.CreatorId)
 	}, "Create an outgoing webhook for a different user")
 
@@ -465,12 +465,12 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamUserRoleId)
 
 	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
-	rhook, resp, _ := th.SystemAdminClient.CreateOutgoingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		hooks, rresp, _ := client.GetOutgoingWebhooks(0, 1000, "")
-		CheckNoError(t, rresp)
+		hooks, _, err = client.GetOutgoingWebhooks(0, 1000, "")
+		require.NoError(t, rresp)
 
 		found := false
 		for _, h := range hooks {
@@ -481,13 +481,13 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 
 		require.True(t, found, "missing hook")
 
-		hooks, rresp, _ = client.GetOutgoingWebhooks(0, 1, "")
-		CheckNoError(t, rresp)
+		hooks, _, err = client.GetOutgoingWebhooks(0, 1, "")
+		require.NoError(t, err)
 
 		require.Len(t, hooks, 1, "should only be 1 hook")
 
-		hooks, rresp, _ = client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-		CheckNoError(t, rresp)
+		hooks, _, err = client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+		require.NoError(t, err)
 
 		found = false
 		for _, h := range hooks {
@@ -498,13 +498,13 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 
 		require.True(t, found, "missing hook")
 
-		hooks, rresp, _ = client.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
-		CheckNoError(t, rresp)
+		hooks, _, err = client.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
+		require.NoError(t, err)
 
 		require.Empty(t, hooks, "no hooks should be returned")
 
-		hooks, rresp, _ = client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
-		CheckNoError(t, rresp)
+		hooks, _, err = client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+		require.NoError(t, err)
 
 		found = false
 		for _, h := range hooks {
@@ -524,14 +524,14 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 
 	th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamUserRoleId)
 
-	_, resp, _ = th.Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	_, _, err = th.Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 
 	_, resp, _ = th.Client.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.Client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	_, _, err = th.Client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+	require.NoError(t, err)
 
 	_, resp, _ = th.Client.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
 	CheckForbiddenStatus(t, resp)
@@ -559,28 +559,28 @@ func TestGetOutgoingWebhooksByTeam(t *testing.T) {
 
 	// Basic user webhook
 	bHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
-	basicHook, resp, _ := th.Client.CreateOutgoingWebhook(bHook)
-	CheckNoError(t, resp)
+	basicHook, _, err = th.Client.CreateOutgoingWebhook(bHook)
+	require.NoError(t, err)
 
-	basicHooks, resp, _ := th.Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	basicHooks, _, err = th.Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(basicHooks))
 	assert.Equal(t, basicHook.Id, basicHooks[0].Id)
 
 	// Admin User webhook
 	aHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
-	_, resp, _ = th.SystemAdminClient.CreateOutgoingWebhook(aHook)
-	CheckNoError(t, resp)
+	_, _, err = th.SystemAdminClient.CreateOutgoingWebhook(aHook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		adminHooks, rresp, _ := client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-		CheckNoError(t, rresp)
+		adminHooks, _, err = client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+		require.NoError(t, rresp)
 		assert.Equal(t, 2, len(adminHooks))
 	})
 
 	//Re-check basic user that has no MANAGE_OTHERS permission
-	filteredHooks, resp, _ := th.Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	filteredHooks, _, err = th.Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(filteredHooks))
 	assert.Equal(t, basicHook.Id, filteredHooks[0].Id)
 }
@@ -600,28 +600,28 @@ func TestGetOutgoingWebhooksByChannel(t *testing.T) {
 
 	// Basic user webhook
 	bHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
-	basicHook, resp, _ := th.Client.CreateOutgoingWebhook(bHook)
-	CheckNoError(t, resp)
+	basicHook, _, err = th.Client.CreateOutgoingWebhook(bHook)
+	require.NoError(t, err)
 
-	basicHooks, resp, _ := th.Client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	basicHooks, _, err = th.Client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(basicHooks))
 	assert.Equal(t, basicHook.Id, basicHooks[0].Id)
 
 	// Admin User webhook
 	aHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
-	_, resp, _ = th.SystemAdminClient.CreateOutgoingWebhook(aHook)
-	CheckNoError(t, resp)
+	_, _, err = th.SystemAdminClient.CreateOutgoingWebhook(aHook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		adminHooks, rresp, _ := client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
-		CheckNoError(t, rresp)
+		adminHooks, _, err = client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+		require.NoError(t, rresp)
 		assert.Equal(t, 2, len(adminHooks))
 	})
 
 	//Re-check basic user that has no MANAGE_OTHERS permission
-	filteredHooks, resp, _ := th.Client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
-	CheckNoError(t, resp)
+	filteredHooks, _, err = th.Client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(filteredHooks))
 	assert.Equal(t, basicHook.Id, filteredHooks[0].Id)
 }
@@ -642,28 +642,28 @@ func TestGetOutgoingWebhooksListByUser(t *testing.T) {
 
 	// Basic user webhook
 	bHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
-	basicHook, resp, _ := th.Client.CreateOutgoingWebhook(bHook)
-	CheckNoError(t, resp)
+	basicHook, _, err = th.Client.CreateOutgoingWebhook(bHook)
+	require.NoError(t, err)
 
-	basicHooks, resp, _ := th.Client.GetOutgoingWebhooks(0, 1000, "")
-	CheckNoError(t, resp)
+	basicHooks, _, err = th.Client.GetOutgoingWebhooks(0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(basicHooks))
 	assert.Equal(t, basicHook.Id, basicHooks[0].Id)
 
 	// Admin User webhook
 	aHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
-	_, resp, _ = th.SystemAdminClient.CreateOutgoingWebhook(aHook)
-	CheckNoError(t, resp)
+	_, _, err = th.SystemAdminClient.CreateOutgoingWebhook(aHook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		adminHooks, rresp, _ := client.GetOutgoingWebhooks(0, 1000, "")
-		CheckNoError(t, rresp)
+		adminHooks, _, err = client.GetOutgoingWebhooks(0, 1000, "")
+		require.NoError(t, rresp)
 		assert.Equal(t, 2, len(adminHooks))
 	})
 
 	//Re-check basic user that has no MANAGE_OTHERS permission
-	filteredHooks, resp, _ := th.Client.GetOutgoingWebhooks(0, 1000, "")
-	CheckNoError(t, resp)
+	filteredHooks, _, err = th.Client.GetOutgoingWebhooks(0, 1000, "")
+	require.NoError(t, err)
 	assert.Equal(t, 1, len(filteredHooks))
 	assert.Equal(t, basicHook.Id, filteredHooks[0].Id)
 }
@@ -676,12 +676,12 @@ func TestGetOutgoingWebhook(t *testing.T) {
 
 	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
 
-	rhook, resp, _ := th.SystemAdminClient.CreateOutgoingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		getHook, rresp, _ := client.GetOutgoingWebhook(rhook.Id)
-		CheckNoError(t, rresp)
+		getHook, _, err = client.GetOutgoingWebhook(rhook.Id)
+		require.NoError(t, rresp)
 
 		require.Equal(t, getHook.Id, rhook.Id, "failed to retrieve the correct outgoing hook")
 	})
@@ -715,7 +715,6 @@ func TestUpdateIncomingHook(t *testing.T) {
 
 	hook1 := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 
-	var resp *model.Response
 	var createdHook *model.IncomingWebhook
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = false })
@@ -725,8 +724,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		// webhook creations are allways performed by a sysadmin
 		// because it's not currently possible to create a webhook via
 		// local mode
-		createdHook, resp, _ = th.SystemAdminClient.CreateIncomingWebhook(hook1)
-		CheckNoError(t, resp)
+		createdHook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook1)
+		require.NoError(t, err)
 
 		createdHook.DisplayName = "hook2"
 		createdHook.Description = "description"
@@ -734,8 +733,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		createdHook.Username = "username"
 		createdHook.IconURL = "icon"
 
-		updatedHook, rresp, _ := client.UpdateIncomingWebhook(createdHook)
-		CheckNoError(t, rresp)
+		updatedHook, _, err = client.UpdateIncomingWebhook(createdHook)
+		require.NoError(t, rresp)
 
 		require.NotNil(t, updatedHook, "should not be nil")
 		require.Exactly(t, "hook2", updatedHook.DisplayName, "Hook name is not updated")
@@ -752,8 +751,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		createdHook, resp, _ = th.SystemAdminClient.CreateIncomingWebhook(hook1)
-		CheckNoError(t, resp)
+		createdHook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook1)
+		require.NoError(t, err)
 
 		createdHook.DisplayName = "hook2"
 		createdHook.Description = "description"
@@ -761,8 +760,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		createdHook.Username = "username"
 		createdHook.IconURL = "icon"
 
-		updatedHook, resp, _ := client.UpdateIncomingWebhook(createdHook)
-		CheckNoError(t, resp)
+		updatedHook, _, err = client.UpdateIncomingWebhook(createdHook)
+		require.NoError(t, err)
 
 		require.NotNil(t, updatedHook, "should not be nil")
 		require.Exactly(t, "hook2", updatedHook.DisplayName, "Hook name is not updated")
@@ -778,13 +777,13 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		hook2 := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, CreateAt: 100}
 
-		createdHook2, resp, _ := th.SystemAdminClient.CreateIncomingWebhook(hook2)
-		CheckNoError(t, resp)
+		createdHook2, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook2)
+		require.NoError(t, err)
 
 		createdHook2.DisplayName = "Name2"
 
-		updatedHook, resp, _ := client.UpdateIncomingWebhook(createdHook2)
-		CheckNoError(t, resp)
+		updatedHook, _, err = client.UpdateIncomingWebhook(createdHook2)
+		require.NoError(t, err)
 		require.NotNil(t, updatedHook)
 		assert.Equal(t, createdHook2.CreateAt, updatedHook.CreateAt)
 	}, "RetainCreateAt")
@@ -792,8 +791,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		createdHook.DisplayName = "Name3"
 
-		updatedHook, resp, _ := client.UpdateIncomingWebhook(createdHook)
-		CheckNoError(t, resp)
+		updatedHook, _, err = client.UpdateIncomingWebhook(createdHook)
+		require.NoError(t, err)
 		require.NotNil(t, updatedHook, "should not be nil")
 		require.NotEqual(t, createdHook.UpdateAt, updatedHook.UpdateAt, "failed - hook updateAt is not updated")
 	}, "ModifyUpdateAt")
@@ -823,12 +822,12 @@ func TestUpdateIncomingHook(t *testing.T) {
 		t.Run("UpdateHookOfSameUser", func(t *testing.T) {
 			sameUserHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 
-			sameUserHook, resp, _ := th.Client.CreateIncomingWebhook(sameUserHook)
-			CheckNoError(t, resp)
+			sameUserHook, _, err = th.Client.CreateIncomingWebhook(sameUserHook)
+			require.NoError(t, err)
 
 			sameUserHook.UserId = th.BasicUser2.Id
-			_, resp, _ = th.Client.UpdateIncomingWebhook(sameUserHook)
-			CheckNoError(t, resp)
+			_, _, err = th.Client.UpdateIncomingWebhook(sameUserHook)
+			require.NoError(t, err)
 		})
 
 		t.Run("UpdateHookOfDifferentUser", func(t *testing.T) {
@@ -844,8 +843,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 	th.LoginBasic2()
 	t.Run("UpdateByDifferentUser", func(t *testing.T) {
-		updatedHook, resp, _ := th.Client.UpdateIncomingWebhook(createdHook)
-		CheckNoError(t, resp)
+		updatedHook, _, err = th.Client.UpdateIncomingWebhook(createdHook)
+		require.NoError(t, err)
 		require.NotEqual(t, th.BasicUser2.Id, updatedHook.UserId, "Hook's creator userId is not retained")
 	})
 
@@ -853,7 +852,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 		_, resp, _ := th.Client.UpdateIncomingWebhook(createdHook)
 		CheckNotImplementedStatus(t, resp)
-		CheckErrorMessage(t, resp, "api.incoming_webhook.disabled.app_error")
+		CheckErrorID(t, err, "api.incoming_webhook.disabled.app_error")
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -901,8 +900,8 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 
 	hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 
-	rhook, resp, _ := th.Client.CreateIncomingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.Client.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	require.Equal(t, rhook.ChannelId, hook.ChannelId)
 	require.Equal(t, rhook.UserId, th.BasicUser.Id)
@@ -927,8 +926,8 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
-	rhook, resp, _ := th.SystemAdminClient.CreateOutgoingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	require.NoError(t, err)
 
 	_, resp, _ = th.SystemAdminClient.RegenOutgoingHookToken("junk")
 	CheckBadRequestStatus(t, resp)
@@ -937,8 +936,8 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	// _, resp,_ = th.SystemAdminClient.RegenOutgoingHookToken("")
 	// CheckNotFoundStatus(t, resp)
 
-	regenHookToken, resp, _ := th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
-	CheckNoError(t, resp)
+	regenHookToken, _, err = th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
+	require.NoError(t, err)
 	require.NotEqual(t, rhook.Token, regenHookToken.Token, "regen didn't work properly")
 
 	_, resp, _ = client.RegenOutgoingHookToken(rhook.Id)
@@ -965,30 +964,30 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"cats"}}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		rcreatedHook, webookResp, _ := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
-		CheckNoError(t, webookResp)
+		rcreatedHook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
+		require.NoError(t, webookResp)
 		defer func() {
-			_, resp, _ := client.DeleteOutgoingWebhook(rcreatedHook.Id)
-			CheckNoError(t, resp)
+			_, _, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
+			require.NoError(t, err)
 		}()
 
 		rcreatedHook.DisplayName = "Cats"
 		rcreatedHook.Description = "Get me some cats"
 
-		updatedHook, resp, _ := client.UpdateOutgoingWebhook(rcreatedHook)
-		CheckNoError(t, resp)
+		updatedHook, _, err = client.UpdateOutgoingWebhook(rcreatedHook)
+		require.NoError(t, err)
 
 		require.Exactly(t, "Cats", updatedHook.DisplayName, "did not update")
 		require.Exactly(t, "Get me some cats", updatedHook.Description, "did not update")
 	}, "UpdateOutgoingWebhook")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		rcreatedHook, webookResp, _ := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
-		CheckNoError(t, webookResp)
+		rcreatedHook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
+		require.NoError(t, webookResp)
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-			_, resp, _ := client.DeleteOutgoingWebhook(rcreatedHook.Id)
-			CheckNoError(t, resp)
+			_, _, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
+			require.NoError(t, err)
 		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
@@ -1001,31 +1000,31 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		hook2 := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats"}}
 
-		createdHook2, resp, _ := th.SystemAdminClient.CreateOutgoingWebhook(hook2)
-		CheckNoError(t, resp)
+		createdHook2, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook2)
+		require.NoError(t, err)
 		defer func() {
-			_, rresp, _ := client.DeleteOutgoingWebhook(createdHook2.Id)
-			CheckNoError(t, rresp)
+			_, _, err = client.DeleteOutgoingWebhook(createdHook2.Id)
+			require.NoError(t, rresp)
 		}()
 		createdHook2.DisplayName = "Name2"
 
-		updatedHook2, resp, _ := client.UpdateOutgoingWebhook(createdHook2)
-		CheckNoError(t, resp)
+		updatedHook2, _, err = client.UpdateOutgoingWebhook(createdHook2)
+		require.NoError(t, err)
 
 		require.Equal(t, createdHook2.CreateAt, updatedHook2.CreateAt, "failed - hook create at should not be changed")
 	}, "RetainCreateAt")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		rcreatedHook, resp, _ := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
-		CheckNoError(t, resp)
+		rcreatedHook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
+		require.NoError(t, err)
 		defer func() {
-			_, rresp, _ := client.DeleteOutgoingWebhook(rcreatedHook.Id)
-			CheckNoError(t, rresp)
+			_, _, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
+			require.NoError(t, rresp)
 		}()
 		rcreatedHook.DisplayName = "Name3"
 
-		updatedHook2, resp, _ := client.UpdateOutgoingWebhook(rcreatedHook)
-		CheckNoError(t, resp)
+		updatedHook2, _, err = client.UpdateOutgoingWebhook(rcreatedHook)
+		require.NoError(t, err)
 
 		require.NotEqual(t, createdHook.UpdateAt, updatedHook2.UpdateAt, "failed - hook updateAt is not updated")
 	}, "ModifyUpdateAt")
@@ -1042,8 +1041,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	}, "UpdateNonExistentHook")
 
-	createdHook, resp, _ := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
-	CheckNoError(t, resp)
+	createdHook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
+	require.NoError(t, err)
 
 	t.Run("UserIsNotAdminOfTeam", func(t *testing.T) {
 		_, rresp, _ := th.Client.UpdateOutgoingWebhook(createdHook)
@@ -1054,8 +1053,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	hook2 := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 		CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats2"}}
 
-	createdHook2, resp, _ := th.SystemAdminClient.CreateOutgoingWebhook(hook2)
-	CheckNoError(t, resp)
+	createdHook2, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook2)
+	require.NoError(t, err)
 
 	_, resp, _ = th.Client.UpdateOutgoingWebhook(createdHook2)
 	CheckForbiddenStatus(t, resp)
@@ -1068,8 +1067,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	th.LoginBasic2()
 	t.Run("RetainHookCreator", func(t *testing.T) {
 		createdHook.DisplayName = "Basic user 2"
-		updatedHook, rresp, _ := th.Client.UpdateOutgoingWebhook(createdHook)
-		CheckNoError(t, rresp)
+		updatedHook, _, err = th.Client.UpdateOutgoingWebhook(createdHook)
+		require.NoError(t, rresp)
 
 		require.Exactly(t, "Basic user 2", updatedHook.DisplayName, "should apply the change")
 		require.Equal(t, th.SystemAdminUser.Id, updatedHook.CreatorId, "hook creator should not be changed")
@@ -1078,19 +1077,19 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		firstHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://someurl"}, TriggerWords: []string{"first"}}
-		firstHook, resp, _ = th.SystemAdminClient.CreateOutgoingWebhook(firstHook)
-		CheckNoError(t, resp)
+		firstHook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(firstHook)
+		require.NoError(t, err)
 
 		baseHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://someurl"}, TriggerWords: []string{"base"}}
-		baseHook, resp, _ = th.SystemAdminClient.CreateOutgoingWebhook(baseHook)
-		CheckNoError(t, resp)
+		baseHook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(baseHook)
+		require.NoError(t, err)
 
 		defer func() {
-			_, resp, _ := client.DeleteOutgoingWebhook(firstHook.Id)
-			CheckNoError(t, resp)
-			_, resp, _ = client.DeleteOutgoingWebhook(baseHook.Id)
-			CheckNoError(t, resp)
+			_, _, err = client.DeleteOutgoingWebhook(firstHook.Id)
+			require.NoError(t, err)
+			_, _, err = client.DeleteOutgoingWebhook(baseHook.Id)
+			require.NoError(t, err)
 		}()
 
 		t.Run("OnSameChannel", func(t *testing.T) {
@@ -1104,8 +1103,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 			baseHook.TriggerWords = []string{"first"}
 			baseHook.ChannelId = th.BasicChannel2.Id
 
-			_, resp, _ := client.UpdateOutgoingWebhook(baseHook)
-			CheckNoError(t, resp)
+			_, _, err = client.UpdateOutgoingWebhook(baseHook)
+			require.NoError(t, err)
 		})
 	}, "UpdateToExistingTriggerWordAndCallback")
 
@@ -1158,8 +1157,8 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 		CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats2"}}
 
-	rhook, resp, _ := th.Client.CreateOutgoingWebhook(hook)
-	CheckNoError(t, resp)
+	rhook, _, err = th.Client.CreateOutgoingWebhook(hook)
+	require.NoError(t, err)
 
 	require.Equal(t, rhook.ChannelId, hook.ChannelId)
 	require.Equal(t, rhook.TeamId, th.BasicTeam.Id)
@@ -1199,8 +1198,8 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		hook = &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"cats"}}
-		rhook, resp, _ = th.SystemAdminClient.CreateOutgoingWebhook(hook)
-		CheckNoError(t, resp)
+		rhook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+		require.NoError(t, err)
 
 		status, resp, _ = client.DeleteOutgoingWebhook(rhook.Id)
 
@@ -1215,8 +1214,8 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
 		hook = &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"dogs"}}
-		rhook, resp, _ = th.SystemAdminClient.CreateOutgoingWebhook(hook)
-		CheckNoError(t, resp)
+		rhook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+		require.NoError(t, err)
 
 		th.LoginBasic()
 		_, resp, _ = th.Client.DeleteOutgoingWebhook(rhook.Id)

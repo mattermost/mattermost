@@ -29,13 +29,13 @@ func TestCreateBot(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
-		_, resp, _ := th.Client.CreateBot(&model.Bot{
+		_, _, err := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
 			DisplayName: "a bot",
 			Description: "bot",
 		})
 
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
 	t.Run("create bot without config permissions", func(t *testing.T) {
@@ -46,13 +46,13 @@ func TestCreateBot(t *testing.T) {
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.Config().ServiceSettings.EnableBotAccountCreation = model.NewBool(false)
 
-		_, resp, _ := th.Client.CreateBot(&model.Bot{
+		_, _, err := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
 			DisplayName: "a bot",
 			Description: "bot",
 		})
 
-		CheckErrorMessage(t, resp, "api.bot.create_disabled")
+		CheckErrorID(t, err, "api.bot.create_disabled")
 	})
 
 	t.Run("create bot with permissions", func(t *testing.T) {
@@ -91,13 +91,13 @@ func TestCreateBot(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
-		_, resp, _ := th.Client.CreateBot(&model.Bot{
+		_, _, err := th.Client.CreateBot(&model.Bot{
 			Username:    "username",
 			DisplayName: "a bot",
 			Description: strings.Repeat("x", 1025),
 		})
 
-		CheckErrorMessage(t, resp, "model.bot.is_valid.description.app_error")
+		CheckErrorID(t, err, "model.bot.is_valid.description.app_error")
 	})
 
 	t.Run("bot attempt to create bot fails", func(t *testing.T) {
@@ -122,17 +122,17 @@ func TestCreateBot(t *testing.T) {
 		defer th.App.PermanentDeleteBot(bot.UserId)
 		th.App.UpdateUserRoles(bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
-		rtoken, resp, _ := th.Client.CreateUserAccessToken(bot.UserId, "test token")
-		CheckNoError(t, resp)
+		rtoken, _, err := th.Client.CreateUserAccessToken(bot.UserId, "test token")
+		require.NoError(t, err)
 		th.Client.AuthToken = rtoken.Token
 
-		_, resp, _ = th.Client.CreateBot(&model.Bot{
+		_, _, err = th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
 			OwnerId:     bot.UserId,
 			DisplayName: "a bot2",
 			Description: "bot2",
 		})
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
 }
@@ -222,8 +222,8 @@ func TestPatchBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(createdBot.UserId)
 
-		_, resp, _ = th.Client.PatchBot(createdBot.UserId, &model.BotPatch{})
-		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+		_, _, err := th.Client.PatchBot(createdBot.UserId, &model.BotPatch{})
+		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
 	})
 
 	t.Run("patch someone else's bot without permission, but with read others permission", func(t *testing.T) {
@@ -245,8 +245,8 @@ func TestPatchBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(createdBot.UserId)
 
-		_, resp, _ = th.Client.PatchBot(createdBot.UserId, &model.BotPatch{})
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		_, _, err := th.Client.PatchBot(createdBot.UserId, &model.BotPatch{})
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
 	t.Run("patch someone else's bot with permission", func(t *testing.T) {
@@ -323,8 +323,8 @@ func TestPatchBot(t *testing.T) {
 			Description: sToP("updated bot"),
 		}
 
-		_, resp, _ = th.Client.PatchBot(createdBot.UserId, botPatch)
-		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+		_, _, err := th.Client.PatchBot(createdBot.UserId, botPatch)
+		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
 	})
 
 	t.Run("patch my bot without permission, but with read permission", func(t *testing.T) {
@@ -353,8 +353,8 @@ func TestPatchBot(t *testing.T) {
 			Description: sToP("updated bot"),
 		}
 
-		_, resp, _ = th.Client.PatchBot(createdBot.UserId, botPatch)
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		_, _, err := th.Client.PatchBot(createdBot.UserId, botPatch)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
 	t.Run("patch my bot with permission", func(t *testing.T) {
@@ -560,8 +560,8 @@ func TestGetBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
-		_, resp, _ := th.Client.GetBot(bot1.UserId, "")
-		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+		_, _, err := th.Client.GetBot(bot1.UserId, "")
+		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
 	})
 
 	t.Run("get myBot without ReadBots OR ReadOthersBots permissions", func(t *testing.T) {
@@ -572,8 +572,8 @@ func TestGetBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
-		_, resp, _ := th.Client.GetBot(myBot.UserId, "")
-		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+		_, _, err := th.Client.GetBot(myBot.UserId, "")
+		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
 	})
 
 	t.Run("get deleted bot", func(t *testing.T) {
@@ -852,8 +852,8 @@ func TestGetBots(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
-		_, resp, _ := th.Client.GetBots(0, 10, "")
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		_, _, err := th.Client.GetBots(0, 10, "")
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 }
 
@@ -888,8 +888,8 @@ func TestDisableBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(createdBot.UserId)
 
-		_, resp, _ = th.Client.DisableBot(createdBot.UserId)
-		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+		_, _, err := th.Client.DisableBot(createdBot.UserId)
+		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
 	})
 
 	t.Run("disable bot without permission, but with read permission", func(t *testing.T) {
@@ -913,8 +913,8 @@ func TestDisableBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(createdBot.UserId)
 
-		_, resp, _ = th.Client.DisableBot(createdBot.UserId)
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		_, _, err := th.Client.DisableBot(createdBot.UserId)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
 	t.Run("disable bot with permission", func(t *testing.T) {
@@ -989,8 +989,8 @@ func TestEnableBot(t *testing.T) {
 		_, resp, _ = th.SystemAdminClient.DisableBot(createdBot.UserId)
 		CheckOKStatus(t, resp)
 
-		_, resp, _ = th.Client.EnableBot(createdBot.UserId)
-		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+		_, _, err := th.Client.EnableBot(createdBot.UserId)
+		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
 	})
 
 	t.Run("enable bot without permission, but with read permission", func(t *testing.T) {
@@ -1017,8 +1017,8 @@ func TestEnableBot(t *testing.T) {
 		_, resp, _ = th.SystemAdminClient.DisableBot(createdBot.UserId)
 		CheckOKStatus(t, resp)
 
-		_, resp, _ = th.Client.EnableBot(createdBot.UserId)
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		_, _, err := th.Client.EnableBot(createdBot.UserId)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
 	t.Run("enable bot with permission", func(t *testing.T) {
@@ -1136,13 +1136,13 @@ func TestAssignBot(t *testing.T) {
 		th.LoginBasic2()
 
 		// Without permission to read others bots it doesn't exist
-		_, resp, _ = th.Client.AssignBot(createdBot.UserId, th.BasicUser2.Id)
-		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+		_, _, err := th.Client.AssignBot(createdBot.UserId, th.BasicUser2.Id)
+		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
 
 		// With permissions to read we don't have permissions to modify
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
-		_, resp, _ = th.Client.AssignBot(createdBot.UserId, th.BasicUser2.Id)
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		_, _, err = th.Client.AssignBot(createdBot.UserId, th.BasicUser2.Id)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 
 		th.LoginBasic()
 	})
@@ -1206,8 +1206,8 @@ func TestAssignBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(bot2.UserId)
 
-		_, resp, _ = th.Client.AssignBot(bot.UserId, bot2.UserId)
-		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		_, _, err := th.Client.AssignBot(bot.UserId, bot2.UserId)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	})
 }
@@ -1253,8 +1253,8 @@ func TestSetBotIconImage(t *testing.T) {
 	require.False(t, ok, "Should return false, set icon image not allowed")
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = th.Client.SetBotIconImage(bot.UserId, goodData)
-	CheckNoError(t, resp)
+	_, _, err = th.Client.SetBotIconImage(bot.UserId, goodData)
+	require.NoError(t, err)
 
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetBotIconImage when request is terminated early by server
@@ -1268,8 +1268,8 @@ func TestSetBotIconImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	_, resp, _ = th.SystemAdminClient.SetBotIconImage(bot.UserId, goodData)
-	CheckNoError(t, resp)
+	_, _, err = th.SystemAdminClient.SetBotIconImage(bot.UserId, goodData)
+	require.NoError(t, err)
 
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
 	actualData, appErr := th.App.ReadFile(fpath)
@@ -1322,8 +1322,8 @@ func TestGetBotIconImage(t *testing.T) {
 	_, appErr := th.App.WriteFile(svgFile, fpath)
 	require.Nil(t, appErr)
 
-	data, resp, _ = th.Client.GetBotIconImage(bot.UserId)
-	CheckNoError(t, resp)
+	data, _, err = th.Client.GetBotIconImage(bot.UserId)
+	require.NoError(t, err)
 	require.Equal(t, expectedData, data)
 
 	_, resp, _ = th.Client.GetBotIconImage("junk")
@@ -1336,8 +1336,8 @@ func TestGetBotIconImage(t *testing.T) {
 	_, resp, _ = th.Client.GetBotIconImage(bot.UserId)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.GetBotIconImage(bot.UserId)
-	CheckNoError(t, resp)
+	_, _, err = th.SystemAdminClient.GetBotIconImage(bot.UserId)
+	require.NoError(t, err)
 
 	info := &model.FileInfo{Path: "/bots/" + bot.UserId + "/icon.svg"}
 	err = th.cleanupTestFile(info)
@@ -1374,16 +1374,16 @@ func TestDeleteBotIconImage(t *testing.T) {
 	svgData, err := testutils.ReadTestFile("test.svg")
 	require.NoError(t, err)
 
-	_, resp, _ = th.Client.SetBotIconImage(bot.UserId, svgData)
-	CheckNoError(t, resp)
+	_, _, err = th.Client.SetBotIconImage(bot.UserId, svgData)
+	require.NoError(t, err)
 
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
 	exists, appErr := th.App.FileExists(fpath)
 	require.Nil(t, appErr)
 	require.True(t, exists, "icon.svg needs to exist for the user")
 
-	data, resp, _ = th.Client.GetBotIconImage(bot.UserId)
-	CheckNoError(t, resp)
+	data, _, err = th.Client.GetBotIconImage(bot.UserId)
+	require.NoError(t, err)
 	require.Equal(t, svgData, data)
 
 	success, resp, _ := th.Client.DeleteBotIconImage("junk")
@@ -1394,8 +1394,8 @@ func TestDeleteBotIconImage(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 	require.False(t, success)
 
-	success, resp, _ = th.Client.DeleteBotIconImage(bot.UserId)
-	CheckNoError(t, resp)
+	success, _, err = th.Client.DeleteBotIconImage(bot.UserId)
+	require.NoError(t, err)
 	require.True(t, success)
 
 	th.Client.Logout()
@@ -1445,8 +1445,8 @@ func TestConvertBotToUser(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, user)
 
-		user, resp, _ = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
-		CheckNoError(t, resp)
+		user, _, err := client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)
 
@@ -1460,8 +1460,8 @@ func TestConvertBotToUser(t *testing.T) {
 		bot, resp, _ = th.SystemAdminClient.CreateBot(bot)
 		CheckCreatedStatus(t, resp)
 
-		user, resp, _ = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
-		CheckNoError(t, resp)
+		user, _, err = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
+		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)
 		require.Contains(t, user.GetRoles(), model.SystemAdminRoleId)

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -20,16 +21,16 @@ func TestGetAncillaryPermissions(t *testing.T) {
 	t.Run("Valid Case, Passing in SubSection Permissions", func(t *testing.T) {
 		subsectionPermissions = []string{model.PermissionSysconsoleReadReportingSiteStatistics.Id}
 		expectedAncillaryPermissions = []string{model.PermissionGetAnalytics.Id}
-		actualAncillaryPermissions, resp, _ := th.Client.GetAncillaryPermissions(subsectionPermissions)
-		CheckNoError(t, resp)
+		actualAncillaryPermissions, _, err = th.Client.GetAncillaryPermissions(subsectionPermissions)
+		require.NoError(t, err)
 		assert.Equal(t, append(subsectionPermissions, expectedAncillaryPermissions...), actualAncillaryPermissions)
 	})
 
 	t.Run("Invalid Case, Passing in SubSection Permissions That Don't Exist", func(t *testing.T) {
 		subsectionPermissions = []string{"All", "The", "Things", "She", "Said", "Running", "Through", "My", "Head"}
 		expectedAncillaryPermissions = []string{}
-		actualAncillaryPermissions, resp, _ := th.Client.GetAncillaryPermissions(subsectionPermissions)
-		CheckNoError(t, resp)
+		actualAncillaryPermissions, _, err = th.Client.GetAncillaryPermissions(subsectionPermissions)
+		require.NoError(t, err)
 		assert.Equal(t, append(subsectionPermissions, expectedAncillaryPermissions...), actualAncillaryPermissions)
 	})
 

@@ -30,19 +30,17 @@ func TestCreateUpload(t *testing.T) {
 	t.Run("file attachments disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = true })
-		u, resp, _ := th.Client.CreateUpload(us)
+		u, resp, err := th.Client.CreateUpload(us)
 		require.Nil(t, u)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.file.attachments.disabled.app_error", resp.Error.Id)
+		CheckErrorID(t, err, "api.file.attachments.disabled.app_error")
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 
 	t.Run("no permissions", func(t *testing.T) {
 		us.ChannelId = th.BasicPrivateChannel2.Id
-		u, resp, _ := th.Client.CreateUpload(us)
+		u, resp, err := th.Client.CreateUpload(us)
 		require.Nil(t, u)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
@@ -70,10 +68,9 @@ func TestCreateUpload(t *testing.T) {
 				FileSize: info.Size(),
 				Type:     model.UploadTypeImport,
 			}
-			u, resp, _ := th.Client.CreateUpload(us)
+			u, resp, err := th.Client.CreateUpload(us)
 			require.Nil(t, u)
-			require.NotNil(t, resp.Error)
-			require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+			CheckErrorID(t, err, "api.context.permissions.app_error")
 			require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		})
 
@@ -111,16 +108,14 @@ func TestGetUpload(t *testing.T) {
 	t.Run("upload not found", func(t *testing.T) {
 		u, resp, _ := th.Client.GetUpload(model.NewId())
 		require.Nil(t, u)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "app.upload.get.app_error", resp.Error.Id)
+		CheckErrorID(t, err, "app.upload.get.app_error")
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 
 	t.Run("no permissions", func(t *testing.T) {
-		u, resp, _ := th.Client.GetUpload(us.Id)
+		u, _, err := th.Client.GetUpload(us.Id)
 		require.Nil(t, u)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.upload.get_upload.forbidden.app_error", resp.Error.Id)
+		CheckErrorID(t, err, "api.upload.get_upload.forbidden.app_error")
 	})
 
 	t.Run("success", func(t *testing.T) {
@@ -143,7 +138,7 @@ func TestGetUploadsForUser(t *testing.T) {
 	t.Run("no permissions", func(t *testing.T) {
 		uss, _, err := th.Client.GetUploadsForUser(th.BasicUser2.Id)
 		require.Error(t, err)
-		CheckErrorMessage2(t, err, "api.user.get_uploads_for_user.forbidden.app_error")
+		CheckErrorID(t, err, "api.user.get_uploads_for_user.forbidden.app_error")
 		require.Nil(t, uss)
 	})
 
@@ -209,25 +204,22 @@ func TestUploadData(t *testing.T) {
 	t.Run("file attachments disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = true })
-		info, resp, _ := th.Client.UploadData(model.NewId(), bytes.NewReader(data))
+		info, _, err := th.Client.UploadData(model.NewId(), bytes.NewReader(data))
 		require.Nil(t, info)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.file.attachments.disabled.app_error", resp.Error.Id)
+		CheckErrorID(t, err, "api.file.attachments.disabled.app_error")
 	})
 
 	t.Run("upload not found", func(t *testing.T) {
-		info, resp, _ := th.Client.UploadData(model.NewId(), bytes.NewReader(data))
+		info, resp, err := th.Client.UploadData(model.NewId(), bytes.NewReader(data))
 		require.Nil(t, info)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "app.upload.get.app_error", resp.Error.Id)
+		CheckErrorID(t, err, "app.upload.get.app_error")
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 
 	t.Run("no permissions", func(t *testing.T) {
-		info, resp, _ := th.Client.UploadData(us.Id, bytes.NewReader(data))
+		info, _, err := th.Client.UploadData(us.Id, bytes.NewReader(data))
 		require.Nil(t, info)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
 	t.Run("bad content-length", func(t *testing.T) {
@@ -236,10 +228,9 @@ func TestUploadData(t *testing.T) {
 		require.NotEmpty(t, u)
 		require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		info, resp, _ := th.Client.UploadData(u.Id, bytes.NewReader(append(data, 0x00)))
+		info, _, err := th.Client.UploadData(u.Id, bytes.NewReader(append(data, 0x00)))
 		require.Nil(t, info)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.upload.upload_data.invalid_content_length", resp.Error.Id)
+		CheckErrorID(t, err, "api.upload.upload_data.invalid_content_length")
 	})
 
 	t.Run("success", func(t *testing.T) {
@@ -321,10 +312,9 @@ func TestUploadDataMultipart(t *testing.T) {
 	}
 
 	t.Run("bad content-type", func(t *testing.T) {
-		info, resp, _ := th.Client.DoUploadFile("/uploads/"+us.Id, data, "multipart/form-data;")
+		info, _, err := th.Client.DoUploadFile("/uploads/"+us.Id, data, "multipart/form-data;")
 		require.Nil(t, info)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.upload.upload_data.invalid_content_type", resp.Error.Id)
+		CheckErrorMessage(t, err, "api.upload.upload_data.invalid_content_type")
 	})
 
 	t.Run("success", func(t *testing.T) {

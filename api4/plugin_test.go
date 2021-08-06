@@ -56,15 +56,15 @@ func TestPlugin(t *testing.T) {
 
 		url := testServer.URL
 
-		manifest, resp, _ := client.InstallPluginFromUrl(url, false)
-		CheckNoError(t, resp)
+		manifest, _, err = client.InstallPluginFromUrl(url, false)
+		require.NoError(t, err)
 		assert.Equal(t, "testplugin", manifest.Id)
 
 		_, resp, _ = client.InstallPluginFromUrl(url, false)
 		CheckBadRequestStatus(t, resp)
 
-		manifest, resp, _ = client.InstallPluginFromUrl(url, true)
-		CheckNoError(t, resp)
+		manifest, _, err = client.InstallPluginFromUrl(url, true)
+		require.NoError(t, err)
 		assert.Equal(t, "testplugin", manifest.Id)
 
 		// Stored in File Store: Install Plugin from URL case
@@ -72,8 +72,8 @@ func TestPlugin(t *testing.T) {
 		assert.Nil(t, appErr)
 		assert.True(t, pluginStored)
 
-		ok, resp, _ := client.RemovePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = client.RemovePlugin(manifest.Id)
+		require.NoError(t, err)
 		require.True(t, ok)
 
 		t.Run("install plugin from URL with slow response time", func(t *testing.T) {
@@ -89,8 +89,8 @@ func TestPlugin(t *testing.T) {
 			}))
 			defer func() { slowTestServer.Close() }()
 
-			manifest, resp, _ = client.InstallPluginFromUrl(slowTestServer.URL, true)
-			CheckNoError(t, resp)
+			manifest, _, err = client.InstallPluginFromUrl(slowTestServer.URL, true)
+			require.NoError(t, err)
 			assert.Equal(t, "testplugin", manifest.Id)
 		})
 
@@ -115,14 +115,14 @@ func TestPlugin(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 
 		// Successful upload
-		manifest, resp, _ = client.UploadPlugin(bytes.NewReader(tarData))
-		CheckNoError(t, resp)
+		manifest, _, err = client.UploadPlugin(bytes.NewReader(tarData))
+		require.NoError(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
 
-		manifest, resp, _ = client.UploadPluginForced(bytes.NewReader(tarData))
+		manifest, _, err = client.UploadPluginForced(bytes.NewReader(tarData))
 		defer os.RemoveAll("plugins/testplugin")
-		CheckNoError(t, resp)
+		require.NoError(t, err)
 
 		assert.Equal(t, "testplugin", manifest.Id)
 
@@ -154,8 +154,8 @@ func TestPlugin(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		// Successful gets
-		pluginsResp, resp, _ := client.GetPlugins()
-		CheckNoError(t, resp)
+		pluginsResp, _, err = client.GetPlugins()
+		require.NoError(t, err)
 
 		found := false
 		for _, m := range pluginsResp.Inactive {
@@ -176,12 +176,12 @@ func TestPlugin(t *testing.T) {
 		assert.False(t, found)
 
 		// Successful activate
-		ok, resp, _ = client.EnablePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = client.EnablePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 
-		pluginsResp, resp, _ = client.GetPlugins()
-		CheckNoError(t, resp)
+		pluginsResp, _, err = client.GetPlugins()
+		require.NoError(t, err)
 
 		found = false
 		for _, m := range pluginsResp.Active {
@@ -202,12 +202,12 @@ func TestPlugin(t *testing.T) {
 		assert.False(t, ok)
 
 		// Successful deactivate
-		ok, resp, _ = client.DisablePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = client.DisablePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 
-		pluginsResp, resp, _ = client.GetPlugins()
-		CheckNoError(t, resp)
+		pluginsResp, _, err = client.GetPlugins()
+		require.NoError(t, err)
 
 		found = false
 		for _, m := range pluginsResp.Inactive {
@@ -233,11 +233,11 @@ func TestPlugin(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		// Successful webapp get
-		_, resp, _ = client.EnablePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		_, _, err = client.EnablePlugin(manifest.Id)
+		require.NoError(t, err)
 
-		manifests, resp, _ := th.Client.GetWebappPlugins()
-		CheckNoError(t, resp)
+		manifests, _, err = th.Client.GetWebappPlugins()
+		require.NoError(t, err)
 
 		found = false
 		for _, m := range manifests {
@@ -249,8 +249,8 @@ func TestPlugin(t *testing.T) {
 		assert.True(t, found)
 
 		// Successful remove
-		ok, resp, _ = client.RemovePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = client.RemovePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 
 		// Remove error cases
@@ -290,8 +290,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	testCluster.ClearMessages()
 
 	// Successful upload
-	manifest, resp, _ := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-	CheckNoError(t, resp)
+	manifest, _, err = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	require.NoError(t, err)
 	require.Equal(t, "testplugin", manifest.Id)
 
 	// Stored in File Store: Upload Plugin case
@@ -317,8 +317,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	// Upgrade
 	testCluster.ClearMessages()
-	manifest, resp, _ = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
-	CheckNoError(t, resp)
+	manifest, _, err = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
+	require.NoError(t, err)
 	require.Equal(t, "testplugin", manifest.Id)
 
 	// Successful remove
@@ -343,8 +343,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	}()
 
 	testCluster.ClearMessages()
-	ok, resp, _ := th.SystemAdminClient.RemovePlugin(manifest.Id)
-	CheckNoError(t, resp)
+	ok, _, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
+	require.NoError(t, err)
 	require.True(t, ok)
 
 	result := <-done
@@ -397,26 +397,26 @@ func TestDisableOnRemove(t *testing.T) {
 				})
 
 				// Upload
-				manifest, resp, _ := client.UploadPlugin(bytes.NewReader(tarData))
-				CheckNoError(t, resp)
+				manifest, _, err = client.UploadPlugin(bytes.NewReader(tarData))
+				require.NoError(t, err)
 				require.Equal(t, "testplugin", manifest.Id)
 
 				// Check initial status
-				pluginsResp, resp, _ := client.GetPlugins()
-				CheckNoError(t, resp)
+				pluginsResp, _, err = client.GetPlugins()
+				require.NoError(t, err)
 				require.Empty(t, pluginsResp.Active)
 				require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 					Manifest: *manifest,
 				}})
 
 				// Enable plugin
-				ok, resp, _ := client.EnablePlugin(manifest.Id)
-				CheckNoError(t, resp)
+				ok, _, err = client.EnablePlugin(manifest.Id)
+				require.NoError(t, err)
 				require.True(t, ok)
 
 				// Confirm enabled status
-				pluginsResp, resp, _ = client.GetPlugins()
-				CheckNoError(t, resp)
+				pluginsResp, _, err = client.GetPlugins()
+				require.NoError(t, err)
 				require.Empty(t, pluginsResp.Inactive)
 				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 					Manifest: *manifest,
@@ -424,13 +424,13 @@ func TestDisableOnRemove(t *testing.T) {
 
 				if tc.Upgrade {
 					// Upgrade
-					manifest, resp, _ = client.UploadPluginForced(bytes.NewReader(tarData))
-					CheckNoError(t, resp)
+					manifest, _, err = client.UploadPluginForced(bytes.NewReader(tarData))
+					require.NoError(t, err)
 					require.Equal(t, "testplugin", manifest.Id)
 
 					// Plugin should remain active
-					pluginsResp, resp, _ = client.GetPlugins()
-					CheckNoError(t, resp)
+					pluginsResp, _, err = client.GetPlugins()
+					require.NoError(t, err)
 					require.Empty(t, pluginsResp.Inactive)
 					require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 						Manifest: *manifest,
@@ -438,32 +438,32 @@ func TestDisableOnRemove(t *testing.T) {
 				}
 
 				// Remove plugin
-				ok, resp, _ = client.RemovePlugin(manifest.Id)
-				CheckNoError(t, resp)
+				ok, _, err = client.RemovePlugin(manifest.Id)
+				require.NoError(t, err)
 				require.True(t, ok)
 
 				// Plugin should have no status
-				pluginsResp, resp, _ = client.GetPlugins()
-				CheckNoError(t, resp)
+				pluginsResp, _, err = client.GetPlugins()
+				require.NoError(t, err)
 				require.Empty(t, pluginsResp.Inactive)
 				require.Empty(t, pluginsResp.Active)
 
 				// Upload same plugin
-				manifest, resp, _ = client.UploadPlugin(bytes.NewReader(tarData))
-				CheckNoError(t, resp)
+				manifest, _, err = client.UploadPlugin(bytes.NewReader(tarData))
+				require.NoError(t, err)
 				require.Equal(t, "testplugin", manifest.Id)
 
 				// Plugin should be inactive
-				pluginsResp, resp, _ = client.GetPlugins()
-				CheckNoError(t, resp)
+				pluginsResp, _, err = client.GetPlugins()
+				require.NoError(t, err)
 				require.Empty(t, pluginsResp.Active)
 				require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 					Manifest: *manifest,
 				}})
 
 				// Clean up
-				ok, resp, _ = client.RemovePlugin(manifest.Id)
-				CheckNoError(t, resp)
+				ok, _, err = client.RemovePlugin(manifest.Id)
+				require.NoError(t, err)
 				require.True(t, ok)
 			})
 		})
@@ -527,8 +527,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Empty(t, plugins)
 	}, "empty response from server")
 
@@ -552,8 +552,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Empty(t, plugins)
 	}, "verify server version is passed through")
 
@@ -576,8 +576,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Empty(t, plugins)
 	}, "verify EnterprisePlugins is false for TE")
 
@@ -605,8 +605,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		*l.Features.EnterprisePlugins = false
 		th.App.Srv().SetLicense(l)
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Empty(t, plugins)
 	}, "verify EnterprisePlugins is false for E10")
 
@@ -631,8 +631,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("enterprise_plugins"))
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Empty(t, plugins)
 	}, "verify EnterprisePlugins is true for E20")
 
@@ -655,8 +655,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Empty(t, plugins)
 	}, "verify EnterprisePlugins is false if there is no license")
 
@@ -681,8 +681,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Empty(t, plugins)
 	}, "verify Cloud is true for cloud license")
 }
@@ -735,12 +735,12 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Equal(t, samplePlugins, plugins)
 
-		manifest, resp, _ := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-		CheckNoError(t, resp)
+		manifest, _, err = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		require.NoError(t, err)
 
 		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
 		require.NoError(t, err)
@@ -765,16 +765,16 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
 		})
 
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Equal(t, expectedPlugins, plugins)
 
-		ok, resp, _ := th.SystemAdminClient.RemovePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Equal(t, samplePlugins, plugins)
 	})
 
@@ -788,8 +788,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableMarketplace = true
 		})
 
-		manifest, resp, _ := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-		CheckNoError(t, resp)
+		manifest, _, err = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		require.NoError(t, err)
 
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -816,16 +816,16 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Equal(t, expectedPlugins, plugins)
 
-		ok, resp, _ := th.SystemAdminClient.RemovePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		newPlugin.InstalledVersion = ""
 		require.Equal(t, expectedPlugins, plugins)
 	})
@@ -881,12 +881,12 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Equal(t, samplePlugins, plugins)
 
-		manifest, resp, _ := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-		CheckNoError(t, resp)
+		manifest, _, err = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		require.NoError(t, err)
 
 		plugin1 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -904,8 +904,8 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		}
 		expectedPlugins := append(samplePlugins, plugin1)
 
-		manifest, resp, _ = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarDataV2))
-		CheckNoError(t, resp)
+		manifest, _, err = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarDataV2))
+		require.NoError(t, err)
 
 		plugin2 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -926,34 +926,34 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
 		})
 
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Equal(t, expectedPlugins, plugins)
 
 		// Search for plugins from the server
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "testplugin2"})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "testplugin2"})
+		require.NoError(t, err)
 		require.Equal(t, []*model.MarketplacePlugin{plugin2}, plugins)
 
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "a second plugin"})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "a second plugin"})
+		require.NoError(t, err)
 		require.Equal(t, []*model.MarketplacePlugin{plugin2}, plugins)
 
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "User Satisfaction Surveys"})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "User Satisfaction Surveys"})
+		require.NoError(t, err)
 		require.Equal(t, samplePlugins, plugins)
 
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "NOFILTER"})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "NOFILTER"})
+		require.NoError(t, err)
 		require.Nil(t, plugins)
 
 		// cleanup
-		ok, resp, _ := th.SystemAdminClient.RemovePlugin(plugin1.Manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = th.SystemAdminClient.RemovePlugin(plugin1.Manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 
-		ok, resp, _ = th.SystemAdminClient.RemovePlugin(plugin2.Manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = th.SystemAdminClient.RemovePlugin(plugin2.Manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 	})
 }
@@ -999,8 +999,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
 		})
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 
 		require.Len(t, plugins, len(samplePlugins))
 		require.Equal(t, samplePlugins, plugins)
@@ -1017,16 +1017,16 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
-		manifest, resp, _ := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-		CheckNoError(t, resp)
+		manifest, _, err = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		require.NoError(t, err)
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 
 		require.Len(t, plugins, 2)
 
-		ok, resp, _ := th.SystemAdminClient.RemovePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 	})
 
@@ -1037,8 +1037,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		})
 
 		// No marketplace plugins returned
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 
 		require.Len(t, plugins, 0)
 
@@ -1047,8 +1047,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
-		manifest, resp, _ := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-		CheckNoError(t, resp)
+		manifest, _, err = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		require.NoError(t, err)
 
 		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
 		require.NoError(t, err)
@@ -1065,15 +1065,15 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 
-		plugins, resp, _ = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 
 		// Only get the local plugins
 		require.Len(t, plugins, 1)
 		require.Equal(t, newPlugin, plugins[0])
 
-		ok, resp, _ := th.SystemAdminClient.RemovePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 	})
 
@@ -1088,8 +1088,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
-		manifest, resp, _ := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-		CheckNoError(t, resp)
+		manifest, _, err = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		require.NoError(t, err)
 
 		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
 		require.NoError(t, err)
@@ -1110,14 +1110,14 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{LocalOnly: true})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{LocalOnly: true})
+		require.NoError(t, err)
 
 		require.Len(t, plugins, 1)
 		require.Equal(t, newPlugin, plugins[0])
 
-		ok, resp, _ := th.SystemAdminClient.RemovePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 	})
 }
@@ -1174,8 +1174,8 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 			*cfg.PluginSettings.EnableUploads = true
 		})
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 
 		expectedPlugins := marketplacePlugins
 		expectedPlugins = append(expectedPlugins, &model.MarketplacePlugin{
@@ -1195,8 +1195,8 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		})
 
 		// No marketplace plugins returned
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 
 		// Only returns the prepackaged plugins
 		require.Len(t, plugins, 1)
@@ -1221,8 +1221,8 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		env := th.App.GetPluginsEnvironment()
 		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin})
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 
 		require.Len(t, plugins, 1)
 		require.Equal(t, newerPrepackagePlugin.Manifest, plugins[0].Manifest)
@@ -1236,8 +1236,8 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		plugins, resp, _ := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		CheckNoError(t, resp)
+		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 
 		require.ElementsMatch(t, marketplacePlugins, plugins)
 		require.Len(t, plugins, 1)
@@ -1415,8 +1415,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Nil(t, appErr)
 
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.3"}
-		manifest, resp, _ := client.InstallMarketplacePlugin(pRequest)
-		CheckNoError(t, resp)
+		manifest, _, err = client.InstallMarketplacePlugin(pRequest)
+		require.NoError(t, err)
 		require.NotNil(t, manifest)
 		require.Equal(t, "testplugin2", manifest.Id)
 		require.Equal(t, "1.2.3", manifest.Version)
@@ -1426,8 +1426,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Nil(t, appErr)
 		require.EqualValues(t, sigFile, savedSigFile)
 
-		ok, resp, _ := client.RemovePlugin(manifest.Id)
-		CheckNoError(t, resp)
+		ok, _, err = client.RemovePlugin(manifest.Id)
+		require.NoError(t, err)
 		assert.True(t, ok)
 		exists, appErr := th.App.FileExists(filePath)
 		require.Nil(t, appErr)
@@ -1595,8 +1595,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 			env := th2.App.GetPluginsEnvironment()
 
-			pluginsResp, resp, _ := client.GetPlugins()
-			CheckNoError(t, resp)
+			pluginsResp, _, err = client.GetPlugins()
+			require.NoError(t, err)
 			require.Len(t, pluginsResp.Active, 0)
 			require.Len(t, pluginsResp.Inactive, 0)
 
@@ -1611,20 +1611,20 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			require.Equal(t, "testplugin", plugins[0].Manifest.Id)
 			require.Equal(t, pluginSignatureData, plugins[0].Signature)
 
-			pluginsResp, resp, _ = client.GetPlugins()
-			CheckNoError(t, resp)
+			pluginsResp, _, err = client.GetPlugins()
+			require.NoError(t, err)
 			require.Len(t, pluginsResp.Active, 0)
 			require.Len(t, pluginsResp.Inactive, 0)
 
 			pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin", Version: "0.0.1"}
-			manifest1, resp, _ := client.InstallMarketplacePlugin(pRequest)
-			CheckNoError(t, resp)
+			manifest1, _, err = client.InstallMarketplacePlugin(pRequest)
+			require.NoError(t, err)
 			require.NotNil(t, manifest1)
 			require.Equal(t, "testplugin", manifest1.Id)
 			require.Equal(t, "0.0.1", manifest1.Version)
 
-			pluginsResp, resp, _ = client.GetPlugins()
-			CheckNoError(t, resp)
+			pluginsResp, _, err = client.GetPlugins()
+			require.NoError(t, err)
 			require.Len(t, pluginsResp.Active, 0)
 			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest1,
@@ -1645,14 +1645,14 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			})
 
 			pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.3"}
-			manifest2, resp, _ := client.InstallMarketplacePlugin(pRequest)
-			CheckNoError(t, resp)
+			manifest2, _, err = client.InstallMarketplacePlugin(pRequest)
+			require.NoError(t, err)
 			require.NotNil(t, manifest2)
 			require.Equal(t, "testplugin2", manifest2.Id)
 			require.Equal(t, "1.2.3", manifest2.Version)
 
-			pluginsResp, resp, _ = client.GetPlugins()
-			CheckNoError(t, resp)
+			pluginsResp, _, err = client.GetPlugins()
+			require.NoError(t, err)
 			require.Len(t, pluginsResp.Active, 0)
 			require.ElementsMatch(t, pluginsResp.Inactive, []*model.PluginInfo{
 				{
@@ -1664,12 +1664,12 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			})
 
 			// Clean up
-			ok, resp, _ := client.RemovePlugin(manifest1.Id)
-			CheckNoError(t, resp)
+			ok, _, err = client.RemovePlugin(manifest1.Id)
+			require.NoError(t, err)
 			assert.True(t, ok)
 
-			ok, resp, _ = client.RemovePlugin(manifest2.Id)
-			CheckNoError(t, resp)
+			ok, _, err = client.RemovePlugin(manifest2.Id)
+			require.NoError(t, err)
 			assert.True(t, ok)
 
 			appErr = th2.App.DeletePublicKey("pub_key")
@@ -1729,8 +1729,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Equal(t, "testplugin", plugins[0].Manifest.Id)
 		require.Empty(t, plugins[0].Signature)
 
-		pluginsResp, resp, _ := client.GetPlugins()
-		CheckNoError(t, resp)
+		pluginsResp, _, err = client.GetPlugins()
+		require.NoError(t, err)
 		require.Len(t, pluginsResp.Active, 0)
 		require.Len(t, pluginsResp.Inactive, 0)
 
@@ -1739,8 +1739,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
 
-		pluginsResp, resp, _ = client.GetPlugins()
-		CheckNoError(t, resp)
+		pluginsResp, _, err = client.GetPlugins()
+		require.NoError(t, err)
 		require.Len(t, pluginsResp.Active, 0)
 		require.Len(t, pluginsResp.Inactive, 0)
 
@@ -1749,8 +1749,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
 
-		pluginsResp, resp, _ = client.GetPlugins()
-		CheckNoError(t, resp)
+		pluginsResp, _, err = client.GetPlugins()
+		require.NoError(t, err)
 		require.Len(t, pluginsResp.Active, 0)
 		require.Len(t, pluginsResp.Inactive, 0)
 

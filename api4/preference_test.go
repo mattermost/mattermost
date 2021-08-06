@@ -46,8 +46,8 @@ func TestGetPreferences(t *testing.T) {
 
 	client.UpdatePreferences(user1.Id, &preferences1)
 
-	prefs, resp, _ := client.GetPreferences(user1.Id)
-	CheckNoError(t, resp)
+	prefs, _, err = client.GetPreferences(user1.Id)
+	require.NoError(t, err)
 
 	// 5 because we have 2 initial preferences tutorial_step and recommended_next_steps added when creating a new user
 	require.Equal(t, len(prefs), 5, "received the wrong number of preferences")
@@ -60,8 +60,8 @@ func TestGetPreferences(t *testing.T) {
 	th.BasicUser2 = th.CreateUser()
 	th.LoginBasic2()
 
-	prefs, resp, _ = client.GetPreferences(th.BasicUser2.Id)
-	CheckNoError(t, resp)
+	prefs, _, err = client.GetPreferences(th.BasicUser2.Id)
+	require.NoError(t, err)
 
 	require.Greater(t, len(prefs), 0, "received the wrong number of preferences")
 
@@ -102,8 +102,8 @@ func TestGetPreferencesByCategory(t *testing.T) {
 
 	client.UpdatePreferences(user1.Id, &preferences1)
 
-	prefs, resp, _ := client.GetPreferencesByCategory(user1.Id, category)
-	CheckNoError(t, resp)
+	prefs, _, err = client.GetPreferencesByCategory(user1.Id, category)
+	require.NoError(t, err)
 
 	require.Equal(t, len(prefs), 2, "received the wrong number of preferences")
 
@@ -155,8 +155,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 
 	client.UpdatePreferences(user.Id, &preferences)
 
-	pref, resp, _ := client.GetPreferenceByCategoryAndName(user.Id, model.PreferenceCategoryDirectChannelShow, name)
-	CheckNoError(t, resp)
+	pref, _, err = client.GetPreferenceByCategoryAndName(user.Id, model.PreferenceCategoryDirectChannelShow, name)
+	require.NoError(t, err)
 
 	require.Equal(t, preferences[0].UserId, pref.UserId, "UserId preference not saved")
 	require.Equal(t, preferences[0].Category, pref.Category, "Category preference not saved")
@@ -174,8 +174,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, resp, _ = client.GetPreferenceByCategoryAndName(th.BasicUser2.Id, preferences[0].Category, "junk")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, preferences[0].Name)
-	CheckNoError(t, resp)
+	_, _, err = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, preferences[0].Name)
+	require.NoError(t, err)
 
 	client.Logout()
 	_, resp, _ = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, preferences[0].Name)
@@ -210,8 +210,8 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, resp, _ := client.UpdatePreferences(user1.Id, &preferences1)
-	CheckNoError(t, resp)
+	_, _, err = client.UpdatePreferences(user1.Id, &preferences1)
+	require.NoError(t, err)
 
 	preferences := model.Preferences{
 		{
@@ -268,8 +268,8 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 		},
 	}
 
-	_, resp, _ := th.Client.UpdatePreferences(userId, preferences)
-	CheckNoError(t, resp)
+	_, _, err = th.Client.UpdatePreferences(userId, preferences)
+	require.NoError(t, err)
 
 	timeout := time.After(300 * time.Millisecond)
 
@@ -376,7 +376,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		dmChannel := th.CreateDmChannel(user2)
 
 		// Favorite the channel
-		_, resp, _ := th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, _, err := th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -384,7 +384,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 				Value:    "true",
 			},
 		})
-		require.Nil(t, resp.Error)
+		require.NoError(t, err)
 
 		// Confirm that the channel was added to the Favorites on all teams
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
@@ -410,7 +410,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 				Value:    "false",
 			},
 		})
-		require.Nil(t, resp.Error)
+		require.NoError(t, err)
 
 		// The channel should've been removed from the Favorites on all teams
 		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
@@ -556,8 +556,8 @@ func TestDeletePreferences(t *testing.T) {
 
 	th.LoginBasic()
 
-	_, resp, _ = client.DeletePreferences(th.BasicUser.Id, &preferences)
-	CheckNoError(t, resp)
+	_, _, err = client.DeletePreferences(th.BasicUser.Id, &preferences)
+	require.NoError(t, err)
 
 	_, resp, _ = client.DeletePreferences(th.BasicUser2.Id, &preferences)
 	CheckForbiddenStatus(t, resp)
@@ -587,8 +587,8 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 			Name:     model.NewId(),
 		},
 	}
-	_, resp, _ := th.Client.UpdatePreferences(userId, preferences)
-	CheckNoError(t, resp)
+	_, _, err = th.Client.UpdatePreferences(userId, preferences)
+	require.NoError(t, err)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.Nil(t, err)
@@ -597,8 +597,8 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	wsResp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, model.StatusOk, wsResp.Status, "should have responded OK to authentication challenge")
 
-	_, resp, _ = th.Client.DeletePreferences(userId, preferences)
-	CheckNoError(t, resp)
+	_, _, err = th.Client.DeletePreferences(userId, preferences)
+	require.NoError(t, err)
 
 	timeout := time.After(30000 * time.Millisecond)
 
@@ -703,7 +703,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		dmChannel := th.CreateDmChannel(user2)
 
 		// Favorite the channel
-		_, resp, _ := th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, _, err := th.Client.UpdatePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -711,7 +711,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 				Value:    "true",
 			},
 		})
-		require.Nil(t, resp.Error)
+		require.NoError(t, err)
 
 		// Confirm that the channel was added to the Favorites on all teams
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
@@ -729,14 +729,14 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
 
 		// And unfavorite the channel by deleting the preference
-		_, resp, _ = th.Client.DeletePreferences(user.Id, &model.Preferences{
+		_, _, err = th.Client.DeletePreferences(user.Id, &model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     dmChannel.Id,
 			},
 		})
-		require.Nil(t, resp.Error)
+		require.NoError(t, err)
 
 		// The channel should've been removed from the Favorites on all teams
 		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")

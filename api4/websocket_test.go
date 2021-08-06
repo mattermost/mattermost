@@ -138,8 +138,8 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 
 	for _, user := range users {
 		time.Sleep(100 * time.Millisecond)
-		_, resp, _ := client.CreateDirectChannel(th.BasicUser.Id, user.Id)
-		require.Nil(t, resp.Error, "failed to create DM channel")
+		_, _, err := client.CreateDirectChannel(th.BasicUser.Id, user.Id)
+		require.NoError(t, err, "failed to create DM channel")
 	}
 
 	time.Sleep(5000 * time.Millisecond)

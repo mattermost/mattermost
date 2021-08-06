@@ -948,12 +948,6 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
-func CheckNoError(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	require.Nil(t, resp.Error, "expected no error")
-}
-
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
 
@@ -1016,14 +1010,7 @@ func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
 	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
 }
 
-func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
-	t.Helper()
-
-	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
-	require.Equalf(t, errorId, resp.Error.Id, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
-}
-
-func CheckErrorMessage2(t *testing.T, err error, errorId string) {
+func CheckErrorID(t *testing.T, err error, errorId string) {
 	t.Helper()
 
 	require.Error(t, err, "should have errored with id: %s", errorId)
@@ -1032,7 +1019,19 @@ func CheckErrorMessage2(t *testing.T, err error, errorId string) {
 	ok := errors.As(err, &appError)
 	require.True(t, ok, "should have been a model.AppError")
 
-	require.Equalf(t, errorId, appError.Id, "incorrect error message, actual: %s, expected: %s", appError.Id, errorId)
+	require.Equalf(t, errorId, appError.Id, "incorrect error id, actual: %s, expected: %s", appError.Id, errorId)
+}
+
+func CheckErrorMessage(t *testing.T, err error, message string) {
+	t.Helper()
+
+	require.Error(t, err, "should have errored with message: %s", message)
+
+	var appError *model.AppError
+	ok := errors.As(err, &appError)
+	require.True(t, ok, "should have been a model.AppError")
+
+	require.Equalf(t, message, appError.Message, "incorrect error message, actual: %s, expected: %s", appError.Id, message)
 }
 
 func CheckStartsWith(t *testing.T, value, prefix, message string) {

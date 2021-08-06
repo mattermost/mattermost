@@ -33,8 +33,8 @@ func TestSaveReaction(t *testing.T) {
 	}
 
 	t.Run("successful-reaction", func(t *testing.T) {
-		rr, resp, _ := client.SaveReaction(reaction)
-		CheckNoError(t, resp)
+		rr, _, err = client.SaveReaction(reaction)
+		require.NoError(t, err)
 		require.Equal(t, reaction.UserId, rr.UserId, "UserId did not match")
 		require.Equal(t, reaction.PostId, rr.PostId, "PostId did not match")
 		require.Equal(t, reaction.EmojiName, rr.EmojiName, "EmojiName did not match")
@@ -46,8 +46,8 @@ func TestSaveReaction(t *testing.T) {
 	})
 
 	t.Run("duplicated-reaction", func(t *testing.T) {
-		_, resp, _ := client.SaveReaction(reaction)
-		CheckNoError(t, resp)
+		_, _, err = client.SaveReaction(reaction)
+		require.NoError(t, err)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have not save duplicated reaction")
@@ -56,8 +56,8 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("save-second-reaction", func(t *testing.T) {
 		reaction.EmojiName = "sad"
 
-		rr, resp, _ := client.SaveReaction(reaction)
-		CheckNoError(t, resp)
+		rr, _, err = client.SaveReaction(reaction)
+		require.NoError(t, err)
 		require.Equal(t, rr.EmojiName, reaction.EmojiName, "EmojiName did not match")
 
 		reactions, err := th.App.GetReactionsForPost(postId)
@@ -68,8 +68,8 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("saving-special-case", func(t *testing.T) {
 		reaction.EmojiName = "+1"
 
-		rr, resp, _ := client.SaveReaction(reaction)
-		CheckNoError(t, resp)
+		rr, _, err = client.SaveReaction(reaction)
+		require.NoError(t, err)
 		require.Equal(t, reaction.EmojiName, rr.EmojiName, "EmojiName did not match")
 
 		reactions, err := th.App.GetReactionsForPost(postId)
@@ -251,8 +251,8 @@ func TestGetReactions(t *testing.T) {
 	}
 
 	t.Run("get-reactions", func(t *testing.T) {
-		rr, resp, _ := client.GetReactions(postId)
-		CheckNoError(t, resp)
+		rr, _, err = client.GetReactions(postId)
+		require.NoError(t, err)
 
 		assert.Len(t, rr, 5)
 		for _, r := range reactions {
@@ -280,8 +280,8 @@ func TestGetReactions(t *testing.T) {
 	})
 
 	t.Run("get-reactions-as-system-admin", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.GetReactions(postId)
-		CheckNoError(t, resp)
+		_, _, err = th.SystemAdminClient.GetReactions(postId)
+		require.NoError(t, err)
 	})
 }
 
@@ -329,8 +329,8 @@ func TestDeleteReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "didn't save reaction correctly")
 
-		ok, resp, _ := client.DeleteReaction(r1)
-		CheckNoError(t, resp)
+		ok, _, err = client.DeleteReaction(r1)
+		require.NoError(t, err)
 
 		require.True(t, ok, "should have returned true")
 
@@ -346,8 +346,8 @@ func TestDeleteReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, len(reactions), 2, "didn't save reactions correctly")
 
-		_, resp, _ := client.DeleteReaction(r2)
-		CheckNoError(t, resp)
+		_, _, err = client.DeleteReaction(r2)
+		require.NoError(t, err)
 
 		reactions, err = th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
@@ -361,8 +361,8 @@ func TestDeleteReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 2, len(reactions), "didn't save reactions correctly")
 
-		_, resp, _ := client.DeleteReaction(r3)
-		CheckNoError(t, resp)
+		_, _, err = client.DeleteReaction(r3)
+		require.NoError(t, err)
 
 		reactions, err = th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
@@ -441,11 +441,11 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("delete-reaction-as-system-admin", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.DeleteReaction(r1)
-		CheckNoError(t, resp)
+		_, _, err = th.SystemAdminClient.DeleteReaction(r1)
+		require.NoError(t, err)
 
-		_, resp, _ = th.SystemAdminClient.DeleteReaction(r4)
-		CheckNoError(t, resp)
+		_, _, err = th.SystemAdminClient.DeleteReaction(r4)
+		require.NoError(t, err)
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
@@ -495,8 +495,8 @@ func TestDeleteReaction(t *testing.T) {
 			EmojiName: "smile",
 		}
 
-		r1, resp, _ := client.SaveReaction(reaction)
-		CheckNoError(t, resp)
+		r1, _, err = client.SaveReaction(reaction)
+		require.NoError(t, err)
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
@@ -527,8 +527,8 @@ func TestDeleteReaction(t *testing.T) {
 			EmojiName: "smile",
 		}
 
-		r1, resp, _ := client.SaveReaction(reaction)
-		CheckNoError(t, resp)
+		r1, _, err = client.SaveReaction(reaction)
+		require.NoError(t, err)
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
@@ -605,8 +605,8 @@ func TestGetBulkReactions(t *testing.T) {
 	postIds := []string{post1.Id, post2.Id, post3.Id, post4.Id, post5.Id}
 
 	t.Run("get-reactions", func(t *testing.T) {
-		postIdsReactionsMap, resp, _ := client.GetBulkReactions(postIds)
-		CheckNoError(t, resp)
+		postIdsReactionsMap, _, err = client.GetBulkReactions(postIds)
+		require.NoError(t, err)
 
 		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post1.Id], postIdsReactionsMap[post1.Id])
 		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post2.Id], postIdsReactionsMap[post2.Id])
