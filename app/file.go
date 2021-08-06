@@ -1358,7 +1358,7 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 		}
 		reloadFileInfo, storeErr := a.Srv().Store.FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
-			mlog.Warn("failed to invalidate the fileInfo cache", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
+			mlog.Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
 		} else {
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
 		}
