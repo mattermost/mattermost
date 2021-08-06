@@ -818,7 +818,6 @@ func upgradeDatabaseToVersion522(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5210, Version5220) {
 		sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
 		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
 		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
 		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
 		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
@@ -1310,6 +1309,20 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+
+	sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at_create_at", "Posts", []string{"RootId", "DeleteAt", "CreateAt"})
+	sqlStore.RemoveIndexIfExists("idx_posts_root_id", "Posts")
+
+	sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_display_name", "Channels", []string{"TeamId", "DisplayName"})
+	sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_type", "Channels", []string{"TeamId", "Type"})
+	sqlStore.RemoveIndexIfExists("idx_channels_team_id", "Channels")
+
+	sqlStore.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
+	sqlStore.RemoveIndexIfExists("idx_threads_channel_id", "Threads")
+
+	sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_user_id_channel_id_last_viewed_at", "ChannelMembers", []string{"UserId", "ChannelId", "LastViewedAt"})
+	sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers", []string{"ChannelId", "SchemeGuest", "UserId"})
+	sqlStore.RemoveIndexIfExists("idx_channelmembers_user_id", "ChannelMembers")
 
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
