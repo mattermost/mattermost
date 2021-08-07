@@ -696,10 +696,11 @@ func TestGetBots(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 	th.App.UpdateUserRoles(th.BasicUser2.Id, model.TeamUserRoleId, false)
 	th.LoginBasic2()
-	orphanedBot, resp, _ := th.Client.CreateBot(&model.Bot{
+	orphanedBot, resp, err := th.Client.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
 		Description: "an oprphaned bot",
 	})
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	th.LoginBasic()
 	defer th.App.PermanentDeleteBot(orphanedBot.UserId)
@@ -1324,12 +1325,14 @@ func TestSetBotIconImage(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// png/jpg is not allowed
-	ok, resp, _ := th.Client.SetBotIconImage(bot.UserId, badData)
+	ok, resp, err := th.Client.SetBotIconImage(bot.UserId, badData)
 	require.False(t, ok, "Should return false, set icon image only allows svg")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	ok, resp, _ = th.Client.SetBotIconImage(model.NewId(), badData)
+	ok, resp, err = th.Client.SetBotIconImage(model.NewId(), badData)
 	require.False(t, ok, "Should return false, set icon image not allowed")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, _, err = th.Client.SetBotIconImage(bot.UserId, goodData)

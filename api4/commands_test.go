@@ -267,8 +267,8 @@ func TestLeaveCommands(t *testing.T) {
 	rs2 := client.Must(client.ExecuteCommand(channel2.Id, "/leave")).(*model.CommandResponse)
 	require.True(t, strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+model.DefaultChannelName), "failed to leave private channel 1")
 
-	_, resp, _ := client.ExecuteCommand(channel3.Id, "/leave")
-	require.NotNil(t, resp, "should fail leaving direct channel")
+	_, _, err := client.ExecuteCommand(channel3.Id, "/leave")
+	require.Error(t, err)
 
 	cdata := client.Must(client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")).([]*model.Channel)
 

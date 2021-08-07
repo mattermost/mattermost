@@ -3420,7 +3420,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 	channelScheme, _, _ = th.SystemAdminClient.CreateScheme(channelScheme)
 
 	// Test the setup/base case.
-	_, _, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	_, _, err := th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
 	require.NoError(t, err)
 
 	// Test the return to default scheme
@@ -3428,13 +3428,14 @@ func TestUpdateTeamScheme(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test various invalid team and scheme id combinations.
-	_, resp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	_, resp, err := th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme("x", teamScheme.Id)
+	_, resp, err = th.SystemAdminClient.UpdateTeamScheme("x", teamScheme.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme("x", "x")
+	_, resp, err = th.SystemAdminClient.UpdateTeamScheme("x", "x")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Test that permissions are required.

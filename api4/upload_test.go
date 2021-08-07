@@ -106,7 +106,7 @@ func TestGetUpload(t *testing.T) {
 	require.NotEmpty(t, us)
 
 	t.Run("upload not found", func(t *testing.T) {
-		u, resp, _ := th.Client.GetUpload(model.NewId())
+		u, resp, err := th.Client.GetUpload(model.NewId())
 		require.Nil(t, u)
 		CheckErrorID(t, err, "app.upload.get.app_error")
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)

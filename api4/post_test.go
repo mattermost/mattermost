@@ -1168,7 +1168,8 @@ func TestGetPostsForChannel(t *testing.T) {
 	var posts *model.PostList
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
 		// get the system post IDs posted before the created posts above
-		posts, resp, _ = c.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "", false)
+		posts, _, err = c.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "", false)
+		require.NoError(t, err)
 		systemPostId1 := posts.Order[1]
 
 		// similar to '/posts'

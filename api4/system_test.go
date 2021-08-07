@@ -164,7 +164,7 @@ func TestEmailTest(t *testing.T) {
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.TestEmail(&config)
+		_, resp, err := th.SystemAdminClient.TestEmail(&config)
 		CheckErrorID(t, err, "api.admin.test_email.missing_server")
 		CheckBadRequestStatus(t, resp)
 

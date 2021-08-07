@@ -691,7 +691,7 @@ func TestGetChannel(t *testing.T) {
 	require.Equal(t, th.BasicPrivateChannel.Id, channel.Id, "ids did not match")
 
 	client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
-	_, resp, err = client.GetChannel(th.BasicPrivateChannel.Id, "")
+	_, resp, err := client.GetChannel(th.BasicPrivateChannel.Id, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -979,7 +979,7 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 			require.True(t, f, "missing a channel")
 		}
 
-		channels, resp, _ = client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, resp.Etag)
+		channels, resp, _ := client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, resp.Etag)
 		CheckEtag(t, channels, resp)
 
 		_, resp, err = client.GetChannelsForTeamForUser(th.BasicTeam.Id, "junk", false, "")
@@ -2845,7 +2845,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.NoError(t, err)
 
 	client.RemoveUserFromChannel(publicChannel.Id, user.Id)
-	_, _, err = client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, rpost.Id)
+	_, resp, err = client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, rpost.Id)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
@@ -3121,7 +3121,8 @@ func TestRemoveChannelMember(t *testing.T) {
 		require.Nil(t, err)
 		props := map[string]string{}
 		props[model.DesktopNotifyProp] = model.ChannelNotifyAll
-		_, resp, _ = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel.Id, th.SystemAdminUser.Id, props)
+		_, _, err = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel.Id, th.SystemAdminUser.Id, props)
+		require.NoError(t, err)
 		_, _, err = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel2.Id, th.SystemAdminUser.Id, props)
 		require.NoError(t, err)
 
