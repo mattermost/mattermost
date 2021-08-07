@@ -95,7 +95,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	t.Run("Create an incoming webhook in local mode without providing user", func(t *testing.T) {
 		hook.UserId = ""
 
-		_, response, _ := th.LocalClient.CreateIncomingWebhook(hook)
+		_, response, err := th.LocalClient.CreateIncomingWebhook(hook)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
 
@@ -324,7 +325,8 @@ func TestGetIncomingWebhook(t *testing.T) {
 	}, "WhenHookDoesNotExist")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ := client.GetIncomingWebhook("abc", "")
+		_, resp, err := client.GetIncomingWebhook("abc", "")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	}, "WhenInvalidHookID")
 
@@ -348,7 +350,8 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 	var status bool
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		status, resp, _ = client.DeleteIncomingWebhook("abc")
+		status, resp, err = client.DeleteIncomingWebhook("abc")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	}, "WhenInvalidHookID")
 
@@ -462,7 +465,8 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	t.Run("Create an outgoing webhook in local mode without providing user", func(t *testing.T) {
 		hook.CreatorId = ""
 
-		_, response, _ := th.LocalClient.CreateOutgoingWebhook(hook)
+		_, response, err := th.LocalClient.CreateOutgoingWebhook(hook)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
 
@@ -949,7 +953,8 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook2 := &model.IncomingWebhook{Id: rhook.Id, ChannelId: channel.Id}
-	rhook, resp, _ = th.Client.UpdateIncomingWebhook(hook2)
+	rhook, resp, err = th.Client.UpdateIncomingWebhook(hook2)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 }
 
@@ -964,7 +969,8 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	rhook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
 	require.NoError(t, err)
 
-	_, resp, _ = th.SystemAdminClient.RegenOutgoingHookToken("junk")
+	_, resp, err = th.SystemAdminClient.RegenOutgoingHookToken("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	//investigate why is act weird on jenkins
@@ -1135,7 +1141,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		t.Run("OnSameChannel", func(t *testing.T) {
 			baseHook.TriggerWords = []string{"first"}
 
-			_, resp, _ := client.UpdateOutgoingWebhook(baseHook)
+			_, resp, err := client.UpdateOutgoingWebhook(baseHook)
+			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
 
@@ -1230,7 +1237,8 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	var status bool
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		status, resp, _ = client.DeleteOutgoingWebhook("abc")
+		status, resp, err = client.DeleteOutgoingWebhook("abc")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	}, "WhenInvalidHookID")
 

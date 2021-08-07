@@ -114,21 +114,25 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	ApiClient.AuthToken = oldToken
 
 	authRequest.RedirectUri = ""
-	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = ApiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.RedirectUri = "http://somewhereelse.com"
-	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = ApiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.RedirectUri = rapp.CallbackUrls[0]
 	authRequest.ResponseType = ""
-	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = ApiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ResponseType = model.AuthCodeResponseType
 	authRequest.ClientId = ""
-	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = ApiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ClientId = model.NewId()
@@ -175,7 +179,8 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 
 	require.True(t, pass, "should have passed")
 
-	_, resp, _ := ApiClient.DeauthorizeOAuthApp("junk")
+	_, resp, err := ApiClient.DeauthorizeOAuthApp("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, _, err = ApiClient.DeauthorizeOAuthApp(model.NewId())

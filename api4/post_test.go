@@ -51,12 +51,14 @@ func TestCreatePost(t *testing.T) {
 	require.NoError(t, err)
 
 	post.RootId = "junk"
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	post.RootId = rpost.Id
 	post.ParentId = "junk"
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	post2 := &model.Post{ChannelId: th.BasicChannel2.Id, Message: "zz" + model.NewId() + "a", CreateAt: 123}
@@ -181,13 +183,15 @@ func TestCreatePost(t *testing.T) {
 	post.RootId = ""
 	post.ParentId = ""
 	post.Type = model.PostTypeSystemGeneric
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	post.Type = ""
 	post.RootId = rpost2.Id
 	post.ParentId = rpost2.Id
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	post.RootId = ""
@@ -752,7 +756,8 @@ func TestUpdatePost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + " update post 2",
 		}
-		_, resp, _ := client.UpdatePost(rpost2.Id, up2)
+		_, resp, err := client.UpdatePost(rpost2.Id, up2)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -923,7 +928,8 @@ func TestPatchPost(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 		patch := &model.PostPatch{}
-		_, resp, _ := client.PatchPost("junk", patch)
+		_, resp, err := client.PatchPost("junk", patch)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -995,7 +1001,8 @@ func TestPinPost(t *testing.T) {
 	require.Nil(t, err)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
-	pass, resp, _ = client.PinPost("junk")
+	pass, resp, err = client.PinPost("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	require.False(t, pass, "should have failed")
 
@@ -1043,7 +1050,8 @@ func TestUnpinPost(t *testing.T) {
 	require.Nil(t, err)
 	require.False(t, rpost.IsPinned)
 
-	pass, resp, _ = client.UnpinPost("junk")
+	pass, resp, err = client.UnpinPost("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	require.False(t, pass, "should have failed")
 
@@ -1130,10 +1138,12 @@ func TestGetPostsForChannel(t *testing.T) {
 			require.True(t, f, "missing post")
 		}
 
-		_, resp, _ = c.GetPostsForChannel("", 0, 60, "", false)
+		_, resp, err = c.GetPostsForChannel("", 0, 60, "", false)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = c.GetPostsForChannel("junk", 0, 60, "", false)
+		_, resp, err = c.GetPostsForChannel("junk", 0, 60, "", false)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -1260,7 +1270,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, resp, _ = client.GetFlaggedPostsForUserInChannel(user.Id, "junk", 0, 10)
+	rpl, resp, err = client.GetFlaggedPostsForUserInChannel(user.Id, "junk", 0, 10)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	require.Nil(t, rpl)
 
@@ -1288,7 +1299,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, resp, _ = client.GetFlaggedPostsForUserInTeam(user.Id, "junk", 0, 10)
+	rpl, resp, err = client.GetFlaggedPostsForUserInTeam(user.Id, "junk", 0, 10)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	require.Nil(t, rpl)
 
@@ -1360,7 +1372,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Len(t, rpl.Posts, 3, "should have returned 3 posts")
 	require.Equal(t, opl2.Posts, rpl.Posts, "posts should have matched")
 
-	_, resp, _ = client.GetFlaggedPostsForUser("junk", 0, 10)
+	_, resp, err = client.GetFlaggedPostsForUser("junk", 0, 10)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetFlaggedPostsForUser(GenerateTestId(), 0, 10)
@@ -1451,7 +1464,8 @@ func TestGetPostsBefore(t *testing.T) {
 	require.Equal(t, post3.Id, posts.NextPostId, "should match NextPostId")
 	require.Equal(t, post1.Id, posts.PrevPostId, "should match PrevPostId")
 
-	posts, resp, _ = client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "", false)
+	posts, resp, err = client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "", false)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	posts, _, err = client.GetPostsBefore(th.BasicChannel.Id, post5.Id, 0, 3, "", false)
@@ -1591,7 +1605,8 @@ func TestGetPostsAfter(t *testing.T) {
 	require.Equal(t, post5.Id, posts.NextPostId, "should match NextPostId")
 	require.Equal(t, post3.Id, posts.PrevPostId, "should match PrevPostId")
 
-	posts, resp, _ = client.GetPostsAfter(th.BasicChannel.Id, "junk", 1, 1, "", false)
+	posts, resp, err = client.GetPostsAfter(th.BasicChannel.Id, "junk", 1, 1, "", false)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	posts, _, err = client.GetPostsAfter(th.BasicChannel.Id, post1.Id, 0, 3, "", false)
@@ -1953,7 +1968,8 @@ func TestGetPost(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
-		_, resp, _ = c.GetPost("junk", "")
+		_, resp, err = c.GetPost("junk", "")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		_, resp, err = c.GetPost(model.NewId(), "")
@@ -2004,7 +2020,8 @@ func TestDeletePost(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.DeletePost("junk")
+	_, resp, err = client.DeletePost("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.DeletePost(th.BasicPost.Id)
@@ -2107,7 +2124,8 @@ func TestGetPostThread(t *testing.T) {
 	_, ok = list.Posts[post.Id]
 	require.True(t, ok, "should have had post")
 
-	_, resp, _ = client.GetPostThread("junk", "", false)
+	_, resp, err = client.GetPostThread("junk", "", false)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetPostThread(model.NewId(), "", false)
@@ -2256,14 +2274,16 @@ func TestSearchPosts(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, posts.Order, 2, "wrong search results")
 
-	_, resp, _ = client.SearchPosts("junk", "#sgtitlereview", false)
+	_, resp, err = client.SearchPosts("junk", "#sgtitlereview", false)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.SearchPosts(model.NewId(), "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.SearchPosts(th.BasicTeam.Id, "", false)
+	_, resp, err = client.SearchPosts(th.BasicTeam.Id, "", false)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
@@ -2497,7 +2517,8 @@ func TestGetFileInfosForPost(t *testing.T) {
 
 	require.Empty(t, infos, "should have no file infos")
 
-	_, resp, _ = client.GetFileInfosForPost("junk", "")
+	_, resp, err = client.GetFileInfosForPost("junk", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetFileInfosForPost(model.NewId(), "")

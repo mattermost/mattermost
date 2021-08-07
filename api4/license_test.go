@@ -64,7 +64,8 @@ func TestUploadLicenseFile(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		ok, resp, _ := c.UploadLicenseFile([]byte{})
+		ok, resp, err := c.UploadLicenseFile([]byte{})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
 	}, "as system admin user")
@@ -80,7 +81,8 @@ func TestUploadLicenseFile(t *testing.T) {
 
 	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		ok, resp, _ := LocalClient.UploadLicenseFile([]byte{})
+		ok, resp, err := LocalClient.UploadLicenseFile([]byte{})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
 	})

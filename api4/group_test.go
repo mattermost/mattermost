@@ -54,7 +54,8 @@ func TestGetGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.GetGroup("12345", "")
+	_, response, err = th.SystemAdminClient.GetGroup("12345", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
@@ -356,10 +357,12 @@ func TestGetGroupTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable("asdfasdfe3", th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	_, response, err = th.SystemAdminClient.GetGroupSyncable("asdfasdfe3", th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable(g.Id, "asdfasdfe3", model.GroupSyncableTypeTeam, "")
+	_, response, err = th.SystemAdminClient.GetGroupSyncable(g.Id, "asdfasdfe3", model.GroupSyncableTypeTeam, "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
@@ -414,10 +417,12 @@ func TestGetGroupChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable("asdfasdfe3", th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	_, response, err = th.SystemAdminClient.GetGroupSyncable("asdfasdfe3", th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable(g.Id, "asdfasdfe3", model.GroupSyncableTypeChannel, "")
+	_, response, err = th.SystemAdminClient.GetGroupSyncable(g.Id, "asdfasdfe3", model.GroupSyncableTypeChannel, "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
@@ -584,10 +589,12 @@ func TestPatchGroupTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable("abc", th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable("abc", th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, "abc", model.GroupSyncableTypeTeam, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, "abc", model.GroupSyncableTypeTeam, patch)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
@@ -664,10 +671,12 @@ func TestPatchGroupChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable("abc", th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable("abc", th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, "abc", model.GroupSyncableTypeChannel, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, "abc", model.GroupSyncableTypeChannel, patch)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
@@ -706,7 +715,8 @@ func TestGetGroupsByChannel(t *testing.T) {
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, _, response, _ := client.GetGroupsByChannel("asdfasdf", opts)
+		_, _, response, err := client.GetGroupsByChannel("asdfasdf", opts)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
 
@@ -781,7 +791,8 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 		},
 	}
 
-	_, response, _ := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam("asdfasdf", opts)
+	_, response, err := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam("asdfasdf", opts)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	th.App.Srv().SetLicense(nil)
@@ -856,7 +867,8 @@ func TestGetGroupsByTeam(t *testing.T) {
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, _, response, _ := client.GetGroupsByTeam("asdfasdf", opts)
+		_, _, response, err := client.GetGroupsByTeam("asdfasdf", opts)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
 
@@ -1033,10 +1045,12 @@ func TestGetGroupsByUserId(t *testing.T) {
 	CheckNotImplementedStatus(t, response)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
-	_, response, _ = th.SystemAdminClient.GetGroupsByUserId("")
+	_, response, err = th.SystemAdminClient.GetGroupsByUserId("")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.GetGroupsByUserId("notvaliduserid")
+	_, response, err = th.SystemAdminClient.GetGroupsByUserId("notvaliduserid")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	groups, _, nErr := th.SystemAdminClient.GetGroupsByUserId(user1.Id)

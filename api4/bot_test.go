@@ -147,8 +147,8 @@ func TestPatchBot(t *testing.T) {
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			_, resp, err := client.PatchBot(model.NewId(), &model.BotPatch{})
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+			require.Error(t, err)
+			CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -543,8 +543,8 @@ func TestGetBot(t *testing.T) {
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		_, resp, err := th.Client.GetBot(model.NewId(), "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("get bot1", func(t *testing.T) {
@@ -612,8 +612,8 @@ func TestGetBot(t *testing.T) {
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		_, resp, err := th.Client.GetBot(deletedBot.UserId, "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("get deleted bot, include deleted", func(t *testing.T) {
@@ -911,8 +911,8 @@ func TestDisableBot(t *testing.T) {
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 			_, resp, err := client.DisableBot(model.NewId())
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+			require.Error(t, err)
+			CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -1016,8 +1016,8 @@ func TestEnableBot(t *testing.T) {
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 			_, resp, err := th.Client.EnableBot(model.NewId())
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+			require.Error(t, err)
+			CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -1134,8 +1134,8 @@ func TestAssignBot(t *testing.T) {
 	t.Run("claim non-existent bot", func(t *testing.T) {
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 			_, resp, err := client.AssignBot(model.NewId(), model.NewId())
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+			require.Error(t, err)
+			CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -1168,8 +1168,8 @@ func TestAssignBot(t *testing.T) {
 
 		// Original owner doesn't have read others bots permission, therefore can't see bot anymore
 		_, resp, err = th.Client.GetBot(bot.UserId, "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 
 		// System admin can see creator ID has changed
 		after, resp, err := th.SystemAdminClient.GetBot(bot.UserId, "")
@@ -1408,7 +1408,8 @@ func TestGetBotIconImage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedData, data)
 
-	_, resp, _ = th.Client.GetBotIconImage("junk")
+	_, resp, err = th.Client.GetBotIconImage("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = th.Client.GetBotIconImage(model.NewId())
@@ -1472,7 +1473,8 @@ func TestDeleteBotIconImage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, svgData, data)
 
-	success, resp, _ := th.Client.DeleteBotIconImage("junk")
+	success, resp, err := th.Client.DeleteBotIconImage("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	require.False(t, success)
 
@@ -1515,7 +1517,8 @@ func TestConvertBotToUser(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(bot.UserId)
 
-	_, resp, _ = th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+	_, resp, err = th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	user, resp, err := th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
@@ -1532,7 +1535,8 @@ func TestConvertBotToUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		user, resp, _ := client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+		user, resp, err := client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, user)
 
@@ -1542,8 +1546,8 @@ func TestConvertBotToUser(t *testing.T) {
 		require.Equal(t, bot.UserId, user.Id)
 
 		bot, resp, err = client.GetBot(bot.UserId, "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 
 		bot = &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -1560,8 +1564,8 @@ func TestConvertBotToUser(t *testing.T) {
 		require.Contains(t, user.GetRoles(), model.SystemAdminRoleId)
 
 		bot, resp, err = client.GetBot(bot.UserId, "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 }
 

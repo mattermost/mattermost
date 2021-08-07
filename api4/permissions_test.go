@@ -37,7 +37,8 @@ func TestGetAncillaryPermissions(t *testing.T) {
 	t.Run("Invalid Case, Passing in nothing", func(t *testing.T) {
 		subsectionPermissions = []string{}
 		expectedAncillaryPermissions = []string{}
-		_, resp, _ := th.Client.GetAncillaryPermissions(subsectionPermissions)
+		_, resp, err := th.Client.GetAncillaryPermissions(subsectionPermissions)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 }

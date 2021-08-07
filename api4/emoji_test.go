@@ -75,7 +75,8 @@ func TestCreateEmoji(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		Name:      newEmoji.Name,
 	}
-	_, resp, _ = client.CreateEmoji(emoji2, utils.CreateTestGif(t, 10, 10), "image.gif")
+	_, resp, err = client.CreateEmoji(emoji2, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	CheckErrorID(t, err, "api.emoji.create.duplicate.app_error")
 
@@ -155,7 +156,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	_, resp, _ = client.CreateEmoji(emoji, make([]byte, 100), "image.gif")
+	_, resp, err = client.CreateEmoji(emoji, make([]byte, 100), "image.gif")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	CheckErrorID(t, err, "api.emoji.upload.image.app_error")
 
@@ -573,7 +575,8 @@ func TestGetEmojiImage(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.GetEmojiImage("")
+	_, resp, err = client.GetEmojiImage("")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 }
 
@@ -648,7 +651,8 @@ func TestSearchEmoji(t *testing.T) {
 	assert.True(t, found)
 
 	search.Term = ""
-	_, resp, _ = client.SearchEmoji(search)
+	_, resp, err = client.SearchEmoji(search)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
@@ -702,7 +706,8 @@ func TestAutocompleteEmoji(t *testing.T) {
 	assert.True(t, found1)
 	assert.False(t, found2)
 
-	_, resp, _ = client.AutocompleteEmoji("", "")
+	_, resp, err = client.AutocompleteEmoji("", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()

@@ -38,8 +38,9 @@ func TestCreateTeam(t *testing.T) {
 
 		require.Equal(t, rteam.Type, team.Type, "types did not match")
 
-		_, resp, _ = client.CreateTeam(rteam)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err = client.CreateTeam(rteam)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 		rteam.Id = ""
 		_, _, err = client.CreateTeam(rteam)
@@ -137,8 +138,9 @@ func TestGetTeam(t *testing.T) {
 
 		require.Equal(t, rteam.Id, team.Id, "wrong team")
 
-		_, resp, _ = client.GetTeam("junk", "")
-		CheckBadRequestStatus(t, resp)
+		_, resp, err = client.GetTeam("junk", "")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 		_, resp, err = client.GetTeam("", "")
 		require.Error(t, err)
@@ -245,10 +247,12 @@ func TestGetTeamUnread(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, teamUnread.TeamId, th.BasicTeam.Id, "wrong team id returned for regular user call")
 
-	_, resp, _ = client.GetTeamUnread("junk", th.BasicUser.Id)
+	_, resp, err = client.GetTeamUnread("junk", th.BasicUser.Id)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetTeamUnread(th.BasicTeam.Id, "junk")
+	_, resp, err = client.GetTeamUnread(th.BasicTeam.Id, "junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetTeamUnread(model.NewId(), th.BasicUser.Id)
@@ -345,8 +349,9 @@ func TestUpdateTeam(t *testing.T) {
 		require.Equal(t, uteam.Id, originalTeamId, "wrong team id")
 
 		team.Id = "fake"
-		_, resp, _ = client.UpdateTeam(team)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err = client.UpdateTeam(team)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 		th.Client.Logout() // for non-local clients
 		_, resp, err = th.Client.UpdateTeam(team)
@@ -474,8 +479,9 @@ func TestPatchTeam(t *testing.T) {
 		require.Equal(t, *rteam.GroupConstrained, *patch.GroupConstrained, "GroupConstrained flags do not match")
 
 		patch.GroupConstrained = nil
-		_, resp, _ = client.PatchTeam("junk", patch)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err = client.PatchTeam("junk", patch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 		r, err := client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
 		require.NotNil(t, err, "should have errored")
@@ -805,8 +811,9 @@ func TestSoftDeleteTeam(t *testing.T) {
 		require.Nil(t, err, "should have returned archived team")
 		require.NotEqual(t, rteam.DeleteAt, 0, "should have not set to zero")
 
-		ok, resp, _ = client.SoftDeleteTeam("junk")
-		CheckBadRequestStatus(t, resp)
+		ok, resp, err = client.SoftDeleteTeam("junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 		require.False(t, ok, "should have returned false")
 	})
@@ -864,8 +871,9 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		_, err := th.App.GetTeam(team.Id)
 		assert.NotNil(t, err)
 
-		ok, resp, _ = client.PermanentDeleteTeam("junk")
-		CheckBadRequestStatus(t, resp)
+		ok, resp, err = client.PermanentDeleteTeam("junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 		require.False(t, ok, "should have returned false")
 	}, "Permanent deletion with EnableAPITeamDeletion set")
@@ -1623,7 +1631,8 @@ func TestGetTeamsForUser(t *testing.T) {
 	require.True(t, found1, "missing team")
 	require.True(t, found2, "missing team")
 
-	_, resp, _ = client.GetTeamsForUser("junk", "")
+	_, resp, err = client.GetTeamsForUser("junk", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetTeamsForUser(model.NewId(), "")
@@ -1739,13 +1748,16 @@ func TestGetTeamMember(t *testing.T) {
 
 	require.Equal(t, rmember.UserId, user.Id, "wrong user id")
 
-	_, resp, _ = client.GetTeamMember("junk", user.Id, "")
+	_, resp, err = client.GetTeamMember("junk", user.Id, "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetTeamMember(team.Id, "junk", "")
+	_, resp, err = client.GetTeamMember(team.Id, "junk", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetTeamMember("junk", "junk", "")
+	_, resp, err = client.GetTeamMember("junk", "junk", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetTeamMember(team.Id, model.NewId(), "")
@@ -1802,7 +1814,8 @@ func TestGetTeamMembers(t *testing.T) {
 		}
 	}
 
-	_, resp, _ = client.GetTeamMembers("junk", 0, 100, "")
+	_, resp, err = client.GetTeamMembers("junk", 0, 100, "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetTeamMembers(model.NewId(), 0, 100, "")
@@ -1847,7 +1860,8 @@ func TestGetTeamMembersForUser(t *testing.T) {
 
 	require.True(t, found, "missing team member")
 
-	_, resp, _ = client.GetTeamMembersForUser("junk", "")
+	_, resp, err = client.GetTeamMembersForUser("junk", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetTeamMembersForUser(model.NewId(), "")
@@ -1879,7 +1893,8 @@ func TestGetTeamMembersByIds(t *testing.T) {
 
 	require.Equal(t, tm[0].UserId, th.BasicUser.Id, "returned wrong user")
 
-	_, resp, _ = client.GetTeamMembersByIds(th.BasicTeam.Id, []string{})
+	_, resp, err = client.GetTeamMembersByIds(th.BasicTeam.Id, []string{})
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	tm1, _, err = client.GetTeamMembersByIds(th.BasicTeam.Id, []string{"junk"})
@@ -1890,7 +1905,8 @@ func TestGetTeamMembersByIds(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, tm1, 1, "1 user should be returned")
 
-	_, resp, _ = client.GetTeamMembersByIds("junk", []string{th.BasicUser.Id})
+	_, resp, err = client.GetTeamMembersByIds("junk", []string{th.BasicUser.Id})
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetTeamMembersByIds(model.NewId(), []string{th.BasicUser.Id})
@@ -1956,12 +1972,14 @@ func TestAddTeamMember(t *testing.T) {
 	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
 	// Check with various invalid requests.
-	tm, resp, _ = client.AddTeamMember(team.Id, "junk")
+	tm, resp, err = client.AddTeamMember(team.Id, "junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	require.Nil(t, tm, "should have not returned team member")
 
-	_, resp, _ = client.AddTeamMember("junk", otherUser.Id)
+	_, resp, err = client.AddTeamMember("junk", otherUser.Id)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.AddTeamMember(GenerateTestId(), otherUser.Id)
@@ -2042,7 +2060,8 @@ func TestAddTeamMember(t *testing.T) {
 	_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
 	require.Error(t, nErr, "The token must be deleted after be used")
 
-	tm, resp, _ = client.AddTeamMemberFromInvite("junk", "")
+	tm, resp, err = client.AddTeamMemberFromInvite("junk", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	require.Nil(t, tm, "should have not returned team member")
@@ -2052,7 +2071,8 @@ func TestAddTeamMember(t *testing.T) {
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
-	_, resp, _ = client.AddTeamMemberFromInvite(token.Token, "")
+	_, resp, err = client.AddTeamMemberFromInvite(token.Token, "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	th.App.DeleteToken(token)
 
@@ -2328,7 +2348,8 @@ func TestAddTeamMembers(t *testing.T) {
 	require.Equal(t, tm[0].TeamId, team.Id, "team ids should have matched")
 
 	// Check with various invalid requests.
-	_, resp, _ = client.AddTeamMembers("junk", userList)
+	_, resp, err = client.AddTeamMembers("junk", userList)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.AddTeamMembers(GenerateTestId(), userList)
@@ -2344,7 +2365,8 @@ func TestAddTeamMembers(t *testing.T) {
 	for i := 0; i < 260; i++ {
 		testUserList = append(testUserList, GenerateTestId())
 	}
-	_, resp, _ = client.AddTeamMembers(team.Id, testUserList)
+	_, resp, err = client.AddTeamMembers(team.Id, testUserList)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
@@ -2441,11 +2463,13 @@ func TestRemoveTeamMember(t *testing.T) {
 	})
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ := client.RemoveTeamMember(th.BasicTeam.Id, "junk")
-		CheckBadRequestStatus(t, resp)
+		_, resp, err := client.RemoveTeamMember(th.BasicTeam.Id, "junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = client.RemoveTeamMember("junk", th.BasicUser2.Id)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err = client.RemoveTeamMember("junk", th.BasicUser2.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 	})
 
 	_, resp, err := client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
@@ -2502,7 +2526,8 @@ func TestGetTeamStats(t *testing.T) {
 
 	require.Equal(t, rstats.ActiveMemberCount, int64(3), "wrong count")
 
-	_, resp, _ = client.GetTeamStats("junk", "")
+	_, resp, err = client.GetTeamStats("junk", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetTeamStats(model.NewId(), "")
@@ -2607,7 +2632,8 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
-	_, resp, _ = client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "junk")
+	_, resp, err = client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// user 1 (team admin) demotes himself
@@ -2696,7 +2722,8 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 		SchemeUser:  true,
 		SchemeGuest: true,
 	}
-	_, resp, _ := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s6)
+	_, resp, err := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s6)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
@@ -2707,10 +2734,12 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = SystemAdminClient.UpdateTeamMemberSchemeRoles("ASDF", th.BasicUser.Id, s4)
+	_, resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles("ASDF", th.BasicUser.Id, s4)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, "ASDF", s4)
+	_, resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, "ASDF", s4)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	th.LoginBasic2()
@@ -2740,7 +2769,8 @@ func TestGetMyTeamsUnread(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, teams, "should not have results")
 
-	_, resp, _ = client.GetTeamsUnreadForUser("fail", "", true)
+	_, resp, err = client.GetTeamsUnreadForUser("fail", "", true)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetTeamsUnreadForUser(model.NewId(), "", true)
@@ -2856,11 +2886,13 @@ func TestImportTeam(t *testing.T) {
 		data, err := testutils.ReadTestFile("Fake_Team_Import.zip")
 
 		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-		_, resp, _ := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "XYZ", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "XYZ", "Fake_Team_Import.zip", th.BasicTeam.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = th.SystemAdminClient.ImportTeam(data, binary.Size(data), "", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err = th.SystemAdminClient.ImportTeam(data, binary.Size(data), "", "Fake_Team_Import.zip", th.BasicTeam.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 	}, "Import from unknown and source")
 
 	t.Run("ImportTeam", func(t *testing.T) {
@@ -2919,8 +2951,9 @@ func TestImportTeam(t *testing.T) {
 	})
 
 	t.Run("MissingFile", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.ImportTeam(nil, 4343, "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err := th.SystemAdminClient.ImportTeam(nil, 4343, "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("WrongPermission", func(t *testing.T) {
@@ -3393,9 +3426,12 @@ func TestUpdateTeamScheme(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test various invalid team and scheme id combinations.
-	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
-	CheckBadRequestStatus(t, resp)
-	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme("x", teamScheme.Id)
+	_, resp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)resp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)ent.Uresp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme("x", "x")
 	CheckBadRequestStatus(t, resp)
@@ -3412,7 +3448,8 @@ func TestUpdateTeamScheme(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	// Test an invalid scheme scope.
-	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
+	_, resp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Test that an unauthenticated user gets rejected.

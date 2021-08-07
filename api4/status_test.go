@@ -106,17 +106,20 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	usersIds := []string{th.BasicUser.Id, th.BasicUser2.Id}
 
 	t.Run("empty userIds list", func(t *testing.T) {
-		_, resp, _ := client.GetUsersStatusesByIds([]string{})
+		_, resp, err := client.GetUsersStatusesByIds([]string{})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("completely invalid userIds list", func(t *testing.T) {
-		_, resp, _ := client.GetUsersStatusesByIds([]string{"invalid_user_id", "invalid_user_id"})
+		_, resp, err := client.GetUsersStatusesByIds([]string{"invalid_user_id", "invalid_user_id"})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("partly invalid userIds list", func(t *testing.T) {
-		_, resp, _ := client.GetUsersStatusesByIds([]string{th.BasicUser.Id, "invalid_user_id"})
+		_, resp, err := client.GetUsersStatusesByIds([]string{th.BasicUser.Id, "invalid_user_id"})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -225,7 +228,8 @@ func TestUpdateUserStatus(t *testing.T) {
 
 	t.Run("not matching status user id and the user id passed in the function", func(t *testing.T) {
 		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
-		_, resp, _ := client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+		_, resp, err := client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 

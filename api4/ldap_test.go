@@ -222,7 +222,8 @@ func TestMigrateIdLdap(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ = client.MigrateIdLdap("")
+		_, resp, err = client.MigrateIdLdap("")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		_, resp, _ = client.MigrateIdLdap("objectGUID")

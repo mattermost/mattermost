@@ -728,7 +728,8 @@ func TestGetFile(t *testing.T) {
 		require.Equal(t, sent[i], data[i], "received file didn't match sent one")
 	}
 
-	_, resp, _ = client.GetFile("junk")
+	_, resp, err = client.GetFile("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetFile(model.NewId())
@@ -821,7 +822,8 @@ func TestGetFileThumbnail(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(data), "should not be empty")
 
-	_, resp, _ = client.GetFileThumbnail("junk")
+	_, resp, err = client.GetFileThumbnail("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetFileThumbnail(model.NewId())
@@ -865,7 +867,8 @@ func TestGetFileLink(t *testing.T) {
 
 	fileId := fileResp.FileInfos[0].Id
 
-	_, resp, _ := client.GetFileLink(fileId)
+	_, resp, err := client.GetFileLink(fileId)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
@@ -881,7 +884,8 @@ func TestGetFileLink(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, "", link, "should've received public link")
 
-	_, resp, _ = client.GetFileLink("junk")
+	_, resp, err = client.GetFileLink("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetFileLink(model.NewId())
@@ -929,7 +933,8 @@ func TestGetFilePreview(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(data), "should not be empty")
 
-	_, resp, _ = client.GetFilePreview("junk")
+	_, resp, err = client.GetFilePreview("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetFilePreview(model.NewId())
@@ -982,7 +987,8 @@ func TestGetFileInfo(t *testing.T) {
 	require.Equal(t, "", info.PreviewPath, "file preview path shouldn't have been returned to client")
 	require.Equal(t, "image/png", info.MimeType, "mime type should've been image/png")
 
-	_, resp, _ = client.GetFileInfo("junk")
+	_, resp, err = client.GetFileInfo("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetFileInfo(model.NewId())
@@ -1197,14 +1203,16 @@ func TestSearchFiles(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 2, "wrong search results")
 
-	_, resp, _ = client.SearchFiles("junk", "#sgtitlereview", false)
+	_, resp, err = client.SearchFiles("junk", "#sgtitlereview", false)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.SearchFiles(model.NewId(), "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.SearchFiles(th.BasicTeam.Id, "", false)
+	_, resp, err = client.SearchFiles(th.BasicTeam.Id, "", false)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()

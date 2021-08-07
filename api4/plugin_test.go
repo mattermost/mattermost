@@ -60,7 +60,8 @@ func TestPlugin(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "testplugin", manifest.Id)
 
-		_, resp, _ = client.InstallPluginFromUrl(url, false)
+		_, resp, err = client.InstallPluginFromUrl(url, false)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		manifest, _, err = client.InstallPluginFromUrl(url, true)
@@ -107,12 +108,14 @@ func TestPlugin(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		_, resp, _ = client.InstallPluginFromUrl("http://nodata", false)
+		_, resp, err = client.InstallPluginFromUrl("http://nodata", false)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.AllowInsecureDownloadUrl = false })
 
-		_, resp, _ = client.InstallPluginFromUrl(url, false)
+		_, resp, err = client.InstallPluginFromUrl(url, false)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		// Successful upload
@@ -133,7 +136,8 @@ func TestPlugin(t *testing.T) {
 		assert.True(t, pluginStored)
 
 		// Upload error cases
-		_, resp, _ = client.UploadPlugin(bytes.NewReader([]byte("badfile")))
+		_, resp, err = client.UploadPlugin(bytes.NewReader([]byte("badfile")))
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })

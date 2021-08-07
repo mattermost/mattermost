@@ -181,14 +181,16 @@ func TestOpenDialog(t *testing.T) {
 
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
-	pass, resp, _ = client.OpenInteractiveDialog(request)
+	pass, resp, err = client.OpenInteractiveDialog(request)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
 
 	// URL is required
 	request.TriggerId = triggerId
 	request.URL = ""
-	pass, resp, _ = client.OpenInteractiveDialog(request)
+	pass, resp, err = client.OpenInteractiveDialog(request)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
 
@@ -258,7 +260,8 @@ func TestSubmitDialog(t *testing.T) {
 	assert.NotNil(t, submitResp)
 
 	submit.URL = ""
-	submitResp, resp, _ = client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err = client.SubmitInteractiveDialog(submit)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	assert.Nil(t, submitResp)
 

@@ -172,10 +172,12 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	preferences[0].Value = model.NewId()
 	client.UpdatePreferences(user.Id, &preferences)
 
-	_, resp, _ = client.GetPreferenceByCategoryAndName(user.Id, "junk", preferences[0].Name)
+	_, resp, err = client.GetPreferenceByCategoryAndName(user.Id, "junk", preferences[0].Name)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, "junk")
+	_, resp, err = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, "junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.GetPreferenceByCategoryAndName(th.BasicUser2.Id, preferences[0].Category, "junk")
@@ -241,7 +243,8 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, resp, _ = client.UpdatePreferences(user1.Id, &preferences)
+	_, resp, err = client.UpdatePreferences(user1.Id, &preferences)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.UpdatePreferences(th.BasicUser2.Id, &preferences)

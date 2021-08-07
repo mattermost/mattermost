@@ -38,7 +38,8 @@ func TestCreateJob(t *testing.T) {
 		Type: model.NewId(),
 	}
 
-	_, resp, _ = th.SystemAdminClient.CreateJob(job)
+	_, resp, err = th.SystemAdminClient.CreateJob(job)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	job.Type = model.JobTypeElasticsearchPostIndexing
@@ -67,7 +68,8 @@ func TestGetJob(t *testing.T) {
 	require.Equal(t, job.Id, received.Id, "incorrect job received")
 	require.Equal(t, job.Status, received.Status, "incorrect job received")
 
-	_, resp, _ := th.SystemAdminClient.GetJob("1234")
+	_, resp, err := th.SystemAdminClient.GetJob("1234")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = th.Client.GetJob(job.Id)
@@ -179,7 +181,8 @@ func TestGetJobsByType(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.GetJobsByType(strings.Repeat("a", 33), 0, 60)
+	_, resp, err = th.SystemAdminClient.GetJobsByType(strings.Repeat("a", 33), 0, 60)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = th.Client.GetJobsByType(jobType, 0, 60)
@@ -242,7 +245,8 @@ func TestDownloadJob(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.DownloadJob(job.Id)
+	_, resp, err = th.SystemAdminClient.DownloadJob(job.Id)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	job.Data["is_downloadable"] = "true"
@@ -279,7 +283,8 @@ func TestDownloadJob(t *testing.T) {
 	defer th.App.Srv().Store.Job().Delete(job.Id)
 
 	// System admin shouldn't be able to download since the job type is not message export
-	_, resp, _ = th.SystemAdminClient.DownloadJob(job.Id)
+	_, resp, err = th.SystemAdminClient.DownloadJob(job.Id)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 }
 

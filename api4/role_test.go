@@ -44,7 +44,8 @@ func TestGetRole(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ := client.GetRole("1234")
+		_, resp, err := client.GetRole("1234")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		_, resp, err = client.GetRole(model.NewId())
@@ -82,7 +83,8 @@ func TestGetRoleByName(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ := client.GetRoleByName(strings.Repeat("abcdefghij", 10))
+		_, resp, err := client.GetRoleByName(strings.Repeat("abcdefghij", 10))
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		_, resp, err = client.GetRoleByName(model.NewId())
@@ -145,13 +147,15 @@ func TestGetRolesByNames(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Empty list should error.
-		_, resp, _ := client.GetRolesByNames([]string{})
+		_, resp, err := client.GetRolesByNames([]string{})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// Invalid role name should error.
-		_, resp, _ := client.GetRolesByNames([]string{model.NewId(), model.NewId(), "!!!!!!"})
+		_, resp, err := client.GetRolesByNames([]string{model.NewId(), model.NewId(), "!!!!!!"})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		// Empty/whitespace rolenames should be ignored.
@@ -235,7 +239,8 @@ func TestPatchRole(t *testing.T) {
 		_, _, err = client.PatchRole(role.Id, patch)
 		require.NoError(t, err)
 
-		_, resp, _ = client.PatchRole("junk", patch)
+		_, resp, err = client.PatchRole("junk", patch)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 

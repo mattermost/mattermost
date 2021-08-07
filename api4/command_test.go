@@ -47,7 +47,8 @@ func TestCreateCommand(t *testing.T) {
 	require.Equal(t, th.SystemAdminUser.Id, createdCmd.CreatorId, "user ids didn't match")
 	require.Equal(t, th.BasicTeam.Id, createdCmd.TeamId, "team ids didn't match")
 
-	_, resp, _ = th.SystemAdminClient.CreateCommand(newCmd)
+	_, resp, err = th.SystemAdminClient.CreateCommand(newCmd)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
 
@@ -60,7 +61,8 @@ func TestCreateCommand(t *testing.T) {
 
 	newCmd.Method = "Wrong"
 	newCmd.Trigger = "testcommand"
-	_, resp, _ = th.SystemAdminClient.CreateCommand(newCmd)
+	_, resp, err = th.SystemAdminClient.CreateCommand(newCmd)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	CheckErrorID(t, err, "model.command.is_valid.method.app_error")
 
@@ -133,13 +135,15 @@ func TestUpdateCommand(t *testing.T) {
 
 		cmd2.Id = "junk"
 
-		_, resp, _ = client.UpdateCommand(cmd2)
+		_, resp, err = client.UpdateCommand(cmd2)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		cmd2.Id = cmd1.Id
 		cmd2.TeamId = GenerateTestId()
 
-		_, resp, _ = client.UpdateCommand(cmd2)
+		_, resp, err = client.UpdateCommand(cmd2)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		cmd2.TeamId = team.Id
@@ -185,7 +189,8 @@ func TestMoveCommand(t *testing.T) {
 		require.NotNil(t, rcmd1)
 		require.Equal(t, newTeam.Id, rcmd1.TeamId)
 
-		ok, resp, _ = client.MoveCommand(newTeam.Id, "bogus")
+		ok, resp, err = client.MoveCommand(newTeam.Id, "bogus")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
 
@@ -246,7 +251,8 @@ func TestDeleteCommand(t *testing.T) {
 		rcmd1, _ = th.App.GetCommand(rcmd1.Id)
 		require.Nil(t, rcmd1)
 
-		ok, resp, _ = client.DeleteCommand("junk")
+		ok, resp, err = client.DeleteCommand("junk")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		require.False(t, ok)
@@ -662,13 +668,16 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	_, appError := th.App.CreateCommand(getCmd)
 	require.Nil(t, appError, "failed to create get command")
 
-	_, resp, _ := client.ExecuteCommand(channel.Id, "")
+	_, resp, err := client.ExecuteCommand(channel.Id, "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.ExecuteCommand(channel.Id, "/")
+	_, resp, err = client.ExecuteCommand(channel.Id, "/")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.ExecuteCommand(channel.Id, "getcommand")
+	_, resp, err = client.ExecuteCommand(channel.Id, "getcommand")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.ExecuteCommand(channel.Id, "/junk")

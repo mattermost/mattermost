@@ -240,10 +240,12 @@ func TestSiteURLTest(t *testing.T) {
 	invalidSiteURL := ts.URL + "/invalid"
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.TestSiteURL("")
+		_, resp, err := th.SystemAdminClient.TestSiteURL("")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = th.SystemAdminClient.TestSiteURL(invalidSiteURL)
+		_, resp, err = th.SystemAdminClient.TestSiteURL(invalidSiteURL)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		_, resp, err = th.SystemAdminClient.TestSiteURL(validSiteURL)
@@ -593,7 +595,8 @@ func TestRedirectLocation(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
 	require.NoError(t, err)
 
-	_, resp, _ = th.SystemAdminClient.GetRedirectLocation("", "")
+	_, resp, err = th.SystemAdminClient.GetRedirectLocation("", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	actual, _, err = th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
@@ -653,7 +656,8 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
-			ok, resp, _ := c.SetServerBusy(p)
+			ok, resp, err := c.SetServerBusy(p)
+			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 			require.False(t, ok, "should not set server busy due to invalid param ", p)
 			require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)

@@ -189,7 +189,8 @@ func TestUpdateConfig(t *testing.T) {
 			badcfg := cfg.Clone()
 			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
 			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-			_, resp, _ = client.UpdateConfig(badcfg)
+			_, resp, err = client.UpdateConfig(badcfg)
+			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 			CheckErrorID(t, err, "model.config.is_valid.password_length.app_error")
 		})
@@ -241,7 +242,8 @@ func TestUpdateConfig(t *testing.T) {
 
 		// Check that the Site URL can't be cleared
 		cfg.ServiceSettings.SiteURL = sToP("")
-		cfg, resp, _ = th.SystemAdminClient.UpdateConfig(cfg)
+		cfg, resp, err = th.SystemAdminClient.UpdateConfig(cfg)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.config.update_config.clear_siteurl.app_error")
 		// Check that the Site URL wasn't cleared
@@ -754,7 +756,8 @@ func TestPatchConfig(t *testing.T) {
 				SiteURL: model.NewString(""),
 			},
 		}
-		updatedConfig, resp, _ = th.SystemAdminClient.PatchConfig(&config)
+		updatedConfig, resp, err = th.SystemAdminClient.PatchConfig(&config)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.config.update_config.clear_siteurl.app_error")
 

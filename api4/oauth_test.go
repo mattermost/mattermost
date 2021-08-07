@@ -56,7 +56,8 @@ func TestCreateOAuthApp(t *testing.T) {
 	assert.False(t, rapp.IsTrusted, "trusted should be false - created by non admin")
 
 	oapp.Name = ""
-	_, resp, _ = adminClient.CreateOAuthApp(oapp)
+	_, resp, err = adminClient.CreateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	r, err := client.DoApiPost("/oauth/apps", "garbage")
@@ -159,7 +160,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	oapp.Id = "junk"
-	_, resp, _ = adminClient.UpdateOAuthApp(oapp)
+	_, resp, err = adminClient.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
@@ -318,7 +320,8 @@ func TestGetOAuthApp(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = adminClient.GetOAuthApp("junk")
+	_, resp, err = adminClient.GetOAuthApp("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = adminClient.GetOAuthApp(model.NewId())
@@ -384,7 +387,8 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = adminClient.GetOAuthAppInfo("junk")
+	_, resp, err = adminClient.GetOAuthAppInfo("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = adminClient.GetOAuthAppInfo(model.NewId())
@@ -455,7 +459,8 @@ func TestDeleteOAuthApp(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = adminClient.DeleteOAuthApp("junk")
+	_, resp, err = adminClient.DeleteOAuthApp("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = adminClient.DeleteOAuthApp(model.NewId())
@@ -527,7 +532,8 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = adminClient.RegenerateOAuthAppSecret("junk")
+	_, resp, err = adminClient.RegenerateOAuthAppSecret("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = adminClient.RegenerateOAuthAppSecret(model.NewId())
@@ -583,7 +589,8 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.GetAuthorizedOAuthAppsForUser("junk", 0, 1000)
+	_, resp, err = client.GetAuthorizedOAuthAppsForUser("junk", 0, 1000)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()

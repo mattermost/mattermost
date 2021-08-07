@@ -88,7 +88,8 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("react-to-not-valid-post-id", func(t *testing.T) {
 		reaction.PostId = "junk"
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -104,7 +105,8 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("react-as-not-valid-user-id", func(t *testing.T) {
 		reaction.UserId = "junk"
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -112,14 +114,16 @@ func TestSaveReaction(t *testing.T) {
 		reaction.UserId = userId
 		reaction.EmojiName = ""
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("react-as-not-valid-emoji-name", func(t *testing.T) {
 		reaction.EmojiName = strings.Repeat("a", 65)
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -269,7 +273,8 @@ func TestGetReactions(t *testing.T) {
 	})
 
 	t.Run("get-reactions-of-invalid-post-id", func(t *testing.T) {
-		rr, resp, _ := client.GetReactions("junk")
+		rr, resp, err := client.GetReactions("junk")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		assert.Empty(t, rr)
@@ -410,7 +415,8 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("delete-reaction-from-not-valid-post-id", func(t *testing.T) {
 		r1.PostId = "junk"
 
-		_, resp, _ := client.DeleteReaction(r1)
+		_, resp, err := client.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -426,7 +432,8 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("delete-reaction-from-not-valid-user-id", func(t *testing.T) {
 		r1.UserId = "junk"
 
-		_, resp, _ := client.DeleteReaction(r1)
+		_, resp, err := client.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -442,7 +449,8 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("delete-reaction-with-not-existing-name", func(t *testing.T) {
 		r1.EmojiName = strings.Repeat("a", 65)
 
-		_, resp, _ := client.DeleteReaction(r1)
+		_, resp, err := client.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
