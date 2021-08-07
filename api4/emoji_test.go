@@ -305,15 +305,18 @@ func TestDeleteEmoji(t *testing.T) {
 	require.Error(t, err, "expected error fetching deleted emoji")
 
 	// Try to delete just deleted emoji
-	_, resp, _ = client.DeleteEmoji(newEmoji.Id)
+	_, resp, err = client.DeleteEmoji(newEmoji.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to delete non-existing emoji
-	_, resp, _ = client.DeleteEmoji(model.NewId())
+	_, resp, err = client.DeleteEmoji(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to delete without Id
-	_, resp, _ = client.DeleteEmoji("")
+	_, resp, err = client.DeleteEmoji("")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to delete my custom emoji without permissions
@@ -447,7 +450,8 @@ func TestGetEmoji(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, newEmoji.Id, emoji.Id, "wrong emoji was returned")
 
-	_, resp, _ = client.GetEmoji(model.NewId())
+	_, resp, err = client.GetEmoji(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -470,7 +474,8 @@ func TestGetEmojiByName(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, newEmoji.Name, emoji.Name)
 
-	_, resp, _ = client.GetEmojiByName(model.NewId())
+	_, resp, err = client.GetEmojiByName(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -560,10 +565,12 @@ func TestGetEmojiImage(t *testing.T) {
 	_, _, err = client.DeleteEmoji(emoji4.Id)
 	require.NoError(t, err)
 
-	_, resp, _ = client.GetEmojiImage(emoji4.Id)
+	_, resp, err = client.GetEmojiImage(emoji4.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.GetEmojiImage(model.NewId())
+	_, resp, err = client.GetEmojiImage(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = client.GetEmojiImage("")

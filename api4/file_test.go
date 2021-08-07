@@ -731,7 +731,8 @@ func TestGetFile(t *testing.T) {
 	_, resp, _ = client.GetFile("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetFile(model.NewId())
+	_, resp, err = client.GetFile(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -823,7 +824,8 @@ func TestGetFileThumbnail(t *testing.T) {
 	_, resp, _ = client.GetFileThumbnail("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetFileThumbnail(model.NewId())
+	_, resp, err = client.GetFileThumbnail(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -882,7 +884,8 @@ func TestGetFileLink(t *testing.T) {
 	_, resp, _ = client.GetFileLink("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetFileLink(model.NewId())
+	_, resp, err = client.GetFileLink(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -929,7 +932,8 @@ func TestGetFilePreview(t *testing.T) {
 	_, resp, _ = client.GetFilePreview("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetFilePreview(model.NewId())
+	_, resp, err = client.GetFilePreview(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -981,7 +985,8 @@ func TestGetFileInfo(t *testing.T) {
 	_, resp, _ = client.GetFileInfo("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetFileInfo(model.NewId())
+	_, resp, err = client.GetFileInfo(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()

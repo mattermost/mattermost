@@ -434,7 +434,8 @@ func TestDeleteReaction(t *testing.T) {
 		r1.UserId = userId
 		r1.EmojiName = ""
 
-		_, resp, _ := client.DeleteReaction(r1)
+		_, resp, err := client.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 

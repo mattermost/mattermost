@@ -40,7 +40,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	require.Equal(t, th.BasicTeam.Id, rhook.TeamId, "team ids didn't match")
 
 	hook.ChannelId = "junk"
-	_, resp, _ = th.SystemAdminClient.CreateIncomingWebhook(hook)
+	_, resp, err = th.SystemAdminClient.CreateIncomingWebhook(hook)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	hook.ChannelId = th.BasicChannel.Id
@@ -77,7 +78,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 		hook.UserId = "invalid-user"
 		defer func() { hook.UserId = "" }()
 
-		_, response, _ := client.CreateIncomingWebhook(hook)
+		_, response, err := client.CreateIncomingWebhook(hook)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, response)
 	}, "Create an incoming webhook for an invalid user")
 
@@ -316,7 +318,8 @@ func TestGetIncomingWebhook(t *testing.T) {
 	}, "WhenHookExists")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ := client.GetIncomingWebhook(model.NewId(), "")
+		_, resp, err := client.GetIncomingWebhook(model.NewId(), "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookDoesNotExist")
 
@@ -350,7 +353,8 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 	}, "WhenInvalidHookID")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		status, resp, _ = client.DeleteIncomingWebhook(model.NewId())
+		status, resp, err = client.DeleteIncomingWebhook(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookDoesNotExist")
 
@@ -368,7 +372,8 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		CheckOKStatus(t, resp)
 
 		// Get now should not return this deleted hook
-		_, resp, _ = client.GetIncomingWebhook(rhook.Id, "")
+		_, resp, err = client.GetIncomingWebhook(rhook.Id, "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookExists")
 
@@ -408,7 +413,8 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	assert.Equal(t, th.BasicChannel.TeamId, rhook.TeamId, "team ids didn't match")
 
 	hook.ChannelId = "junk"
-	_, resp, _ = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	_, resp, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	hook.ChannelId = th.BasicChannel.Id
@@ -439,7 +445,8 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 		hook.CreatorId = "invalid-user"
 		defer func() { hook.CreatorId = "" }()
 
-		_, response, _ := client.CreateOutgoingWebhook(hook)
+		_, response, err := client.CreateOutgoingWebhook(hook)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, response)
 	}, "Create an incoming webhook for an invalid user")
 
@@ -710,11 +717,13 @@ func TestGetOutgoingWebhook(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		nonExistentHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id}
-		_, resp, _ = client.GetOutgoingWebhook(nonExistentHook.Id)
+		_, resp, err = client.GetOutgoingWebhook(nonExistentHook.Id)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		nonExistentHook.Id = model.NewId()
-		_, resp, _ = client.GetOutgoingWebhook(nonExistentHook.Id)
+		_, resp, err = client.GetOutgoingWebhook(nonExistentHook.Id)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 }
@@ -819,11 +828,13 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		nonExistentHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 
-		_, resp, _ := client.UpdateIncomingWebhook(nonExistentHook)
+		_, resp, err := client.UpdateIncomingWebhook(nonExistentHook)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		nonExistentHook.Id = model.NewId()
-		_, resp, _ = client.UpdateIncomingWebhook(nonExistentHook)
+		_, resp, err = client.UpdateIncomingWebhook(nonExistentHook)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "UpdateNonExistentHook")
 
@@ -891,7 +902,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		createdHook.ChannelId = "junk"
-		_, resp, _ := client.UpdateIncomingWebhook(createdHook)
+		_, resp, err := client.UpdateIncomingWebhook(createdHook)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "UpdateToNonExistentChannel")
 
@@ -1057,11 +1069,13 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		nonExistentHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats"}}
 
-		_, resp, _ := client.UpdateOutgoingWebhook(nonExistentHook)
+		_, resp, err := client.UpdateOutgoingWebhook(nonExistentHook)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		nonExistentHook.Id = model.NewId()
-		_, resp, _ = client.UpdateOutgoingWebhook(nonExistentHook)
+		_, resp, err = client.UpdateOutgoingWebhook(nonExistentHook)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "UpdateNonExistentHook")
 
@@ -1137,7 +1151,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		createdHook.ChannelId = "junk"
 
-		_, resp, _ := client.UpdateOutgoingWebhook(createdHook)
+		_, resp, err := client.UpdateOutgoingWebhook(createdHook)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "UpdateToNonExistentChannel")
 
@@ -1220,7 +1235,8 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	}, "WhenInvalidHookID")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		status, resp, _ = client.DeleteOutgoingWebhook(model.NewId())
+		status, resp, err = client.DeleteOutgoingWebhook(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookDoesNotExist")
 
@@ -1236,7 +1252,8 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		CheckOKStatus(t, resp)
 
 		// Get now should not return this deleted hook
-		_, resp, _ = client.GetIncomingWebhook(rhook.Id, "")
+		_, resp, err = client.GetIncomingWebhook(rhook.Id, "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookExists")
 

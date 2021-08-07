@@ -134,7 +134,8 @@ func TestGetRemoteClusterById(t *testing.T) {
 	})
 
 	t.Run("invalid remote", func(t *testing.T) {
-		_, resp, _ := th.Client.GetRemoteClusterInfo(model.NewId())
+		_, resp, err := th.Client.GetRemoteClusterInfo(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 

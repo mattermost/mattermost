@@ -140,10 +140,12 @@ func TestGetTeam(t *testing.T) {
 		_, resp, _ = client.GetTeam("junk", "")
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = client.GetTeam("", "")
+		_, resp, err = client.GetTeam("", "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
-		_, resp, _ = client.GetTeam(model.NewId(), "")
+		_, resp, err = client.GetTeam(model.NewId(), "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
@@ -671,7 +673,8 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ := client.UpdateTeamPrivacy(model.NewId(), model.TeamInvite)
+		_, resp, err := client.UpdateTeamPrivacy(model.NewId(), model.TeamInvite)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "non-existent team for admins")
 
@@ -1190,10 +1193,12 @@ func TestGetTeamByName(t *testing.T) {
 
 		require.Equal(t, rteam.Name, team.Name, "wrong team")
 
-		_, resp, _ = client.GetTeamByName("junk", "")
+		_, resp, err = client.GetTeamByName("junk", "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
-		_, resp, _ = client.GetTeamByName("", "")
+		_, resp, err = client.GetTeamByName("", "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 	})
@@ -1743,7 +1748,8 @@ func TestGetTeamMember(t *testing.T) {
 	_, resp, _ = client.GetTeamMember("junk", "junk", "")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetTeamMember(team.Id, model.NewId(), "")
+	_, resp, err = client.GetTeamMember(team.Id, model.NewId(), "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, err = client.GetTeamMember(model.NewId(), user.Id, "")
@@ -1962,7 +1968,8 @@ func TestAddTeamMember(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.AddTeamMember(team.Id, GenerateTestId())
+	_, resp, err = client.AddTeamMember(team.Id, GenerateTestId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -2057,7 +2064,8 @@ func TestAddTeamMember(t *testing.T) {
 	)
 	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
-	_, resp, _ = client.AddTeamMemberFromInvite(token.Token, "")
+	_, resp, err = client.AddTeamMemberFromInvite(token.Token, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 	th.App.DeleteToken(token)
 
@@ -2083,7 +2091,8 @@ func TestAddTeamMember(t *testing.T) {
 
 	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
-	tm, resp, _ = client.AddTeamMemberFromInvite("", "junk")
+	tm, resp, err = client.AddTeamMemberFromInvite("", "junk")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	require.Nil(t, tm, "should have not returned team member")
@@ -2322,11 +2331,13 @@ func TestAddTeamMembers(t *testing.T) {
 	_, resp, _ = client.AddTeamMembers("junk", userList)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.AddTeamMembers(GenerateTestId(), userList)
+	_, resp, err = client.AddTeamMembers(GenerateTestId(), userList)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	testUserList := append(userList, GenerateTestId())
-	_, resp, _ = client.AddTeamMembers(team.Id, testUserList)
+	_, resp, err = client.AddTeamMembers(team.Id, testUserList)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// Test with many users.
@@ -2442,7 +2453,8 @@ func TestRemoveTeamMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ = client.RemoveTeamMember(model.NewId(), th.BasicUser.Id)
+		_, resp, err = client.RemoveTeamMember(model.NewId(), th.BasicUser.Id)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
@@ -2562,7 +2574,8 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	require.NoError(t, err)
 
 	// user 1 (team admin) tries to demote system admin (not member of a team)
-	_, resp, _ = client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
+	_, resp, err = client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
@@ -2589,7 +2602,8 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// user 1 (team admin) tries to promote a random user
-	_, resp, _ = client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TeamAdmin)
+	_, resp, err = client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TeamAdmin)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
@@ -2685,10 +2699,12 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	_, resp, _ := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s6)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = SystemAdminClient.UpdateTeamMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
+	_, resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, model.NewId(), s4)
+	_, resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, model.NewId(), s4)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = SystemAdminClient.UpdateTeamMemberSchemeRoles("ASDF", th.BasicUser.Id, s4)
@@ -3215,7 +3231,8 @@ func TestGetTeamInviteInfo(t *testing.T) {
 	_, _, err = client.GetTeamInviteInfo(team.InviteId)
 	require.NoError(t, err)
 
-	_, resp, _ = client.GetTeamInviteInfo("junk")
+	_, resp, err = client.GetTeamInviteInfo("junk")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -3286,7 +3303,8 @@ func TestGetTeamIcon(t *testing.T) {
 	team := th.BasicTeam
 
 	// should always fail because no initial image and no auto creation
-	_, resp, _ := client.GetTeamIcon(team.Id, "")
+	_, resp, err := client.GetTeamIcon(team.Id, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()

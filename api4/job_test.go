@@ -74,7 +74,8 @@ func TestGetJob(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.GetJob(model.NewId())
+	_, resp, err = th.SystemAdminClient.GetJob(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -174,7 +175,8 @@ func TestGetJobsByType(t *testing.T) {
 	require.Len(t, received, 1, "received wrong number of jobs")
 	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
-	_, resp, _ := th.SystemAdminClient.GetJobsByType("", 0, 60)
+	_, resp, err := th.SystemAdminClient.GetJobsByType("", 0, 60)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = th.SystemAdminClient.GetJobsByType(strings.Repeat("a", 33), 0, 60)
@@ -210,11 +212,13 @@ func TestDownloadJob(t *testing.T) {
 	})
 
 	// Normal user cannot download the results of these job (non-existent job)
-	_, resp, _ = th.Client.DownloadJob(job.Id)
+	_, resp, err = th.Client.DownloadJob(job.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// System admin trying to download the results of a non-existent job
-	_, resp, _ = th.SystemAdminClient.DownloadJob(job.Id)
+	_, resp, err = th.SystemAdminClient.DownloadJob(job.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// Here we have a job that exist in our database but the results do not exist therefore when we try to download the results
@@ -246,7 +250,8 @@ func TestDownloadJob(t *testing.T) {
 	require.True(t, updateStatus)
 	require.NoError(t, err)
 
-	_, resp, _ = th.SystemAdminClient.DownloadJob(job.Id)
+	_, resp, err = th.SystemAdminClient.DownloadJob(job.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// Now we stub the results of the job into the same directory and try to download it again
@@ -320,6 +325,7 @@ func TestCancelJob(t *testing.T) {
 	_, resp, _ = th.SystemAdminClient.CancelJob(jobs[2].Id)
 	CheckInternalErrorStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.CancelJob(model.NewId())
+	_, resp, err = th.SystemAdminClient.CancelJob(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }

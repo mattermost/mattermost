@@ -296,7 +296,8 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("WrongToken", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		_, resp, _ := th.Client.CreateUserWithToken(&user, "wrong")
+		_, resp, err := th.Client.CreateUserWithToken(&user, "wrong")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.signup_link_invalid.app_error")
 	})
@@ -525,7 +526,8 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		inviteId := model.NewId()
 
-		_, resp, _ := th.Client.CreateUserWithInviteId(&user, inviteId)
+		_, resp, err := th.Client.CreateUserWithInviteId(&user, inviteId)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		CheckErrorID(t, err, "app.team.get_by_invite_id.finding.app_error")
 	})
@@ -546,7 +548,8 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		_, _, err = th.SystemAdminClient.RegenerateTeamInviteId(th.BasicTeam.Id)
 		require.NoError(t, err)
 
-		_, resp, _ = th.Client.CreateUserWithInviteId(&user, inviteId)
+		_, resp, err = th.Client.CreateUserWithInviteId(&user, inviteId)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		CheckErrorID(t, err, "app.team.get_by_invite_id.finding.app_error")
 	})
@@ -647,7 +650,8 @@ func TestGetUser(t *testing.T) {
 		_, resp, _ = client.GetUser("junk", "")
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = client.GetUser(model.NewId(), "")
+		_, resp, err = client.GetUser(model.NewId(), "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
@@ -807,7 +811,8 @@ func TestGetUserByUsername(t *testing.T) {
 		ruser, resp, _ = client.GetUserByUsername(user.Username, resp.Etag)
 		CheckEtag(t, ruser, resp)
 
-		_, resp, _ = client.GetUserByUsername(GenerateTestUsername(), "")
+		_, resp, err = client.GetUserByUsername(GenerateTestUsername(), "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
@@ -921,7 +926,8 @@ func TestGetUserByEmail(t *testing.T) {
 		})
 
 		t.Run("should return 404 when given a non-existent email", func(t *testing.T) {
-			_, resp, _ := client.GetUserByEmail(th.GenerateTestEmail(), "")
+			_, resp, err := client.GetUserByEmail(th.GenerateTestEmail(), "")
+			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
 	})
@@ -1492,7 +1498,8 @@ func TestGetProfileImage(t *testing.T) {
 	_, resp, _ = th.Client.GetProfileImage("junk", "")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = th.Client.GetProfileImage(model.NewId(), "")
+	_, resp, err = th.Client.GetProfileImage(model.NewId(), "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.Client.Logout()
@@ -1963,7 +1970,8 @@ func TestDeleteUser(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, resp, _ = c.DeleteUser(model.NewId())
+		_, resp, err = c.DeleteUser(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		_, resp, _ = c.DeleteUser("junk")
@@ -2041,10 +2049,12 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("The endpoint should not be available for neither normal nor sysadmin users", func(t *testing.T) {
-		_, resp, _ := th.Client.PermanentDeleteAllUsers()
+		_, resp, err := th.Client.PermanentDeleteAllUsers()
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
-		_, resp, _ = th.SystemAdminClient.PermanentDeleteAllUsers()
+		_, resp, err = th.SystemAdminClient.PermanentDeleteAllUsers()
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
@@ -3767,7 +3777,8 @@ func TestSwitchAccount(t *testing.T) {
 		Password:       th.BasicUser.Password,
 	}
 
-	_, resp, _ = th.Client.SwitchAccountType(sr)
+	_, resp, err = th.Client.SwitchAccountType(sr)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	sr = &model.SwitchRequest{

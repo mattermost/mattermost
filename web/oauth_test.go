@@ -132,7 +132,8 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ClientId = model.NewId()
-	_, resp, _ = ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = ApiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 

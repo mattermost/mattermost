@@ -1949,13 +1949,15 @@ func TestGetPost(t *testing.T) {
 		post, resp, _ = c.GetPost(th.BasicPost.Id, resp.Etag)
 		CheckEtag(t, post, resp)
 
-		_, resp, _ = c.GetPost("", "")
+		_, resp, err = c.GetPost("", "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		_, resp, _ = c.GetPost("junk", "")
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = c.GetPost(model.NewId(), "")
+		_, resp, err = c.GetPost(model.NewId(), "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
@@ -1988,7 +1990,8 @@ func TestGetPost(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = th.LocalClient.GetPost(model.NewId(), "")
+	_, resp, err = th.LocalClient.GetPost(model.NewId(), "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -1997,7 +2000,8 @@ func TestDeletePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, _ := client.DeletePost("")
+	_, resp, err := client.DeletePost("")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = client.DeletePost("junk")
@@ -2106,7 +2110,8 @@ func TestGetPostThread(t *testing.T) {
 	_, resp, _ = client.GetPostThread("junk", "", false)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetPostThread(model.NewId(), "", false)
+	_, resp, err = client.GetPostThread(model.NewId(), "", false)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)

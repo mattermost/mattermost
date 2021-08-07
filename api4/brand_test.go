@@ -17,14 +17,17 @@ func TestGetBrandImage(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, _ := client.GetBrandImage()
+	_, resp, err := client.GetBrandImage()
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetBrandImage()
+	_, resp, err = client.GetBrandImage()
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.GetBrandImage()
+	_, resp, err = th.SystemAdminClient.GetBrandImage()
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -83,6 +86,7 @@ func TestDeleteBrandImage(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
-	resp, _ = th.SystemAdminClient.DeleteBrandImage()
+	resp, err = th.SystemAdminClient.DeleteBrandImage()
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }

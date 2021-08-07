@@ -109,19 +109,22 @@ func TestGetPreferencesByCategory(t *testing.T) {
 
 	require.Equal(t, len(prefs), 2, "received the wrong number of preferences")
 
-	_, resp, _ = client.GetPreferencesByCategory(user1.Id, "junk")
+	_, resp, err = client.GetPreferencesByCategory(user1.Id, "junk")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.LoginBasic2()
 
-	_, resp, _ = client.GetPreferencesByCategory(th.BasicUser2.Id, category)
+	_, resp, err = client.GetPreferencesByCategory(th.BasicUser2.Id, category)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, err = client.GetPreferencesByCategory(user1.Id, category)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	prefs, resp, _ = client.GetPreferencesByCategory(th.BasicUser2.Id, "junk")
+	prefs, resp, err = client.GetPreferencesByCategory(th.BasicUser2.Id, "junk")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	require.Equal(t, len(prefs), 0, "received the wrong number of preferences")

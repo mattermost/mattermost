@@ -195,11 +195,13 @@ func TestPlugin(t *testing.T) {
 		assert.True(t, found)
 
 		// Activate error case
-		ok, resp, _ = client.EnablePlugin("junk")
+		ok, resp, err = client.EnablePlugin("junk")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		assert.False(t, ok)
 
-		ok, resp, _ = client.EnablePlugin("JUNK")
+		ok, resp, err = client.EnablePlugin("JUNK")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		assert.False(t, ok)
 
@@ -221,7 +223,8 @@ func TestPlugin(t *testing.T) {
 		assert.True(t, found)
 
 		// Deactivate error case
-		ok, resp, _ = client.DisablePlugin("junk")
+		ok, resp, err = client.DisablePlugin("junk")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		assert.False(t, ok)
 
@@ -257,7 +260,8 @@ func TestPlugin(t *testing.T) {
 		assert.True(t, ok)
 
 		// Remove error cases
-		ok, resp, _ = client.RemovePlugin(manifest.Id)
+		ok, resp, err = client.RemovePlugin(manifest.Id)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		assert.False(t, ok)
 
@@ -270,7 +274,8 @@ func TestPlugin(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		_, resp, _ = client.RemovePlugin("bad.id")
+		_, resp, err = client.RemovePlugin("bad.id")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 }

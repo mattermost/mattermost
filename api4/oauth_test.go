@@ -144,7 +144,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	oapp.Id = "zhk9d1ggatrqz236c7h87im7bc"
-	_, resp, _ = adminClient.UpdateOAuthApp(oapp)
+	_, resp, err = adminClient.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
@@ -320,7 +321,8 @@ func TestGetOAuthApp(t *testing.T) {
 	_, resp, _ = adminClient.GetOAuthApp("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = adminClient.GetOAuthApp(model.NewId())
+	_, resp, err = adminClient.GetOAuthApp(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
@@ -385,7 +387,8 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	_, resp, _ = adminClient.GetOAuthAppInfo("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = adminClient.GetOAuthAppInfo(model.NewId())
+	_, resp, err = adminClient.GetOAuthAppInfo(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
@@ -455,7 +458,8 @@ func TestDeleteOAuthApp(t *testing.T) {
 	_, resp, _ = adminClient.DeleteOAuthApp("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = adminClient.DeleteOAuthApp(model.NewId())
+	_, resp, err = adminClient.DeleteOAuthApp(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
@@ -526,7 +530,8 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	_, resp, _ = adminClient.RegenerateOAuthAppSecret("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = adminClient.RegenerateOAuthAppSecret(model.NewId())
+	_, resp, err = adminClient.RegenerateOAuthAppSecret(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })

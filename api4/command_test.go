@@ -125,7 +125,8 @@ func TestUpdateCommand(t *testing.T) {
 
 		cmd2.Id = GenerateTestId()
 
-		rcmd, resp, _ = client.UpdateCommand(cmd2)
+		rcmd, resp, err = client.UpdateCommand(cmd2)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		require.Nil(t, rcmd, "should be empty")
@@ -143,7 +144,8 @@ func TestUpdateCommand(t *testing.T) {
 
 		cmd2.TeamId = team.Id
 
-		_, resp, _ = th.Client.UpdateCommand(cmd2)
+		_, resp, err = th.Client.UpdateCommand(cmd2)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 	th.SystemAdminClient.Logout()
@@ -187,7 +189,8 @@ func TestMoveCommand(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
 
-		ok, resp, _ = client.MoveCommand(GenerateTestId(), rcmd1.Id)
+		ok, resp, err = client.MoveCommand(GenerateTestId(), rcmd1.Id)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		require.False(t, ok)
 	})
@@ -201,7 +204,8 @@ func TestMoveCommand(t *testing.T) {
 
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
-	_, resp, _ := th.Client.MoveCommand(newTeam.Id, rcmd2.Id)
+	_, resp, err := th.Client.MoveCommand(newTeam.Id, rcmd2.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.SystemAdminClient.Logout()
@@ -247,7 +251,8 @@ func TestDeleteCommand(t *testing.T) {
 
 		require.False(t, ok)
 
-		_, resp, _ = client.DeleteCommand(GenerateTestId())
+		_, resp, err = client.DeleteCommand(GenerateTestId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 	cmd2 := &model.Command{
@@ -260,7 +265,8 @@ func TestDeleteCommand(t *testing.T) {
 
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
-	_, resp, _ := th.Client.DeleteCommand(rcmd2.Id)
+	_, resp, err := th.Client.DeleteCommand(rcmd2.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.SystemAdminClient.Logout()
@@ -564,7 +570,8 @@ func TestGetCommand(t *testing.T) {
 		})
 	})
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
-		_, resp, _ := th.Client.GetCommandById(newCmd.Id)
+		_, resp, err := th.Client.GetCommandById(newCmd.Id)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
@@ -573,7 +580,8 @@ func TestGetCommand(t *testing.T) {
 		user := th.CreateUser()
 		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
 		th.Client.Login(user.Email, user.Password)
-		_, resp, _ := th.Client.GetCommandById(newCmd.Id)
+		_, resp, err := th.Client.GetCommandById(newCmd.Id)
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
@@ -611,7 +619,8 @@ func TestRegenToken(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, createdCmd.Token, token, "should update the token")
 
-	token, resp, _ = client.RegenCommandToken(createdCmd.Id)
+	token, resp, err = client.RegenCommandToken(createdCmd.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 	require.Empty(t, token, "should not return the token")
 }
@@ -662,7 +671,8 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	_, resp, _ = client.ExecuteCommand(channel.Id, "getcommand")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.ExecuteCommand(channel.Id, "/junk")
+	_, resp, err = client.ExecuteCommand(channel.Id, "/junk")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	otherUser := th.CreateUser()
@@ -852,7 +862,8 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 
 	// the execute command endpoint will always search for the command by trigger and team id, inferring team id from the
 	// channel id, so there is no way to use that slash command on a channel that belongs to some other team
-	_, resp, _ := client.ExecuteCommand(channel.Id, "/postcommand")
+	_, resp, err := client.ExecuteCommand(channel.Id, "/postcommand")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -971,7 +982,8 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	CheckOKStatus(t, resp)
 
 	// but we can't run the slash command in the DM channel if we sub in some other team's id
-	_, resp, _ = client.ExecuteCommandWithTeam(dmChannel.Id, th.BasicTeam.Id, "/postcommand")
+	_, resp, err = client.ExecuteCommandWithTeam(dmChannel.Id, th.BasicTeam.Id, "/postcommand")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 

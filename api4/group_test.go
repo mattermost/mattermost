@@ -50,7 +50,8 @@ func TestGetGroup(t *testing.T) {
 	assert.Equal(t, g.UpdateAt, group.UpdateAt)
 	assert.Equal(t, g.DeleteAt, group.DeleteAt)
 
-	_, response, _ = th.SystemAdminClient.GetGroup(model.NewId(), "")
+	_, response, err = th.SystemAdminClient.GetGroup(model.NewId(), "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
 	_, response, _ = th.SystemAdminClient.GetGroup("12345", "")
@@ -121,7 +122,8 @@ func TestPatchGroup(t *testing.T) {
 	assert.Equal(t, g.DeleteAt, group.DeleteAt)
 	assert.Equal(t, g.DeleteAt, group2.DeleteAt)
 
-	_, response, _ = th.SystemAdminClient.PatchGroup(model.NewId(), gp)
+	_, response, err = th.SystemAdminClient.PatchGroup(model.NewId(), gp)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
 	th.SystemAdminClient.Logout()
@@ -346,10 +348,12 @@ func TestGetGroupTeam(t *testing.T) {
 	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
 	assert.Equal(t, *patch.AutoAdd, groupSyncable.AutoAdd)
 
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	_, response, err = th.SystemAdminClient.GetGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeTeam, "")
+	_, response, err = th.SystemAdminClient.GetGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeTeam, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
 	_, response, _ = th.SystemAdminClient.GetGroupSyncable("asdfasdfe3", th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
@@ -402,10 +406,12 @@ func TestGetGroupChannel(t *testing.T) {
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
 	assert.Equal(t, *patch.AutoAdd, groupSyncable.AutoAdd)
 
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	_, response, err = th.SystemAdminClient.GetGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeChannel, "")
+	_, response, err = th.SystemAdminClient.GetGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeChannel, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
 	_, response, _ = th.SystemAdminClient.GetGroupSyncable("asdfasdfe3", th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
@@ -570,10 +576,12 @@ func TestPatchGroupTeam(t *testing.T) {
 	groupSyncable, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	CheckOKStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeTeam, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeTeam, patch)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
 	_, response, _ = th.SystemAdminClient.PatchGroupSyncable("abc", th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
@@ -648,10 +656,12 @@ func TestPatchGroupChannel(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeChannel, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeChannel, patch)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
 	_, response, _ = th.SystemAdminClient.PatchGroupSyncable("abc", th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)

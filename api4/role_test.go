@@ -47,7 +47,8 @@ func TestGetRole(t *testing.T) {
 		_, resp, _ := client.GetRole("1234")
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = client.GetRole(model.NewId())
+		_, resp, err = client.GetRole(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 }
@@ -84,7 +85,8 @@ func TestGetRoleByName(t *testing.T) {
 		_, resp, _ := client.GetRoleByName(strings.Repeat("abcdefghij", 10))
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = client.GetRoleByName(model.NewId())
+		_, resp, err = client.GetRoleByName(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 }
@@ -237,7 +239,8 @@ func TestPatchRole(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	_, resp, _ := th.Client.PatchRole(model.NewId(), patch)
+	_, resp, err := th.Client.PatchRole(model.NewId(), patch)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, err = th.Client.PatchRole(role.Id, patch)

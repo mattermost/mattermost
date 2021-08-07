@@ -146,8 +146,9 @@ func TestPatchBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			_, resp, _ := client.PatchBot(model.NewId(), &model.BotPatch{})
-			CheckNotFoundStatus(t, resp)
+			_, resp, err := client.PatchBot(model.NewId(), &model.BotPatch{})
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -541,8 +542,9 @@ func TestGetBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
-		_, resp, _ := th.Client.GetBot(model.NewId(), "")
-		CheckNotFoundStatus(t, resp)
+		_, resp, err := th.Client.GetBot(model.NewId(), "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("get bot1", func(t *testing.T) {
@@ -609,8 +611,9 @@ func TestGetBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
-		_, resp, _ := th.Client.GetBot(deletedBot.UserId, "")
-		CheckNotFoundStatus(t, resp)
+		_, resp, err := th.Client.GetBot(deletedBot.UserId, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("get deleted bot, include deleted", func(t *testing.T) {
@@ -907,8 +910,9 @@ func TestDisableBot(t *testing.T) {
 		defer th.TearDown()
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, _ := client.DisableBot(model.NewId())
-			CheckNotFoundStatus(t, resp)
+			_, resp, err := client.DisableBot(model.NewId())
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -1011,8 +1015,9 @@ func TestEnableBot(t *testing.T) {
 		defer th.TearDown()
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, _ := th.Client.EnableBot(model.NewId())
-			CheckNotFoundStatus(t, resp)
+			_, resp, err := th.Client.EnableBot(model.NewId())
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -1128,8 +1133,9 @@ func TestAssignBot(t *testing.T) {
 
 	t.Run("claim non-existent bot", func(t *testing.T) {
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, _ := client.AssignBot(model.NewId(), model.NewId())
-			CheckNotFoundStatus(t, resp)
+			_, resp, err := client.AssignBot(model.NewId(), model.NewId())
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -1161,8 +1167,9 @@ func TestAssignBot(t *testing.T) {
 		CheckOKStatus(t, resp)
 
 		// Original owner doesn't have read others bots permission, therefore can't see bot anymore
-		_, resp, _ = th.Client.GetBot(bot.UserId, "")
-		CheckNotFoundStatus(t, resp)
+		_, resp, err = th.Client.GetBot(bot.UserId, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 
 		// System admin can see creator ID has changed
 		after, resp, err := th.SystemAdminClient.GetBot(bot.UserId, "")
@@ -1312,7 +1319,8 @@ func TestSetBotIconImage(t *testing.T) {
 	require.NoError(t, err)
 
 	// SetBotIconImage only allowed for bots
-	_, resp, _ = th.SystemAdminClient.SetBotIconImage(user.Id, goodData)
+	_, resp, err = th.SystemAdminClient.SetBotIconImage(user.Id, goodData)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// png/jpg is not allowed
@@ -1377,7 +1385,8 @@ func TestGetBotIconImage(t *testing.T) {
 	defer th.App.PermanentDeleteBot(bot.UserId)
 
 	// Get icon image for user with no icon
-	data, resp, _ := th.Client.GetBotIconImage(bot.UserId)
+	data, resp, err := th.Client.GetBotIconImage(bot.UserId)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 	require.Equal(t, 0, len(data))
 
@@ -1402,7 +1411,8 @@ func TestGetBotIconImage(t *testing.T) {
 	_, resp, _ = th.Client.GetBotIconImage("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = th.Client.GetBotIconImage(model.NewId())
+	_, resp, err = th.Client.GetBotIconImage(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.Client.Logout()
@@ -1441,7 +1451,8 @@ func TestDeleteBotIconImage(t *testing.T) {
 	defer th.App.PermanentDeleteBot(bot.UserId)
 
 	// Get icon image for user with no icon
-	data, resp, _ := th.Client.GetBotIconImage(bot.UserId)
+	data, resp, err := th.Client.GetBotIconImage(bot.UserId)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 	require.Equal(t, 0, len(data))
 
@@ -1465,7 +1476,8 @@ func TestDeleteBotIconImage(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	require.False(t, success)
 
-	success, resp, _ = th.Client.DeleteBotIconImage(model.NewId())
+	success, resp, err = th.Client.DeleteBotIconImage(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 	require.False(t, success)
 
@@ -1529,8 +1541,9 @@ func TestConvertBotToUser(t *testing.T) {
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)
 
-		bot, resp, _ = client.GetBot(bot.UserId, "")
-		CheckNotFoundStatus(t, resp)
+		bot, resp, err = client.GetBot(bot.UserId, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 
 		bot = &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -1546,8 +1559,9 @@ func TestConvertBotToUser(t *testing.T) {
 		require.Equal(t, bot.UserId, user.Id)
 		require.Contains(t, user.GetRoles(), model.SystemAdminRoleId)
 
-		bot, resp, _ = client.GetBot(bot.UserId, "")
-		CheckNotFoundStatus(t, resp)
+		bot, resp, err = client.GetBot(bot.UserId, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 	})
 }
 

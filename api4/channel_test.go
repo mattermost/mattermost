@@ -196,7 +196,8 @@ func TestUpdateChannel(t *testing.T) {
 
 	//Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
-	_, resp, _ = client.UpdateChannel(channel1)
+	_, resp, err = client.UpdateChannel(channel1)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to update with not logged user
@@ -287,7 +288,8 @@ func TestPatchChannel(t *testing.T) {
 	_, resp, _ = client.PatchChannel("junk", patch)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.PatchChannel(model.NewId(), patch)
+	_, resp, err = client.PatchChannel(model.NewId(), patch)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	user := th.CreateUser()
@@ -684,7 +686,8 @@ func TestGetChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.GetChannel(model.NewId(), "")
+	_, resp, err = client.GetChannel(model.NewId(), "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -705,7 +708,8 @@ func TestGetChannel(t *testing.T) {
 		_, _, err = client.GetChannel(th.BasicPrivateChannel.Id, "")
 		require.NoError(t, err)
 
-		_, resp, _ = client.GetChannel(th.BasicUser.Id, "")
+		_, resp, err = client.GetChannel(th.BasicUser.Id, "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 }
@@ -918,10 +922,12 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	_, resp, _ = client.GetPublicChannelsByIdsForTeam(teamId, []string{"junk"})
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetPublicChannelsByIdsForTeam(teamId, []string{GenerateTestId()})
+	_, resp, err = client.GetPublicChannelsByIdsForTeam(teamId, []string{GenerateTestId()})
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.GetPublicChannelsByIdsForTeam(teamId, []string{th.BasicPrivateChannel.Id})
+	_, resp, err = client.GetPublicChannelsByIdsForTeam(teamId, []string{th.BasicPrivateChannel.Id})
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -1203,7 +1209,8 @@ func TestSearchChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	search.Term = th.BasicChannel.Name
-	_, resp, _ = client.SearchChannels(model.NewId(), search)
+	_, resp, err = client.SearchChannels(model.NewId(), search)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = client.SearchChannels("junk", search)
@@ -1291,7 +1298,8 @@ func TestSearchArchivedChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	search.Term = th.BasicDeletedChannel.Name
-	_, resp, _ = client.SearchArchivedChannels(model.NewId(), search)
+	_, resp, err = client.SearchArchivedChannels(model.NewId(), search)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = client.SearchArchivedChannels("junk", search)
@@ -2043,7 +2051,8 @@ func TestGetChannelByName(t *testing.T) {
 	_, _, err = client.GetChannelByName(strings.ToUpper(th.BasicPrivateChannel.Name), th.BasicTeam.Id, "")
 	require.NoError(t, err)
 
-	_, resp, _ = client.GetChannelByName(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "")
+	_, resp, err = client.GetChannelByName(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	channel, _, err = client.GetChannelByNameIncludeDeleted(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "")
@@ -2055,10 +2064,12 @@ func TestGetChannelByName(t *testing.T) {
 	require.NoError(t, err)
 
 	client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
-	_, resp, _ = client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
+	_, resp, err = client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "")
+	_, resp, err = client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = client.GetChannelByName(GenerateTestChannelName(), "junk", "")
@@ -2098,7 +2109,8 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, th.BasicPrivateChannel.Name, channel.Name, "names did not match")
 
-	_, resp, _ = client.GetChannelByNameForTeamName(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
+	_, resp, err = client.GetChannelByNameForTeamName(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	channel, _, err = client.GetChannelByNameForTeamNameIncludeDeleted(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
@@ -2110,13 +2122,16 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	require.NoError(t, err)
 
 	client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
-	_, resp, _ = client.GetChannelByNameForTeamName(th.BasicPrivateChannel.Name, th.BasicTeam.Name, "")
+	_, resp, err = client.GetChannelByNameForTeamName(th.BasicPrivateChannel.Name, th.BasicTeam.Name, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.GetChannelByNameForTeamName(th.BasicChannel.Name, model.NewRandomString(15), "")
+	_, resp, err = client.GetChannelByNameForTeamName(th.BasicChannel.Name, model.NewRandomString(15), "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.GetChannelByNameForTeamName(GenerateTestChannelName(), th.BasicTeam.Name, "")
+	_, resp, err = client.GetChannelByNameForTeamName(GenerateTestChannelName(), th.BasicTeam.Name, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
@@ -2227,18 +2242,21 @@ func TestGetChannelMember(t *testing.T) {
 		require.Equal(t, th.BasicChannel.Id, member.ChannelId, "wrong channel id")
 		require.Equal(t, th.BasicUser.Id, member.UserId, "wrong user id")
 
-		_, resp, _ = client.GetChannelMember("", th.BasicUser.Id, "")
+		_, resp, err = client.GetChannelMember("", th.BasicUser.Id, "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		_, resp, _ = client.GetChannelMember("junk", th.BasicUser.Id, "")
 		CheckBadRequestStatus(t, resp)
-		_, resp, _ = client.GetChannelMember(th.BasicChannel.Id, "", "")
+		_, resp, err = client.GetChannelMember(th.BasicChannel.Id, "", "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		_, resp, _ = client.GetChannelMember(th.BasicChannel.Id, "junk", "")
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = client.GetChannelMember(th.BasicChannel.Id, model.NewId(), "")
+		_, resp, err = client.GetChannelMember(th.BasicChannel.Id, model.NewId(), "")
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		_, _, err = client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
@@ -2270,7 +2288,8 @@ func TestGetChannelMembersForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, *members, 6, "should have 6 members on team")
 
-	_, resp, _ = client.GetChannelMembersForUser("", th.BasicTeam.Id, "")
+	_, resp, err = client.GetChannelMembersForUser("", th.BasicTeam.Id, "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = client.GetChannelMembersForUser("junk", th.BasicTeam.Id, "")
@@ -2280,7 +2299,8 @@ func TestGetChannelMembersForUser(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.GetChannelMembersForUser(th.BasicUser.Id, "", "")
+	_, resp, err = client.GetChannelMembersForUser(th.BasicUser.Id, "", "")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = client.GetChannelMembersForUser(th.BasicUser.Id, "junk", "")
@@ -2419,7 +2439,8 @@ func TestGetChannelUnread(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.GetChannelUnread(channel.Id, model.NewId())
+	_, resp, err = th.SystemAdminClient.GetChannelUnread(channel.Id, model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -2566,7 +2587,8 @@ func TestUpdateChannelRoles(t *testing.T) {
 	_, resp, _ = client.UpdateChannelRoles("junk", th.BasicUser.Id, ChannelMember)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.UpdateChannelRoles(channel.Id, model.NewId(), ChannelMember)
+	_, resp, err = client.UpdateChannelRoles(channel.Id, model.NewId(), ChannelMember)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, err = client.UpdateChannelRoles(model.NewId(), th.BasicUser.Id, ChannelMember)
@@ -2681,7 +2703,8 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, model.NewId(), s4)
+	_, resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, model.NewId(), s4)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = SystemAdminClient.UpdateChannelMemberSchemeRoles("ASDF", th.BasicUser.Id, s4)
@@ -2725,7 +2748,8 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 	_, resp, _ = client.UpdateChannelNotifyProps(th.BasicChannel.Id, "junk", props)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.UpdateChannelNotifyProps(model.NewId(), th.BasicUser.Id, props)
+	_, resp, err = client.UpdateChannelNotifyProps(model.NewId(), th.BasicUser.Id, props)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, err = client.UpdateChannelNotifyProps(th.BasicChannel.Id, model.NewId(), props)
@@ -2782,7 +2806,8 @@ func TestAddChannelMember(t *testing.T) {
 	_, resp, _ = client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, GenerateTestId())
+	_, resp, err = client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, GenerateTestId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	client.RemoveUserFromChannel(publicChannel.Id, user.Id)
@@ -2793,13 +2818,15 @@ func TestAddChannelMember(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	require.Nil(t, cm, "should return nothing")
 
-	_, resp, _ = client.AddChannelMember(publicChannel.Id, GenerateTestId())
+	_, resp, err = client.AddChannelMember(publicChannel.Id, GenerateTestId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp, _ = client.AddChannelMember("junk", user2.Id)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.AddChannelMember(GenerateTestId(), user2.Id)
+	_, resp, err = client.AddChannelMember(GenerateTestId(), user2.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	otherUser := th.CreateUser()
@@ -3021,10 +3048,12 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp, _ = client.RemoveUserFromChannel(th.BasicChannel.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.RemoveUserFromChannel(th.BasicChannel.Id, model.NewId())
+	_, resp, err = client.RemoveUserFromChannel(th.BasicChannel.Id, model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.RemoveUserFromChannel(model.NewId(), th.BasicUser2.Id)
+	_, resp, err = client.RemoveUserFromChannel(model.NewId(), th.BasicUser2.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.LoginBasic2()
