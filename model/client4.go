@@ -52,7 +52,6 @@ const (
 
 type Response struct {
 	StatusCode    int
-	Error         *AppError
 	RequestId     string
 	Etag          string
 	ServerVersion string
@@ -109,10 +108,10 @@ func closeBody(r *http.Response) {
 }
 
 // Must is a convenience function used for testing.
-func (c *Client4) Must(result interface{}, resp *Response, err error) interface{} {
-	if resp.Error != nil {
+func (c *Client4) Must(result interface{}, _ *Response, err error) interface{} {
+	if err != nil {
 		time.Sleep(time.Second)
-		panic(resp.Error)
+		panic(err)
 	}
 
 	return result

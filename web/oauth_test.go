@@ -673,11 +673,9 @@ func GenerateTestAppName() string {
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {
 	t.Helper()
 
-	require.NotNil(t, resp, "Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, true)
+	require.NotNilf(t, resp, "Unexpected nil response, expected http status:%v", expectedStatus)
 
-	require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-
-	require.Equal(t, resp.StatusCode, expectedStatus, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v", expectedStatus, resp.StatusCode)
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
