@@ -70,6 +70,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = false })
-	_, resp, _ := client.OpenGraph(ts.URL + "/og-data/")
+	_, resp, err := client.OpenGraph(ts.URL + "/og-data/")
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }

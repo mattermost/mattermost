@@ -419,7 +419,7 @@ func TestCreateDirectChannel(t *testing.T) {
 
 	require.Equal(t, channelName, dm.Name, "dm name didn't match")
 
-	_, resp, err = client.CreateDirectChannel("junk", user2.Id)
+	_, resp, err := client.CreateDirectChannel("junk", user2.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -3692,7 +3692,8 @@ func TestUpdateChannelScheme(t *testing.T) {
 
 	// Test that a license is required.
 	th.App.Srv().SetLicense(nil)
-	_, resp, _ = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	_, resp, err = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 

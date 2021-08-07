@@ -327,8 +327,9 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
-		_, resp, _ := th.Client.CreateUserWithToken(&user, token.Token)
-		CheckNotImplementedStatus(t, resp)
+		_, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.signup_email_disabled.app_error")
 
 	})
@@ -347,8 +348,9 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
-		_, resp, _ := client.CreateUserWithToken(&user, token.Token)
-		CheckNotImplementedStatus(t, resp)
+		_, resp, err := client.CreateUserWithToken(&user, token.Token)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.signup_email_disabled.app_error")
 	}, "EnableUserCreationDisable")
 
@@ -574,8 +576,9 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		inviteId := th.BasicTeam.InviteId
 
-		_, resp, _ := th.Client.CreateUserWithInviteId(&user, inviteId)
-		CheckNotImplementedStatus(t, resp)
+		_, resp, err := th.Client.CreateUserWithInviteId(&user, inviteId)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.signup_email_disabled.app_error")
 	})
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -587,8 +590,9 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
 		inviteId := th.BasicTeam.InviteId
-		_, resp, _ := client.CreateUserWithInviteId(&user, inviteId)
-		CheckNotImplementedStatus(t, resp)
+		_, resp, err := client.CreateUserWithInviteId(&user, inviteId)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.signup_email_disabled.app_error")
 	}, "EnableUserCreationDisable")
 
@@ -1182,8 +1186,9 @@ func TestSearchUsers(t *testing.T) {
 
 	search = &model.UserSearch{Term: th.BasicUser.Username, InGroupId: group.Id}
 	t.Run("Requires ldap license when searching in group", func(t *testing.T) {
-		_, resp, _ = th.SystemAdminClient.SearchUsers(search)
-		CheckNotImplementedStatus(t, resp)
+		_, resp, err = th.SystemAdminClient.SearchUsers(search)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -2721,8 +2726,9 @@ func TestGetUsersInGroup(t *testing.T) {
 	var users []*model.User
 
 	t.Run("Requires ldap license", func(t *testing.T) {
-		_, response, _ = th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
-		CheckNotImplementedStatus(t, response)
+		_, response, err = th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -2845,10 +2851,12 @@ func TestGenerateMfaSecret(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = false })
 
-	_, resp, _ := th.Client.GenerateMfaSecret(th.BasicUser.Id)
+	_, resp, err := th.Client.GenerateMfaSecret(th.BasicUser.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
+	_, resp, err = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
 	_, resp, err = th.Client.GenerateMfaSecret("junk")
@@ -3947,8 +3955,9 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, _ := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
-			CheckNotImplementedStatus(t, resp)
+			_, resp, err := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
 		})
 	})
 

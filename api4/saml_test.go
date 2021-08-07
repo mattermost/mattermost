@@ -18,7 +18,8 @@ func TestGetSamlMetadata(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, _ := client.GetSamlMetadata()
+	_, resp, err := client.GetSamlMetadata()
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
 	// Rest is tested by enterprise tests

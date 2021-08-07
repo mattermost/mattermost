@@ -69,7 +69,8 @@ func TestCreateCommand(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = false })
 	newCmd.Method = "P"
 	newCmd.Trigger = "testcommand"
-	_, resp, _ = th.SystemAdminClient.CreateCommand(newCmd)
+	_, resp, err = th.SystemAdminClient.CreateCommand(newCmd)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorID(t, err, "api.command.disabled.app_error")
 

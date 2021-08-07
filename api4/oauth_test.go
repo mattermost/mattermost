@@ -71,7 +71,8 @@ func TestCreateOAuthApp(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	oapp.Name = GenerateTestAppName()
-	_, resp, _ = adminClient.CreateOAuthApp(oapp)
+	_, resp, err = adminClient.CreateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -151,7 +152,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
-	_, resp, _ = adminClient.UpdateOAuthApp(oapp)
+	_, resp, err = adminClient.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
 	client.Logout()
@@ -260,7 +262,8 @@ func TestGetOAuthApps(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp, _ = adminClient.GetOAuthApps(0, 1000)
+	_, resp, err = adminClient.GetOAuthApps(0, 1000)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -329,7 +332,8 @@ func TestGetOAuthApp(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp, _ = adminClient.GetOAuthApp(rapp.Id)
+	_, resp, err = adminClient.GetOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -396,7 +400,8 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp, _ = adminClient.GetOAuthAppInfo(rapp.Id)
+	_, resp, err = adminClient.GetOAuthAppInfo(rapp.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -468,7 +473,8 @@ func TestDeleteOAuthApp(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp, _ = adminClient.DeleteOAuthApp(rapp.Id)
+	_, resp, err = adminClient.DeleteOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -541,7 +547,8 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp, _ = adminClient.RegenerateOAuthAppSecret(rapp.Id)
+	_, resp, err = adminClient.RegenerateOAuthAppSecret(rapp.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 

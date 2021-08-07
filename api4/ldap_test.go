@@ -117,7 +117,8 @@ func TestTestLdap(t *testing.T) {
 	CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ = client.TestLdap()
+		_, resp, err = client.TestLdap()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "ent.ldap.disabled.app_error")
@@ -180,7 +181,8 @@ func TestGetLdapGroups(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, _ := client.GetLdapGroups()
+		_, resp, err := client.GetLdapGroups()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 }
@@ -195,7 +197,8 @@ func TestLinkLdapGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.LinkLdapGroup(entryUUID)
+	_, resp, err = th.SystemAdminClient.LinkLdapGroup(entryUUID)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -209,7 +212,8 @@ func TestUnlinkLdapGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.SystemAdminClient.UnlinkLdapGroup(entryUUID)
+	_, resp, err = th.SystemAdminClient.UnlinkLdapGroup(entryUUID)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -226,7 +230,8 @@ func TestMigrateIdLdap(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = client.MigrateIdLdap("objectGUID")
+		_, resp, err = client.MigrateIdLdap("objectGUID")
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 }

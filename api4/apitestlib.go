@@ -999,11 +999,13 @@ func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusNotImplemented, true)
+	// Error checked
 }
 
 func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge, true)
+	// Error checked
 }
 
 func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {

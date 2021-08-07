@@ -876,7 +876,8 @@ func TestGetFileLink(t *testing.T) {
 	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
-	_, resp, _ = client.GetFileLink(fileId)
+	_, resp, err = client.GetFileLink(fileId)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })

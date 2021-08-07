@@ -101,7 +101,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
-	_, resp, _ = client.CreateIncomingWebhook(hook)
+	_, resp, err = client.CreateIncomingWebhook(hook)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -471,7 +472,8 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-	_, resp, _ = client.CreateOutgoingWebhook(hook)
+	_, resp, err = client.CreateOutgoingWebhook(hook)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -886,7 +888,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 
 	t.Run("IncomingHooksDisabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
-		_, resp, _ := th.Client.UpdateIncomingWebhook(createdHook)
+		_, resp, err := th.Client.UpdateIncomingWebhook(createdHook)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, "api.incoming_webhook.disabled.app_error")
 	})
@@ -986,7 +989,8 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-	_, resp, _ = th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
+	_, resp, err = th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -1033,7 +1037,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-		_, resp, _ := client.UpdateOutgoingWebhook(rcreatedHook)
+		_, resp, err := client.UpdateOutgoingWebhook(rcreatedHook)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	}, "OutgoingHooksDisabled")
 

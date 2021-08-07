@@ -39,8 +39,8 @@ func TestCreateTeam(t *testing.T) {
 		require.Equal(t, rteam.Type, team.Type, "types did not match")
 
 		_, resp, err = client.CreateTeam(rteam)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		rteam.Id = ""
 		_, _, err = client.CreateTeam(rteam)
@@ -139,8 +139,8 @@ func TestGetTeam(t *testing.T) {
 		require.Equal(t, rteam.Id, team.Id, "wrong team")
 
 		_, resp, err = client.GetTeam("junk", "")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		_, resp, err = client.GetTeam("", "")
 		require.Error(t, err)
@@ -350,8 +350,8 @@ func TestUpdateTeam(t *testing.T) {
 
 		team.Id = "fake"
 		_, resp, err = client.UpdateTeam(team)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		th.Client.Logout() // for non-local clients
 		_, resp, err = th.Client.UpdateTeam(team)
@@ -480,8 +480,8 @@ func TestPatchTeam(t *testing.T) {
 
 		patch.GroupConstrained = nil
 		_, resp, err = client.PatchTeam("junk", patch)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		r, err := client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
 		require.NotNil(t, err, "should have errored")
@@ -812,8 +812,8 @@ func TestSoftDeleteTeam(t *testing.T) {
 		require.NotEqual(t, rteam.DeleteAt, 0, "should have not set to zero")
 
 		ok, resp, err = client.SoftDeleteTeam("junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		require.False(t, ok, "should have returned false")
 	})
@@ -872,8 +872,8 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		assert.NotNil(t, err)
 
 		ok, resp, err = client.PermanentDeleteTeam("junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		require.False(t, ok, "should have returned false")
 	}, "Permanent deletion with EnableAPITeamDeletion set")
@@ -2464,12 +2464,12 @@ func TestRemoveTeamMember(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		_, resp, err := client.RemoveTeamMember(th.BasicTeam.Id, "junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		_, resp, err = client.RemoveTeamMember("junk", th.BasicUser2.Id)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	_, resp, err := client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
@@ -2887,12 +2887,12 @@ func TestImportTeam(t *testing.T) {
 
 		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
 		_, resp, err := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "XYZ", "Fake_Team_Import.zip", th.BasicTeam.Id)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		_, resp, err = th.SystemAdminClient.ImportTeam(data, binary.Size(data), "", "Fake_Team_Import.zip", th.BasicTeam.Id)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	}, "Import from unknown and source")
 
 	t.Run("ImportTeam", func(t *testing.T) {
@@ -2952,8 +2952,8 @@ func TestImportTeam(t *testing.T) {
 
 	t.Run("MissingFile", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.ImportTeam(nil, 4343, "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("WrongPermission", func(t *testing.T) {
@@ -3091,12 +3091,14 @@ func TestInviteUsersToTeam(t *testing.T) {
 		for i := 0; i < 22; i++ {
 			emailList[i] = "test-" + strconv.Itoa(i) + "@common.com"
 		}
-		okMsg, resp, _ := client.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+		okMsg, resp, err := client.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 		require.False(t, okMsg, "should return false")
+		require.Error(t, err)
 		CheckRequestEntityTooLargeStatus(t, resp)
 		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
 
-		_, resp, _ = client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emailList)
+		_, resp, err = client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emailList)
+		require.Error(t, err)
 		CheckRequestEntityTooLargeStatus(t, resp)
 		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
 	}, "rate limits")
@@ -3428,9 +3430,8 @@ func TestUpdateTeamScheme(t *testing.T) {
 	// Test various invalid team and scheme id combinations.
 	_, resp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
 	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)resp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)ent.Uresp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	CheckBadRequestStatus(t, resp)
+	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme("x", teamScheme.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme("x", "x")
@@ -3443,7 +3444,8 @@ func TestUpdateTeamScheme(t *testing.T) {
 
 	// Test that a license is required.
 	th.App.Srv().SetLicense(nil)
-	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	_, resp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 

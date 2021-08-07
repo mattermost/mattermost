@@ -207,7 +207,8 @@ func TestDownloadJob(t *testing.T) {
 	}
 
 	// DownloadExportResults is not set to true so we should get a not implemented error status
-	_, resp, _ := th.Client.DownloadJob(job.Id)
+	_, resp, err := th.Client.DownloadJob(job.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

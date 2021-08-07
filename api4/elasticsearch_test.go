@@ -21,7 +21,8 @@ func TestElasticsearchTest(t *testing.T) {
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.TestElasticsearch()
+		_, resp, err := th.SystemAdminClient.TestElasticsearch()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 
@@ -45,7 +46,8 @@ func TestElasticsearchPurgeIndexes(t *testing.T) {
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		_, resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 

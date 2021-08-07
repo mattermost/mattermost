@@ -192,7 +192,8 @@ func TestPatchRole(t *testing.T) {
 		assert.NoError(t, err)
 		defer th.App.Srv().Store.Job().Delete(adminRole.Id)
 
-		_, resp, _ := client.PatchRole(adminRole.Id, patch)
+		_, resp, err := client.PatchRole(adminRole.Id, patch)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		// Cannot give other roles read / write to system roles or manage roles because only system admin can do these actions
@@ -204,21 +205,24 @@ func TestPatchRole(t *testing.T) {
 			Permissions: &[]string{model.PermissionSysconsoleWriteUserManagementSystemRoles.Id},
 		}
 
-		_, resp, _ = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
+		_, resp, err = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		patchReadSystemRoles := &model.RolePatch{
 			Permissions: &[]string{model.PermissionSysconsoleReadUserManagementSystemRoles.Id},
 		}
 
-		_, resp, _ = client.PatchRole(systemManager.Id, patchReadSystemRoles)
+		_, resp, err = client.PatchRole(systemManager.Id, patchReadSystemRoles)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		patchManageRoles := &model.RolePatch{
 			Permissions: &[]string{model.PermissionManageRoles.Id},
 		}
 
-		_, resp, _ = client.PatchRole(systemManager.Id, patchManageRoles)
+		_, resp, err = client.PatchRole(systemManager.Id, patchManageRoles)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 
@@ -276,7 +280,8 @@ func TestPatchRole(t *testing.T) {
 
 			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
-			received, resp, _ = client.PatchRole(guestRole.Id, patch)
+			received, resp, err = client.PatchRole(guestRole.Id, patch)
+			require.Error(t, err)
 			CheckNotImplementedStatus(t, resp)
 		})
 

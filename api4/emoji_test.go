@@ -58,7 +58,8 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	// try to create an emoji when they're disabled
-	_, resp, _ := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	_, resp, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
 	// enable emoji creation for next cases
@@ -503,7 +504,8 @@ func TestGetEmojiImage(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = false })
 
-	_, resp, _ = client.GetEmojiImage(emoji1.Id)
+	_, resp, err = client.GetEmojiImage(emoji1.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorID(t, err, "api.emoji.disabled.app_error")
 

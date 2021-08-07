@@ -99,7 +99,8 @@ func TestPlugin(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
-		_, resp, _ = client.InstallPluginFromUrl(url, false)
+		_, resp, err = client.InstallPluginFromUrl(url, false)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
@@ -141,17 +142,20 @@ func TestPlugin(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-		_, resp, _ = client.UploadPlugin(bytes.NewReader(tarData))
+		_, resp, err = client.UploadPlugin(bytes.NewReader(tarData))
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.EnableUploads = false
 		})
-		_, resp, _ = client.UploadPlugin(bytes.NewReader(tarData))
+		_, resp, err = client.UploadPlugin(bytes.NewReader(tarData))
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
-		_, resp, _ = client.InstallPluginFromUrl(url, false)
+		_, resp, err = client.InstallPluginFromUrl(url, false)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
@@ -234,7 +238,8 @@ func TestPlugin(t *testing.T) {
 
 		// Get error cases
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-		_, resp, _ = client.GetPlugins()
+		_, resp, err = client.GetPlugins()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
@@ -270,7 +275,8 @@ func TestPlugin(t *testing.T) {
 		assert.False(t, ok)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-		_, resp, _ = client.RemovePlugin(manifest.Id)
+		_, resp, err = client.RemovePlugin(manifest.Id)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
@@ -499,7 +505,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		plugins, resp, err := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		require.Nil(t, plugins)
 	}, "marketplace disabled")
@@ -1325,7 +1332,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.EnableMarketplace = false
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
-		plugin, resp, _ := client.InstallMarketplacePlugin(request)
+		plugin, resp, err := client.InstallMarketplacePlugin(request)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		require.Nil(t, plugin)
 	}, "marketplace disabled")
@@ -1335,11 +1343,13 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.RequirePluginSignature = true
 		})
-		manifest, resp, _ := client.UploadPlugin(bytes.NewReader(tarData))
+		manifest, resp, err := client.UploadPlugin(bytes.NewReader(tarData))
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		require.Nil(t, manifest)
 
-		manifest, resp, _ = client.InstallPluginFromUrl("some_url", true)
+		manifest, resp, err = client.InstallPluginFromUrl("some_url", true)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		require.Nil(t, manifest)
 	}, "RequirePluginSignature enabled")
