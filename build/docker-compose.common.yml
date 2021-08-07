@@ -16,8 +16,6 @@ services:
       interval: 5s
       timeout: 10s
       retries: 3
-    volumes:
-      - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
   mysql-read-replica:
     image: "mysql:5.7.12"
     restart: always
