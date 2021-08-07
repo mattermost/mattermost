@@ -75,7 +75,8 @@ func TestDeleteBrandImage(t *testing.T) {
 
 	th.Client.Logout()
 
-	resp, _ = th.Client.DeleteBrandImage()
+	resp, err = th.Client.DeleteBrandImage()
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	resp, err = th.SystemAdminClient.DeleteBrandImage()

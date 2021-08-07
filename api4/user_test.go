@@ -616,7 +616,8 @@ func TestGetMe(t *testing.T) {
 	require.Equal(t, th.BasicUser.Id, ruser.Id)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetMe("")
+	_, resp, err = th.Client.GetMe("")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -662,7 +663,8 @@ func TestGetUser(t *testing.T) {
 	require.Empty(t, ruser.LastName, "last name should be blank")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUser(user.Id, "")
+	_, resp, err = th.Client.GetUser(user.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
@@ -825,7 +827,8 @@ func TestGetUserByUsername(t *testing.T) {
 	require.NotEmpty(t, ruser.NotifyProps, "notify props should be sent")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUserByUsername(user.Username, "")
+	_, resp, err = th.Client.GetUserByUsername(user.Username, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -1270,7 +1273,8 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 			}
 
 			th.Client.Logout()
-			_, resp, _ = th.Client.AutocompleteUsersInChannel(tc.TeamId, tc.ChannelId, tc.Username, model.UserSearchDefaultLimit, "")
+			_, resp, err = th.Client.AutocompleteUsersInChannel(tc.TeamId, tc.ChannelId, tc.Username, model.UserSearchDefaultLimit, "")
+			require.Error(t, err)
 			CheckUnauthorizedStatus(t, resp)
 
 			th.Client.Login(newUser.Email, newUser.Password)
@@ -1380,7 +1384,8 @@ func TestAutocompleteUsersInTeam(t *testing.T) {
 				assert.Len(t, rusers.Users, tc.ExpectedResults)
 			}
 			th.Client.Logout()
-			_, resp, _ = th.Client.AutocompleteUsersInTeam(tc.TeamId, tc.Username, model.UserSearchDefaultLimit, "")
+			_, resp, err = th.Client.AutocompleteUsersInTeam(tc.TeamId, tc.Username, model.UserSearchDefaultLimit, "")
+			require.Error(t, err)
 			CheckUnauthorizedStatus(t, resp)
 
 			th.Client.Login(newUser.Email, newUser.Password)
@@ -1446,7 +1451,8 @@ func TestAutocompleteUsers(t *testing.T) {
 			}
 
 			th.Client.Logout()
-			_, resp, _ = th.Client.AutocompleteUsers(tc.Username, model.UserSearchDefaultLimit, "")
+			_, resp, err = th.Client.AutocompleteUsers(tc.Username, model.UserSearchDefaultLimit, "")
+			require.Error(t, err)
 			CheckUnauthorizedStatus(t, resp)
 
 			th.Client.Login(newUser.Email, newUser.Password)
@@ -1490,7 +1496,8 @@ func TestGetProfileImage(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetProfileImage(user.Id, "")
+	_, resp, err = th.Client.GetProfileImage(user.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetProfileImage(user.Id, "")
@@ -1537,7 +1544,8 @@ func TestGetUsersByIds(t *testing.T) {
 	t.Run("should return error when not logged in", func(t *testing.T) {
 		th.Client.Logout()
 
-		_, resp, _ := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
+		_, resp, err := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -1595,7 +1603,8 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 	require.False(t, ok)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
+	_, resp, err = th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -1621,7 +1630,8 @@ func TestGetUsersByUsernames(t *testing.T) {
 	require.Len(t, users, 1, "1 user should be returned")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUsersByUsernames([]string{th.BasicUser.Username})
+	_, resp, err = th.Client.GetUsersByUsernames([]string{th.BasicUser.Username})
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -1698,7 +1708,8 @@ func TestUpdateUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.UpdateUser(user)
+	_, resp, err = th.Client.UpdateUser(user)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic()
@@ -1807,7 +1818,8 @@ func TestPatchUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.PatchUser(user.Id, patch)
+	_, resp, err = th.Client.PatchUser(user.Id, patch)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic()
@@ -1946,7 +1958,8 @@ func TestDeleteUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.DeleteUser(th.BasicUser.Id)
+	_, resp, err = th.Client.DeleteUser(th.BasicUser.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
@@ -1971,7 +1984,8 @@ func TestDeleteUser(t *testing.T) {
 	th.App.UpdateConfig(func(c *model.Config) {
 		*c.TeamSettings.EnableUserDeactivation = false
 	})
-	_, resp, _ = th.Client.DeleteUser(selfDeleteUser.Id)
+	_, resp, err = th.Client.DeleteUser(selfDeleteUser.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.App.UpdateConfig(func(c *model.Config) {
@@ -1995,7 +2009,8 @@ func TestPermanentDeleteUser(t *testing.T) {
 	userToDelete := th.CreateUser()
 
 	t.Run("Permanent deletion not available through API if EnableAPIUserDeletion is not set", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.PermanentDeleteUser(userToDelete.Id)
+		_, resp, err := th.SystemAdminClient.PermanentDeleteUser(userToDelete.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -2189,13 +2204,15 @@ func TestUpdateUserActive(t *testing.T) {
 		require.True(t, pass)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = false })
-		pass, resp, _ = th.Client.UpdateUserActive(user.Id, false)
+		pass, resp, err = th.Client.UpdateUserActive(user.Id, false)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
 		require.False(t, pass)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = true })
-		pass, resp, _ = th.Client.UpdateUserActive(user.Id, false)
+		pass, resp, err = th.Client.UpdateUserActive(user.Id, false)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
 		require.False(t, pass)
@@ -2215,7 +2232,8 @@ func TestUpdateUserActive(t *testing.T) {
 
 		th.Client.Logout()
 
-		_, resp, _ = th.Client.UpdateUserActive(user.Id, true)
+		_, resp, err = th.Client.UpdateUserActive(user.Id, true)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -2305,7 +2323,8 @@ func TestUpdateUserActive(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			_, resp, _ := client.UpdateUserActive(user.Id, true)
+			_, resp, err := client.UpdateUserActive(user.Id, true)
+			require.Error(t, err)
 			CheckUnauthorizedStatus(t, resp)
 		})
 	})
@@ -2363,7 +2382,8 @@ func TestGetUsers(t *testing.T) {
 	})
 
 	th.Client.Logout()
-	_, resp, _ := th.Client.GetUsers(0, 60, "")
+	_, resp, err := th.Client.GetUsers(0, 60, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2387,7 +2407,8 @@ func TestGetNewUsersInTeam(t *testing.T) {
 	require.Len(t, rusers, 1, "should be 1 per page")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetNewUsersInTeam(teamId, 1, 1, "")
+	_, resp, err = th.Client.GetNewUsersInTeam(teamId, 1, 1, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2411,7 +2432,8 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	require.Len(t, rusers, 1, "should be 1 per page")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetRecentlyActiveUsersInTeam(teamId, 0, 1, "")
+	_, resp, err = th.Client.GetRecentlyActiveUsersInTeam(teamId, 0, 1, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2440,7 +2462,8 @@ func TestGetActiveUsersInTeam(t *testing.T) {
 	require.NotNil(t, err)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetActiveUsersInTeam(teamId, 0, 1, "")
+	_, resp, err = th.Client.GetActiveUsersInTeam(teamId, 0, 1, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2515,7 +2538,8 @@ func TestGetUsersInTeam(t *testing.T) {
 	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUsersInTeam(teamId, 0, 60, "")
+	_, resp, err = th.Client.GetUsersInTeam(teamId, 0, 60, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -2556,7 +2580,8 @@ func TestGetUsersNotInTeam(t *testing.T) {
 	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUsersNotInTeam(teamId, 0, 60, "")
+	_, resp, err = th.Client.GetUsersNotInTeam(teamId, 0, 60, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -2593,7 +2618,8 @@ func TestGetUsersInChannel(t *testing.T) {
 	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUsersInChannel(channelId, 0, 60, "")
+	_, resp, err = th.Client.GetUsersInChannel(channelId, 0, 60, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -2630,7 +2656,8 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
+	_, resp, err = th.Client.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.Client.Login(user.Email, user.Password)
@@ -2810,7 +2837,8 @@ func TestGenerateMfaSecret(t *testing.T) {
 
 	th.Client.Logout()
 
-	_, resp, _ = th.Client.GenerateMfaSecret(th.BasicUser.Id)
+	_, resp, err = th.Client.GenerateMfaSecret(th.BasicUser.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2843,7 +2871,8 @@ func TestUpdateUserPassword(t *testing.T) {
 	require.NoError(t, err)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.UpdateUserPassword(th.BasicUser.Id, password, password)
+	_, resp, err = th.Client.UpdateUserPassword(th.BasicUser.Id, password, password)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic2()
@@ -2896,7 +2925,8 @@ func TestUpdateUserHashedPassword(t *testing.T) {
 
 	// Standard users should never be updating their passwords with already-
 	// hashed passwords.
-	pass, resp, _ := client.UpdateUserHashedPassword(th.BasicUser.Id, passwordHash)
+	pass, resp, err := client.UpdateUserHashedPassword(th.BasicUser.Id, passwordHash)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 	require.False(t, pass)
 }
@@ -3001,7 +3031,8 @@ func TestGetSessions(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetSessions(th.BasicUser2.Id, "")
+	_, resp, err = th.Client.GetSessions(th.BasicUser2.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetSessions(user.Id, "")
@@ -3050,7 +3081,8 @@ func TestRevokeSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.RevokeSession(user.Id, model.NewId())
+	_, resp, err = th.Client.RevokeSession(user.Id, model.NewId())
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp, _ = th.SystemAdminClient.RevokeSession(user.Id, model.NewId())
@@ -3086,7 +3118,8 @@ func TestRevokeAllSessions(t *testing.T) {
 	require.NoError(t, err)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.RevokeAllSessions(user.Id)
+	_, resp, err = th.Client.RevokeAllSessions(user.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.Client.Login(user.Email, user.Password)
@@ -3100,7 +3133,8 @@ func TestRevokeAllSessions(t *testing.T) {
 	sessions, _, _ = th.SystemAdminClient.GetSessions(user.Id, "")
 	require.Empty(t, sessions, "no sessions should exist for user")
 
-	_, resp, _ = th.Client.RevokeAllSessions(user.Id)
+	_, resp, err = th.Client.RevokeAllSessions(user.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -3115,7 +3149,8 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.RevokeSessionsFromAllUsers()
+	_, resp, err = th.Client.RevokeSessionsFromAllUsers()
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.Client.Login(user.Email, user.Password)
@@ -3132,7 +3167,8 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 
 	// All sessions were revoked, so making the same call
 	// again will fail due to lack of a session.
-	_, resp, _ = th.Client.RevokeSessionsFromAllUsers()
+	_, resp, err = th.Client.RevokeSessionsFromAllUsers()
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	sessions, err = th.Server.Store.Session().GetSessions(user.Id)
@@ -3190,7 +3226,8 @@ func TestAttachDeviceId(t *testing.T) {
 	t.Run("not logged in", func(t *testing.T) {
 		th.Client.Logout()
 
-		_, resp, _ := th.Client.AttachDeviceId("")
+		_, resp, err := th.Client.AttachDeviceId("")
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -3211,7 +3248,8 @@ func TestGetUserAudits(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetUserAudits(user.Id, 0, 100, "")
+	_, resp, err = th.Client.GetUserAudits(user.Id, 0, 100, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetUserAudits(user.Id, 0, 100, "")
@@ -3547,7 +3585,8 @@ func TestCBALogin(t *testing.T) {
 		t.Run("emails mismatch", func(t *testing.T) {
 			th.Client.Logout()
 			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
-			_, resp, _ := th.Client.Login(th.BasicUser.Email, "")
+			_, resp, err := th.Client.Login(th.BasicUser.Email, "")
+			require.Error(t, err)
 			CheckUnauthorizedStatus(t, resp)
 		})
 
@@ -3737,7 +3776,8 @@ func TestSwitchAccount(t *testing.T) {
 		Email:          th.BasicUser.Email,
 	}
 
-	_, resp, _ = th.Client.SwitchAccountType(sr)
+	_, resp, err = th.Client.SwitchAccountType(sr)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	sr = &model.SwitchRequest{
@@ -3747,7 +3787,8 @@ func TestSwitchAccount(t *testing.T) {
 		NewPassword:    th.BasicUser.Password,
 	}
 
-	_, resp, _ = th.Client.SwitchAccountType(sr)
+	_, resp, err = th.Client.SwitchAccountType(sr)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -3771,7 +3812,8 @@ func assertInvalidToken(t *testing.T, th *TestHelper, token *model.UserAccessTok
 	defer func() { th.Client.AuthToken = oldSessionToken }()
 
 	th.Client.AuthToken = token.Token
-	_, resp, _ := th.Client.GetMe("")
+	_, resp, err := th.Client.GetMe("")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -4694,7 +4736,8 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	_, resp, _ = th.Client.GetMe("")
+	_, resp, err = th.Client.GetMe("")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -4717,7 +4760,8 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
 
-	_, resp, _ = th.Client.GetMe("")
+	_, resp, err = th.Client.GetMe("")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.Client.AuthToken = oldSessionToken

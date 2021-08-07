@@ -68,7 +68,8 @@ func TestCreateTeam(t *testing.T) {
 	th.Client.Logout()
 
 	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
-	_, resp, _ := th.Client.CreateTeam(team)
+	_, resp, err := th.Client.CreateTeam(team)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic()
@@ -166,7 +167,8 @@ func TestGetTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetTeam(team.Id, "")
+	_, resp, err = client.GetTeam(team.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -256,7 +258,8 @@ func TestGetTeamUnread(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
+	_, resp, err = client.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	teamUnread, _, err = th.SystemAdminClient.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
@@ -344,7 +347,8 @@ func TestUpdateTeam(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 
 		th.Client.Logout() // for non-local clients
-		_, resp, _ = th.Client.UpdateTeam(team)
+		_, resp, err = th.Client.UpdateTeam(team)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 		th.LoginBasic()
 	})
@@ -410,7 +414,8 @@ func TestPatchTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.PatchTeam(team.Id, patch)
+	_, resp, err = th.Client.PatchTeam(team.Id, patch)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic2()
@@ -544,7 +549,8 @@ func TestRestoreTeam(t *testing.T) {
 
 	t.Run("not logged in", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.RestoreTeam(teamPublic.Id)
+		_, resp, err := client.RestoreTeam(teamPublic.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -671,7 +677,8 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 
 	t.Run("not logged in", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.UpdateTeamPrivacy(teamPublic.Id, model.TeamInvite)
+		_, resp, err := client.UpdateTeamPrivacy(teamPublic.Id, model.TeamInvite)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -777,7 +784,8 @@ func TestSoftDeleteTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.SoftDeleteTeam(th.BasicTeam.Id)
+	_, resp, err = th.Client.SoftDeleteTeam(th.BasicTeam.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic()
@@ -820,10 +828,12 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen}
 		team, _, _ = th.Client.CreateTeam(team)
 
-		_, resp, _ := th.Client.PermanentDeleteTeam(team.Id)
+		_, resp, err := th.Client.PermanentDeleteTeam(team.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
-		_, resp, _ = th.SystemAdminClient.PermanentDeleteTeam(team.Id)
+		_, resp, err = th.SystemAdminClient.PermanentDeleteTeam(team.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -1102,7 +1112,8 @@ func TestGetAllTeams(t *testing.T) {
 
 	t.Run("Unauthorized", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ = client.GetAllTeams("", 1, 10)
+		_, resp, err = client.GetAllTeams("", 1, 10)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -1193,7 +1204,8 @@ func TestGetTeamByName(t *testing.T) {
 	})
 
 	th.Client.Logout()
-	_, resp, _ := th.Client.GetTeamByName(team.Name, "")
+	_, resp, err := th.Client.GetTeamByName(team.Name, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetTeamByName(team.Name, "")
@@ -1301,10 +1313,12 @@ func TestSearchAllTeams(t *testing.T) {
 
 	th.Client.Logout()
 
-	_, resp, _ = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	_, resp, err = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	_, resp, err = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic()
@@ -1790,7 +1804,8 @@ func TestGetTeamMembers(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetTeamMembers(team.Id, 0, 1, "")
+	_, resp, err = client.GetTeamMembers(team.Id, 0, 1, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetTeamMembersSortAndWithoutDeletedUsers(team.Id, 0, 100, "", false, "")
@@ -1834,7 +1849,8 @@ func TestGetTeamMembersForUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetTeamMembersForUser(th.BasicUser.Id, "")
+	_, resp, err = client.GetTeamMembersForUser(th.BasicUser.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -1876,7 +1892,8 @@ func TestGetTeamMembersByIds(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
+	_, resp, err = client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2501,7 +2518,8 @@ func TestGetTeamStats(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetTeamStats(th.BasicTeam.Id, "")
+	_, resp, err = client.GetTeamStats(th.BasicTeam.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2685,7 +2703,8 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	SystemAdminClient.Logout()
-	_, resp, _ = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, s4)
+	_, resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, s4)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2713,7 +2732,8 @@ func TestGetMyTeamsUnread(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetTeamsUnreadForUser(user.Id, "", true)
+	_, resp, err = client.GetTeamsUnreadForUser(user.Id, "", true)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2770,7 +2790,8 @@ func TestTeamExists(t *testing.T) {
 
 	t.Run("Logged out user", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.TeamExists(public_not_member_team.Name, "")
+		_, resp, err := client.TeamExists(public_not_member_team.Name, "")
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -3270,7 +3291,8 @@ func TestGetTeamIcon(t *testing.T) {
 
 	client.Logout()
 
-	_, resp, _ = client.GetTeamIcon(team.Id, "")
+	_, resp, err = client.GetTeamIcon(team.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -3377,7 +3399,8 @@ func TestUpdateTeamScheme(t *testing.T) {
 
 	// Test that an unauthenticated user gets rejected.
 	th.SystemAdminClient.Logout()
-	_, resp, _ = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	_, resp, err = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 

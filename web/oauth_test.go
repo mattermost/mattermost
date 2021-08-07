@@ -181,7 +181,8 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	require.NoError(t, err)
 
 	th.Logout(ApiClient)
-	_, resp, _ = ApiClient.DeauthorizeOAuthApp(rapp.Id)
+	_, resp, err = ApiClient.DeauthorizeOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 

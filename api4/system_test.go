@@ -117,7 +117,8 @@ func TestGetAudits(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetAudits(0, 100, "")
+	_, resp, err = client.GetAudits(0, 100, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -356,7 +357,8 @@ func TestGetLogs(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetLogs(0, 10)
+	_, resp, err = th.Client.GetLogs(0, 10)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -467,7 +469,8 @@ func TestGetAnalyticsOld(t *testing.T) {
 	assert.Equal(t, float64(0), rows2[5].Value)
 
 	client.Logout()
-	_, resp, _ = client.GetAnalyticsOld("", th.BasicTeam.Id)
+	_, resp, err = client.GetAnalyticsOld("", th.BasicTeam.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -616,7 +619,8 @@ func TestRedirectLocation(t *testing.T) {
 	assert.Equal(t, actual, "")
 
 	client.Logout()
-	_, resp, _ = client.GetRedirectLocation("", "")
+	_, resp, err = client.GetRedirectLocation("", "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 

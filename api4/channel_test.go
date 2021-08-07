@@ -58,7 +58,8 @@ func TestCreateChannel(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.CreateChannel(channel)
+	_, resp, err = client.CreateChannel(channel)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	userNotOnTeam := th.CreateUser()
@@ -200,7 +201,8 @@ func TestUpdateChannel(t *testing.T) {
 
 	//Try to update with not logged user
 	client.Logout()
-	_, resp, _ = client.UpdateChannel(channel)
+	_, resp, err = client.UpdateChannel(channel)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	//Try to update using another user
@@ -447,7 +449,8 @@ func TestCreateDirectChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	client.Logout()
-	_, resp, _ = client.CreateDirectChannel(model.NewId(), user2.Id)
+	_, resp, err = client.CreateDirectChannel(model.NewId(), user2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -565,7 +568,8 @@ func TestCreateGroupChannel(t *testing.T) {
 
 	client.Logout()
 
-	_, resp, _ = client.CreateGroupChannel(userIds)
+	_, resp, err = client.CreateGroupChannel(userIds)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.CreateGroupChannel(userIds)
@@ -684,7 +688,8 @@ func TestGetChannel(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetChannel(th.BasicChannel.Id, "")
+	_, resp, err = client.GetChannel(th.BasicChannel.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -860,7 +865,8 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	_, resp, err = client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -920,7 +926,8 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 
 	client.Logout()
 
-	_, resp, _ = client.GetPublicChannelsByIdsForTeam(teamId, input)
+	_, resp, err = client.GetPublicChannelsByIdsForTeam(teamId, input)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetPublicChannelsByIdsForTeam(teamId, input)
@@ -1610,7 +1617,8 @@ func TestSearchGroupChannels(t *testing.T) {
 
 	// search unprivileged, forbidden
 	th.Client.Logout()
-	_, resp, _ = client.SearchAllChannels(search)
+	_, resp, err = client.SearchAllChannels(search)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -1686,14 +1694,17 @@ func TestDeleteChannel(t *testing.T) {
 		c.Logout()
 
 		c.Login(user.Id, user.Password)
-		_, resp, _ := c.DeleteChannel(publicChannel5.Id)
+		_, resp, err := c.DeleteChannel(publicChannel5.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
-		_, resp, _ = c.DeleteChannel("junk")
+		_, resp, err = c.DeleteChannel("junk")
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
 		c.Logout()
-		_, resp, _ = c.DeleteChannel(GenerateTestId())
+		_, resp, err = c.DeleteChannel(GenerateTestId())
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
 		_, _, err = client.DeleteChannel(publicChannel5.Id)
@@ -1795,7 +1806,8 @@ func TestPermanentDeleteChannel(t *testing.T) {
 
 	publicChannel1 := th.CreatePublicChannel()
 	t.Run("Permanent deletion not available through API if EnableAPIChannelDeletion is not set", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.PermanentDeleteChannel(publicChannel1.Id)
+		_, resp, err := th.SystemAdminClient.PermanentDeleteChannel(publicChannel1.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -2053,7 +2065,8 @@ func TestGetChannelByName(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	_, resp, err = client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -2107,7 +2120,8 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	_, resp, err = client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -2152,7 +2166,8 @@ func TestGetChannelMembers(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+	_, resp, err = th.Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -2194,7 +2209,8 @@ func TestGetChannelMembersByIds(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
+	_, resp, err = client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser2.Id, th.BasicUser.Id})
@@ -2234,7 +2250,8 @@ func TestGetChannelMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	c.Logout()
-	_, resp, _ = c.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	_, resp, err = c.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -2274,7 +2291,8 @@ func TestGetChannelMembersForUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	_, resp, err = client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
@@ -2352,7 +2370,8 @@ func TestViewChannel(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	client.Logout()
-	_, resp, _ = client.ViewChannel(th.BasicUser.Id, view)
+	_, resp, err = client.ViewChannel(th.BasicUser.Id, view)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.ViewChannel(th.BasicUser.Id, view)
@@ -2430,7 +2449,8 @@ func TestGetChannelStats(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetChannelStats(channel.Id, "")
+	_, resp, err = client.GetChannelStats(channel.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic2()
@@ -2470,7 +2490,8 @@ func TestGetPinnedPosts(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetPinnedPosts(channel.Id, "")
+	_, resp, err = client.GetPinnedPosts(channel.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetPinnedPosts(channel.Id, "")
@@ -2675,7 +2696,8 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	SystemAdminClient.Logout()
-	_, resp, _ = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.SystemAdminUser.Id, s4)
+	_, resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.SystemAdminUser.Id, s4)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2714,7 +2736,8 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 	require.NoError(t, err)
 
 	client.Logout()
-	_, resp, _ = client.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
+	_, resp, err = client.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
@@ -2784,33 +2807,40 @@ func TestAddChannelMember(t *testing.T) {
 	client.Logout()
 	client.Login(user2.Id, user2.Password)
 
-	_, resp, _ = client.AddChannelMember(publicChannel.Id, otherUser.Id)
+	_, resp, err = client.AddChannelMember(publicChannel.Id, otherUser.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = client.AddChannelMember(privateChannel.Id, otherUser.Id)
+	_, resp, err = client.AddChannelMember(privateChannel.Id, otherUser.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = client.AddChannelMember(otherChannel.Id, otherUser.Id)
+	_, resp, err = client.AddChannelMember(otherChannel.Id, otherUser.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	client.Logout()
 	client.Login(user.Id, user.Password)
 
 	// should fail adding user who is not a member of the team
-	_, resp, _ = client.AddChannelMember(otherChannel.Id, otherUser.Id)
+	_, resp, err = client.AddChannelMember(otherChannel.Id, otherUser.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	client.DeleteChannel(otherChannel.Id)
 
 	// should fail adding user to a deleted channel
-	_, resp, _ = client.AddChannelMember(otherChannel.Id, user2.Id)
+	_, resp, err = client.AddChannelMember(otherChannel.Id, user2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.AddChannelMember(publicChannel.Id, user2.Id)
+	_, resp, err = client.AddChannelMember(publicChannel.Id, user2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = client.AddChannelMember(privateChannel.Id, user2.Id)
+	_, resp, err = client.AddChannelMember(privateChannel.Id, user2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -3585,7 +3615,8 @@ func TestUpdateChannelScheme(t *testing.T) {
 
 	// Test that an unauthenticated user gets rejected.
 	th.SystemAdminClient.Logout()
-	_, resp, _ = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	_, resp, err = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 

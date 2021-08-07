@@ -70,7 +70,8 @@ func TestGetPreferences(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetPreferences(th.BasicUser2.Id)
+	_, resp, err = client.GetPreferences(th.BasicUser2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -126,7 +127,8 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	require.Equal(t, len(prefs), 0, "received the wrong number of preferences")
 
 	client.Logout()
-	_, resp, _ = client.GetPreferencesByCategory(th.BasicUser2.Id, category)
+	_, resp, err = client.GetPreferencesByCategory(th.BasicUser2.Id, category)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -181,7 +183,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	require.NoError(t, err)
 
 	client.Logout()
-	_, resp, _ = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, preferences[0].Name)
+	_, resp, err = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, preferences[0].Name)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 }
@@ -243,7 +246,8 @@ func TestUpdatePreferences(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.UpdatePreferences(user1.Id, &preferences1)
+	_, resp, err = client.UpdatePreferences(user1.Id, &preferences1)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -573,7 +577,8 @@ func TestDeletePreferences(t *testing.T) {
 	require.Len(t, prefs, originalCount, "should've deleted preferences")
 
 	client.Logout()
-	_, resp, _ = client.DeletePreferences(th.BasicUser.Id, &preferences)
+	_, resp, err = client.DeletePreferences(th.BasicUser.Id, &preferences)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 

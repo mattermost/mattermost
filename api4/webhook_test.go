@@ -209,7 +209,8 @@ func TestGetIncomingWebhooks(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetIncomingWebhooks(0, 1000, "")
+	_, resp, err = client.GetIncomingWebhooks(0, 1000, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -556,7 +557,8 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetOutgoingWebhooks(0, 1000, "")
+	_, resp, err = th.Client.GetOutgoingWebhooks(0, 1000, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -899,7 +901,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.Client.Logout()
 	th.Client.Login(user.Id, user.Password)
 	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
-		_, resp, _ := th.Client.UpdateIncomingWebhook(createdHook)
+		_, resp, err := th.Client.UpdateIncomingWebhook(createdHook)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -1161,7 +1164,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	th.Client.Logout()
 	th.Client.Login(user.Id, user.Password)
 	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
-		_, resp, _ := th.Client.UpdateOutgoingWebhook(createdHook)
+		_, resp, err := th.Client.UpdateOutgoingWebhook(createdHook)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }

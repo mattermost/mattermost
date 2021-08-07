@@ -1406,7 +1406,8 @@ func TestGetBotIconImage(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp, _ = th.Client.GetBotIconImage(bot.UserId)
+	_, resp, err = th.Client.GetBotIconImage(bot.UserId)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetBotIconImage(bot.UserId)
@@ -1473,7 +1474,8 @@ func TestDeleteBotIconImage(t *testing.T) {
 	require.True(t, success)
 
 	th.Client.Logout()
-	success, resp, _ = th.Client.DeleteBotIconImage(bot.UserId)
+	success, resp, err = th.Client.DeleteBotIconImage(bot.UserId)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 	require.False(t, success)
 

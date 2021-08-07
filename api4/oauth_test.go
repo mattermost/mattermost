@@ -64,7 +64,8 @@ func TestCreateOAuthApp(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	client.Logout()
-	_, resp, _ = client.CreateOAuthApp(oapp)
+	_, resp, err = client.CreateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
@@ -152,7 +153,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.UpdateOAuthApp(oapp)
+	_, resp, err = client.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	oapp.Id = "junk"
@@ -250,7 +252,8 @@ func TestGetOAuthApps(t *testing.T) {
 
 	client.Logout()
 
-	_, resp, _ = client.GetOAuthApps(0, 1000)
+	_, resp, err = client.GetOAuthApps(0, 1000)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
@@ -310,7 +313,8 @@ func TestGetOAuthApp(t *testing.T) {
 
 	client.Logout()
 
-	_, resp, _ = client.GetOAuthApp(rapp2.Id)
+	_, resp, err = client.GetOAuthApp(rapp2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp, _ = adminClient.GetOAuthApp("junk")
@@ -374,7 +378,8 @@ func TestGetOAuthAppInfo(t *testing.T) {
 
 	client.Logout()
 
-	_, resp, _ = client.GetOAuthAppInfo(rapp2.Id)
+	_, resp, err = client.GetOAuthAppInfo(rapp2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp, _ = adminClient.GetOAuthAppInfo("junk")
@@ -443,7 +448,8 @@ func TestDeleteOAuthApp(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.DeleteOAuthApp(rapp.Id)
+	_, resp, err = client.DeleteOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp, _ = adminClient.DeleteOAuthApp("junk")
@@ -513,7 +519,8 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.RegenerateOAuthAppSecret(rapp.Id)
+	_, resp, err = client.RegenerateOAuthAppSecret(rapp.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp, _ = adminClient.RegenerateOAuthAppSecret("junk")
@@ -575,7 +582,8 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	_, resp, err = client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = adminClient.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)

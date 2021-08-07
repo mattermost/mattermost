@@ -207,7 +207,8 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	client.Logout()
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	post.ChannelId = th.BasicChannel.Id
@@ -238,7 +239,8 @@ func TestCreatePostEphemeral(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	client.Logout()
-	_, resp, _ = client.CreatePostEphemeral(ephemeralPost)
+	_, resp, err = client.CreatePostEphemeral(ephemeralPost)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	client = th.Client
@@ -796,7 +798,8 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("logged out", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.UpdatePost(rpost.Id, rpost)
+		_, resp, err := client.UpdatePost(rpost.Id, rpost)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -934,7 +937,8 @@ func TestPatchPost(t *testing.T) {
 	t.Run("logged out", func(t *testing.T) {
 		client.Logout()
 		patch := &model.PostPatch{}
-		_, resp, _ := client.PatchPost(post.Id, patch)
+		_, resp, err := client.PatchPost(post.Id, patch)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -1017,7 +1021,8 @@ func TestPinPost(t *testing.T) {
 	})
 
 	client.Logout()
-	_, resp, _ = client.PinPost(post.Id)
+	_, resp, err = client.PinPost(post.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.PinPost(post.Id)
@@ -1047,7 +1052,8 @@ func TestUnpinPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.UnpinPost(pinnedPost.Id)
+	_, resp, err = client.UnpinPost(pinnedPost.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.UnpinPost(pinnedPost.Id)
@@ -1136,7 +1142,8 @@ func TestGetPostsForChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetPostsForChannel(model.NewId(), 0, 60, "", false)
+	_, resp, err = client.GetPostsForChannel(model.NewId(), 0, 60, "", false)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	// more tests for next_post_id, prev_post_id, and order
@@ -1362,13 +1369,16 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	client.Logout()
 
-	_, resp, _ = client.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
+	_, resp, err = client.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
+	_, resp, err = client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, _ = client.GetFlaggedPostsForUser(user.Id, 0, 10)
+	_, resp, err = client.GetFlaggedPostsForUser(user.Id, 0, 10)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
@@ -1974,7 +1984,8 @@ func TestGetPost(t *testing.T) {
 	client.Logout()
 
 	// Normal client should get unauthorized, but local client should get 404.
-	_, resp, _ = client.GetPost(model.NewId(), "")
+	_, resp, err = client.GetPost(model.NewId(), "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp, _ = th.LocalClient.GetPost(model.NewId(), "")
@@ -2011,7 +2022,8 @@ func TestDeletePost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.DeletePost(model.NewId())
+	_, resp, err = client.DeletePost(model.NewId())
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	status, _, err := th.SystemAdminClient.DeletePost(post.Id)
@@ -2116,7 +2128,8 @@ func TestGetPostThread(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetPostThread(model.NewId(), "", false)
+	_, resp, err = client.GetPostThread(model.NewId(), "", false)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetPostThread(th.BasicPost.Id, "", false)
@@ -2249,7 +2262,8 @@ func TestSearchPosts(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
+	_, resp, err = client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2273,7 +2287,8 @@ func TestSearchHashtagPosts(t *testing.T) {
 	require.Len(t, posts.Order, 2, "wrong search results")
 
 	client.Logout()
-	_, resp, _ = client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
+	_, resp, err = client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -2485,7 +2500,8 @@ func TestGetFileInfosForPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetFileInfosForPost(model.NewId(), "")
+	_, resp, err = client.GetFileInfosForPost(model.NewId(), "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetFileInfosForPost(th.BasicPost.Id, "")

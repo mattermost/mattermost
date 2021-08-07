@@ -548,7 +548,8 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	t.Run("as not-regular user", func(t *testing.T) {
 		client := th.CreateClient()
 
-		_, resp, _ := client.GetEnvironmentConfig()
+		_, resp, err := client.GetEnvironmentConfig()
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }

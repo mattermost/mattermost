@@ -147,7 +147,8 @@ func TestUpdateCommand(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 	th.SystemAdminClient.Logout()
-	_, resp, _ := th.SystemAdminClient.UpdateCommand(cmd2)
+	_, resp, err := th.SystemAdminClient.UpdateCommand(cmd2)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -204,7 +205,8 @@ func TestMoveCommand(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.SystemAdminClient.Logout()
-	_, resp, _ = th.SystemAdminClient.MoveCommand(newTeam.Id, rcmd2.Id)
+	_, resp, err = th.SystemAdminClient.MoveCommand(newTeam.Id, rcmd2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -262,7 +264,8 @@ func TestDeleteCommand(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.SystemAdminClient.Logout()
-	_, resp, _ = th.SystemAdminClient.DeleteCommand(rcmd2.Id)
+	_, resp, err = th.SystemAdminClient.DeleteCommand(rcmd2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -352,9 +355,11 @@ func TestListCommands(t *testing.T) {
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.ListCommands(th.BasicTeam.Id, false)
+		_, resp, err := client.ListCommands(th.BasicTeam.Id, false)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
-		_, resp, _ = client.ListCommands(th.BasicTeam.Id, true)
+		_, resp, err = client.ListCommands(th.BasicTeam.Id, true)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -422,7 +427,8 @@ func TestListAutocompleteCommands(t *testing.T) {
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.ListAutocompleteCommands(th.BasicTeam.Id)
+		_, resp, err := client.ListAutocompleteCommands(th.BasicTeam.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -513,7 +519,8 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		_, resp, err := client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -572,7 +579,8 @@ func TestGetCommand(t *testing.T) {
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
 		th.Client.Logout()
-		_, resp, _ := th.Client.GetCommandById(newCmd.Id)
+		_, resp, err := th.Client.GetCommandById(newCmd.Id)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -666,7 +674,8 @@ func TestExecuteInvalidCommand(t *testing.T) {
 
 	client.Logout()
 
-	_, resp, _ = client.ExecuteCommand(channel.Id, "/getcommand")
+	_, resp, err = client.ExecuteCommand(channel.Id, "/getcommand")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err := th.SystemAdminClient.ExecuteCommand(channel.Id, "/getcommand")

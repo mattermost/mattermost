@@ -57,7 +57,8 @@ func TestGetGroup(t *testing.T) {
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
-	_, response, _ = th.SystemAdminClient.GetGroup(group.Id, "")
+	_, response, err := th.SystemAdminClient.GetGroup(group.Id, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
 
@@ -124,7 +125,8 @@ func TestPatchGroup(t *testing.T) {
 	CheckNotFoundStatus(t, response)
 
 	th.SystemAdminClient.Logout()
-	_, response, _ = th.SystemAdminClient.PatchGroup(group.Id, gp)
+	_, response, err := th.SystemAdminClient.PatchGroup(group.Id, gp)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
 
@@ -357,7 +359,8 @@ func TestGetGroupTeam(t *testing.T) {
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	_, response, err := th.SystemAdminClient.GetGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
 
@@ -412,7 +415,8 @@ func TestGetGroupChannel(t *testing.T) {
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
-	_, response, _ = th.SystemAdminClient.GetGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	_, response, err := th.SystemAdminClient.GetGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
 
@@ -462,7 +466,8 @@ func TestGetGroupTeams(t *testing.T) {
 	assert.Len(t, groupSyncables, 10)
 
 	th.SystemAdminClient.Logout()
-	_, response, _ = th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	_, response, err := th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
 
@@ -511,7 +516,8 @@ func TestGetGroupChannels(t *testing.T) {
 	assert.Len(t, groupSyncables, 10)
 
 	th.SystemAdminClient.Logout()
-	_, response, _ = th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	_, response, err := th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
 
@@ -577,7 +583,8 @@ func TestPatchGroupTeam(t *testing.T) {
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response, err := th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
 
@@ -654,7 +661,8 @@ func TestPatchGroupChannel(t *testing.T) {
 	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
-	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, response, err := th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
 

@@ -981,6 +981,7 @@ func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusUnauthorized, true)
+	// Error checked
 }
 
 func CheckNotFoundStatus(t *testing.T, resp *model.Response) {

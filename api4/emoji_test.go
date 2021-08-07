@@ -474,7 +474,8 @@ func TestGetEmojiByName(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetEmojiByName(newEmoji.Name)
+	_, resp, err = client.GetEmojiByName(newEmoji.Name)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -644,7 +645,8 @@ func TestSearchEmoji(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.SearchEmoji(search)
+	_, resp, err = client.SearchEmoji(search)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -697,6 +699,7 @@ func TestAutocompleteEmoji(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.AutocompleteEmoji(searchTerm1, "")
+	_, resp, err = client.AutocompleteEmoji(searchTerm1, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }

@@ -85,7 +85,8 @@ func TestGetUserStatus(t *testing.T) {
 
 	t.Run("get status from logged out user", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.GetUserStatus(th.BasicUser2.Id, "")
+		_, resp, err := client.GetUserStatus(th.BasicUser2.Id, "")
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -170,7 +171,8 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	t.Run("get statuses from logged out user", func(t *testing.T) {
 		client.Logout()
 
-		_, resp, _ := client.GetUsersStatusesByIds(usersIds)
+		_, resp, err := client.GetUsersStatusesByIds(usersIds)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
@@ -231,7 +233,8 @@ func TestUpdateUserStatus(t *testing.T) {
 		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
 		client.Logout()
 
-		_, resp, _ := client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+		_, resp, err := client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }

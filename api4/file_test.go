@@ -735,7 +735,8 @@ func TestGetFile(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetFile(fileId)
+	_, resp, err = client.GetFile(fileId)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetFile(fileId)
@@ -826,7 +827,8 @@ func TestGetFileThumbnail(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetFileThumbnail(fileId)
+	_, resp, err = client.GetFileThumbnail(fileId)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
@@ -884,7 +886,8 @@ func TestGetFileLink(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetFileLink(fileId)
+	_, resp, err = client.GetFileLink(fileId)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
@@ -930,7 +933,8 @@ func TestGetFilePreview(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetFilePreview(fileId)
+	_, resp, err = client.GetFilePreview(fileId)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
@@ -981,7 +985,8 @@ func TestGetFileInfo(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.GetFileInfo(fileId)
+	_, resp, err = client.GetFileInfo(fileId)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
@@ -1198,6 +1203,7 @@ func TestSearchFiles(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
-	_, resp, _ = client.SearchFiles(th.BasicTeam.Id, "#sgtitlereview", false)
+	_, resp, err = client.SearchFiles(th.BasicTeam.Id, "#sgtitlereview", false)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }

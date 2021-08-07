@@ -136,7 +136,8 @@ func TestSaveReaction(t *testing.T) {
 
 	t.Run("react-being-not-logged-in", func(t *testing.T) {
 		client.Logout()
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -283,7 +284,8 @@ func TestGetReactions(t *testing.T) {
 	t.Run("get-reactions-as-anonymous-user", func(t *testing.T) {
 		client.Logout()
 
-		_, resp, _ := client.GetReactions(postId)
+		_, resp, err := client.GetReactions(postId)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -447,7 +449,8 @@ func TestDeleteReaction(t *testing.T) {
 		client.Logout()
 		r1.EmojiName = "smile"
 
-		_, resp, _ := client.DeleteReaction(r1)
+		_, resp, err := client.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
@@ -635,7 +638,8 @@ func TestGetBulkReactions(t *testing.T) {
 	t.Run("get-reactions-as-anonymous-user", func(t *testing.T) {
 		client.Logout()
 
-		_, resp, _ := client.GetBulkReactions(postIds)
+		_, resp, err := client.GetBulkReactions(postIds)
+		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
