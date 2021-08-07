@@ -67,7 +67,8 @@ func TestSamlResetId(t *testing.T) {
 	_, resp, _ := th.Client.ResetSamlAuthDataToEmail(false, false, nil)
 	CheckForbiddenStatus(t, resp)
 
-	numAffected, resp, _ := th.SystemAdminClient.ResetSamlAuthDataToEmail(false, false, nil)
+	numAffected, resp, err := th.SystemAdminClient.ResetSamlAuthDataToEmail(false, false, nil)
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 	require.Equal(t, int64(1), numAffected)
 }

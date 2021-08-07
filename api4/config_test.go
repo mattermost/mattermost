@@ -711,8 +711,9 @@ func TestPatchConfig(t *testing.T) {
 				EnableUploads: model.NewBool(true),
 			}}
 
-			updatedConfig, resp, _ := client.PatchConfig(&config)
+			updatedConfig, resp, err := client.PatchConfig(&config)
 			if client == th.LocalClient {
+				require.NoError(t, err)
 				CheckOKStatus(t, resp)
 				assert.Equal(t, true, *updatedConfig.PluginSettings.EnableUploads)
 			} else {

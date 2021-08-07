@@ -51,7 +51,8 @@ func TestUploadBrandImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	_, resp, _ = th.SystemAdminClient.UploadBrandImage(data)
+	_, resp, err = th.SystemAdminClient.UploadBrandImage(data)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 }
 
@@ -62,7 +63,8 @@ func TestDeleteBrandImage(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	_, resp, _ := th.SystemAdminClient.UploadBrandImage(data)
+	_, resp, err := th.SystemAdminClient.UploadBrandImage(data)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
 	resp, _ = th.Client.DeleteBrandImage()
@@ -73,7 +75,8 @@ func TestDeleteBrandImage(t *testing.T) {
 	resp, _ = th.Client.DeleteBrandImage()
 	CheckUnauthorizedStatus(t, resp)
 
-	resp, _ = th.SystemAdminClient.DeleteBrandImage()
+	resp, err = th.SystemAdminClient.DeleteBrandImage()
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
 	resp, _ = th.SystemAdminClient.DeleteBrandImage()

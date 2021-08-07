@@ -586,13 +586,13 @@ func TestSearchEmoji(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 		require.NoError(t, err)
 		emojis[idx] = newEmoji
 	}
 
 	search := &model.EmojiSearch{Term: searchTerm1}
-	remojis, _, err = client.SearchEmoji(search)
+	remojis, resp, err := client.SearchEmoji(search)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -607,7 +607,7 @@ func TestSearchEmoji(t *testing.T) {
 
 	search.Term = searchTerm2
 	search.PrefixOnly = true
-	remojis, _, err = client.SearchEmoji(search)
+	remojis, resp, err = client.SearchEmoji(search)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -621,7 +621,7 @@ func TestSearchEmoji(t *testing.T) {
 	assert.False(t, found)
 
 	search.PrefixOnly = false
-	remojis, _, err = client.SearchEmoji(search)
+	remojis, resp, err = client.SearchEmoji(search)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -664,12 +664,12 @@ func TestAutocompleteEmoji(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 		require.NoError(t, err)
 		emojis[idx] = newEmoji
 	}
 
-	remojis, _, err = client.AutocompleteEmoji(searchTerm1, "")
+	remojis, resp, err := client.AutocompleteEmoji(searchTerm1, "")
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 

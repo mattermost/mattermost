@@ -32,7 +32,7 @@ func TestGetRole(t *testing.T) {
 	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		received, _, err = client.GetRole(role.Id)
+		received, _, err := client.GetRole(role.Id)
 		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)

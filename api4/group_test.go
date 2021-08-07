@@ -21,14 +21,14 @@ func TestGetGroup(t *testing.T) {
 	defer th.TearDown()
 
 	id := model.NewId()
-	g, err := th.App.CreateGroup(&model.Group{
+	g, appError := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
-	assert.Nil(t, err)
+	assert.Nil(t, appError)
 
 	_, response, _ := th.Client.GetGroup(g.Id, "")
 	CheckNotImplementedStatus(t, response)
@@ -38,7 +38,7 @@ func TestGetGroup(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	group, _, err = th.SystemAdminClient.GetGroup(g.Id, "")
+	group, _, err := th.SystemAdminClient.GetGroup(g.Id, "")
 	require.NoError(t, err)
 
 	assert.Equal(t, g.DisplayName, group.DisplayName)
@@ -66,14 +66,14 @@ func TestPatchGroup(t *testing.T) {
 	defer th.TearDown()
 
 	id := model.NewId()
-	g, err := th.App.CreateGroup(&model.Group{
+	g, appError := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
-	assert.Nil(t, err)
+	assert.Nil(t, appError)
 
 	updateFmt := "%s_updated"
 
@@ -95,10 +95,11 @@ func TestPatchGroup(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	group2, response, _ := th.SystemAdminClient.PatchGroup(g.Id, gp)
+	group2, response, err := th.SystemAdminClient.PatchGroup(g.Id, gp)
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	group, _, err = th.SystemAdminClient.GetGroup(g.Id, "")
+	group, _, err := th.SystemAdminClient.GetGroup(g.Id, "")
 	require.NoError(t, err)
 
 	assert.Equal(t, *gp.DisplayName, group.DisplayName)
@@ -242,13 +243,16 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	assert.Error(t, nErr)
 	time.Sleep(2 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	ok, response, _ := th.Client.Logout()
-	assert.True(t, ok)
+	ok, response, err := th.Client.Logout()
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
-	_, response, _ = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	assert.True(t, ok)
+	_, response, err = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	response, _ = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	response, err = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 }
 
@@ -307,14 +311,14 @@ func TestGetGroupTeam(t *testing.T) {
 	defer th.TearDown()
 
 	id := model.NewId()
-	g, err := th.App.CreateGroup(&model.Group{
+	g, appError := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
-	assert.Nil(t, err)
+	assert.Nil(t, appError)
 
 	_, response, _ := th.Client.GetGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
 	CheckNotImplementedStatus(t, response)
@@ -331,7 +335,8 @@ func TestGetGroupTeam(t *testing.T) {
 	_, response, _ = th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 
-	groupSyncable, response, _ := th.SystemAdminClient.GetGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	groupSyncable, response, err := th.SystemAdminClient.GetGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	assert.NotNil(t, groupSyncable)
 
@@ -385,7 +390,8 @@ func TestGetGroupChannel(t *testing.T) {
 	_, response, _ = th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 
-	groupSyncable, response, _ := th.SystemAdminClient.GetGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	groupSyncable, response, err := th.SystemAdminClient.GetGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	assert.NotNil(t, groupSyncable)
 
@@ -449,7 +455,8 @@ func TestGetGroupTeams(t *testing.T) {
 	_, response, _ = th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
 
-	groupSyncables, response, _ := th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	groupSyncables, response, err := th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
 	assert.Len(t, groupSyncables, 10)
@@ -544,7 +551,8 @@ func TestPatchGroupTeam(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	patch.AutoAdd = model.NewBool(false)
-	groupSyncable, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	groupSyncable, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	assert.False(t, groupSyncable.AutoAdd)
 
@@ -618,7 +626,8 @@ func TestPatchGroupChannel(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	patch.AutoAdd = model.NewBool(false)
-	groupSyncable, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	groupSyncable, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	assert.False(t, groupSyncable.AutoAdd)
 
@@ -628,7 +637,8 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
 
 	patch.AutoAdd = model.NewBool(true)
-	groupSyncable, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	groupSyncable, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
 	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)

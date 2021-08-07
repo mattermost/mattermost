@@ -34,7 +34,7 @@ func TestCreateOAuthApp(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
-	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	rapp, resp, err := adminClient.CreateOAuthApp(oapp)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	assert.Equal(t, oapp.Name, rapp.Name, "names did not match")
@@ -48,7 +48,7 @@ func TestCreateOAuthApp(t *testing.T) {
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	rapp, _, err = client.CreateOAuthApp(oapp)
+	rapp, resp, err = client.CreateOAuthApp(oapp)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 

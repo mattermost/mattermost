@@ -175,7 +175,8 @@ func TestEmailTest(t *testing.T) {
 
 		*config.EmailSettings.SMTPServer = inbucket_host
 		*config.EmailSettings.SMTPPort = inbucket_port
-		_, resp, _ = th.SystemAdminClient.TestEmail(&config)
+		_, resp, err = th.SystemAdminClient.TestEmail(&config)
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
@@ -239,7 +240,8 @@ func TestSiteURLTest(t *testing.T) {
 		_, resp, _ = th.SystemAdminClient.TestSiteURL(invalidSiteURL)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, _ = th.SystemAdminClient.TestSiteURL(validSiteURL)
+		_, resp, err = th.SystemAdminClient.TestSiteURL(validSiteURL)
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
@@ -497,11 +499,13 @@ func TestS3TestConnection(t *testing.T) {
 		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
 		config.FileSettings.AmazonS3PathPrefix = model.NewString("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
-		_, resp, _ = th.SystemAdminClient.TestS3Connection(&config)
+		_, resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		config.FileSettings.AmazonS3Region = model.NewString("")
-		_, resp, _ = th.SystemAdminClient.TestS3Connection(&config)
+		_, resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")

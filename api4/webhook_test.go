@@ -299,27 +299,28 @@ func TestGetIncomingWebhook(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
-	rhook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook)
+	rhook, _, err := th.SystemAdminClient.CreateIncomingWebhook(hook)
 	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		hook, resp, _ = client.GetIncomingWebhook(rhook.Id, "")
+		_, resp, err := client.GetIncomingWebhook(rhook.Id, "")
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	}, "WhenHookExists")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		hook, resp, _ = client.GetIncomingWebhook(model.NewId(), "")
+		_, resp, _ := client.GetIncomingWebhook(model.NewId(), "")
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookDoesNotExist")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		hook, resp, _ = client.GetIncomingWebhook("abc", "")
+		_, resp, _ := client.GetIncomingWebhook("abc", "")
 		CheckBadRequestStatus(t, resp)
 	}, "WhenInvalidHookID")
 
 	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
 		th.LoginBasic()
-		_, resp, _ = th.Client.GetIncomingWebhook(rhook.Id, "")
+		_, resp, _ := th.Client.GetIncomingWebhook(rhook.Id, "")
 		CheckForbiddenStatus(t, resp)
 	})
 }
@@ -353,9 +354,9 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		rhook, _, err = th.SystemAdminClient.CreateIncomingWebhook(hook)
 		require.NoError(t, err)
 
-		status, resp, _ = client.DeleteIncomingWebhook(rhook.Id)
+		status, resp, err := client.DeleteIncomingWebhook(rhook.Id)
 		require.True(t, status, "Delete should have succeeded")
-
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		// Get now should not return this deleted hook
@@ -1201,9 +1202,9 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		rhook, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook)
 		require.NoError(t, err)
 
-		status, resp, _ = client.DeleteOutgoingWebhook(rhook.Id)
-
+		status, resp, err := client.DeleteOutgoingWebhook(rhook.Id)
 		require.True(t, status, "Delete should have succeeded")
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		// Get now should not return this deleted hook

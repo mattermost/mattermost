@@ -35,7 +35,7 @@ func TestCreatePost(t *testing.T) {
 	client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}}
-	rpost, _, err = client.CreatePost(post)
+	rpost, resp, err := client.CreatePost(post)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
@@ -225,7 +225,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 		Post:   &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}},
 	}
 
-	rpost, _, err = client.CreatePostEphemeral(ephemeralPost)
+	rpost, resp, err := client.CreatePostEphemeral(ephemeralPost)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	require.Equal(t, ephemeralPost.Post.Message, rpost.Message, "message didn't match")
@@ -486,7 +486,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	directChannel, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 
-	ruser, _, err = client.CreateUser(&user)
+	ruser, _, err := client.CreateUser(&user)
 	require.NoError(t, err)
 
 	client.Login(user.Email, user.Password)
@@ -535,8 +535,8 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	WebSocketClient, appError := th.CreateWebSocketClient()
+	require.Nil(t, appError)
 	WebSocketClient.Listen()
 
 	inChannelUser := th.CreateUser()
@@ -544,7 +544,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	th.App.AddUserToChannel(inChannelUser, th.BasicChannel, false)
 
 	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
-	_, _, err = client.CreatePost(post1)
+	_, resp, err := client.CreatePost(post1)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
@@ -563,7 +563,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	th.LinkUserToTeam(outOfChannelUser, th.BasicTeam)
 
 	post2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + outOfChannelUser.Username}
-	_, _, err = client.CreatePost(post2)
+	_, resp, err = client.CreatePost(post2)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 

@@ -963,11 +963,13 @@ func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, exp
 func CheckOKStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusOK, false)
+	// Error checked
 }
 
 func CheckCreatedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusCreated, false)
+	// Error checked
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {

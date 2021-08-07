@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBlevePurgeIndexes(t *testing.T) {
@@ -21,12 +22,14 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	t.Run("as system user with write experimental permission", func(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionPurgeBleveIndexes.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteExperimental.Id, model.SystemUserRoleId)
-		_, resp, _ := th.Client.PurgeBleveIndexes()
+		_, resp, err := th.Client.PurgeBleveIndexes()
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.PurgeBleveIndexes()
+		_, resp, err := th.SystemAdminClient.PurgeBleveIndexes()
+		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 

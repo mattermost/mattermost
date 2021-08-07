@@ -40,7 +40,7 @@ func TestCreateCommand(t *testing.T) {
 	_, resp, _ := client.CreateCommand(newCmd)
 	CheckForbiddenStatus(t, resp)
 
-	createdCmd, _, err := th.SystemAdminClient.CreateCommand(newCmd)
+	createdCmd, resp, err := th.SystemAdminClient.CreateCommand(newCmd)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	require.Equal(t, th.SystemAdminUser.Id, createdCmd.CreatorId, "user ids didn't match")
@@ -51,7 +51,7 @@ func TestCreateCommand(t *testing.T) {
 	CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
 
 	newCmd.Trigger = "Local"
-	localCreatedCmd, _, err := LocalClient.CreateCommand(newCmd)
+	localCreatedCmd, resp, err := LocalClient.CreateCommand(newCmd)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	require.Equal(t, th.BasicUser.Id, localCreatedCmd.CreatorId, "local client: user ids didn't match")
@@ -589,7 +589,7 @@ func TestRegenToken(t *testing.T) {
 		Method:    model.CommandMethodPost,
 		Trigger:   "trigger"}
 
-	createdCmd, _, err := th.SystemAdminClient.CreateCommand(newCmd)
+	createdCmd, resp, err := th.SystemAdminClient.CreateCommand(newCmd)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
@@ -940,15 +940,17 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
-	_, err := th.App.CreateCommand(postCmd)
-	require.Nil(t, err, "failed to create post command")
+	_, appError := th.App.CreateCommand(postCmd)
+	require.Nil(t, appError, "failed to create post command")
 
 	// make a direct message channel
-	dmChannel, response, _ := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	dmChannel, response, err := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
 	// we should be able to run the slash command in the DM channel
-	_, resp, _ := client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")
+	_, resp, err := client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
 	// but we can't run the slash command in the DM channel if we sub in some other team's id
@@ -1004,15 +1006,17 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
-	_, err := th.App.CreateCommand(postCmd)
-	require.Nil(t, err, "failed to create post command")
+	_, appError := th.App.CreateCommand(postCmd)
+	require.Nil(t, appError, "failed to create post command")
 
 	// make a direct message channel
-	dmChannel, response, _ := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	dmChannel, response, err := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
 	// we should be able to run the slash command in the DM channel
-	_, resp, _ := client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")
+	_, resp, err := client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
 	// if the user is removed from the team, they should NOT be able to run the slash command in the DM channel
