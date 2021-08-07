@@ -668,7 +668,6 @@ func TestUploadFiles(t *testing.T) {
 					if !tc.skipPayloadValidation {
 						compare := func(get func(string) ([]byte, *model.Response, error), name string) {
 							data, _, err := get(ri.Id)
-							require.NotNil(t, resp)
 							require.NoError(t, err)
 
 							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
@@ -775,7 +774,7 @@ func TestGetFileHeaders(t *testing.T) {
 				CheckStartsWith(t, resp.Header.Get("Content-Disposition"), "attachment", "returned incorrect Content-Disposition")
 			}
 
-			_, _, err = client.DownloadFile(fileId, true)
+			_, resp, err = client.DownloadFile(fileId, true)
 			require.NoError(t, err)
 
 			CheckStartsWith(t, resp.Header.Get("Content-Type"), expectedContentType, "returned incorrect Content-Type")

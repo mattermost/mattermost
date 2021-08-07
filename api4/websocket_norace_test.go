@@ -28,8 +28,8 @@ func TestWebSocket(t *testing.T) {
 
 	// Test closing and reconnecting
 	WebSocketClient.Close()
-	err = WebSocketClient.Connect()
-	require.Nil(t, err)
+	appErr := WebSocketClient.Connect()
+	require.Nil(t, appErr)
 
 	WebSocketClient.Listen()
 

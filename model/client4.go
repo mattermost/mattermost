@@ -3907,7 +3907,7 @@ func (c *Client4) MigrateConfig(from, to string) (bool, *Response, error) {
 	m["to"] = to
 	r, err := c.DoApiPost(c.GetConfigRoute()+"/migrate", MapToJson(m))
 	if err != nil {
-		return false, nil, err
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return true, BuildResponse(r), nil

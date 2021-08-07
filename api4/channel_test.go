@@ -48,12 +48,12 @@ func TestCreateChannel(t *testing.T) {
 	require.Equal(t, model.ChannelTypePrivate, rprivate.Type, "wrong channel type")
 	require.Equal(t, th.BasicUser.Id, rprivate.CreatorId, "wrong creator id")
 
-	_, _, err = client.CreateChannel(channel)
+	_, resp, err = client.CreateChannel(channel)
 	CheckErrorID(t, err, "store.sql_channel.save_channel.exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	direct := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeDirect, TeamId: team.Id}
-	_, _, err = client.CreateChannel(direct)
+	_, resp, err = client.CreateChannel(direct)
 	CheckErrorID(t, err, "api.channel.create_channel.direct_channel.app_error")
 	CheckBadRequestStatus(t, resp)
 
@@ -127,7 +127,7 @@ func TestCreateChannel(t *testing.T) {
 
 	// Test posting Garbage
 	r, err := client.DoApiPost("/channels", "garbage")
-	require.NotNil(t, err, "expected error")
+	require.Error(t, err, "expected error")
 	require.Equal(t, http.StatusBadRequest, r.StatusCode, "Expected 400 Bad Request")
 
 	// Test GroupConstrained flag
@@ -436,7 +436,7 @@ func TestCreateDirectChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := client.DoApiPost("/channels/direct", "garbage")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	_, _, err = th.SystemAdminClient.CreateDirectChannel(user3.Id, user2.Id)
@@ -2425,7 +2425,7 @@ func TestViewChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := client.DoApiPost(fmt.Sprintf("/channels/members/%v/view", th.BasicUser.Id), "garbage")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	client.Logout()
@@ -4325,7 +4325,7 @@ func TestMoveChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		_, _, err := client.MoveChannel(gmChannel.Id, team1.Id, false)
 		require.Error(t, err)
-		CheckErrorID(t, appErr, "api.channel.move_channel.type.invalid")
+		CheckErrorID(t, err, "api.channel.move_channel.type.invalid")
 	})
 
 	t.Run("Should fail due to permissions", func(t *testing.T) {

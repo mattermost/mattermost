@@ -459,7 +459,6 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 				}
 
 				_, _, err := th.Client.GetProfileImage(tc.UserId, "")
-				require.NoError(t, err)
 				if tc.ExpectedError != "" {
 					CheckErrorID(t, err, tc.ExpectedError)
 				} else {

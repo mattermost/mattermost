@@ -181,7 +181,7 @@ func TestUpdateConfig(t *testing.T) {
 
 		t.Run("Should set defaults for missing fields", func(t *testing.T) {
 			_, err = th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), "{}")
-			require.Nil(t, err)
+			require.NoError(t, err)
 		})
 
 		t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
@@ -595,7 +595,7 @@ func TestGetOldClientConfig(t *testing.T) {
 		client := th.Client
 
 		resp, err := client.DoApiGet("/config/client", "")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 
@@ -603,7 +603,7 @@ func TestGetOldClientConfig(t *testing.T) {
 		client := th.Client
 
 		resp, err := client.DoApiGet("/config/client?format=junk", "")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
@@ -669,7 +669,8 @@ func TestPatchConfig(t *testing.T) {
 			*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalDefaultChannels = []string{"some-channel"} })
 
-			oldConfig, _, _ := th.Client.GetConfig()
+			oldConfig, _, err := client.GetConfig()
+			require.NoError(t, err)
 
 			assert.False(t, *oldConfig.PasswordSettings.Lowercase)
 			assert.NotEqual(t, 15, *oldConfig.PasswordSettings.MinimumLength)
@@ -692,9 +693,11 @@ func TestPatchConfig(t *testing.T) {
 				},
 			}
 
-			_, response, _ := client.PatchConfig(&config)
+			_, response, err := client.PatchConfig(&config)
+			require.NoError(t, err)
 
-			updatedConfig, _, _ := th.Client.GetConfig()
+			updatedConfig, _, err := client.GetConfig()
+			require.NoError(t, err)
 			assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
 			assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
 			assert.Equal(t, []string{"another-channel"}, updatedConfig.TeamSettings.ExperimentalDefaultChannels)
@@ -702,7 +705,7 @@ func TestPatchConfig(t *testing.T) {
 			assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
 
 			// reset the config
-			_, _, err := client.UpdateConfig(oldConfig)
+			_, _, err = client.UpdateConfig(oldConfig)
 			require.NoError(t, err)
 		})
 
@@ -711,7 +714,8 @@ func TestPatchConfig(t *testing.T) {
 				Symbol: model.NewBool(true),
 			}}
 
-			updatedConfig, _, _ := th.Client.PatchConfig(&config)
+			updatedConfig, _, err := client.PatchConfig(&config)
+			require.NoError(t, err)
 
 			assert.Equal(t, model.FakeSetting, *updatedConfig.SqlSettings.DataSource)
 		})

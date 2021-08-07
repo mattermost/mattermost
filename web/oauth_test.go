@@ -299,19 +299,19 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
 	_, err = ApiClient.DoApiGet("/oauth_test", "")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	ApiClient.SetOAuthToken("")
 	_, err = ApiClient.DoApiGet("/oauth_test", "")
-	require.NotNil(t, err, "should have failed - no access token provided")
+	require.Error(t, err, "should have failed - no access token provided")
 
 	ApiClient.SetOAuthToken("badtoken")
 	_, err = ApiClient.DoApiGet("/oauth_test", "")
-	require.NotNil(t, err, "should have failed - bad token provided")
+	require.Error(t, err, "should have failed - bad token provided")
 
 	ApiClient.SetOAuthToken(token)
 	_, err = ApiClient.DoApiGet("/oauth_test", "")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, _, err = ApiClient.GetOAuthAccessToken(data)
 	require.Error(t, err, "should have failed - tried to reuse auth code")
@@ -335,7 +335,7 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	ApiClient.SetOAuthToken(rsp.AccessToken)
 	_, err = ApiClient.DoApiGet("/oauth_test", "")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	data.Set("refresh_token", rsp.RefreshToken)
 	rsp, _, err = ApiClient.GetOAuthAccessToken(data)
@@ -347,11 +347,11 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	ApiClient.SetOAuthToken(rsp.AccessToken)
 	_, err = ApiClient.DoApiGet("/oauth_test", "")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
-	_, nErr := th.App.Srv().Store.OAuth().SaveAuthData(authData)
-	require.NoError(t, nErr)
+	_, err = th.App.Srv().Store.OAuth().SaveAuthData(authData)
+	require.NoError(t, err)
 
 	data.Set("grant_type", model.AccessTokenGrantType)
 	data.Set("client_id", oauthApp.Id)

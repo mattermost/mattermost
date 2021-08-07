@@ -208,7 +208,7 @@ func TestCreatePost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := client.DoApiPost("/posts", "garbage")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	client.Logout()
@@ -240,7 +240,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 	require.Equal(t, 0, int(rpost.EditAt), "newly created ephemeral post shouldn't have EditAt set")
 
 	r, err := client.DoApiPost("/posts/ephemeral", "garbage")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	client.Logout()
@@ -666,8 +666,8 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, resp.Code)
 	waitForEvent(true)
 
-	st, err := th.App.GetStatus(th.BasicUser.Id)
-	require.Nil(t, err)
+	st, appErr := th.App.GetStatus(th.BasicUser.Id)
+	require.Nil(t, appErr)
 	assert.Equal(t, "online", st.Status)
 }
 
@@ -1000,8 +1000,8 @@ func TestPinPost(t *testing.T) {
 	require.NoError(t, err)
 
 	require.True(t, pass, "should have passed")
-	rpost, err := th.App.GetSinglePost(post.Id)
-	require.Nil(t, err)
+	rpost, appErr := th.App.GetSinglePost(post.Id)
+	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
 	pass, resp, err := client.PinPost("junk")
@@ -1049,8 +1049,8 @@ func TestUnpinPost(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, pass, "should have passed")
 
-	rpost, err := th.App.GetSinglePost(pinnedPost.Id)
-	require.Nil(t, err)
+	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id)
+	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 
 	pass, resp, err := client.UnpinPost("junk")
@@ -1359,8 +1359,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Len(t, rpl.Posts, 4, "should have returned 4 posts")
 	require.Equal(t, opl.Posts, rpl.Posts, "posts should have matched")
 
-	err = th.App.RemoveUserFromChannel(th.Context, user.Id, "", channel4)
-	assert.Nil(t, err, "unable to remove user from channel")
+	appErr := th.App.RemoveUserFromChannel(th.Context, user.Id, "", channel4)
+	assert.Nil(t, appErr, "unable to remove user from channel")
 
 	rpl, _, err = client.GetFlaggedPostsForUser(user.Id, 0, 10)
 	require.NoError(t, err)
@@ -2576,8 +2576,8 @@ func TestSetChannelUnread(t *testing.T) {
 		r, err := th.Client.SetPostUnread(u1.Id, p2.Id, true)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
-		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
-		require.Nil(t, err)
+		unread, appErr := th.App.GetChannelUnread(c1.Id, u1.Id)
+		require.Nil(t, appErr)
 		assert.Equal(t, int64(2), unread.MsgCount)
 	})
 
@@ -2669,10 +2669,10 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		//  MentionCountRoot should be zero so that supported clients don't show the channel as unread
 		require.Equal(t, channelUnread.MsgCountRoot, int64(0))
 
-		threadMembership, err := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
-		require.Nil(t, err)
-		thread, err := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
-		require.Nil(t, err)
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
+		require.Nil(t, appErr)
+		thread, appErr := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
+		require.Nil(t, appErr)
 		require.Equal(t, int64(2), thread.UnreadMentions)
 		require.Equal(t, int64(3), thread.UnreadReplies)
 	})

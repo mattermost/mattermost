@@ -59,23 +59,23 @@ func TestCreateUser(t *testing.T) {
 	ruser.Id = ""
 	ruser.Username = GenerateTestUsername()
 	ruser.Password = "passwd1"
-	_, _, err = th.Client.CreateUser(ruser)
+	_, resp, err = th.Client.CreateUser(ruser)
 	CheckErrorID(t, err, "app.user.save.email_exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Email = th.GenerateTestEmail()
 	ruser.Username = user.Username
-	_, _, err = th.Client.CreateUser(ruser)
+	_, resp, err = th.Client.CreateUser(ruser)
 	CheckErrorID(t, err, "app.user.save.username_exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Email = ""
-	_, _, err = th.Client.CreateUser(ruser)
+	_, resp, err = th.Client.CreateUser(ruser)
 	CheckErrorID(t, err, "model.user.is_valid.email.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Username = "testinvalid+++"
-	_, _, err = th.Client.CreateUser(ruser)
+	_, resp, err = th.Client.CreateUser(ruser)
 	CheckErrorID(t, err, "model.user.is_valid.username.app_error")
 	CheckBadRequestStatus(t, resp)
 
@@ -90,7 +90,7 @@ func TestCreateUser(t *testing.T) {
 		require.True(t, ruser2.EmailVerified)
 
 		r, err2 := client.DoApiPost("/users", "garbage")
-		require.NotNil(t, err2, "should have errored")
+		require.Error(t, err2, "should have errored")
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
 
@@ -888,7 +888,7 @@ func TestSaveUserTermsOfService(t *testing.T) {
 
 	t.Run("Invalid data", func(t *testing.T) {
 		resp, err := th.Client.DoApiPost("/users/"+th.BasicUser.Id+"/terms_of_service", "{}")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
@@ -1721,7 +1721,7 @@ func TestUpdateUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := th.Client.DoApiPut("/users/"+ruser.Id, "garbage")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	session, _ := th.App.GetSession(th.Client.AuthToken)
@@ -1835,7 +1835,7 @@ func TestPatchUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := th.Client.DoApiPut("/users/"+user.Id+"/patch", "garbage")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	session, _ := th.App.GetSession(th.Client.AuthToken)
@@ -2417,7 +2417,7 @@ func TestGetUsers(t *testing.T) {
 
 		// Check default params for page and per_page
 		_, err = client.DoApiGet("/users", "")
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 
 	th.Client.Logout()
@@ -2498,7 +2498,7 @@ func TestGetActiveUsersInTeam(t *testing.T) {
 
 	// Check case where we have supplied both active and inactive flags
 	_, err = th.Client.DoApiGet("/users?inactive=true&active=true", "")
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	th.Client.Logout()
 	_, resp, err := th.Client.GetActiveUsersInTeam(teamId, 0, 1, "")
@@ -2511,7 +2511,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	defer th.TearDown()
 
 	_, _, err := th.Client.GetUsersWithoutTeam(0, 100, "")
-	CheckErrorID(t, err, "should prevent non-admin user from getting users without a team")
+	require.Error(t, err, "should prevent non-admin user from getting users without a team")
 
 	// These usernames need to appear in the first 100 users for this to work
 
@@ -2939,7 +2939,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Should fail because account is locked out
-	_, _, err = th.Client.UpdateUserPassword(th.BasicUser.Id, th.BasicUser.Password, "newpwd")
+	_, resp, err = th.Client.UpdateUserPassword(th.BasicUser.Id, th.BasicUser.Password, "newpwd")
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 	CheckUnauthorizedStatus(t, resp)
 

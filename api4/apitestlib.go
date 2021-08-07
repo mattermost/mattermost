@@ -1030,6 +1030,8 @@ func CheckErrorMessage(t *testing.T, err error, message string) {
 }
 
 func CheckStartsWith(t *testing.T, value, prefix, message string) {
+	t.Helper()
+
 	require.True(t, strings.HasPrefix(value, prefix), message, value)
 }
 

@@ -43,17 +43,17 @@ func TestCreateTeam(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 
 		rteam.Id = ""
-		_, _, err = client.CreateTeam(rteam)
+		_, resp, err = client.CreateTeam(rteam)
 		CheckErrorID(t, err, "app.team.save.existing.app_error")
 		CheckBadRequestStatus(t, resp)
 
 		rteam.Name = ""
-		_, _, err = client.CreateTeam(rteam)
+		_, resp, err = client.CreateTeam(rteam)
 		CheckErrorID(t, err, "model.team.is_valid.characters.app_error")
 		CheckBadRequestStatus(t, resp)
 
 		r, err := client.DoApiPost("/teams", "garbage")
-		require.NotNil(t, err, "should have errored")
+		require.Error(t, err, "should have errored")
 
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
@@ -343,7 +343,8 @@ func TestUpdateTeam(t *testing.T) {
 		originalTeamId := team.Id
 		team.Id = model.NewId()
 
-		r, _ := th.Client.DoApiPut(client.GetTeamRoute(originalTeamId), team.ToJson())
+		r, err := th.Client.DoApiPut(client.GetTeamRoute(originalTeamId), team.ToJson())
+		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 		require.Equal(t, uteam.Id, originalTeamId, "wrong team id")
@@ -484,7 +485,7 @@ func TestPatchTeam(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 
 		r, err2 := client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
-		require.NotNil(t, err2, "should have errored")
+		require.Error(t, err2, "should have errored")
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 	})
 
@@ -807,8 +808,8 @@ func TestSoftDeleteTeam(t *testing.T) {
 
 		require.True(t, ok, "should have returned true")
 
-		rteam, err2 := th.App.GetTeam(team.Id)
-		require.Nil(t, err2, "should have returned archived team")
+		rteam, appErr := th.App.GetTeam(team.Id)
+		require.Nil(t, appErr, "should have returned archived team")
 		require.NotEqual(t, rteam.DeleteAt, 0, "should have not set to zero")
 
 		ok, resp, err2 = client.SoftDeleteTeam("junk")
@@ -2037,8 +2038,8 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Should return error with invalid JSON in body.
 	_, err = client.DoApiPost("/teams/"+team.Id+"/members", "invalid")
-	require.NotNil(t, err)
-	CheckErrorID(t, err, "team.add_team_member.invalid_body.app_error")
+	require.Error(t, err)
+	CheckErrorID(t, err, "api.team.add_team_member.invalid_body.app_error")
 
 	// by token
 	client.Login(otherUser.Email, otherUser.Password)
@@ -3070,7 +3071,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		okMsg, _, err = client.InviteUsersToTeam(th.BasicTeam.Id, []string{"test@common.com"})
 		require.True(t, okMsg, "should return true")
-		require.Errorf(t, err, "%v, Failed to invite user which was common between team and global domain restriction", err)
+		require.NoErrorf(t, err, "%v, Failed to invite user which was common between team and global domain restriction", err)
 
 		okMsg, _, err = client.InviteUsersToTeam(th.BasicTeam.Id, []string{"test@invalid.com"})
 		require.False(t, okMsg, "should return false")
@@ -3158,7 +3159,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	t.Run("invalid data in request body", func(t *testing.T) {
 		res, err := th.SystemAdminClient.DoApiPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		CheckErrorID(t, err, "api.team.invite_guests_to_channels.invalid_body.app_error")
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})

@@ -259,7 +259,7 @@ func TestUploadData(t *testing.T) {
 			R: bytes.NewReader(data),
 			N: 5 * 1024 * 1024,
 		}
-		info, _, err := th.Client.UploadData(u.Id, rd)
+		info, resp, err := th.Client.UploadData(u.Id, rd)
 		require.NoError(t, err)
 		require.Nil(t, info)
 		require.Equal(t, http.StatusNoContent, resp.StatusCode)
@@ -314,7 +314,7 @@ func TestUploadDataMultipart(t *testing.T) {
 	t.Run("bad content-type", func(t *testing.T) {
 		info, _, err := th.Client.DoUploadFile("/uploads/"+us.Id, data, "multipart/form-data;")
 		require.Nil(t, info)
-		CheckErrorMessage(t, err, "api.upload.upload_data.invalid_content_type")
+		CheckErrorID(t, err, "api.upload.upload_data.invalid_content_type")
 	})
 
 	t.Run("success", func(t *testing.T) {
