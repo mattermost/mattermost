@@ -2569,8 +2569,9 @@ func TestSetChannelUnread(t *testing.T) {
 	require.Equal(t, int64(0), unread.MsgCount)
 
 	t.Run("Unread last one", func(t *testing.T) {
-		r, _ := th.Client.SetPostUnread(u1.Id, p2.Id, true)
-		checkHTTPStatus(t, r, 200, false)
+		r, err := th.Client.SetPostUnread(u1.Id, p2.Id, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(2), unread.MsgCount)
@@ -2611,8 +2612,9 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
 		th.Client.Logout()
-		response, _ := th.Client.SetPostUnread(u1.Id, p2.Id, true)
-		checkHTTPStatus(t, response, http.StatusUnauthorized, true)
+		response, err := th.Client.SetPostUnread(u1.Id, p2.Id, true)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, response)
 	})
 }
 

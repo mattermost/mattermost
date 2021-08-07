@@ -948,76 +948,61 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
-func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
+func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {
 	t.Helper()
 
-	require.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v", expectedStatus, expectError)
-	if expectError {
-		require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-	} else {
-		require.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
-	}
-	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	require.NotNilf(t, resp, "Unexpected nil response, expected http status:%v", expectedStatus)
+	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v", expectedStatus, resp.StatusCode)
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusOK, false)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusOK)
 }
 
 func CheckCreatedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusCreated, false)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusCreated)
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusForbidden, true)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusForbidden)
 }
 
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusUnauthorized, true)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusUnauthorized)
 }
 
 func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotFound, true)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusNotFound)
 }
 
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusBadRequest, true)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusBadRequest)
 }
 
 func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotImplemented, true)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusNotImplemented)
 }
 
 func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge, true)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge)
 }
 
 func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusInternalServerError)
 }
 
 func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
-	// Error checked
+	checkHTTPStatus(t, resp, http.StatusServiceUnavailable)
 }
 
 func CheckErrorID(t *testing.T, err error, errorId string) {

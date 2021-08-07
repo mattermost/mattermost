@@ -1027,7 +1027,7 @@ func TestGetAllTeams(t *testing.T) {
 			}
 			if tc.ExpectedError {
 				CheckErrorID(t, err, tc.ErrorId)
-				checkHTTPStatus(t, resp, tc.ExpectedStatusCode, true)
+				checkHTTPStatus(t, resp, tc.ExpectedStatusCode)
 				return
 			}
 			require.NoError(t, err)

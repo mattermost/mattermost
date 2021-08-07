@@ -6374,7 +6374,8 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 				require.NoError(t, err)
 			} else {
 				require.False(t, ok)
-				checkHTTPStatus(t, resp, http.StatusConflict, true)
+				require.Error(t, err)
+				checkHTTPStatus(t, resp, http.StatusConflict)
 			}
 		})
 	}
