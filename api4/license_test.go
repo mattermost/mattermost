@@ -57,7 +57,8 @@ func TestUploadLicenseFile(t *testing.T) {
 	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp, _ := client.UploadLicenseFile([]byte{})
+		ok, resp, err := client.UploadLicenseFile([]byte{})
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
@@ -71,7 +72,8 @@ func TestUploadLicenseFile(t *testing.T) {
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp, _ := th.SystemAdminClient.UploadLicenseFile([]byte{})
+		ok, resp, err := th.SystemAdminClient.UploadLicenseFile([]byte{})
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
@@ -170,7 +172,8 @@ func TestRemoveLicenseFile(t *testing.T) {
 	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp, _ := client.RemoveLicenseFile()
+		ok, resp, err := client.RemoveLicenseFile()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
@@ -184,7 +187,8 @@ func TestRemoveLicenseFile(t *testing.T) {
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp, _ := th.SystemAdminClient.RemoveLicenseFile()
+		ok, resp, err := th.SystemAdminClient.RemoveLicenseFile()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
@@ -209,7 +213,8 @@ func TestRequestTrialLicense(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
 
 	t.Run("permission denied", func(t *testing.T) {
-		ok, resp, _ := th.Client.RequestTrialLicense(1000)
+		ok, resp, err := th.Client.RequestTrialLicense(1000)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})

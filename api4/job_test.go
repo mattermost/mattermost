@@ -25,7 +25,8 @@ func TestCreateJob(t *testing.T) {
 		},
 	}
 
-	_, resp, _ := th.SystemManagerClient.CreateJob(job)
+	_, resp, err := th.SystemManagerClient.CreateJob(job)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	received, _, err := th.SystemAdminClient.CreateJob(job)
@@ -41,7 +42,8 @@ func TestCreateJob(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	job.Type = model.JobTypeElasticsearchPostIndexing
-	_, resp, _ = th.Client.CreateJob(job)
+	_, resp, err = th.Client.CreateJob(job)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -68,7 +70,8 @@ func TestGetJob(t *testing.T) {
 	_, resp, _ := th.SystemAdminClient.GetJob("1234")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = th.Client.GetJob(job.Id)
+	_, resp, err = th.Client.GetJob(job.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, resp, _ = th.SystemAdminClient.GetJob(model.NewId())
@@ -118,7 +121,8 @@ func TestGetJobs(t *testing.T) {
 
 	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
-	_, resp, _ := th.Client.GetJobs(0, 60)
+	_, resp, err := th.Client.GetJobs(0, 60)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -176,7 +180,8 @@ func TestGetJobsByType(t *testing.T) {
 	_, resp, _ = th.SystemAdminClient.GetJobsByType(strings.Repeat("a", 33), 0, 60)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = th.Client.GetJobsByType(jobType, 0, 60)
+	_, resp, err = th.Client.GetJobsByType(jobType, 0, 60)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, _, err = th.SystemManagerClient.GetJobsByType(model.JobTypeElasticsearchPostIndexing, 0, 60)
@@ -224,11 +229,13 @@ func TestDownloadJob(t *testing.T) {
 	os.Create(filePath)
 
 	// Normal user cannot download the results of these job (not the right permission)
-	_, resp, _ = th.Client.DownloadJob(job.Id)
+	_, resp, err = th.Client.DownloadJob(job.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	th.SystemManagerClient.DownloadJob(job.Id)
 	// System manager with default permissions cannot download the results of these job (Doesn't have correct permissions)
-	_, resp, _ = th.SystemManagerClient.DownloadJob(job.Id)
+	_, resp, err = th.SystemManagerClient.DownloadJob(job.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, resp, _ = th.SystemAdminClient.DownloadJob(job.Id)
@@ -300,10 +307,11 @@ func TestCancelJob(t *testing.T) {
 		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
-	_, resp, _ := th.Client.CancelJob(jobs[0].Id)
+	_, resp, err := th.Client.CancelJob(jobs[0].Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, _, err := th.SystemAdminClient.CancelJob(jobs[0].Id)
+	_, _, err = th.SystemAdminClient.CancelJob(jobs[0].Id)
 	require.NoError(t, err)
 
 	_, _, err = th.SystemAdminClient.CancelJob(jobs[1].Id)

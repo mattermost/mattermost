@@ -49,7 +49,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	require.NoError(t, err)
 
 	th.LoginBasic()
-	_, resp, _ = client.CreateIncomingWebhook(hook)
+	_, resp, err = client.CreateIncomingWebhook(hook)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.AddPermissionToRole(model.PermissionManageIncomingWebhooks.Id, model.TeamUserRoleId)
@@ -84,7 +85,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 		hook.UserId = th.BasicUser2.Id
 		defer func() { hook.UserId = "" }()
 
-		_, response, _ := client.CreateIncomingWebhook(hook)
+		_, response, err := client.CreateIncomingWebhook(hook)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
 
@@ -130,7 +132,8 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook = &model.IncomingWebhook{ChannelId: channel.Id}
-	rhook, resp, _ = th.Client.CreateIncomingWebhook(hook)
+	rhook, resp, err = th.Client.CreateIncomingWebhook(hook)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -188,7 +191,8 @@ func TestGetIncomingWebhooks(t *testing.T) {
 		require.Empty(t, hooks, "no hooks should be returned")
 	})
 
-	_, resp, _ = client.GetIncomingWebhooks(0, 1000, "")
+	_, resp, err = client.GetIncomingWebhooks(0, 1000, "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.AddPermissionToRole(model.PermissionManageIncomingWebhooks.Id, model.TeamUserRoleId)
@@ -196,10 +200,12 @@ func TestGetIncomingWebhooks(t *testing.T) {
 	_, _, err = client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
 	require.NoError(t, err)
 
-	_, resp, _ = client.GetIncomingWebhooksForTeam(model.NewId(), 0, 1000, "")
+	_, resp, err = client.GetIncomingWebhooksForTeam(model.NewId(), 0, 1000, "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = client.GetIncomingWebhooks(0, 1000, "")
+	_, resp, err = client.GetIncomingWebhooks(0, 1000, "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -320,7 +326,8 @@ func TestGetIncomingWebhook(t *testing.T) {
 
 	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
 		th.LoginBasic()
-		_, resp, _ := th.Client.GetIncomingWebhook(rhook.Id, "")
+		_, resp, err := th.Client.GetIncomingWebhook(rhook.Id, "")
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }
@@ -370,7 +377,8 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		require.NoError(t, err)
 
 		th.LoginBasic()
-		_, resp, _ = th.Client.DeleteIncomingWebhook(rhook.Id)
+		_, resp, err = th.Client.DeleteIncomingWebhook(rhook.Id)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }
@@ -408,7 +416,8 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	require.NoError(t, err)
 
 	th.LoginBasic()
-	_, resp, _ = client.CreateOutgoingWebhook(hook)
+	_, resp, err = client.CreateOutgoingWebhook(hook)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamUserRoleId)
@@ -437,7 +446,8 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 		hook.CreatorId = th.BasicUser2.Id
 		defer func() { hook.CreatorId = "" }()
 
-		_, response, _ := client.CreateOutgoingWebhook(hook)
+		_, response, err := client.CreateOutgoingWebhook(hook)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
 
@@ -516,11 +526,13 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 
 		require.True(t, found, "missing hook")
 
-		_, rresp, _ = client.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
-		CheckForbiddenStatus(t, rresp)
+		_, resp, err = client.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	_, resp, _ = th.Client.GetOutgoingWebhooks(0, 1000, "")
+	_, resp, err = th.Client.GetOutgoingWebhooks(0, 1000, "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamUserRoleId)
@@ -528,16 +540,19 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 	_, _, err = th.Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
 	require.NoError(t, err)
 
-	_, resp, _ = th.Client.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
+	_, resp, err = th.Client.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, _, err = th.Client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
 	require.NoError(t, err)
 
-	_, resp, _ = th.Client.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
+	_, resp, err = th.Client.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, _ = th.Client.GetOutgoingWebhooks(0, 1000, "")
+	_, resp, err = th.Client.GetOutgoingWebhooks(0, 1000, "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
@@ -687,7 +702,8 @@ func TestGetOutgoingWebhook(t *testing.T) {
 		require.Equal(t, getHook.Id, rhook.Id, "failed to retrieve the correct outgoing hook")
 	})
 
-	_, resp, _ = th.Client.GetOutgoingWebhook(rhook.Id)
+	_, resp, err = th.Client.GetOutgoingWebhook(rhook.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -810,7 +826,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 	}, "UpdateNonExistentHook")
 
 	t.Run("UserIsNotAdminOfTeam", func(t *testing.T) {
-		_, resp, _ := th.Client.UpdateIncomingWebhook(createdHook)
+		_, resp, err := th.Client.UpdateIncomingWebhook(createdHook)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -832,7 +849,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		})
 
 		t.Run("UpdateHookOfDifferentUser", func(t *testing.T) {
-			_, resp, _ := th.Client.UpdateIncomingWebhook(createdHook)
+			_, resp, err := th.Client.UpdateIncomingWebhook(createdHook)
+			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
 		})
 	})
@@ -864,7 +882,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		th.LoginBasic()
 		createdHook.ChannelId = privateChannel.Id
 
-		_, resp, _ := th.Client.UpdateIncomingWebhook(createdHook)
+		_, resp, err := th.Client.UpdateIncomingWebhook(createdHook)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -941,7 +960,8 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, rhook.Token, regenHookToken.Token, "regen didn't work properly")
 
-	_, resp, _ = client.RegenOutgoingHookToken(rhook.Id)
+	_, resp, err = client.RegenOutgoingHookToken(rhook.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
@@ -1046,8 +1066,9 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("UserIsNotAdminOfTeam", func(t *testing.T) {
-		_, rresp, _ := th.Client.UpdateOutgoingWebhook(createdHook)
-		CheckForbiddenStatus(t, rresp)
+		_, resp, err := th.Client.UpdateOutgoingWebhook(createdHook)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamUserRoleId)
@@ -1057,7 +1078,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	createdHook2, _, err = th.SystemAdminClient.CreateOutgoingWebhook(hook2)
 	require.NoError(t, err)
 
-	_, resp, _ = th.Client.UpdateOutgoingWebhook(createdHook2)
+	_, resp, err = th.Client.UpdateOutgoingWebhook(createdHook2)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.RemovePermissionFromRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamUserRoleId)
@@ -1120,7 +1142,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel()
 		createdHook.ChannelId = privateChannel.Id
 
-		_, resp, _ := client.UpdateOutgoingWebhook(createdHook)
+		_, resp, err := client.UpdateOutgoingWebhook(createdHook)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	}, "UpdateToPrivateChannel")
 
@@ -1171,7 +1194,8 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook2 := &model.OutgoingWebhook{Id: rhook.Id, ChannelId: channel.Id}
-	rhook, resp, _ = th.Client.UpdateOutgoingWebhook(hook2)
+	rhook, resp, err = th.Client.UpdateOutgoingWebhook(hook2)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -1219,7 +1243,8 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		require.NoError(t, err)
 
 		th.LoginBasic()
-		_, resp, _ = th.Client.DeleteOutgoingWebhook(rhook.Id)
+		_, resp, err = th.Client.DeleteOutgoingWebhook(rhook.Id)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }

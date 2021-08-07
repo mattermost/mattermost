@@ -166,7 +166,8 @@ func TestSyncLdap(t *testing.T) {
 		require.Equal(t, true, includeRemovedMembers)
 	})
 
-	_, resp, _ := th.Client.SyncLdap(false)
+	_, resp, err := th.Client.SyncLdap(false)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -174,7 +175,8 @@ func TestGetLdapGroups(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp, _ := th.Client.GetLdapGroups()
+	_, resp, err := th.Client.GetLdapGroups()
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -189,7 +191,8 @@ func TestLinkLdapGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp, _ := th.Client.LinkLdapGroup(entryUUID)
+	_, resp, err := th.Client.LinkLdapGroup(entryUUID)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, resp, _ = th.SystemAdminClient.LinkLdapGroup(entryUUID)
@@ -202,7 +205,8 @@ func TestUnlinkLdapGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp, _ := th.Client.UnlinkLdapGroup(entryUUID)
+	_, resp, err := th.Client.UnlinkLdapGroup(entryUUID)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, resp, _ = th.SystemAdminClient.UnlinkLdapGroup(entryUUID)
@@ -213,7 +217,8 @@ func TestMigrateIdLdap(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp, _ := th.Client.MigrateIdLdap("objectGUID")
+	_, resp, err := th.Client.MigrateIdLdap("objectGUID")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {

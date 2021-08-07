@@ -264,14 +264,16 @@ func TestSubmitDialog(t *testing.T) {
 
 	submit.URL = ts.URL
 	submit.ChannelId = model.NewId()
-	submitResp, resp, _ = client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err = client.SubmitInteractiveDialog(submit)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
 	submit.ChannelId = th.BasicChannel.Id
 	submit.TeamId = model.NewId()
-	submitResp, resp, _ = client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err = client.SubmitInteractiveDialog(submit)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
 }

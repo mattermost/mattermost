@@ -975,6 +975,7 @@ func CheckCreatedStatus(t *testing.T, resp *model.Response) {
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusForbidden, true)
+	// Error checked
 }
 
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {

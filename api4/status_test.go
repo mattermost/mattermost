@@ -210,7 +210,8 @@ func TestUpdateUserStatus(t *testing.T) {
 
 	t.Run("set status for other user as regular user", func(t *testing.T) {
 		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
-		_, resp, _ := client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+		_, resp, err := client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 

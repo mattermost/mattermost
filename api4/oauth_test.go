@@ -43,7 +43,8 @@ func TestCreateOAuthApp(t *testing.T) {
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp, _ = client.CreateOAuthApp(oapp)
+	_, resp, err = client.CreateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
@@ -128,7 +129,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	th.LoginBasic2()
 	updatedApp.CreatorId = th.BasicUser2.Id
-	_, resp, _ = client.UpdateOAuthApp(oapp)
+	_, resp, err = client.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
@@ -136,7 +138,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp, _ = client.UpdateOAuthApp(oapp)
+	_, resp, err = client.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	oapp.Id = "zhk9d1ggatrqz236c7h87im7bc"
@@ -241,7 +244,8 @@ func TestGetOAuthApps(t *testing.T) {
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp, _ = client.GetOAuthApps(0, 1000)
+	_, resp, err = client.GetOAuthApps(0, 1000)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -293,13 +297,15 @@ func TestGetOAuthApp(t *testing.T) {
 	_, _, err = client.GetOAuthApp(rapp2.Id)
 	require.NoError(t, err)
 
-	_, resp, _ = client.GetOAuthApp(rapp.Id)
+	_, resp, err = client.GetOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp, _ = client.GetOAuthApp(rapp2.Id)
+	_, resp, err = client.GetOAuthApp(rapp2.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -422,7 +428,8 @@ func TestDeleteOAuthApp(t *testing.T) {
 	rapp2, _, err = client.CreateOAuthApp(oapp)
 	require.NoError(t, err)
 
-	_, resp, _ = client.DeleteOAuthApp(rapp.Id)
+	_, resp, err = client.DeleteOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, _, err = client.DeleteOAuthApp(rapp2.Id)
@@ -431,7 +438,8 @@ func TestDeleteOAuthApp(t *testing.T) {
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp, _ = client.DeleteOAuthApp(rapp.Id)
+	_, resp, err = client.DeleteOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -490,7 +498,8 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	rapp2, _, err = client.CreateOAuthApp(oapp)
 	require.NoError(t, err)
 
-	_, resp, _ = client.RegenerateOAuthAppSecret(rapp.Id)
+	_, resp, err = client.RegenerateOAuthAppSecret(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, _, err = client.RegenerateOAuthAppSecret(rapp2.Id)
@@ -499,7 +508,8 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp, _ = client.RegenerateOAuthAppSecret(rapp.Id)
+	_, resp, err = client.RegenerateOAuthAppSecret(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -557,7 +567,8 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	}
 	require.True(t, found, "missing app")
 
-	_, resp, _ = client.GetAuthorizedOAuthAppsForUser(th.BasicUser2.Id, 0, 1000)
+	_, resp, err = client.GetAuthorizedOAuthAppsForUser(th.BasicUser2.Id, 0, 1000)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, resp, _ = client.GetAuthorizedOAuthAppsForUser("junk", 0, 1000)

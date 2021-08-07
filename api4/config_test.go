@@ -25,7 +25,8 @@ func TestGetConfig(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, _ := client.GetConfig()
+	_, resp, err := client.GetConfig()
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -128,7 +129,8 @@ func TestReloadConfig(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp, _ := client.ReloadConfig()
+		ok, resp, err := client.ReloadConfig()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok, "should not Reload the config due no permission.")
 	})
@@ -142,7 +144,8 @@ func TestReloadConfig(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp, _ := client.ReloadConfig()
+		ok, resp, err := client.ReloadConfig()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok, "should not Reload the config due no permission.")
 	})
@@ -156,7 +159,8 @@ func TestUpdateConfig(t *testing.T) {
 	cfg, _, err := th.SystemAdminClient.GetConfig()
 	require.NoError(t, err)
 
-	_, resp, _ = client.UpdateConfig(cfg)
+	_, resp, err = client.UpdateConfig(cfg)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -254,12 +258,13 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 
 	t.Run("any sysconsole read permission provides config read access", func(t *testing.T) {
 		// forbidden by default
-		_, resp, _ := th.Client.GetConfig()
+		_, resp, err := th.Client.GetConfig()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		// add any sysconsole read permission
 		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SystemUserRoleId)
-		_, _, err := th.Client.GetConfig()
+		_, _, err = th.Client.GetConfig()
 		// should be readable now
 		require.NoError(t, err)
 	})
@@ -276,11 +281,11 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 
 	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
-		cfg, _, err = th.Client.GetConfig()
+		cfg, _, err := th.Client.GetConfig()
 		require.NoError(t, err)
 
-		_, resp, _ = th.Client.UpdateConfig(cfg)
-
+		_, resp, err := th.Client.UpdateConfig(cfg)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -605,12 +610,14 @@ func TestPatchConfig(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("config is missing", func(t *testing.T) {
-		_, response, _ := th.Client.PatchConfig(nil)
+		_, response, err := th.Client.PatchConfig(nil)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
 
 	t.Run("user is not system admin", func(t *testing.T) {
-		_, response, _ := th.Client.PatchConfig(&model.Config{})
+		_, response, err := th.Client.PatchConfig(&model.Config{})
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
 
@@ -717,6 +724,7 @@ func TestPatchConfig(t *testing.T) {
 				CheckOKStatus(t, resp)
 				assert.Equal(t, true, *updatedConfig.PluginSettings.EnableUploads)
 			} else {
+				require.Error(t, err)
 				CheckForbiddenStatus(t, resp)
 			}
 		})
@@ -765,7 +773,8 @@ func TestMigrateConfig(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("user is not system admin", func(t *testing.T) {
-		_, response, _ := th.Client.MigrateConfig("from", "to")
+		_, response, err := th.Client.MigrateConfig("from", "to")
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
 

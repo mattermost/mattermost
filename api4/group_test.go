@@ -703,7 +703,8 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 
-	_, _, response, _ := th.Client.GetGroupsByChannel(privateChannel.Id, opts)
+	_, _, response, err := th.Client.GetGroupsByChannel(privateChannel.Id, opts)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -1027,7 +1028,8 @@ func TestGetGroupsByUserId(t *testing.T) {
 	// test permissions
 	th.Client.Logout()
 	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	_, response, _ = th.Client.GetGroupsByUserId(user1.Id)
+	_, response, err = th.Client.GetGroupsByUserId(user1.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
 	th.Client.Logout()
@@ -1064,7 +1066,8 @@ func TestGetGroupStats(t *testing.T) {
 
 	t.Run("Requires manage system permission to access group stats", func(t *testing.T) {
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-		_, response, _ = th.Client.GetGroupStats(group.Id)
+		_, response, err = th.Client.GetGroupStats(group.Id)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
 

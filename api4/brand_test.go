@@ -36,13 +36,15 @@ func TestUploadBrandImage(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	_, resp, _ := client.UploadBrandImage(data)
+	_, resp, err := client.UploadBrandImage(data)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetProfileImage when request is terminated early by server
 	client.Logout()
-	_, resp, _ = client.UploadBrandImage(data)
+	_, resp, err = client.UploadBrandImage(data)
+	require.Error(t, err)
 	if resp.StatusCode == http.StatusForbidden {
 		CheckForbiddenStatus(t, resp)
 	} else if resp.StatusCode == http.StatusUnauthorized {
@@ -67,7 +69,8 @@ func TestDeleteBrandImage(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	resp, _ = th.Client.DeleteBrandImage()
+	resp, err = th.Client.DeleteBrandImage()
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()

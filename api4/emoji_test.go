@@ -165,7 +165,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	_, resp, _ = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	_, resp, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// try to create an emoji without permissions
@@ -176,7 +177,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	_, resp, _ = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	_, resp, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// create an emoji with permissions in one team
@@ -281,14 +283,14 @@ func TestDeleteEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
-	ok, _, err = client.DeleteEmoji(newEmoji.Id)
+	ok, _, err := client.DeleteEmoji(newEmoji.Id)
 	require.NoError(t, err)
 	require.True(t, ok, "delete did not return OK")
 
-	_, _, err := client.GetEmoji(newEmoji.Id)
+	_, _, err = client.GetEmoji(newEmoji.Id)
 	require.Error(t, err, "expected error fetching deleted emoji")
 
 	//Admin can delete other users emoji
@@ -319,7 +321,8 @@ func TestDeleteEmoji(t *testing.T) {
 	require.NoError(t, err)
 
 	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
-	_, resp, _ = client.DeleteEmoji(newEmoji.Id)
+	_, resp, err = client.DeleteEmoji(newEmoji.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 
@@ -338,7 +341,8 @@ func TestDeleteEmoji(t *testing.T) {
 	client.Logout()
 	th.LoginBasic2()
 
-	_, resp, _ = client.DeleteEmoji(newEmoji.Id)
+	_, resp, err = client.DeleteEmoji(newEmoji.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.RemovePermissionFromRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
@@ -359,7 +363,8 @@ func TestDeleteEmoji(t *testing.T) {
 	client.Logout()
 	th.LoginBasic2()
 
-	_, resp, _ = client.DeleteEmoji(newEmoji.Id)
+	_, resp, err = client.DeleteEmoji(newEmoji.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()

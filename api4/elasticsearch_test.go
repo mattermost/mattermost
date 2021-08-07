@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestElasticsearchTest(t *testing.T) {
@@ -14,7 +15,8 @@ func TestElasticsearchTest(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, _ := th.Client.TestElasticsearch()
+		_, resp, err := th.Client.TestElasticsearch()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -26,7 +28,8 @@ func TestElasticsearchTest(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, _ := th.SystemAdminClient.TestElasticsearch()
+		_, resp, err := th.SystemAdminClient.TestElasticsearch()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }
@@ -36,7 +39,8 @@ func TestElasticsearchPurgeIndexes(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, _ := th.Client.PurgeElasticsearchIndexes()
+		_, resp, err := th.Client.PurgeElasticsearchIndexes()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -48,7 +52,8 @@ func TestElasticsearchPurgeIndexes(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, _ := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		_, resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }

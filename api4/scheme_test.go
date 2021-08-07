@@ -135,7 +135,8 @@ func TestCreateScheme(t *testing.T) {
 		Description: model.NewId(),
 		Scope:       model.SchemeScopeTeam,
 	}
-	_, r5, _ := th.Client.CreateScheme(scheme5)
+	_, r5, err := th.Client.CreateScheme(scheme5)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, r5)
 
 	// Try and create a scheme without a license.
@@ -217,7 +218,8 @@ func TestGetScheme(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetScheme(s1.Id)
 	require.NoError(t, r6)
 
-	_, r7, _ := th.Client.GetScheme(s1.Id)
+	_, r7, err := th.Client.GetScheme(s1.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, r7)
 
 	th.App.SetPhase2PermissionsMigrationStatus(false)
@@ -280,7 +282,8 @@ func TestGetSchemes(t *testing.T) {
 	CheckUnauthorizedStatus(t, r7)
 
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	_, r8, _ := th.Client.GetSchemes("", 0, 100)
+	_, r8, err := th.Client.GetSchemes("", 0, 100)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, r8)
 
 	th.App.SetPhase2PermissionsMigrationStatus(false)
@@ -360,7 +363,8 @@ func TestGetTeamsForScheme(t *testing.T) {
 	CheckUnauthorizedStatus(t, ri3)
 
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	_, ri4, _ := th.Client.GetTeamsForScheme(model.NewId(), 0, 100)
+	_, ri4, err := th.Client.GetTeamsForScheme(model.NewId(), 0, 100)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, ri4)
 
 	scheme2 := &model.Scheme{
@@ -454,7 +458,8 @@ func TestGetChannelsForScheme(t *testing.T) {
 	CheckUnauthorizedStatus(t, ri3)
 
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	_, ri4, _ := th.Client.GetChannelsForScheme(model.NewId(), 0, 100)
+	_, ri4, err := th.Client.GetChannelsForScheme(model.NewId(), 0, 100)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, ri4)
 
 	scheme2 := &model.Scheme{
@@ -491,7 +496,7 @@ func TestPatchScheme(t *testing.T) {
 		Scope:       model.SchemeScopeTeam,
 	}
 
-	s1, _, err = th.SystemAdminClient.CreateScheme(scheme1)
+	s1, _, err := th.SystemAdminClient.CreateScheme(scheme1)
 	require.NoError(t, err)
 
 	assert.Equal(t, s1.DisplayName, scheme1.DisplayName)
@@ -508,7 +513,7 @@ func TestPatchScheme(t *testing.T) {
 	assert.NotZero(t, len(s1.DefaultChannelUserRole))
 	assert.NotZero(t, len(s1.DefaultChannelGuestRole))
 
-	s2, _, err = th.SystemAdminClient.GetScheme(s1.Id)
+	s2, _, err := th.SystemAdminClient.GetScheme(s1.Id)
 	require.NoError(t, r2)
 
 	assert.Equal(t, s1, s2)
@@ -523,14 +528,14 @@ func TestPatchScheme(t *testing.T) {
 	*schemePatch.Name = model.NewId()
 	*schemePatch.Description = model.NewId()
 
-	s3, _, err = th.SystemAdminClient.PatchScheme(s2.Id, schemePatch)
+	s3, _, err := th.SystemAdminClient.PatchScheme(s2.Id, schemePatch)
 	require.NoError(t, err)
 	assert.Equal(t, s3.Id, s2.Id)
 	assert.Equal(t, s3.DisplayName, *schemePatch.DisplayName)
 	assert.Equal(t, s3.Name, *schemePatch.Name)
 	assert.Equal(t, s3.Description, *schemePatch.Description)
 
-	s4, _, err = th.SystemAdminClient.GetScheme(s3.Id)
+	s4, _, err := th.SystemAdminClient.GetScheme(s3.Id)
 	require.NoError(t, err)
 	assert.Equal(t, s3, s4)
 
@@ -539,14 +544,14 @@ func TestPatchScheme(t *testing.T) {
 	*schemePatch.DisplayName = model.NewId()
 	schemePatch.Description = nil
 
-	s5, _, err = th.SystemAdminClient.PatchScheme(s4.Id, schemePatch)
+	s5, _, err := th.SystemAdminClient.PatchScheme(s4.Id, schemePatch)
 	require.NoError(t, err)
 	assert.Equal(t, s5.Id, s4.Id)
 	assert.Equal(t, s5.DisplayName, *schemePatch.DisplayName)
 	assert.Equal(t, s5.Name, *schemePatch.Name)
 	assert.Equal(t, s5.Description, s4.Description)
 
-	s6, _, err = th.SystemAdminClient.GetScheme(s5.Id)
+	s6, _, err := th.SystemAdminClient.GetScheme(s5.Id)
 	require.NoError(t, err)
 	assert.Equal(t, s5, s6)
 
@@ -565,7 +570,8 @@ func TestPatchScheme(t *testing.T) {
 	CheckBadRequestStatus(t, r9)
 
 	// Test without required permissions.
-	_, r10, _ := th.Client.PatchScheme(s6.Id, schemePatch)
+	_, r10, err := th.Client.PatchScheme(s6.Id, schemePatch)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, r10)
 
 	// Test without license.
@@ -748,7 +754,8 @@ func TestDeleteScheme(t *testing.T) {
 		CheckBadRequestStatus(t, r3)
 
 		// Test without required permissions.
-		_, r4, _ := th.Client.DeleteScheme(s1.Id)
+		_, r4, err := th.Client.DeleteScheme(s1.Id)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, r4)
 
 		// Test without license.

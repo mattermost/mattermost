@@ -80,7 +80,8 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("react-to-not-existing-post-id", func(t *testing.T) {
 		reaction.PostId = GenerateTestId()
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -95,7 +96,8 @@ func TestSaveReaction(t *testing.T) {
 		reaction.PostId = postId
 		reaction.UserId = GenerateTestId()
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -127,7 +129,8 @@ func TestSaveReaction(t *testing.T) {
 		client.Logout()
 		client.Login(otherUser.Email, otherUser.Password)
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -138,7 +141,8 @@ func TestSaveReaction(t *testing.T) {
 	})
 
 	t.Run("react-as-other-user-being-system-admin", func(t *testing.T) {
-		_, resp, _ := th.SystemAdminClient.SaveReaction(reaction)
+		_, resp, err := th.SystemAdminClient.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -146,7 +150,8 @@ func TestSaveReaction(t *testing.T) {
 		th.LoginBasic()
 
 		th.RemovePermissionFromRole(model.PermissionAddReaction.Id, model.ChannelUserRoleId)
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err := th.App.GetReactionsForPost(postId)
@@ -171,7 +176,8 @@ func TestSaveReaction(t *testing.T) {
 			EmojiName: "smile",
 		}
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err := th.App.GetReactionsForPost(post.Id)
@@ -197,7 +203,8 @@ func TestSaveReaction(t *testing.T) {
 		err := th.App.DeleteChannel(th.Context, channel, userId)
 		assert.Nil(t, err)
 
-		_, resp, _ := client.SaveReaction(reaction)
+		_, resp, err := client.SaveReaction(reaction)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err := th.App.GetReactionsForPost(post.Id)
@@ -268,7 +275,8 @@ func TestGetReactions(t *testing.T) {
 	})
 
 	t.Run("get-reactions-of-not-existing-post-id", func(t *testing.T) {
-		_, resp, _ := client.GetReactions(GenerateTestId())
+		_, resp, err := client.GetReactions(GenerateTestId())
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -379,7 +387,8 @@ func TestDeleteReaction(t *testing.T) {
 
 		th.LoginBasic()
 
-		ok, resp, _ := client.DeleteReaction(r4)
+		ok, resp, err := client.DeleteReaction(r4)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		require.False(t, ok, "should have returned false")
@@ -391,7 +400,8 @@ func TestDeleteReaction(t *testing.T) {
 
 	t.Run("delete-reaction-from-not-existing-post-id", func(t *testing.T) {
 		r1.PostId = GenerateTestId()
-		_, resp, _ := client.DeleteReaction(r1)
+		_, resp, err := client.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -406,7 +416,8 @@ func TestDeleteReaction(t *testing.T) {
 		r1.PostId = postId
 		r1.UserId = GenerateTestId()
 
-		_, resp, _ := client.DeleteReaction(r1)
+		_, resp, err := client.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -458,7 +469,8 @@ func TestDeleteReaction(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
 		th.App.SaveReactionForPost(th.Context, r1)
 
-		_, resp, _ := client.DeleteReaction(r1)
+		_, resp, err := client.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err := th.App.GetReactionsForPost(postId)
@@ -471,7 +483,8 @@ func TestDeleteReaction(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
 		th.App.SaveReactionForPost(th.Context, r1)
 
-		_, resp, _ := th.SystemAdminClient.DeleteReaction(r1)
+		_, resp, err := th.SystemAdminClient.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err := th.App.GetReactionsForPost(postId)
@@ -504,7 +517,8 @@ func TestDeleteReaction(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
-		_, resp, _ = th.SystemAdminClient.DeleteReaction(r1)
+		_, resp, err = th.SystemAdminClient.DeleteReaction(r1)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err = th.App.GetReactionsForPost(postId)
@@ -537,7 +551,8 @@ func TestDeleteReaction(t *testing.T) {
 		err = th.App.DeleteChannel(th.Context, channel, userId)
 		assert.Nil(t, err)
 
-		_, resp, _ = client.SaveReaction(r1)
+		_, resp, err = client.SaveReaction(r1)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		reactions, err = th.App.GetReactionsForPost(post.Id)

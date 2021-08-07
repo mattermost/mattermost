@@ -240,7 +240,8 @@ func TestPatchRole(t *testing.T) {
 	_, resp, _ := th.Client.PatchRole(model.NewId(), patch)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = th.Client.PatchRole(role.Id, patch)
+	_, resp, err = th.Client.PatchRole(role.Id, patch)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	patch = &model.RolePatch{

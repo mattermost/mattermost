@@ -15,7 +15,8 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, _ := th.Client.PurgeBleveIndexes()
+		_, resp, err := th.Client.PurgeBleveIndexes()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -36,7 +37,8 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, _ := th.SystemAdminClient.PurgeBleveIndexes()
+		_, resp, err := th.SystemAdminClient.PurgeBleveIndexes()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }

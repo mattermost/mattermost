@@ -831,7 +831,8 @@ func TestGetFileThumbnail(t *testing.T) {
 
 	otherUser := th.CreateUser()
 	client.Login(otherUser.Email, otherUser.Password)
-	_, resp, _ = client.GetFileThumbnail(fileId)
+	_, resp, err = client.GetFileThumbnail(fileId)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -888,7 +889,8 @@ func TestGetFileLink(t *testing.T) {
 
 	otherUser := th.CreateUser()
 	client.Login(otherUser.Email, otherUser.Password)
-	_, resp, _ = client.GetFileLink(fileId)
+	_, resp, err = client.GetFileLink(fileId)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -933,7 +935,8 @@ func TestGetFilePreview(t *testing.T) {
 
 	otherUser := th.CreateUser()
 	client.Login(otherUser.Email, otherUser.Password)
-	_, resp, _ = client.GetFilePreview(fileId)
+	_, resp, err = client.GetFilePreview(fileId)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -983,7 +986,8 @@ func TestGetFileInfo(t *testing.T) {
 
 	otherUser := th.CreateUser()
 	client.Login(otherUser.Email, otherUser.Password)
-	_, resp, _ = client.GetFileInfo(fileId)
+	_, resp, err = client.GetFileInfo(fileId)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -1186,7 +1190,8 @@ func TestSearchFiles(t *testing.T) {
 	_, resp, _ = client.SearchFiles("junk", "#sgtitlereview", false)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.SearchFiles(model.NewId(), "#sgtitlereview", false)
+	_, resp, err = client.SearchFiles(model.NewId(), "#sgtitlereview", false)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, resp, _ = client.SearchFiles(th.BasicTeam.Id, "", false)

@@ -37,7 +37,8 @@ func TestCreateCommand(t *testing.T) {
 		Method:    model.CommandMethodPost,
 		Trigger:   "trigger"}
 
-	_, resp, _ := client.CreateCommand(newCmd)
+	_, resp, err := client.CreateCommand(newCmd)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	createdCmd, resp, err := th.SystemAdminClient.CreateCommand(newCmd)
@@ -313,7 +314,8 @@ func TestListCommands(t *testing.T) {
 	}, "ListCustomOnlyCommands")
 
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
-		_, resp, _ := client.ListCommands(th.BasicTeam.Id, true)
+		_, resp, err := client.ListCommands(th.BasicTeam.Id, true)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -340,9 +342,11 @@ func TestListCommands(t *testing.T) {
 		user := th.CreateUser()
 		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
 		client.Login(user.Email, user.Password)
-		_, resp, _ := client.ListCommands(th.BasicTeam.Id, false)
+		_, resp, err := client.ListCommands(th.BasicTeam.Id, false)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		_, resp, _ = client.ListCommands(th.BasicTeam.Id, true)
+		_, resp, err = client.ListCommands(th.BasicTeam.Id, true)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -411,7 +415,8 @@ func TestListAutocompleteCommands(t *testing.T) {
 		user := th.CreateUser()
 		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
 		client.Login(user.Email, user.Password)
-		_, resp, _ := client.ListAutocompleteCommands(th.BasicTeam.Id)
+		_, resp, err := client.ListAutocompleteCommands(th.BasicTeam.Id)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -501,7 +506,8 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 		user := th.CreateUser()
 		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
 		client.Login(user.Email, user.Password)
-		_, resp, _ := client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		_, resp, err := client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -654,7 +660,8 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	otherUser := th.CreateUser()
 	client.Login(otherUser.Email, otherUser.Password)
 
-	_, resp, _ = client.ExecuteCommand(channel.Id, "/getcommand")
+	_, resp, err = client.ExecuteCommand(channel.Id, "/getcommand")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -891,7 +898,8 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	require.True(t, success, "Failed to remove user from channel")
 
 	// we should not be able to run the slash command in channel2, because we aren't in it
-	_, resp, _ := client.ExecuteCommandWithTeam(channel2.Id, team2.Id, "/postcommand")
+	_, resp, err := client.ExecuteCommandWithTeam(channel2.Id, team2.Id, "/postcommand")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -1023,11 +1031,13 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	success, _, _ := th.Client.RemoveTeamMember(team2.Id, th.BasicUser.Id)
 	require.True(t, success, "Failed to remove user from team")
 
-	_, resp, _ = client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")
+	_, resp, err = client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// if we omit the team id from the request, the slash command will fail because this is a DM channel, and the
 	// team id can't be inherited from the channel
-	_, resp, _ = client.ExecuteCommand(dmChannel.Id, "/postcommand")
+	_, resp, err = client.ExecuteCommand(dmChannel.Id, "/postcommand")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }

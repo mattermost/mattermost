@@ -1330,7 +1330,8 @@ func TestSetBotIconImage(t *testing.T) {
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetBotIconImage when request is terminated early by server
 	th.Client.Logout()
-	_, resp, _ = th.Client.SetBotIconImage(bot.UserId, badData)
+	_, resp, err = th.Client.SetBotIconImage(bot.UserId, badData)
+	require.Error(t, err)
 	if resp.StatusCode == http.StatusForbidden {
 		CheckForbiddenStatus(t, resp)
 	} else if resp.StatusCode == http.StatusUnauthorized {
@@ -1503,7 +1504,8 @@ func TestConvertBotToUser(t *testing.T) {
 	_, resp, _ = th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
 	CheckBadRequestStatus(t, resp)
 
-	user, resp, _ := th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+	user, resp, err := th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	require.Nil(t, user)
 

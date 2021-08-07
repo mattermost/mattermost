@@ -103,7 +103,8 @@ func TestPlugin(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
-		_, resp, _ = th.Client.InstallPluginFromUrl(url, false)
+		_, resp, err = th.Client.InstallPluginFromUrl(url, false)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		_, resp, _ = client.InstallPluginFromUrl("http://nodata", false)
@@ -150,7 +151,8 @@ func TestPlugin(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-		_, resp, _ = th.Client.UploadPlugin(bytes.NewReader(tarData))
+		_, resp, err = th.Client.UploadPlugin(bytes.NewReader(tarData))
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		// Successful gets
@@ -229,7 +231,8 @@ func TestPlugin(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-		_, resp, _ = th.Client.GetPlugins()
+		_, resp, err = th.Client.GetPlugins()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		// Successful webapp get
@@ -263,7 +266,8 @@ func TestPlugin(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-		_, resp, _ = th.Client.RemovePlugin(manifest.Id)
+		_, resp, err = th.Client.RemovePlugin(manifest.Id)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		_, resp, _ = client.RemovePlugin("bad.id")
@@ -508,7 +512,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp, _ := th.Client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		plugins, resp, err := th.Client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.Nil(t, plugins)
 	})
@@ -1347,7 +1352,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugin, resp, _ := th.Client.InstallMarketplacePlugin(request)
+		plugin, resp, err := th.Client.InstallMarketplacePlugin(request)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.Nil(t, plugin)
 	})

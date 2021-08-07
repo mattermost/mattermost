@@ -193,11 +193,13 @@ func TestCreatePost(t *testing.T) {
 	post.RootId = ""
 	post.ParentId = ""
 	post.ChannelId = "junk"
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	post.ChannelId = model.NewId()
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	r, err := client.DoApiPost("/posts", "garbage")
@@ -240,7 +242,8 @@ func TestCreatePostEphemeral(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	client = th.Client
-	_, resp, _ = client.CreatePostEphemeral(ephemeralPost)
+	_, resp, err = client.CreatePostEphemeral(ephemeralPost)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -444,7 +447,8 @@ func TestCreatePostPublic(t *testing.T) {
 
 	client.Login(user.Email, user.Password)
 
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
@@ -456,7 +460,8 @@ func TestCreatePostPublic(t *testing.T) {
 	require.NoError(t, err)
 
 	post.ChannelId = th.BasicPrivateChannel.Id
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
@@ -467,7 +472,8 @@ func TestCreatePostPublic(t *testing.T) {
 	client.Login(user.Email, user.Password)
 
 	post.ChannelId = th.BasicPrivateChannel.Id
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	post.ChannelId = th.BasicChannel.Id
@@ -491,7 +497,8 @@ func TestCreatePostAll(t *testing.T) {
 
 	client.Login(user.Email, user.Password)
 
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
@@ -526,7 +533,8 @@ func TestCreatePostAll(t *testing.T) {
 	require.NoError(t, err)
 
 	post.ChannelId = directChannel.Id
-	_, resp, _ = client.CreatePost(post)
+	_, resp, err = client.CreatePost(post)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -794,7 +802,8 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("different user", func(t *testing.T) {
 		th.LoginBasic2()
-		_, resp, _ := client.UpdatePost(rpost.Id, rpost)
+		_, resp, err := client.UpdatePost(rpost.Id, rpost)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		client.Logout()
@@ -802,7 +811,8 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("different user, but team admin", func(t *testing.T) {
 		th.LoginTeamAdmin()
-		_, resp, _ := client.UpdatePost(rpost.Id, rpost)
+		_, resp, err := client.UpdatePost(rpost.Id, rpost)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		client.Logout()
@@ -916,7 +926,8 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("unknown post", func(t *testing.T) {
 		patch := &model.PostPatch{}
-		_, resp, _ := client.PatchPost(GenerateTestId(), patch)
+		_, resp, err := client.PatchPost(GenerateTestId(), patch)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -930,14 +941,16 @@ func TestPatchPost(t *testing.T) {
 	t.Run("different user", func(t *testing.T) {
 		th.LoginBasic2()
 		patch := &model.PostPatch{}
-		_, resp, _ := client.PatchPost(post.Id, patch)
+		_, resp, err := client.PatchPost(post.Id, patch)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("different user, but team admin", func(t *testing.T) {
 		th.LoginTeamAdmin()
 		patch := &model.PostPatch{}
-		_, resp, _ := client.PatchPost(post.Id, patch)
+		_, resp, err := client.PatchPost(post.Id, patch)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -950,7 +963,8 @@ func TestPatchPost(t *testing.T) {
 	t.Run("edit others posts permission can function independently of edit own post", func(t *testing.T) {
 		th.LoginBasic2()
 		patch := &model.PostPatch{}
-		_, resp, _ := client.PatchPost(post.Id, patch)
+		_, resp, err := client.PatchPost(post.Id, patch)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		// Add permission to edit others'
@@ -981,7 +995,8 @@ func TestPinPost(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	require.False(t, pass, "should have failed")
 
-	_, resp, _ = client.PinPost(GenerateTestId())
+	_, resp, err = client.PinPost(GenerateTestId())
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
@@ -996,7 +1011,8 @@ func TestPinPost(t *testing.T) {
 		assert.Nil(t, err)
 		adminPost := th.CreatePostWithClient(th.SystemAdminClient, channel)
 
-		_, resp, _ = client.PinPost(adminPost.Id)
+		_, resp, err = client.PinPost(adminPost.Id)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -1026,7 +1042,8 @@ func TestUnpinPost(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	require.False(t, pass, "should have failed")
 
-	_, resp, _ = client.UnpinPost(GenerateTestId())
+	_, resp, err = client.UnpinPost(GenerateTestId())
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -1114,7 +1131,8 @@ func TestGetPostsForChannel(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	_, resp, _ := client.GetPostsForChannel(model.NewId(), 0, 60, "", false)
+	_, resp, err := client.GetPostsForChannel(model.NewId(), 0, 60, "", false)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -1297,7 +1315,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	post5 := th.CreatePostWithClient(th.SystemAdminClient, channel4)
 
 	preference.Name = post5.Id
-	_, resp, _ = client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, resp, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	rpl, _, err = client.GetFlaggedPostsForUser(user.Id, 0, 10)
@@ -1337,7 +1356,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	_, resp, _ = client.GetFlaggedPostsForUser("junk", 0, 10)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetFlaggedPostsForUser(GenerateTestId(), 0, 10)
+	_, resp, err = client.GetFlaggedPostsForUser(GenerateTestId(), 0, 10)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -1943,7 +1963,8 @@ func TestGetPost(t *testing.T) {
 	client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 
 	// Channel is private, should not be able to read post
-	_, resp, _ := client.GetPost(privatePost.Id, "")
+	_, resp, err := client.GetPost(privatePost.Id, "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// But local client should.
@@ -1971,7 +1992,8 @@ func TestDeletePost(t *testing.T) {
 	_, resp, _ = client.DeletePost("junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.DeletePost(th.BasicPost.Id)
+	_, resp, err = client.DeletePost(th.BasicPost.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
@@ -1984,7 +2006,8 @@ func TestDeletePost(t *testing.T) {
 	client.Logout()
 	client.Login(user.Email, user.Password)
 
-	_, resp, _ = client.DeletePost(post.Id)
+	_, resp, err = client.DeletePost(post.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -2088,7 +2111,8 @@ func TestGetPostThread(t *testing.T) {
 	client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 
 	// Channel is private, should not be able to read post
-	_, resp, _ = client.GetPostThread(privatePost.Id, "", false)
+	_, resp, err = client.GetPostThread(privatePost.Id, "", false)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -2217,7 +2241,8 @@ func TestSearchPosts(t *testing.T) {
 	_, resp, _ = client.SearchPosts("junk", "#sgtitlereview", false)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.SearchPosts(model.NewId(), "#sgtitlereview", false)
+	_, resp, err = client.SearchPosts(model.NewId(), "#sgtitlereview", false)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, resp, _ = client.SearchPosts(th.BasicTeam.Id, "", false)
@@ -2455,7 +2480,8 @@ func TestGetFileInfosForPost(t *testing.T) {
 	_, resp, _ = client.GetFileInfosForPost("junk", "")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetFileInfosForPost(model.NewId(), "")
+	_, resp, err = client.GetFileInfosForPost(model.NewId(), "")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()

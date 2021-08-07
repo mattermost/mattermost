@@ -65,7 +65,8 @@ func TestGetPreferences(t *testing.T) {
 
 	require.Greater(t, len(prefs), 0, "received the wrong number of preferences")
 
-	_, resp, _ = client.GetPreferences(th.BasicUser.Id)
+	_, resp, err = client.GetPreferences(th.BasicUser.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -115,7 +116,8 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	_, resp, _ = client.GetPreferencesByCategory(th.BasicUser2.Id, category)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, _ = client.GetPreferencesByCategory(user1.Id, category)
+	_, resp, err = client.GetPreferencesByCategory(user1.Id, category)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	prefs, resp, _ = client.GetPreferencesByCategory(th.BasicUser2.Id, "junk")
@@ -171,7 +173,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, resp, _ = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, "junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.GetPreferenceByCategoryAndName(th.BasicUser2.Id, preferences[0].Category, "junk")
+	_, resp, err = client.GetPreferenceByCategoryAndName(th.BasicUser2.Id, preferences[0].Category, "junk")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, _, err = client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, preferences[0].Name)
@@ -221,7 +224,8 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, resp, _ = client.UpdatePreferences(user1.Id, &preferences)
+	_, resp, err = client.UpdatePreferences(user1.Id, &preferences)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	preferences = model.Preferences{
@@ -234,7 +238,8 @@ func TestUpdatePreferences(t *testing.T) {
 	_, resp, _ = client.UpdatePreferences(user1.Id, &preferences)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, _ = client.UpdatePreferences(th.BasicUser2.Id, &preferences)
+	_, resp, err = client.UpdatePreferences(th.BasicUser2.Id, &preferences)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
@@ -551,7 +556,8 @@ func TestDeletePreferences(t *testing.T) {
 	// delete 10 preferences
 	th.LoginBasic2()
 
-	_, resp, _ := client.DeletePreferences(th.BasicUser2.Id, &preferences)
+	_, resp, err := client.DeletePreferences(th.BasicUser2.Id, &preferences)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
@@ -559,7 +565,8 @@ func TestDeletePreferences(t *testing.T) {
 	_, _, err = client.DeletePreferences(th.BasicUser.Id, &preferences)
 	require.NoError(t, err)
 
-	_, resp, _ = client.DeletePreferences(th.BasicUser2.Id, &preferences)
+	_, resp, err = client.DeletePreferences(th.BasicUser2.Id, &preferences)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	prefs, _, _ = client.GetPreferences(th.BasicUser.Id)

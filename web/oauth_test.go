@@ -107,7 +107,8 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 
 	oldToken := ApiClient.AuthToken
 	ApiClient.AuthToken = values.Get("access_token")
-	_, resp, _ := ApiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err := ApiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	ApiClient.AuthToken = oldToken
