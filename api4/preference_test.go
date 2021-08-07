@@ -46,7 +46,7 @@ func TestGetPreferences(t *testing.T) {
 
 	client.UpdatePreferences(user1.Id, &preferences1)
 
-	prefs, _, err = client.GetPreferences(user1.Id)
+	prefs, _, err := client.GetPreferences(user1.Id)
 	require.NoError(t, err)
 
 	// 5 because we have 2 initial preferences tutorial_step and recommended_next_steps added when creating a new user
@@ -65,7 +65,7 @@ func TestGetPreferences(t *testing.T) {
 
 	require.Greater(t, len(prefs), 0, "received the wrong number of preferences")
 
-	_, resp, err = client.GetPreferences(th.BasicUser.Id)
+	_, resp, err := client.GetPreferences(th.BasicUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -104,12 +104,12 @@ func TestGetPreferencesByCategory(t *testing.T) {
 
 	client.UpdatePreferences(user1.Id, &preferences1)
 
-	prefs, _, err = client.GetPreferencesByCategory(user1.Id, category)
+	prefs, _, err := client.GetPreferencesByCategory(user1.Id, category)
 	require.NoError(t, err)
 
 	require.Equal(t, len(prefs), 2, "received the wrong number of preferences")
 
-	_, resp, err = client.GetPreferencesByCategory(user1.Id, "junk")
+	_, resp, err := client.GetPreferencesByCategory(user1.Id, "junk")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -162,7 +162,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 
 	client.UpdatePreferences(user.Id, &preferences)
 
-	pref, _, err = client.GetPreferenceByCategoryAndName(user.Id, model.PreferenceCategoryDirectChannelShow, name)
+	pref, _, err := client.GetPreferenceByCategoryAndName(user.Id, model.PreferenceCategoryDirectChannelShow, name)
 	require.NoError(t, err)
 
 	require.Equal(t, preferences[0].UserId, pref.UserId, "UserId preference not saved")
@@ -172,7 +172,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	preferences[0].Value = model.NewId()
 	client.UpdatePreferences(user.Id, &preferences)
 
-	_, resp, err = client.GetPreferenceByCategoryAndName(user.Id, "junk", preferences[0].Name)
+	_, resp, err := client.GetPreferenceByCategoryAndName(user.Id, "junk", preferences[0].Name)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -221,7 +221,7 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, _, err = client.UpdatePreferences(user1.Id, &preferences1)
+	_, _, err := client.UpdatePreferences(user1.Id, &preferences1)
 	require.NoError(t, err)
 
 	preferences := model.Preferences{
@@ -232,7 +232,7 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, resp, err = client.UpdatePreferences(user1.Id, &preferences)
+	_, resp, err := client.UpdatePreferences(user1.Id, &preferences)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -261,8 +261,8 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	WebSocketClient, appErr := th.CreateWebSocketClient()
+	require.Nil(t, appErr)
 
 	WebSocketClient.Listen()
 	time.Sleep(300 * time.Millisecond)
@@ -283,7 +283,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 		},
 	}
 
-	_, _, err = th.Client.UpdatePreferences(userId, preferences)
+	_, _, err := th.Client.UpdatePreferences(userId, preferences)
 	require.NoError(t, err)
 
 	timeout := time.After(300 * time.Millisecond)
@@ -605,11 +605,11 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 			Name:     model.NewId(),
 		},
 	}
-	_, _, err = th.Client.UpdatePreferences(userId, preferences)
+	_, _, err := th.Client.UpdatePreferences(userId, preferences)
 	require.NoError(t, err)
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	WebSocketClient, appErr := th.CreateWebSocketClient()
+	require.Nil(t, appErr)
 
 	WebSocketClient.Listen()
 	wsResp := <-WebSocketClient.ResponseChannel

@@ -110,7 +110,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		user, _, err = client.CreateUser(user)
 		if err != nil {
 			var appErr *model.AppError
-			ok := errors.As(err, &appErr)
+			ok = errors.As(err, &appErr)
 			if ok {
 				c.Err = appErr
 			} else {
@@ -129,7 +129,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		_, _, err = client.LoginById(user.Id, slashcommands.UserPassword)
 		if err != nil {
 			var appErr *model.AppError
-			ok := errors.As(err, &appErr)
+			ok = errors.As(err, &appErr)
 			if ok {
 				c.Err = appErr
 			} else {

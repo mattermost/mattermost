@@ -128,7 +128,7 @@ func TestUpdateCommand(t *testing.T) {
 
 		cmd2.Id = GenerateTestId()
 
-		rcmd, resp, err = client.UpdateCommand(cmd2)
+		rcmd, resp, err := client.UpdateCommand(cmd2)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
@@ -190,7 +190,7 @@ func TestMoveCommand(t *testing.T) {
 		require.NotNil(t, rcmd1)
 		require.Equal(t, newTeam.Id, rcmd1.TeamId)
 
-		ok, resp, err = client.MoveCommand(newTeam.Id, "bogus")
+		ok, resp, err := client.MoveCommand(newTeam.Id, "bogus")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
@@ -242,8 +242,8 @@ func TestDeleteCommand(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		cmd1.Id = ""
-		rcmd1, appError := th.App.CreateCommand(cmd1)
-		require.Nil(t, appError)
+		rcmd1, appErr := th.App.CreateCommand(cmd1)
+		require.Nil(t, appErr)
 		ok, _, err := client.DeleteCommand(rcmd1.Id)
 		require.NoError(t, err)
 
@@ -252,7 +252,7 @@ func TestDeleteCommand(t *testing.T) {
 		rcmd1, _ = th.App.GetCommand(rcmd1.Id)
 		require.Nil(t, rcmd1)
 
-		ok, resp, err = client.DeleteCommand("junk")
+		ok, resp, err := client.DeleteCommand("junk")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
@@ -666,8 +666,8 @@ func TestExecuteInvalidCommand(t *testing.T) {
 		Trigger:   "getcommand",
 	}
 
-	_, appError := th.App.CreateCommand(getCmd)
-	require.Nil(t, appError, "failed to create get command")
+	_, appErr := th.App.CreateCommand(getCmd)
+	require.Nil(t, appErr, "failed to create get command")
 
 	_, resp, err := client.ExecuteCommand(channel.Id, "")
 	require.Error(t, err)
@@ -698,7 +698,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err := th.SystemAdminClient.ExecuteCommand(channel.Id, "/getcommand")
+	_, _, err = th.SystemAdminClient.ExecuteCommand(channel.Id, "/getcommand")
 	require.NoError(t, err)
 }
 
@@ -753,8 +753,8 @@ func TestExecuteGetCommand(t *testing.T) {
 		Token:     token,
 	}
 
-	_, appError := th.App.CreateCommand(getCmd)
-	require.Nil(t, appError, "failed to create get command")
+	_, appErr := th.App.CreateCommand(getCmd)
+	require.Nil(t, appErr, "failed to create get command")
 
 	commandResponse, _, err := client.ExecuteCommand(channel.Id, "/getcommand")
 	require.NoError(t, err)
@@ -813,8 +813,8 @@ func TestExecutePostCommand(t *testing.T) {
 		Token:     token,
 	}
 
-	_, appError := th.App.CreateCommand(postCmd)
-	require.Nil(t, appError, "failed to create get command")
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create get command")
 
 	commandResponse, _, err := client.ExecuteCommand(channel.Id, "/postcommand")
 	require.NoError(t, err)
@@ -867,8 +867,8 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
-	_, err := th.App.CreateCommand(postCmd)
-	require.Nil(t, err, "failed to create post command")
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
 
 	// the execute command endpoint will always search for the command by trigger and team id, inferring team id from the
 	// channel id, so there is no way to use that slash command on a channel that belongs to some other team
@@ -919,8 +919,8 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
-	_, err := th.App.CreateCommand(postCmd)
-	require.Nil(t, err, "failed to create post command")
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
 
 	// make a channel on that team, ensuring that our test user isn't in it
 	channel2 := th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, team2.Id)
@@ -978,8 +978,8 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
-	_, appError := th.App.CreateCommand(postCmd)
-	require.Nil(t, appError, "failed to create post command")
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
 
 	// make a direct message channel
 	dmChannel, response, err := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
@@ -1045,8 +1045,8 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 		Method:    model.CommandMethodPost,
 		Trigger:   "postcommand",
 	}
-	_, appError := th.App.CreateCommand(postCmd)
-	require.Nil(t, appError, "failed to create post command")
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
 
 	// make a direct message channel
 	dmChannel, response, err := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)

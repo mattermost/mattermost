@@ -30,8 +30,8 @@ func TestCreateScheme(t *testing.T) {
 		Scope:       model.SchemeScopeTeam,
 	}
 
-	s1, _, err = th.SystemAdminClient.CreateScheme(scheme1)
-	require.NoError(t, r1)
+	s1, _, err := th.SystemAdminClient.CreateScheme(scheme1)
+	require.NoError(t, err)
 
 	assert.Equal(t, s1.DisplayName, scheme1.DisplayName)
 	assert.Equal(t, s1.Name, scheme1.Name)
@@ -72,8 +72,8 @@ func TestCreateScheme(t *testing.T) {
 		Scope:       model.SchemeScopeChannel,
 	}
 
-	s2, _, err = th.SystemAdminClient.CreateScheme(scheme2)
-	require.NoError(t, r2)
+	s2, _, err := th.SystemAdminClient.CreateScheme(scheme2)
+	require.NoError(t, err)
 
 	assert.Equal(t, s2.DisplayName, scheme2.DisplayName)
 	assert.Equal(t, s2.Name, scheme2.Name)
@@ -90,7 +90,7 @@ func TestCreateScheme(t *testing.T) {
 	assert.NotZero(t, len(s2.DefaultChannelGuestRole))
 
 	// Check the default roles have been created.
-	_, _, err := th.SystemAdminClient.GetRoleByName(s2.DefaultChannelAdminRole)
+	_, _, err = th.SystemAdminClient.GetRoleByName(s2.DefaultChannelAdminRole)
 	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetRoleByName(s2.DefaultChannelUserRole)
 	require.NoError(t, err)
@@ -181,8 +181,8 @@ func TestGetScheme(t *testing.T) {
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
-	s1, _, err = th.SystemAdminClient.CreateScheme(scheme1)
-	require.NoError(t, r1)
+	s1, _, err := th.SystemAdminClient.CreateScheme(scheme1)
+	require.NoError(t, err)
 
 	assert.Equal(t, s1.DisplayName, scheme1.DisplayName)
 	assert.Equal(t, s1.Name, scheme1.Name)
@@ -198,8 +198,8 @@ func TestGetScheme(t *testing.T) {
 	assert.NotZero(t, len(s1.DefaultChannelUserRole))
 	assert.NotZero(t, len(s1.DefaultChannelGuestRole))
 
-	s2, _, err = th.SystemAdminClient.GetScheme(s1.Id)
-	require.NoError(t, r2)
+	s2, _, err := th.SystemAdminClient.GetScheme(s1.Id)
+	require.NoError(t, err)
 
 	assert.Equal(t, s1, s2)
 
@@ -216,7 +216,7 @@ func TestGetScheme(t *testing.T) {
 	th.SystemAdminClient.Login(th.SystemAdminUser.Username, th.SystemAdminUser.Password)
 	th.App.Srv().SetLicense(nil)
 	_, _, err = th.SystemAdminClient.GetScheme(s1.Id)
-	require.NoError(t, r6)
+	require.NoError(t, err)
 
 	_, r7, err := th.Client.GetScheme(s1.Id)
 	require.Error(t, err)
@@ -250,24 +250,24 @@ func TestGetSchemes(t *testing.T) {
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
-	_, _, err = th.SystemAdminClient.CreateScheme(scheme1)
+	_, _, err := th.SystemAdminClient.CreateScheme(scheme1)
 	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.CreateScheme(scheme2)
 	require.NoError(t, err)
 
-	l3, _, err = th.SystemAdminClient.GetSchemes("", 0, 100)
+	l3, _, err := th.SystemAdminClient.GetSchemes("", 0, 100)
 	require.NoError(t, err)
 
 	assert.NotZero(t, len(l3))
 
-	l4, _, err = th.SystemAdminClient.GetSchemes("team", 0, 100)
+	l4, _, err := th.SystemAdminClient.GetSchemes("team", 0, 100)
 	require.NoError(t, err)
 
 	for _, s := range l4 {
 		assert.Equal(t, "team", s.Scope)
 	}
 
-	l5, _, err = th.SystemAdminClient.GetSchemes("channel", 0, 100)
+	l5, _, err := th.SystemAdminClient.GetSchemes("channel", 0, 100)
 	require.NoError(t, err)
 
 	for _, s := range l5 {
@@ -306,8 +306,8 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Description: model.NewId(),
 		Scope:       model.SchemeScopeTeam,
 	}
-	scheme1, _, err = th.SystemAdminClient.CreateScheme(scheme1)
-	require.NoError(t, r1)
+	scheme1, _, err := th.SystemAdminClient.CreateScheme(scheme1)
+	require.NoError(t, err)
 
 	team1 := &model.Team{
 		Name:        GenerateTestUsername(),
@@ -315,18 +315,18 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	team1, err := th.App.Srv().Store.Team().Save(team1)
+	team1, err = th.App.Srv().Store.Team().Save(team1)
 	require.NoError(t, err)
 
-	l2, _, err = th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
-	require.NoError(t, r2)
+	l2, _, err := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
+	require.NoError(t, err)
 	assert.Zero(t, len(l2))
 
 	team1.SchemeId = &scheme1.Id
 	team1, err = th.App.Srv().Store.Team().Update(team1)
 	assert.NoError(t, err)
 
-	l3, _, err = th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
+	l3, _, err := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	require.NoError(t, err)
 	assert.Len(t, l3, 1)
 	assert.Equal(t, team1.Id, l3[0].Id)
@@ -340,13 +340,13 @@ func TestGetTeamsForScheme(t *testing.T) {
 	team2, err = th.App.Srv().Store.Team().Save(team2)
 	require.NoError(t, err)
 
-	l4, _, err = th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
+	l4, _, err := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	require.NoError(t, err)
 	assert.Len(t, l4, 2)
 	assert.Equal(t, team1.Id, l4[0].Id)
 	assert.Equal(t, team2.Id, l4[1].Id)
 
-	l5, _, err = th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 1, 1)
+	l5, _, err := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 1, 1)
 	require.NoError(t, err)
 	assert.Len(t, l5, 1)
 	assert.Equal(t, team2.Id, l5[0].Id)
@@ -399,7 +399,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Description: model.NewId(),
 		Scope:       model.SchemeScopeChannel,
 	}
-	scheme1, _, err = th.SystemAdminClient.CreateScheme(scheme1)
+	scheme1, _, err := th.SystemAdminClient.CreateScheme(scheme1)
 	require.NoError(t, err)
 
 	channel1 := &model.Channel{
@@ -412,15 +412,15 @@ func TestGetChannelsForScheme(t *testing.T) {
 	channel1, errCh := th.App.Srv().Store.Channel().Save(channel1, 1000000)
 	assert.NoError(t, errCh)
 
-	l2, _, err = th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
+	l2, _, err := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	require.NoError(t, err)
 	assert.Zero(t, len(l2))
 
 	channel1.SchemeId = &scheme1.Id
-	channel1, err := th.App.Srv().Store.Channel().Update(channel1)
+	channel1, err = th.App.Srv().Store.Channel().Update(channel1)
 	assert.NoError(t, err)
 
-	l3, _, err = th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
+	l3, _, err := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	require.NoError(t, err)
 	assert.Len(t, l3, 1)
 	assert.Equal(t, channel1.Id, l3[0].Id)
@@ -432,16 +432,16 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Type:        model.ChannelTypeOpen,
 		SchemeId:    &scheme1.Id,
 	}
-	channel2, nErr := th.App.Srv().Store.Channel().Save(channel2, 1000000)
-	assert.NoError(t, nErr)
+	channel2, err = th.App.Srv().Store.Channel().Save(channel2, 1000000)
+	assert.NoError(t, err)
 
-	l4, _, err = th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
+	l4, _, err := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	require.NoError(t, err)
 	assert.Len(t, l4, 2)
 	assert.Equal(t, channel1.Id, l4[0].Id)
 	assert.Equal(t, channel2.Id, l4[1].Id)
 
-	l5, _, err = th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 1, 1)
+	l5, _, err := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 1, 1)
 	require.NoError(t, err)
 	assert.Len(t, l5, 1)
 	assert.Equal(t, channel2.Id, l5[0].Id)
@@ -514,7 +514,7 @@ func TestPatchScheme(t *testing.T) {
 	assert.NotZero(t, len(s1.DefaultChannelGuestRole))
 
 	s2, _, err := th.SystemAdminClient.GetScheme(s1.Id)
-	require.NoError(t, r2)
+	require.NoError(t, err)
 
 	assert.Equal(t, s1, s2)
 
@@ -605,8 +605,8 @@ func TestDeleteScheme(t *testing.T) {
 			Scope:       model.SchemeScopeTeam,
 		}
 
-		s1, _, err = th.SystemAdminClient.CreateScheme(scheme1)
-		require.NoError(t, r1)
+		s1, _, err := th.SystemAdminClient.CreateScheme(scheme1)
+		require.NoError(t, err)
 
 		// Retrieve the roles and check they are not deleted.
 		role1, _, err := th.SystemAdminClient.GetRoleByName(s1.DefaultTeamAdminRole)
@@ -665,7 +665,7 @@ func TestDeleteScheme(t *testing.T) {
 		assert.NotZero(t, role6.DeleteAt)
 
 		// Check the team now uses the default scheme
-		c2, _, err = th.SystemAdminClient.GetTeam(team.Id, "")
+		c2, _, err := th.SystemAdminClient.GetTeam(team.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "", *c2.SchemeId)
 	})
@@ -683,8 +683,8 @@ func TestDeleteScheme(t *testing.T) {
 			Scope:       model.SchemeScopeChannel,
 		}
 
-		s1, _, err = th.SystemAdminClient.CreateScheme(scheme1)
-		require.NoError(t, er)
+		s1, _, err := th.SystemAdminClient.CreateScheme(scheme1)
+		require.NoError(t, err)
 
 		// Retrieve the roles and check they are not deleted.
 		role3, _, err := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelAdminRole)
@@ -725,7 +725,7 @@ func TestDeleteScheme(t *testing.T) {
 		assert.NotZero(t, role6.DeleteAt)
 
 		// Check the channel now uses the default scheme
-		c2, _, err = th.SystemAdminClient.GetChannelByName(channel.Name, channel.TeamId, "")
+		c2, _, err := th.SystemAdminClient.GetChannelByName(channel.Name, channel.TeamId, "")
 		require.NoError(t, err)
 		assert.Equal(t, "", *c2.SchemeId)
 	})
@@ -780,16 +780,16 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		th.App.SetPhase2PermissionsMigrationStatus(true)
 
 		team := th.CreateTeam()
-		_, _, appError := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
-		require.Nil(t, appError)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
 
 		teamScheme := th.SetupTeamScheme()
 
-		teamUserRole, appError := th.App.GetRoleByName(context.Background(), teamScheme.DefaultTeamUserRole)
-		require.Nil(t, appError)
+		teamUserRole, appErr := th.App.GetRoleByName(context.Background(), teamScheme.DefaultTeamUserRole)
+		require.Nil(t, appErr)
 		teamUserRole.Permissions = []string{}
-		_, appError = th.App.UpdateRole(teamUserRole)
-		require.Nil(t, appError)
+		_, appErr = th.App.UpdateRole(teamUserRole)
+		require.Nil(t, appErr)
 
 		th.LoginBasic()
 
@@ -797,8 +797,8 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		require.NoError(t, err)
 
 		team.SchemeId = &teamScheme.Id
-		team, appError = th.App.UpdateTeamScheme(team)
-		require.Nil(t, appError)
+		team, appErr = th.App.UpdateTeamScheme(team)
+		require.Nil(t, appErr)
 
 		_, _, err = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
 		require.Error(t, err)

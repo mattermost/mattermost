@@ -178,8 +178,8 @@ func TestPatchBot(t *testing.T) {
 				DisplayName: sToP("an updated bot"),
 				Description: sToP("updated bot"),
 			}
-			patchedBot, patchResp, err := client.PatchBot(createdBot.UserId, botPatch)
-			require.NoError(t, err)
+			patchedBot, patchResp, err2 := client.PatchBot(createdBot.UserId, botPatch)
+			require.NoError(t, err2)
 			CheckOKStatus(t, patchResp)
 			require.Equal(t, *botPatch.Username, patchedBot.Username)
 			require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
@@ -1395,8 +1395,8 @@ func TestGetBotIconImage(t *testing.T) {
 
 	// Set an icon image
 	path, _ := fileutils.FindDir("tests")
-	svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
-	require.NoError(t, fileErr)
+	svgFile, err := os.Open(filepath.Join(path, "test.svg"))
+	require.NoError(t, err)
 	defer svgFile.Close()
 
 	expectedData, err := ioutil.ReadAll(svgFile)

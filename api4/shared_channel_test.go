@@ -53,7 +53,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 	t.Run("get shared channels paginated", func(t *testing.T) {
 		channelIds := make([]string, 0, 21)
 		for i := 0; i < pages; i++ {
-			channels, _, err = th.Client.GetAllSharedChannels(th.BasicTeam.Id, i, pageSize)
+			channels, _, err := th.Client.GetAllSharedChannels(th.BasicTeam.Id, i, pageSize)
 			require.NoError(t, err)
 			channelIds = append(channelIds, getIds(channels)...)
 		}
@@ -64,7 +64,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 	})
 
 	t.Run("get shared channels for invalid team", func(t *testing.T) {
-		channels, _, err = th.Client.GetAllSharedChannels(model.NewId(), 0, 100)
+		channels, _, err := th.Client.GetAllSharedChannels(model.NewId(), 0, 100)
 		require.NoError(t, err)
 		assert.Empty(t, channels)
 	})
@@ -128,7 +128,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("valid remote, user is member", func(t *testing.T) {
-		rcInfo, _, err = th.Client.GetRemoteClusterInfo(rc.RemoteId)
+		rcInfo, _, err := th.Client.GetRemoteClusterInfo(rc.RemoteId)
 		require.NoError(t, err)
 		assert.Equal(t, rc.Name, rcInfo.Name)
 	})
@@ -151,10 +151,10 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
 		remoteUser.RemoteId = model.NewString(model.NewId())
-		remoteUser, err := th.App.UpdateUser(remoteUser, false)
-		require.Nil(t, err)
+		remoteUser, appErr := th.App.UpdateUser(remoteUser, false)
+		require.Nil(t, appErr)
 
-		dm, _, err = client.CreateDirectChannel(localUser.Id, remoteUser.Id)
+		dm, _, err := client.CreateDirectChannel(localUser.Id, remoteUser.Id)
 		require.NoError(t, err)
 
 		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
@@ -178,14 +178,14 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 			Token:     model.NewId(),
 			CreatorId: localUser.Id,
 		}
-		rc, err := th.App.AddRemoteCluster(rc)
-		require.Nil(t, err)
+		rc, appErr := th.App.AddRemoteCluster(rc)
+		require.Nil(t, appErr)
 
 		remoteUser.RemoteId = model.NewString(rc.RemoteId)
-		remoteUser, err = th.App.UpdateUser(remoteUser, false)
-		require.Nil(t, err)
+		remoteUser, appErr = th.App.UpdateUser(remoteUser, false)
+		require.Nil(t, appErr)
 
-		dm, _, err = client.CreateDirectChannel(localUser.Id, remoteUser.Id)
+		dm, _, err := client.CreateDirectChannel(localUser.Id, remoteUser.Id)
 		require.NoError(t, err)
 
 		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
@@ -211,14 +211,14 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 			Token:     model.NewId(),
 			CreatorId: localUser.Id,
 		}
-		rc, err := th.App.AddRemoteCluster(rc)
-		require.Nil(t, err)
+		rc, appErr := th.App.AddRemoteCluster(rc)
+		require.Nil(t, appErr)
 
 		remoteUser.RemoteId = model.NewString(rc.RemoteId)
-		remoteUser, err = th.App.UpdateUser(remoteUser, false)
-		require.Nil(t, err)
+		remoteUser, appErr = th.App.UpdateUser(remoteUser, false)
+		require.Nil(t, appErr)
 
-		dm, _, err = client.CreateDirectChannel(remoteUser.Id, localUser.Id)
+		dm, _, err := client.CreateDirectChannel(remoteUser.Id, localUser.Id)
 		require.NoError(t, err)
 
 		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)

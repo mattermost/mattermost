@@ -227,7 +227,7 @@ func TestDownloadJob(t *testing.T) {
 
 	// Here we have a job that exist in our database but the results do not exist therefore when we try to download the results
 	// as a system admin, we should get a not found status.
-	_, err := th.App.Srv().Store.Job().Save(job)
+	_, err = th.App.Srv().Store.Job().Save(job)
 	require.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(job.Id)
 

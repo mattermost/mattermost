@@ -71,7 +71,7 @@ func TestGetRoleByName(t *testing.T) {
 	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		received, _, err = client.GetRoleByName(role.Name)
+		received, _, err := client.GetRoleByName(role.Name)
 		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
@@ -133,7 +133,7 @@ func TestGetRolesByNames(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// Check all three roles can be found.
-		received, _, err = client.GetRolesByNames([]string{role1.Name, role2.Name, role3.Name})
+		received, _, err := client.GetRolesByNames([]string{role1.Name, role2.Name, role3.Name})
 		require.NoError(t, err)
 
 		assert.Contains(t, received, role1)
@@ -177,8 +177,8 @@ func TestPatchRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv().Store.Role().Save(role)
-	assert.NoError(t, err)
+	role, err2 := th.App.Srv().Store.Role().Save(role)
+	assert.NoError(t, err2)
 	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	patch := &model.RolePatch{
@@ -227,7 +227,7 @@ func TestPatchRole(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		received, _, err = client.PatchRole(role.Id, patch)
+		received, _, err := client.PatchRole(role.Id, patch)
 		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
@@ -243,7 +243,7 @@ func TestPatchRole(t *testing.T) {
 		_, _, err = client.PatchRole(role.Id, patch)
 		require.NoError(t, err)
 
-		_, resp, err = client.PatchRole("junk", patch)
+		_, resp, err := client.PatchRole("junk", patch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -261,7 +261,7 @@ func TestPatchRole(t *testing.T) {
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		received, _, err = client.PatchRole(role.Id, patch)
+		received, _, err := client.PatchRole(role.Id, patch)
 		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)

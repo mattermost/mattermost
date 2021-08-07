@@ -152,8 +152,8 @@ func TestOpenDialog(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
-	require.Nil(t, err)
+	_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+	require.Nil(t, appErr)
 
 	request := model.OpenDialogRequest{
 		TriggerId: triggerId,
@@ -175,13 +175,13 @@ func TestOpenDialog(t *testing.T) {
 		},
 	}
 
-	pass, _, err = client.OpenInteractiveDialog(request)
+	pass, _, err := client.OpenInteractiveDialog(request)
 	require.NoError(t, err)
 	assert.True(t, pass)
 
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
-	pass, resp, err = client.OpenInteractiveDialog(request)
+	pass, resp, err := client.OpenInteractiveDialog(request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
@@ -255,12 +255,12 @@ func TestSubmitDialog(t *testing.T) {
 
 	submit.URL = ts.URL
 
-	submitResp, _, err = client.SubmitInteractiveDialog(submit)
+	submitResp, _, err := client.SubmitInteractiveDialog(submit)
 	require.NoError(t, err)
 	assert.NotNil(t, submitResp)
 
 	submit.URL = ""
-	submitResp, resp, err = client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err := client.SubmitInteractiveDialog(submit)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	assert.Nil(t, submitResp)

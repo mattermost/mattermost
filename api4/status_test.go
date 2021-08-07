@@ -19,35 +19,35 @@ func TestGetUserStatus(t *testing.T) {
 	client := th.Client
 
 	t.Run("offline status", func(t *testing.T) {
-		userStatus, _, err = client.GetUserStatus(th.BasicUser.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
 	})
 
 	t.Run("online status", func(t *testing.T) {
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
-		userStatus, _, err = client.GetUserStatus(th.BasicUser.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "online", userStatus.Status)
 	})
 
 	t.Run("away status", func(t *testing.T) {
 		th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
-		userStatus, _, err = client.GetUserStatus(th.BasicUser.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "away", userStatus.Status)
 	})
 
 	t.Run("dnd status", func(t *testing.T) {
 		th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
-		userStatus, _, err = client.GetUserStatus(th.BasicUser.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "dnd", userStatus.Status)
 	})
 
 	t.Run("dnd status timed", func(t *testing.T) {
 		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(10*time.Minute).Unix())
-		userStatus, _, err = client.GetUserStatus(th.BasicUser.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "dnd", userStatus.Status)
 	})
@@ -56,7 +56,7 @@ func TestGetUserStatus(t *testing.T) {
 		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
 		defer task.Cancel()
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
-		userStatus, _, err = client.GetUserStatus(th.BasicUser.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "online", userStatus.Status)
 		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(2*time.Second).Unix())
@@ -71,14 +71,14 @@ func TestGetUserStatus(t *testing.T) {
 
 	t.Run("back to offline status", func(t *testing.T) {
 		th.App.SetStatusOffline(th.BasicUser.Id, true)
-		userStatus, _, err = client.GetUserStatus(th.BasicUser.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
 	})
 
 	t.Run("get other user status", func(t *testing.T) {
 		//Get user2 status logged as user1
-		userStatus, _, err = client.GetUserStatus(th.BasicUser2.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser2.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
 	})
@@ -92,7 +92,7 @@ func TestGetUserStatus(t *testing.T) {
 
 	t.Run("get status from other user", func(t *testing.T) {
 		th.LoginBasic2()
-		userStatus, _, err = client.GetUserStatus(th.BasicUser2.Id, "")
+		userStatus, _, err := client.GetUserStatus(th.BasicUser2.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
 	})
@@ -124,7 +124,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	})
 
 	t.Run("offline status", func(t *testing.T) {
-		usersStatuses, _, err = client.GetUsersStatusesByIds(usersIds)
+		usersStatuses, _, err := client.GetUsersStatusesByIds(usersIds)
 		require.NoError(t, err)
 		for _, userStatus := range usersStatuses {
 			assert.Equal(t, "offline", userStatus.Status)
@@ -134,7 +134,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	t.Run("online status", func(t *testing.T) {
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
 		th.App.SetStatusOnline(th.BasicUser2.Id, true)
-		usersStatuses, _, err = client.GetUsersStatusesByIds(usersIds)
+		usersStatuses, _, err := client.GetUsersStatusesByIds(usersIds)
 		require.NoError(t, err)
 		for _, userStatus := range usersStatuses {
 			assert.Equal(t, "online", userStatus.Status)
@@ -144,7 +144,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	t.Run("away status", func(t *testing.T) {
 		th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
 		th.App.SetStatusAwayIfNeeded(th.BasicUser2.Id, true)
-		usersStatuses, _, err = client.GetUsersStatusesByIds(usersIds)
+		usersStatuses, _, err := client.GetUsersStatusesByIds(usersIds)
 		require.NoError(t, err)
 		for _, userStatus := range usersStatuses {
 			assert.Equal(t, "away", userStatus.Status)
@@ -154,7 +154,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	t.Run("dnd status", func(t *testing.T) {
 		th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
 		th.App.SetStatusDoNotDisturb(th.BasicUser2.Id)
-		usersStatuses, _, err = client.GetUsersStatusesByIds(usersIds)
+		usersStatuses, _, err := client.GetUsersStatusesByIds(usersIds)
 		require.NoError(t, err)
 		for _, userStatus := range usersStatuses {
 			assert.Equal(t, "dnd", userStatus.Status)
@@ -164,7 +164,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	t.Run("dnd status", func(t *testing.T) {
 		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(10*time.Minute).Unix())
 		th.App.SetStatusDoNotDisturbTimed(th.BasicUser2.Id, time.Now().Add(15*time.Minute).Unix())
-		usersStatuses, _, err = client.GetUsersStatusesByIds(usersIds)
+		usersStatuses, _, err := client.GetUsersStatusesByIds(usersIds)
 		require.NoError(t, err)
 		for _, userStatus := range usersStatuses {
 			assert.Equal(t, "dnd", userStatus.Status)

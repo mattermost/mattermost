@@ -24,7 +24,7 @@ func TestGetOldClientLicense(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	license, _, err = client.GetOldClientLicense("")
+	license, _, err := client.GetOldClientLicense("")
 	require.NoError(t, err)
 
 	require.NotEqual(t, license["IsLicensed"], "", "license not returned correctly")
@@ -34,14 +34,14 @@ func TestGetOldClientLicense(t *testing.T) {
 	_, _, err = client.GetOldClientLicense("")
 	require.NoError(t, err)
 
-	_, err := client.DoApiGet("/license/client", "")
+	resp, err := client.DoApiGet("/license/client", "")
 	require.NotNil(t, err, "get /license/client did not return an error")
-	require.Equal(t, err.StatusCode, http.StatusNotImplemented,
+	require.Equal(t, http.StatusNotImplemented, resp.StatusCode,
 		"expected 501 Not Implemented")
 
-	_, err = client.DoApiGet("/license/client?format=junk", "")
+	resp, err = client.DoApiGet("/license/client?format=junk", "")
 	require.NotNil(t, err, "get /license/client?format=junk did not return an error")
-	require.Equal(t, err.StatusCode, http.StatusBadRequest,
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
 		"expected 400 Bad Request")
 
 	license, _, err = th.SystemAdminClient.GetOldClientLicense("")
@@ -181,7 +181,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		ok, _, err = c.RemoveLicenseFile()
+		ok, _, err := c.RemoveLicenseFile()
 		require.NoError(t, err)
 		require.True(t, ok)
 	}, "as system admin user")
@@ -198,7 +198,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, _, err = LocalClient.RemoveLicenseFile()
+		ok, _, err := LocalClient.RemoveLicenseFile()
 		require.NoError(t, err)
 		require.True(t, ok)
 	})

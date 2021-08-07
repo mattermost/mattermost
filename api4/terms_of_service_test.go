@@ -17,10 +17,10 @@ func TestGetTermsOfService(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, err := th.App.CreateTermsOfService("abc", th.BasicUser.Id)
-	require.Nil(t, err)
+	_, appErr := th.App.CreateTermsOfService("abc", th.BasicUser.Id)
+	require.Nil(t, appErr)
 
-	termsOfService, _, err = client.GetTermsOfService("")
+	termsOfService, _, err := client.GetTermsOfService("")
 	require.NoError(t, err)
 
 	assert.NotNil(t, termsOfService)

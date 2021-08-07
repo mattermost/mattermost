@@ -298,8 +298,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	token, refreshToken = rsp.AccessToken, rsp.RefreshToken
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
-	_, err = ApiClient.DoApiGet("/oauth_test", "")
-	require.Nil(t, err)
+	_, appErr = ApiClient.DoApiGet("/oauth_test", "")
+	require.Nil(t, appErr)
 
 	ApiClient.SetOAuthToken("")
 	_, err = ApiClient.DoApiGet("/oauth_test", "")
@@ -516,8 +516,8 @@ func TestOAuthComplete(t *testing.T) {
 	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	stateProps["redirect_to"] = "/oauth/authorize"
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
-	r, err = HttpGet(ApiClient.Url+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false)
-	if err == nil {
+	r, appErr = HttpGet(ApiClient.Url+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false)
+	if appErr == nil {
 		closeBody(r)
 	}
 
@@ -528,8 +528,8 @@ func TestOAuthComplete(t *testing.T) {
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
-	r, err = HttpGet(ApiClient.Url+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false)
-	if err == nil {
+	r, appErr = HttpGet(ApiClient.Url+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false)
+	if appErr == nil {
 		closeBody(r)
 	}
 

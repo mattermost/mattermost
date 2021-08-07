@@ -172,7 +172,8 @@ func testUploadFilesMultipart(
 		h.Set("Content-Type", ct)
 
 		// If we error here, writing to mw, the deferred handler
-		part, err := mw.CreatePart(h)
+		var part io.Writer
+		part, err = mw.CreatePart(h)
 		require.NoError(t, err)
 
 		_, err = io.Copy(part, bytes.NewReader(blob))
@@ -715,12 +716,12 @@ func TestGetFile(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err = client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
 	require.NoError(t, err)
 
 	fileId := fileResp.FileInfos[0].Id
 
-	data, _, err = client.GetFile(fileId)
+	data, _, err := client.GetFile(fileId)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(data), "should not be empty")
 
@@ -728,7 +729,7 @@ func TestGetFile(t *testing.T) {
 		require.Equal(t, sent[i], data[i], "received file didn't match sent one")
 	}
 
-	_, resp, err = client.GetFile("junk")
+	_, resp, err := client.GetFile("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -758,12 +759,12 @@ func TestGetFileHeaders(t *testing.T) {
 
 	testHeaders := func(data []byte, filename string, expectedContentType string, getInline bool) func(*testing.T) {
 		return func(t *testing.T) {
-			fileResp, _, err = client.UploadFile(data, channel.Id, filename)
+			fileResp, _, err := client.UploadFile(data, channel.Id, filename)
 			require.NoError(t, err)
 
 			fileId := fileResp.FileInfos[0].Id
 
-			_, _, err = client.GetFile(fileId)
+			_, resp, err := client.GetFile(fileId)
 			require.NoError(t, err)
 
 			CheckStartsWith(t, resp.Header.Get("Content-Type"), expectedContentType, "returned incorrect Content-Type")
@@ -813,16 +814,16 @@ func TestGetFileThumbnail(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err = client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
 	require.NoError(t, err)
 
 	fileId := fileResp.FileInfos[0].Id
 
-	data, _, err = client.GetFileThumbnail(fileId)
+	data, _, err := client.GetFileThumbnail(fileId)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(data), "should not be empty")
 
-	_, resp, err = client.GetFileThumbnail("junk")
+	_, resp, err := client.GetFileThumbnail("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -862,8 +863,8 @@ func TestGetFileLink(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err = client.UploadFile(data, channel.Id, "test.png")
-	require.NoError(t, uploadResp)
+	fileResp, _, err := client.UploadFile(data, channel.Id, "test.png")
+	require.NoError(t, err)
 
 	fileId := fileResp.FileInfos[0].Id
 
@@ -881,7 +882,7 @@ func TestGetFileLink(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
-	link, _, err = client.GetFileLink(fileId)
+	link, _, err := client.GetFileLink(fileId)
 	require.NoError(t, err)
 	require.NotEqual(t, "", link, "should've received public link")
 
@@ -926,15 +927,15 @@ func TestGetFilePreview(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err = client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
 	require.NoError(t, err)
 	fileId := fileResp.FileInfos[0].Id
 
-	data, _, err = client.GetFilePreview(fileId)
+	data, _, err := client.GetFilePreview(fileId)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(data), "should not be empty")
 
-	_, resp, err = client.GetFilePreview("junk")
+	_, resp, err := client.GetFilePreview("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -972,11 +973,11 @@ func TestGetFileInfo(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err = client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
 	require.NoError(t, err)
 	fileId := fileResp.FileInfos[0].Id
 
-	info, _, err = client.GetFileInfo(fileId)
+	info, _, err := client.GetFileInfo(fileId)
 	require.NoError(t, err)
 
 	require.NoError(t, err)
@@ -988,7 +989,7 @@ func TestGetFileInfo(t *testing.T) {
 	require.Equal(t, "", info.PreviewPath, "file preview path shouldn't have been returned to client")
 	require.Equal(t, "image/png", info.MimeType, "mime type should've been image/png")
 
-	_, resp, err = client.GetFileInfo("junk")
+	_, resp, err := client.GetFileInfo("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -1024,8 +1025,8 @@ func TestGetPublicFile(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err = client.UploadFile(data, channel.Id, "test.png")
-	require.NoError(t, httpResp)
+	fileResp, _, err := client.UploadFile(data, channel.Id, "test.png")
+	require.NoError(t, err)
 
 	fileId := fileResp.FileInfos[0].Id
 
@@ -1120,7 +1121,7 @@ func TestSearchFiles(t *testing.T) {
 	fileInfo5, appErr := th.App.UploadFile(th.Context, data, archivedChannel.Id, "tagged for fileInfo3")
 	require.Nil(t, appErr)
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
-	rpost, _, err = client.CreatePost(post)
+	rpost, _, err := client.CreatePost(post)
 	require.NoError(t, err)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, th.BasicUser.Id)
 	require.NoError(t, err)
@@ -1134,7 +1135,7 @@ func TestSearchFiles(t *testing.T) {
 		IsOrSearch:     &isOrSearch,
 		TimeZoneOffset: &timezoneOffset,
 	}
-	fileInfos, _, err = client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	fileInfos, _, err := client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 3, "wrong search")
 
@@ -1148,7 +1149,7 @@ func TestSearchFiles(t *testing.T) {
 		Page:           &page,
 		PerPage:        &perPage,
 	}
-	fileInfos2, _, err = client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	fileInfos2, _, err := client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
 	// We don't support paging for DB search yet, modify this when we do.
 	require.Len(t, fileInfos2.Order, 3, "Wrong number of fileInfos")
@@ -1204,7 +1205,7 @@ func TestSearchFiles(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 2, "wrong search results")
 
-	_, resp, err = client.SearchFiles("junk", "#sgtitlereview", false)
+	_, resp, err := client.SearchFiles("junk", "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
