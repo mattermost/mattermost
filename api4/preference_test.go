@@ -261,8 +261,8 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	WebSocketClient, appErr := th.CreateWebSocketClient()
-	require.Nil(t, appErr)
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
 
 	WebSocketClient.Listen()
 	time.Sleep(300 * time.Millisecond)
@@ -283,7 +283,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 		},
 	}
 
-	_, _, err := th.Client.UpdatePreferences(userId, preferences)
+	_, _, err = th.Client.UpdatePreferences(userId, preferences)
 	require.NoError(t, err)
 
 	timeout := time.After(300 * time.Millisecond)
@@ -608,8 +608,8 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	_, _, err := th.Client.UpdatePreferences(userId, preferences)
 	require.NoError(t, err)
 
-	WebSocketClient, appErr := th.CreateWebSocketClient()
-	require.Nil(t, appErr)
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
 
 	WebSocketClient.Listen()
 	wsResp := <-WebSocketClient.ResponseChannel

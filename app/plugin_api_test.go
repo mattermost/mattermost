@@ -1709,8 +1709,8 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	require.NotEmpty(t, pluginID)
 
 	reqURL := fmt.Sprintf("ws://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
-	wsc, appErr := model.NewWebSocketClient(reqURL, "")
-	require.Nil(t, appErr)
+	wsc, err := model.NewWebSocketClient(reqURL, "")
+	require.Nil(t, err)
 	require.NotNil(t, wsc)
 
 	wsc.Listen()

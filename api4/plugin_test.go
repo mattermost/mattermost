@@ -341,8 +341,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	require.Equal(t, "testplugin", manifest.Id)
 
 	// Successful remove
-	webSocketClient, appErr := th.CreateWebSocketSystemAdminClient()
-	require.Nil(t, appErr)
+	webSocketClient, err := th.CreateWebSocketSystemAdminClient()
+	require.NoError(t, err)
 	webSocketClient.Listen()
 	defer webSocketClient.Close()
 	done := make(chan bool)

@@ -474,19 +474,19 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	}
 }
 
-func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
+func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
 }
 
-func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, *model.AppError) {
+func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemAdminClient.AuthToken)
 }
 
-func (th *TestHelper) CreateWebSocketSystemManagerClient() (*model.WebSocketClient, *model.AppError) {
+func (th *TestHelper) CreateWebSocketSystemManagerClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemManagerClient.AuthToken)
 }
 
-func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
+func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), client.AuthToken)
 }
 

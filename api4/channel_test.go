@@ -1909,7 +1909,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	require.Nil(t, rchannel, "should not return a channel")
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	WebSocketClient.Listen()
 
 	publicChannel2 := th.CreatePublicChannel()
@@ -2646,9 +2646,9 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	SystemAdminClient := th.SystemAdminClient
-	WebSocketClient, appErr := th.CreateWebSocketClient()
+	WebSocketClient, err := th.CreateWebSocketClient()
 	WebSocketClient.Listen()
-	require.Nil(t, appErr)
+	require.NoError(t, err)
 
 	th.LoginBasic()
 
@@ -2657,7 +2657,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 		SchemeUser:  false,
 		SchemeGuest: false,
 	}
-	_, _, err := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s1)
+	_, _, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s1)
 	require.NoError(t, err)
 
 	timeout := time.After(600 * time.Millisecond)
@@ -3130,8 +3130,8 @@ func TestRemoveChannelMember(t *testing.T) {
 		_, _, err = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel2.Id, th.SystemAdminUser.Id, props)
 		require.NoError(t, err)
 
-		wsClient, appErr := th.CreateWebSocketSystemAdminClient()
-		require.Nil(t, appErr)
+		wsClient, err2 := th.CreateWebSocketSystemAdminClient()
+		require.NoError(t, err2)
 		wsClient.Listen()
 		var closeWsClient sync.Once
 		defer closeWsClient.Do(func() {
@@ -3165,23 +3165,23 @@ func TestRemoveChannelMember(t *testing.T) {
 		}
 
 		th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
-		_, _, err = client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
-		require.NoError(t, err)
+		_, _, err2 = client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+		require.NoError(t, err2)
 
 		requirePost(&model.Post{
 			Message:   fmt.Sprintf("@%s left the channel.", th.BasicUser2.Username),
 			ChannelId: th.BasicChannel.Id,
 		})
 
-		_, _, err = client.RemoveUserFromChannel(th.BasicChannel2.Id, th.BasicUser.Id)
-		require.NoError(t, err)
+		_, _, err2 = client.RemoveUserFromChannel(th.BasicChannel2.Id, th.BasicUser.Id)
+		require.NoError(t, err2)
 		requirePost(&model.Post{
 			Message:   fmt.Sprintf("@%s removed from the channel.", th.BasicUser.Username),
 			ChannelId: th.BasicChannel2.Id,
 		})
 
-		_, _, err = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
-		require.NoError(t, err)
+		_, _, err2 = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err2)
 		requirePost(&model.Post{
 			Message:   fmt.Sprintf("@%s removed from the channel.", th.BasicUser.Username),
 			ChannelId: th.BasicChannel.Id,

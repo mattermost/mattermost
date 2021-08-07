@@ -30,7 +30,7 @@ func TestWebSocketEvent(t *testing.T) {
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 
 	WebSocketClient.Listen()
@@ -109,7 +109,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	}
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
@@ -204,8 +204,8 @@ func TestWebSocketStatuses(t *testing.T) {
 	defer th.TearDown()
 
 	client := th.Client
-	WebSocketClient, appErr := th.CreateWebSocketClient()
-	require.Nil(t, appErr)
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
@@ -218,7 +218,7 @@ func TestWebSocketStatuses(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := client.Must(client.CreateUser(&user)).(*model.User)
 	th.LinkUserToTeam(ruser, rteam)
-	_, err := th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
@@ -231,8 +231,8 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	th.LoginBasic2()
 
-	WebSocketClient2, err2 := th.CreateWebSocketClient()
-	require.Nil(t, err2, err2)
+	WebSocketClient2, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
 
 	time.Sleep(1000 * time.Millisecond)
 

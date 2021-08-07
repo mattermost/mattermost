@@ -402,27 +402,27 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 			EmailVerified: true,
 		}
 
-		guest, appErr := th.App.CreateGuest(th.Context, guest)
-		require.Nil(t, appErr)
+		guest, errr := th.App.CreateGuest(th.Context, guest)
+		require.Nil(t, errr)
 
-		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
-		require.Nil(t, appErr)
+		_, _, errr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
+		require.Nil(t, errr)
 
-		_, appErr = th.App.AddUserToChannel(guest, th.BasicChannel, false)
-		require.Nil(t, appErr)
+		_, errr = th.App.AddUserToChannel(guest, th.BasicChannel, false)
+		require.Nil(t, errr)
 
 		guestClient := th.CreateClient()
 
 		_, _, err := guestClient.Login(guest.Email, guestPassword)
 		require.NoError(t, err)
 
-		guestWSClient, appErr := th.CreateWebSocketClientWithClient(guestClient)
-		require.Nil(t, appErr)
+		guestWSClient, err := th.CreateWebSocketClientWithClient(guestClient)
+		require.NoError(t, err)
 		defer guestWSClient.Close()
 		guestWSClient.Listen()
 
-		userWSClient, appErr := th.CreateWebSocketClient()
-		require.Nil(t, appErr)
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
 		defer userWSClient.Close()
 		userWSClient.Listen()
 
@@ -2299,8 +2299,8 @@ func TestUpdateUserActive(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = true })
 
-		webSocketClient, appErr := th.CreateWebSocketClient()
-		assert.Nil(t, appErr)
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.NoError(t, err)
 		defer webSocketClient.Close()
 
 		webSocketClient.Listen()
@@ -2309,8 +2309,8 @@ func TestUpdateUserActive(t *testing.T) {
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, appErr := th.CreateWebSocketSystemAdminClient()
-		assert.Nil(t, appErr)
+		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
+		assert.NoError(t, err)
 		defer adminWebSocketClient.Close()
 
 		adminWebSocketClient.Listen()
@@ -5145,8 +5145,8 @@ func TestDemoteUserToGuest(t *testing.T) {
 	}, "demote a user to guest")
 
 	t.Run("websocket update user event", func(t *testing.T) {
-		webSocketClient, appErr := th.CreateWebSocketClient()
-		assert.Nil(t, appErr)
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.NoError(t, err)
 		defer webSocketClient.Close()
 
 		webSocketClient.Listen()
@@ -5155,8 +5155,8 @@ func TestDemoteUserToGuest(t *testing.T) {
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, appErr := th.CreateWebSocketSystemAdminClient()
-		assert.Nil(t, appErr)
+		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
+		assert.NoError(t, err)
 		defer adminWebSocketClient.Close()
 
 		adminWebSocketClient.Listen()
@@ -5165,7 +5165,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		_, _, err := th.SystemAdminClient.GetUser(user.Id, "")
+		_, _, err = th.SystemAdminClient.GetUser(user.Id, "")
 		require.NoError(t, err)
 		_, _, err = th.SystemAdminClient.DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
@@ -5210,8 +5210,8 @@ func TestPromoteGuestToUser(t *testing.T) {
 	}, "promete a guest to user")
 
 	t.Run("websocket update user event", func(t *testing.T) {
-		webSocketClient, appErr := th.CreateWebSocketClient()
-		assert.Nil(t, appErr)
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.NoError(t, err)
 		defer webSocketClient.Close()
 
 		webSocketClient.Listen()
@@ -5220,8 +5220,8 @@ func TestPromoteGuestToUser(t *testing.T) {
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, appErr := th.CreateWebSocketSystemAdminClient()
-		assert.Nil(t, appErr)
+		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
+		assert.NoError(t, err)
 		defer adminWebSocketClient.Close()
 
 		adminWebSocketClient.Listen()
@@ -5230,7 +5230,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		_, _, err := th.SystemAdminClient.GetUser(user.Id, "")
+		_, _, err = th.SystemAdminClient.GetUser(user.Id, "")
 		require.NoError(t, err)
 		_, _, err = th.SystemAdminClient.PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
@@ -5415,8 +5415,8 @@ func TestPublishUserTyping(t *testing.T) {
 	})
 
 	t.Run("should send typing event via websocket when triggering a typing event for a user with a common channel", func(t *testing.T) {
-		webSocketClient, appErr := th.CreateWebSocketClient()
-		assert.Nil(t, appErr)
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.NoError(t, err)
 		defer webSocketClient.Close()
 
 		webSocketClient.Listen()
@@ -5425,7 +5425,7 @@ func TestPublishUserTyping(t *testing.T) {
 		wsResp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, wsResp.Status)
 
-		_, _, err := th.SystemAdminClient.PublishUserTyping(th.BasicUser2.Id, tr)
+		_, _, err = th.SystemAdminClient.PublishUserTyping(th.BasicUser2.Id, tr)
 		require.NoError(t, err)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventTyping, func(resp *model.WebSocketEvent) {
@@ -5781,8 +5781,8 @@ func TestThreadSocketEvents(t *testing.T) {
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
-	userWSClient, appErr := th.CreateWebSocketClient()
-	require.Nil(t, appErr)
+	userWSClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
 	defer userWSClient.Close()
 	userWSClient.Listen()
 
@@ -5792,7 +5792,7 @@ func TestThreadSocketEvents(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	_, appErr = th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
+	_, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
 	require.Nil(t, appErr)
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser2.Id)

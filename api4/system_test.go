@@ -458,7 +458,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 	assert.Equal(t, float64(0), rows2[5].Value)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld("standard", "")
 	require.NoError(t, err)

@@ -121,9 +121,9 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
-		WebSocketClient, appErr := th.CreateWebSocketClient()
+		WebSocketClient, err := th.CreateWebSocketClient()
 		WebSocketClient.Listen()
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -132,7 +132,7 @@ func TestCreatePost(t *testing.T) {
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
 		post.Message = "a post with no channel mentions"
-		_, _, err := client.CreatePost(post)
+		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
@@ -550,8 +550,8 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	WebSocketClient, appErr := th.CreateWebSocketClient()
-	require.Nil(t, appErr)
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
 	WebSocketClient.Listen()
 
 	inChannelUser := th.CreateUser()
@@ -618,7 +618,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	require.NoError(t, err)
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer wsClient.Close()
 
 	wsClient.Listen()
@@ -2075,8 +2075,8 @@ func TestDeletePostMessage(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
-			wsClient, appErr := th.CreateWebSocketClientWithClient(tc.client)
-			require.Nil(t, appErr)
+			wsClient, err := th.CreateWebSocketClientWithClient(tc.client)
+			require.NoError(t, err)
 			defer wsClient.Close()
 
 			wsClient.Listen()

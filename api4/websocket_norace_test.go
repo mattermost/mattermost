@@ -21,7 +21,7 @@ func TestWebSocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 
 	time.Sleep(300 * time.Millisecond)
