@@ -40,7 +40,8 @@ func TestGetPing(t *testing.T) {
 			}()
 
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
-			status, resp, _ := client.GetPing()
+			status, resp, err := client.GetPing()
+			require.Error(t, err)
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.StatusUnhealthy, status)
 		})
@@ -61,7 +62,8 @@ func TestGetPing(t *testing.T) {
 				th.App.Config().FileSettings.DriverName = oldDriver
 			}()
 
-			status, resp, _ := client.GetPingWithServerStatus()
+			status, resp, err := client.GetPingWithServerStatus()
+			require.Error(t, err)
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.StatusUnhealthy, status)
 		})
@@ -535,7 +537,7 @@ func TestS3TestConnection(t *testing.T) {
 		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
-		_, _, err = th.SystemAdminClient.TestS3Connection(&config)
+		_, resp, err = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
 	})

@@ -517,7 +517,8 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp, _ := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		plugins, resp, err := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugins)
 	}, "no server")
@@ -1360,7 +1361,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugin, resp, _ := client.InstallMarketplacePlugin(request)
+		plugin, resp, err := client.InstallMarketplacePlugin(request)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugin)
 	}, "no server")
@@ -1391,7 +1393,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "some_plugin_id", Version: "0.0.1"}
-		plugin, resp, _ := client.InstallMarketplacePlugin(pRequest)
+		plugin, resp, err := client.InstallMarketplacePlugin(pRequest)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugin)
 	}, "plugin not found on the server")
@@ -1411,7 +1414,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.AllowInsecureDownloadUrl = true
 		})
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.2"}
-		plugin, resp, _ := client.InstallMarketplacePlugin(pRequest)
+		plugin, resp, err := client.InstallMarketplacePlugin(pRequest)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugin)
 	}, "plugin not verified")
@@ -1489,7 +1493,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
 		pRequest := &model.InstallMarketplacePluginRequest{}
-		manifest, resp, _ := client.InstallMarketplacePlugin(pRequest)
+		manifest, resp, err := client.InstallMarketplacePlugin(pRequest)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
 		assert.True(t, requestHandled)
@@ -1527,7 +1532,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
 		pRequest := &model.InstallMarketplacePluginRequest{}
-		manifest, resp, _ := client.InstallMarketplacePlugin(pRequest)
+		manifest, resp, err := client.InstallMarketplacePlugin(pRequest)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
 		assert.True(t, requestHandled)
@@ -1561,7 +1567,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
 		pRequest := &model.InstallMarketplacePluginRequest{}
-		manifest, resp, _ := client.InstallMarketplacePlugin(pRequest)
+		manifest, resp, err := client.InstallMarketplacePlugin(pRequest)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
 		assert.True(t, requestHandled)
@@ -1627,7 +1634,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 			// Should fail to install unknown prepackaged plugin
 			pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin", Version: "0.0.2"}
-			manifest, resp, _ := client.InstallMarketplacePlugin(pRequest)
+			manifest, resp, err := client.InstallMarketplacePlugin(pRequest)
+			require.Error(t, err)
 			CheckInternalErrorStatus(t, resp)
 			require.Nil(t, manifest)
 
@@ -1657,7 +1665,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 			// Try to install remote marketplace plugin
 			pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.3"}
-			manifest, resp, _ = client.InstallMarketplacePlugin(pRequest)
+			manifest, resp, err = client.InstallMarketplacePlugin(pRequest)
+			require.Error(t, err)
 			CheckInternalErrorStatus(t, resp)
 			require.Nil(t, manifest)
 
@@ -1760,7 +1769,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Len(t, pluginsResp.Inactive, 0)
 
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin", Version: "0.0.1"}
-		manifest, resp, _ := client.InstallMarketplacePlugin(pRequest)
+		manifest, resp, err := client.InstallMarketplacePlugin(pRequest)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
 
@@ -1770,7 +1780,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Len(t, pluginsResp.Inactive, 0)
 
 		pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.3"}
-		manifest, resp, _ = client.InstallMarketplacePlugin(pRequest)
+		manifest, resp, err = client.InstallMarketplacePlugin(pRequest)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
 

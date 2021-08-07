@@ -1420,7 +1420,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	mockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &mockStore
 
-	_, resp, _ = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
+	_, resp, err = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
+	require.Error(t, err)
 	CheckInternalErrorStatus(t, resp)
 }
 

@@ -1181,7 +1181,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		createdHook.ChannelId = ""
 		createdHook.TriggerWords = nil
 
-		_, resp, _ := client.UpdateOutgoingWebhook(createdHook)
+		_, resp, err := client.UpdateOutgoingWebhook(createdHook)
+		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
 	}, "UpdateToBlankTriggerWordAndChannel")
 

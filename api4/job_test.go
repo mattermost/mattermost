@@ -328,7 +328,8 @@ func TestCancelJob(t *testing.T) {
 	_, _, err = th.SystemAdminClient.CancelJob(jobs[1].Id)
 	require.NoError(t, err)
 
-	_, resp, _ = th.SystemAdminClient.CancelJob(jobs[2].Id)
+	_, resp, err = th.SystemAdminClient.CancelJob(jobs[2].Id)
+	require.Error(t, err)
 	CheckInternalErrorStatus(t, resp)
 
 	_, resp, err = th.SystemAdminClient.CancelJob(model.NewId())
