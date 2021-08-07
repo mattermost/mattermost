@@ -1011,11 +1011,13 @@ func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
 func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
+	// Error checked
 }
 
 func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
+	// Error checked
 }
 
 func CheckErrorID(t *testing.T, err error, errorId string) {
