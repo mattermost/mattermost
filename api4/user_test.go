@@ -89,8 +89,8 @@ func TestCreateUser(t *testing.T) {
 		// Creating a user as sysadmin should verify the user with the EmailVerified flag.
 		require.True(t, ruser2.EmailVerified)
 
-		r, appErr := client.DoApiPost("/users", "garbage")
-		require.NotNil(t, appErr, "should have errored")
+		r, err2 := client.DoApiPost("/users", "garbage")
+		require.NotNil(t, err2, "should have errored")
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
 
@@ -2416,8 +2416,8 @@ func TestGetUsers(t *testing.T) {
 		require.Empty(t, rusers, "should be no users")
 
 		// Check default params for page and per_page
-		_, appErr := client.DoApiGet("/users", "")
-		require.Nil(t, appErr)
+		_, err = client.DoApiGet("/users", "")
+		require.Nil(t, err)
 	})
 
 	th.Client.Logout()
@@ -2497,8 +2497,8 @@ func TestGetActiveUsersInTeam(t *testing.T) {
 	require.Len(t, rusers, 1, "should be 1 per page")
 
 	// Check case where we have supplied both active and inactive flags
-	_, appErr := th.Client.DoApiGet("/users?inactive=true&active=true", "")
-	require.NotNil(t, appErr)
+	_, err = th.Client.DoApiGet("/users?inactive=true&active=true", "")
+	require.NotNil(t, err)
 
 	th.Client.Logout()
 	_, resp, err := th.Client.GetActiveUsersInTeam(teamId, 0, 1, "")

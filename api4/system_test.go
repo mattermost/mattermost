@@ -71,8 +71,8 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, appErr := client.DoApiGet(client.GetSystemRoute()+"/ping", "")
-		require.Nil(t, appErr)
+		resp, err := client.DoApiGet(client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err := ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
@@ -84,8 +84,8 @@ func TestGetPing(t *testing.T) {
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
 		th.App.ReloadConfig()
 
-		resp, appErr = client.DoApiGet(client.GetSystemRoute()+"/ping", "")
-		require.Nil(t, appErr)
+		resp, err = client.DoApiGet(client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err = ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)

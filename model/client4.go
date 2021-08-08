@@ -558,51 +558,51 @@ func (c *Client4) GetPermissionsRoute() string {
 	return "/permissions"
 }
 
-func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
+func (c *Client4) DoApiGet(url string, etag string) (*http.Response, error) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
 
-func (c *Client4) DoApiPost(url string, data string) (*http.Response, *AppError) {
+func (c *Client4) DoApiPost(url string, data string) (*http.Response, error) {
 	return c.DoApiRequest(http.MethodPost, c.ApiUrl+url, data, "")
 }
 
-func (c *Client4) doApiDeleteBytes(url string, data []byte) (*http.Response, *AppError) {
+func (c *Client4) doApiDeleteBytes(url string, data []byte) (*http.Response, error) {
 	return c.doApiRequestBytes(http.MethodDelete, c.ApiUrl+url, data, "")
 }
 
-func (c *Client4) doApiPatchBytes(url string, data []byte) (*http.Response, *AppError) {
+func (c *Client4) doApiPatchBytes(url string, data []byte) (*http.Response, error) {
 	return c.doApiRequestBytes(http.MethodPatch, c.ApiUrl+url, data, "")
 }
 
-func (c *Client4) doApiPostBytes(url string, data []byte) (*http.Response, *AppError) {
+func (c *Client4) doApiPostBytes(url string, data []byte) (*http.Response, error) {
 	return c.doApiRequestBytes(http.MethodPost, c.ApiUrl+url, data, "")
 }
 
-func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) {
+func (c *Client4) DoApiPut(url string, data string) (*http.Response, error) {
 	return c.DoApiRequest(http.MethodPut, c.ApiUrl+url, data, "")
 }
 
-func (c *Client4) doApiPutBytes(url string, data []byte) (*http.Response, *AppError) {
+func (c *Client4) doApiPutBytes(url string, data []byte) (*http.Response, error) {
 	return c.doApiRequestBytes(http.MethodPut, c.ApiUrl+url, data, "")
 }
 
-func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
+func (c *Client4) DoApiDelete(url string) (*http.Response, error) {
 	return c.DoApiRequest(http.MethodDelete, c.ApiUrl+url, "", "")
 }
 
-func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
+func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, error) {
 	return c.doApiRequestReader(method, url, strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
-func (c *Client4) DoApiRequestWithHeaders(method, url, data string, headers map[string]string) (*http.Response, *AppError) {
+func (c *Client4) DoApiRequestWithHeaders(method, url, data string, headers map[string]string) (*http.Response, error) {
 	return c.doApiRequestReader(method, url, strings.NewReader(data), headers)
 }
 
-func (c *Client4) doApiRequestBytes(method, url string, data []byte, etag string) (*http.Response, *AppError) {
+func (c *Client4) doApiRequestBytes(method, url string, data []byte, etag string) (*http.Response, error) {
 	return c.doApiRequestReader(method, url, bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
-func (c *Client4) doApiRequestReader(method, url string, data io.Reader, headers map[string]string) (*http.Response, *AppError) {
+func (c *Client4) doApiRequestReader(method, url string, data io.Reader, headers map[string]string) (*http.Response, error) {
 	rq, err := http.NewRequest(method, url, data)
 	if err != nil {
 		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -808,9 +808,9 @@ func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Resp
 	if err != nil {
 		return "", BuildResponse(nil), NewAppError("SwitchAccountType", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+"/login/switch", buf)
-	if appErr != nil {
-		return "", BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetUsersRoute()+"/login/switch", buf)
+	if err != nil {
+		return "", BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return MapFromJson(r.Body)["follow_link"], BuildResponse(r), nil
@@ -820,9 +820,9 @@ func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Resp
 
 // CreateUser creates a user in the system based on the provided user struct.
 func (c *Client4) CreateUser(user *User) (*User, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetUsersRoute(), user.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetUsersRoute(), user.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return UserFromJson(r.Body), BuildResponse(r), nil
@@ -840,9 +840,9 @@ func (c *Client4) CreateUserWithToken(user *User, tokenId string) (*User, *Respo
 	if err != nil {
 		return nil, nil, NewAppError("CreateUserWithToken", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+query, buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetUsersRoute()+query, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -861,9 +861,9 @@ func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *R
 	if err != nil {
 		return nil, nil, NewAppError("CreateUserWithInviteId", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+query, buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetUsersRoute()+query, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -945,9 +945,9 @@ func (c *Client4) AutocompleteUsers(username string, limit int, etag string) (*U
 
 // GetDefaultProfileImage gets the default user's profile image. Must be logged in.
 func (c *Client4) GetDefaultProfileImage(userId string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+"/image/default", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image/default", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -961,9 +961,9 @@ func (c *Client4) GetDefaultProfileImage(userId string) ([]byte, *Response, erro
 
 // GetProfileImage gets user's profile image. Must be logged in.
 func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -1155,9 +1155,9 @@ func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("SearchUsers", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+"/search", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetUsersRoute()+"/search", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return UserListFromJson(r.Body), BuildResponse(r), nil
@@ -1169,9 +1169,9 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("UpdateUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetUserRoute(user.Id), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetUserRoute(user.Id), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return UserFromJson(r.Body), BuildResponse(r), nil
@@ -1183,9 +1183,9 @@ func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response, 
 	if err != nil {
 		return nil, nil, NewAppError("PatchUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetUserRoute(userId)+"/patch", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetUserRoute(userId)+"/patch", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return UserFromJson(r.Body), BuildResponse(r), nil
@@ -1197,9 +1197,9 @@ func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, 
 	if err != nil {
 		return nil, nil, NewAppError("UpdateUserAuth", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetUserRoute(userId)+"/auth", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetUserRoute(userId)+"/auth", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return UserAuthFromJson(r.Body), BuildResponse(r), nil
@@ -1320,13 +1320,13 @@ func (c *Client4) PermanentDeleteUser(userId string) (bool, *Response, error) {
 
 // ConvertUserToBot converts a user to a bot user.
 func (c *Client4) ConvertUserToBot(userId string) (*Bot, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetUserRoute(userId)+"/convert_to_bot", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/convert_to_bot", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	var bot *Bot
-	err := json.NewDecoder(r.Body).Decode(&bot)
+	err = json.NewDecoder(r.Body).Decode(&bot)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ConvertUserToBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1343,9 +1343,9 @@ func (c *Client4) ConvertBotToUser(userId string, userPatch *UserPatch, setSyste
 	if err != nil {
 		return nil, nil, NewAppError("ConvertBotToUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetBotRoute(userId)+"/convert_to_user"+query, buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetBotRoute(userId)+"/convert_to_user"+query, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return UserFromJson(r.Body), BuildResponse(r), nil
@@ -1462,14 +1462,14 @@ func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string, includeC
 // GetUserAudits returns a list of audit based on the provided user id string.
 func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag string) (Audits, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+"/audits"+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/audits"+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var audits Audits
-	err := json.NewDecoder(r.Body).Decode(&audits)
+	err = json.NewDecoder(r.Body).Decode(&audits)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetUserAudits", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1633,9 +1633,9 @@ func (c *Client4) SearchUserAccessTokens(search *UserAccessTokenSearch) ([]*User
 	if err != nil {
 		return nil, nil, NewAppError("SearchUserAccessTokens", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetUsersRoute()+"/tokens/search", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetUsersRoute()+"/tokens/search", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return UserAccessTokenListFromJson(r.Body), BuildResponse(r), nil
@@ -1671,14 +1671,14 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response, error)
 
 // CreateBot creates a bot in the system based on the provided bot struct.
 func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response, error) {
-	r, appErr := c.doApiPostBytes(c.GetBotsRoute(), bot.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetBotsRoute(), bot.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var resp *Bot
-	err := json.NewDecoder(r.Body).Decode(&resp)
+	err = json.NewDecoder(r.Body).Decode(&resp)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("CreateBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1688,14 +1688,14 @@ func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response, error) {
 
 // PatchBot partially updates a bot. Any missing fields are not updated.
 func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response, error) {
-	r, appErr := c.doApiPutBytes(c.GetBotRoute(userId), patch.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetBotRoute(userId), patch.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bot *Bot
-	err := json.NewDecoder(r.Body).Decode(&bot)
+	err = json.NewDecoder(r.Body).Decode(&bot)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("PatchBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1705,14 +1705,14 @@ func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response, err
 
 // GetBot fetches the given, undeleted bot.
 func (c *Client4) GetBot(userId string, etag string) (*Bot, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetBotRoute(userId), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetBotRoute(userId), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bot *Bot
-	err := json.NewDecoder(r.Body).Decode(&bot)
+	err = json.NewDecoder(r.Body).Decode(&bot)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1722,14 +1722,14 @@ func (c *Client4) GetBot(userId string, etag string) (*Bot, *Response, error) {
 
 // GetBotIncludeDeleted fetches the given bot, even if it is deleted.
 func (c *Client4) GetBotIncludeDeleted(userId string, etag string) (*Bot, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetBotRoute(userId)+"?include_deleted="+c.boolString(true), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetBotRoute(userId)+"?include_deleted="+c.boolString(true), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bot *Bot
-	err := json.NewDecoder(r.Body).Decode(&bot)
+	err = json.NewDecoder(r.Body).Decode(&bot)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetBotIncludeDeleted", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1740,14 +1740,14 @@ func (c *Client4) GetBotIncludeDeleted(userId string, etag string) (*Bot, *Respo
 // GetBots fetches the given page of bots, excluding deleted.
 func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, appErr := c.DoApiGet(c.GetBotsRoute()+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bots BotList
-	err := json.NewDecoder(r.Body).Decode(&bots)
+	err = json.NewDecoder(r.Body).Decode(&bots)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetBots", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1757,14 +1757,14 @@ func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response, er
 // GetBotsIncludeDeleted fetches the given page of bots, including deleted.
 func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted="+c.boolString(true), page, perPage)
-	r, appErr := c.DoApiGet(c.GetBotsRoute()+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bots BotList
-	err := json.NewDecoder(r.Body).Decode(&bots)
+	err = json.NewDecoder(r.Body).Decode(&bots)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetBotsIncludeDeleted", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1774,14 +1774,14 @@ func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot,
 // GetBotsOrphaned fetches the given page of bots, only including orphanded bots.
 func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned="+c.boolString(true), page, perPage)
-	r, appErr := c.DoApiGet(c.GetBotsRoute()+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bots BotList
-	err := json.NewDecoder(r.Body).Decode(&bots)
+	err = json.NewDecoder(r.Body).Decode(&bots)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetBotsOrphaned", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1790,14 +1790,14 @@ func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Resp
 
 // DisableBot disables the given bot in the system.
 func (c *Client4) DisableBot(botUserId string) (*Bot, *Response, error) {
-	r, appErr := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/disable", nil)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/disable", nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bot *Bot
-	err := json.NewDecoder(r.Body).Decode(&bot)
+	err = json.NewDecoder(r.Body).Decode(&bot)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("DisableBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1807,14 +1807,14 @@ func (c *Client4) DisableBot(botUserId string) (*Bot, *Response, error) {
 
 // EnableBot disables the given bot in the system.
 func (c *Client4) EnableBot(botUserId string) (*Bot, *Response, error) {
-	r, appErr := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/enable", nil)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/enable", nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bot *Bot
-	err := json.NewDecoder(r.Body).Decode(&bot)
+	err = json.NewDecoder(r.Body).Decode(&bot)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("EnableBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1824,14 +1824,14 @@ func (c *Client4) EnableBot(botUserId string) (*Bot, *Response, error) {
 
 // AssignBot assigns the given bot to the given user
 func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response, error) {
-	r, appErr := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/assign/"+newOwnerId, nil)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/assign/"+newOwnerId, nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var bot *Bot
-	err := json.NewDecoder(r.Body).Decode(&bot)
+	err = json.NewDecoder(r.Body).Decode(&bot)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("AssignBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1882,9 +1882,9 @@ func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Respons
 
 // GetBotIconImage gets LHS bot icon image. Must be logged in.
 func (c *Client4) GetBotIconImage(botUserId string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetBotRoute(botUserId)+"/icon", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetBotRoute(botUserId)+"/icon", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -1897,9 +1897,9 @@ func (c *Client4) GetBotIconImage(botUserId string) ([]byte, *Response, error) {
 
 // DeleteBotIconImage deletes LHS bot icon image. Must be logged in.
 func (c *Client4) DeleteBotIconImage(botUserId string) (bool, *Response, error) {
-	r, appErr := c.DoApiDelete(c.GetBotRoute(botUserId) + "/icon")
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.DoApiDelete(c.GetBotRoute(botUserId) + "/icon")
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -1913,9 +1913,9 @@ func (c *Client4) CreateTeam(team *Team) (*Team, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("CreateTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetTeamsRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetTeamsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return TeamFromJson(r.Body), BuildResponse(r), nil
@@ -1982,9 +1982,9 @@ func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("SearchTeams", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetTeamsRoute()+"/search", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetTeamsRoute()+"/search", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return TeamListFromJson(r.Body), BuildResponse(r), nil
@@ -2002,9 +2002,9 @@ func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Respons
 	if err != nil {
 		return nil, 0, BuildResponse(nil), NewAppError("SearchTeamsPaged", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetTeamsRoute()+"/search", buf)
-	if appErr != nil {
-		return nil, 0, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetTeamsRoute()+"/search", buf)
+	if err != nil {
+		return nil, 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	twc := TeamsWithCountFromJson(r.Body)
@@ -2059,9 +2059,9 @@ func (c *Client4) UpdateTeamMemberSchemeRoles(teamId string, userId string, sche
 	if err != nil {
 		return false, nil, NewAppError("UpdateTeamMemberSchemeRoles", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetTeamMemberRoute(teamId, userId)+"/schemeRoles", buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetTeamMemberRoute(teamId, userId)+"/schemeRoles", buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -2073,9 +2073,9 @@ func (c *Client4) UpdateTeam(team *Team) (*Team, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("UpdateTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetTeamRoute(team.Id), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetTeamRoute(team.Id), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return TeamFromJson(r.Body), BuildResponse(r), nil
@@ -2087,9 +2087,9 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response, 
 	if err != nil {
 		return nil, nil, NewAppError("PatchTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetTeamRoute(teamId)+"/patch", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetTeamRoute(teamId)+"/patch", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return TeamFromJson(r.Body), BuildResponse(r), nil
@@ -2199,9 +2199,9 @@ func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response, 
 	if err != nil {
 		return nil, nil, NewAppError("AddTeamMember", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetTeamMembersRoute(teamId), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetTeamMembersRoute(teamId), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return TeamMemberFromJson(r.Body), BuildResponse(r), nil
@@ -2364,9 +2364,9 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 	if err != nil {
 		return false, nil, NewAppError("InviteGuestsToTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetTeamRoute(teamId)+"/invite-guests/email", buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetTeamRoute(teamId)+"/invite-guests/email", buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -2393,9 +2393,9 @@ func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []strin
 	if err != nil {
 		return nil, nil, NewAppError("InviteGuestsToTeamGracefully", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetTeamRoute(teamId)+"/invite-guests/email?graceful="+c.boolString(true), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetTeamRoute(teamId)+"/invite-guests/email?graceful="+c.boolString(true), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r), nil
@@ -2465,9 +2465,9 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response, erro
 
 // GetTeamIcon gets the team icon of the team.
 func (c *Client4) GetTeamIcon(teamId, etag string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetTeamRoute(teamId)+"/image", etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetTeamRoute(teamId)+"/image", etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -2509,14 +2509,14 @@ func (c *Client4) GetAllChannelsExcludePolicyConstrained(page, perPage int, etag
 func (c *Client4) getAllChannels(page int, perPage int, etag string, opts ChannelSearchOpts) (*ChannelListWithTeamData, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v&exclude_policy_constrained=%v",
 		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained)
-	r, appErr := c.DoApiGet(c.GetChannelsRoute()+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelListWithTeamData
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("getAllChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2526,14 +2526,14 @@ func (c *Client4) getAllChannels(page int, perPage int, etag string, opts Channe
 // GetAllChannelsWithCount get all the channels including the total count. Must be a system administrator.
 func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*ChannelListWithTeamData, int64, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
-	r, appErr := c.DoApiGet(c.GetChannelsRoute()+query, etag)
-	if appErr != nil {
-		return nil, 0, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if err != nil {
+		return nil, 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var cwc *ChannelsWithCount
-	err := json.NewDecoder(r.Body).Decode(&cwc)
+	err = json.NewDecoder(r.Body).Decode(&cwc)
 	if err != nil {
 		return nil, 0, BuildResponse(r), NewAppError("GetAllChannelsWithCount", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2542,14 +2542,14 @@ func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*
 
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("CreateChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2558,14 +2558,14 @@ func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response, error) {
 
 // UpdateChannel updates a channel based on the provided channel struct.
 func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response, error) {
-	r, appErr := c.DoApiPut(c.GetChannelRoute(channel.Id), channel.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPut(c.GetChannelRoute(channel.Id), channel.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("UpdateChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2578,9 +2578,9 @@ func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel,
 	if err != nil {
 		return nil, nil, NewAppError("PatchChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetChannelRoute(channelId)+"/patch", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetChannelRoute(channelId)+"/patch", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -2594,14 +2594,14 @@ func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel,
 
 // ConvertChannelToPrivate converts public to private channel.
 func (c *Client4) ConvertChannelToPrivate(channelId string) (*Channel, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelRoute(channelId)+"/convert", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/convert", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ConvertChannelToPrivate", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2611,14 +2611,14 @@ func (c *Client4) ConvertChannelToPrivate(channelId string) (*Channel, *Response
 // UpdateChannelPrivacy updates channel privacy
 func (c *Client4) UpdateChannelPrivacy(channelId string, privacy ChannelType) (*Channel, *Response, error) {
 	requestBody := map[string]string{"privacy": string(privacy)}
-	r, appErr := c.DoApiPut(c.GetChannelRoute(channelId)+"/privacy", MapToJson(requestBody))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPut(c.GetChannelRoute(channelId)+"/privacy", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("UpdateChannelPrivacy", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2627,14 +2627,14 @@ func (c *Client4) UpdateChannelPrivacy(channelId string, privacy ChannelType) (*
 
 // RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
 func (c *Client4) RestoreChannel(channelId string) (*Channel, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelRoute(channelId)+"/restore", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/restore", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("RestoreChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2645,14 +2645,14 @@ func (c *Client4) RestoreChannel(channelId string) (*Channel, *Response, error) 
 // ids provided.
 func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response, error) {
 	requestBody := []string{userId1, userId2}
-	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/direct", ArrayToJson(requestBody))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/direct", ArrayToJson(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("CreateDirectChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2661,14 +2661,14 @@ func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Respo
 
 // CreateGroupChannel creates a group message channel based on userIds provided.
 func (c *Client4) CreateGroupChannel(userIds []string) (*Channel, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/group", ArrayToJson(userIds))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group", ArrayToJson(userIds))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("CreateGroupChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2677,14 +2677,14 @@ func (c *Client4) CreateGroupChannel(userIds []string) (*Channel, *Response, err
 
 // GetChannel returns a channel based on the provided channel id string.
 func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelRoute(channelId), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelRoute(channelId), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2724,14 +2724,14 @@ func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Res
 // GetPrivateChannelsForTeam returns a list of private channels based on the provided team id string.
 func (c *Client4) GetPrivateChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
 	query := fmt.Sprintf("/private?page=%v&per_page=%v", page, perPage)
-	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetPrivateChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2741,14 +2741,14 @@ func (c *Client4) GetPrivateChannelsForTeam(teamId string, page int, perPage int
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetPublicChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2758,14 +2758,14 @@ func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int,
 // GetDeletedChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetDeletedChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
 	query := fmt.Sprintf("/deleted?page=%v&per_page=%v", page, perPage)
-	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetDeletedChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2774,14 +2774,14 @@ func (c *Client4) GetDeletedChannelsForTeam(teamId string, page int, perPage int
 
 // GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string.
 func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) ([]*Channel, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/ids", ArrayToJson(channelIds))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/ids", ArrayToJson(channelIds))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetPublicChannelsByIdsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2790,14 +2790,14 @@ func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []stri
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
 func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool, etag string) ([]*Channel, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelsForTeamForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2808,14 +2808,14 @@ func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDelete
 func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response, error) {
 	route := fmt.Sprintf(c.GetUserRoute(userId) + c.GetTeamRoute(teamId) + "/channels")
 	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
-	r, appErr := c.DoApiGet(route, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelsForTeamAndUserWithLastDeleteAt", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2824,14 +2824,14 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId strin
 
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("SearchChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2840,14 +2840,14 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 
 // SearchArchivedChannels returns the archived channels on a team matching the provided search term.
 func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search_archived", search.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search_archived", search.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("SearchArchivedChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2856,14 +2856,14 @@ func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) (
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelListWithTeamData
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("SearchAllChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2872,14 +2872,14 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 
 // SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
 func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var cwc *ChannelsWithCount
-	err := json.NewDecoder(r.Body).Decode(&cwc)
+	err = json.NewDecoder(r.Body).Decode(&cwc)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetAllChannelsWithCount", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2888,14 +2888,14 @@ func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCo
 
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("SearchGroupChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2928,14 +2928,14 @@ func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *
 		"team_id": teamId,
 		"force":   force,
 	}
-	r, appErr := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", StringInterfaceToJson(requestBody))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", StringInterfaceToJson(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("MoveChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2944,14 +2944,14 @@ func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
 func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Channel, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelByName", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2960,14 +2960,14 @@ func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Ch
 
 // GetChannelByNameIncludeDeleted returns a channel based on the provided channel name and team id strings. Other then GetChannelByName it will also return deleted channels.
 func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, etag string) (*Channel, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+"?include_deleted="+c.boolString(true), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+"?include_deleted="+c.boolString(true), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelByNameIncludeDeleted", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2976,14 +2976,14 @@ func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, eta
 
 // GetChannelByNameForTeamName returns a channel based on the provided channel name and team name strings.
 func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*Channel, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelByNameForTeamName", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2992,14 +2992,14 @@ func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag
 
 // GetChannelByNameForTeamNameIncludeDeleted returns a channel based on the provided channel name and team name strings. Other then GetChannelByNameForTeamName it will also return deleted channels.
 func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamName string, etag string) (*Channel, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+"?include_deleted="+c.boolString(true), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+"?include_deleted="+c.boolString(true), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *Channel
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelByNameForTeamNameIncludeDeleted", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3009,14 +3009,14 @@ func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamNam
 // GetChannelMembers gets a page of channel members.
 func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag string) (*ChannelMembers, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, appErr := c.DoApiGet(c.GetChannelMembersRoute(channelId)+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelMembersRoute(channelId)+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelMembers
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMembers", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3025,14 +3025,14 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 
 // GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
 func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelMembers
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMembersByIds", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3041,14 +3041,14 @@ func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*C
 
 // GetChannelMember gets a channel member.
 func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMember, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelMemberRoute(channelId, userId), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelMemberRoute(channelId, userId), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelMember
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMember", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3057,14 +3057,14 @@ func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMemb
 
 // GetChannelMembersForUser gets all the channel members for a user on a team.
 func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*ChannelMembers, *Response, error) {
-	r, appErr := c.DoApiGet(fmt.Sprintf(c.GetUserRoute(userId)+"/teams/%v/channels/members", teamId), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(fmt.Sprintf(c.GetUserRoute(userId)+"/teams/%v/channels/members", teamId), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelMembers
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMembersForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3078,9 +3078,9 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (*ChannelViewRes
 	if err != nil {
 		return nil, nil, NewAppError("ViewChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(url, buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(url, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -3095,14 +3095,14 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (*ChannelViewRes
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/unread", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/unread", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelUnread
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelUnread", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3126,9 +3126,9 @@ func (c *Client4) UpdateChannelMemberSchemeRoles(channelId string, userId string
 	if err != nil {
 		return false, nil, NewAppError("UpdateChannelMemberSchemeRoles", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetChannelMemberRoute(channelId, userId)+"/schemeRoles", buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetChannelMemberRoute(channelId, userId)+"/schemeRoles", buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -3147,14 +3147,14 @@ func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[s
 // AddChannelMember adds user to channel and return a channel member.
 func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId}
-	r, appErr := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelMember
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("AddChannelMember", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3164,14 +3164,14 @@ func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *R
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
 func (c *Client4) AddChannelMemberWithRootId(channelId, userId, postRootId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}
-	r, appErr := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelMember
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("AddChannelMemberWithRootId", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3191,14 +3191,14 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 // AutocompleteChannelsForTeam will return an ordered list of channels autocomplete suggestions.
 func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList, *Response, error) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, app := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/autocomplete"+query, "")
-	if app != nil {
-		return nil, BuildResponse(r), app
+	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/autocomplete"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelList
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("AutocompleteChannelsForTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3208,14 +3208,14 @@ func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList
 // AutocompleteChannelsForTeamForSearch will return an ordered list of your channels autocomplete suggestions.
 func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (*ChannelList, *Response, error) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, appErr := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/search_autocomplete"+query, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/search_autocomplete"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch *ChannelList
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("AutocompleteChannelsForTeamForSearch", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3260,9 +3260,9 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response, 
 	if err != nil {
 		return nil, nil, NewAppError("PatchPost", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetPostRoute(postId)+"/patch", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetPostRoute(postId)+"/patch", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return PostFromJson(r.Body), BuildResponse(r), nil
@@ -3274,9 +3274,9 @@ func (c *Client4) SetPostUnread(userId string, postId string, collapsedThreadsSu
 	if err != nil {
 		return nil, NewAppError("SetPostUnread", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", b)
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", b)
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
@@ -3593,9 +3593,9 @@ func (c *Client4) UploadFileAsRequestBody(data []byte, channelId string, filenam
 
 // GetFile gets the bytes for a file by id.
 func (c *Client4) GetFile(fileId string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetFileRoute(fileId), "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetFileRoute(fileId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -3608,9 +3608,9 @@ func (c *Client4) GetFile(fileId string) ([]byte, *Response, error) {
 
 // DownloadFile gets the bytes for a file by id, optionally adding headers to force the browser to download it.
 func (c *Client4) DownloadFile(fileId string, download bool) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("?download=%v", download), "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("?download=%v", download), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -3623,9 +3623,9 @@ func (c *Client4) DownloadFile(fileId string, download bool) ([]byte, *Response,
 
 // GetFileThumbnail gets the bytes for a file by id.
 func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetFileRoute(fileId)+"/thumbnail", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/thumbnail", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -3638,9 +3638,9 @@ func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response, error) {
 
 // DownloadFileThumbnail gets the bytes for a file by id, optionally adding headers to force the browser to download it.
 func (c *Client4) DownloadFileThumbnail(fileId string, download bool) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("/thumbnail?download=%v", download), "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("/thumbnail?download=%v", download), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -3663,9 +3663,9 @@ func (c *Client4) GetFileLink(fileId string) (string, *Response, error) {
 
 // GetFilePreview gets the bytes for a file by id.
 func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetFileRoute(fileId)+"/preview", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/preview", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -3678,9 +3678,9 @@ func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response, error) {
 
 // DownloadFilePreview gets the bytes for a file by id.
 func (c *Client4) DownloadFilePreview(fileId string, download bool) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("/preview?download=%v", download), "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("/preview?download=%v", download), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -3715,9 +3715,9 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 
 // GenerateSupportPacket downloads the generated support packet
 func (c *Client4) GenerateSupportPacket() ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetSystemRoute()+"/support_packet", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetSystemRoute()+"/support_packet", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -3778,9 +3778,9 @@ func (c *Client4) TestEmail(config *Config) (bool, *Response, error) {
 	if err != nil {
 		return false, nil, NewAppError("TestEmail", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetTestEmailRoute(), buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetTestEmailRoute(), buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -3804,9 +3804,9 @@ func (c *Client4) TestS3Connection(config *Config) (bool, *Response, error) {
 	if err != nil {
 		return false, nil, NewAppError("TestS3Connection", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetTestS3Route(), buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetTestS3Route(), buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -3892,9 +3892,9 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("UpdateConfig", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetConfigRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetConfigRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return ConfigFromJson(r.Body), BuildResponse(r), nil
@@ -3971,14 +3971,14 @@ func (c *Client4) RemoveLicenseFile() (bool, *Response, error) {
 // to a specific team.
 func (c *Client4) GetAnalyticsOld(name, teamId string) (AnalyticsRows, *Response, error) {
 	query := fmt.Sprintf("?name=%v&team_id=%v", name, teamId)
-	r, appErr := c.DoApiGet(c.GetAnalyticsRoute()+"/old"+query, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetAnalyticsRoute()+"/old"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var rows AnalyticsRows
-	err := json.NewDecoder(r.Body).Decode(&rows)
+	err = json.NewDecoder(r.Body).Decode(&rows)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetAnalyticsOld", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -3993,9 +3993,9 @@ func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 	if err != nil {
 		return nil, nil, NewAppError("CreateIncomingWebhook", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetIncomingWebhooksRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetIncomingWebhooksRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return IncomingWebhookFromJson(r.Body), BuildResponse(r), nil
@@ -4007,9 +4007,9 @@ func (c *Client4) UpdateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 	if err != nil {
 		return nil, nil, NewAppError("UpdateIncomingWebhook", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetIncomingWebhookRoute(hook.Id), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetIncomingWebhookRoute(hook.Id), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return IncomingWebhookFromJson(r.Body), BuildResponse(r), nil
@@ -4063,9 +4063,9 @@ func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 	if err != nil {
 		return nil, nil, NewAppError("CreateOutgoingWebhook", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetOutgoingWebhooksRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetOutgoingWebhooksRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
@@ -4077,9 +4077,9 @@ func (c *Client4) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 	if err != nil {
 		return nil, nil, NewAppError("UpdateOutgoingWebhook", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetOutgoingWebhookRoute(hook.Id), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetOutgoingWebhookRoute(hook.Id), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
@@ -4167,9 +4167,9 @@ func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bo
 	if err != nil {
 		return false, nil, NewAppError("UpdatePreferences", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetPreferencesRoute(userId), buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetPreferencesRoute(userId), buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return true, BuildResponse(r), nil
@@ -4181,9 +4181,9 @@ func (c *Client4) DeletePreferences(userId string, preferences *Preferences) (bo
 	if err != nil {
 		return false, nil, NewAppError("DeletePreferences", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetPreferencesRoute(userId)+"/delete", buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetPreferencesRoute(userId)+"/delete", buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return true, BuildResponse(r), nil
@@ -4348,10 +4348,9 @@ func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, use
 	}
 	defer closeBody(r)
 	respBody := map[string]int64{}
-	jsonErr := json.NewDecoder(r.Body).Decode(&respBody)
-	if jsonErr != nil {
-		appErr := NewAppError("Api4.ResetSamlAuthDataToEmail", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return 0, BuildResponse(r), appErr
+	err = json.NewDecoder(r.Body).Decode(&respBody)
+	if err != nil {
+		return 0, BuildResponse(r), NewAppError("Api4.ResetSamlAuthDataToEmail", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return respBody["num_affected"], BuildResponse(r), nil
 }
@@ -4364,9 +4363,9 @@ func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Resp
 	if err != nil {
 		return nil, nil, NewAppError("CreateComplianceReport", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetComplianceReportsRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetComplianceReportsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return ComplianceFromJson(r.Body), BuildResponse(r), nil
@@ -4466,9 +4465,9 @@ func (c *Client4) TestLdap() (bool, *Response, error) {
 func (c *Client4) GetLdapGroups() ([]*Group, *Response, error) {
 	path := fmt.Sprintf("%s/groups", c.GetLdapRoute())
 
-	r, appErr := c.DoApiGet(path, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(path, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -4477,8 +4476,7 @@ func (c *Client4) GetLdapGroups() ([]*Group, *Response, error) {
 		Groups []*Group `json:"groups"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
-		appErr := NewAppError("Api4.GetLdapGroups", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return nil, BuildResponse(r), appErr
+		return nil, BuildResponse(r), NewAppError("Api4.GetLdapGroups", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for i := range responseData.Groups {
 		responseData.Groups[i].DisplayName = *responseData.Groups[i].Name
@@ -4491,9 +4489,9 @@ func (c *Client4) GetLdapGroups() ([]*Group, *Response, error) {
 func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response, error) {
 	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
 
-	r, appErr := c.DoApiPost(path, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(path, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -4504,9 +4502,9 @@ func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response, error) {
 func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response, error) {
 	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
 
-	r, appErr := c.DoApiDelete(path)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiDelete(path)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -4531,9 +4529,9 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
-	r, appErr := c.DoApiGet(path, "")
-	if appErr != nil {
-		return nil, 0, BuildResponse(r), appErr
+	r, err := c.DoApiGet(path, "")
+	if err != nil {
+		return nil, 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -4542,8 +4540,7 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 		Count  int                     `json:"total_group_count"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
-		appErr := NewAppError("Api4.GetGroupsByChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return nil, 0, BuildResponse(r), appErr
+		return nil, 0, BuildResponse(r), NewAppError("Api4.GetGroupsByChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return responseData.Groups, responseData.Count, BuildResponse(r), nil
@@ -4555,9 +4552,9 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
-	r, appErr := c.DoApiGet(path, "")
-	if appErr != nil {
-		return nil, 0, BuildResponse(r), appErr
+	r, err := c.DoApiGet(path, "")
+	if err != nil {
+		return nil, 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -4566,8 +4563,7 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 		Count  int                     `json:"total_group_count"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
-		appErr := NewAppError("Api4.GetGroupsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return nil, 0, BuildResponse(r), appErr
+		return nil, 0, BuildResponse(r), NewAppError("Api4.GetGroupsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return responseData.Groups, responseData.Count, BuildResponse(r), nil
@@ -4579,9 +4575,9 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupS
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
-	r, appErr := c.DoApiGet(path, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(path, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -4589,8 +4585,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupS
 		GroupsAssociatedToChannels map[string][]*GroupWithSchemeAdmin `json:"groups"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
-		appErr := NewAppError("Api4.GetGroupsAssociatedToChannelsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return nil, BuildResponse(r), appErr
+		return nil, BuildResponse(r), NewAppError("Api4.GetGroupsAssociatedToChannelsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return responseData.GroupsAssociatedToChannels, BuildResponse(r), nil
@@ -4614,9 +4609,9 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
-	r, appErr := c.DoApiGet(path, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(path, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -4631,9 +4626,9 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response, error) 
 		userId,
 	)
 
-	r, appErr := c.DoApiGet(path, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(path, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return GroupsFromJson(r.Body), BuildResponse(r), nil
@@ -4712,14 +4707,14 @@ func (c *Client4) DeleteLdapPrivateCertificate() (bool, *Response, error) {
 // GetAudits returns a list of audits for the whole system.
 func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, appErr := c.DoApiGet("/audits"+query, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet("/audits"+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var audits Audits
-	err := json.NewDecoder(r.Body).Decode(&audits)
+	err = json.NewDecoder(r.Body).Decode(&audits)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetAudits", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -4730,9 +4725,9 @@ func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Respon
 
 // GetBrandImage retrieves the previously uploaded brand image.
 func (c *Client4) GetBrandImage() ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetBrandRoute()+"/image", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetBrandRoute()+"/image", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -4831,9 +4826,9 @@ func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("CreateOAuthApp", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetOAuthAppsRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetOAuthAppsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
@@ -4845,9 +4840,9 @@ func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("UpdateOAuthApp", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetOAuthAppRoute(app.Id), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetOAuthAppRoute(app.Id), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
@@ -4921,9 +4916,9 @@ func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Res
 	if err != nil {
 		return "", BuildResponse(nil), NewAppError("AuthorizeOAuthApp", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiRequestBytes(http.MethodPost, c.Url+"/oauth/authorize", buf, "")
-	if appErr != nil {
-		return "", BuildResponse(r), appErr
+	r, err := c.doApiRequestBytes(http.MethodPost, c.Url+"/oauth/authorize", buf, "")
+	if err != nil {
+		return "", BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return MapFromJson(r.Body)["redirect"], BuildResponse(r), nil
@@ -5021,9 +5016,9 @@ func (c *Client4) GetDataRetentionPolicy() (*GlobalRetentionPolicy, *Response, e
 
 // GetDataRetentionPolicyByID will get the details for the granular data retention policy with the specified ID.
 func (c *Client4) GetDataRetentionPolicyByID(policyID string) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID), "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	policy, err := RetentionPolicyWithTeamAndChannelCountsFromJson(r.Body)
@@ -5038,14 +5033,14 @@ func (c *Client4) GetDataRetentionPoliciesCount() (int64, *Response, error) {
 	type CountBody struct {
 		TotalCount int64 `json:"total_count"`
 	}
-	r, appErr := c.DoApiGet(c.GetDataRetentionRoute()+"/policies_count", "")
-	if appErr != nil {
-		return 0, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetDataRetentionRoute()+"/policies_count", "")
+	if err != nil {
+		return 0, BuildResponse(r), err
 	}
 	var countObj CountBody
-	jsonErr := json.NewDecoder(r.Body).Decode(&countObj)
-	if jsonErr != nil {
-		return 0, nil, NewAppError("Client4.GetDataRetentionPoliciesCount", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode)
+	err = json.NewDecoder(r.Body).Decode(&countObj)
+	if err != nil {
+		return 0, nil, NewAppError("Client4.GetDataRetentionPoliciesCount", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
 	return countObj.TotalCount, BuildResponse(r), nil
 }
@@ -5053,9 +5048,9 @@ func (c *Client4) GetDataRetentionPoliciesCount() (int64, *Response, error) {
 // GetDataRetentionPolicies will get the current granular data retention policies' details.
 func (c *Client4) GetDataRetentionPolicies(page, perPage int) (*RetentionPolicyWithTeamAndChannelCountsList, *Response, error) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, appErr := c.DoApiGet(c.GetDataRetentionRoute()+"/policies"+query, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetDataRetentionRoute()+"/policies"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	policies, err := RetentionPolicyWithTeamAndChannelCountsListFromJson(r.Body)
@@ -5068,9 +5063,9 @@ func (c *Client4) GetDataRetentionPolicies(page, perPage int) (*RetentionPolicyW
 // CreateDataRetentionPolicy will create a new granular data retention policy which will be applied to
 // the specified teams and channels. The Id field of `policy` must be empty.
 func (c *Client4) CreateDataRetentionPolicy(policy *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	r, appErr := c.doApiPostBytes(c.GetDataRetentionRoute()+"/policies", policy.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetDataRetentionRoute()+"/policies", policy.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	newPolicy, err := RetentionPolicyWithTeamAndChannelCountsFromJson(r.Body)
@@ -5082,9 +5077,9 @@ func (c *Client4) CreateDataRetentionPolicy(policy *RetentionPolicyWithTeamAndCh
 
 // DeleteDataRetentionPolicy will delete the granular data retention policy with the specified ID.
 func (c *Client4) DeleteDataRetentionPolicy(policyID string) (*Response, error) {
-	r, appErr := c.DoApiDelete(c.GetDataRetentionPolicyRoute(policyID))
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.DoApiDelete(c.GetDataRetentionPolicyRoute(policyID))
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
@@ -5093,9 +5088,9 @@ func (c *Client4) DeleteDataRetentionPolicy(policyID string) (*Response, error) 
 // PatchDataRetentionPolicy will patch the granular data retention policy with the specified ID.
 // The Id field of `patch` must be non-empty.
 func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	r, appErr := c.doApiPatchBytes(c.GetDataRetentionPolicyRoute(patch.ID), patch.ToJson())
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPatchBytes(c.GetDataRetentionPolicyRoute(patch.ID), patch.ToJson())
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	policy, err := RetentionPolicyWithTeamAndChannelCountsFromJson(r.Body)
@@ -5108,14 +5103,14 @@ func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithTeamAndChan
 // GetTeamsForRetentionPolicy will get the teams to which the specified policy is currently applied.
 func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int) (*TeamsWithCount, *Response, error) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, appErr := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID)+"/teams"+query, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID)+"/teams"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	var teams *TeamsWithCount
-	jsonErr := json.NewDecoder(r.Body).Decode(&teams)
-	if jsonErr != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.GetTeamsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode)
+	err = json.NewDecoder(r.Body).Decode(&teams)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("Client4.GetTeamsForRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
 	return teams, BuildResponse(r), nil
 }
@@ -5123,14 +5118,14 @@ func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int)
 // SearchTeamsForRetentionPolicy will search the teams to which the specified policy is currently applied.
 func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([]*Team, *Response, error) {
 	body, _ := json.Marshal(map[string]interface{}{"term": term})
-	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams/search", body)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams/search", body)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	var teams []*Team
-	jsonErr := json.NewDecoder(r.Body).Decode(&teams)
-	if jsonErr != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.SearchTeamsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode)
+	err = json.NewDecoder(r.Body).Decode(&teams)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("Client4.SearchTeamsForRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
 	return teams, BuildResponse(r), nil
 }
@@ -5139,9 +5134,9 @@ func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([
 // with the specified ID.
 func (c *Client4) AddTeamsToRetentionPolicy(policyID string, teamIDs []string) (*Response, error) {
 	body, _ := json.Marshal(teamIDs)
-	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams", body)
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams", body)
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
@@ -5151,9 +5146,9 @@ func (c *Client4) AddTeamsToRetentionPolicy(policyID string, teamIDs []string) (
 // with the specified ID.
 func (c *Client4) RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) (*Response, error) {
 	body, _ := json.Marshal(teamIDs)
-	r, appErr := c.doApiDeleteBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams", body)
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.doApiDeleteBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams", body)
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
@@ -5162,14 +5157,14 @@ func (c *Client4) RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []stri
 // GetChannelsForRetentionPolicy will get the channels to which the specified policy is currently applied.
 func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage int) (*ChannelsWithCount, *Response, error) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, appErr := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID)+"/channels"+query, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID)+"/channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	var channels *ChannelsWithCount
-	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
-	if jsonErr != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.GetChannelsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode)
+	err = json.NewDecoder(r.Body).Decode(&channels)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("Client4.GetChannelsForRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
 	return channels, BuildResponse(r), nil
 }
@@ -5177,14 +5172,14 @@ func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage i
 // SearchChannelsForRetentionPolicy will search the channels to which the specified policy is currently applied.
 func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string) (ChannelListWithTeamData, *Response, error) {
 	body, _ := json.Marshal(map[string]interface{}{"term": term})
-	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels/search", body)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels/search", body)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	var channels ChannelListWithTeamData
-	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
-	if jsonErr != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.SearchChannelsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode)
+	err = json.NewDecoder(r.Body).Decode(&channels)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("Client4.SearchChannelsForRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
 	return channels, BuildResponse(r), nil
 }
@@ -5193,9 +5188,9 @@ func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string)
 // with the specified ID.
 func (c *Client4) AddChannelsToRetentionPolicy(policyID string, channelIDs []string) (*Response, error) {
 	body, _ := json.Marshal(channelIDs)
-	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels", body)
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels", body)
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
@@ -5205,9 +5200,9 @@ func (c *Client4) AddChannelsToRetentionPolicy(policyID string, channelIDs []str
 // with the specified ID.
 func (c *Client4) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) (*Response, error) {
 	body, _ := json.Marshal(channelIDs)
-	r, appErr := c.doApiDeleteBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels", body)
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.doApiDeleteBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels", body)
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
@@ -5215,28 +5210,28 @@ func (c *Client4) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs 
 
 // GetTeamPoliciesForUser will get the data retention policies for the teams to which a user belongs.
 func (c *Client4) GetTeamPoliciesForUser(userID string, offset, limit int) (*RetentionPolicyForTeamList, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetUserRoute(userID)+"/data_retention/team_policies", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetUserRoute(userID)+"/data_retention/team_policies", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	var teams RetentionPolicyForTeamList
-	jsonErr := json.NewDecoder(r.Body).Decode(&teams)
-	if jsonErr != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.GetTeamPoliciesForUser", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode)
+	err = json.NewDecoder(r.Body).Decode(&teams)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("Client4.GetTeamPoliciesForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
 	return &teams, BuildResponse(r), nil
 }
 
 // GetChannelPoliciesForUser will get the data retention policies for the channels to which a user belongs.
 func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*RetentionPolicyForChannelList, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetUserRoute(userID)+"/data_retention/channel_policies", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetUserRoute(userID)+"/data_retention/channel_policies", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	var channels RetentionPolicyForChannelList
-	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
-	if jsonErr != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.GetChannelPoliciesForUser", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode)
+	err = json.NewDecoder(r.Body).Decode(&channels)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("Client4.GetChannelPoliciesForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
 	return &channels, BuildResponse(r), nil
 }
@@ -5249,9 +5244,9 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("CreateCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetCommandsRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetCommandsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CommandFromJson(r.Body), BuildResponse(r), nil
@@ -5263,9 +5258,9 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("UpdateCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetCommandRoute(cmd.Id), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetCommandRoute(cmd.Id), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CommandFromJson(r.Body), BuildResponse(r), nil
@@ -5278,9 +5273,9 @@ func (c *Client4) MoveCommand(teamId string, commandId string) (bool, *Response,
 	if err != nil {
 		return false, nil, NewAppError("MoveCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetCommandMoveRoute(commandId), buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetCommandMoveRoute(commandId), buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -5339,9 +5334,9 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 	if err != nil {
 		return nil, nil, NewAppError("ExecuteCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetCommandsRoute()+"/execute", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetCommandsRoute()+"/execute", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -5364,9 +5359,9 @@ func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*Co
 	if err != nil {
 		return nil, nil, NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetCommandsRoute()+"/execute", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetCommandsRoute()+"/execute", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -5425,9 +5420,9 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 	if err != nil {
 		return nil, nil, NewAppError("UpdateUserStatus", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetUserStatusRoute(userId), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetUserStatusRoute(userId), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return StatusFromJson(r.Body), BuildResponse(r), nil
@@ -5517,9 +5512,9 @@ func (c *Client4) GetEmojiByName(name string) (*Emoji, *Response, error) {
 
 // GetEmojiImage returns the emoji image.
 func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetEmojiRoute(emojiId)+"/image", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetEmojiRoute(emojiId)+"/image", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -5537,9 +5532,9 @@ func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response, error) 
 	if err != nil {
 		return nil, nil, NewAppError("SearchEmoji", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetEmojisRoute()+"/search", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetEmojisRoute()+"/search", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return EmojiListFromJson(r.Body), BuildResponse(r), nil
@@ -5548,9 +5543,9 @@ func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response, error) 
 // AutocompleteEmoji returns a list of emoji starting with or matching name.
 func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Response, error) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, appErr := c.DoApiGet(c.GetEmojisRoute()+"/autocomplete"+query, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetEmojisRoute()+"/autocomplete"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return EmojiListFromJson(r.Body), BuildResponse(r), nil
@@ -5564,9 +5559,9 @@ func (c *Client4) SaveReaction(reaction *Reaction) (*Reaction, *Response, error)
 	if err != nil {
 		return nil, nil, NewAppError("SaveReaction", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetReactionsRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetReactionsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return ReactionFromJson(r.Body), BuildResponse(r), nil
@@ -5669,9 +5664,9 @@ func (c *Client4) CreateJob(job *Job) (*Job, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("CreateJob", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetJobsRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetJobsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return JobFromJson(r.Body), BuildResponse(r), nil
@@ -5689,9 +5684,9 @@ func (c *Client4) CancelJob(jobId string) (bool, *Response, error) {
 
 // DownloadJob downloads the results of the job
 func (c *Client4) DownloadJob(jobId string) ([]byte, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/download", jobId), "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/download", jobId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -5740,9 +5735,9 @@ func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response, 
 	if err != nil {
 		return nil, nil, NewAppError("PatchRole", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetRolesRoute()+fmt.Sprintf("/%v/patch", roleId), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetRolesRoute()+fmt.Sprintf("/%v/patch", roleId), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return RoleFromJson(r.Body), BuildResponse(r), nil
@@ -5756,9 +5751,9 @@ func (c *Client4) CreateScheme(scheme *Scheme) (*Scheme, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("CreateScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetSchemesRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetSchemesRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return SchemeFromJson(r.Body), BuildResponse(r), nil
@@ -5800,9 +5795,9 @@ func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response
 	if err != nil {
 		return nil, nil, NewAppError("PatchScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetSchemeRoute(id)+"/patch", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetSchemeRoute(id)+"/patch", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return SchemeFromJson(r.Body), BuildResponse(r), nil
@@ -5820,14 +5815,14 @@ func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*
 
 // GetChannelsForScheme gets the channels using this scheme, sorted alphabetically by display name.
 func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (ChannelList, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch ChannelList
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelsForScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -5910,9 +5905,9 @@ func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequ
 	if err != nil {
 		return nil, nil, nil
 	}
-	r, appErr := c.DoApiPost(c.GetPluginsRoute()+"/marketplace", json)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetPluginsRoute()+"/marketplace", json)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return ManifestFromJson(r.Body), BuildResponse(r), nil
@@ -5982,8 +5977,8 @@ func (c *Client4) DisablePlugin(id string) (bool, *Response, error) {
 // GetMarketplacePlugins will return a list of plugins that an admin can install.
 func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*MarketplacePlugin, *Response, error) {
 	route := c.GetPluginsRoute() + "/marketplace"
-	u, parseErr := url.Parse(route)
-	if parseErr != nil {
+	u, err := url.Parse(route)
+	if err != nil {
 		return nil, nil, nil
 	}
 
@@ -5995,8 +5990,8 @@ func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*Mar
 	}
 	defer closeBody(r)
 
-	plugins, readerErr := MarketplacePluginsFromReader(r.Body)
-	if readerErr != nil {
+	plugins, err := MarketplacePluginsFromReader(r.Body)
+	if err != nil {
 		return nil, BuildResponse(r), NewAppError(route, "model.client.parse_plugins.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
@@ -6010,9 +6005,9 @@ func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (bool, *Respon
 	if err != nil {
 		return false, nil, NewAppError("UpdateChannelScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetChannelSchemeRoute(channelId), buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetChannelSchemeRoute(channelId), buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -6025,9 +6020,9 @@ func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (bool, *Response, er
 	if err != nil {
 		return false, nil, NewAppError("UpdateTeamScheme", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetTeamSchemeRoute(teamId), buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetTeamSchemeRoute(teamId), buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
@@ -6125,9 +6120,9 @@ func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *R
 }
 
 func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetGroupRoute(groupID), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetGroupRoute(groupID), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return GroupFromJson(r.Body), BuildResponse(r), nil
@@ -6135,9 +6130,9 @@ func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
 
 func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response, error) {
 	payload, _ := json.Marshal(patch)
-	r, appErr := c.DoApiPut(c.GetGroupRoute(groupID)+"/patch", string(payload))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPut(c.GetGroupRoute(groupID)+"/patch", string(payload))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return GroupFromJson(r.Body), BuildResponse(r), nil
@@ -6146,9 +6141,9 @@ func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Respon
 func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
 	payload, _ := json.Marshal(patch)
 	url := fmt.Sprintf("%s/link", c.GetGroupSyncableRoute(groupID, syncableID, syncableType))
-	r, appErr := c.DoApiPost(url, string(payload))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(url, string(payload))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
@@ -6156,27 +6151,27 @@ func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType Gro
 
 func (c *Client4) UnlinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType) (*Response, error) {
 	url := fmt.Sprintf("%s/link", c.GetGroupSyncableRoute(groupID, syncableID, syncableType))
-	r, appErr := c.DoApiDelete(url)
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.DoApiDelete(url)
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
 }
 
 func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, etag string) (*GroupSyncable, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetGroupSyncableRoute(groupID, syncableID, syncableType), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetGroupSyncableRoute(groupID, syncableID, syncableType), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetGroupSyncablesRoute(groupID, syncableType), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetGroupSyncablesRoute(groupID, syncableType), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return GroupSyncablesFromJson(r.Body), BuildResponse(r), nil
@@ -6184,9 +6179,9 @@ func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableTy
 
 func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
 	payload, _ := json.Marshal(patch)
-	r, appErr := c.DoApiPut(c.GetGroupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPut(c.GetGroupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
@@ -6221,23 +6216,23 @@ func (c *Client4) PatchConfig(config *Config) (*Config, *Response, error) {
 	if err != nil {
 		return nil, nil, NewAppError("PatchConfig", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPutBytes(c.GetConfigRoute()+"/patch", buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetConfigRoute()+"/patch", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return ConfigFromJson(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*ChannelModeration, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelRoute(channelID)+"/moderations", etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/moderations", etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*ChannelModeration
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelModerations", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -6250,9 +6245,9 @@ func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelMode
 		return nil, nil, NewAppError("PatchChannelModerations", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	r, appErr := c.DoApiPut(c.GetChannelRoute(channelID)+"/moderations/patch", string(payload))
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPut(c.GetChannelRoute(channelID)+"/moderations/patch", string(payload))
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6281,23 +6276,23 @@ func (c *Client4) PublishUserTyping(userID string, typingRequest TypingRequest) 
 	if err != nil {
 		return false, nil, NewAppError("PublishUserTyping", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetPublishUserTypingRoute(userID), buf)
-	if appErr != nil {
-		return false, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetPublishUserTypingRoute(userID), buf)
+	if err != nil {
+		return false, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r), nil
 }
 
 func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var ch []*ChannelMemberCountByGroup
-	err := json.NewDecoder(r.Body).Decode(&ch)
+	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMemberCountsByGroup", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -6317,9 +6312,9 @@ func (c *Client4) RequestTrialLicense(users int) (bool, *Response, error) {
 
 // GetGroupStats retrieves stats for a Mattermost Group
 func (c *Client4) GetGroupStats(groupID string) (*GroupStats, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetGroupRoute(groupID)+"/stats", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetGroupRoute(groupID)+"/stats", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return GroupStatsFromJson(r.Body), BuildResponse(r), nil
@@ -6327,13 +6322,13 @@ func (c *Client4) GetGroupStats(groupID string) (*GroupStats, *Response, error) 
 
 func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string) (*OrderedSidebarCategories, *Response, error) {
 	route := c.GetUserCategoryRoute(userID, teamID)
-	r, appErr := c.DoApiGet(route, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 
 	var cat *OrderedSidebarCategories
-	err := json.NewDecoder(r.Body).Decode(&cat)
+	err = json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("Client4.GetSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -6343,13 +6338,13 @@ func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string
 func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
 	payload, _ := json.Marshal(category)
 	route := c.GetUserCategoryRoute(userID, teamID)
-	r, appErr := c.doApiPostBytes(route, payload)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(route, payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	var cat *SidebarCategoryWithChannels
-	err := json.NewDecoder(r.Body).Decode(&cat)
+	err = json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("Client4.CreateSidebarCategoryForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -6360,14 +6355,14 @@ func (c *Client4) UpdateSidebarCategoriesForTeamForUser(userID, teamID string, c
 	payload, _ := json.Marshal(categories)
 	route := c.GetUserCategoryRoute(userID, teamID)
 
-	r, appErr := c.doApiPutBytes(route, payload)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(route, payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
 	var cat []*SidebarCategoryWithChannels
-	err := json.NewDecoder(r.Body).Decode(&cat)
+	err = json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -6398,13 +6393,13 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(userID, teamID string
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
 	route := c.GetUserCategoryRoute(userID, teamID) + "/" + categoryID
-	r, appErr := c.DoApiGet(route, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	var cat *SidebarCategoryWithChannels
-	err := json.NewDecoder(r.Body).Decode(&cat)
+	err = json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -6415,13 +6410,13 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, e
 func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
 	payload, _ := json.Marshal(category)
 	route := c.GetUserCategoryRoute(userID, teamID) + "/" + categoryID
-	r, appErr := c.doApiPutBytes(route, payload)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(route, payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	var cat *SidebarCategoryWithChannels
-	err := json.NewDecoder(r.Body).Decode(&cat)
+	err = json.NewDecoder(r.Body).Decode(&cat)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -6438,17 +6433,16 @@ func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response, error) {
 	defer closeBody(r)
 	var results []IntegrityCheckResult
 	if err := json.NewDecoder(r.Body).Decode(&results); err != nil {
-		appErr := NewAppError("Api4.CheckIntegrity", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return nil, BuildResponse(r), appErr
+		return nil, BuildResponse(r), NewAppError("Api4.CheckIntegrity", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return results, BuildResponse(r), nil
 }
 
 func (c *Client4) GetNotices(lastViewed int64, teamId string, client NoticeClientType, clientVersion, locale, etag string) (NoticeMessages, *Response, error) {
 	url := fmt.Sprintf("/system/notices/%s?lastViewed=%d&client=%s&clientVersion=%s&locale=%s", teamId, lastViewed, client, clientVersion, locale)
-	r, appErr := c.DoApiGet(url, etag)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(url, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	notices, err := UnmarshalProductNoticeMessages(r.Body)
@@ -6473,9 +6467,9 @@ func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response, er
 	if err != nil {
 		return nil, nil, NewAppError("CreateUpload", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, appErr := c.doApiPostBytes(c.GetUploadsRoute(), buf)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetUploadsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return UploadSessionFromJson(r.Body), BuildResponse(r), nil
@@ -6527,9 +6521,9 @@ func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) (*
 // Cloud Section
 
 func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/products", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetCloudRoute()+"/products", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6540,9 +6534,9 @@ func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
 }
 
 func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response, error) {
-	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/payment", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetCloudRoute()+"/payment", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6555,9 +6549,9 @@ func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response, error)
 func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodRequest) (*Response, error) {
 	json, _ := json.Marshal(confirmRequest)
 
-	r, appErr := c.doApiPostBytes(c.GetCloudRoute()+"/payment/confirm", json)
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.doApiPostBytes(c.GetCloudRoute()+"/payment/confirm", json)
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6565,9 +6559,9 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 }
 
 func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/customer", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetCloudRoute()+"/customer", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6578,9 +6572,9 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 }
 
 func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetCloudRoute()+"/subscription", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6591,9 +6585,9 @@ func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
 }
 
 func (c *Client4) GetSubscriptionStats() (*SubscriptionStats, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/stats", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetCloudRoute()+"/subscription/stats", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6603,9 +6597,9 @@ func (c *Client4) GetSubscriptionStats() (*SubscriptionStats, *Response, error) 
 }
 
 func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response, error) {
-	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/invoices", "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(c.GetCloudRoute()+"/subscription/invoices", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6618,9 +6612,9 @@ func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response, error) {
 func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
 	customerBytes, _ := json.Marshal(customerInfo)
 
-	r, appErr := c.doApiPutBytes(c.GetCloudRoute()+"/customer", customerBytes)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetCloudRoute()+"/customer", customerBytes)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6633,9 +6627,9 @@ func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCu
 func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, *Response, error) {
 	addressBytes, _ := json.Marshal(address)
 
-	r, appErr := c.doApiPutBytes(c.GetCloudRoute()+"/customer/address", addressBytes)
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.doApiPutBytes(c.GetCloudRoute()+"/customer/address", addressBytes)
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6679,9 +6673,9 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 			HeaderRange: fmt.Sprintf("bytes=%d-", offset),
 		}
 	}
-	r, appErr := c.DoApiRequestWithHeaders(http.MethodGet, c.ApiUrl+c.GetExportRoute(name), "", headers)
-	if appErr != nil {
-		return 0, BuildResponse(r), appErr
+	r, err := c.DoApiRequestWithHeaders(http.MethodGet, c.ApiUrl+c.GetExportRoute(name), "", headers)
+	if err != nil {
+		return 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	n, err := io.Copy(wr, r.Body)
@@ -6719,9 +6713,9 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 		url += "?" + v.Encode()
 	}
 
-	r, appErr := c.DoApiGet(url, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6736,9 +6730,9 @@ func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) 
 	if extended {
 		url += "?extended=true"
 	}
-	r, appErr := c.DoApiGet(url, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6749,9 +6743,9 @@ func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) 
 }
 
 func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) (*Response, error) {
-	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read", c.GetUserThreadsRoute(userId, teamId)), "")
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.DoApiPut(fmt.Sprintf("%s/read", c.GetUserThreadsRoute(userId, teamId)), "")
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6759,9 +6753,9 @@ func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) (*Response, er
 }
 
 func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response, error) {
-	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, teamId, threadId), timestamp), "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, teamId, threadId), timestamp), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	var thread ThreadResponse
@@ -6771,15 +6765,15 @@ func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, times
 }
 
 func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, state bool) (*Response, error) {
-	var appErr *AppError
+	var err error
 	var r *http.Response
 	if state {
-		r, appErr = c.DoApiPut(c.GetUserThreadRoute(userId, teamId, threadId)+"/following", "")
+		r, err = c.DoApiPut(c.GetUserThreadRoute(userId, teamId, threadId)+"/following", "")
 	} else {
-		r, appErr = c.DoApiDelete(c.GetUserThreadRoute(userId, teamId, threadId) + "/following")
+		r, err = c.DoApiDelete(c.GetUserThreadRoute(userId, teamId, threadId) + "/following")
 	}
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6787,9 +6781,9 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 }
 
 func (c *Client4) SendAdminUpgradeRequestEmail() (*Response, error) {
-	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/invite", "")
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/invite", "")
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6797,9 +6791,9 @@ func (c *Client4) SendAdminUpgradeRequestEmail() (*Response, error) {
 }
 
 func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() (*Response, error) {
-	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/join", "")
-	if appErr != nil {
-		return BuildResponse(r), appErr
+	r, err := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/join", "")
+	if err != nil {
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6808,9 +6802,9 @@ func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() (*Response, error) {
 
 func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*SharedChannel, *Response, error) {
 	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.GetSharedChannelsRoute(), teamID, page, perPage)
-	r, appErr := c.DoApiGet(url, "")
-	if appErr != nil {
-		return nil, BuildResponse(r), appErr
+	r, err := c.DoApiGet(url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6822,9 +6816,9 @@ func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*Sha
 
 func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Response, error) {
 	url := fmt.Sprintf("%s/remote_info/%s", c.GetSharedChannelsRoute(), remoteID)
-	r, appErr := c.DoApiGet(url, "")
-	if appErr != nil {
-		return RemoteClusterInfo{}, BuildResponse(r), appErr
+	r, err := c.DoApiGet(url, "")
+	if err != nil {
+		return RemoteClusterInfo{}, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
@@ -6837,9 +6831,9 @@ func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Res
 func (c *Client4) GetAncillaryPermissions(subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
 	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.GetPermissionsRoute(), strings.Join(subsectionPermissions, ","))
-	r, appErr := c.DoApiGet(url, "")
-	if appErr != nil {
-		return returnedPermissions, BuildResponse(r), appErr
+	r, err := c.DoApiGet(url, "")
+	if err != nil {
+		return returnedPermissions, BuildResponse(r), err
 	}
 	defer closeBody(r)
 

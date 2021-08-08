@@ -298,8 +298,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	token, refreshToken = rsp.AccessToken, rsp.RefreshToken
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
-	_, appErr = ApiClient.DoApiGet("/oauth_test", "")
-	require.Nil(t, appErr)
+	_, err = ApiClient.DoApiGet("/oauth_test", "")
+	require.Nil(t, err)
 
 	ApiClient.SetOAuthToken("")
 	_, err = ApiClient.DoApiGet("/oauth_test", "")

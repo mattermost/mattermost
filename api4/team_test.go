@@ -483,8 +483,8 @@ func TestPatchTeam(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		r, err := client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
-		require.NotNil(t, err, "should have errored")
+		r, err2 := client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
+		require.NotNil(t, err2, "should have errored")
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 	})
 
@@ -2036,9 +2036,9 @@ func TestAddTeamMember(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should return error with invalid JSON in body.
-	_, appErr = client.DoApiPost("/teams/"+team.Id+"/members", "invalid")
-	require.NotNil(t, appErr)
-	require.Equal(t, "api.team.add_team_member.invalid_body.app_error", appErr.Id)
+	_, err = client.DoApiPost("/teams/"+team.Id+"/members", "invalid")
+	require.NotNil(t, err)
+	CheckErrorID(t, err, "team.add_team_member.invalid_body.app_error")
 
 	// by token
 	client.Login(otherUser.Email, otherUser.Password)
@@ -3159,7 +3159,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	t.Run("invalid data in request body", func(t *testing.T) {
 		res, err := th.SystemAdminClient.DoApiPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
 		require.NotNil(t, err)
-		require.Equal(t, "api.team.invite_guests_to_channels.invalid_body.app_error", err.Id)
+		CheckErrorID(t, err, "api.team.invite_guests_to_channels.invalid_body.app_error")
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 

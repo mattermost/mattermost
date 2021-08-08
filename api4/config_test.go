@@ -180,8 +180,8 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		t.Run("Should set defaults for missing fields", func(t *testing.T) {
-			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), "{}")
-			require.Nil(t, appErr)
+			_, err = th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), "{}")
+			require.Nil(t, err)
 		})
 
 		t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
@@ -594,17 +594,17 @@ func TestGetOldClientConfig(t *testing.T) {
 	t.Run("missing format", func(t *testing.T) {
 		client := th.Client
 
-		_, err := client.DoApiGet("/config/client", "")
+		resp, err := client.DoApiGet("/config/client", "")
 		require.NotNil(t, err)
-		require.Equal(t, http.StatusNotImplemented, err.StatusCode)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 
 	t.Run("invalid format", func(t *testing.T) {
 		client := th.Client
 
-		_, err := client.DoApiGet("/config/client?format=junk", "")
+		resp, err := client.DoApiGet("/config/client?format=junk", "")
 		require.NotNil(t, err)
-		require.Equal(t, http.StatusBadRequest, err.StatusCode)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
 
