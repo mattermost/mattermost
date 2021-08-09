@@ -722,6 +722,11 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientPostList := c.App.PreparePostListForClient(posts)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
