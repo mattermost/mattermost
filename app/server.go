@@ -146,8 +146,6 @@ type Server struct {
 	configStore             *config.Store
 	postActionCookieSecret  []byte
 
-	advancedLogListenerCleanup map[string]func()
-
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
@@ -839,10 +837,14 @@ func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings m
 	// Advanced logging is E20 only, however logging must be initialized before the license
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
+	var err error
 	dsn := *logSettings.AdvancedLoggingConfig
-	logConfigSrc, err := config.NewLogConfigSrc(dsn, configStore)
-	if err != nil {
-		return fmt.Errorf("invalid config source for %s, %w", name, err)
+	var logConfigSrc config.LogConfigSrc
+	if dsn != "" {
+		logConfigSrc, err = config.NewLogConfigSrc(dsn, configStore)
+		if err != nil {
+			return fmt.Errorf("invalid config source for %s, %w", name, err)
+		}
 	}
 
 	if logConfigSrc != nil {
@@ -856,27 +858,6 @@ func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings m
 
 	if err := logger.ConfigureTargets(cfg); err != nil {
 		return fmt.Errorf("invalid config for %s, %w", name, err)
-	}
-
-	// watch the advanced logging config and re-configure if changed
-	listenerId := logConfigSrc.AddListener(func(_, newCfg mlog.LoggerConfiguration) {
-		if err := logger.ConfigureTargets(newCfg); err != nil {
-			mlog.Error("Error re-configuring advanced logging for "+name, mlog.Err(err))
-		} else {
-			mlog.Info("Re-configured advanced logging for " + name)
-		}
-	})
-
-	if len(s.advancedLogListenerCleanup) > 0 {
-		for _, cleanup := range s.advancedLogListenerCleanup {
-			cleanup()
-		}
-	} else {
-		s.advancedLogListenerCleanup = make(map[string]func())
-	}
-
-	s.advancedLogListenerCleanup[name] = func() {
-		logConfigSrc.RemoveListener(listenerId)
 	}
 	return nil
 }
@@ -1045,13 +1026,6 @@ func (s *Server) Shutdown() {
 	s.htmlTemplateWatcher.Close()
 
 	s.WaitForGoroutines()
-
-	if len(s.advancedLogListenerCleanup) > 0 {
-		for _, cleanup := range s.advancedLogListenerCleanup {
-			cleanup()
-		}
-		s.advancedLogListenerCleanup = nil
-	}
 
 	s.RemoveConfigListener(s.configListenerId)
 	s.RemoveConfigListener(s.logListenerId)

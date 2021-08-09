@@ -120,6 +120,12 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 		options = append(options, app.StoreOverride(dbStore))
 	}
 
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	testLogger := mlog.NewLogger()
+	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+		panic("failed to configure test logger: " + errCfg.Error())
+	}
+
 	testLogger, debugDisabler := mlog.CreateTestLogger(tb, nil, mlog.StdAll...)
 	options = append(options, app.SetLogger(testLogger))
 

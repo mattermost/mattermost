@@ -6,7 +6,6 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -25,12 +24,6 @@ type LogConfigSrc interface {
 	// Set updates the dsn specifying the source and reloads
 	Set(dsn string, configStore *Store) (err error)
 
-	// AddListener adds a callback function to invoke when the configuration is modified.
-	AddListener(listener LogSrcListener) string
-
-	// RemoveListener removes a callback function using an id returned from AddListener.
-	RemoveListener(id string)
-
 	// Close cleans up resources.
 	Close() error
 }
@@ -39,7 +32,7 @@ type LogConfigSrc interface {
 // file, JSON string, or database.
 func NewLogConfigSrc(dsn string, configStore *Store) (LogConfigSrc, error) {
 	if dsn == "" {
-		return nil, nil
+		return nil, errors.New("dsn should not be empty")
 	}
 
 	if configStore == nil {
@@ -110,12 +103,9 @@ func (src *jsonSrc) Close() error {
 // fileSrc
 
 type fileSrc struct {
-	logSrcEmitter
 	mutex sync.RWMutex
 	cfg   mlog.LoggerConfiguration
-
-	path    string
-	watcher *watcher
+	path  string
 }
 
 func newFileSrc(path string, configStore *Store) (*fileSrc, error) {
@@ -150,34 +140,6 @@ func (src *fileSrc) Set(path string, configStore *Store) error {
 	}
 
 	src.set(cfg)
-
-	// If path is a real file and not just the name of a database resource then watch it for changes.
-	// Absolute paths are explicit and require no resolution.
-	if _, err = os.Stat(path); os.IsNotExist(err) {
-		return nil
-	}
-
-	src.mutex.Lock()
-	defer src.mutex.Unlock()
-
-	if src.watcher != nil {
-		if err = src.watcher.Close(); err != nil {
-			mlog.Error("Failed to close watcher", mlog.Err(err))
-		}
-		src.watcher = nil
-	}
-
-	watcher, err := newWatcher(path, func() {
-		if serr := src.Set(path, configStore); serr != nil {
-			mlog.Error("Failed to reload file on change", mlog.String("path", path), mlog.Err(serr))
-		}
-	})
-	if err != nil {
-		return err
-	}
-
-	src.watcher = watcher
-
 	return nil
 }
 
@@ -185,20 +147,12 @@ func (src *fileSrc) set(cfg mlog.LoggerConfiguration) {
 	src.mutex.Lock()
 	defer src.mutex.Unlock()
 
-	old := src.cfg
 	src.cfg = cfg
-	src.invokeConfigListeners(old, cfg)
 }
 
 // Close cleans up resources.
 func (src *fileSrc) Close() error {
 	var err error
-	src.mutex.Lock()
-	defer src.mutex.Unlock()
-	if src.watcher != nil {
-		err = src.watcher.Close()
-		src.watcher = nil
-	}
 	return err
 }
 

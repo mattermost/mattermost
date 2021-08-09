@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -185,6 +186,7 @@ func stdLevels(level string) ([]mlog.Level, error) {
 }
 
 func stringToStdLevel(level string) (mlog.Level, error) {
+	level = strings.ToLower(level)
 	for _, l := range mlog.StdAll {
 		if l.Name == level {
 			return l, nil
