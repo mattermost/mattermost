@@ -59,6 +59,7 @@
         "CloseUnusedDirectMessages": false,
         "EnablePreviewFeatures": true,
         "EnableTutorial": true,
+        "EnableOnboardingFlow": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
         "ImageProxyType": "",
