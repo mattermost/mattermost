@@ -23,20 +23,13 @@ BEGIN
 		SELECT
 			1 FROM publicchannels)) THEN
 		INSERT INTO publicchannels (id, deleteat, teamid, displayname, name, header, purpose)
-	SELECT
-		c.id,
-		c.deleteat,
-		c.teamid,
-		c.displayname,
-		c.name,
-		c.header,
-		c.purpose
-	FROM
-		channels c
-	LEFT JOIN publicchannels pc ON (pc.id = c.id)
-WHERE
-	c.type = 'O'
-	AND pc.id IS NULL;
+		SELECT
+			c.id, c.deleteat, c.teamid, c.displayname, c.name, c.header, c.purpose
+		FROM
+			channels c
+		LEFT JOIN publicchannels pc ON (pc.id = c.id)
+	WHERE
+		c.type = 'O' AND pc.id IS NULL;
 	END IF;
 END migratepc
 $$;
