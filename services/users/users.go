@@ -216,7 +216,7 @@ func (us *UserService) InvalidateCacheForUser(userID string) {
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventInvalidateCacheForUser,
 			SendType: model.ClusterSendBestEffort,
-			Data:     userID,
+			Data:     []byte(userID),
 		}
 		us.cluster.SendClusterMessage(msg)
 	}

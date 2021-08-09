@@ -4,12 +4,14 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"reflect"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -26,7 +28,9 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := c.App.GetSanitizedConfig()
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -76,7 +80,9 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(newCfg.ToJson()))
+	if err := json.NewEncoder(w).Encode(newCfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -129,5 +135,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
+	if err := json.NewEncoder(w).Encode(c.App.GetSanitizedConfig()); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

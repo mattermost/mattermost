@@ -1139,7 +1139,7 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 			"PluginID": api.id,
 			"EventID":  ev.Id,
 		},
-		Data: string(ev.Data),
+		Data: ev.Data,
 	}
 
 	// If TargetId is empty we broadcast to all other cluster nodes.

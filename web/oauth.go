@@ -240,7 +240,9 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(accessRsp.ToJson()))
+	if err := json.NewEncoder(w).Encode(accessRsp); err != nil {
+		mlog.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {

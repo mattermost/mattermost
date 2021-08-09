@@ -303,6 +303,7 @@ type ServiceSettings struct {
 	GoogleDeveloperKey                                *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // Deprecated: do not use
 	EnableLinkPreviews                                *bool    `access:"site_posts"`
+	EnablePermalinkPreviews                           *bool    `access:"site_posts"`
 	RestrictLinkPreviews                              *string  `access:"site_posts"`
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
@@ -348,6 +349,7 @@ type ServiceSettings struct {
 	CloseUnusedDirectMessages                         *bool    `access:"experimental_features"`
 	EnablePreviewFeatures                             *bool    `access:"experimental_features"`
 	EnableTutorial                                    *bool    `access:"experimental_features"`
+	EnableOnboardingFlow                              *bool    `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental_features"`
 	ExperimentalChannelOrganization                   *bool    `access:"experimental_features"`
@@ -410,6 +412,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableLinkPreviews == nil {
 		s.EnableLinkPreviews = NewBool(true)
+	}
+
+	if s.EnablePermalinkPreviews == nil {
+		s.EnablePermalinkPreviews = NewBool(true)
 	}
 
 	if s.RestrictLinkPreviews == nil {
@@ -576,6 +582,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableTutorial == nil {
 		s.EnableTutorial = NewBool(true)
+	}
+
+	if s.EnableOnboardingFlow == nil {
+		s.EnableOnboardingFlow = NewBool(true)
 	}
 
 	// Must be manually enabled for existing installations.
@@ -3159,16 +3169,16 @@ type Config struct {
 }
 
 func (o *Config) Clone() *Config {
+	buf, err := json.Marshal(o)
+	if err != nil {
+		panic(err)
+	}
 	var ret Config
-	if err := json.Unmarshal([]byte(o.ToJson()), &ret); err != nil {
+	err = json.Unmarshal(buf, &ret)
+	if err != nil {
 		panic(err)
 	}
 	return &ret
-}
-
-func (o *Config) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func (o *Config) ToJsonFiltered(tagType, tagValue string) string {

@@ -4,11 +4,13 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -209,7 +211,9 @@ func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -288,7 +292,9 @@ func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -317,7 +323,9 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localGetUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {

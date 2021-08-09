@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -69,8 +70,10 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -173,8 +176,11 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -291,8 +297,11 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

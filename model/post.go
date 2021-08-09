@@ -67,6 +67,8 @@ const (
 
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
+
+	PostPropsPreviewedPost = "previewed_post"
 )
 
 type Post struct {
@@ -92,7 +94,7 @@ type Post struct {
 	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
 	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
-	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
+	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
@@ -605,6 +607,7 @@ func (o *Post) Attachments() []*SlackAttachment {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
+					// Ignoring nil actions
 					i := 0
 					for _, action := range decoded.Actions {
 						if action != nil {
@@ -613,6 +616,16 @@ func (o *Post) Attachments() []*SlackAttachment {
 						}
 					}
 					decoded.Actions = decoded.Actions[:i]
+
+					// Ignoring nil fields
+					i = 0
+					for _, field := range decoded.Fields {
+						if field != nil {
+							decoded.Fields[i] = field
+							i++
+						}
+					}
+					decoded.Fields = decoded.Fields[:i]
 					ret = append(ret, &decoded)
 				}
 			}
@@ -737,4 +750,15 @@ func (o *Post) ToNilIfInvalid() *Post {
 		return nil
 	}
 	return o
+}
+
+func (o *Post) GetPreviewPost() *PreviewPost {
+	for _, embed := range o.Metadata.Embeds {
+		if embed.Type == PostEmbedPermalink {
+			if previewPost, ok := embed.Data.(*PreviewPost); ok {
+				return previewPost
+			}
+		}
+	}
+	return nil
 }

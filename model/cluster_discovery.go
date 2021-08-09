@@ -116,15 +116,6 @@ func (o *ClusterDiscovery) IsValid() *AppError {
 	return nil
 }
 
-func (o *ClusterDiscovery) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
-}
-
 func ClusterDiscoveryFromJson(data io.Reader) *ClusterDiscovery {
 	decoder := json.NewDecoder(data)
 	var me ClusterDiscovery

@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"bytes"
 	"context"
 	"sync"
 
@@ -22,24 +23,24 @@ type LocalCacheEmojiStore struct {
 }
 
 func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiById(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		es.rootStore.emojiCacheById.Purge()
 	} else {
 		es.emojiByIdMut.Lock()
-		es.emojiByIdInvalidations[msg.Data] = true
+		es.emojiByIdInvalidations[string(msg.Data)] = true
 		es.emojiByIdMut.Unlock()
-		es.rootStore.emojiCacheById.Remove(msg.Data)
+		es.rootStore.emojiCacheById.Remove(string(msg.Data))
 	}
 }
 
 func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiIdByName(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		es.rootStore.emojiIdCacheByName.Purge()
 	} else {
 		es.emojiByNameMut.Lock()
-		es.emojiByNameInvalidations[msg.Data] = true
+		es.emojiByNameInvalidations[string(msg.Data)] = true
 		es.emojiByNameMut.Unlock()
-		es.rootStore.emojiIdCacheByName.Remove(msg.Data)
+		es.rootStore.emojiIdCacheByName.Remove(string(msg.Data))
 	}
 }
 
