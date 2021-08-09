@@ -573,7 +573,7 @@ func (a *App) userHasCRT(uid string) bool {
 func (a *App) userAllowsDesktopThreadsNotification(user *model.User, mentions *ExplicitMentions) bool {
 	userAllows := user.NotifyProps[model.DesktopNotifyProp] == model.UserNotifyMention
 
-	if userAllows == false {
+	if !userAllows {
 		return false
 	}
 
