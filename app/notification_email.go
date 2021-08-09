@@ -202,15 +202,16 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
-		postMessage, mdErr := utils.MarkdownToHTML(postMessage)
+		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage)
 		if mdErr != nil {
-			return "", mdErr
+			mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
+			mdPostMessage = postMessage
 		}
 
-		normalizedPostMessage, err := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
+		normalizedPostMessage, err := a.generateHyperlinkForChannels(mdPostMessage, teamName, landingURL)
 		if err != nil {
 			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
-			normalizedPostMessage = postMessage
+			normalizedPostMessage = mdPostMessage
 		}
 		pData.Message = template.HTML(normalizedPostMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
