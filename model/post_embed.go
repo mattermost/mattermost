@@ -8,6 +8,7 @@ const (
 	PostEmbedMessageAttachment PostEmbedType = "message_attachment"
 	PostEmbedOpengraph         PostEmbedType = "opengraph"
 	PostEmbedLink              PostEmbedType = "link"
+	PostEmbedPermalink         PostEmbedType = "permalink"
 )
 
 type PostEmbedType string
