@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"io/ioutil"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -76,19 +74,6 @@ type TestPluginSettings struct {
 	Plugins                 map[string]map[string]interface{}
 	PluginStates            map[string]*model.PluginState
 	SignaturePublicKeyFiles []string
-}
-
-func TestConfigValidate(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	tempFile, err := ioutil.TempFile("", "TestConfigValidate")
-	require.NoError(t, err)
-	defer os.Remove(tempFile.Name())
-	tempFile.Write([]byte("{"))
-
-	assert.Error(t, th.RunCommand(t, "--config", tempFile.Name(), "config", "validate"))
-	th.CheckCommand(t, "config", "validate")
 }
 
 func TestConfigSet(t *testing.T) {
