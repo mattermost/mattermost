@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -15,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -100,38 +98,6 @@ func TestConfigValidate(t *testing.T) {
 	th.CheckCommand(t, "config", "validate")
 }
 
-func TestConfigGet(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	t.Run("Error when no arguments are given", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "get"))
-	})
-
-	t.Run("Error when more than one config settings are given", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "get", "abc", "def"))
-	})
-
-	t.Run("Error when a config setting which is not in the config.json is given", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "get", "abc"))
-	})
-
-	t.Run("No Error when a config setting which is in the config.json is given", func(t *testing.T) {
-		th.CheckCommand(t, "config", "get", "MessageExportSettings")
-		th.CheckCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings")
-		th.CheckCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType")
-	})
-
-	t.Run("check output", func(t *testing.T) {
-		output := th.CheckCommand(t, "config", "get", "MessageExportSettings")
-
-		assert.Contains(t, output, "EnableExport")
-		assert.Contains(t, output, "ExportFormat")
-		assert.Contains(t, output, "DailyRunTime")
-		assert.Contains(t, output, "ExportFromTimestamp")
-	})
-}
-
 func TestConfigSet(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -146,7 +112,6 @@ func TestConfigSet(t *testing.T) {
 
 	t.Run("Error when the wrong key is set", func(t *testing.T) {
 		assert.Error(t, th.RunCommand(t, "config", "set", "invalid-key", "value"))
-		assert.Error(t, th.RunCommand(t, "config", "get", "invalid-key"))
 	})
 
 	t.Run("Error when the wrong value is set", func(t *testing.T) {
@@ -171,93 +136,10 @@ func TestConfigSet(t *testing.T) {
 
 	t.Run("Success when a valid value is set", func(t *testing.T) {
 		assert.NoError(t, th.RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "TLS"))
-		output := th.CheckCommand(t, "config", "get", "EmailSettings.ConnectionSecurity")
-		assert.Contains(t, output, "TLS")
 	})
 
 	t.Run("Success when a valid locale is set", func(t *testing.T) {
 		assert.NoError(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
-		output := th.CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
-		assert.Contains(t, output, "\"es\"")
-	})
-}
-
-func TestConfigReset(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	t.Run("No Error when no arguments are given (reset all the configurations)", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "reset"))
-	})
-
-	t.Run("No Error when a configuration section is given", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings"))
-	})
-
-	t.Run("No Error when a configuration setting is given", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
-	})
-
-	t.Run("Error when the wrong configuration section is given", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "reset", "InvalidSettings"))
-	})
-
-	t.Run("Error when the wrong configuration setting is given", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "reset", "JobSettings.InvalidConfiguration"))
-	})
-
-	t.Run("Success when the confirm boolean flag is given", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "reset", "--confirm"))
-		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
-		output2 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
-		assert.Contains(t, output1, "true")
-		assert.Contains(t, output2, "true")
-	})
-
-	t.Run("Success when a configuration section is given", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-		output, err := th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunJobs", "false")
-		assert.NoErrorf(t, err, "output %s", output)
-
-		output, err = th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunScheduler", "false")
-		assert.NoErrorf(t, err, "output %s", output)
-
-		output, err = th.RunCommandWithOutput(t, "config", "set", "PrivacySettings.ShowFullName", "false")
-		assert.NoErrorf(t, err, "output %s", output)
-
-		output, err = th.RunCommandWithOutput(t, "config", "reset", "JobSettings")
-		assert.NoErrorf(t, err, "output %s", output)
-
-		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
-		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
-		output3 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
-		assert.Contains(t, output1, "true")
-		assert.Contains(t, output2, "true")
-		assert.Contains(t, output3, "false")
-	})
-
-	t.Run("Success when a configuration setting is given", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		output, err := th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunJobs", "false")
-		assert.NoErrorf(t, err, "output %s", output)
-
-		output, err = th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunScheduler", "false")
-		assert.NoErrorf(t, err, "output %s", output)
-
-		output, err = th.RunCommandWithOutput(t, "config", "reset", "JobSettings.RunJobs")
-		assert.NoErrorf(t, err, "output %s", output)
-
-		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
-		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
-		assert.Contains(t, output1, "true")
-		assert.Contains(t, output2, "false")
 	})
 }
 
@@ -422,43 +304,6 @@ func TestPrintConfigValues(t *testing.T) {
 	}
 }
 
-func TestConfigShow(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	t.Run("error with unknown subcommand", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "show", "abc"))
-	})
-
-	t.Run("successfully dumping config", func(t *testing.T) {
-		output := th.CheckCommand(t, "config", "show")
-		assert.Contains(t, output, "SqlSettings")
-		assert.Contains(t, output, "MessageExportSettings")
-		assert.Contains(t, output, "AnnouncementSettings")
-	})
-
-	t.Run("successfully dumping config as json", func(t *testing.T) {
-		output, err := th.RunCommandWithOutput(t, "config", "show", "--json")
-		require.NoError(t, err)
-
-		// Filter out the test headers
-		var filteredOutput []string
-		for _, line := range strings.Split(output, "\n") {
-			if strings.HasPrefix(line, "---") || strings.HasPrefix(line, "===") || strings.HasPrefix(line, "PASS") || strings.HasPrefix(line, "coverage:") {
-				continue
-			}
-
-			filteredOutput = append(filteredOutput, line)
-		}
-
-		output = strings.Join(filteredOutput, "")
-
-		var config model.Config
-		err = json.Unmarshal([]byte(output), &config)
-		require.NoError(t, err)
-	})
-}
-
 func TestSetConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -554,43 +399,6 @@ func TestUpdateMap(t *testing.T) {
 
 		})
 	}
-}
-
-func TestConfigMigrate(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	sqlSettings := mainHelper.GetSQLSettings()
-	sqlDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
-	fileDSN := "config.json"
-
-	ds, err := config.NewStoreFromDSN(sqlDSN, false, nil)
-	require.NoError(t, err)
-	fs, err := config.NewStoreFromDSN(fileDSN, false, nil)
-	require.NoError(t, err)
-
-	defer ds.Close()
-	defer fs.Close()
-
-	t.Run("Should error with too few parameters", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "migrate", fileDSN))
-	})
-
-	t.Run("Should error with too many parameters", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "migrate", fileDSN, sqlDSN, "reallyfast"))
-	})
-
-	t.Run("Should work passing two parameters", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "migrate", fileDSN, sqlDSN))
-	})
-
-	t.Run("Should fail passing an invalid target", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "migrate", fileDSN, "mysql://asd"))
-	})
-
-	t.Run("Should fail passing an invalid source", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "migrate", "invalid/path", sqlDSN))
-	})
 }
 
 func contains(configMap map[string]interface{}, v interface{}, configSettings []string) bool {
