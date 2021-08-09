@@ -549,8 +549,6 @@ func upgradeDatabaseToVersion55(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion56(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version550, Version560) {
-		sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
-
 		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
 			sqlStore.RemoveIndexIfExists("idx_users_username_lower", "lower(Username)")
@@ -587,7 +585,6 @@ func upgradeDatabaseToVersion58(sqlStore *SqlStore) {
 			sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "IconURL")
 		}
 		sqlStore.AlterDefaultIfColumnExists("OutgoingWebhooks", "Username", model.NewString("NULL"), nil)
-		sqlStore.AlterDefaultIfColumnExists("PluginKeyValueStore", "ExpireAt", model.NewString("NULL"), model.NewString("NULL"))
 
 		saveSchemaVersion(sqlStore, Version580)
 	}
