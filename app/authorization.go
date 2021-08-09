@@ -278,3 +278,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 
 	return nil
 }
+
+func (a *App) HasPermissionToReadChannel(userID string, channel *model.Channel) bool {
+	return a.HasPermissionToChannel(userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
+}

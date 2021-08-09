@@ -36,6 +36,8 @@ type FeatureFlags struct {
 	// Enable timed dnd support for user status
 	TimedDND bool
 
+	PermalinkPreviews bool
+
 	// Enable the Global Header
 	GlobalHeader bool
 
@@ -54,6 +56,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.TimedDND = false
+	f.PermalinkPreviews = true
 	f.GlobalHeader = false
 	f.InviteMembersButton = "none"
 }
