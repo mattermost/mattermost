@@ -5,8 +5,6 @@ CREATE TABLE IF NOT EXISTS usertermsofservice (
     createat bigint
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_terms_of_service_user_id ON usertermsofservice (userid);
-
 DO $$
 <<do_migrate_to_usertermsofservice_table>>
 DECLARE
