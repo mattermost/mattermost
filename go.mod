@@ -31,6 +31,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/go-asn1-ber/asn1-ber v1.5.3 // indirect
+	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/go-redis/redis/v8 v8.9.0 // indirect
 	github.com/go-resty/resty/v2 v2.6.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
@@ -94,9 +95,8 @@ require (
 	github.com/pelletier/go-toml v1.9.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.7 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.10.0
+	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.25.0 // indirect
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.3.0 // indirect
@@ -130,7 +130,6 @@ require (
 	golang.org/x/image v0.0.0-20210504121937-7319ad40d33e
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210601080250-7ecdf8ef093b // indirect
 	golang.org/x/text v0.3.6
 	golang.org/x/tools v0.1.2
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect

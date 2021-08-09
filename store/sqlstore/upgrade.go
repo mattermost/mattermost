@@ -428,19 +428,12 @@ func upgradeDatabaseToVersion46(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion47(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version460, Version470) {
 		sqlStore.AlterColumnTypeIfExists("Users", "Position", "varchar(128)", "varchar(128)")
-		sqlStore.AlterColumnTypeIfExists("OAuthAuthData", "State", "varchar(1024)", "varchar(1024)")
-		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
-		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Username")
 		saveSchemaVersion(sqlStore, Version470)
 	}
 }
 
 func upgradeDatabaseToVersion471(sqlStore *SqlStore) {
-	// If any new instances started with 4.7, they would have the bad Email column on the
-	// ChannelMemberHistory table. So for those cases we need to do an upgrade between
-	// 4.7.0 and 4.7.1
 	if shouldPerformUpgrade(sqlStore, Version470, Version471) {
-		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
 		saveSchemaVersion(sqlStore, Version471)
 	}
 }
@@ -642,9 +635,6 @@ func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion513(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5120, Version5130) {
-		// The previous jobs ran once per minute, cluttering the Jobs table with somewhat useless entries. Clean that up.
-		sqlStore.GetMaster().ExecNoTimeout("DELETE FROM Jobs WHERE Type = 'plugins'")
-
 		saveSchemaVersion(sqlStore, Version5130)
 	}
 }
@@ -802,21 +792,6 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 
 func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5281, Version5290) {
-		sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
-		sqlStore.RemoveDefaultIfColumnExists("SidebarCategories", "Id")
-		sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
-		sqlStore.RemoveDefaultIfColumnExists("SidebarChannels", "CategoryId")
-
-		sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
-
-		updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
-		}
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateThreadChannelsQuery); err != nil {
-			mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
-		}
-
 		saveSchemaVersion(sqlStore, Version5290)
 	}
 }
@@ -831,8 +806,6 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5291, Version5300) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
-		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
-
 		saveSchemaVersion(sqlStore, Version5300)
 	}
 }
@@ -842,8 +815,6 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 		saveSchemaVersion(sqlStore, Version5310)
 	}
 }
-
-const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 
 func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
@@ -890,7 +861,6 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 		}
 
-		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 		// Shared channels support
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 	}
@@ -914,20 +884,12 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
-		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
 		// Shared channels support
 		sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
-		sqlStore.CreateColumnIfNotExists("UploadSessions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)", "")
-		sqlStore.CreateColumnIfNotExists("UploadSessions", "ReqFileId", "VARCHAR(26)", "VARCHAR(26)", "")
 		if _, err := sqlStore.GetMaster().ExecNoTimeout("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
 			mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
 		}
-		uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
-		}
-		sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
 
 		rootCountMigration(sqlStore)
 
@@ -937,10 +899,6 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
-		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
-		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostUpdateAt", "bigint", "bigint", "0")
-		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostId", "VARCHAR(26)", "VARCHAR(26)", "")
-
 		saveSchemaVersion(sqlStore, Version5360)
 	}
 }
