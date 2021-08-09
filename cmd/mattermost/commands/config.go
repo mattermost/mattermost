@@ -17,8 +17,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -27,13 +25,6 @@ const noSettingsNamed = "unable to find a setting named: %s"
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Configuration",
-}
-
-var ValidateConfigCmd = &cobra.Command{
-	Use:   "validate",
-	Short: "Validate config file",
-	Long:  "If the config file is valid, this command will output a success message and have a zero exit code. If it is invalid, this command will output an error and have a non-zero exit code.",
-	RunE:  configValidateCmdF,
 }
 
 var ConfigSubpathCmd = &cobra.Command{
@@ -46,23 +37,6 @@ var ConfigSubpathCmd = &cobra.Command{
 	RunE: configSubpathCmdF,
 }
 
-var ConfigGetCmd = &cobra.Command{
-	Use:     "get",
-	Short:   "Get config setting",
-	Long:    "Gets the value of a config setting by its name in dot notation.",
-	Example: `config get SqlSettings.DriverName`,
-	Args:    cobra.ExactArgs(1),
-	RunE:    configGetCmdF,
-}
-
-var ConfigShowCmd = &cobra.Command{
-	Use:     "show",
-	Short:   "Writes the server configuration to STDOUT",
-	Long:    "Pretty-prints the server configuration and writes to STDOUT",
-	Example: "config show",
-	RunE:    configShowCmdF,
-}
-
 var ConfigSetCmd = &cobra.Command{
 	Use:     "set",
 	Short:   "Set config setting",
@@ -72,51 +46,13 @@ var ConfigSetCmd = &cobra.Command{
 	RunE:    configSetCmdF,
 }
 
-var MigrateConfigCmd = &cobra.Command{
-	Use:     "migrate [from_config] [to_config]",
-	Short:   "Migrate existing config between backends",
-	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
-	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
-	Args:    cobra.ExactArgs(2),
-	RunE:    configMigrateCmdF,
-}
-
-var ConfigResetCmd = &cobra.Command{
-	Use:     "reset",
-	Short:   "Reset config setting",
-	Long:    "Resets the value of a config setting by its name in dot notation or a setting section. Accepts multiple values for array settings.",
-	Example: "config reset SqlSettings.DriverName LogSettings",
-	RunE:    configResetCmdF,
-}
-
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
-	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
-	ConfigShowCmd.Flags().Bool("json", false, "Output the configuration as JSON.")
 
 	ConfigCmd.AddCommand(
-		ValidateConfigCmd,
-		ConfigSubpathCmd,
-		ConfigGetCmd,
-		ConfigShowCmd,
 		ConfigSetCmd,
-		MigrateConfigCmd,
-		ConfigResetCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
-}
-
-func configValidateCmdF(command *cobra.Command, args []string) error {
-	utils.TranslationsPreInit()
-	model.AppErrorInit(i18n.T)
-
-	_, err := getConfigStore(command)
-	if err != nil {
-		return err
-	}
-
-	CommandPrettyPrintln("The document is valid")
-	return nil
 }
 
 func configSubpathCmdF(command *cobra.Command, args []string) error {
@@ -153,54 +89,6 @@ func getConfigStore(command *cobra.Command) (*config.Store, error) {
 	}
 
 	return configStore, nil
-}
-
-func configGetCmdF(command *cobra.Command, args []string) error {
-	configStore, err := getConfigStore(command)
-	if err != nil {
-		return err
-	}
-
-	out, err := printConfigValues(configToMap(*configStore.Get()), strings.Split(args[0], "."), args[0])
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("%s", out)
-
-	return nil
-}
-
-func configShowCmdF(command *cobra.Command, args []string) error {
-	useJSON, err := command.Flags().GetBool("json")
-	if err != nil {
-		return errors.Wrap(err, "failed reading json parameter")
-	}
-
-	err = cobra.NoArgs(command, args)
-	if err != nil {
-		return err
-	}
-
-	configStore, err := getConfigStore(command)
-	if err != nil {
-		return err
-	}
-
-	config := *configStore.Get()
-
-	if useJSON {
-		configJSON, err := json.MarshalIndent(config, "", "    ")
-		if err != nil {
-			return errors.Wrap(err, "failed to marshal config as json")
-		}
-
-		fmt.Printf("%s\n", configJSON)
-	} else {
-		fmt.Printf("%s", prettyPrintStruct(config))
-	}
-
-	return nil
 }
 
 // printConfigValues function prints out the value of the configSettings working recursively or
@@ -268,21 +156,6 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(diffErr, "failed to diff configs")
 	}
 	auditRec.AddMeta("diff", diffs)
-
-	return nil
-}
-
-func configMigrateCmdF(command *cobra.Command, args []string) error {
-	from := args[0]
-	to := args[1]
-
-	err := config.Migrate(from, to)
-
-	if err != nil {
-		return errors.Wrap(err, "failed to migrate config")
-	}
-
-	mlog.Info("Successfully migrated config.")
 
 	return nil
 }
@@ -418,117 +291,6 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 	default:
 		return errors.New("type not supported yet")
 	}
-}
-
-func configResetCmdF(command *cobra.Command, args []string) error {
-	configStore, err := getConfigStore(command)
-	if err != nil {
-		return err
-	}
-
-	a, errInit := InitDBCommandContextCobra(command)
-	if errInit != nil {
-		return errInit
-	}
-	defer a.Srv().Shutdown()
-
-	var oldCfg *model.Config
-	var newCfg *model.Config
-
-	defer func() {
-		auditRec := a.MakeAuditRecord("configReset", audit.Success)
-		if oldCfg != nil && newCfg != nil {
-			diffs, diffErr := config.Diff(oldCfg, newCfg)
-			if diffErr != nil {
-				mlog.Warn("Failed to diff configs", mlog.Err(diffErr))
-				return
-			}
-			auditRec.AddMeta("diff", diffs)
-		}
-		a.LogAuditRec(auditRec, nil)
-	}()
-
-	defaultConfig := &model.Config{}
-	defaultConfig.SetDefaults()
-
-	confirmFlag, _ := command.Flags().GetBool("confirm")
-	if confirmFlag {
-		if oldCfg, newCfg, err = configStore.Set(defaultConfig); err != nil {
-			return errors.Wrap(err, "failed to set config")
-		}
-		return nil
-	}
-
-	if !confirmFlag && len(args) == 0 {
-		var confirmResetAll string
-		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
-		fmt.Scanln(&confirmResetAll)
-		if confirmResetAll == "YES" {
-			if oldCfg, newCfg, err = configStore.Set(defaultConfig); err != nil {
-				return errors.Wrap(err, "failed to set config")
-			}
-		}
-		return nil
-	}
-
-	tempConfig := configStore.Get().Clone()
-	tempConfigMap := configToMap(*tempConfig)
-	defaultConfigMap := configToMap(*defaultConfig)
-	for _, arg := range args {
-		err = changeMap(tempConfigMap, defaultConfigMap, strings.Split(arg, "."))
-		if err != nil {
-			return errors.Wrap(err, "Failed to reset config")
-		}
-	}
-	bs, err := json.Marshal(tempConfigMap)
-	if err != nil {
-		fmt.Printf("Error while marshalling map to json %s\n", err)
-		os.Exit(1)
-	}
-	err = json.Unmarshal(bs, tempConfig)
-	if err != nil {
-		fmt.Printf("Error while unmarshalling json to struct %s\n", err)
-		os.Exit(1)
-	}
-	if changed := config.FixInvalidLocales(tempConfig); changed {
-		return errors.New("Invalid locale configuration")
-	}
-
-	oldCfg, newCfg, err = configStore.Set(tempConfig)
-	if err != nil {
-		return errors.Wrap(err, "failed to set config")
-	}
-
-	return nil
-}
-
-func changeMap(oldConfigMap, defaultConfigMap map[string]interface{}, configSettings []string) error {
-	resOld, ok := oldConfigMap[configSettings[0]]
-	if !ok {
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
-	}
-	resDef := defaultConfigMap[configSettings[0]]
-	valueOld := reflect.ValueOf(resOld)
-
-	if valueOld.Kind() == reflect.Map {
-		if len(configSettings) == 1 {
-			return changeSection(resOld.(map[string]interface{}), resDef.(map[string]interface{}))
-		}
-		return changeMap(resOld.(map[string]interface{}), resDef.(map[string]interface{}), configSettings[1:])
-	}
-	if len(configSettings) == 1 {
-		oldConfigMap[configSettings[0]] = defaultConfigMap[configSettings[0]]
-		return nil
-	}
-	return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
-}
-
-func changeSection(oldConfigMap, defaultConfigMap map[string]interface{}) error {
-	valueOld := reflect.ValueOf(oldConfigMap)
-	for _, key := range valueOld.MapKeys() {
-		oldConfigMap[key.String()] = defaultConfigMap[key.String()]
-	}
-	return nil
 }
 
 // configToMap converts our config into a map
