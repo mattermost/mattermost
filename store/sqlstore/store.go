@@ -4,8 +4,10 @@
 package sqlstore
 
 import (
+	"bytes"
 	"context"
 	dbsql "database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -161,6 +163,30 @@ type TraceOnAdapter struct{}
 type ColumnInfo struct {
 	DataType          string
 	CharMaximumLength int
+}
+
+type jsonArray []string
+
+func (a jsonArray) Value() (driver.Value, error) {
+	var out bytes.Buffer
+	if err := out.WriteByte('['); err != nil {
+		return nil, err
+	}
+
+	for i, item := range a {
+		if _, err := out.WriteString(strconv.Quote(item)); err != nil {
+			return nil, err
+		}
+		// Skip the last element.
+		if i < len(a)-1 {
+			out.WriteByte(',')
+		}
+	}
+
+	if err := out.WriteByte(']'); err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
 }
 
 func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
