@@ -444,6 +444,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[EmailNotifyProp] = "true"
 	u.NotifyProps[PushNotifyProp] = UserNotifyMention
 	u.NotifyProps[DesktopNotifyProp] = UserNotifyMention
+	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll
 	u.NotifyProps[DesktopSoundNotifyProp] = "true"
 	u.NotifyProps[MentionKeysNotifyProp] = ""
 	u.NotifyProps[ChannelMentionsNotifyProp] = "true"
