@@ -189,7 +189,11 @@ func TestPreparePostForClient(t *testing.T) {
 
 		fileInfo.PostId = post.Id
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		var clientPost *model.Post
+		assert.Eventually(t, func() bool {
+			clientPost = th.App.PreparePostForClient(post, false, false)
+			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
+		}, time.Second, 10*time.Millisecond)
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
