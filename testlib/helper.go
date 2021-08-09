@@ -16,7 +16,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
@@ -52,20 +51,6 @@ func NewMainHelper() *MainHelper {
 func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	var mainHelper MainHelper
 	flag.Parse()
-
-	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initializing but that's fine for testing.
-	// Ideally this won't happen.
-	cfg := mlog.TargetCfg{
-		Type:   "console",
-		Format: "json",
-		Levels: []mlog.Level{mlog.LvlPanic, mlog.LvlFatal, mlog.LvlCritical, mlog.LvlError},
-	}
-	logger := mlog.NewLogger()
-	_ = logger.ConfigureTargets(map[string]mlog.TargetCfg{"test": cfg})
-
-	defer logger.Shutdown()
-	mlog.InitGlobalLogger(logger)
 
 	utils.TranslationsPreInit()
 

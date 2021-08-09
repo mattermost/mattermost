@@ -46,8 +46,7 @@ type TestHelper struct {
 
 	IncludeCacheLayer bool
 
-	TestLogger    *mlog.Logger
-	DebugDisabler mlog.DebugDisabler
+	TestLogger *mlog.Logger
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
@@ -82,7 +81,11 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
 
-	testLogger, debugDisabler := mlog.CreateTestLogger(tb, nil, mlog.StdAll...)
+	testLogger := mlog.NewLogger()
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(newConfig.LogSettings, nil, config.GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+		panic("failed to configure test logger: " + errCfg.Error())
+	}
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
@@ -134,7 +137,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
 		TestLogger:        testLogger,
-		DebugDisabler:     debugDisabler,
 	}
 
 	return th

@@ -314,6 +314,9 @@ func TestGetLogs(t *testing.T) {
 		mlog.Info(strconv.Itoa(i))
 	}
 
+	err := th.TestLogger.Flush()
+	require.NoError(t, err, "failed to flush log")
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		logs, resp := c.GetLogs(0, 10)
 		CheckNoError(t, resp)

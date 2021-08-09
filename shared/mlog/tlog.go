@@ -15,33 +15,29 @@ import (
 	"github.com/mattermost/logr/v2/targets"
 )
 
-type DebugDisabler = func(disable bool)
-
-// CreateTestLogger creates a logger for unit tests. Log records are output to `(*testing.T)Log`.
-// Logs can also be mirrored to the optional `io.Writer`.
-func CreateTestLogger(tb testing.TB, writer io.Writer, levels ...Level) (*Logger, DebugDisabler) {
+// CreateTestLogger creates a logger for unit tests, using the `TB.Log`
+func CreateTestLogger(tb testing.TB, writer io.Writer, levels ...Level) *Logger {
 	logger := NewLogger()
 
 	filter := logr.NewCustomFilter(levels...)
 	formatter := &formatters.Plain{}
-	testtarget := newTestingTarget(tb)
-	debugDisabler := func(disable bool) {
-		testtarget.disableDebug(disable)
-	}
 
-	if err := logger.log.Logr().AddTarget(testtarget, "test", filter, formatter, 1000); err != nil {
-		tb.Fail()
-		return nil, nil
+	if tb != nil {
+		testtarget := newTestingTarget(tb)
+		if err := logger.log.Logr().AddTarget(testtarget, "testTB", filter, formatter, 1000); err != nil {
+			tb.Fail()
+			return nil
+		}
 	}
 
 	if writer != nil {
 		target := targets.NewWriterTarget(writer)
-		if err := logger.log.Logr().AddTarget(target, "test", filter, formatter, 1000); err != nil {
+		if err := logger.log.Logr().AddTarget(target, "testWriter", filter, formatter, 1000); err != nil {
 			tb.Fail()
-			return nil, nil
+			return nil
 		}
 	}
-	return logger, debugDisabler
+	return logger
 }
 
 // CreateConsoleTestLogger creates a logger for unit tests. Log records are output to `os.Stdout`.
@@ -70,22 +66,14 @@ func CreateConsoleTestLogger(useJson bool, level Level) *Logger {
 
 // testingTarget is a simple log target that writes to the testing log.
 type testingTarget struct {
-	mux           sync.Mutex
-	tb            testing.TB
-	debugDisabled bool
+	mux sync.Mutex
+	tb  testing.TB
 }
 
 func newTestingTarget(tb testing.TB) *testingTarget {
 	return &testingTarget{
 		tb: tb,
 	}
-}
-
-func (tt *testingTarget) disableDebug(disable bool) {
-	tt.mux.Lock()
-	defer tt.mux.Unlock()
-
-	tt.debugDisabled = disable
 }
 
 // Init is called once to initialize the target.
@@ -98,12 +86,7 @@ func (tt *testingTarget) Write(p []byte, rec *logr.LogRec) (int, error) {
 	tt.mux.Lock()
 	defer tt.mux.Unlock()
 
-	var disabled bool
-	if tt.debugDisabled && (rec.Level().Name == LvlDebug.Name || rec.Level().Name == LvlTrace.Name) {
-		disabled = true
-	}
-
-	if tt.tb != nil && !disabled {
+	if tt.tb != nil {
 		tt.tb.Helper()
 		tt.tb.Log(strings.TrimSpace(string(p)))
 	}

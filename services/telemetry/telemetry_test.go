@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
@@ -270,7 +271,11 @@ func TestRudderTelemetry(t *testing.T) {
 	defer cleanUp()
 	defer deferredAssertions(t)
 
-	testLogger, _ := mlog.CreateTestLogger(t, nil, mlog.StdAll...)
+	testLogger := mlog.NewLogger()
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(cfg.LogSettings, nil, config.GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+		panic("failed to configure test logger: " + errCfg.Error())
+	}
 	defer testLogger.Shutdown()
 
 	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)

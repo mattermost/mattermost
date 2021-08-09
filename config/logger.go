@@ -96,6 +96,30 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	return cfg, nil
 }
 
+// DON'T USE THIS Modify the level on the app logger
+func DisableDebugLogForTest(testLogger *mlog.Logger) {
+	logSettings := &model.LogSettings{}
+	logSettings.SetDefaults()
+	logSettings.ConsoleLevel = model.NewString("ERROR")
+	logSettings.FileLevel = model.NewString("ERROR")
+
+	logCfg, _ := MloggerConfigFromLoggerConfig(*logSettings, nil, GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+		panic("failed to re-configure test logger (disable debug): " + errCfg.Error())
+	}
+}
+
+// DON'T USE THIS Modify the level on the app logger
+func EnableDebugLogForTest(testLogger *mlog.Logger) {
+	logSettings := &model.LogSettings{}
+	logSettings.SetDefaults()
+
+	logCfg, _ := MloggerConfigFromLoggerConfig(*logSettings, nil, GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+		panic("failed to re-configure test logger (enable debug): " + errCfg.Error())
+	}
+}
+
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
 		fileLocation, _ = fileutils.FindDir("logs")

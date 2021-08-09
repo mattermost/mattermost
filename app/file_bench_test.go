@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -60,8 +61,8 @@ func BenchmarkUploadFile(b *testing.B) {
 	defer th.TearDown()
 
 	// disable logging in the benchmark, as best we can
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	teamID := model.NewId()
 	channelID := model.NewId()

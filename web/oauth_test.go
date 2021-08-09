@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -586,7 +587,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	translationFunc := i18n.GetUserTranslations("en")
 	c.AppContext.SetT(translationFunc)
 	buffer := &bytes.Buffer{}
-	c.Logger, _ = mlog.CreateTestLogger(t, buffer, mlog.StdAll...)
+	c.Logger = mlog.CreateTestLogger(t, buffer, mlog.StdAll...)
 	defer c.Logger.Shutdown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
@@ -718,8 +719,8 @@ func (th *TestHelper) Logout(client *model.Client4) {
 }
 
 func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	results := make(map[string][]string)
 
@@ -742,8 +743,8 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 }
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	for roleName, permissions := range data {
 		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
@@ -797,8 +798,8 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 // }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {

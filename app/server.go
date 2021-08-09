@@ -138,7 +138,6 @@ type Server struct {
 	statusCache             cache.Cache
 	configListenerId        string
 	licenseListenerId       string
-	logListenerId           string
 	clusterLeaderListenerId string
 	searchConfigListenerId  string
 	searchLicenseListenerId string
@@ -798,8 +797,12 @@ func (s *Server) initLogging() error {
 		s.NotificationsLog = mlog.NewLogger().With(mlog.String("logSource", "notifications"))
 	}
 
-	// configure app and notification loggers
-	s.onLoggingConfigChange(nil, s.Config())
+	if err := s.configureLogger("logging", s.Log, s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
+		// revert to default logger if the config is invalid
+		mlog.InitGlobalLogger(nil)
+		mlog.Error("Error configuring logger", mlog.Err(err))
+		return err
+	}
 
 	// Redirect default Go logger to app logger.
 	s.Log.RedirectStdLog(mlog.LvlStdLog)
@@ -807,29 +810,13 @@ func (s *Server) initLogging() error {
 	// Use the app logger as the global logger (eventually remove all instances of global logging).
 	mlog.InitGlobalLogger(s.Log)
 
-	if s.logListenerId != "" {
-		s.RemoveConfigListener(s.logListenerId)
-	}
-	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
-		s.onLoggingConfigChange(nil, after)
-	})
-	return nil
-}
-
-// onLoggingConfigChange is called any time the configuration changes. All logging configuration is reloaded.
-func (s *Server) onLoggingConfigChange(_, after *model.Config) {
-	// configure main logger
-	if err := s.configureLogger("logging", s.Log, after.LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
-		// revert to default logger if the config is invalid
-		mlog.InitGlobalLogger(nil)
-		mlog.Error("Error configuring logger", mlog.Err(err))
-	}
-
-	// configure notification logger
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
 	if err := s.configureLogger("notification logging", s.NotificationsLog, *notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
 		mlog.Error("Error configuring notification logger", mlog.Err(err))
+		return err
 	}
+
+	return nil
 }
 
 // configureLogger applies the specified configuration to a logger and watches for changes, reloading as needed.
@@ -954,7 +941,7 @@ func (s *Server) enableLoggingMetrics() {
 	s.Log.SetMetricsCollector(s.Metrics.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
-	s.onLoggingConfigChange(nil, s.Config())
+	s.initLogging()
 
 	mlog.Debug("Logging metrics enabled")
 }
@@ -1028,7 +1015,6 @@ func (s *Server) Shutdown() {
 	s.WaitForGoroutines()
 
 	s.RemoveConfigListener(s.configListenerId)
-	s.RemoveConfigListener(s.logListenerId)
 	s.stopSearchEngine()
 
 	s.Audit.Shutdown()

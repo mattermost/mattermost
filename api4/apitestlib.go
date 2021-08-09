@@ -66,7 +66,7 @@ type TestHelper struct {
 
 	IncludeCacheLayer bool
 
-	DebugDisabler mlog.DebugDisabler
+	TestLogger *mlog.Logger
 }
 
 var mainHelper *testlib.MainHelper
@@ -120,13 +120,11 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 		options = append(options, app.StoreOverride(dbStore))
 	}
 
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(memoryConfig.LogSettings, nil, config.GetLogFileLocation)
 	testLogger := mlog.NewLogger()
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(memoryConfig.LogSettings, nil, config.GetLogFileLocation)
 	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}
-
-	testLogger, debugDisabler := mlog.CreateTestLogger(tb, nil, mlog.StdAll...)
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
@@ -140,7 +138,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
 		Context:           &request.Context{},
-		DebugDisabler:     debugDisabler,
+		TestLogger:        testLogger,
 	}
 
 	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && searchEngine != nil {
@@ -346,13 +344,12 @@ func (th *TestHelper) ShutdownApp() {
 }
 
 func (th *TestHelper) TearDown() {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
-
+	config.DisableDebugLogForTest(th.TestLogger)
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()
 	}
+	config.EnableDebugLogForTest(th.TestLogger)
 
 	th.ShutdownApp()
 }
@@ -511,8 +508,8 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 		Description: "bot",
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	rbot, resp := client.CreateBot(bot)
 	if resp.Error != nil {
@@ -538,8 +535,8 @@ func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	rteam, resp := client.CreateTeam(team)
 	if resp.Error != nil {
@@ -560,8 +557,8 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Password:  "Pa$$word11",
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	ruser, response := client.CreateUser(user)
 	if response.Error != nil {
@@ -664,8 +661,8 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 		TeamId:      teamId,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	rchannel, resp := client.CreateChannel(channel)
 	if resp.Error != nil {
@@ -694,8 +691,9 @@ func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 		Message:   "message_" + id,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
+
 	rpost, resp := client.CreatePost(post)
 	if resp.Error != nil {
 		panic(resp.Error)
@@ -712,8 +710,9 @@ func (th *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 		IsPinned:  true,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
+
 	rpost, resp := client.CreatePost(post)
 	if resp.Error != nil {
 		panic(resp.Error)
@@ -727,8 +726,8 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 		Message:   message,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	rpost, resp := client.CreatePost(post)
 	if resp.Error != nil {
@@ -753,8 +752,8 @@ func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 }
 
 func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	var err *model.AppError
 	var channel *model.Channel
@@ -785,8 +784,8 @@ func (th *TestHelper) LoginSystemManager() {
 }
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	_, resp := client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	if resp.Error != nil {
@@ -795,8 +794,8 @@ func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 }
 
 func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	_, resp := client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
 	if resp.Error != nil {
@@ -805,8 +804,8 @@ func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
 }
 
 func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	_, resp := client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
 	if resp.Error != nil {
@@ -815,8 +814,8 @@ func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
 }
 
 func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	_, resp := client.Login(th.SystemManagerUser.Email, th.SystemManagerUser.Password)
 	if resp.Error != nil {
@@ -825,8 +824,8 @@ func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
 }
 
 func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	_, resp := client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 	if resp.Error != nil {
@@ -835,8 +834,8 @@ func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
 }
 
 func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	_, err := th.App.UpdateActive(th.Context, user, active)
 	if err != nil {
@@ -845,8 +844,8 @@ func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 }
 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
@@ -855,8 +854,8 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
@@ -881,8 +880,8 @@ func (th *TestHelper) CreateGroup() *model.Group {
 		RemoteId:    "ri_" + id,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	group, err := th.App.CreateGroup(group)
 	if err != nil {
@@ -1117,8 +1116,8 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	if cm, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
@@ -1131,8 +1130,8 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 }
 
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
@@ -1145,8 +1144,8 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 }
 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
@@ -1159,8 +1158,8 @@ func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Tea
 }
 
 func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	results := make(map[string][]string)
 
@@ -1183,8 +1182,8 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 }
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	for roleName, permissions := range data {
 		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
@@ -1206,8 +1205,8 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
@@ -1234,8 +1233,8 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {

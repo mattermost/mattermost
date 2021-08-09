@@ -29,7 +29,7 @@ type TestHelper struct {
 
 	tempWorkspace string
 
-	DebugDisabler mlog.DebugDisabler
+	TestLogger *mlog.Logger
 }
 
 func setupTestHelper(tb testing.TB, enterprise bool) *TestHelper {
@@ -47,7 +47,11 @@ func setupTestHelper(tb testing.TB, enterprise bool) *TestHelper {
 	options = append(options, app.StoreOverride(mainHelper.Store))
 	options = append(options, app.SkipPostInitializiation())
 
-	testLogger, debugDisabler := mlog.CreateTestLogger(tb, nil, mlog.StdAll...)
+	testLogger := mlog.NewLogger()
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(newConfig.LogSettings, nil, config.GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+		panic("failed to configure test logger: " + errCfg.Error())
+	}
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
@@ -61,10 +65,10 @@ func setupTestHelper(tb testing.TB, enterprise bool) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App:           app.New(app.ServerConnector(s)),
-		Context:       &request.Context{},
-		Server:        s,
-		DebugDisabler: debugDisabler,
+		App:        app.New(app.ServerConnector(s)),
+		Context:    &request.Context{},
+		Server:     s,
+		TestLogger: testLogger,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -133,8 +137,8 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	var err *model.AppError
 	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
@@ -154,8 +158,8 @@ func (th *TestHelper) CreateUser() *model.User {
 		EmailVerified: true,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	var err *model.AppError
 	if user, err = th.App.CreateUser(th.Context, user); err != nil {
@@ -179,8 +183,8 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 		CreatorId:   th.BasicUser.Id,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	var err *model.AppError
 	if channel, err = th.App.CreateChannel(th.Context, channel, true); err != nil {
@@ -190,8 +194,8 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 }
 
 func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	var err *model.AppError
 	var channel *model.Channel
@@ -211,8 +215,8 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	var err *model.AppError
 	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
@@ -222,8 +226,8 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 }
 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
@@ -232,8 +236,8 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	th.DebugDisabler(true)
-	defer th.DebugDisabler(false)
+	config.DisableDebugLogForTest(th.TestLogger)
+	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
