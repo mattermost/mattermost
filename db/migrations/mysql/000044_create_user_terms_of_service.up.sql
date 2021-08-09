@@ -20,8 +20,24 @@ PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
-INSERT INTO UserTermsOfService
-    SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, ROUND(UNIX_TIMESTAMP(CURTIME(4)) * 1000)
-    FROM Users
-    WHERE AcceptedTermsOfServiceId != ''
-    AND AcceptedTermsOfServiceId IS NOT NULL;
+CREATE PROCEDURE MigrateToUserTermsOfServiceTable()
+BEGIN
+	DECLARE COL_EXIST INT;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Users'
+        AND table_schema = DATABASE()
+        AND column_name = 'AcceptedTermsOfServiceId' INTO COL_EXIST;
+
+	IF(COL_EXIST > 0) THEN
+		INSERT INTO UserTermsOfService
+        	SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, ROUND(UNIX_TIMESTAMP(CURTIME(4)) * 1000)
+        	FROM Users
+        	WHERE AcceptedTermsOfServiceId != ''
+        	AND AcceptedTermsOfServiceId IS NOT NULL;
+	END IF;
+END;
+
+CALL MigrateToUserTermsOfServiceTable();
+
+DROP PROCEDURE IF EXISTS MigrateToUserTermsOfServiceTable;
