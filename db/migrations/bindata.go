@@ -86,6 +86,8 @@
 // mysql/000042_create_threads.up.sql
 // mysql/000043_thread_memberships.down.sql
 // mysql/000043_thread_memberships.up.sql
+// mysql/000044_create_user_terms_of_service.down.sql
+// mysql/000044_create_user_terms_of_service.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -172,6 +174,8 @@
 // postgres/000042_create_threads.up.sql
 // postgres/000043_thread_memberships.down.sql
 // postgres/000043_thread_memberships.up.sql
+// postgres/000044_create_user_terms_of_service.down.sql
+// postgres/000044_create_user_terms_of_service.up.sql
 package migrations
 
 import (
@@ -1968,6 +1972,46 @@ func mysql000043_thread_membershipsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000044_create_user_terms_of_serviceDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\x2d\x4e\x2d\x0a\x49\x2d\xca\x2d\xf6\x4f\x0b\x4e\x2d\x2a\xcb\x4c\x4e\xb5\xe6\x02\x04\x00\x00\xff\xff\x23\x71\xc7\xf1\x29\x00\x00\x00")
+
+func mysql000044_create_user_terms_of_serviceDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000044_create_user_terms_of_serviceDownSql,
+		"mysql/000044_create_user_terms_of_service.down.sql",
+	)
+}
+
+func mysql000044_create_user_terms_of_serviceDownSql() (*asset, error) {
+	bytes, err := mysql000044_create_user_terms_of_serviceDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000044_create_user_terms_of_service.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000044_create_user_terms_of_serviceUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x93\x51\x6f\x9b\x30\x14\x85\x9f\xf1\xaf\xb8\x7b\x8a\xa9\xa2\x29\xab\xaa\x69\x12\xca\x24\xc7\xbe\x34\xd6\x8c\x1d\xd9\x46\x6b\x9f\x22\x42\xdc\x36\x52\x43\x26\xa0\xfd\xfd\x13\xa4\x85\xb6\x59\xb4\xf2\x06\x9c\xc3\xbd\xe7\xe3\x98\x5b\x64\x1e\xc1\xb3\x85\x42\x90\x29\x68\xe3\x01\x6f\xa4\xf3\x0e\xf2\x26\xd4\x3e\xd4\xfb\xc6\xdc\xb9\x50\x3f\xef\xca\x00\x94\x00\x40\xff\x42\x6e\xe1\xb9\xa8\xcb\x87\xa2\xa6\x97\xdf\xe3\xde\xa6\x73\xa5\xa6\xbd\xe0\xbd\xeb\x83\x54\x60\xca\x72\xf5\x56\xce\xeb\x50\xb4\x81\xb5\xb0\xd9\xdd\xef\xaa\x96\x5e\xce\xfe\xa5\x5a\x59\x99\x31\x7b\x0b\xbf\xf0\x16\xe8\x71\x85\x98\xc4\x80\xfa\x5a\x6a\x9c\xcb\xaa\x3a\x88\xc5\x60\xe3\x4b\x66\x1d\xfa\xf9\x53\x7b\xf7\x63\xbf\xb9\x4a\x08\x79\x09\xba\xb2\x86\xa3\xc8\x2d\x42\xb6\xbb\xaf\x8b\x36\xf8\xc3\x69\x4e\x5f\x6c\x1e\x03\x8d\xc9\x02\xaf\xa5\x26\x91\x40\xae\x98\x45\xe0\x46\xad\x7b\x36\x20\xb5\x4f\x08\x89\x1c\x2a\xe4\x1e\xb8\xc9\xb5\xa7\x17\x31\xa4\xd6\x64\x20\x75\x6a\x6c\xc6\xbc\x34\x7a\xed\xf8\x12\x33\xf6\x95\x1b\x95\x67\xda\xf5\x31\xba\xeb\xf7\x12\x2d\x42\xdb\x4d\x59\x57\xc5\x3e\xc0\x1c\x26\xdd\x16\xcd\x64\x90\x30\x2d\x5e\x04\x4d\xf9\x10\xf6\x05\xcc\x41\x30\xcf\x16\xcc\x21\x8d\xdf\xa9\xca\xc3\xe3\xd3\xbe\x1a\xbe\xc3\xca\x32\xfc\x69\xc3\xf6\xe3\x3f\x98\x74\x4b\x9b\x31\x43\xb7\xbf\x4c\xe9\x98\xe9\x27\xcc\x62\xf0\x4b\xd4\x24\x8a\xa4\x76\x68\xfd\xd1\x71\x8a\x67\x18\xff\x0a\x40\x6e\xa7\x70\x6e\x2e\x14\xcd\x49\x1f\xa6\x60\x4d\xae\x05\xcd\xb5\xbc\x59\x7b\x99\xa1\xf3\x2c\x5b\x51\x9e\xdb\xee\x86\x5e\xc5\x31\x5c\xc0\xb7\xd9\x6c\x36\x26\x8d\x7a\xb6\x3d\xa4\xf1\xd9\x91\xe3\xd9\xc9\x5f\xe6\x30\x19\x89\x46\x1d\xac\xb3\x5a\xe9\x86\x0e\x27\x24\x42\x2d\x40\xa6\x09\x41\x2d\xba\xea\x30\xa5\x3e\x51\x97\x84\x10\x61\xcd\xea\x4d\xc5\x64\xfa\x7a\x96\xfe\xe7\x4e\xc8\xdf\x00\x00\x00\xff\xff\x13\xfb\x15\x97\x89\x03\x00\x00")
+
+func mysql000044_create_user_terms_of_serviceUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000044_create_user_terms_of_serviceUpSql,
+		"mysql/000044_create_user_terms_of_service.up.sql",
+	)
+}
+
+func mysql000044_create_user_terms_of_serviceUpSql() (*asset, error) {
+	bytes, err := mysql000044_create_user_terms_of_serviceUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000044_create_user_terms_of_service.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\x72\x25\x81\x9a\xed\xc9\x5c\x40\xc8\xb4\x2b\x55\x80\x42\xa9\xc1\x40\x99\x8c\xea\x0e\x4b\xbe\x33\xd3\xfc\x8c\x2f\xdd\x18\x23\xef\x00\x00\x00\xff\xff\x38\xaf\xff\x77\xd4\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -3688,6 +3732,46 @@ func postgres000043_thread_membershipsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000044_create_user_terms_of_serviceDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x2d\x4e\x2d\x2a\x49\x2d\xca\x2d\xce\x4f\x2b\x4e\x2d\x2a\xcb\x4c\x4e\xb5\xe6\x02\x04\x00\x00\xff\xff\x21\x57\x69\xf8\x29\x00\x00\x00")
+
+func postgres000044_create_user_terms_of_serviceDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000044_create_user_terms_of_serviceDownSql,
+		"postgres/000044_create_user_terms_of_service.down.sql",
+	)
+}
+
+func postgres000044_create_user_terms_of_serviceDownSql() (*asset, error) {
+	bytes, err := postgres000044_create_user_terms_of_serviceDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000044_create_user_terms_of_service.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000044_create_user_terms_of_serviceUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x92\x5d\x6b\xdb\x30\x14\x86\xef\xf5\x2b\xde\x42\xc0\x76\x49\x47\xb6\x8b\x5d\xcc\x4d\xc1\x4d\x94\xc5\xcc\x75\x86\xad\x7d\xf4\xca\x28\xf2\x49\x23\xb0\xa5\x60\x29\x5b\x7f\xfe\xa8\x0c\x59\xbb\x10\xd8\x95\xc1\xe7\x39\x3e\xef\x79\x7c\x6e\x6e\x20\xf6\xda\xa1\xd7\x4f\x83\xf4\xda\x1a\xb4\x74\x20\xd3\x3a\x58\x83\xa3\xa3\xc1\xc1\xcb\x6d\x47\x6c\x51\xf1\x4c\x70\x88\xec\xbe\xe0\xc8\x57\x28\x37\x02\xfc\x67\x5e\x8b\x3a\x60\x9e\x86\xde\xd9\x9d\xa3\xe1\x97\x56\x84\x98\x01\x08\x05\xdd\xe2\x7b\x56\x2d\xd6\x59\x15\x7f\xf8\x98\xe0\x6b\x95\x3f\x64\xd5\x23\xbe\xf0\xc7\x69\x60\xde\x36\xbe\xa5\x47\x42\x0d\x24\x3d\x49\x8f\xad\x7e\xd2\xc6\xb3\x24\x65\x6c\xb9\xc1\x64\xc2\x6e\x6f\x5b\xdb\x8c\xc9\xa9\xf1\xb6\x39\x0f\xd2\x84\xf0\x77\x77\x6c\xc9\x17\x45\x56\xf1\xf1\x83\xb6\x6b\xe8\x59\x3b\x8f\xad\xb5\x1d\x49\x83\x4f\x73\xec\x64\xe7\x28\x65\xf7\xfc\x73\x5e\x06\xaa\xe6\x05\x5f\x08\x28\x7b\x34\x3e\xbe\x4e\x70\x35\xc7\x0c\x79\x29\x36\x7f\xfb\x03\xb7\xaa\x36\x0f\xd0\x66\x67\x87\x3e\x08\x6c\x9c\xda\x53\x2f\xdf\x29\xdb\x1d\x7b\xe3\x02\xf3\x63\xcd\x2b\x3e\x8a\x6c\x8c\xec\x09\x73\x44\x41\x6e\x14\xca\x59\xb9\xc4\x88\x9f\xaa\x52\x29\x3a\x78\x6a\xff\xd5\x13\xa5\x2c\xb4\xe4\xab\x57\x6b\x88\x35\x1f\x33\xe7\x65\xcd\x2b\x31\xa6\x3c\x97\x11\x90\x57\xab\xe9\x76\x8a\x4b\x73\x20\xdd\xd9\xaf\x99\x22\xa6\x67\x3f\x48\xe5\x63\x3a\x58\xb5\xc7\x6e\xb0\x3d\x8c\xfd\x1d\x27\x09\xae\xf1\x7e\x36\x9b\x25\xa7\x19\x41\x4b\xd8\xf1\xf4\x6a\xb4\x70\x71\xe2\xd5\x1c\x51\x74\x82\x5f\x9c\x5c\x44\xf3\x3a\xdc\x5f\xf9\xad\x28\xd2\xd0\xc1\xcb\x25\xf2\x55\xca\x5e\x9e\xff\x77\x13\x98\x4c\x52\xf6\x27\x00\x00\xff\xff\xe7\xa9\x15\x94\xfe\x02\x00\x00")
+
+func postgres000044_create_user_terms_of_serviceUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000044_create_user_terms_of_serviceUpSql,
+		"postgres/000044_create_user_terms_of_service.up.sql",
+	)
+}
+
+func postgres000044_create_user_terms_of_serviceUpSql() (*asset, error) {
+	bytes, err := postgres000044_create_user_terms_of_serviceUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000044_create_user_terms_of_service.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -3826,6 +3910,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000042_create_threads.up.sql":                        mysql000042_create_threadsUpSql,
 	"mysql/000043_thread_memberships.down.sql":                  mysql000043_thread_membershipsDownSql,
 	"mysql/000043_thread_memberships.up.sql":                    mysql000043_thread_membershipsUpSql,
+	"mysql/000044_create_user_terms_of_service.down.sql":        mysql000044_create_user_terms_of_serviceDownSql,
+	"mysql/000044_create_user_terms_of_service.up.sql":          mysql000044_create_user_terms_of_serviceUpSql,
 	"postgres/000001_create_teams.down.sql":                     postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":                       postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":              postgres000002_create_team_membersDownSql,
@@ -3912,6 +3998,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000042_create_threads.up.sql":                     postgres000042_create_threadsUpSql,
 	"postgres/000043_thread_memberships.down.sql":               postgres000043_thread_membershipsDownSql,
 	"postgres/000043_thread_memberships.up.sql":                 postgres000043_thread_membershipsUpSql,
+	"postgres/000044_create_user_terms_of_service.down.sql":     postgres000044_create_user_terms_of_serviceDownSql,
+	"postgres/000044_create_user_terms_of_service.up.sql":       postgres000044_create_user_terms_of_serviceUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -4042,6 +4130,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000042_create_threads.up.sql":                     &bintree{mysql000042_create_threadsUpSql, map[string]*bintree{}},
 		"000043_thread_memberships.down.sql":               &bintree{mysql000043_thread_membershipsDownSql, map[string]*bintree{}},
 		"000043_thread_memberships.up.sql":                 &bintree{mysql000043_thread_membershipsUpSql, map[string]*bintree{}},
+		"000044_create_user_terms_of_service.down.sql":     &bintree{mysql000044_create_user_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000044_create_user_terms_of_service.up.sql":       &bintree{mysql000044_create_user_terms_of_serviceUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":                     &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -4130,6 +4220,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000042_create_threads.up.sql":                     &bintree{postgres000042_create_threadsUpSql, map[string]*bintree{}},
 		"000043_thread_memberships.down.sql":               &bintree{postgres000043_thread_membershipsDownSql, map[string]*bintree{}},
 		"000043_thread_memberships.up.sql":                 &bintree{postgres000043_thread_membershipsUpSql, map[string]*bintree{}},
+		"000044_create_user_terms_of_service.down.sql":     &bintree{postgres000044_create_user_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000044_create_user_terms_of_service.up.sql":       &bintree{postgres000044_create_user_terms_of_serviceUpSql, map[string]*bintree{}},
 	}},
 }}
 
