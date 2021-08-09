@@ -78,13 +78,6 @@ type TestPluginSettings struct {
 	SignaturePublicKeyFiles []string
 }
 
-func getDsn(driver string, source string) string {
-	if driver == model.DatabaseDriverMysql {
-		return driver + "://" + source
-	}
-	return source
-}
-
 func TestConfigValidate(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
