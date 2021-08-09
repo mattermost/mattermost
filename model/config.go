@@ -348,6 +348,7 @@ type ServiceSettings struct {
 	CloseUnusedDirectMessages                         *bool    `access:"experimental_features"`
 	EnablePreviewFeatures                             *bool    `access:"experimental_features"`
 	EnableTutorial                                    *bool    `access:"experimental_features"`
+	EnableOnboardingFlow                              *bool    `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental_features"`
 	ExperimentalChannelOrganization                   *bool    `access:"experimental_features"`
@@ -576,6 +577,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableTutorial == nil {
 		s.EnableTutorial = NewBool(true)
+	}
+
+	if s.EnableOnboardingFlow == nil {
+		s.EnableOnboardingFlow = NewBool(true)
 	}
 
 	// Must be manually enabled for existing installations.
