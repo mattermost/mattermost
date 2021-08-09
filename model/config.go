@@ -79,10 +79,6 @@ const (
 	PermissionsDeletePostTeamAdmin   = "team_admin"
 	PermissionsDeletePostSystemAdmin = "system_admin"
 
-	AllowEditPostAlways    = "always"
-	AllowEditPostNever     = "never"
-	AllowEditPostTimeLimit = "time_limit"
-
 	GroupUnreadChannelsDisabled   = "disabled"
 	GroupUnreadChannelsDefaultOn  = "default_on"
 	GroupUnreadChannelsDefaultOff = "default_off"
