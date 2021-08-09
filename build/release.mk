@@ -143,10 +143,8 @@ endif
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
 		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
-		TAR_LIST=`tar -tvf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz`; \
-		echo "tar contains: $$TAR_LIST"; \
 		if [ "$$HAS_ARCH" != "dist/plugin-darwin-amd64" ]; then \
-			echo "Contains HAS_ARCH: $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-darwin-amd64"; \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-darwin-amd64"; \
 			exit 1; \
 		fi; \
 		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
