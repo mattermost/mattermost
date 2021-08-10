@@ -246,7 +246,15 @@ func TestBotPreSave(t *testing.T) {
 		DeleteAt:       0,
 	}
 
-	originalBot := &*bot
+	originalBot := &Bot{
+		UserId:         bot.UserId,
+		Username:       bot.Username,
+		DisplayName:    bot.DisplayName,
+		Description:    bot.Description,
+		OwnerId:        bot.OwnerId,
+		LastIconUpdate: bot.LastIconUpdate,
+		DeleteAt:       bot.DeleteAt,
+	}
 
 	bot.PreSave()
 	assert.NotEqual(t, 0, bot.CreateAt)
@@ -269,11 +277,20 @@ func TestBotPreUpdate(t *testing.T) {
 		DeleteAt:       0,
 	}
 
-	originalBot := &*bot
+	originalBot := &Bot{
+		UserId:         bot.UserId,
+		Username:       bot.Username,
+		DisplayName:    bot.DisplayName,
+		Description:    bot.Description,
+		OwnerId:        bot.OwnerId,
+		LastIconUpdate: bot.LastIconUpdate,
+		DeleteAt:       bot.DeleteAt,
+	}
 
 	bot.PreSave()
 	assert.NotEqual(t, 0, bot.UpdateAt)
 
+	originalBot.CreateAt = bot.CreateAt
 	originalBot.UpdateAt = bot.UpdateAt
 	assert.Equal(t, originalBot, bot)
 }
