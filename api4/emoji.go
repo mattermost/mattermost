@@ -111,7 +111,7 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sort := r.URL.Query().Get("sort")
 	if sort != "" && sort != model.EmojiSortByName {
-		c.SetInvalidUrlParam("sort")
+		c.SetInvalidURLParam("sort")
 		return
 	}
 
@@ -281,7 +281,7 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 
 	if name == "" {
-		c.SetInvalidUrlParam("name")
+		c.SetInvalidURLParam("name")
 		return
 	}
 

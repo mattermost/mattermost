@@ -37,7 +37,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.ImplicitResponseType,
 		ClientId:     oapp.Id,
-		RedirectUri:  oapp.CallbackUrls[0],
+		RedirectURI:  oapp.CallbackUrls[0],
 		Scope:        "",
 		State:        "123",
 	}

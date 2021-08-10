@@ -475,7 +475,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
-		c.SetInvalidUrlParam("user_id")
+		c.SetInvalidURLParam("user_id")
 		return
 	}
 	auditRec.AddMeta("user", user)
@@ -658,23 +658,23 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamRolesString := r.URL.Query().Get("team_roles")
 
 	if notInChannelId != "" && inTeamId == "" {
-		c.SetInvalidUrlParam("team_id")
+		c.SetInvalidURLParam("team_id")
 		return
 	}
 
 	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" {
-		c.SetInvalidUrlParam("sort")
+		c.SetInvalidURLParam("sort")
 		return
 	}
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
 	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "") {
-		c.SetInvalidUrlParam("sort")
+		c.SetInvalidURLParam("sort")
 		return
 	}
 	if sort == "status" && inChannelId == "" {
-		c.SetInvalidUrlParam("sort")
+		c.SetInvalidURLParam("sort")
 		return
 	}
 
@@ -684,7 +684,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	activeBool, _ := strconv.ParseBool(active)
 
 	if inactiveBool && activeBool {
-		c.SetInvalidUrlParam("inactive")
+		c.SetInvalidURLParam("inactive")
 	}
 
 	roles := []string{}
@@ -1984,7 +1984,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("session", session)
 
 	if session.UserId != c.Params.UserId {
-		c.SetInvalidUrlParam("user_id")
+		c.SetInvalidURLParam("user_id")
 		return
 	}
 

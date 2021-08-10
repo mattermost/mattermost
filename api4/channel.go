@@ -928,7 +928,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		lastDeleteAt = 0
 	}
 	if lastDeleteAt < 0 {
-		c.SetInvalidUrlParam("last_delete_at")
+		c.SetInvalidURLParam("last_delete_at")
 		return
 	}
 

@@ -99,7 +99,7 @@ const (
 
 	SitenameMaxLength = 30
 
-	ServiceSettingsDefaultSiteUrl          = "http://localhost:8065"
+	ServiceSettingsDefaultSiteURL          = "http://localhost:8065"
 	ServiceSettingsDefaultTLSCertFile      = ""
 	ServiceSettingsDefaultTLSKeyFile       = ""
 	ServiceSettingsDefaultReadTimeout      = 300
@@ -179,12 +179,12 @@ const (
 
 	AnnouncementSettingsDefaultBannerColor                  = "#f2a93b"
 	AnnouncementSettingsDefaultBannerTextColor              = "#333333"
-	AnnouncementSettingsDefaultNoticesJsonUrl               = "https://notices.mattermost.com/"
+	AnnouncementSettingsDefaultNoticesJsonURL               = "https://notices.mattermost.com/"
 	AnnouncementSettingsDefaultNoticesFetchFrequencySeconds = 3600
 
 	TeamSettingsDefaultTeamText = "default"
 
-	ElasticsearchSettingsDefaultConnectionUrl                 = "http://localhost:9200"
+	ElasticsearchSettingsDefaultConnectionURL                 = "http://localhost:9200"
 	ElasticsearchSettingsDefaultUsername                      = "elastic"
 	ElasticsearchSettingsDefaultPassword                      = "changeme"
 	ElasticsearchSettingsDefaultPostIndexReplicas             = 1
@@ -211,8 +211,8 @@ const (
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
 	PluginSettingsDefaultEnableMarketplace = true
-	PluginSettingsDefaultMarketplaceUrl    = "https://api.integrations.mattermost.com"
-	PluginSettingsOldMarketplaceUrl        = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultMarketplaceURL    = "https://api.integrations.mattermost.com"
+	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
 
 	ComplianceExportTypeCsv            = "csv"
 	ComplianceExportTypeActiance       = "actiance"
@@ -237,8 +237,8 @@ const (
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	Office365SettingsDefaultUserApiEndpoint = "https://graph.microsoft.com/v1.0/me"
 
-	CloudSettingsDefaultCwsUrl    = "https://customers.mattermost.com"
-	CloudSettingsDefaultCwsApiUrl = "https://portal.internal.prod.cloud.mattermost.com"
+	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsApiURL = "https://portal.internal.prod.cloud.mattermost.com"
 	OpenidSettingsDefaultScope    = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
@@ -392,7 +392,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SiteURL == nil {
 		if s.EnableDeveloper != nil && *s.EnableDeveloper {
-			s.SiteURL = NewString(ServiceSettingsDefaultSiteUrl)
+			s.SiteURL = NewString(ServiceSettingsDefaultSiteURL)
 		} else {
 			s.SiteURL = NewString("")
 		}
@@ -1877,7 +1877,7 @@ func (s *AnnouncementSettings) SetDefaults() {
 		s.UserNoticesEnabled = NewBool(true)
 	}
 	if s.NoticesURL == nil {
-		s.NoticesURL = NewString(AnnouncementSettingsDefaultNoticesJsonUrl)
+		s.NoticesURL = NewString(AnnouncementSettingsDefaultNoticesJsonURL)
 	}
 	if s.NoticesSkipCache == nil {
 		s.NoticesSkipCache = NewBool(false)
@@ -2364,9 +2364,9 @@ type SamlSettings struct {
 	Encrypt     *bool `access:"authentication_saml"`
 	SignRequest *bool `access:"authentication_saml"`
 
-	IdpUrl                      *string `access:"authentication_saml"` // telemetry: none
-	IdpDescriptorUrl            *string `access:"authentication_saml"` // telemetry: none
-	IdpMetadataUrl              *string `access:"authentication_saml"` // telemetry: none
+	IdpURL                      *string `access:"authentication_saml"` // telemetry: none
+	IdpDescriptorURL            *string `access:"authentication_saml"` // telemetry: none
+	IdpMetadataURL              *string `access:"authentication_saml"` // telemetry: none
 	ServiceProviderIdentifier   *string `access:"authentication_saml"` // telemetry: none
 	AssertionConsumerServiceURL *string `access:"authentication_saml"` // telemetry: none
 
@@ -2441,24 +2441,24 @@ func (s *SamlSettings) SetDefaults() {
 		s.CanonicalAlgorithm = NewString(SamlSettingsDefaultCanonicalAlgorithm)
 	}
 
-	if s.IdpUrl == nil {
-		s.IdpUrl = NewString("")
+	if s.IdpURL == nil {
+		s.IdpURL = NewString("")
 	}
 
-	if s.IdpDescriptorUrl == nil {
-		s.IdpDescriptorUrl = NewString("")
+	if s.IdpDescriptorURL == nil {
+		s.IdpDescriptorURL = NewString("")
 	}
 
 	if s.ServiceProviderIdentifier == nil {
-		if s.IdpDescriptorUrl != nil {
-			s.ServiceProviderIdentifier = NewString(*s.IdpDescriptorUrl)
+		if s.IdpDescriptorURL != nil {
+			s.ServiceProviderIdentifier = NewString(*s.IdpDescriptorURL)
 		} else {
 			s.ServiceProviderIdentifier = NewString("")
 		}
 	}
 
-	if s.IdpMetadataUrl == nil {
-		s.IdpMetadataUrl = NewString("")
+	if s.IdpMetadataURL == nil {
+		s.IdpMetadataURL = NewString("")
 	}
 
 	if s.IdpCertificateFile == nil {
@@ -2566,7 +2566,7 @@ func (s *NativeAppSettings) SetDefaults() {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ConnectionURL                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Username                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -2590,8 +2590,8 @@ type ElasticsearchSettings struct {
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
-	if s.ConnectionUrl == nil {
-		s.ConnectionUrl = NewString(ElasticsearchSettingsDefaultConnectionUrl)
+	if s.ConnectionURL == nil {
+		s.ConnectionURL = NewString(ElasticsearchSettingsDefaultConnectionURL)
 	}
 
 	if s.Username == nil {
@@ -2756,16 +2756,16 @@ func (s *JobSettings) SetDefaults() {
 }
 
 type CloudSettings struct {
-	CWSUrl    *string `access:"write_restrictable"`
-	CWSAPIUrl *string `access:"write_restrictable"`
+	CWSURL    *string `access:"write_restrictable"`
+	CWSAPIURL *string `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
-	if s.CWSUrl == nil {
-		s.CWSUrl = NewString(CloudSettingsDefaultCwsUrl)
+	if s.CWSURL == nil {
+		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
 	}
-	if s.CWSAPIUrl == nil {
-		s.CWSAPIUrl = NewString(CloudSettingsDefaultCwsApiUrl)
+	if s.CWSAPIURL == nil {
+		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsApiURL)
 	}
 }
 
@@ -2776,7 +2776,7 @@ type PluginState struct {
 type PluginSettings struct {
 	Enable                      *bool                             `access:"plugins,write_restrictable"`
 	EnableUploads               *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	AllowInsecureDownloadUrl    *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
+	AllowInsecureDownloadURL    *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	Directory                   *string                           `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
 	ClientDirectory             *string                           `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -2786,9 +2786,9 @@ type PluginSettings struct {
 	EnableRemoteMarketplace     *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	AutomaticPrepackagedPlugins *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	RequirePluginSignature      *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	MarketplaceUrl              *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	MarketplaceURL              *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
 	SignaturePublicKeyFiles     []string                          `access:"plugins,write_restrictable,cloud_restrictable"`
-	ChimeraOAuthProxyUrl        *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	ChimeraOAuthProxyURL        *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2800,8 +2800,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.EnableUploads = NewBool(false)
 	}
 
-	if s.AllowInsecureDownloadUrl == nil {
-		s.AllowInsecureDownloadUrl = NewBool(false)
+	if s.AllowInsecureDownloadURL == nil {
+		s.AllowInsecureDownloadURL = NewBool(false)
 	}
 
 	if s.EnableHealthCheck == nil {
@@ -2851,8 +2851,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.AutomaticPrepackagedPlugins = NewBool(true)
 	}
 
-	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PluginSettingsOldMarketplaceUrl {
-		s.MarketplaceUrl = NewString(PluginSettingsDefaultMarketplaceUrl)
+	if s.MarketplaceURL == nil || *s.MarketplaceURL == "" || *s.MarketplaceURL == PluginSettingsOldMarketplaceURL {
+		s.MarketplaceURL = NewString(PluginSettingsDefaultMarketplaceURL)
 	}
 
 	if s.RequirePluginSignature == nil {
@@ -2863,8 +2863,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.SignaturePublicKeyFiles = []string{}
 	}
 
-	if s.ChimeraOAuthProxyUrl == nil {
-		s.ChimeraOAuthProxyUrl = NewString("")
+	if s.ChimeraOAuthProxyURL == nil {
+		s.ChimeraOAuthProxyURL = NewString("")
 	}
 }
 
@@ -2938,14 +2938,14 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomUrlSchemes     []string `access:"site_customization"`
+	CustomURLSchemes     []string `access:"site_customization"`
 	ExperimentalTimezone *bool    `access:"experimental_features"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
-	if s.CustomUrlSchemes == nil {
-		customUrlSchemes := []string{}
-		s.CustomUrlSchemes = customUrlSchemes
+	if s.CustomURLSchemes == nil {
+		customURLSchemes := []string{}
+		s.CustomURLSchemes = customURLSchemes
 	}
 
 	if s.ExperimentalTimezone == nil {
@@ -3542,11 +3542,11 @@ func (s *LdapSettings) isValid() *AppError {
 
 func (s *SamlSettings) isValid() *AppError {
 	if *s.Enable {
-		if *s.IdpUrl == "" || !IsValidHTTPUrl(*s.IdpUrl) {
+		if *s.IdpURL == "" || !IsValidHTTPURL(*s.IdpURL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if *s.IdpDescriptorUrl == "" || !IsValidHTTPUrl(*s.IdpDescriptorUrl) {
+		if *s.IdpDescriptorURL == "" || !IsValidHTTPURL(*s.IdpDescriptorURL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -3567,7 +3567,7 @@ func (s *SamlSettings) isValid() *AppError {
 		}
 
 		if *s.Verify {
-			if *s.AssertionConsumerServiceURL == "" || !IsValidHTTPUrl(*s.AssertionConsumerServiceURL) {
+			if *s.AssertionConsumerServiceURL == "" || !IsValidHTTPURL(*s.AssertionConsumerServiceURL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -3703,7 +3703,7 @@ func (s *ServiceSettings) isValid() *AppError {
 
 func (s *ElasticsearchSettings) isValid() *AppError {
 	if *s.EnableIndexing {
-		if *s.ConnectionUrl == "" {
+		if *s.ConnectionURL == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -3822,10 +3822,10 @@ func (s *MessageExportSettings) isValid() *AppError {
 }
 
 func (s *DisplaySettings) isValid() *AppError {
-	if len(s.CustomUrlSchemes) != 0 {
+	if len(s.CustomURLSchemes) != 0 {
 		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[A-Za-z][A-Za-z0-9.+-]*\s*$`)
 
-		for _, scheme := range s.CustomUrlSchemes {
+		for _, scheme := range s.CustomURLSchemes {
 			if !validProtocolPattern.MatchString(scheme) {
 				return NewAppError(
 					"Config.IsValid",
@@ -4041,7 +4041,7 @@ func isDomainName(s string) bool {
 
 func isSafeLink(link *string) bool {
 	if link != nil {
-		if IsValidHTTPUrl(*link) {
+		if IsValidHTTPURL(*link) {
 			return true
 		} else if strings.HasPrefix(*link, "/") {
 			return true

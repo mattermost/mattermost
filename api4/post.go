@@ -251,7 +251,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	if c.Params.LimitAfter == 0 {
-		c.SetInvalidUrlParam("limit_after")
+		c.SetInvalidURLParam("limit_after")
 		return
 	}
 
@@ -446,7 +446,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	post, ok := list.Posts[c.Params.PostId]
 	if !ok {
-		c.SetInvalidUrlParam("post_id")
+		c.SetInvalidURLParam("post_id")
 		return
 	}
 

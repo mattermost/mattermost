@@ -215,8 +215,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestSiteUrl) {
-		c.SetPermissionError(model.PermissionTestSiteUrl)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestSiteURL) {
+		c.SetPermissionError(model.PermissionTestSiteURL)
 		return
 	}
 
@@ -575,7 +575,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	i, err := strconv.ParseInt(secs, 10, 64)
 	if err != nil || i <= 0 || i > MaxServerBusySeconds {
-		c.SetInvalidUrlParam(fmt.Sprintf("seconds must be 1 - %d", MaxServerBusySeconds))
+		c.SetInvalidURLParam(fmt.Sprintf("seconds must be 1 - %d", MaxServerBusySeconds))
 		return
 	}
 

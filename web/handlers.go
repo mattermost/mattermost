@@ -336,7 +336,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 
-		if r.URL.Path != model.ApiUrlSuffix+"/websocket" {
+		if r.URL.Path != model.ApiURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}

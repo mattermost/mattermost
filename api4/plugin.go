@@ -30,7 +30,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(uploadPlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
-	api.BaseRoutes.Plugins.Handle("/install_from_url", api.ApiSessionRequired(installPluginFromUrl)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/install_from_url", api.ApiSessionRequired(installPluginFromURL)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(installMarketplacePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/statuses", api.ApiSessionRequired(getPluginStatuses)).Methods("GET")
@@ -95,15 +95,15 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 }
 
-func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
+func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*c.App.Config().PluginSettings.Enable ||
 		*c.App.Config().PluginSettings.RequirePluginSignature ||
 		!*c.App.Config().PluginSettings.EnableUploads {
-		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("installPluginFromURL", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("installPluginFromUrl", audit.Fail)
+	auditRec := c.MakeAuditRecord("installPluginFromURL", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
@@ -117,7 +117,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("installPluginFromURL", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 

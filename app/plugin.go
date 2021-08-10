@@ -553,7 +553,7 @@ func (s *Server) getPrepackagedPlugin(pluginID, version string) (*plugin.Prepack
 // getRemoteMarketplacePlugin returns plugin from marketplace-server.
 func (s *Server) getRemoteMarketplacePlugin(pluginID, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
 	marketplaceClient, err := marketplace.NewClient(
-		*s.Config().PluginSettings.MarketplaceUrl,
+		*s.Config().PluginSettings.MarketplaceURL,
 		s.HTTPService(),
 	)
 	if err != nil {
@@ -581,7 +581,7 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 	}
 
 	marketplaceClient, err := marketplace.NewClient(
-		*a.Config().PluginSettings.MarketplaceUrl,
+		*a.Config().PluginSettings.MarketplaceURL,
 		a.HTTPService(),
 	)
 	if err != nil {

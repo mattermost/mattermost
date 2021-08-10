@@ -19,7 +19,7 @@ func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Reque
 	keys, ok := r.URL.Query()["subsection_permissions"]
 
 	if !ok || len(keys[0]) < 1 {
-		c.SetInvalidUrlParam("subsection_permissions")
+		c.SetInvalidURLParam("subsection_permissions")
 		return
 	}
 

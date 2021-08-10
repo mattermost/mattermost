@@ -45,9 +45,9 @@ const (
 
 	ClientDir = "client"
 
-	ApiUrlSuffixV1 = "/api/v1"
-	ApiUrlSuffixV4 = "/api/v4"
-	ApiUrlSuffix   = ApiUrlSuffixV4
+	ApiURLSuffixV1 = "/api/v1"
+	ApiURLSuffixV4 = "/api/v4"
+	ApiURLSuffix   = ApiURLSuffixV4
 )
 
 type Response struct {
@@ -60,8 +60,8 @@ type Response struct {
 }
 
 type Client4 struct {
-	Url        string       // The location of the server, for example  "http://localhost:8065"
-	ApiUrl     string       // The api location of the server, for example "http://localhost:8065/api/v4"
+	URL        string       // The location of the server, for example  "http://localhost:8065"
+	ApiURL     string       // The api location of the server, for example "http://localhost:8065/api/v4"
 	HTTPClient *http.Client // The http client
 	AuthToken  string
 	AuthType   string
@@ -120,7 +120,7 @@ func (c *Client4) Must(result interface{}, resp *Response) interface{} {
 
 func NewAPIv4Client(url string) *Client4 {
 	url = strings.TrimRight(url, "/")
-	return &Client4{url, url + ApiUrlSuffix, &http.Client{}, "", "", map[string]string{}, "", ""}
+	return &Client4{url, url + ApiURLSuffix, &http.Client{}, "", "", map[string]string{}, "", ""}
 }
 
 func NewAPIv4SocketClient(socketPath string) *Client4 {
@@ -578,35 +578,35 @@ func (c *Client4) GetPermissionsRoute() string {
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
+	return c.DoApiRequest(http.MethodGet, c.ApiURL+url, "", etag)
 }
 
 func (c *Client4) DoApiPost(url string, data string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodPost, c.ApiUrl+url, data, "")
+	return c.DoApiRequest(http.MethodPost, c.ApiURL+url, data, "")
 }
 
 func (c *Client4) doApiDeleteBytes(url string, data []byte) (*http.Response, *AppError) {
-	return c.doApiRequestBytes(http.MethodDelete, c.ApiUrl+url, data, "")
+	return c.doApiRequestBytes(http.MethodDelete, c.ApiURL+url, data, "")
 }
 
 func (c *Client4) doApiPatchBytes(url string, data []byte) (*http.Response, *AppError) {
-	return c.doApiRequestBytes(http.MethodPatch, c.ApiUrl+url, data, "")
+	return c.doApiRequestBytes(http.MethodPatch, c.ApiURL+url, data, "")
 }
 
 func (c *Client4) doApiPostBytes(url string, data []byte) (*http.Response, *AppError) {
-	return c.doApiRequestBytes(http.MethodPost, c.ApiUrl+url, data, "")
+	return c.doApiRequestBytes(http.MethodPost, c.ApiURL+url, data, "")
 }
 
 func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodPut, c.ApiUrl+url, data, "")
+	return c.DoApiRequest(http.MethodPut, c.ApiURL+url, data, "")
 }
 
 func (c *Client4) doApiPutBytes(url string, data []byte) (*http.Response, *AppError) {
-	return c.doApiRequestBytes(http.MethodPut, c.ApiUrl+url, data, "")
+	return c.doApiRequestBytes(http.MethodPut, c.ApiURL+url, data, "")
 }
 
 func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodDelete, c.ApiUrl+url, "", "")
+	return c.DoApiRequest(http.MethodDelete, c.ApiURL+url, "", "")
 }
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
@@ -663,7 +663,7 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 }
 
 func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response) {
-	rq, err := http.NewRequest("POST", c.ApiUrl+url, body)
+	rq, err := http.NewRequest("POST", c.ApiURL+url, body)
 	if err != nil {
 		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -690,7 +690,7 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 }
 
 func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response) {
-	rq, err := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq, err := http.NewRequest("POST", c.ApiURL+url, bytes.NewReader(data))
 	if err != nil {
 		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -714,7 +714,7 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 }
 
 func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response) {
-	rq, err := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq, err := http.NewRequest("POST", c.ApiURL+url, bytes.NewReader(data))
 	if err != nil {
 		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -1556,7 +1556,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiURL+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -2392,7 +2392,7 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiURL+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -3884,7 +3884,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiURL+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4348,7 +4348,7 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) 
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
-	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportDownloadRoute(reportId), nil)
+	rq, err := http.NewRequest("GET", c.ApiURL+c.GetComplianceReportDownloadRoute(reportId), nil)
 	if err != nil {
 		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4728,7 +4728,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiURL+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4874,7 +4874,7 @@ func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Res
 	if err != nil {
 		return "", BuildErrorResponse(nil, NewAppError("AuthorizeOAuthApp", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
 	}
-	r, appErr := c.doApiRequestBytes(http.MethodPost, c.Url+"/oauth/authorize", buf, "")
+	r, appErr := c.doApiRequestBytes(http.MethodPost, c.URL+"/oauth/authorize", buf, "")
 	if appErr != nil {
 		return "", BuildErrorResponse(r, appErr)
 	}
@@ -4885,7 +4885,7 @@ func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Res
 // DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
 func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 	requestData := map[string]string{"client_id": appId}
-	r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/deauthorize", MapToJson(requestData), "")
+	r, err := c.DoApiRequest(http.MethodPost, c.URL+"/oauth/deauthorize", MapToJson(requestData), "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -4895,7 +4895,7 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Response) {
-	url := c.Url + "/oauth/access_token"
+	url := c.URL + "/oauth/access_token"
 	rq, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
@@ -5822,7 +5822,7 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
 	}
 
-	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
+	rq, err := http.NewRequest("POST", c.ApiURL+c.GetPluginsRoute(), body)
 	if err != nil {
 		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -5845,10 +5845,10 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	return ManifestFromJson(rp.Body), BuildResponse(rp)
 }
 
-func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifest, *Response) {
+func (c *Client4) InstallPluginFromURL(downloadURL string, force bool) (*Manifest, *Response) {
 	forceStr := c.boolString(force)
 
-	url := fmt.Sprintf("%s?plugin_download_url=%s&force=%s", c.GetPluginsRoute()+"/install_from_url", url.QueryEscape(downloadUrl), forceStr)
+	url := fmt.Sprintf("%s?plugin_download_url=%s&force=%s", c.GetPluginsRoute()+"/install_from_url", url.QueryEscape(downloadURL), forceStr)
 	r, err := c.DoApiPost(url, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -6459,7 +6459,7 @@ func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response)
 // a FileInfo object.
 func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Response) {
 	url := c.GetUploadRoute(uploadId)
-	r, err := c.doApiRequestReader("POST", c.ApiUrl+url, data, nil)
+	r, err := c.doApiRequestReader("POST", c.ApiURL+url, data, nil)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -6632,7 +6632,7 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 			HeaderRange: fmt.Sprintf("bytes=%d-", offset),
 		}
 	}
-	r, appErr := c.DoApiRequestWithHeaders(http.MethodGet, c.ApiUrl+c.GetExportRoute(name), "", headers)
+	r, appErr := c.DoApiRequestWithHeaders(http.MethodGet, c.ApiURL+c.GetExportRoute(name), "", headers)
 	if appErr != nil {
 		return 0, BuildErrorResponse(r, appErr)
 	}

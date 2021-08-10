@@ -119,8 +119,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	assert.Equal(t, oapp.IconURL, updatedApp.IconURL, "IconURL should have updated")
 
 	if len(updatedApp.CallbackUrls) == len(oapp.CallbackUrls) {
-		for i, callbackUrl := range updatedApp.CallbackUrls {
-			assert.Equal(t, oapp.CallbackUrls[i], callbackUrl, "Description should have updated")
+		for i, callbackURL := range updatedApp.CallbackUrls {
+			assert.Equal(t, oapp.CallbackUrls[i], callbackURL, "Description should have updated")
 		}
 	}
 	assert.Equal(t, oapp.Homepage, updatedApp.Homepage, "Homepage should have updated")
@@ -537,7 +537,7 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.AuthCodeResponseType,
 		ClientId:     rapp.Id,
-		RedirectUri:  rapp.CallbackUrls[0],
+		RedirectURI:  rapp.CallbackUrls[0],
 		Scope:        "",
 		State:        "123",
 	}
