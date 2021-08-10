@@ -226,6 +226,18 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	return &model.UserUpdate{New: user, Old: oldUser}, nil
 }
 
+func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	if _, err := us.GetMaster().Exec(`UPDATE Users
+		SET NotifyProps = :NotifyProps
+		WHERE Id = :UserId`, map[string]interface{}{
+		"NotifyProps": model.MapToJson(props),
+		"UserId":      userID}); err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
+	}
+
+	return nil
+}
+
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) error {
 	curTime := model.GetMillis()
 

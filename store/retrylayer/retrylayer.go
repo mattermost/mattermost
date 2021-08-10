@@ -11576,6 +11576,26 @@ func (s *RetryLayerUserStore) UpdateMfaSecret(userID string, secret string) erro
 
 }
 
+func (s *RetryLayerUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+
+	tries := 0
+	for {
+		err := s.UserStore.UpdateNotifyProps(userID, props)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerUserStore) UpdatePassword(userID string, newPassword string) error {
 
 	tries := 0

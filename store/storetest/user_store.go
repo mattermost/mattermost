@@ -214,6 +214,20 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 
 	err = ss.User().UpdateLastPictureUpdate(u1.Id)
 	require.NoError(t, err, "Update should not have failed")
+
+	// Test UpdateNotifyProps
+	u1, err = ss.User().Get(context.Background(), u1.Id)
+	require.NoError(t, err)
+
+	props := u1.NotifyProps
+	props["hello"] = "world"
+
+	err = ss.User().UpdateNotifyProps(u1.Id, props)
+	require.NoError(t, err)
+
+	uNew, err := ss.User().Get(context.Background(), u1.Id)
+	require.NoError(t, err)
+	assert.Equal(t, props, uNew.NotifyProps)
 }
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {

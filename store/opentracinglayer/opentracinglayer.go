@@ -10662,6 +10662,24 @@ func (s *OpenTracingLayerUserStore) UpdateMfaSecret(userID string, secret string
 	return err
 }
 
+func (s *OpenTracingLayerUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.UpdateNotifyProps")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.UserStore.UpdateNotifyProps(userID, props)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerUserStore) UpdatePassword(userID string, newPassword string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.UpdatePassword")
