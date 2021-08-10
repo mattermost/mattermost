@@ -281,7 +281,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		updateMentionChans = append(updateMentionChans, umc)
 	}
 
-	crtMentions := []string{}
+	crtMentions := &CrtMentions{}
 	if isCRTAllowed && post.RootId != "" {
 		for _, uid := range followers {
 			profile := profileMap[uid]
@@ -293,9 +293,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			// add user to crtMentions depending on desktop_threads notify prop
-			if a.userAllowsDesktopThreadsNotification(profile, mentions) {
-				crtMentions = append(crtMentions, uid)
+			// add user id to crtMentions depending on threads notify props
+			if ok := crtMentions.addMention(profile, mentions); ok && mentionedUsersList.Contains(uid) {
+				// remove explicitly mentioned user ids to avoid duplicate entries
+				mentionedUsersList = mentionedUsersList.Remove(uid)
 			}
 		}
 	}
@@ -327,6 +328,28 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if err := a.sendNotificationEmail(notification, profileMap[id], team, senderProfileImage); err != nil {
 					mlog.Warn("Unable to send notification email.", mlog.Err(err))
 				}
+			}
+		}
+	}
+
+	if *a.Config().EmailSettings.SendEmailNotifications {
+		for _, id := range crtMentions.Email {
+			if profileMap[id] == nil {
+				continue
+			}
+
+			//If email verification is required and user email is not verified don't send email.
+			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
+				mlog.Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
+				continue
+			}
+
+			senderProfileImage, _, err := a.GetProfileImage(sender)
+			if err != nil {
+				a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+			}
+			if err := a.sendNotificationEmail(notification, profileMap[id], team, senderProfileImage); err != nil {
+				mlog.Warn("Unable to send notification email.", mlog.Err(err))
 			}
 		}
 	}
@@ -478,6 +501,28 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				}
 			}
 		}
+
+		for _, id := range crtMentions.Push {
+			if profileMap[id] == nil {
+				continue
+			}
+
+			var status *model.Status
+			var err *model.AppError
+			if status, err = a.GetStatus(id); err != nil {
+				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+			}
+
+			if DoesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId) {
+				a.sendPushNotification(
+					notification,
+					profileMap[id],
+					false,
+					false,
+					model.CommentsNotifyAny,
+				)
+			}
+		}
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil)
@@ -516,12 +561,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		usersToReceiveNotification = append(usersToReceiveNotification, mentionedUsersList...)
 	}
 
-	if len(crtMentions) != 0 {
-		usersToReceiveNotification = append(usersToReceiveNotification, crtMentions...)
+	if len(crtMentions.Desktop) != 0 {
+		usersToReceiveNotification = append(usersToReceiveNotification, crtMentions.Desktop...)
 	}
 
 	if len(usersToReceiveNotification) != 0 {
-		usersToReceiveNotification = model.RemoveDuplicateStrings(usersToReceiveNotification)
 		message.Add("mentions", model.ArrayToJson(usersToReceiveNotification))
 	}
 
@@ -560,32 +604,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 	return mentionedUsersList, nil
-}
-
-func (a *App) userHasCRT(uid string) bool {
-	hasCRT := *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
-	if preference, prefErr := a.Srv().Store.Preference().Get(uid, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); prefErr == nil {
-		hasCRT = preference.Value == "on"
-	}
-	return hasCRT
-}
-
-func (a *App) userAllowsDesktopThreadsNotification(user *model.User, mentions *ExplicitMentions) bool {
-	userAllows := user.NotifyProps[model.DesktopNotifyProp] == model.UserNotifyMention
-
-	if !userAllows {
-		return false
-	}
-
-	if _, ok := mentions.Mentions[user.Id]; ok {
-		return true
-	}
-
-	if user.NotifyProps[model.DesktopThreadsNotifyProp] == model.UserNotifyAll {
-		return true
-	}
-
-	return false
 }
 
 func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
@@ -1286,4 +1304,37 @@ func (a *App) GetNotificationNameFormat(user *model.User) string {
 	}
 
 	return data.Value
+}
+
+type CrtMentions struct {
+	// Desktop contains the user IDs of thread followers to receive desktop notification
+	Desktop model.StringArray
+
+	// Email contains the user IDs of thread followers to receive email notification
+	Email model.StringArray
+
+	// Push contains the user IDs of thread followers to receive push notification
+	Push model.StringArray
+}
+
+func (c *CrtMentions) addMention(user *model.User, mentions *ExplicitMentions) bool {
+	desktopMention := user.NotifyProps[model.DesktopNotifyProp] == model.UserNotifyMention
+	emailMention := user.NotifyProps[model.EmailNotifyProp] != "false"
+	pushMention := user.NotifyProps[model.PushNotifyProp] == model.UserNotifyMention
+
+	if _, ok := mentions.Mentions[user.Id]; (ok || user.NotifyProps[model.DesktopThreadsNotifyProp] == model.UserNotifyAll) && desktopMention {
+		c.Desktop = append(c.Desktop, user.Id)
+	}
+
+	if _, ok := mentions.Mentions[user.Id]; (ok || user.NotifyProps[model.EmailThreadsNotifyProp] == model.UserNotifyAll) && emailMention {
+		c.Email = append(c.Email, user.Id)
+		return true
+	}
+
+	if _, ok := mentions.Mentions[user.Id]; (ok || user.NotifyProps[model.PushThreadsNotifyProp] == model.UserNotifyAll) && pushMention {
+		c.Push = append(c.Push, user.Id)
+		return true
+	}
+
+	return false
 }

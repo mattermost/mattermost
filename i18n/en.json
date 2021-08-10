@@ -5519,6 +5519,14 @@
     "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} replied to a thread"
+  },
+  {
     "id": "app.notification.footer.info",
     "translation": " and go to Account Settings > Notifications"
   },

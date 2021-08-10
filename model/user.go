@@ -29,7 +29,6 @@ const (
 	UserNotifyMention              = "mention"
 	UserNotifyNone                 = "none"
 	DesktopNotifyProp              = "desktop"
-	DesktopThreadsNotifyProp       = "desktop_threads"
 	DesktopSoundNotifyProp         = "desktop_sound"
 	MarkUnreadNotifyProp           = "mark_unread"
 	PushNotifyProp                 = "push"
@@ -44,6 +43,9 @@ const (
 	FirstNameNotifyProp            = "first_name"
 	AutoResponderActiveNotifyProp  = "auto_responder_active"
 	AutoResponderMessageNotifyProp = "auto_responder_message"
+	DesktopThreadsNotifyProp       = "desktop_threads"
+	PushThreadsNotifyProp          = "push_threads"
+	EmailThreadsNotifyProp         = "email_threads"
 
 	DefaultLocale        = "en"
 	UserAuthServiceEmail = "email"
@@ -444,13 +446,15 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[EmailNotifyProp] = "true"
 	u.NotifyProps[PushNotifyProp] = UserNotifyMention
 	u.NotifyProps[DesktopNotifyProp] = UserNotifyMention
-	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll
 	u.NotifyProps[DesktopSoundNotifyProp] = "true"
 	u.NotifyProps[MentionKeysNotifyProp] = ""
 	u.NotifyProps[ChannelMentionsNotifyProp] = "true"
 	u.NotifyProps[PushStatusNotifyProp] = StatusAway
 	u.NotifyProps[CommentsNotifyProp] = CommentsNotifyNever
 	u.NotifyProps[FirstNameNotifyProp] = "false"
+	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[EmailThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[PushThreadsNotifyProp] = UserNotifyAll
 }
 
 func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
