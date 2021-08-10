@@ -343,7 +343,7 @@ func TestUpdateTeam(t *testing.T) {
 		originalTeamId := team.Id
 		team.Id = model.NewId()
 
-		r, err := th.Client.DoApiPut(client.GetTeamRoute(originalTeamId), team.ToJson())
+		r, err := th.Client.DoApiPut("/teams/"+originalTeamId, team.ToJson())
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -3158,7 +3158,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	require.True(t, okMsg, "should return true")
 
 	t.Run("invalid data in request body", func(t *testing.T) {
-		res, err := th.SystemAdminClient.DoApiPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
+		res, err := th.SystemAdminClient.DoApiPost("/teams/"+th.BasicTeam.Id+"/invite-guests/email", "bad data")
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.team.invite_guests_to_channels.invalid_body.app_error")
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
