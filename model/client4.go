@@ -541,10 +541,6 @@ func (c *Client4) getExportRoute(name string) string {
 	return fmt.Sprintf(c.getExportsRoute()+"/%v", name)
 }
 
-func (c *Client4) getRemoteClusterRoute() string {
-	return "/remotecluster"
-}
-
 func (c *Client4) getSharedChannelsRoute() string {
 	return "/sharedchannels"
 }
