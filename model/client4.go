@@ -150,11 +150,6 @@ func (c *Client4) SetToken(token string) {
 	c.AuthType = HeaderBearer
 }
 
-// MockSession is deprecated in favour of SetToken
-func (c *Client4) MockSession(token string) {
-	c.SetToken(token)
-}
-
 func (c *Client4) SetOAuthToken(token string) {
 	c.AuthToken = token
 	c.AuthType = HeaderToken
