@@ -27,7 +27,7 @@ import (
 const (
 	ConnSecurityNone     = ""
 	ConnSecurityPlain    = "PLAIN"
-	ConnSecurityTls      = "TLS"
+	ConnSecurityTLS      = "TLS"
 	ConnSecurityStarttls = "STARTTLS"
 
 	ImageDriverLocal = "local"
@@ -100,8 +100,8 @@ const (
 	SitenameMaxLength = 30
 
 	ServiceSettingsDefaultSiteUrl          = "http://localhost:8065"
-	ServiceSettingsDefaultTlsCertFile      = ""
-	ServiceSettingsDefaultTlsKeyFile       = ""
+	ServiceSettingsDefaultTLSCertFile      = ""
+	ServiceSettingsDefaultTLSKeyFile       = ""
 	ServiceSettingsDefaultReadTimeout      = 300
 	ServiceSettingsDefaultWriteTimeout     = 300
 	ServiceSettingsDefaultIdleTimeout      = 60
@@ -483,11 +483,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.TLSKeyFile == nil {
-		s.TLSKeyFile = NewString(ServiceSettingsDefaultTlsKeyFile)
+		s.TLSKeyFile = NewString(ServiceSettingsDefaultTLSKeyFile)
 	}
 
 	if s.TLSCertFile == nil {
-		s.TLSCertFile = NewString(ServiceSettingsDefaultTlsCertFile)
+		s.TLSCertFile = NewString(ServiceSettingsDefaultTLSCertFile)
 	}
 
 	if s.TLSMinVer == nil {
@@ -3445,7 +3445,7 @@ func (s *FileSettings) isValid() *AppError {
 }
 
 func (s *EmailSettings) isValid() *AppError {
-	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTls || *s.ConnectionSecurity == ConnSecurityStarttls || *s.ConnectionSecurity == ConnSecurityPlain) {
+	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS || *s.ConnectionSecurity == ConnSecurityStarttls || *s.ConnectionSecurity == ConnSecurityPlain) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3481,7 +3481,7 @@ func (s *RateLimitSettings) isValid() *AppError {
 }
 
 func (s *LdapSettings) isValid() *AppError {
-	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTls || *s.ConnectionSecurity == ConnSecurityStarttls) {
+	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS || *s.ConnectionSecurity == ConnSecurityStarttls) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3616,11 +3616,11 @@ func (s *SamlSettings) isValid() *AppError {
 }
 
 func (s *ServiceSettings) isValid() *AppError {
-	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTls) {
+	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.ConnectionSecurity == ConnSecurityTls && !*s.UseLetsEncrypt {
+	if *s.ConnectionSecurity == ConnSecurityTLS && !*s.UseLetsEncrypt {
 		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSCertFile == "" {
