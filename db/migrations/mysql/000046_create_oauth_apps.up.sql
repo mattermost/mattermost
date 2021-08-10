@@ -8,9 +8,23 @@ CREATE TABLE IF NOT EXISTS OAuthApps (
   Description text,
   CallbackUrls text,
   Homepage text,
-  PRIMARY KEY (Id),
-  KEY idx_oauthapps_creator_id (CreatorId)
+  PRIMARY KEY (Id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'OAuthApps'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_oauthapps_creator_id'
+    ) > 0,
+    'SELECT 1',
+    'CREATE INDEX idx_oauthapps_creator_id ON OAuthApps(CreatorId);'
+));
+
+PREPARE createIndexIfNotExists FROM @preparedStatement;
+EXECUTE createIndexIfNotExists;
+DEALLOCATE PREPARE createIndexIfNotExists;
 
 SET @preparedStatement = (SELECT IF(
     (
