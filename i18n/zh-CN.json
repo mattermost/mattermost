@@ -9076,5 +9076,189 @@
   {
     "id": "api.templates.cloud_trial_ended_email.title",
     "translation": "您的 Mattermost 14 天免费试用已于今天结束"
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "这帖子包含指向其他频道的永久链接，其他网站的用户可能无法看到。"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "一个或多个帖子无法传送到远程站点 {{.Remote}}，因为它处于离线状态。帖子将在网站上线时发送。"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "数据保留作业失败。"
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "无效的政策。"
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "在执行请求的操作时遇到错误。"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "图像限制检查失败。分辨率过高。"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "无效的密码"
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "无法从用户发送自动响应。"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "用户串成员身份不存在"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "无法获得用户串成员身份"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "无法获取公共团队 ID。"
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "系统"
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "创建共享私信频道时遇到错误。"
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "想要更改您的通知设置吗？"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "登入到 Mattermost"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " 并至账户设定 > 通知"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} 在消息中提到了您"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 在 {{.ChannelName}} 频道中提到了您。"
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} 向您发送了一条新的消息"
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} 向您发送了一条新的消息"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 向您的群组发送了一条消息。"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 向您发送了一条新的私信。"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "管理列表为空。"
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "管理列表为空。"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "图像限制检查失败。分辨率过高。"
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "字段 '{{.Field}}' 必须通过用户的登录提供商设置。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "由于云帐户超容，无法激活更多用户。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "无法检查您的 Mattermost 云实例中的用户数量。"
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "字段 '{{.Field}}' 必须通过用户的登录提供商设置。"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "无法在让电子邮件验证令牌无效时解析令牌"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "无法在让电子邮件验证令牌无效时移除令牌"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "无法在让电子邮件验证令牌无效时按类型获取令牌"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "您的 Mattermost 订阅即将需要续订"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "登录您的客户帐户进行续订"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}，您的订阅将在 {{.Days}} 天后到期。我们希望您体验到 Mattermost 支持的灵活、安全的团队协作。尽快续订以确保您的团队可以继续享受这些好处。"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "您的许可证需要续订"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost 是一个灵活的开源通讯平台，可实现安全的团队协作。"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Name}}，您对 Mattermost 专业云的 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受专业云的好处。"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}，您的 Mattermost 专业云 14 天免费试用已于今天结束，{{.TodayDate}}。请添加您的付款信息，以确保您的团队可以继续享受专业云的好处。"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "功能需要升级到企业版。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "登入工作区以在 PC、Mac、iOS 和 Android 上获得最好体验。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "在我们的"
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "无法为内容提取获取文件信息。"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "无效的 ‘to’ 值"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "无效的 ‘from’ 值"
   }
 ]
