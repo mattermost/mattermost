@@ -128,7 +128,7 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, app.MaxEmojiOriginalWidth+1), "image.gif")
+	_, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, app.MaxEmojiOriginalWidth+1), "image.gif")
 	require.NotNil(t, resp.Error, "should fail - emoji is too wide")
 
 	// try to create an emoji that's too tall
@@ -137,7 +137,7 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, app.MaxEmojiOriginalHeight+1, 10), "image.gif")
+	_, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, app.MaxEmojiOriginalHeight+1, 10), "image.gif")
 	require.NotNil(t, resp.Error, "should fail - emoji is too tall")
 
 	// try to create an emoji that's too large

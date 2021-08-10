@@ -668,15 +668,13 @@ func testGetRemoteForUser(t *testing.T, ss store.Store) {
 		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_2"},
 		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_3"},
 	}
-	var channelRemotes []*model.SharedChannelRemote
 	for _, rc := range remotes {
 		_, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
 
 		scr := &model.SharedChannelRemote{Id: model.NewId(), CreatorId: rc.CreatorId, ChannelId: channel.Id, RemoteId: rc.RemoteId}
-		scr, err = ss.SharedChannel().SaveRemote(scr)
+		_, err = ss.SharedChannel().SaveRemote(scr)
 		require.NoError(t, err)
-		channelRemotes = append(channelRemotes, scr)
 	}
 	users := []string{model.NewId(), model.NewId(), model.NewId()}
 	for _, id := range users {

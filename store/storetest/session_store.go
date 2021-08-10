@@ -56,14 +56,14 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 
-	s2, err = ss.Session().Save(s2)
+	_, err = ss.Session().Save(s2)
 	require.NoError(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = s1.UserId
 	s3.ExpiresAt = 1
 
-	s3, err = ss.Session().Save(s3)
+	_, err = ss.Session().Save(s3)
 	require.NoError(t, err)
 
 	session, err := ss.Session().Get(context.Background(), s1.Id)
@@ -88,7 +88,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s2.DeviceId = model.NewId()
 	s2.ExpiresAt = model.GetMillis() + 10000
 
-	s2, err = ss.Session().Save(s2)
+	_, err = ss.Session().Save(s2)
 	require.NoError(t, err)
 
 	s3 := &model.Session{}
@@ -96,7 +96,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s3.ExpiresAt = 1
 	s3.DeviceId = model.NewId()
 
-	s3, err = ss.Session().Save(s3)
+	_, err = ss.Session().Save(s3)
 	require.NoError(t, err)
 
 	data, err := ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)
@@ -255,7 +255,7 @@ func testSessionCount(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + 100000
 
-	s1, err := ss.Session().Save(s1)
+	_, err := ss.Session().Save(s1)
 	require.NoError(t, err)
 
 	count, err := ss.Session().AnalyticsSessionCount()
@@ -326,7 +326,7 @@ func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 	s1.DeviceId = model.NewId()
 	s1.ExpiresAt = 0 // never expires
-	s1, err = ss.Session().Save(s1)
+	_, err = ss.Session().Save(s1)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
@@ -340,7 +340,7 @@ func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	s3.UserId = model.NewId()
 	s3.DeviceId = model.NewId()
 	s3.ExpiresAt = now - (TenMinutes * 100) // expired outside threshold
-	s3, err = ss.Session().Save(s3)
+	_, err = ss.Session().Save(s3)
 	require.NoError(t, err)
 
 	s4 := &model.Session{}
@@ -353,7 +353,7 @@ func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	s5.UserId = model.NewId()
 	s5.DeviceId = model.NewId()
 	s5.ExpiresAt = now + (TenMinutes * 100000) // not expired
-	s5, err = ss.Session().Save(s5)
+	_, err = ss.Session().Save(s5)
 	require.NoError(t, err)
 
 	sessions, err := ss.Session().GetSessionsExpired(TenMinutes*2, true, true) // mobile only
