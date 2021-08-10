@@ -2310,14 +2310,3 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	a.Publish(message)
 	return thread, nil
 }
-
-func (a *App) userHasCRT(id string) bool {
-	isCRTAllowed := a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
-	hasCRT := isCRTAllowed && *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
-
-	if preference, prefErr := a.Srv().Store.Preference().Get(id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); prefErr == nil {
-		hasCRT = preference.Value == "on"
-	}
-
-	return hasCRT
-}

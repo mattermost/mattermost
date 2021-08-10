@@ -281,11 +281,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		updateMentionChans = append(updateMentionChans, umc)
 	}
 
-	crtMentions := &CrtMentions{}
+	notifyCRT := &CRTNotifiers{}
 	if isCRTAllowed && post.RootId != "" {
 		for _, uid := range followers {
 			profile := profileMap[uid]
-			if profile == nil || !a.userHasCRT(uid) {
+			if profile == nil || !a.isCRTEnabledForUser(uid) {
 				continue
 			}
 
@@ -293,11 +293,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			// add user id to crtMentions depending on threads notify props
-			if ok := crtMentions.addMention(profile, mentions); ok && mentionedUsersList.Contains(uid) {
-				// remove explicitly mentioned user ids to avoid duplicate entries
-				mentionedUsersList = mentionedUsersList.Remove(uid)
-			}
+			// add user id to notifyCRT depending on threads notify props
+			notifyCRT.addUserToNotify(profile, mentions)
 		}
 	}
 
@@ -310,7 +307,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil {
+			if profileMap[id] == nil || notifyCRT.Email.Contains(id) {
 				continue
 			}
 
@@ -333,7 +330,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
-		for _, id := range crtMentions.Email {
+		for _, id := range notifyCRT.Email {
 			if profileMap[id] == nil {
 				continue
 			}
@@ -430,7 +427,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	if sendPushNotifications {
 		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil {
+			if profileMap[id] == nil || notifyCRT.Push.Contains(id) {
 				continue
 			}
 
@@ -470,7 +467,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		for _, id := range allActivityPushUserIds {
-			if profileMap[id] == nil {
+			if profileMap[id] == nil || notifyCRT.Push.Contains(id) {
 				continue
 			}
 
@@ -502,7 +499,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 		}
 
-		for _, id := range crtMentions.Push {
+		for _, id := range notifyCRT.Push {
 			if profileMap[id] == nil {
 				continue
 			}
@@ -561,11 +558,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		usersToReceiveNotification = append(usersToReceiveNotification, mentionedUsersList...)
 	}
 
-	if len(crtMentions.Desktop) != 0 {
-		usersToReceiveNotification = append(usersToReceiveNotification, crtMentions.Desktop...)
+	if len(notifyCRT.Desktop) != 0 {
+		usersToReceiveNotification = append(usersToReceiveNotification, notifyCRT.Desktop...)
 	}
 
 	if len(usersToReceiveNotification) != 0 {
+		usersToReceiveNotification = model.RemoveDuplicateStrings(usersToReceiveNotification)
 		message.Add("mentions", model.ArrayToJson(usersToReceiveNotification))
 	}
 
@@ -577,7 +575,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if profileMap[uid] == nil {
 				continue
 			}
-			if a.userHasCRT(uid) {
+			if a.isCRTEnabledForUser(uid) {
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
@@ -1306,7 +1304,7 @@ func (a *App) GetNotificationNameFormat(user *model.User) string {
 	return data.Value
 }
 
-type CrtMentions struct {
+type CRTNotifiers struct {
 	// Desktop contains the user IDs of thread followers to receive desktop notification
 	Desktop model.StringArray
 
@@ -1317,24 +1315,28 @@ type CrtMentions struct {
 	Push model.StringArray
 }
 
-func (c *CrtMentions) addMention(user *model.User, mentions *ExplicitMentions) bool {
-	desktopMention := user.NotifyProps[model.DesktopNotifyProp] == model.UserNotifyMention
-	emailMention := user.NotifyProps[model.EmailNotifyProp] != "false"
-	pushMention := user.NotifyProps[model.PushNotifyProp] == model.UserNotifyMention
+func (c *CRTNotifiers) addUserToNotify(user *model.User, mentions *ExplicitMentions) {
+	// whether or not user will get a notification
+	shouldNotifyOnDesktop := user.NotifyProps[model.DesktopNotifyProp] != model.UserNotifyNone
+	shouldPushNotification := user.NotifyProps[model.PushNotifyProp] != model.UserNotifyNone
+	shouldEmail := user.NotifyProps[model.EmailNotifyProp] == "true"
 
-	if _, ok := mentions.Mentions[user.Id]; (ok || user.NotifyProps[model.DesktopThreadsNotifyProp] == model.UserNotifyAll) && desktopMention {
+	// thread notify props
+	desktopThreads := user.NotifyProps[model.DesktopThreadsNotifyProp]
+	emailThreads := user.NotifyProps[model.EmailThreadsNotifyProp]
+	pushThreads := user.NotifyProps[model.PushThreadsNotifyProp]
+
+	_, userWasMentioned := mentions.Mentions[user.Id]
+
+	if shouldNotifyOnDesktop && (userWasMentioned || desktopThreads == model.UserNotifyAll) {
 		c.Desktop = append(c.Desktop, user.Id)
 	}
 
-	if _, ok := mentions.Mentions[user.Id]; (ok || user.NotifyProps[model.EmailThreadsNotifyProp] == model.UserNotifyAll) && emailMention {
+	if shouldEmail && (userWasMentioned || emailThreads == model.UserNotifyAll) {
 		c.Email = append(c.Email, user.Id)
-		return true
 	}
 
-	if _, ok := mentions.Mentions[user.Id]; (ok || user.NotifyProps[model.PushThreadsNotifyProp] == model.UserNotifyAll) && pushMention {
+	if shouldPushNotification && (userWasMentioned || pushThreads == model.UserNotifyAll) {
 		c.Push = append(c.Push, user.Id)
-		return true
 	}
-
-	return false
 }
