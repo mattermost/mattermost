@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -11,13 +12,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-func (a *App) MakePermissionError(permissions []*model.Permission) *model.AppError {
+func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
 	permissionsStr := "permission="
 	for _, permission := range permissions {
 		permissionsStr += permission.Id
 		permissionsStr += ","
 	}
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session().UserId+", "+permissionsStr, http.StatusForbidden)
+	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
 }
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
@@ -175,7 +176,7 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelID string, perm
 		return false
 	}
 
-	channelMember, err := a.GetChannelMember(channelID, askingUserId)
+	channelMember, err := a.GetChannelMember(context.Background(), channelID, askingUserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
 		if a.RolesGrantPermission(roles, permission.Id) {
@@ -262,7 +263,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError([]*model.Permission{model.PERMISSION_MANAGE_BOTS})
+			return a.MakePermissionError(&session, []*model.Permission{model.PERMISSION_MANAGE_BOTS})
 		}
 	} else {
 		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
@@ -271,7 +272,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError([]*model.Permission{model.PERMISSION_MANAGE_OTHERS_BOTS})
+			return a.MakePermissionError(&session, []*model.Permission{model.PERMISSION_MANAGE_OTHERS_BOTS})
 		}
 	}
 

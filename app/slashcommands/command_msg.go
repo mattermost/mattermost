@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -39,7 +40,7 @@ func (*msgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command 
 	}
 }
 
-func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	splitMessage := strings.SplitN(message, " ", 2)
 
 	parsedMessage := ""
@@ -82,9 +83,9 @@ func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message strin
 			}
 
 			var directChannel *model.Channel
-			if directChannel, err = a.GetOrCreateDirectChannel(args.UserId, userProfile.Id); err != nil {
+			if directChannel, err = a.GetOrCreateDirectChannel(c, args.UserId, userProfile.Id); err != nil {
 				mlog.Error(err.Error())
-				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+				return &model.CommandResponse{Text: args.T(err.Id), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 			targetChannelId = directChannel.Id
 		} else {
@@ -100,7 +101,7 @@ func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message strin
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId
 		post.UserId = args.UserId
-		if _, err = a.CreatePostMissingChannel(post, true); err != nil {
+		if _, err = a.CreatePostMissingChannel(c, post, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}

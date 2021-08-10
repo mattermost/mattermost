@@ -10,13 +10,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"sync"
 	"time"
+
+	"github.com/getsentry/sentry-go/internal/ratelimit"
 )
 
 const defaultBufferSize = 30
-const defaultRetryAfter = time.Second * 60
 const defaultTimeout = time.Second * 30
 
 // maxDrainResponseBytes is the maximum number of bytes that transport
@@ -59,26 +59,6 @@ func getTLSConfig(options ClientOptions) *tls.Config {
 	}
 
 	return nil
-}
-
-func retryAfter(now time.Time, r *http.Response) time.Duration {
-	// TODO(tracing): handle x-sentry-rate-limits, separate rate limiting
-	// per data type (error event, transaction, etc).
-	retryAfterHeader := r.Header["Retry-After"]
-
-	if retryAfterHeader == nil {
-		return defaultRetryAfter
-	}
-
-	if date, err := time.Parse(time.RFC1123, retryAfterHeader[0]); err == nil {
-		return date.Sub(now)
-	}
-
-	if seconds, err := strconv.Atoi(retryAfterHeader[0]); err == nil {
-		return time.Second * time.Duration(seconds)
-	}
-
-	return defaultRetryAfter
 }
 
 func getRequestBodyFromEvent(event *Event) []byte {
@@ -144,7 +124,12 @@ func transactionEnvelopeFromBody(eventID EventID, sentAt time.Time, body json.Ra
 	return &b, nil
 }
 
-func getRequestFromEvent(event *Event, dsn *Dsn) (*http.Request, error) {
+func getRequestFromEvent(event *Event, dsn *Dsn) (r *http.Request, err error) {
+	defer func() {
+		if r != nil {
+			r.Header.Set("User-Agent", userAgent)
+		}
+	}()
 	body := getRequestBodyFromEvent(event)
 	if body == nil {
 		return nil, errors.New("event could not be marshaled")
@@ -167,18 +152,38 @@ func getRequestFromEvent(event *Event, dsn *Dsn) (*http.Request, error) {
 	)
 }
 
+func categoryFor(eventType string) ratelimit.Category {
+	switch eventType {
+	case "":
+		return ratelimit.CategoryError
+	case transactionType:
+		return ratelimit.CategoryTransaction
+	default:
+		return ratelimit.Category(eventType)
+	}
+}
+
 // ================================
 // HTTPTransport
 // ================================
 
 // A batch groups items that are processed sequentially.
 type batch struct {
-	items   chan *http.Request
+	items   chan batchItem
 	started chan struct{} // closed to signal items started to be worked on
 	done    chan struct{} // closed to signal completion of all items
 }
 
-// HTTPTransport is a default implementation of Transport interface used by Client.
+type batchItem struct {
+	request  *http.Request
+	category ratelimit.Category
+}
+
+// HTTPTransport is the default, non-blocking, implementation of Transport.
+//
+// Clients using this transport will enqueue requests in a buffer and return to
+// the caller before any network communication has happened. Requests are sent
+// to Sentry sequentially from a background goroutine.
 type HTTPTransport struct {
 	dsn       *Dsn
 	client    *http.Client
@@ -195,8 +200,8 @@ type HTTPTransport struct {
 	// HTTP Client request timeout. Defaults to 30 seconds.
 	Timeout time.Duration
 
-	mu            sync.RWMutex
-	disabledUntil time.Time
+	mu     sync.RWMutex
+	limits ratelimit.Map
 }
 
 // NewHTTPTransport returns a new pre-configured instance of HTTPTransport.
@@ -204,6 +209,7 @@ func NewHTTPTransport() *HTTPTransport {
 	transport := HTTPTransport{
 		BufferSize: defaultBufferSize,
 		Timeout:    defaultTimeout,
+		limits:     make(ratelimit.Map),
 	}
 	return &transport
 }
@@ -222,7 +228,7 @@ func (t *HTTPTransport) Configure(options ClientOptions) {
 	// synchronized by reading from and writing to the channel.
 	t.buffer = make(chan batch, 1)
 	t.buffer <- batch{
-		items:   make(chan *http.Request, t.BufferSize),
+		items:   make(chan batchItem, t.BufferSize),
 		started: make(chan struct{}),
 		done:    make(chan struct{}),
 	}
@@ -255,10 +261,10 @@ func (t *HTTPTransport) SendEvent(event *Event) {
 	if t.dsn == nil {
 		return
 	}
-	t.mu.RLock()
-	disabled := time.Now().Before(t.disabledUntil)
-	t.mu.RUnlock()
-	if disabled {
+
+	category := categoryFor(event.Type)
+
+	if t.disabled(category) {
 		return
 	}
 
@@ -285,7 +291,10 @@ func (t *HTTPTransport) SendEvent(event *Event) {
 	b := <-t.buffer
 
 	select {
-	case b.items <- request:
+	case b.items <- batchItem{
+		request:  request,
+		category: category,
+	}:
 		var eventType string
 		if event.Type == transactionType {
 			eventType = "transaction"
@@ -346,7 +355,7 @@ started:
 	close(b.items)
 	// Start a new batch for subsequent events.
 	t.buffer <- batch{
-		items:   make(chan *http.Request, t.BufferSize),
+		items:   make(chan batchItem, t.BufferSize),
 		started: make(chan struct{}),
 		done:    make(chan struct{}),
 	}
@@ -375,26 +384,19 @@ func (t *HTTPTransport) worker() {
 		t.buffer <- b
 
 		// Process all batch items.
-		for request := range b.items {
-			t.mu.RLock()
-			disabled := time.Now().Before(t.disabledUntil)
-			t.mu.RUnlock()
-			if disabled {
+		for item := range b.items {
+			if t.disabled(item.category) {
 				continue
 			}
 
-			response, err := t.client.Do(request)
+			response, err := t.client.Do(item.request)
 			if err != nil {
 				Logger.Printf("There was an issue with sending an event: %v", err)
 				continue
 			}
-			if response.StatusCode == http.StatusTooManyRequests {
-				deadline := time.Now().Add(retryAfter(time.Now(), response))
-				t.mu.Lock()
-				t.disabledUntil = deadline
-				t.mu.Unlock()
-				Logger.Printf("Too many requests, backing off till: %s\n", deadline)
-			}
+			t.mu.Lock()
+			t.limits.Merge(ratelimit.FromResponse(response))
+			t.mu.Unlock()
 			// Drain body up to a limit and close it, allowing the
 			// transport to reuse TCP connections.
 			_, _ = io.CopyN(ioutil.Discard, response.Body, maxDrainResponseBytes)
@@ -406,16 +408,38 @@ func (t *HTTPTransport) worker() {
 	}
 }
 
+func (t *HTTPTransport) disabled(c ratelimit.Category) bool {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+	disabled := t.limits.IsRateLimited(c)
+	if disabled {
+		Logger.Printf("Too many requests for %q, backing off till: %v", c, t.limits.Deadline(c))
+	}
+	return disabled
+}
+
 // ================================
 // HTTPSyncTransport
 // ================================
 
-// HTTPSyncTransport is an implementation of Transport interface which blocks after each captured event.
+// HTTPSyncTransport is a blocking implementation of Transport.
+//
+// Clients using this transport will send requests to Sentry sequentially and
+// block until a response is returned.
+//
+// The blocking behavior is useful in a limited set of use cases. For example,
+// use it when deploying code to a Function as a Service ("Serverless")
+// platform, where any work happening in a background goroutine is not
+// guaranteed to execute.
+//
+// For most cases, prefer HTTPTransport.
 type HTTPSyncTransport struct {
-	dsn           *Dsn
-	client        *http.Client
-	transport     http.RoundTripper
-	disabledUntil time.Time
+	dsn       *Dsn
+	client    *http.Client
+	transport http.RoundTripper
+
+	mu     sync.Mutex
+	limits ratelimit.Map
 
 	// HTTP Client request timeout. Defaults to 30 seconds.
 	Timeout time.Duration
@@ -425,6 +449,7 @@ type HTTPSyncTransport struct {
 func NewHTTPSyncTransport() *HTTPSyncTransport {
 	transport := HTTPSyncTransport{
 		Timeout: defaultTimeout,
+		limits:  make(ratelimit.Map),
 	}
 
 	return &transport
@@ -460,7 +485,11 @@ func (t *HTTPSyncTransport) Configure(options ClientOptions) {
 
 // SendEvent assembles a new packet out of Event and sends it to remote server.
 func (t *HTTPSyncTransport) SendEvent(event *Event) {
-	if t.dsn == nil || time.Now().Before(t.disabledUntil) {
+	if t.dsn == nil {
+		return
+	}
+
+	if t.disabled(categoryFor(event.Type)) {
 		return
 	}
 
@@ -492,10 +521,10 @@ func (t *HTTPSyncTransport) SendEvent(event *Event) {
 		Logger.Printf("There was an issue with sending an event: %v", err)
 		return
 	}
-	if response.StatusCode == http.StatusTooManyRequests {
-		t.disabledUntil = time.Now().Add(retryAfter(time.Now(), response))
-		Logger.Printf("Too many requests, backing off till: %s\n", t.disabledUntil)
-	}
+	t.mu.Lock()
+	t.limits.Merge(ratelimit.FromResponse(response))
+	t.mu.Unlock()
+
 	// Drain body up to a limit and close it, allowing the
 	// transport to reuse TCP connections.
 	_, _ = io.CopyN(ioutil.Discard, response.Body, maxDrainResponseBytes)
@@ -505,6 +534,16 @@ func (t *HTTPSyncTransport) SendEvent(event *Event) {
 // Flush is a no-op for HTTPSyncTransport. It always returns true immediately.
 func (t *HTTPSyncTransport) Flush(_ time.Duration) bool {
 	return true
+}
+
+func (t *HTTPSyncTransport) disabled(c ratelimit.Category) bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	disabled := t.limits.IsRateLimited(c)
+	if disabled {
+		Logger.Printf("Too many requests for %q, backing off till: %v", c, t.limits.Deadline(c))
+	}
+	return disabled
 }
 
 // ================================

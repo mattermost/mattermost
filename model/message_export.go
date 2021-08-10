@@ -29,3 +29,8 @@ type MessageExport struct {
 	PostOriginalId *string
 	PostFileIds    StringArray
 }
+
+type MessageExportCursor struct {
+	LastPostUpdateAt int64
+	LastPostId       string
+}

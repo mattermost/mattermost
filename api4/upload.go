@@ -33,6 +33,10 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// these are not supported for client uploads; shared channels only.
+	us.RemoteId = ""
+	us.ReqFileId = ""
+
 	auditRec := c.MakeAuditRecord("createUpload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("upload", us)
@@ -43,7 +47,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return
 		}
@@ -51,8 +55,8 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	us.Id = model.NewId()
-	if c.App.Session().UserId != "" {
-		us.UserId = c.App.Session().UserId
+	if c.AppContext.Session().UserId != "" {
+		us.UserId = c.AppContext.Session().UserId
 	}
 	us, err := c.App.CreateUploadSession(us)
 	if err != nil {
@@ -77,7 +81,7 @@ func getUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if us.UserId != c.App.Session().UserId && !c.IsSystemAdmin() {
+	if us.UserId != c.AppContext.Session().UserId && !c.IsSystemAdmin() {
 		c.Err = model.NewAppError("getUpload", "api.upload.get_upload.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -113,39 +117,13 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if us.UserId != c.App.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.App.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return
 		}
 	}
 
-	boundary, parseErr := parseMultipartRequestHeader(r)
-	if parseErr != nil && !errors.Is(parseErr, http.ErrNotMultipart) {
-		c.Err = model.NewAppError("uploadData", "api.upload.upload_data.invalid_content_type",
-			nil, parseErr.Error(), http.StatusBadRequest)
-		return
-	}
-
-	var rd io.Reader
-	if boundary != "" {
-		mr := multipart.NewReader(r.Body, boundary)
-		p, partErr := mr.NextPart()
-		if partErr != nil {
-			c.Err = model.NewAppError("uploadData", "api.upload.upload_data.multipart_error",
-				nil, partErr.Error(), http.StatusBadRequest)
-			return
-		}
-		rd = p
-	} else {
-		if r.ContentLength > (us.FileSize - us.FileOffset) {
-			c.Err = model.NewAppError("uploadData", "api.upload.upload_data.invalid_content_length",
-				nil, "", http.StatusBadRequest)
-			return
-		}
-		rd = r.Body
-	}
-
-	info, err := c.App.UploadData(us, rd)
+	info, err := doUploadData(c, us, r)
 	if err != nil {
 		c.Err = err
 		return
@@ -159,4 +137,31 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(info.ToJson()))
+}
+
+func doUploadData(c *Context, us *model.UploadSession, r *http.Request) (*model.FileInfo, *model.AppError) {
+	boundary, parseErr := parseMultipartRequestHeader(r)
+	if parseErr != nil && !errors.Is(parseErr, http.ErrNotMultipart) {
+		return nil, model.NewAppError("uploadData", "api.upload.upload_data.invalid_content_type",
+			nil, parseErr.Error(), http.StatusBadRequest)
+	}
+
+	var rd io.Reader
+	if boundary != "" {
+		mr := multipart.NewReader(r.Body, boundary)
+		p, partErr := mr.NextPart()
+		if partErr != nil {
+			return nil, model.NewAppError("uploadData", "api.upload.upload_data.multipart_error",
+				nil, partErr.Error(), http.StatusBadRequest)
+		}
+		rd = p
+	} else {
+		if r.ContentLength > (us.FileSize - us.FileOffset) {
+			return nil, model.NewAppError("uploadData", "api.upload.upload_data.invalid_content_length",
+				nil, "", http.StatusBadRequest)
+		}
+		rd = r.Body
+	}
+
+	return c.App.UploadData(c.AppContext, us, rd)
 }

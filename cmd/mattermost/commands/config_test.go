@@ -207,6 +207,8 @@ func TestConfigReset(t *testing.T) {
 	})
 
 	t.Run("Success when the confirm boolean flag is given", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
 		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
 		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
 		assert.NoError(t, th.RunCommand(t, "config", "reset", "--confirm"))
@@ -217,10 +219,20 @@ func TestConfigReset(t *testing.T) {
 	})
 
 	t.Run("Success when a configuration section is given", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings"))
+		th := Setup(t)
+		defer th.TearDown()
+		output, err := th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunJobs", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunScheduler", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "set", "PrivacySettings.ShowFullName", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "reset", "JobSettings")
+		assert.NoErrorf(t, err, "output %s", output)
+
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
 		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
 		output3 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
@@ -230,9 +242,18 @@ func TestConfigReset(t *testing.T) {
 	})
 
 	t.Run("Success when a configuration setting is given", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
+		th := Setup(t)
+		defer th.TearDown()
+
+		output, err := th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunJobs", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunScheduler", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "reset", "JobSettings.RunJobs")
+		assert.NoErrorf(t, err, "output %s", output)
+
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
 		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
 		assert.Contains(t, output1, "true")
@@ -543,9 +564,9 @@ func TestConfigMigrate(t *testing.T) {
 	sqlDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
-	ds, err := config.NewStore(sqlDSN, false, false, nil)
+	ds, err := config.NewStoreFromDSN(sqlDSN, false, false, nil)
 	require.NoError(t, err)
-	fs, err := config.NewStore(fileDSN, false, false, nil)
+	fs, err := config.NewStoreFromDSN(fileDSN, false, false, nil)
 	require.NoError(t, err)
 
 	defer ds.Close()

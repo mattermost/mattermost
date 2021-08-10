@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"reflect"
@@ -26,20 +27,16 @@ func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
 		}
 	}
 
+	appErr := a.Srv().mergeChannelHigherScopedPermissions([]*model.Role{role})
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	return role, nil
 }
 
-func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
-	roles, err := a.Srv().Store.Role().GetAll()
-	if err != nil {
-		return nil, model.NewAppError("GetAllRoles", "app.role.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return roles, nil
-}
-
-func (s *Server) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	role, nErr := s.Store.Role().GetByName(name)
+func (s *Server) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
+	role, nErr := s.Store.Role().GetByName(ctx, name)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -58,8 +55,8 @@ func (s *Server) GetRoleByName(name string) (*model.Role, *model.AppError) {
 	return role, nil
 }
 
-func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	return a.Srv().GetRoleByName(name)
+func (a *App) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
+	return a.Srv().GetRoleByName(ctx, name)
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {

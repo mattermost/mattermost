@@ -447,7 +447,7 @@ CREATE TABLE public.roles (
     createat bigint,
     updateat bigint,
     deleteat bigint,
-    permissions character varying(4096),
+    permissions text,
     schememanaged boolean,
     builtin boolean DEFAULT false
 );
@@ -505,8 +505,8 @@ ALTER TABLE public.sessions OWNER TO mmuser;
 CREATE TABLE public.status (
     userid character varying(26) NOT NULL,
     status character varying(32),
-    manual boolean,
-    lastactivityat bigint
+    lastactivityat bigint,
+    manual boolean DEFAULT false
 );
 
 
@@ -588,7 +588,7 @@ CREATE TABLE public.useraccesstokens (
     token character varying(26),
     userid character varying(26),
     description character varying(512),
-    isactive boolean
+    isactive boolean DEFAULT true
 );
 
 

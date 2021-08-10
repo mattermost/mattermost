@@ -20,12 +20,14 @@ const (
 	UnitTestListeningPort = ":0"
 )
 
+//nolint:golint,unused
 type ServerTestHelper struct {
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
 	originalInterval   int
 }
 
+//nolint:golint,unused
 func SetupServerTest(t testing.TB) *ServerTestHelper {
 	if testing.Short() {
 		t.SkipNow()
@@ -50,6 +52,7 @@ func SetupServerTest(t testing.TB) *ServerTestHelper {
 	return th
 }
 
+//nolint:golint,unused
 func (th *ServerTestHelper) TearDownServerTest() {
 	jobs.DefaultWatcherPollingInterval = th.originalInterval
 }
@@ -63,7 +66,7 @@ func TestRunServerSuccess(t *testing.T) {
 	// Use non-default listening port in case another server instance is already running.
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
-	err := runServer(configStore, false, th.interruptChan)
+	err := runServer(configStore, th.interruptChan)
 	require.NoError(t, err)
 }
 
@@ -114,7 +117,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
 	// Start and stop the server
-	err = runServer(configStore, false, th.interruptChan)
+	err = runServer(configStore, th.interruptChan)
 	require.NoError(t, err)
 
 	// Ensure the notification has been sent on the socket and is correct
@@ -136,6 +139,6 @@ func TestRunServerNoSystemd(t *testing.T) {
 	// Use non-default listening port in case another server instance is already running.
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
-	err := runServer(configStore, false, th.interruptChan)
+	err := runServer(configStore, th.interruptChan)
 	require.NoError(t, err)
 }

@@ -31,6 +31,13 @@ type Config struct {
 	// window size that we allow for a stream.
 	MaxStreamWindowSize uint32
 
+	// StreamCloseTimeout is the maximum time that a stream will allowed to
+	// be in a half-closed state when `Close` is called before forcibly
+	// closing the connection. Forcibly closed connections will empty the
+	// receive buffer, drop any future packets received for that stream,
+	// and send a RST to the remote side.
+	StreamCloseTimeout time.Duration
+
 	// LogOutput is used to control the log destination. Either Logger or
 	// LogOutput can be set, not both.
 	LogOutput io.Writer
@@ -48,6 +55,7 @@ func DefaultConfig() *Config {
 		KeepAliveInterval:      30 * time.Second,
 		ConnectionWriteTimeout: 10 * time.Second,
 		MaxStreamWindowSize:    initialStreamWindow,
+		StreamCloseTimeout:     5 * time.Minute,
 		LogOutput:              os.Stderr,
 	}
 }

@@ -3,6 +3,7 @@
 package jobs
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -78,39 +79,81 @@ func TestScheduler(t *testing.T) {
 	jobServer.MessageExportJob = exportInterface
 
 	t.Run("Base", func(t *testing.T) {
-		schedulers := jobServer.InitSchedulers()
-		schedulers.Start()
+		jobServer.InitSchedulers()
+		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 
-		schedulers.Stop()
+		jobServer.StopSchedulers()
 		// They should be all on here
-		for _, element := range schedulers.nextRunTimes {
+		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.NotNil(t, element)
 		}
 	})
 
 	t.Run("ClusterLeaderChanged", func(t *testing.T) {
-		schedulers := jobServer.InitSchedulers()
-		schedulers.Start()
+		jobServer.InitSchedulers()
+		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
-		schedulers.HandleClusterLeaderChange(false)
-		schedulers.Stop()
+		jobServer.HandleClusterLeaderChange(false)
+		jobServer.StopSchedulers()
 		// They should be turned off
-		for _, element := range schedulers.nextRunTimes {
+		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
 		}
 	})
 
-	t.Run("ConfigChanged", func(t *testing.T) {
-		schedulers := jobServer.InitSchedulers()
-		schedulers.Start()
+	t.Run("ClusterLeaderChangedBeforeStart", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.HandleClusterLeaderChange(false)
+		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
-		schedulers.HandleClusterLeaderChange(false)
-		// After running a config change, they should stay off
-		schedulers.handleConfigChange(nil, nil)
-		schedulers.Stop()
-		for _, element := range schedulers.nextRunTimes {
+		jobServer.StopSchedulers()
+		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
 		}
+	})
+
+	t.Run("DoubleClusterLeaderChangedBeforeStart", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.HandleClusterLeaderChange(false)
+		jobServer.HandleClusterLeaderChange(true)
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+		jobServer.StopSchedulers()
+		for _, element := range jobServer.schedulers.nextRunTimes {
+			assert.NotNil(t, element)
+		}
+	})
+
+	t.Run("ConfigChanged", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+		jobServer.HandleClusterLeaderChange(false)
+		// After running a config change, they should stay off
+		jobServer.schedulers.handleConfigChange(nil, nil)
+		jobServer.StopSchedulers()
+		for _, element := range jobServer.schedulers.nextRunTimes {
+			assert.Nil(t, element)
+		}
+	})
+
+	t.Run("ConfigChangedDeadlock", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			jobServer.StopSchedulers()
+		}()
+		go func() {
+			defer wg.Done()
+			jobServer.schedulers.handleConfigChange(nil, nil)
+		}()
+
+		wg.Wait()
 	})
 }

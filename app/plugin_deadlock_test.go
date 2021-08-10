@@ -89,7 +89,7 @@ func TestPluginDeadlock(t *testing.T) {
 
 		done := make(chan bool)
 		go func() {
-			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.App.NewPluginAPI)
+			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.NewPluginAPI)
 			close(done)
 		}()
 
@@ -196,7 +196,7 @@ func TestPluginDeadlock(t *testing.T) {
 
 		done := make(chan bool)
 		go func() {
-			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.App.NewPluginAPI)
+			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.NewPluginAPI)
 			close(done)
 		}()
 
@@ -291,7 +291,7 @@ func TestPluginDeadlock(t *testing.T) {
 			}
 			require.False(t, messageWillBePostedCalled, "MessageWillBePosted should not have been called")
 
-			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.App.NewPluginAPI)
+			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.NewPluginAPI)
 			th.TearDown()
 
 			posts, appErr = th.App.GetPosts(th.BasicChannel.Id, 0, 2)

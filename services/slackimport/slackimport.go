@@ -83,9 +83,9 @@ type slackComment struct {
 // Actions provides the actions that needs to be used for import slack data
 type Actions struct {
 	UpdateActive           func(*model.User, bool) (*model.User, *model.AppError)
-	AddUserToChannel       func(*model.User, *model.Channel) (*model.ChannelMember, *model.AppError)
-	JoinUserToTeam         func(*model.Team, *model.User, string) *model.AppError
-	CreateDirectChannel    func(string, string) (*model.Channel, *model.AppError)
+	AddUserToChannel       func(*model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
+	JoinUserToTeam         func(*model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
+	CreateDirectChannel    func(string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateGroupChannel     func([]string) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
@@ -93,7 +93,7 @@ type Actions struct {
 	GeneratePreviewImage   func(image.Image, string)
 	InvalidateAllCaches    func()
 	MaxPostSize            func() int
-	PrepareImage           func(fileData []byte) (image.Image, int, int)
+	PrepareImage           func(fileData []byte) (image.Image, func(), error)
 }
 
 // SlackImporter is a service that allows to import slack dumps into mattermost
@@ -234,7 +234,7 @@ func (si *SlackImporter) slackAddUsers(teamId string, slackusers []slackUser, im
 		// Check for email conflict and use existing user if found
 		if existingUser, err := si.store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
-			if err := si.actions.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
+			if _, err := si.actions.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
 				importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
 			} else {
 				importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -535,7 +535,7 @@ func (si *SlackImporter) addSlackUsersToChannel(members []string, users map[stri
 			log.WriteString(i18n.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": "?"}))
 			continue
 		}
-		if _, err := si.actions.AddUserToChannel(user, channel); err != nil {
+		if _, err := si.actions.AddUserToChannel(user, channel, false); err != nil {
 			log.WriteString(i18n.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": user.Username}))
 		}
 	}
@@ -695,7 +695,7 @@ func (si *SlackImporter) oldImportUser(team *model.Team, user *model.User) *mode
 		mlog.Warn("Failed to set email verified.", mlog.Err(err))
 	}
 
-	if err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
+	if _, err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
 		mlog.Warn("Failed to join team when importing.", mlog.Err(err))
 	}
 
@@ -772,11 +772,13 @@ func (si *SlackImporter) oldImportFile(timestamp time.Time, file io.Reader, team
 	}
 
 	if fileInfo.IsImage() && fileInfo.MimeType != "image/svg+xml" {
-		img, _, _ := si.actions.PrepareImage(data)
-		if img != nil {
-			si.actions.GenerateThumbnailImage(img, fileInfo.ThumbnailPath)
-			si.actions.GeneratePreviewImage(img, fileInfo.PreviewPath)
+		img, release, err := si.actions.PrepareImage(data)
+		if err != nil {
+			return nil, err
 		}
+		defer release()
+		si.actions.GenerateThumbnailImage(img, fileInfo.ThumbnailPath)
+		si.actions.GeneratePreviewImage(img, fileInfo.PreviewPath)
 	}
 
 	return fileInfo, nil

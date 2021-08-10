@@ -151,6 +151,16 @@ func (p *PrefixedRedisClient) Eval(script string, keys []string, args ...interfa
 	return p.Client.Eval(script, keys, args...).Err()
 }
 
+// HIncrBy implements HIncrBy wrapper for redis
+func (p *PrefixedRedisClient) HIncrBy(key string, field string, value int64) (int64, error) {
+	return p.Client.HIncrBy(p.withPrefix(key), field, value).Result()
+}
+
+// HGetAll implements HGetAll wrapper for redis
+func (p *PrefixedRedisClient) HGetAll(key string) (map[string]string, error) {
+	return p.Client.HGetAll(p.withPrefix(key)).MapStringString()
+}
+
 // NewPrefixedRedisClient returns a new Prefixed Redis Client
 func NewPrefixedRedisClient(redisClient Client, prefix string) (*PrefixedRedisClient, error) {
 	return &PrefixedRedisClient{
