@@ -90,7 +90,6 @@ func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.
 	return savedBot, nil
 }
 
-//nolint:golint,unused,deadcode
 func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
 	perPage := 1
 	userOptions := &model.UserGetOptions{

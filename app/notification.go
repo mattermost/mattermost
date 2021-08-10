@@ -567,7 +567,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("mentions", model.ArrayToJson(usersToReceiveNotification))
 	}
 
-	a.Publish(message)
+	published, err := a.publishWebsocketEventForPermalinkPost(post, message)
+	if err != nil {
+		return nil, err
+	}
+	if !published {
+		a.Publish(message)
+	}
 
 	// If this is a reply in a thread, notify participants
 	if isCRTAllowed && post.RootId != "" {
@@ -595,6 +601,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if userThread != nil {
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
+
+					previewPost := post.GetPreviewPost()
+					if previewPost != nil {
+						previewedChannel, err := a.GetChannel(previewPost.Post.ChannelId)
+						if err != nil {
+							return nil, err
+						}
+						if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) {
+							userThread.Post.Metadata.Embeds[0].Data = nil
+						}
+					}
+
 					message.Add("thread", userThread.ToJson())
 					a.Publish(message)
 				}

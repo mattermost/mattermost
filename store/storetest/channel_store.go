@@ -659,20 +659,20 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 
 	channelID := result.Id
 
-	result, err = ss.Channel().GetByName(o1.TeamId, "", true)
+	_, err = ss.Channel().GetByName(o1.TeamId, "", true)
 	require.Error(t, err, "Missing id should have failed")
 
 	result, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
 	require.NoError(t, err)
 	require.Equal(t, o1.ToJson(), result.ToJson(), "invalid returned channel")
 
-	result, err = ss.Channel().GetByName(o1.TeamId, "", false)
+	_, err = ss.Channel().GetByName(o1.TeamId, "", false)
 	require.Error(t, err, "Missing id should have failed")
 
 	nErr = ss.Channel().Delete(channelID, model.GetMillis())
 	require.NoError(t, nErr, "channel should have been deleted")
 
-	result, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
+	_, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
 	require.Error(t, err, "Deleted channel should not be returned by GetByName()")
 }
 

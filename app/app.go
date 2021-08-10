@@ -87,19 +87,6 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
-//nolint:golint,unused,deadcode
-func (s *Server) getLastWarnMetricTimestamp() (int64, *model.AppError) {
-	systemData, err := s.Store.System().GetByName(model.SystemWarnMetricLastRunTimestampKey)
-	if err != nil {
-		return 0, model.NewAppError("getLastWarnMetricTimestamp", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	value, err := strconv.ParseInt(systemData.Value, 10, 64)
-	if err != nil {
-		return 0, model.NewAppError("getLastWarnMetricTimestamp", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return value, nil
-}
-
 func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
 	systemDataList, nErr := a.Srv().Store.System().Get()
 	if nErr != nil {
@@ -235,7 +222,6 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
-//nolint:golint,unused,deadcode
 func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId string, isE0Edition bool) *model.AppError {
 	// get warn metrics bot
 	warnMetricsBot, err := a.GetWarnMetricsBot()
@@ -264,7 +250,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 			return err
 		}
 
-		if len(sysAdminsList) == 0 {
+		if len(sysAdmins) == 0 && len(sysAdminsList) == 0 {
 			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
 		}
 		sysAdmins = append(sysAdmins, sysAdminsList...)
@@ -273,6 +259,8 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 			mlog.Debug("Number of system admins is less than page limit", mlog.Int("count", len(sysAdminsList)))
 			break
 		}
+
+		userOptions.Page++
 	}
 
 	for _, sysAdmin := range sysAdmins {
