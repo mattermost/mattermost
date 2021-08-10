@@ -44,7 +44,7 @@ func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus").
 		Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Status = ?, Manual = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
 			st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
 	} else {
