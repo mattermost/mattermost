@@ -194,6 +194,9 @@ type ChannelStore interface {
 	SaveMember(member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
+	// UpdateMemberNotifyProps patches the notifyProps field with the given props map.
+	// It replaces existing fields and creates new ones which don't exist.
+	UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error)
 	GetMembers(channelID string, offset, limit int) (*model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)

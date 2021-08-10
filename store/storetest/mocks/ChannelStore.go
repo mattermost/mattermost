@@ -1907,6 +1907,29 @@ func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) (*model.Channe
 	return r0, r1
 }
 
+// UpdateMemberNotifyProps provides a mock function with given fields: channelID, userID, props
+func (_m *ChannelStore) UpdateMemberNotifyProps(channelID string, userID string, props map[string]string) (*model.ChannelMember, error) {
+	ret := _m.Called(channelID, userID, props)
+
+	var r0 *model.ChannelMember
+	if rf, ok := ret.Get(0).(func(string, string, map[string]string) *model.ChannelMember); ok {
+		r0 = rf(channelID, userID, props)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMember)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, map[string]string) error); ok {
+		r1 = rf(channelID, userID, props)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateMembersRole provides a mock function with given fields: channelID, userIDs
 func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
 	ret := _m.Called(channelID, userIDs)
