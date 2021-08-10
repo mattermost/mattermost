@@ -9228,5 +9228,17 @@
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
     "translation": "在我们的"
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "无法为内容提取获取文件信息。"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "无效的 ‘to’ 值"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "无效的 ‘from’ 值"
   }
 ]

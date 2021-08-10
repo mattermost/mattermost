@@ -130,7 +130,7 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook = &model.IncomingWebhook{ChannelId: channel.Id}
-	rhook, resp = th.Client.CreateIncomingWebhook(hook)
+	_, resp = th.Client.CreateIncomingWebhook(hook)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -915,7 +915,7 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook2 := &model.IncomingWebhook{Id: rhook.Id, ChannelId: channel.Id}
-	rhook, resp = th.Client.UpdateIncomingWebhook(hook2)
+	_, resp = th.Client.UpdateIncomingWebhook(hook2)
 	CheckBadRequestStatus(t, resp)
 }
 
@@ -1171,7 +1171,7 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
 
 	hook2 := &model.OutgoingWebhook{Id: rhook.Id, ChannelId: channel.Id}
-	rhook, resp = th.Client.UpdateOutgoingWebhook(hook2)
+	_, resp = th.Client.UpdateOutgoingWebhook(hook2)
 	CheckForbiddenStatus(t, resp)
 }
 

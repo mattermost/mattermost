@@ -1248,7 +1248,7 @@ func TestConvertBotToUser(t *testing.T) {
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)
 
-		bot, resp = client.GetBot(bot.UserId, "")
+		_, resp = client.GetBot(bot.UserId, "")
 		CheckNotFoundStatus(t, resp)
 
 		bot = &model.Bot{
@@ -1264,7 +1264,7 @@ func TestConvertBotToUser(t *testing.T) {
 		require.Equal(t, bot.UserId, user.Id)
 		require.Contains(t, user.GetRoles(), model.SystemAdminRoleId)
 
-		bot, resp = client.GetBot(bot.UserId, "")
+		_, resp = client.GetBot(bot.UserId, "")
 		CheckNotFoundStatus(t, resp)
 	})
 }
