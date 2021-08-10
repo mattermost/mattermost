@@ -157,7 +157,7 @@ func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 
 func TestConfigServiceProviderDefault(t *testing.T) {
 	c1 := &Config{
-		SamlSettings: *&SamlSettings{
+		SamlSettings: SamlSettings{
 			Enable:             NewBool(true),
 			Verify:             NewBool(false),
 			Encrypt:            NewBool(false),
