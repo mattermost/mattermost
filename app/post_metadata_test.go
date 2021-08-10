@@ -521,6 +521,7 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("no metadata for deleted posts", func(t *testing.T) {
+		t.Skip("MM-37757")
 		th := setup(t)
 		defer th.TearDown()
 
