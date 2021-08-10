@@ -225,6 +225,8 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	err = ss.User().UpdateNotifyProps(u1.Id, props)
 	require.NoError(t, err)
 
+	ss.User().InvalidateProfileCacheForUser(u1.Id)
+
 	uNew, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, props, uNew.NotifyProps)
