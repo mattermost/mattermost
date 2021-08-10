@@ -85,7 +85,7 @@ const (
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
-	HttpService() httpservice.HTTPService
+	HTTPService() httpservice.HTTPService
 	GetPluginsEnvironment() *plugin.Environment
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
@@ -1384,7 +1384,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
 	marketplaceClient, err := marketplace.NewClient(
 		marketplaceURL,
-		ts.srv.HttpService(),
+		ts.srv.HTTPService(),
 	)
 	if err != nil {
 		return nil, err

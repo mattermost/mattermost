@@ -165,7 +165,7 @@ type Server struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService httpservice.HTTPService
+	httpService httpservice.HTTPService
 
 	ImageProxy *imageproxy.ImageProxy
 
@@ -304,10 +304,10 @@ func NewServer(options ...Option) (*Server, error) {
 		s.tracer = tracer
 	}
 
-	s.HTTPService = httpservice.MakeHTTPService(s)
-	s.pushNotificationClient = s.HTTPService.MakeClient(true)
+	s.httpService = httpservice.MakeHTTPService(s)
+	s.pushNotificationClient = s.httpService.MakeClient(true)
 
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService(), s.Log)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
@@ -1922,8 +1922,8 @@ func (s *Server) TelemetryId() string {
 	return s.telemetryService.TelemetryID
 }
 
-func (s *Server) HttpService() httpservice.HTTPService {
-	return s.HTTPService
+func (s *Server) HTTPService() httpservice.HTTPService {
+	return s.httpService
 }
 
 func (s *Server) SetLog(l *mlog.Logger) {
