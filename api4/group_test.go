@@ -599,7 +599,7 @@ func TestPatchGroupTeam(t *testing.T) {
 	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Type)
 
 	patch.AutoAdd = model.NewBool(true)
-	groupSyncable, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response, _ = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	CheckOKStatus(t, response)
 
 	_, response, err = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
@@ -681,7 +681,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
 
 	patch.AutoAdd = model.NewBool(true)
-	groupSyncable, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, response, err = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 

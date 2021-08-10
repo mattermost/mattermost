@@ -64,13 +64,6 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	varyByHeader := *&th.App.Config().RateLimitSettings.VaryByHeader // environment perm.
-	supportEmail := *&th.App.Config().SupportSettings.SupportEmail   // site perm.
-	defer th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.RateLimitSettings.VaryByHeader = varyByHeader
-		cfg.SupportSettings.SupportEmail = supportEmail
-	})
-
 	// set some values so that we know they're not blank
 	mockVaryByHeader := model.NewId()
 	mockSupportEmail := model.NewId() + "@mattermost.com"
@@ -359,7 +352,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	require.NoError(t, err)
 
 	*cfg.MessageExportSettings.EnableExport = true
-	cfg, _, err = th.SystemAdminClient.UpdateConfig(cfg)
+	_, _, err = th.SystemAdminClient.UpdateConfig(cfg)
 	require.NoError(t, err)
 
 	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -370,7 +363,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	require.NoError(t, err)
 
 	*cfg.MessageExportSettings.EnableExport = false
-	cfg, _, err = th.SystemAdminClient.UpdateConfig(cfg)
+	_, _, err = th.SystemAdminClient.UpdateConfig(cfg)
 	require.NoError(t, err)
 
 	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -387,7 +380,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	require.NoError(t, err)
 
 	*cfg.MessageExportSettings.EnableExport = true
-	cfg, _, err = th.SystemAdminClient.UpdateConfig(cfg)
+	_, _, err = th.SystemAdminClient.UpdateConfig(cfg)
 	require.NoError(t, err)
 
 	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -398,7 +391,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	require.NoError(t, err)
 
 	*cfg.MessageExportSettings.EnableExport = false
-	cfg, _, err = th.SystemAdminClient.UpdateConfig(cfg)
+	_, _, err = th.SystemAdminClient.UpdateConfig(cfg)
 	require.NoError(t, err)
 
 	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -760,7 +753,7 @@ func TestPatchConfig(t *testing.T) {
 				SiteURL: model.NewString(""),
 			},
 		}
-		updatedConfig, resp, err := th.SystemAdminClient.PatchConfig(&config)
+		_, resp, err := th.SystemAdminClient.PatchConfig(&config)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.config.update_config.clear_siteurl.app_error")

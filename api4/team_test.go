@@ -2097,7 +2097,7 @@ func TestAddTeamMember(t *testing.T) {
 	_, _, err = client.Login(guest.Email, guest.Password)
 	require.NoError(t, err)
 
-	tm, resp, err = client.AddTeamMemberFromInvite("", team.InviteId)
+	_, resp, err = client.AddTeamMemberFromInvite("", team.InviteId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -2130,11 +2130,11 @@ func TestAddTeamMember(t *testing.T) {
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store.Token().Save(token))
-	tm, _, err = client.AddTeamMemberFromInvite(token.Token, "")
+	_, _, err = client.AddTeamMemberFromInvite(token.Token, "")
 	CheckErrorID(t, err, "app.team.invite_token.group_constrained.error")
 
 	// Attempt to use an invite id
-	tm, _, err = client.AddTeamMemberFromInvite("", team.InviteId)
+	_, _, err = client.AddTeamMemberFromInvite("", team.InviteId)
 	CheckErrorID(t, err, "app.team.invite_id.group_constrained.error")
 
 	// User is not in associated groups so shouldn't be allowed

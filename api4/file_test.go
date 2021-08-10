@@ -674,8 +674,8 @@ func TestUploadFiles(t *testing.T) {
 							require.NoError(t, err)
 							if !bytes.Equal(data, expected) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
-								defer tf.Close()
 								require.NoError(t, err)
+								defer tf.Close()
 								_, err = io.Copy(tf, bytes.NewReader(data))
 								require.NoError(t, err)
 								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
