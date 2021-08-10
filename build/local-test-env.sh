@@ -32,7 +32,7 @@ up()
         -e GOPATH="/go" \
         -e MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
         -e MM_SQLSETTINGS_DRIVERNAME=postgres
-        mattermost/mattermost-build-server:20210720_golang-1.16.6 bash
+        mattermost/mattermost-build-server:20210810_golang-1.16.7 bash
 }
 
 down()
