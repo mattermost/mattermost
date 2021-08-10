@@ -3414,7 +3414,7 @@ func TestLoginCookies(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.HttpHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXml
+		th.Client.HttpHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 
 		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
@@ -3452,7 +3452,7 @@ func TestLoginCookies(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.HttpHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXml
+		th.Client.HttpHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 
 		testCases := []struct {
 			Description                   string
