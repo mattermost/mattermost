@@ -3265,6 +3265,17 @@ func TestSetProfileImage(t *testing.T) {
 
 	ruser, appErr := th.App.GetUser(user.Id)
 	require.Nil(t, appErr)
+	assert.True(t, buser.LastPictureUpdate == ruser.LastPictureUpdate, "Same picture should not have updated")
+
+	data2, err := testutils.ReadTestFile("testjpg.jpg")
+	require.NoError(t, err)
+
+	_, resp = th.SystemAdminClient.SetProfileImage(user.Id, data2)
+	CheckNoError(t, resp)
+
+	ruser, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
@@ -5453,12 +5464,10 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		var rootIds []*model.Post
 		for i := 0; i < 30; i++ {
-			time.Sleep(1)
 			rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 			CheckNoError(t, resp)
 			CheckCreatedStatus(t, resp)
 			rootIds = append(rootIds, rpost)
-			time.Sleep(1)
 			_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 			CheckNoError(t, resp2)
 			CheckCreatedStatus(t, resp2)
@@ -5482,10 +5491,8 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		var rootIds []*model.Post
 		for i := 0; i < 30; i++ {
-			time.Sleep(1)
 			rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testMsg-%d", i)})
 			rootIds = append(rootIds, rpost)
-			time.Sleep(1)
 			postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testReply-%d", i), RootId: rpost.Id})
 		}
 		rootId := rootIds[15].Id // middle point
@@ -5822,14 +5829,11 @@ func TestThreadCounts(t *testing.T) {
 	// create a post by regular user
 	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 	// reply with another
-	time.Sleep(1)
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 
 	// create another post by regular user
-	time.Sleep(1)
 	rpost2, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testMsg1"})
 	// reply with another 2 times
-	time.Sleep(1)
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply2", RootId: rpost2.Id})
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply22", RootId: rpost2.Id})
 
@@ -5868,12 +5872,10 @@ func TestSingleThreadGet(t *testing.T) {
 	// create a post by regular user
 	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 	// reply with another
-	time.Sleep(1)
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 
 	// create another thread to check that we are not returning it by mistake
 	rpost2, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testMsg2"})
-	time.Sleep(1)
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply", RootId: rpost2.Id})
 
 	// regular user should have two threads with 3 replies total
@@ -5982,7 +5984,6 @@ func TestReadThreads(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, 1)
 
-		time.Sleep(1)
 		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
@@ -6044,9 +6045,7 @@ func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	require.Nil(t, appErr)
 
 	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg @" + th.BasicUser2.Username})
-	time.Sleep(1)
 	reply, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply1", RootId: rpost.Id})
-	time.Sleep(1)
 	postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
 
 	th.SystemAdminClient.UpdateThreadReadForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, model.GetMillis())
