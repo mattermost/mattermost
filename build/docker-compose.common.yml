@@ -98,10 +98,6 @@ services:
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-    command: >
-      /bin/sh -c "./bin/elasticsearch-plugin list | grep -q analysis-icu 
-      || ./bin/elasticsearch-plugin install analysis-icu; 
-      /usr/local/bin/docker-entrypoint.sh"
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     networks:
