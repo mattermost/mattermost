@@ -2851,7 +2851,12 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId strin
 
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
-	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+
+	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", string(searchJSON))
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
@@ -2867,7 +2872,12 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 
 // SearchArchivedChannels returns the archived channels on a team matching the provided search term.
 func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
-	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search_archived", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchArchivedChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+
+	r, appErr := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search_archived", string(searchJSON))
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
@@ -2883,7 +2893,12 @@ func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) (
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchAllChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+
+	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", string(searchJSON))
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
@@ -2899,7 +2914,12 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 
 // SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
 func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCount, *Response) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchAllChannelsPaged", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+
+	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/search", string(searchJSON))
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
@@ -2915,7 +2935,12 @@ func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCo
 
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SearchGroupChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+
+	r, appErr := c.DoApiPost(c.GetChannelsRoute()+"/group/search", string(searchJSON))
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
