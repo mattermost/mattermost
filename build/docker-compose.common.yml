@@ -84,7 +84,9 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
   elasticsearch:
-    image: "docker.elastic.co/elasticsearch/elasticsearch:7.14.0"
+    build:
+      context: ./
+      dockerfile: ./elastic/Dockerfile
     networks:
       - mm-test
     environment:
