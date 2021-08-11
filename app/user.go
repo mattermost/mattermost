@@ -12,6 +12,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -715,8 +716,7 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 		return appErr
 	}
 
-	path := "users/" + user.Id + "/profile.png"
-
+	path := getProfileImagePath(user.Id)
 	if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
 		return err
 	}
@@ -787,7 +787,11 @@ func (a *App) SetProfileImageFromFile(userID string, file io.Reader) *model.AppE
 	if err != nil {
 		return err
 	}
-	path := "users/" + userID + "/profile.png"
+
+	path := getProfileImagePath(userID)
+	if storedData, err := a.ReadFile(path); err == nil && bytes.Equal(storedData, buf.Bytes()) {
+		return nil
+	}
 
 	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -2309,4 +2313,8 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	message.Add("channel_id", post.ChannelId)
 	a.Publish(message)
 	return thread, nil
+}
+
+func getProfileImagePath(userID string) string {
+	return filepath.Join("users", userID, "profile.png")
 }
