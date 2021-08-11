@@ -2058,7 +2058,11 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
-			evt.Add("channelMember", member.ToJson())
+			memberJSON, jsonErr := json.Marshal(member)
+			if jsonErr != nil {
+				mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			}
+			evt.Add("channelMember", memberJSON)
 			a.Publish(evt)
 		}
 	}
@@ -2099,7 +2103,11 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
-			evt.Add("channelMember", member.ToJson())
+			memberJSON, jsonErr := json.Marshal(member)
+			if jsonErr != nil {
+				mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			}
+			evt.Add("channelMember", memberJSON)
 			a.Publish(evt)
 		}
 	}

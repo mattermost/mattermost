@@ -44,6 +44,13 @@ func channelToJSON(t *testing.T, channel *model.Channel) string {
 	return string(js)
 }
 
+func channelMemberToJSON(t *testing.T, cm *model.ChannelMember) string {
+	t.Helper()
+	js, err := json.Marshal(cm)
+	require.NoError(t, err)
+	return string(js)
+}
+
 func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	createDefaultRoles(ss)
 
@@ -4370,7 +4377,7 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 
 	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId)
 	require.NoError(t, err, err)
-	require.Equal(t, m1.ToJson(), r1.ToJson(), "invalid returned channel member")
+	require.Equal(t, channelMemberToJSON(t, m1), channelMemberToJSON(t, r1), "invalid returned channel member")
 
 	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId())
 	require.Error(t, err, "shouldn't have returned a member")

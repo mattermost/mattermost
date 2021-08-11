@@ -1267,7 +1267,11 @@ func (a *App) updateChannelMember(member *model.ChannelMember) (*model.ChannelMe
 
 	// Notify the clients that the member notify props changed
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
-	evt.Add("channelMember", member.ToJson())
+	memberJSON, jsonErr := json.Marshal(member)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+	}
+	evt.Add("channelMember", memberJSON)
 	a.Publish(evt)
 
 	return member, nil
@@ -3186,7 +3190,13 @@ func (a *App) setChannelsMuted(channelIDs []string, userID string, muted bool) (
 		a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
 		evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
-		evt.Add("channelMember", member.ToJson())
+
+		memberJSON, jsonErr := json.Marshal(member)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		}
+
+		evt.Add("channelMember", memberJSON)
 		a.Publish(evt)
 	}
 
@@ -3288,7 +3298,11 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 	clearSessionCache := func(channelMember model.ChannelMember) error {
 		a.ClearSessionCacheForUser(channelMember.UserId)
 		message := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", channelMember.UserId, nil)
-		message.Add("channelMember", channelMember.ToJson())
+		memberJSON, jsonErr := json.Marshal(channelMember)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		}
+		message.Add("channelMember", memberJSON)
 		a.Publish(message)
 		return nil
 	}
