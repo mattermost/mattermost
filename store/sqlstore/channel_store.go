@@ -1673,6 +1673,10 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		return nil, errors.Wrapf(err2, "failed to get ChannelMember with channelId=%s and userId=%s", channelID, userID)
 	}
 
+	if err := tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
 	return dbMember.ToModel(), err
 }
 
