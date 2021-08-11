@@ -661,8 +661,7 @@ func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppError {
-	_, err := api.app.GetUser(userID)
-	if err != nil {
+	if _, err := api.app.GetUser(userID); err != nil {
 		return err
 	}
 
