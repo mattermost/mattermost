@@ -663,7 +663,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 			if _, err2 := trx.Exec(`UPDATE Threads
 				SET participants = participants || $1::jsonb
 				WHERE postid=$2
-				AND not participants ? $3`, jsonArray([]string{userId}), postId, userId); err2 != nil {
+				AND NOT participants ? $3`, jsonArray([]string{userId}), postId, userId); err2 != nil {
 				return nil, err2
 			}
 		} else {
