@@ -2561,7 +2561,11 @@ func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*
 
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
-	r, appErr := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson())
+	channelJSON, jsonErr := json.Marshal(channel)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("CreateChannel", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.DoApiPost(c.GetChannelsRoute(), string(channelJSON))
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
@@ -2577,7 +2581,11 @@ func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
 
 // UpdateChannel updates a channel based on the provided channel struct.
 func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response) {
-	r, appErr := c.DoApiPut(c.GetChannelRoute(channel.Id), channel.ToJson())
+	channelJSON, jsonErr := json.Marshal(channel)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateChannel", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.DoApiPut(c.GetChannelRoute(channel.Id), string(channelJSON))
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}

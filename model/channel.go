@@ -6,7 +6,6 @@ package model
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"encoding/json"
 	"io"
 	"net/http"
 	"sort"
@@ -163,11 +162,6 @@ func (o *Channel) DeepCopy() *Channel {
 		copy.SchemeId = NewString(*o.SchemeId)
 	}
 	return &copy
-}
-
-func (o *Channel) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func (o *Channel) Etag() string {
