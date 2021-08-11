@@ -31,7 +31,7 @@ func (a *Audit) Init(maxQueueSize int) {
 
 // LogRecord emits an audit record with complete info.
 func (a *Audit) LogRecord(level mlog.Level, rec Record) {
-	a.logger.Log(level, "",
+	flds := []mlog.Field{
 		mlog.String(KeyAPIPath, rec.APIPath),
 		mlog.String(KeyEvent, rec.Event),
 		mlog.String(KeyStatus, rec.Status),
@@ -39,7 +39,13 @@ func (a *Audit) LogRecord(level mlog.Level, rec Record) {
 		mlog.String(KeySessionID, rec.SessionID),
 		mlog.String(KeyClient, rec.Client),
 		mlog.String(KeyIPAddress, rec.IPAddress),
-	)
+	}
+
+	for k, v := range rec.Meta {
+		flds = append(flds, mlog.Any(k, v))
+	}
+
+	a.logger.Log(level, "", flds...)
 }
 
 // Log emits an audit record based on minimum required info.
@@ -59,12 +65,22 @@ func (a *Audit) Configure(cfg mlog.LoggerConfiguration) error {
 	return a.logger.ConfigureTargets(cfg)
 }
 
+// Flush attempts to write all queued audit records to all targets.
+func (a *Audit) Flush() error {
+	err := a.logger.Flush()
+	if err != nil {
+		a.onLoggerError(err)
+	}
+	return err
+}
+
 // Shutdown cleanly stops the audit engine after making best efforts to flush all targets.
-func (a *Audit) Shutdown() {
+func (a *Audit) Shutdown() error {
 	err := a.logger.Shutdown()
 	if err != nil {
 		a.onLoggerError(err)
 	}
+	return err
 }
 
 func (a *Audit) onQueueFull(rec *mlog.LogRec, maxQueueSize int) bool {

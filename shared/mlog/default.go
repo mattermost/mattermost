@@ -43,34 +43,6 @@ func defaultIsLevelEnabled(level Level) bool {
 	return true
 }
 
-func defaultTraceLog(msg string, fields ...Field) {
-	defaultLog(LvlTrace, msg, fields...)
-}
-
-func defaultDebugLog(msg string, fields ...Field) {
-	defaultLog(LvlDebug, msg, fields...)
-}
-
-func defaultInfoLog(msg string, fields ...Field) {
-	defaultLog(LvlInfo, msg, fields...)
-}
-
-func defaultWarnLog(msg string, fields ...Field) {
-	defaultLog(LvlWarn, msg, fields...)
-}
-
-func defaultErrorLog(msg string, fields ...Field) {
-	defaultLog(LvlError, msg, fields...)
-}
-
-func defaultCriticalLog(msg string, fields ...Field) {
-	defaultLog(LvlCritical, msg, fields...)
-}
-
-func defaultCustomLog(lvl Level, msg string, fields ...Field) {
-	defaultLog(lvl, msg, fields...)
-}
-
 func defaultCustomMultiLog(lvl []Level, msg string, fields ...Field) {
 	for _, level := range lvl {
 		defaultLog(level, msg, fields...)

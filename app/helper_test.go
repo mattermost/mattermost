@@ -4,7 +4,6 @@
 package app
 
 import (
-	"bytes"
 	"context"
 	"io/ioutil"
 	"os"
@@ -40,7 +39,7 @@ type TestHelper struct {
 	BasicPost    *model.Post
 
 	SystemAdminUser   *model.User
-	LogBuffer         *bytes.Buffer
+	LogBuffer         *mlog.Buffer
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
 
@@ -64,7 +63,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	configStore.Set(memoryConfig)
 
-	buffer := &bytes.Buffer{}
+	buffer := &mlog.Buffer{}
 
 	var options []Option
 	options = append(options, ConfigStore(configStore))
@@ -86,6 +85,10 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}
+	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
+		panic("failed to add writer target to test logger: " + errW.Error())
+	}
+	testLogger.LockConfiguration()
 	options = append(options, SetLogger(testLogger))
 
 	s, err := NewServer(options...)

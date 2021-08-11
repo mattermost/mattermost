@@ -14,6 +14,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/logr/v2"
@@ -146,7 +147,8 @@ var Map = logr.Map
 // something to be concerned about, but logging calls for disabled levels should have as little CPU
 // and memory impact as possible. Most of these wrapper calls will be inlined as well.
 type Logger struct {
-	log *logr.Logger
+	log        *logr.Logger
+	lockConfig *int32
 }
 
 // NewLogger creates a new Logger instance which can be configured via `(*Logger).Configure`.
@@ -155,9 +157,11 @@ func NewLogger(options ...Option) *Logger {
 
 	lgr, _ := logr.New(options...)
 	log := lgr.NewLogger()
+	var lockConfig int32
 
 	return &Logger{
-		log: &log,
+		log:        &log,
+		lockConfig: &lockConfig,
 	}
 }
 
@@ -170,6 +174,10 @@ func NewLogger(options ...Option) *Logger {
 // using the following precedence:
 //     cfgFile > cfgEscaped
 func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
+	if atomic.LoadInt32(l.lockConfig) != 0 {
+		return ConfigurationLockedError{}
+	}
+
 	cfgMap := make(LoggerConfiguration)
 
 	// Add config from file
@@ -202,10 +210,31 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
 	return logrcfg.ConfigureTargets(l.log.Logr(), cfgMap.toTargetCfg(), nil)
 }
 
-// ConfigureTargets  provides a new configuration for this logger via a `LoggerConfig` map.
+// ConfigureTargets provides a new configuration for this logger via a `LoggerConfig` map.
 // Typically `mlog.Configure` is used instead which accepts JSON formatted configuration.
 func (l *Logger) ConfigureTargets(cfg LoggerConfiguration) error {
+	if atomic.LoadInt32(l.lockConfig) != 0 {
+		return ConfigurationLockedError{}
+	}
 	return logrcfg.ConfigureTargets(l.log.Logr(), cfg.toTargetCfg(), nil)
+}
+
+// LockConfiguration disallows further configuration changes until `UnlockConfiguration`
+// is called. The previous locked stated is returned.
+func (l *Logger) LockConfiguration() bool {
+	old := atomic.SwapInt32(l.lockConfig, 1)
+	return old != 0
+}
+
+// UnlockConfiguration allows configuration changes. The previous locked stated is returned.
+func (l *Logger) UnlockConfiguration() bool {
+	old := atomic.SwapInt32(l.lockConfig, 0)
+	return old != 0
+}
+
+// IsConfigurationLocked returns the current state of the configuration lock.
+func (l *Logger) IsConfigurationLocked() bool {
+	return atomic.LoadInt32(l.lockConfig) != 0
 }
 
 // With creates a new Logger with the specified fields. This is a light-weight
@@ -213,7 +242,8 @@ func (l *Logger) ConfigureTargets(cfg LoggerConfiguration) error {
 func (l *Logger) With(fields ...Field) *Logger {
 	logWith := l.log.With(fields...)
 	return &Logger{
-		log: &logWith,
+		log:        &logWith,
+		lockConfig: l.lockConfig,
 	}
 }
 
@@ -376,4 +406,13 @@ type logWriter struct {
 func (lw *logWriter) Write(p []byte) (int, error) {
 	lw.logger.Info(string(p))
 	return len(p), nil
+}
+
+// ConfigurationLockedError is returned when one of a logger's configuration APIs is called
+// while the configuration is locked.
+type ConfigurationLockedError struct {
+}
+
+func (e ConfigurationLockedError) Error() string {
+	return "configuration is locked"
 }

@@ -798,10 +798,13 @@ func (s *Server) initLogging() error {
 	}
 
 	if err := s.configureLogger("logging", s.Log, s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
-		// revert to default logger if the config is invalid
-		mlog.InitGlobalLogger(nil)
-		mlog.Error("Error configuring logger", mlog.Err(err))
-		return err
+		// if the config is locked then a unit test has already configured and locked the logger; not an error.
+		if !errors.Is(err, mlog.ConfigurationLockedError{}) {
+			// revert to default logger if the config is invalid
+			mlog.InitGlobalLogger(nil)
+			mlog.Error("Error configuring logger", mlog.Err(err))
+			return err
+		}
 	}
 
 	// Redirect default Go logger to app logger.
@@ -812,10 +815,11 @@ func (s *Server) initLogging() error {
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
 	if err := s.configureLogger("notification logging", s.NotificationsLog, *notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
-		mlog.Error("Error configuring notification logger", mlog.Err(err))
-		return err
+		if !errors.Is(err, mlog.ConfigurationLockedError{}) {
+			mlog.Error("Error configuring notification logger", mlog.Err(err))
+			return err
+		}
 	}
-
 	return nil
 }
 
@@ -860,11 +864,11 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	defer cancelCtx()
 
 	s.Log.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
-		return ti.Type != "*target.Writer" && ti.Type != "*target.File"
+		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
 	})
 
 	s.NotificationsLog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
-		return ti.Type != "*target.Writer" && ti.Type != "*target.File"
+		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
 	})
 }
 

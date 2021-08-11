@@ -4,28 +4,26 @@
 package mlog
 
 import (
-	"sync/atomic"
+	"sync"
 )
 
 var (
-	globalLogger *Logger
-
-	useDefaultLogger int32 = 1
+	globalLogger    *Logger
+	muxGlobalLogger sync.RWMutex
 )
 
 func InitGlobalLogger(logger *Logger) {
-	// Clean up previous instance.
-	if globalLogger != nil {
-		globalLogger.Shutdown()
-	}
+	muxGlobalLogger.Lock()
+	defer muxGlobalLogger.Unlock()
+
 	globalLogger = logger
+}
 
-	if logger == nil {
-		atomic.StoreInt32(&useDefaultLogger, 1)
-		return
-	}
+func getGlobalLogger() *Logger {
+	muxGlobalLogger.RLock()
+	defer muxGlobalLogger.RUnlock()
 
-	atomic.StoreInt32(&useDefaultLogger, 0)
+	return globalLogger
 }
 
 // IsLevelEnabled returns true only if at least one log target is
@@ -35,81 +33,90 @@ func InitGlobalLogger(logger *Logger) {
 // Note, transformations and serializations done via fields are already
 // lazily evaluated and don't require this check beforehand.
 func IsLevelEnabled(level Level) bool {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		return globalLogger.IsLevelEnabled(level)
+	logger := getGlobalLogger()
+	if logger == nil {
+		return defaultIsLevelEnabled(level)
 	}
-	return defaultIsLevelEnabled(level)
+	return logger.IsLevelEnabled(level)
 }
 
 // Log emits the log record for any targets configured for the specified level.
 func Log(level Level, msg string, fields ...Field) {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		globalLogger.Log(level, msg, fields...)
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(level, msg, fields...)
 		return
 	}
-	defaultCustomLog(level, msg, fields...)
+	logger.Log(level, msg, fields...)
 }
 
 // LogM emits the log record for any targets configured for the specified levels.
 // Equivalent to calling `Log` once for each level.
 func LogM(levels []Level, msg string, fields ...Field) {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		globalLogger.LogM(levels, msg, fields...)
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultCustomMultiLog(levels, msg, fields...)
 		return
 	}
-	defaultCustomMultiLog(levels, msg, fields...)
+	logger.LogM(levels, msg, fields...)
 }
 
 // Convenience method equivalent to calling `Log` with the `Trace` level.
 func Trace(msg string, fields ...Field) {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		globalLogger.Trace(msg, fields...)
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlTrace, msg, fields...)
 		return
 	}
-	defaultTraceLog(msg, fields...)
+	logger.Trace(msg, fields...)
 }
 
 // Convenience method equivalent to calling `Log` with the `Debug` level.
 func Debug(msg string, fields ...Field) {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		globalLogger.Debug(msg, fields...)
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlDebug, msg, fields...)
 		return
 	}
-	defaultDebugLog(msg, fields...)
+	logger.Debug(msg, fields...)
 }
 
 // Convenience method equivalent to calling `Log` with the `Info` level.
 func Info(msg string, fields ...Field) {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		globalLogger.Info(msg, fields...)
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlInfo, msg, fields...)
 		return
 	}
-	defaultInfoLog(msg, fields...)
+	logger.Info(msg, fields...)
 }
 
 // Convenience method equivalent to calling `Log` with the `Warn` level.
 func Warn(msg string, fields ...Field) {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		globalLogger.Warn(msg, fields...)
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlWarn, msg, fields...)
 		return
 	}
-	defaultWarnLog(msg, fields...)
+	logger.Warn(msg, fields...)
 }
 
 // Convenience method equivalent to calling `Log` with the `Error` level.
 func Error(msg string, fields ...Field) {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		globalLogger.Error(msg, fields...)
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlError, msg, fields...)
 		return
 	}
-	defaultErrorLog(msg, fields...)
+	logger.Error(msg, fields...)
 }
 
 // Convenience method equivalent to calling `Log` with the `Critical` level.
 func Critical(msg string, fields ...Field) {
-	if atomic.LoadInt32(&useDefaultLogger) == 0 {
-		globalLogger.Critical(msg, fields...)
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlCritical, msg, fields...)
 		return
 	}
-	defaultCriticalLog(msg, fields...)
+	logger.Critical(msg, fields...)
 }

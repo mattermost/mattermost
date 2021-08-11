@@ -471,7 +471,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
 
 	// Forcing a flush before attempting to read log's content.
-	err = th.Server.Log.Flush()
+	err = th.Server.Audit.Flush()
 	require.NoError(t, err)
 
 	require.NoError(t, logFile.Sync())

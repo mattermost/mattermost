@@ -543,6 +543,7 @@ func TestPanicLog(t *testing.T) {
 	require.NoError(t, err)
 	err = logger.ConfigureTargets(cfg)
 	require.NoError(t, err)
+	logger.LockConfiguration()
 
 	// Creating a server with logger
 	s, err := NewServer(SetLogger(logger))

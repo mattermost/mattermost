@@ -80,7 +80,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 		targetCfg.Levels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
 
 		// apply audit specific formatting
-		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": true, "disable_msg: true, "disable_stacktrace: true, "disable_level": true}`)
+		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": true, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
 
 		cfg["_defAudit"] = targetCfg
 	}
@@ -98,26 +98,12 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 
 // DON'T USE THIS Modify the level on the app logger
 func DisableDebugLogForTest(testLogger *mlog.Logger) {
-	logSettings := &model.LogSettings{}
-	logSettings.SetDefaults()
-	logSettings.ConsoleLevel = model.NewString("ERROR")
-	logSettings.FileLevel = model.NewString("ERROR")
-
-	logCfg, _ := MloggerConfigFromLoggerConfig(*logSettings, nil, GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
-		panic("failed to re-configure test logger (disable debug): " + errCfg.Error())
-	}
+	// TODO: allow mlog to change log levels
 }
 
 // DON'T USE THIS Modify the level on the app logger
 func EnableDebugLogForTest(testLogger *mlog.Logger) {
-	logSettings := &model.LogSettings{}
-	logSettings.SetDefaults()
-
-	logCfg, _ := MloggerConfigFromLoggerConfig(*logSettings, nil, GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
-		panic("failed to re-configure test logger (enable debug): " + errCfg.Error())
-	}
+	// TODO: allow mlog to change log levels
 }
 
 func GetLogFileLocation(fileLocation string) string {
@@ -165,6 +151,7 @@ func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.Ta
 
 	if outputJSON {
 		target.Format = "json"
+		target.FormatOptions = makeJSONFormatOptions()
 	} else {
 		target.Format = "plain"
 		target.FormatOptions = makePlainFormatOptions(color)
@@ -187,6 +174,7 @@ func makeSimpleFileTarget(filename string, level string, json bool) (mlog.Target
 
 	if json {
 		target.Format = "json"
+		target.FormatOptions = makeJSONFormatOptions()
 	} else {
 		target.Format = "plain"
 		target.FormatOptions = makePlainFormatOptions(false)
@@ -217,6 +205,11 @@ func stringToStdLevel(level string) (mlog.Level, error) {
 		}
 	}
 	return mlog.Level{}, fmt.Errorf("%s is not a standard level", level)
+}
+
+func makeJSONFormatOptions() json.RawMessage {
+	str := fmt.Sprintf(`{"enable_caller": %t}`, LogEnableCaller)
+	return json.RawMessage(str)
 }
 
 func makePlainFormatOptions(enableColor bool) json.RawMessage {

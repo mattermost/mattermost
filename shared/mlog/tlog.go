@@ -4,6 +4,7 @@
 package mlog
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"strings"
@@ -24,7 +25,7 @@ func CreateTestLogger(tb testing.TB, writer io.Writer, levels ...Level) *Logger 
 
 	if tb != nil {
 		testtarget := newTestingTarget(tb)
-		if err := logger.log.Logr().AddTarget(testtarget, "testTB", filter, formatter, 1000); err != nil {
+		if err := logger.log.Logr().AddTarget(testtarget, "_testTB", filter, formatter, 1000); err != nil {
 			tb.Fail()
 			return nil
 		}
@@ -32,7 +33,7 @@ func CreateTestLogger(tb testing.TB, writer io.Writer, levels ...Level) *Logger 
 
 	if writer != nil {
 		target := targets.NewWriterTarget(writer)
-		if err := logger.log.Logr().AddTarget(target, "testWriter", filter, formatter, 1000); err != nil {
+		if err := logger.log.Logr().AddTarget(target, "_testWriter", filter, formatter, 1000); err != nil {
 			tb.Fail()
 			return nil
 		}
@@ -40,9 +41,23 @@ func CreateTestLogger(tb testing.TB, writer io.Writer, levels ...Level) *Logger 
 	return logger
 }
 
+func AddWriterTarget(logger *Logger, w io.Writer, useJSON bool, levels ...Level) error {
+	filter := logr.NewCustomFilter(levels...)
+
+	var formatter logr.Formatter
+	if useJSON {
+		formatter = &formatters.JSON{EnableCaller: true}
+	} else {
+		formatter = &formatters.Plain{EnableCaller: true}
+	}
+
+	target := targets.NewWriterTarget(w)
+	return logger.log.Logr().AddTarget(target, "_testWriter", filter, formatter, 1000)
+}
+
 // CreateConsoleTestLogger creates a logger for unit tests. Log records are output to `os.Stdout`.
 // Logs can also be mirrored to the optional `io.Writer`.
-func CreateConsoleTestLogger(useJson bool, level Level) *Logger {
+func CreateConsoleTestLogger(useJSON bool, level Level) *Logger {
 	logger := NewLogger()
 
 	filter := logr.StdFilter{
@@ -51,14 +66,14 @@ func CreateConsoleTestLogger(useJson bool, level Level) *Logger {
 	}
 
 	var formatter logr.Formatter
-	if useJson {
-		formatter = &formatters.JSON{}
+	if useJSON {
+		formatter = &formatters.JSON{EnableCaller: true}
 	} else {
-		formatter = &formatters.Plain{}
+		formatter = &formatters.Plain{EnableCaller: true}
 	}
 
 	target := targets.NewWriterTarget(os.Stdout)
-	if err := logger.log.Logr().AddTarget(target, "testcon", filter, formatter, 1000); err != nil {
+	if err := logger.log.Logr().AddTarget(target, "_testcon", filter, formatter, 1000); err != nil {
 		panic(err)
 	}
 	return logger
@@ -101,4 +116,26 @@ func (tt *testingTarget) Shutdown() error {
 
 	tt.tb = nil
 	return nil
+}
+
+// Buffer provides a thread-safe buffer useful for logging to memory in unit tests.
+type Buffer struct {
+	buf bytes.Buffer
+	mux sync.Mutex
+}
+
+func (b *Buffer) Read(p []byte) (n int, err error) {
+	b.mux.Lock()
+	defer b.mux.Unlock()
+	return b.buf.Read(p)
+}
+func (b *Buffer) Write(p []byte) (n int, err error) {
+	b.mux.Lock()
+	defer b.mux.Unlock()
+	return b.buf.Write(p)
+}
+func (b *Buffer) String() string {
+	b.mux.Lock()
+	defer b.mux.Unlock()
+	return b.buf.String()
 }

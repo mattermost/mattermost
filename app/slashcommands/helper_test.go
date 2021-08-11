@@ -80,6 +80,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}
+	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
