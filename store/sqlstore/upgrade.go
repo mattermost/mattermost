@@ -1324,6 +1324,9 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers", []string{"ChannelId", "SchemeGuest", "UserId"})
 	sqlStore.RemoveIndexIfExists("idx_channelmembers_user_id", "ChannelMembers")
 
+	sqlStore.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
+	sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
+
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
 }
