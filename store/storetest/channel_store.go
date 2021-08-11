@@ -2963,7 +2963,7 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
 
 	team := &model.Team{
 		DisplayName: "Name",
-		Name:        "zz" + model.NewId(),
+		Name:        NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -2973,7 +2973,7 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
 
 	channel := &model.Channel{
 		DisplayName: "DisplayName",
-		Name:        "z-z-z" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 		TeamId:      team.Id,
 	}
@@ -2994,16 +2994,8 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
 	props[model.DesktopNotifyProp] = model.ChannelNotifyAll
 	member, nErr = ss.Channel().UpdateMemberNotifyProps(member.ChannelId, member.UserId, props)
 	require.NoError(t, nErr)
-	// Verify old untouched
+	// Verify props.
 	assert.Equal(t, props, member.NotifyProps)
-	// Verify new created.
-	assert.Equal(t, props["hello"], member.NotifyProps["hello"])
-	// Verify existing modified.
-	// assert.Equal(t, tc.ExpectedRoles, member.Roles)
-	// assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
-	// assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
-	// assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
-	// assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
 }
 
 func testChannelRemoveMember(t *testing.T, ss store.Store) {
