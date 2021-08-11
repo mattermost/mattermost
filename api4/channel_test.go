@@ -180,13 +180,13 @@ func TestUpdateChannel(t *testing.T) {
 	// Test that changing the type fails and returns error
 
 	private.Type = model.ChannelTypeOpen
-	newPrivateChannel, resp = Client.UpdateChannel(private)
+	_, resp = Client.UpdateChannel(private)
 	CheckBadRequestStatus(t, resp)
 
 	// Test that keeping the same type succeeds
 
 	private.Type = model.ChannelTypePrivate
-	newPrivateChannel, resp = Client.UpdateChannel(private)
+	_, resp = Client.UpdateChannel(private)
 	CheckNoError(t, resp)
 
 	//Non existing channel

@@ -357,7 +357,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 			post.UserId = u1.Id
 			post.CreateAt = createAt
 			post.Message = "zz" + model.NewId() + "b"
-			post, nErr = ss.Post().Save(post)
+			_, nErr = ss.Post().Save(post)
 			require.NoError(t, nErr)
 		}
 

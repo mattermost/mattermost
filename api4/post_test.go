@@ -345,7 +345,7 @@ func testCreatePostWithOutgoingHook(
 			ResponseType: respPostType,
 		}
 
-		fmt.Fprintf(w, outGoingHookResponse.ToJson())
+		fmt.Fprint(w, outGoingHookResponse.ToJson())
 		success <- true
 	}))
 	defer ts.Close()
@@ -835,7 +835,7 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 	CheckNoError(t, resp)
 
 	post.Message = "changed"
-	post, resp = th.SystemAdminClient.UpdatePost(post.Id, post)
+	_, resp = th.SystemAdminClient.UpdatePost(post.Id, post)
 	CheckNoError(t, resp)
 }
 
@@ -1422,7 +1422,7 @@ func TestGetPostsBefore(t *testing.T) {
 	require.Equal(t, post3.Id, posts.NextPostId, "should match NextPostId")
 	require.Equal(t, post1.Id, posts.PrevPostId, "should match PrevPostId")
 
-	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "", false)
+	_, resp = Client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "", false)
 	CheckBadRequestStatus(t, resp)
 
 	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post5.Id, 0, 3, "", false)
@@ -1562,7 +1562,7 @@ func TestGetPostsAfter(t *testing.T) {
 	require.Equal(t, post5.Id, posts.NextPostId, "should match NextPostId")
 	require.Equal(t, post3.Id, posts.PrevPostId, "should match PrevPostId")
 
-	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, "junk", 1, 1, "", false)
+	_, resp = Client.GetPostsAfter(th.BasicChannel.Id, "junk", 1, 1, "", false)
 	CheckBadRequestStatus(t, resp)
 
 	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post1.Id, 0, 3, "", false)

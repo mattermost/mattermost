@@ -1240,26 +1240,6 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Resp
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
-// CheckUserMfa checks whether a user has MFA active on their account or not based on the
-// provided login id.
-// Deprecated: Clients should use Login method and check for MFA Error
-func (c *Client4) CheckUserMfa(loginId string) (bool, *Response) {
-	requestBody := make(map[string]interface{})
-	requestBody["login_id"] = loginId
-	r, err := c.DoApiPost(c.GetUsersRoute()+"/mfa", StringInterfaceToJson(requestBody))
-	if err != nil {
-		return false, BuildErrorResponse(r, err)
-	}
-	defer closeBody(r)
-
-	data := StringInterfaceFromJson(r.Body)
-	mfaRequired, ok := data["mfa_required"].(bool)
-	if !ok {
-		return false, BuildResponse(r)
-	}
-	return mfaRequired, BuildResponse(r)
-}
-
 // GenerateMfaSecret will generate a new MFA secret for a user and return it as a string and
 // as a base64 encoded image QR code.
 func (c *Client4) GenerateMfaSecret(userId string) (*MfaSecret, *Response) {
@@ -6115,22 +6095,6 @@ func (c *Client4) GetServerBusy() (*ServerBusyState, *Response) {
 
 	sbs := ServerBusyStateFromJson(r.Body)
 	return sbs, BuildResponse(r)
-}
-
-// GetServerBusyExpires returns the time when a server marked busy
-// will automatically have the flag cleared.
-//
-// Deprecated: Use GetServerBusy instead.
-func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
-	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
-	}
-	defer closeBody(r)
-
-	sbs := ServerBusyStateFromJson(r.Body)
-	expires := time.Unix(sbs.Expires, 0)
-	return &expires, BuildResponse(r)
 }
 
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.

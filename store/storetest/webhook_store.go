@@ -226,7 +226,7 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 	err = ss.Webhook().DeleteIncoming(o1.Id, model.GetMillis())
 	require.NoError(t, err)
 
-	webhook, err = ss.Webhook().GetIncoming(o1.Id, true)
+	_, err = ss.Webhook().GetIncoming(o1.Id, true)
 	require.Error(t, err)
 }
 
@@ -409,7 +409,7 @@ func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, ss store.Store) {
 	o2.TeamId = model.NewId()
 	o2.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o2, err = ss.Webhook().SaveOutgoing(o2)
+	_, err = ss.Webhook().SaveOutgoing(o2)
 	require.NoError(t, err)
 
 	t.Run("GetOutgoingByChannelByUser, no user filter", func(t *testing.T) {

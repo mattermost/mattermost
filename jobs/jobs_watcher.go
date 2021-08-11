@@ -191,6 +191,13 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JobTypeExtractContent {
+			if watcher.workers.ExtractContent != nil {
+				select {
+				case watcher.workers.ExtractContent.JobChannel() <- *job:
+				default:
+				}
+			}
 		}
 	}
 }

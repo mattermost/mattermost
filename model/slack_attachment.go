@@ -179,6 +179,9 @@ func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
 		attachment.Pretext = ParseSlackLinksToMarkdown(attachment.Pretext)
 
 		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
 			if value, ok := field.Value.(string); ok {
 				field.Value = ParseSlackLinksToMarkdown(value)
 			}

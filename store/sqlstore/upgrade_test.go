@@ -319,7 +319,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		cm2, err := ss.Channel().GetMember(context.Background(), c1.Id, uId2)
 		require.NoError(t, err)
 		cm2.LastViewedAt = lastReplyAt - 10
-		cm2, err = ss.Channel().UpdateMember(cm2)
+		_, err = ss.Channel().UpdateMember(cm2)
 		require.NoError(t, err)
 
 		// Update ThreadMembership with bad data, as we might expect because
