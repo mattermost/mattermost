@@ -3265,6 +3265,17 @@ func TestSetProfileImage(t *testing.T) {
 
 	ruser, appErr := th.App.GetUser(user.Id)
 	require.Nil(t, appErr)
+	assert.True(t, buser.LastPictureUpdate == ruser.LastPictureUpdate, "Same picture should not have updated")
+
+	data2, err := testutils.ReadTestFile("testjpg.jpg")
+	require.NoError(t, err)
+
+	_, resp = th.SystemAdminClient.SetProfileImage(user.Id, data2)
+	CheckNoError(t, resp)
+
+	ruser, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
