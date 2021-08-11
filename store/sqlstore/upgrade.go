@@ -1310,7 +1310,7 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
-	sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at_create_at", "Posts", []string{"RootId", "DeleteAt", "CreateAt"})
+	sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"})
 	sqlStore.RemoveIndexIfExists("idx_posts_root_id", "Posts")
 
 	sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_display_name", "Channels", []string{"TeamId", "DisplayName"})
