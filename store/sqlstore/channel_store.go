@@ -1642,24 +1642,28 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 			SET notifyprops = notifyprops || $1::jsonb
 			WHERE userid=$2 AND channelid=$3`, model.MapToJson(props), userID, channelID)
 	} else {
-		// unpack the keys and values to pass to MySQL.
-		var args []interface{}
-		for k, v := range props {
-			args = append(args, "$."+k)
-			args = append(args, v)
-		}
-		args = append(args, userID, channelID)
+		// It's difficult to construct a SQL query for MySQL
+		// to handle a case of empty map. So we just ignore it.
+		if len(props) > 0 {
+			// unpack the keys and values to pass to MySQL.
+			args := make([]interface{}, 0, len(props))
+			for k, v := range props {
+				args = append(args, "$."+k)
+				args = append(args, v)
+			}
+			args = append(args, userID, channelID)
 
-		// We calculate the number of ? to set in the query string.
-		argString := strings.Repeat("?, ", len(props)*2)
-		// Strip off the trailing comma.
-		argString = argString[:len(argString)-2]
-		// Example: UPDATE ChannelMembers
-		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
-		// WHERE ...
-		_, err = tx.Exec(`UPDATE ChannelMembers
-			SET NotifyProps = JSON_SET(NotifyProps, `+argString+`)
-			WHERE UserId=? AND ChannelId=?`, args...)
+			// We calculate the number of ? to set in the query string.
+			argString := strings.Repeat("?, ", len(props)*2)
+			// Strip off the trailing comma.
+			argString = argString[:len(argString)-2]
+			// Example: UPDATE ChannelMembers
+			// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
+			// WHERE ...
+			_, err = tx.Exec(`UPDATE ChannelMembers
+				SET NotifyProps = JSON_SET(NotifyProps, `+argString+`)
+				WHERE UserId=? AND ChannelId=?`, args...)
+		}
 	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update ChannelMember with channelID=%s and userID=%s", channelID, userID)
@@ -1673,8 +1677,8 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		return nil, errors.Wrapf(err2, "failed to get ChannelMember with channelId=%s and userId=%s", channelID, userID)
 	}
 
-	if err := tx.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+	if err2 := tx.Commit(); err2 != nil {
+		return nil, errors.Wrap(err2, "commit_transaction")
 	}
 
 	return dbMember.ToModel(), err
