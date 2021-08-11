@@ -4,12 +4,15 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -592,9 +595,18 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	// Set icon
 	file.Seek(0, 0)
-	if _, err = a.WriteFile(file, getBotIconPath(botUserId)); err != nil {
+	data, readErr := ioutil.ReadAll(file)
+	if readErr != nil {
+		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.read.app_error", nil, readErr.Error(), http.StatusInternalServerError)
+	}
+
+	if storedData, readFileErr := a.ReadFile(getBotIconPath(botUserId)); readFileErr == nil && bytes.Equal(storedData, data) {
+		return nil
+	}
+
+	// Set icon
+	if _, err = a.WriteFile(bytes.NewReader(data), getBotIconPath(botUserId)); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -666,5 +678,5 @@ func (a *App) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
 }
 
 func getBotIconPath(botUserId string) string {
-	return fmt.Sprintf("bots/%v/icon.svg", botUserId)
+	return filepath.Join("bots", botUserId, "icon.svg")
 }

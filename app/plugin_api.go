@@ -661,8 +661,7 @@ func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppError {
-	_, err := api.app.GetUser(userID)
-	if err != nil {
+	if _, err := api.app.GetUser(userID); err != nil {
 		return err
 	}
 
@@ -949,10 +948,6 @@ func (api *PluginAPI) GetBotIconImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetBotIconImage(userID string, data []byte) *model.AppError {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return err
-	}
-
 	return api.app.SetBotIconImage(userID, bytes.NewReader(data))
 }
 
