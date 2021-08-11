@@ -267,7 +267,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	channel = th.createPrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
-	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	_, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.command.command_post.forbidden.app_error")
