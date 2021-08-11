@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -84,12 +85,17 @@ func TestClient4SetToken(t *testing.T) {
 		}
 
 		assert.Equal(t, expected, strings.TrimSpace(token[1]))
+
+		var user User
+		err := json.NewEncoder(w).Encode(&user)
+		assert.NoError(t, err)
 	}))
 
 	client := NewAPIv4Client(server.URL)
 	client.SetToken(expected)
 
 	_, resp := client.GetMe("")
+	assert.Nil(t, resp.Error)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
@@ -106,11 +112,16 @@ func TestClient4MockSession(t *testing.T) {
 		}
 
 		assert.Equal(t, expected, strings.TrimSpace(token[1]))
+
+		var user User
+		err := json.NewEncoder(w).Encode(&user)
+		assert.NoError(t, err)
 	}))
 
 	client := NewAPIv4Client(server.URL)
 	client.MockSession(expected)
 
 	_, resp := client.GetMe("")
+	assert.Nil(t, resp.Error)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

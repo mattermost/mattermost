@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -651,9 +652,12 @@ type MattermostTestProvider struct {
 }
 
 func (m *MattermostTestProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
-	user := model.UserFromJson(data)
+	var user model.User
+	if err := json.NewDecoder(data).Decode(&user); err != nil {
+		return nil, err
+	}
 	user.AuthData = &user.Email
-	return user, nil
+	return &user, nil
 }
 
 func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
