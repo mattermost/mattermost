@@ -2725,7 +2725,11 @@ func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats,
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return ChannelStatsFromJson(r.Body), BuildResponse(r)
+	var stats ChannelStats
+	if jsonErr := json.NewDecoder(r.Body).Decode(&stats); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetChannelStats", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &stats, BuildResponse(r)
 }
 
 // GetChannelMembersTimezones gets a list of timezones for a channel.
