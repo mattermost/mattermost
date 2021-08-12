@@ -210,7 +210,7 @@ func TestLinkGroupChannel(t *testing.T) {
 	assert.Equal(t, th.BasicChannel.TeamId, groupTeam.TeamID)
 	assert.NotNil(t, groupTeam)
 
-	_, _, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
 	th.Client.Logout()
 	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -258,10 +258,9 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	assert.Error(t, err)
 	time.Sleep(2 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	ok, response, err := th.Client.Logout()
+	response, err = th.Client.Logout()
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
-	assert.True(t, ok)
 	_, response, err = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -306,7 +305,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	_, _, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
 	th.Client.Logout()
 	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -314,7 +313,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 	_, err = th.Client.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 	assert.Error(t, err)
 
-	_, _, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_admin channel_user")
+	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_admin channel_user")
 	require.NoError(t, err)
 	th.Client.Logout()
 	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -969,12 +968,12 @@ func TestGetGroups(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetGroups(opts)
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
 
 	opts.NotAssociatedToChannel = th.BasicChannel.Id
 
-	_, _, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
+	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
 	require.NoError(t, err)
 
 	groups, _, err := th.SystemAdminClient.GetGroups(opts)
@@ -992,12 +991,12 @@ func TestGetGroups(t *testing.T) {
 	assert.Len(t, groups, 1)
 	opts.Q = ""
 
-	_, _, err = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "")
+	_, err = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
 
 	opts.NotAssociatedToTeam = th.BasicTeam.Id
 
-	_, _, err = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
+	_, err = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
 	require.NoError(t, err)
 
 	_, _, err = th.Client.GetGroups(opts)

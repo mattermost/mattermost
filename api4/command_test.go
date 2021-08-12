@@ -182,23 +182,20 @@ func TestMoveCommand(t *testing.T) {
 
 	rcmd1, _ := th.App.CreateCommand(cmd1)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		ok, _, err := client.MoveCommand(newTeam.Id, rcmd1.Id)
+		_, err := client.MoveCommand(newTeam.Id, rcmd1.Id)
 		require.NoError(t, err)
-		require.True(t, ok)
 
 		rcmd1, _ = th.App.GetCommand(rcmd1.Id)
 		require.NotNil(t, rcmd1)
 		require.Equal(t, newTeam.Id, rcmd1.TeamId)
 
-		ok, resp, err := client.MoveCommand(newTeam.Id, "bogus")
+		resp, err := client.MoveCommand(newTeam.Id, "bogus")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
-		require.False(t, ok)
 
-		ok, resp, err = client.MoveCommand(GenerateTestId(), rcmd1.Id)
+		resp, err = client.MoveCommand(GenerateTestId(), rcmd1.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		require.False(t, ok)
 	})
 	cmd2 := &model.Command{
 		CreatorId: user.Id,
@@ -210,12 +207,12 @@ func TestMoveCommand(t *testing.T) {
 
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
-	_, resp, err := th.Client.MoveCommand(newTeam.Id, rcmd2.Id)
+	resp, err := th.Client.MoveCommand(newTeam.Id, rcmd2.Id)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.SystemAdminClient.Logout()
-	_, resp, err = th.SystemAdminClient.MoveCommand(newTeam.Id, rcmd2.Id)
+	resp, err = th.SystemAdminClient.MoveCommand(newTeam.Id, rcmd2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -244,21 +241,17 @@ func TestDeleteCommand(t *testing.T) {
 		cmd1.Id = ""
 		rcmd1, appErr := th.App.CreateCommand(cmd1)
 		require.Nil(t, appErr)
-		ok, _, err := client.DeleteCommand(rcmd1.Id)
+		_, err := client.DeleteCommand(rcmd1.Id)
 		require.NoError(t, err)
-
-		require.True(t, ok)
 
 		rcmd1, _ = th.App.GetCommand(rcmd1.Id)
 		require.Nil(t, rcmd1)
 
-		ok, resp, err := client.DeleteCommand("junk")
+		resp, err := client.DeleteCommand("junk")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		require.False(t, ok)
-
-		_, resp, err = client.DeleteCommand(GenerateTestId())
+		resp, err = client.DeleteCommand(GenerateTestId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -272,12 +265,12 @@ func TestDeleteCommand(t *testing.T) {
 
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
-	_, resp, err := th.Client.DeleteCommand(rcmd2.Id)
+	resp, err := th.Client.DeleteCommand(rcmd2.Id)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.SystemAdminClient.Logout()
-	_, resp, err = th.SystemAdminClient.DeleteCommand(rcmd2.Id)
+	resp, err = th.SystemAdminClient.DeleteCommand(rcmd2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -924,8 +917,8 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 
 	// make a channel on that team, ensuring that our test user isn't in it
 	channel2 := th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, team2.Id)
-	success, _, _ := th.Client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id)
-	require.True(t, success, "Failed to remove user from channel")
+	_, err := th.Client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id)
+	require.NoError(t, err, "Failed to remove user from channel")
 
 	// we should not be able to run the slash command in channel2, because we aren't in it
 	_, resp, err := client.ExecuteCommandWithTeam(channel2.Id, team2.Id, "/postcommand")
@@ -1059,8 +1052,8 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	CheckOKStatus(t, resp)
 
 	// if the user is removed from the team, they should NOT be able to run the slash command in the DM channel
-	success, _, _ := th.Client.RemoveTeamMember(team2.Id, th.BasicUser.Id)
-	require.True(t, success, "Failed to remove user from team")
+	_, err = th.Client.RemoveTeamMember(team2.Id, th.BasicUser.Id)
+	require.NoError(t, err, "Failed to remove user from team")
 
 	_, resp, err = client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")
 	require.Error(t, err)

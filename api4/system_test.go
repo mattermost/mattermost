@@ -158,13 +158,13 @@ func TestEmailTest(t *testing.T) {
 	}
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := client.TestEmail(&config)
+		resp, err := client.TestEmail(&config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.TestEmail(&config)
+		resp, err := th.SystemAdminClient.TestEmail(&config)
 		CheckErrorID(t, err, "api.admin.test_email.missing_server")
 		CheckBadRequestStatus(t, resp)
 
@@ -180,7 +180,7 @@ func TestEmailTest(t *testing.T) {
 
 		*config.EmailSettings.SMTPServer = inbucket_host
 		*config.EmailSettings.SMTPPort = inbucket_port
-		_, resp, err = th.SystemAdminClient.TestEmail(&config)
+		resp, err = th.SystemAdminClient.TestEmail(&config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -188,7 +188,7 @@ func TestEmailTest(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, err := th.SystemAdminClient.TestEmail(&config)
+		resp, err := th.SystemAdminClient.TestEmail(&config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -214,9 +214,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 
 	t.Run("Server with no License", func(t *testing.T) {
-		ok, _, err := th.SystemAdminClient.RemoveLicenseFile()
+		_, err := th.SystemAdminClient.RemoveLicenseFile()
 		require.NoError(t, err)
-		require.True(t, ok)
 
 		_, resp, err := th.SystemAdminClient.GenerateSupportPacket()
 		require.Error(t, err)
@@ -242,21 +241,21 @@ func TestSiteURLTest(t *testing.T) {
 	invalidSiteURL := ts.URL + "/invalid"
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.TestSiteURL("")
+		resp, err := th.SystemAdminClient.TestSiteURL("")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = th.SystemAdminClient.TestSiteURL(invalidSiteURL)
+		resp, err = th.SystemAdminClient.TestSiteURL(invalidSiteURL)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = th.SystemAdminClient.TestSiteURL(validSiteURL)
+		resp, err = th.SystemAdminClient.TestSiteURL(validSiteURL)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := client.TestSiteURL(validSiteURL)
+		resp, err := client.TestSiteURL(validSiteURL)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -264,7 +263,7 @@ func TestSiteURLTest(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, err := client.TestSiteURL(validSiteURL)
+		resp, err := client.TestSiteURL(validSiteURL)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -276,20 +275,20 @@ func TestDatabaseRecycle(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := client.DatabaseRecycle()
+		resp, err := client.DatabaseRecycle()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, _, err := th.SystemAdminClient.DatabaseRecycle()
+		_, err := th.SystemAdminClient.DatabaseRecycle()
 		require.NoError(t, err)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, err := th.SystemAdminClient.DatabaseRecycle()
+		resp, err := th.SystemAdminClient.DatabaseRecycle()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -301,25 +300,22 @@ func TestInvalidateCaches(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp, err := client.InvalidateCaches()
+		resp, err := client.InvalidateCaches()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok, "should not clean the cache due to no permission.")
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		ok, _, err := th.SystemAdminClient.InvalidateCaches()
+		_, err := th.SystemAdminClient.InvalidateCaches()
 		require.NoError(t, err)
-		require.True(t, ok, "should clean the cache")
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp, err := th.SystemAdminClient.InvalidateCaches()
+		resp, err := th.SystemAdminClient.InvalidateCaches()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok, "should not clean the cache due to no permission.")
 	})
 }
 
@@ -508,13 +504,13 @@ func TestS3TestConnection(t *testing.T) {
 	}
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := client.TestS3Connection(&config)
+		resp, err := client.TestS3Connection(&config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.TestS3Connection(&config)
+		resp, err := th.SystemAdminClient.TestS3Connection(&config)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, err, "S3 Bucket is required")
 		// If this fails, check the test configuration to ensure minio is setup with the
@@ -522,22 +518,22 @@ func TestS3TestConnection(t *testing.T) {
 		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
 		config.FileSettings.AmazonS3PathPrefix = model.NewString("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
-		_, resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		resp, err = th.SystemAdminClient.TestS3Connection(&config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		config.FileSettings.AmazonS3Region = model.NewString("")
-		_, resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		resp, err = th.SystemAdminClient.TestS3Connection(&config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
-		_, resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		resp, err = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
-		_, resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		resp, err = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
 	})
@@ -545,7 +541,7 @@ func TestS3TestConnection(t *testing.T) {
 	t.Run("with incorrect credentials", func(t *testing.T) {
 		configCopy := config
 		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
-		_, resp, err := th.SystemAdminClient.TestS3Connection(&configCopy)
+		resp, err := th.SystemAdminClient.TestS3Connection(&configCopy)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
 	})
@@ -553,7 +549,7 @@ func TestS3TestConnection(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, err := th.SystemAdminClient.TestS3Connection(&config)
+		resp, err := th.SystemAdminClient.TestS3Connection(&config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -636,17 +632,15 @@ func TestSetServerBusy(t *testing.T) {
 	const secs = 30
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp, err := th.Client.SetServerBusy(secs)
+		resp, err := th.Client.SetServerBusy(secs)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok, "should not set server busy due to no permission")
 		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		ok, _, err := c.SetServerBusy(secs)
+		_, err := c.SetServerBusy(secs)
 		require.NoError(t, err)
-		require.True(t, ok, "should set server busy successfully")
 		require.True(t, th.App.Srv().Busy.IsBusy(), "server should be marked busy")
 	}, "as system admin")
 }
@@ -658,10 +652,9 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
-			ok, resp, err := c.SetServerBusy(p)
+			resp, err := c.SetServerBusy(p)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
-			require.False(t, ok, "should not set server busy due to invalid param ", p)
 			require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
 		}
 	}, "as system admin, invalid param")
@@ -673,18 +666,16 @@ func TestClearServerBusy(t *testing.T) {
 
 	th.App.Srv().Busy.Set(time.Second * 30)
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp, err := th.Client.ClearServerBusy()
+		resp, err := th.Client.ClearServerBusy()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok, "should not clear server busy flag due to no permission.")
 		require.True(t, th.App.Srv().Busy.IsBusy(), "server should be marked busy")
 	})
 
 	th.App.Srv().Busy.Set(time.Second * 30)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		ok, _, err := c.ClearServerBusy()
+		_, err := c.ClearServerBusy()
 		require.NoError(t, err)
-		require.True(t, ok, "should clear server busy flag successfully")
 		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
 	}, "as system admin")
 }

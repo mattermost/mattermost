@@ -106,11 +106,13 @@ func testJoinCommands(t *testing.T, alias string) {
 
 	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel1 = client.Must(client.CreateChannel(channel1)).(*model.Channel)
-	client.Must(client.RemoveUserFromChannel(channel1.Id, th.BasicUser.Id))
+	_, err := client.RemoveUserFromChannel(channel1.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 
 	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel2 = client.Must(client.CreateChannel(channel2)).(*model.Channel)
-	client.Must(client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id))
+	_, err = client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 
 	channel3 := client.Must(client.CreateDirectChannel(th.BasicUser.Id, user2.Id)).(*model.Channel)
 
@@ -133,7 +135,8 @@ func testJoinCommands(t *testing.T, alias string) {
 	// test case insensitively
 	channel4 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
 	channel4 = client.Must(client.CreateChannel(channel4)).(*model.Channel)
-	client.Must(client.RemoveUserFromChannel(channel4.Id, th.BasicUser.Id))
+	_, err = client.RemoveUserFromChannel(channel4.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 	rs7 := client.Must(client.ExecuteCommand(channel0.Id, "/"+alias+" "+strings.ToUpper(channel4.Name))).(*model.CommandResponse)
 	require.True(t, strings.HasSuffix(rs7.GotoLocation, "/"+team.Name+"/channels/"+channel4.Name), "failed to join channel")
 }
@@ -282,8 +285,8 @@ func TestLeaveCommands(t *testing.T) {
 
 	for _, c := range cdata {
 		if c.Name == model.DefaultChannelName {
-			_, err, _ := client.RemoveUserFromChannel(c.Id, th.BasicUser.Id)
-			require.NotNil(t, err, "should have errored on leaving default channel")
+			_, err := client.RemoveUserFromChannel(c.Id, th.BasicUser.Id)
+			require.Error(t, err, "should have errored on leaving default channel")
 			break
 		}
 	}

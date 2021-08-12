@@ -349,13 +349,13 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 	//var hook *model.IncomingWebhook
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, err := client.DeleteIncomingWebhook("abc")
+		resp, err := client.DeleteIncomingWebhook("abc")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	}, "WhenInvalidHookID")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, err := client.DeleteIncomingWebhook(model.NewId())
+		resp, err := client.DeleteIncomingWebhook(model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookDoesNotExist")
@@ -368,8 +368,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		rhook, _, err := th.SystemAdminClient.CreateIncomingWebhook(hook)
 		require.NoError(t, err)
 
-		status, resp, err := client.DeleteIncomingWebhook(rhook.Id)
-		require.True(t, status, "Delete should have succeeded")
+		resp, err := client.DeleteIncomingWebhook(rhook.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -385,7 +384,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		require.NoError(t, err)
 
 		th.LoginBasic()
-		_, resp, err := th.Client.DeleteIncomingWebhook(rhook.Id)
+		resp, err := th.Client.DeleteIncomingWebhook(rhook.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -1013,7 +1012,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		rcreatedHook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
 		require.NoError(t, err)
 		defer func() {
-			_, _, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
+			_, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
 			require.NoError(t, err)
 		}()
 
@@ -1032,7 +1031,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		require.NoError(t, err)
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-			_, _, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
+			_, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
 			require.NoError(t, err)
 		}()
 
@@ -1050,7 +1049,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		createdHook2, _, err := th.SystemAdminClient.CreateOutgoingWebhook(hook2)
 		require.NoError(t, err)
 		defer func() {
-			_, _, err = client.DeleteOutgoingWebhook(createdHook2.Id)
+			_, err = client.DeleteOutgoingWebhook(createdHook2.Id)
 			require.NoError(t, err)
 		}()
 		createdHook2.DisplayName = "Name2"
@@ -1065,7 +1064,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		rcreatedHook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
 		require.NoError(t, err)
 		defer func() {
-			_, _, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
+			_, err = client.DeleteOutgoingWebhook(rcreatedHook.Id)
 			require.NoError(t, err)
 		}()
 		rcreatedHook.DisplayName = "Name3"
@@ -1137,9 +1136,9 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			_, _, err = client.DeleteOutgoingWebhook(firstHook.Id)
+			_, err = client.DeleteOutgoingWebhook(firstHook.Id)
 			require.NoError(t, err)
-			_, _, err = client.DeleteOutgoingWebhook(baseHook.Id)
+			_, err = client.DeleteOutgoingWebhook(baseHook.Id)
 			require.NoError(t, err)
 		}()
 
@@ -1238,13 +1237,13 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, err := client.DeleteOutgoingWebhook("abc")
+		resp, err := client.DeleteOutgoingWebhook("abc")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	}, "WhenInvalidHookID")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, err := client.DeleteOutgoingWebhook(model.NewId())
+		resp, err := client.DeleteOutgoingWebhook(model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookDoesNotExist")
@@ -1255,8 +1254,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		rhook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(hook)
 		require.NoError(t, err)
 
-		status, resp, err := client.DeleteOutgoingWebhook(rhook.Id)
-		require.True(t, status, "Delete should have succeeded")
+		resp, err := client.DeleteOutgoingWebhook(rhook.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -1273,7 +1271,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		require.NoError(t, err)
 
 		th.LoginBasic()
-		_, resp, err := th.Client.DeleteOutgoingWebhook(rhook.Id)
+		resp, err := th.Client.DeleteOutgoingWebhook(rhook.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

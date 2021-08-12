@@ -73,9 +73,8 @@ func TestPlugin(t *testing.T) {
 		assert.Nil(t, appErr)
 		assert.True(t, pluginStored)
 
-		ok, _, err := client.RemovePlugin(manifest.Id)
+		_, err = client.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
-		require.True(t, ok)
 
 		t.Run("install plugin from URL with slow response time", func(t *testing.T) {
 			if testing.Short() {
@@ -186,9 +185,8 @@ func TestPlugin(t *testing.T) {
 		assert.False(t, found)
 
 		// Successful activate
-		ok, _, err = client.EnablePlugin(manifest.Id)
+		_, err = client.EnablePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 
 		pluginsResp, _, err = client.GetPlugins()
 		require.NoError(t, err)
@@ -203,20 +201,17 @@ func TestPlugin(t *testing.T) {
 		assert.True(t, found)
 
 		// Activate error case
-		ok, resp, err = client.EnablePlugin("junk")
+		resp, err = client.EnablePlugin("junk")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		assert.False(t, ok)
 
-		ok, resp, err = client.EnablePlugin("JUNK")
+		resp, err = client.EnablePlugin("JUNK")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		assert.False(t, ok)
 
 		// Successful deactivate
-		ok, _, err = client.DisablePlugin(manifest.Id)
+		_, err = client.DisablePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 
 		pluginsResp, _, err = client.GetPlugins()
 		require.NoError(t, err)
@@ -231,10 +226,9 @@ func TestPlugin(t *testing.T) {
 		assert.True(t, found)
 
 		// Deactivate error case
-		ok, resp, err = client.DisablePlugin("junk")
+		resp, err = client.DisablePlugin("junk")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		assert.False(t, ok)
 
 		// Get error cases
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
@@ -248,7 +242,7 @@ func TestPlugin(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		// Successful webapp get
-		_, _, err = client.EnablePlugin(manifest.Id)
+		_, err = client.EnablePlugin(manifest.Id)
 		require.NoError(t, err)
 
 		manifests, _, err := th.Client.GetWebappPlugins()
@@ -264,27 +258,25 @@ func TestPlugin(t *testing.T) {
 		assert.True(t, found)
 
 		// Successful remove
-		ok, _, err = client.RemovePlugin(manifest.Id)
+		_, err = client.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 
 		// Remove error cases
-		ok, resp, err = client.RemovePlugin(manifest.Id)
+		resp, err = client.RemovePlugin(manifest.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		assert.False(t, ok)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-		_, resp, err = client.RemovePlugin(manifest.Id)
+		resp, err = client.RemovePlugin(manifest.Id)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-		_, resp, err = th.Client.RemovePlugin(manifest.Id)
+		resp, err = th.Client.RemovePlugin(manifest.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		_, resp, err = client.RemovePlugin("bad.id")
+		resp, err = client.RemovePlugin("bad.id")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -362,9 +354,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	}()
 
 	testCluster.ClearMessages()
-	ok, _, err := th.SystemAdminClient.RemovePlugin(manifest.Id)
+	_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
 	require.NoError(t, err)
-	require.True(t, ok)
 
 	result := <-done
 	require.True(t, result, "plugin_statuses_changed websocket event was not received")
@@ -429,9 +420,8 @@ func TestDisableOnRemove(t *testing.T) {
 				}})
 
 				// Enable plugin
-				ok, _, err := client.EnablePlugin(manifest.Id)
+				_, err = client.EnablePlugin(manifest.Id)
 				require.NoError(t, err)
-				require.True(t, ok)
 
 				// Confirm enabled status
 				pluginsResp, _, err = client.GetPlugins()
@@ -457,9 +447,8 @@ func TestDisableOnRemove(t *testing.T) {
 				}
 
 				// Remove plugin
-				ok, _, err = client.RemovePlugin(manifest.Id)
+				_, err = client.RemovePlugin(manifest.Id)
 				require.NoError(t, err)
-				require.True(t, ok)
 
 				// Plugin should have no status
 				pluginsResp, _, err = client.GetPlugins()
@@ -481,9 +470,8 @@ func TestDisableOnRemove(t *testing.T) {
 				}})
 
 				// Clean up
-				ok, _, err = client.RemovePlugin(manifest.Id)
+				_, err = client.RemovePlugin(manifest.Id)
 				require.NoError(t, err)
-				require.True(t, ok)
 			})
 		})
 	}
@@ -791,9 +779,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedPlugins, plugins)
 
-		ok, _, err := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		require.NoError(t, err)
@@ -843,9 +830,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedPlugins, plugins)
 
-		ok, _, err := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		require.NoError(t, err)
@@ -971,13 +957,11 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		require.Nil(t, plugins)
 
 		// cleanup
-		ok, _, err := th.SystemAdminClient.RemovePlugin(plugin1.Manifest.Id)
+		_, err = th.SystemAdminClient.RemovePlugin(plugin1.Manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 
-		ok, _, err = th.SystemAdminClient.RemovePlugin(plugin2.Manifest.Id)
+		_, err = th.SystemAdminClient.RemovePlugin(plugin2.Manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 	})
 }
 
@@ -1048,9 +1032,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 
 		require.Len(t, plugins, 2)
 
-		ok, _, err := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 	})
 
 	t.Run("EnableRemoteMarketplace disabled", func(t *testing.T) {
@@ -1095,9 +1078,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		require.Len(t, plugins, 1)
 		require.Equal(t, newPlugin, plugins[0])
 
-		ok, _, err := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 	})
 
 	t.Run("local_only true", func(t *testing.T) {
@@ -1139,9 +1121,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		require.Len(t, plugins, 1)
 		require.Equal(t, newPlugin, plugins[0])
 
-		ok, _, err := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 	})
 }
 
@@ -1456,9 +1437,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Nil(t, appErr)
 		require.EqualValues(t, sigFile, savedSigFile)
 
-		ok, _, err := client.RemovePlugin(manifest.Id)
+		_, err = client.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
-		assert.True(t, ok)
 		exists, appErr := th.App.FileExists(filePath)
 		require.Nil(t, appErr)
 		require.False(t, exists)
@@ -1700,13 +1680,11 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			})
 
 			// Clean up
-			ok, _, err := client.RemovePlugin(manifest1.Id)
+			_, err = client.RemovePlugin(manifest1.Id)
 			require.NoError(t, err)
-			assert.True(t, ok)
 
-			ok, _, err = client.RemovePlugin(manifest2.Id)
+			_, err = client.RemovePlugin(manifest2.Id)
 			require.NoError(t, err)
-			assert.True(t, ok)
 
 			appErr = th2.App.DeletePublicKey("pub_key")
 			require.Nil(t, appErr)

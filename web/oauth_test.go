@@ -174,20 +174,18 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	_, _, err := ApiClient.AuthorizeOAuthApp(authRequest)
 	require.NoError(t, err)
 
-	pass, _, err := ApiClient.DeauthorizeOAuthApp(rapp.Id)
+	_, err = ApiClient.DeauthorizeOAuthApp(rapp.Id)
 	require.NoError(t, err)
 
-	require.True(t, pass, "should have passed")
-
-	_, resp, err := ApiClient.DeauthorizeOAuthApp("junk")
+	resp, err := ApiClient.DeauthorizeOAuthApp("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, _, err = ApiClient.DeauthorizeOAuthApp(model.NewId())
+	_, err = ApiClient.DeauthorizeOAuthApp(model.NewId())
 	require.NoError(t, err)
 
 	th.Logout(ApiClient)
-	_, resp, err = ApiClient.DeauthorizeOAuthApp(rapp.Id)
+	resp, err = ApiClient.DeauthorizeOAuthApp(rapp.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }

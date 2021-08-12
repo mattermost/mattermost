@@ -318,21 +318,21 @@ func TestCancelJob(t *testing.T) {
 		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
-	_, resp, err := th.Client.CancelJob(jobs[0].Id)
+	resp, err := th.Client.CancelJob(jobs[0].Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.CancelJob(jobs[0].Id)
+	_, err = th.SystemAdminClient.CancelJob(jobs[0].Id)
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.CancelJob(jobs[1].Id)
+	_, err = th.SystemAdminClient.CancelJob(jobs[1].Id)
 	require.NoError(t, err)
 
-	_, resp, err = th.SystemAdminClient.CancelJob(jobs[2].Id)
+	resp, err = th.SystemAdminClient.CancelJob(jobs[2].Id)
 	require.Error(t, err)
 	CheckInternalErrorStatus(t, resp)
 
-	_, resp, err = th.SystemAdminClient.CancelJob(model.NewId())
+	resp, err = th.SystemAdminClient.CancelJob(model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }

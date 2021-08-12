@@ -83,10 +83,9 @@ func TestDeleteExport(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		ok, _, err := th.Client.DeleteExport("export.zip")
+		_, err := th.Client.DeleteEmoji("export.zip")
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
-		require.False(t, ok)
 	})
 
 	dataDir, found := fileutils.FindDir("data")
@@ -107,18 +106,16 @@ func TestDeleteExport(t *testing.T) {
 		require.Len(t, exports, 1)
 		require.Equal(t, exports[0], exportName)
 
-		ok, _, err := c.DeleteExport(exportName)
+		_, err = c.DeleteEmoji(exportName)
 		require.NoError(t, err)
-		require.True(t, ok)
 
 		exports, _, err = c.ListExports()
 		require.NoError(t, err)
 		require.Empty(t, exports)
 
 		// verify idempotence
-		ok, _, err = c.DeleteExport(exportName)
+		_, err = c.DeleteEmoji(exportName)
 		require.NoError(t, err)
-		require.True(t, ok)
 	}, "successfully delete export")
 }
 

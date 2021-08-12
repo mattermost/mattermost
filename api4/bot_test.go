@@ -299,10 +299,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageRoles.Id, model.TeamUserRoleId)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
-		success, resp, err := th.Client.UpdateUserRoles(createdBot.UserId, model.SystemUserRoleId)
+		resp, err = th.Client.UpdateUserRoles(createdBot.UserId, model.SystemUserRoleId)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.True(t, success)
 
 		bots, resp, err := th.Client.GetBots(0, 2, "")
 		require.NoError(t, err)
@@ -708,7 +707,7 @@ func TestGetBots(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
 	})
-	_, resp, err = th.SystemAdminClient.DeleteUser(th.BasicUser2.Id)
+	resp, err = th.SystemAdminClient.DeleteUser(th.BasicUser2.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -1320,28 +1319,26 @@ func TestSetBotIconImage(t *testing.T) {
 	require.NoError(t, err)
 
 	// SetBotIconImage only allowed for bots
-	_, resp, err = th.SystemAdminClient.SetBotIconImage(user.Id, goodData)
+	resp, err = th.SystemAdminClient.SetBotIconImage(user.Id, goodData)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// png/jpg is not allowed
-	ok, resp, err := th.Client.SetBotIconImage(bot.UserId, badData)
-	require.False(t, ok, "Should return false, set icon image only allows svg")
+	resp, err = th.Client.SetBotIconImage(bot.UserId, badData)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	ok, resp, err = th.Client.SetBotIconImage(model.NewId(), badData)
-	require.False(t, ok, "Should return false, set icon image not allowed")
+	resp, err = th.Client.SetBotIconImage(model.NewId(), badData)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, _, err = th.Client.SetBotIconImage(bot.UserId, goodData)
+	_, err = th.Client.SetBotIconImage(bot.UserId, goodData)
 	require.NoError(t, err)
 
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetBotIconImage when request is terminated early by server
 	th.Client.Logout()
-	_, resp, err = th.Client.SetBotIconImage(bot.UserId, badData)
+	resp, err = th.Client.SetBotIconImage(bot.UserId, badData)
 	require.Error(t, err)
 	if resp.StatusCode == http.StatusForbidden {
 		CheckForbiddenStatus(t, resp)
@@ -1351,7 +1348,7 @@ func TestSetBotIconImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	_, _, err = th.SystemAdminClient.SetBotIconImage(bot.UserId, goodData)
+	_, err = th.SystemAdminClient.SetBotIconImage(bot.UserId, goodData)
 	require.NoError(t, err)
 
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
@@ -1464,7 +1461,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 	svgData, err := testutils.ReadTestFile("test.svg")
 	require.NoError(t, err)
 
-	_, _, err = th.Client.SetBotIconImage(bot.UserId, svgData)
+	_, err = th.Client.SetBotIconImage(bot.UserId, svgData)
 	require.NoError(t, err)
 
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
@@ -1476,25 +1473,21 @@ func TestDeleteBotIconImage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, svgData, data)
 
-	success, resp, err := th.Client.DeleteBotIconImage("junk")
+	resp, err = th.Client.DeleteBotIconImage("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	require.False(t, success)
 
-	success, resp, err = th.Client.DeleteBotIconImage(model.NewId())
+	resp, err = th.Client.DeleteBotIconImage(model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
-	require.False(t, success)
 
-	success, _, err = th.Client.DeleteBotIconImage(bot.UserId)
+	_, err = th.Client.DeleteBotIconImage(bot.UserId)
 	require.NoError(t, err)
-	require.True(t, success)
 
 	th.Client.Logout()
-	success, resp, err = th.Client.DeleteBotIconImage(bot.UserId)
+	resp, err = th.Client.DeleteBotIconImage(bot.UserId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
-	require.False(t, success)
 
 	exists, appErr = th.App.FileExists(fpath)
 	require.Nil(t, appErr)

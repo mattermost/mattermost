@@ -15,13 +15,13 @@ func TestElasticsearchTest(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := th.Client.TestElasticsearch()
+		resp, err := th.Client.TestElasticsearch()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.TestElasticsearch()
+		resp, err := th.SystemAdminClient.TestElasticsearch()
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
@@ -29,7 +29,7 @@ func TestElasticsearchTest(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, err := th.SystemAdminClient.TestElasticsearch()
+		resp, err := th.SystemAdminClient.TestElasticsearch()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -40,13 +40,13 @@ func TestElasticsearchPurgeIndexes(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := th.Client.PurgeElasticsearchIndexes()
+		resp, err := th.Client.PurgeElasticsearchIndexes()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
@@ -54,7 +54,7 @@ func TestElasticsearchPurgeIndexes(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

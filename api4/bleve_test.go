@@ -15,7 +15,7 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := th.Client.PurgeBleveIndexes()
+		resp, err := th.Client.PurgeBleveIndexes()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -23,13 +23,13 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	t.Run("as system user with write experimental permission", func(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionPurgeBleveIndexes.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteExperimental.Id, model.SystemUserRoleId)
-		_, resp, err := th.Client.PurgeBleveIndexes()
+		resp, err := th.Client.PurgeBleveIndexes()
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.PurgeBleveIndexes()
+		resp, err := th.SystemAdminClient.PurgeBleveIndexes()
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -37,7 +37,7 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp, err := th.SystemAdminClient.PurgeBleveIndexes()
+		resp, err := th.SystemAdminClient.PurgeBleveIndexes()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

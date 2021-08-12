@@ -122,25 +122,22 @@ func TestReloadConfig(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp, err := client.ReloadConfig()
+		resp, err := client.ReloadConfig()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok, "should not Reload the config due no permission.")
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		ok, _, err := th.SystemAdminClient.ReloadConfig()
+		_, err := th.SystemAdminClient.ReloadConfig()
 		require.NoError(t, err)
-		require.True(t, ok, "should Reload the config")
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp, err := client.ReloadConfig()
+		resp, err := client.ReloadConfig()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok, "should not Reload the config due no permission.")
 	})
 }
 
@@ -774,7 +771,7 @@ func TestMigrateConfig(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("user is not system admin", func(t *testing.T) {
-		_, response, err := th.Client.MigrateConfig("from", "to")
+		response, err := th.Client.MigrateConfig("from", "to")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
@@ -788,7 +785,7 @@ func TestMigrateConfig(t *testing.T) {
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 
-		_, _, err = client.MigrateConfig("from.json", "to.json")
+		_, err = client.MigrateConfig("from.json", "to.json")
 		require.NoError(t, err)
 	})
 }
