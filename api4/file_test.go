@@ -542,6 +542,20 @@ func TestUploadFiles(t *testing.T) {
 				}
 			},
 		},
+
+		{
+			title:                 "Error image too large",
+			names:                 []string{"test.png"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckBadRequestStatus,
+			setupConfig: func(a *app.App) func(a *app.App) {
+				maxResSize := *a.Config().FileSettings.MaxImageResolution
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxImageResolution = 90000 })
+				return func(a *app.App) {
+					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxImageResolution = maxResSize })
+				}
+			},
+		},
 	}
 
 	for _, useMultipart := range []bool{true, false} {
