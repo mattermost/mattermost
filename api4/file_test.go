@@ -6,6 +6,7 @@ package api4
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -80,7 +81,11 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 		return nil, model.BuildErrorResponse(resp, model.AppErrorFromJson(resp.Body))
 	}
 
-	return model.FileUploadResponseFromJson(resp.Body), model.BuildResponse(resp)
+	var res model.FileUploadResponse
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&res); jsonErr != nil {
+		return nil, model.BuildErrorResponse(nil, model.NewAppError("doUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &res, model.BuildResponse(resp)
 }
 
 func testUploadFilesPost(

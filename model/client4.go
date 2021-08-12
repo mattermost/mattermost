@@ -686,7 +686,11 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 		return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	}
 
-	return FileUploadResponseFromJson(rp.Body), BuildResponse(rp)
+	var res FileUploadResponse
+	if jsonErr := json.NewDecoder(rp.Body).Decode(&res); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("doUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &res, BuildResponse(rp)
 }
 
 func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response) {
@@ -3659,7 +3663,12 @@ func (c *Client4) GetFileInfo(fileId string) (*FileInfo, *Response) {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return FileInfoFromJson(r.Body), BuildResponse(r)
+
+	var fi FileInfo
+	if jsonErr := json.NewDecoder(r.Body).Decode(&fi); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetFileInfo", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &fi, BuildResponse(r)
 }
 
 // GetFileInfosForPost gets all the file info objects attached to a post.
@@ -3669,7 +3678,15 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return FileInfosFromJson(r.Body), BuildResponse(r)
+
+	var list []*FileInfo
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetFileInfosForPost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return list, BuildResponse(r)
 }
 
 // General/System Section
@@ -6499,7 +6516,11 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return FileInfoFromJson(r.Body), BuildResponse(r)
+	var fi FileInfo
+	if jsonErr := json.NewDecoder(r.Body).Decode(&fi); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("UploadData", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &fi, BuildResponse(r)
 }
 
 func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) *Response {
