@@ -102,8 +102,8 @@ func (_m *ServerIface) GetSchemes(_a0 string, _a1 int, _a2 int) ([]*model.Scheme
 	return r0, r1
 }
 
-// HttpService provides a mock function with given fields:
-func (_m *ServerIface) HttpService() httpservice.HTTPService {
+// HTTPService provides a mock function with given fields:
+func (_m *ServerIface) HTTPService() httpservice.HTTPService {
 	ret := _m.Called()
 
 	var r0 httpservice.HTTPService
