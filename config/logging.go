@@ -110,8 +110,7 @@ type fileSrc struct {
 	mutex sync.RWMutex
 	cfg   mlog.LogTargetCfg
 
-	path    string
-	watcher *watcher
+	path string
 }
 
 func newFileSrc(path string, configStore *Store) (*fileSrc, error) {
@@ -156,24 +155,6 @@ func (src *fileSrc) Set(path string, configStore *Store) error {
 	src.mutex.Lock()
 	defer src.mutex.Unlock()
 
-	if src.watcher != nil {
-		if err = src.watcher.Close(); err != nil {
-			mlog.Error("Failed to close watcher", mlog.Err(err))
-		}
-		src.watcher = nil
-	}
-
-	watcher, err := newWatcher(path, func() {
-		if serr := src.Set(path, configStore); serr != nil {
-			mlog.Error("Failed to reload file on change", mlog.String("path", path), mlog.Err(serr))
-		}
-	})
-	if err != nil {
-		return err
-	}
-
-	src.watcher = watcher
-
 	return nil
 }
 
@@ -188,14 +169,7 @@ func (src *fileSrc) set(cfg mlog.LogTargetCfg) {
 
 // Close cleans up resources.
 func (src *fileSrc) Close() error {
-	var err error
-	src.mutex.Lock()
-	defer src.mutex.Unlock()
-	if src.watcher != nil {
-		err = src.watcher.Close()
-		src.watcher = nil
-	}
-	return err
+	return nil
 }
 
 func logTargetCfgFromJSON(data []byte) (mlog.LogTargetCfg, error) {
