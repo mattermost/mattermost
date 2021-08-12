@@ -5545,7 +5545,11 @@ func (c *Client4) SaveReaction(reaction *Reaction) (*Reaction, *Response) {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return ReactionFromJson(r.Body), BuildResponse(r)
+	var re Reaction
+	if jsonErr := json.NewDecoder(r.Body).Decode(&re); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("SaveReaction", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &re, BuildResponse(r)
 }
 
 // GetReactions returns a list of reactions to a post.
@@ -5555,7 +5559,11 @@ func (c *Client4) GetReactions(postId string) ([]*Reaction, *Response) {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return ReactionsFromJson(r.Body), BuildResponse(r)
+	var list []*Reaction
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetReactions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return list, BuildResponse(r)
 }
 
 // DeleteReaction deletes reaction of a user in a post.
@@ -5575,7 +5583,11 @@ func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *R
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return MapPostIdToReactionsFromJson(r.Body), BuildResponse(r)
+	reactions := map[string][]*Reaction{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&reactions); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetBulkReactions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return reactions, BuildResponse(r)
 }
 
 // Timezone Section
