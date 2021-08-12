@@ -12,7 +12,7 @@ import (
 )
 
 func (api *API) InitPermissions() {
-	api.BaseRoutes.Permissions.Handle("/ancillary", api.ApiSessionRequired(appendAncillaryPermissions)).Methods("GET")
+	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissions)).Methods("GET")
 }
 
 func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Request) {

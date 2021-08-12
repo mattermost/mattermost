@@ -1093,7 +1093,7 @@ func TestHookMetrics(t *testing.T) {
 		metricsMock.On("ObservePluginHookDuration", pluginID, "UserHasBeenCreated", true, mock.Anything).Return()
 
 		// Don't care about these calls.
-		metricsMock.On("ObservePluginApiDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
+		metricsMock.On("ObservePluginAPIDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookIterationDuration", mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
 

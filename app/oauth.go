@@ -873,7 +873,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		}
 	}
 
-	req, requestErr = http.NewRequest("GET", *sso.UserApiEndpoint, strings.NewReader(""))
+	req, requestErr = http.NewRequest("GET", *sso.UserAPIEndpoint, strings.NewReader(""))
 	if requestErr != nil {
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, requestErr.Error(), http.StatusInternalServerError)
 	}

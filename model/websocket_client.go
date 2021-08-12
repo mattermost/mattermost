@@ -38,7 +38,7 @@ const avgReadMsgSizeBytes = 1024
 // deadlocks from occurring in the program.
 type WebSocketClient struct {
 	URL                string                  // The location of the server like "ws://localhost:8065"
-	ApiURL             string                  // The API location of the server like "ws://localhost:8065/api/v3"
+	APIURL             string                  // The API location of the server like "ws://localhost:8065/api/v3"
 	ConnectURL         string                  // The WebSocket URL to connect to like "ws://localhost:8065/api/v3/path/to/websocket"
 	Conn               *websocket.Conn         // The WebSocket connection
 	AuthToken          string                  // The token used to open the WebSocket connection
@@ -66,15 +66,15 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 // NewWebSocketClientWithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer.
 func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := dialer.Dial(url+ApiURLSuffix+"/websocket", nil)
+	conn, _, err := dialer.Dial(url+APIURLSuffix+"/websocket", nil)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	client := &WebSocketClient{
 		URL:                url,
-		ApiURL:             url + ApiURLSuffix,
-		ConnectURL:         url + ApiURLSuffix + "/websocket",
+		APIURL:             url + APIURLSuffix,
+		ConnectURL:         url + APIURLSuffix + "/websocket",
 		Conn:               conn,
 		AuthToken:          authToken,
 		Sequence:           1,

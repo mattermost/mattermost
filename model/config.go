@@ -108,8 +108,8 @@ const (
 	ServiceSettingsDefaultMaxLoginAttempts = 10
 	ServiceSettingsDefaultAllowCorsFrom    = ""
 	ServiceSettingsDefaultListenAndAddress = ":8065"
-	ServiceSettingsDefaultGfycatApiKey     = "2_KtH_W5"
-	ServiceSettingsDefaultGfycatApiSecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
+	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
+	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
 	TeamSettingsDefaultMaxUsersPerTeam       = 50
@@ -230,15 +230,15 @@ const (
 	GoogleSettingsDefaultScope           = "profile email"
 	GoogleSettingsDefaultAuthEndpoint    = "https://accounts.google.com/o/oauth2/v2/auth"
 	GoogleSettingsDefaultTokenEndpoint   = "https://www.googleapis.com/oauth2/v4/token"
-	GoogleSettingsDefaultUserApiEndpoint = "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
+	GoogleSettingsDefaultUserAPIEndpoint = "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
 
 	Office365SettingsDefaultScope           = "User.Read"
 	Office365SettingsDefaultAuthEndpoint    = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-	Office365SettingsDefaultUserApiEndpoint = "https://graph.microsoft.com/v1.0/me"
+	Office365SettingsDefaultUserAPIEndpoint = "https://graph.microsoft.com/v1.0/me"
 
 	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
-	CloudSettingsDefaultCwsApiURL = "https://portal.internal.prod.cloud.mattermost.com"
+	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
 	OpenidSettingsDefaultScope    = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
@@ -329,8 +329,8 @@ type ServiceSettings struct {
 	WebsocketPort                                     *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	WebserverMode                                     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableGifPicker                                   *bool    `access:"integrations_gif"`
-	GfycatApiKey                                      *string  `access:"integrations_gif"`
-	GfycatApiSecret                                   *string  `access:"integrations_gif"`
+	GfycatAPIKey                                      *string  `access:"integrations_gif"`
+	GfycatAPISecret                                   *string  `access:"integrations_gif"`
 	EnableCustomEmoji                                 *bool    `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool    `access:"site_emoji"`
 	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string  `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // Deprecated: do not use
@@ -683,12 +683,12 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableGifPicker = NewBool(true)
 	}
 
-	if s.GfycatApiKey == nil || *s.GfycatApiKey == "" {
-		s.GfycatApiKey = NewString(ServiceSettingsDefaultGfycatApiKey)
+	if s.GfycatAPIKey == nil || *s.GfycatAPIKey == "" {
+		s.GfycatAPIKey = NewString(ServiceSettingsDefaultGfycatAPIKey)
 	}
 
-	if s.GfycatApiSecret == nil || *s.GfycatApiSecret == "" {
-		s.GfycatApiSecret = NewString(ServiceSettingsDefaultGfycatApiSecret)
+	if s.GfycatAPISecret == nil || *s.GfycatAPISecret == "" {
+		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
 	}
 
 	if s.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation == nil {
@@ -1015,13 +1015,13 @@ type SSOSettings struct {
 	Scope             *string `access:"authentication_openid"` // telemetry: none
 	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
 	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserApiEndpoint   *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
 	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
 	ButtonText        *string `access:"authentication_openid"` // telemetry: none
 	ButtonColor       *string `access:"authentication_openid"` // telemetry: none
 }
 
-func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint, buttonColor string) {
+func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEndpoint, buttonColor string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -1050,8 +1050,8 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 		s.TokenEndpoint = NewString(tokenEndpoint)
 	}
 
-	if s.UserApiEndpoint == nil {
-		s.UserApiEndpoint = NewString(userApiEndpoint)
+	if s.UserAPIEndpoint == nil {
+		s.UserAPIEndpoint = NewString(userAPIEndpoint)
 	}
 
 	if s.ButtonText == nil {
@@ -1070,7 +1070,7 @@ type Office365Settings struct {
 	Scope             *string `access:"authentication_openid"`
 	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
 	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserApiEndpoint   *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
 	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
 	DirectoryId       *string `access:"authentication_openid"` // telemetry: none
 }
@@ -1104,8 +1104,8 @@ func (s *Office365Settings) setDefaults() {
 		s.TokenEndpoint = NewString(Office365SettingsDefaultTokenEndpoint)
 	}
 
-	if s.UserApiEndpoint == nil {
-		s.UserApiEndpoint = NewString(Office365SettingsDefaultUserApiEndpoint)
+	if s.UserAPIEndpoint == nil {
+		s.UserAPIEndpoint = NewString(Office365SettingsDefaultUserAPIEndpoint)
 	}
 
 	if s.DirectoryId == nil {
@@ -1122,7 +1122,7 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.DiscoveryEndpoint = s.DiscoveryEndpoint
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
-	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
+	ssoSettings.UserAPIEndpoint = s.UserAPIEndpoint
 	return &ssoSettings
 }
 
@@ -2765,7 +2765,7 @@ func (s *CloudSettings) SetDefaults() {
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
 	}
 	if s.CWSAPIURL == nil {
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsApiURL)
+		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
 	}
 }
 
@@ -3240,7 +3240,7 @@ func (o *Config) SetDefaults() {
 	o.Office365Settings.setDefaults()
 	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults("", "", "", "", "")
-	o.GoogleSettings.setDefaults(GoogleSettingsDefaultScope, GoogleSettingsDefaultAuthEndpoint, GoogleSettingsDefaultTokenEndpoint, GoogleSettingsDefaultUserApiEndpoint, "")
+	o.GoogleSettings.setDefaults(GoogleSettingsDefaultScope, GoogleSettingsDefaultAuthEndpoint, GoogleSettingsDefaultTokenEndpoint, GoogleSettingsDefaultUserAPIEndpoint, "")
 	o.OpenIdSettings.setDefaults(OpenidSettingsDefaultScope, "", "", "", "#145DBF")
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
@@ -3918,8 +3918,8 @@ func (o *Config) Sanitize() {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
 	}
 
-	if o.ServiceSettings.GfycatApiSecret != nil && *o.ServiceSettings.GfycatApiSecret != "" {
-		*o.ServiceSettings.GfycatApiSecret = FakeSetting
+	if o.ServiceSettings.GfycatAPISecret != nil && *o.ServiceSettings.GfycatAPISecret != "" {
+		*o.ServiceSettings.GfycatAPISecret = FakeSetting
 	}
 
 	*o.ServiceSettings.SplitKey = FakeSetting

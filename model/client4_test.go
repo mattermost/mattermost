@@ -21,7 +21,7 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 		testURL := baseURL + strings.Repeat("/", s)
 		client := NewAPIv4Client(testURL)
 		assert.Equal(t, baseURL, client.URL)
-		assert.Equal(t, baseURL+ApiURLSuffix, client.ApiURL)
+		assert.Equal(t, baseURL+APIURLSuffix, client.APIURL)
 	}
 }
 

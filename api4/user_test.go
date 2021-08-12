@@ -88,7 +88,7 @@ func TestCreateUser(t *testing.T) {
 		// Creating a user as sysadmin should verify the user with the EmailVerified flag.
 		require.True(t, ruser2.EmailVerified)
 
-		r, err := client.DoApiPost("/users", "garbage")
+		r, err := client.DoAPIPost("/users", "garbage")
 		require.NotNil(t, err, "should have errored")
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
@@ -865,7 +865,7 @@ func TestSaveUserTermsOfService(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("Invalid data", func(t *testing.T) {
-		resp, err := th.Client.DoApiPost("/users/"+th.BasicUser.Id+"/terms_of_service", "{}")
+		resp, err := th.Client.DoAPIPost("/users/"+th.BasicUser.Id+"/terms_of_service", "{}")
 		require.NotNil(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -1676,7 +1676,7 @@ func TestUpdateUser(t *testing.T) {
 	_, resp = th.Client.UpdateUser(ruser)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := th.Client.DoApiPut("/users/"+ruser.Id, "garbage")
+	r, err := th.Client.DoAPIPut("/users/"+ruser.Id, "garbage")
 	require.NotNil(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -1783,7 +1783,7 @@ func TestPatchUser(t *testing.T) {
 	_, resp = th.Client.PatchUser(model.NewId(), patch)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := th.Client.DoApiPut("/users/"+user.Id+"/patch", "garbage")
+	r, err := th.Client.DoAPIPut("/users/"+user.Id+"/patch", "garbage")
 	require.NotNil(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -2341,7 +2341,7 @@ func TestGetUsers(t *testing.T) {
 		require.Empty(t, rusers, "should be no users")
 
 		// Check default params for page and per_page
-		_, err := client.DoApiGet("/users", "")
+		_, err := client.DoAPIGet("/users", "")
 		require.Nil(t, err)
 	})
 
@@ -2419,7 +2419,7 @@ func TestGetActiveUsersInTeam(t *testing.T) {
 	require.Len(t, rusers, 1, "should be 1 per page")
 
 	// Check case where we have supplied both active and inactive flags
-	_, err := th.Client.DoApiGet("/users?inactive=true&active=true", "")
+	_, err := th.Client.DoAPIGet("/users?inactive=true&active=true", "")
 	require.NotNil(t, err)
 
 	th.Client.Logout()

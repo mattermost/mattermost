@@ -22,22 +22,22 @@ import (
 
 func (w *Web) InitOAuth() {
 	// API version independent OAuth 2.0 as a service provider endpoints
-	w.MainRouter.Handle("/oauth/authorize", w.ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
-	w.MainRouter.Handle("/oauth/authorize", w.ApiSessionRequired(authorizeOAuthApp)).Methods("POST")
-	w.MainRouter.Handle("/oauth/deauthorize", w.ApiSessionRequired(deauthorizeOAuthApp)).Methods("POST")
-	w.MainRouter.Handle("/oauth/access_token", w.ApiHandlerTrustRequester(getAccessToken)).Methods("POST")
+	w.MainRouter.Handle("/oauth/authorize", w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
+	w.MainRouter.Handle("/oauth/authorize", w.APISessionRequired(authorizeOAuthApp)).Methods("POST")
+	w.MainRouter.Handle("/oauth/deauthorize", w.APISessionRequired(deauthorizeOAuthApp)).Methods("POST")
+	w.MainRouter.Handle("/oauth/access_token", w.APIHandlerTrustRequester(getAccessToken)).Methods("POST")
 
 	// API version independent OAuth as a client endpoints
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", w.ApiHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/login", w.ApiHandler(loginWithOAuth)).Methods("GET")
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.ApiHandler(mobileLoginWithOAuth)).Methods("GET")
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.ApiHandler(signupWithOAuth)).Methods("GET")
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/login", w.APIHandler(loginWithOAuth)).Methods("GET")
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.APIHandler(mobileLoginWithOAuth)).Methods("GET")
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods("GET")
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
-	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.ApiHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.ApiHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/login/{service:[A-Za-z0-9]+}/complete", w.ApiHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/api/v4/oauth_test", w.ApiSessionRequired(testHandler)).Methods("GET")
+	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
+	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
+	w.MainRouter.Handle("/login/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
+	w.MainRouter.Handle("/api/v4/oauth_test", w.APISessionRequired(testHandler)).Methods("GET")
 }
 
 func testHandler(c *Context, w http.ResponseWriter, r *http.Request) {

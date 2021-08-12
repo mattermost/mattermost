@@ -51,7 +51,7 @@ func TestCreateTeam(t *testing.T) {
 		CheckErrorMessage(t, resp, "model.team.is_valid.characters.app_error")
 		CheckBadRequestStatus(t, resp)
 
-		r, err := client.DoApiPost("/teams", "garbage")
+		r, err := client.DoAPIPost("/teams", "garbage")
 		require.NotNil(t, err, "should have errored")
 
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
@@ -330,7 +330,7 @@ func TestUpdateTeam(t *testing.T) {
 		originalTeamId := team.Id
 		team.Id = model.NewId()
 
-		r, _ := client.DoApiPut(client.GetTeamRoute(originalTeamId), team.ToJson())
+		r, _ := client.DoAPIPut(client.GetTeamRoute(originalTeamId), team.ToJson())
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 		require.Equal(t, uteam.Id, originalTeamId, "wrong team id")
@@ -465,7 +465,7 @@ func TestPatchTeam(t *testing.T) {
 		_, resp = client.PatchTeam("junk", patch)
 		CheckBadRequestStatus(t, resp)
 
-		r, err := client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
+		r, err := client.DoAPIPut("/teams/"+team.Id+"/patch", "garbage")
 		require.NotNil(t, err, "should have errored")
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 	})
@@ -1958,7 +1958,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Should return error with invalid JSON in body.
-	_, err = Client.DoApiPost("/teams/"+team.Id+"/members", "invalid")
+	_, err = Client.DoAPIPost("/teams/"+team.Id+"/members", "invalid")
 	require.NotNil(t, err)
 	require.Equal(t, "api.team.add_team_member.invalid_body.app_error", err.Id)
 
@@ -3035,7 +3035,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	require.True(t, okMsg, "should return true")
 
 	t.Run("invalid data in request body", func(t *testing.T) {
-		res, err := th.SystemAdminClient.DoApiPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
+		res, err := th.SystemAdminClient.DoAPIPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
 		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_guests_to_channels.invalid_body.app_error", err.Id)
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)

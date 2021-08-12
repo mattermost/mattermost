@@ -142,9 +142,9 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 			}
 
 			if userEndpoint {
-				*cfg.GitLabSettings.UserApiEndpoint = serverURL + "/user"
+				*cfg.GitLabSettings.UserAPIEndpoint = serverURL + "/user"
 			} else {
-				*cfg.GitLabSettings.UserApiEndpoint = ""
+				*cfg.GitLabSettings.UserAPIEndpoint = ""
 			}
 		})
 

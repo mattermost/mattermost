@@ -58,7 +58,7 @@ func TestCreateOAuthApp(t *testing.T) {
 	_, resp = AdminClient.CreateOAuthApp(oapp)
 	CheckBadRequestStatus(t, resp)
 
-	r, err := Client.DoApiPost("/oauth/apps", "garbage")
+	r, err := Client.DoAPIPost("/oauth/apps", "garbage")
 	require.NotNil(t, err, "expected error from garbage post")
 	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
