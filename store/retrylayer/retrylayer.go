@@ -7550,9 +7550,23 @@ func (s *RetryLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 
 }
 
-func (s *RetryLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
+func (s *RetryLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 
-	s.SessionStore.Cleanup(expiryTime, batchSize)
+	tries := 0
+	for {
+		err := s.SessionStore.Cleanup(expiryTime, batchSize)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 

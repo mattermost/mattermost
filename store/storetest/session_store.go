@@ -294,7 +294,8 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	s4, err = ss.Session().Save(s4)
 	require.NoError(t, err)
 
-	ss.Session().Cleanup(now, 1)
+	err = ss.Session().Cleanup(now, 1)
+	require.NoError(t, err)
 
 	_, err = ss.Session().Get(context.Background(), s1.Id)
 	assert.NoError(t, err)

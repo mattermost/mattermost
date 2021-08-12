@@ -450,7 +450,7 @@ type SessionStore interface {
 	UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error)
 	UpdateProps(session *model.Session) error
 	AnalyticsSessionCount() (int64, error)
-	Cleanup(expiryTime int64, batchSize int64)
+	Cleanup(expiryTime int64, batchSize int64) error
 }
 
 type AuditStore interface {
