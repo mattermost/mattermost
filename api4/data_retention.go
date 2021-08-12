@@ -199,23 +199,28 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.TeamSearchFromJson(r.Body)
-	if props == nil {
+	var props model.TeamSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
 		c.SetInvalidParam("team_search")
 		return
 	}
+
 	props.PolicyID = model.NewString(c.Params.PolicyId)
 	props.IncludePolicyID = model.NewBool(true)
 
-	teams, _, err := c.App.SearchAllTeams(props)
+	teams, _, err := c.App.SearchAllTeams(&props)
 	if err != nil {
 		c.Err = err
 		return
 	}
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
 
-	payload := []byte(model.TeamListToJson(teams))
-	w.Write(payload)
+	js, jsonErr := json.Marshal(teams)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchTeamsInPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
