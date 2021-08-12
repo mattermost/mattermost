@@ -557,6 +557,7 @@ func (ts *TelemetryService) trackConfig() {
 		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
 		"amazon_s3_trace":         *cfg.FileSettings.AmazonS3Trace,
 		"max_file_size":           *cfg.FileSettings.MaxFileSize,
+		"max_image_resolution":    *cfg.FileSettings.MaxImageResolution,
 		"enable_file_attachments": *cfg.FileSettings.EnableFileAttachments,
 		"enable_mobile_upload":    *cfg.FileSettings.EnableMobileUpload,
 		"enable_mobile_download":  *cfg.FileSettings.EnableMobileDownload,
