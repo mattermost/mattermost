@@ -15,7 +15,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const (
@@ -105,16 +104,6 @@ func closeBody(r *http.Response) {
 		_, _ = io.Copy(ioutil.Discard, r.Body)
 		_ = r.Body.Close()
 	}
-}
-
-// Must is a convenience function used for testing.
-func (c *Client4) Must(result interface{}, _ *Response, err error) interface{} {
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
-
-	return result
 }
 
 func NewAPIv4Client(url string) *Client4 {
