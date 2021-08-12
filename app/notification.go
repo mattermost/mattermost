@@ -566,7 +566,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if isCRTAllowed && post.RootId != "" {
 		for _, uid := range followers {
 			// A user following a thread but had left the channel won't get a notification
-			// https://mattermost.atlassian.net/browse/MM-37844
+			// https://mattermost.atlassian.net/browse/MM-36769
 			if profileMap[uid] == nil {
 				continue
 			}
