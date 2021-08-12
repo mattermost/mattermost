@@ -2002,3 +2002,13 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 
 	return userIds, nil
 }
+
+// IsEmpty returns whether or not the Users table is empty.
+func (us SqlUserStore) IsEmpty() (bool, error) {
+	var hasRows bool
+	err := us.GetReplica().SelectOne(&hasRows, `SELECT EXISTS (SELECT 1 FROM Users)`)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to check if table is empty")
+	}
+	return !hasRows, nil
+}
