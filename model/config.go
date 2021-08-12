@@ -2845,7 +2845,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.PluginStates["focalboard"] == nil {
-		// Enable the channel export plugin by default
+		// Enable the focalboard plugin by default
 		s.PluginStates["focalboard"] = &PluginState{Enable: true}
 	}
 

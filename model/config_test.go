@@ -380,7 +380,6 @@ func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 
 func TestConfigDefaultFocalboardPluginState(t *testing.T) {
 	t.Run("should enable Focalboard plugin by default", func(t *testing.T) {
-		BuildEnterpriseReady = ""
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -388,7 +387,6 @@ func TestConfigDefaultFocalboardPluginState(t *testing.T) {
 	})
 
 	t.Run("should not re-enable focalboard plugin after it has been disabled", func(t *testing.T) {
-		BuildEnterpriseReady = ""
 		c1 := Config{
 			PluginSettings: PluginSettings{
 				PluginStates: map[string]*PluginState{
