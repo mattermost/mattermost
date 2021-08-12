@@ -2279,6 +2279,10 @@
     "translation": " notified the channel."
   },
   {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " commented on a thread you are following."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
     "translation": " commented on your post."
   },

@@ -198,6 +198,10 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_thread")
 	}
 
+	if replyToThreadType == model.UserNotifyAll {
+		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread")
+	}
+
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 

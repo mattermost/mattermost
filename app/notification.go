@@ -85,7 +85,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
-	followers := []string{}
+	followers := make(model.StringArray, 0)
 	if tchan != nil {
 		result = <-tchan
 		if result.NErr != nil {
@@ -252,9 +252,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
 				}
-				followersMutex.Lock()
-				followers = append(followers, userID)
-				followersMutex.Unlock()
+
+				// add new followers to existing followers
+				if threadMembership.Following && !followers.Contains(userID) {
+					followersMutex.Lock()
+					followers = append(followers, userID)
+					followersMutex.Unlock()
+				}
 
 				membershipsMutex.Lock()
 				participantMemberships[userID] = threadMembership
@@ -320,7 +324,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			if notificationsForCRT.Email.Contains(id) || a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
+			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
 				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
 					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
@@ -495,9 +499,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
+					profileMap[id].NotifyProps[model.PushThreadsNotifyProp] == model.UserNotifyMention,
 					false,
-					false,
-					model.CommentsNotifyAny,
+					model.UserNotifyAll,
+				)
+			} else {
+				// register that a notification was not sent
+				a.NotificationsLog().Debug("Notification not sent",
+					mlog.String("ackId", ""),
+					mlog.String("type", model.PushTypeMessage),
+					mlog.String("userId", id),
+					mlog.String("postId", post.Id),
+					mlog.String("status", model.PushNotSent),
 				)
 			}
 		}
@@ -533,19 +546,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	usersToReceiveNotification := make(model.StringArray, 0)
-
 	if len(mentionedUsersList) != 0 {
-		usersToReceiveNotification = append(usersToReceiveNotification, mentionedUsersList...)
+		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
 	if len(notificationsForCRT.Desktop) != 0 {
-		usersToReceiveNotification = append(usersToReceiveNotification, notificationsForCRT.Desktop...)
-	}
-
-	if len(usersToReceiveNotification) != 0 {
-		usersToReceiveNotification = model.RemoveDuplicateStrings(usersToReceiveNotification)
-		message.Add("mentions", model.ArrayToJson(usersToReceiveNotification))
+		message.Add("followers", model.ArrayToJson(notificationsForCRT.Desktop))
 	}
 
 	published, err := a.publishWebsocketEventForPermalinkPost(post, message)
@@ -605,7 +611,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
 	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
-	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok {
+
+	// if CRT is ON for user and the post is a reply disregard the channelEmail setting
+	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.isCRTEnabledForUser(user.Id) && post.RootId != "") {
 		if channelEmail != model.ChannelNotifyDefault {
 			userAllowsEmails = channelEmail != "false"
 		}
