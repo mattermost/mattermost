@@ -1690,14 +1690,18 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response) {
 
 // CreateBot creates a bot in the system based on the provided bot struct.
 func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response) {
-	r, appErr := c.doApiPostBytes(c.GetBotsRoute(), bot.ToJson())
+	buf, err := json.Marshal(bot)
+	if err != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("CreateBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPostBytes(c.GetBotsRoute(), buf)
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
 	var resp *Bot
-	err := json.NewDecoder(r.Body).Decode(&resp)
+	err = json.NewDecoder(r.Body).Decode(&resp)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("CreateBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
 	}
@@ -1707,14 +1711,18 @@ func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response) {
 
 // PatchBot partially updates a bot. Any missing fields are not updated.
 func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response) {
-	r, appErr := c.doApiPutBytes(c.GetBotRoute(userId), patch.ToJson())
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("PatchBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
+	}
+	r, appErr := c.doApiPutBytes(c.GetBotRoute(userId), buf)
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
 	var bot *Bot
-	err := json.NewDecoder(r.Body).Decode(&bot)
+	err = json.NewDecoder(r.Body).Decode(&bot)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("PatchBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError))
 	}

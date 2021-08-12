@@ -2751,10 +2751,17 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.Success()
 	auditRec.AddMeta("convertedTo", bot)
 
-	w.Write(bot.ToJson())
+	js, jsonErr := json.Marshal(bot)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("convertUserToBot", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+
+	w.Write(js)
 }
 
 func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
