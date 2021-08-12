@@ -1148,13 +1148,18 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 		}
 	}
 
+	postJSON, jsonErr := json.Marshal(post)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON")
+	}
+
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil)
-	userMessage.Add("post", post)
+	userMessage.Add("post", string(postJSON))
 	userMessage.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(userMessage)
 
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil)
-	adminMessage.Add("post", post)
+	adminMessage.Add("post", string(postJSON))
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
