@@ -281,7 +281,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		updateMentionChans = append(updateMentionChans, umc)
 	}
 
-	notifyCRT := &CRTNotifiers{}
+	notificationsForCRT := &CRTNotifiers{}
 	if isCRTAllowed && post.RootId != "" {
 		for _, uid := range followers {
 			profile := profileMap[uid]
@@ -293,8 +293,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			// add user id to notifyCRT depending on threads notify props
-			notifyCRT.addUserToNotify(profile, mentions)
+			// add user id to notificationsForCRT depending on threads notify props
+			notificationsForCRT.addUserToNotify(profile, mentions)
 		}
 	}
 
@@ -306,31 +306,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
-		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil || notifyCRT.Email.Contains(id) {
-				continue
-			}
+		emailReceipients := append(mentionedUsersList, notificationsForCRT.Email...)
+		emailReceipients = model.RemoveDuplicateStrings(emailReceipients)
 
-			//If email verification is required and user email is not verified don't send email.
-			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
-				mlog.Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
-				continue
-			}
-
-			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
-				senderProfileImage, _, err := a.GetProfileImage(sender)
-				if err != nil {
-					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
-				}
-				if err := a.sendNotificationEmail(notification, profileMap[id], team, senderProfileImage); err != nil {
-					mlog.Warn("Unable to send notification email.", mlog.Err(err))
-				}
-			}
-		}
-	}
-
-	if *a.Config().EmailSettings.SendEmailNotifications {
-		for _, id := range notifyCRT.Email {
+		for _, id := range emailReceipients {
 			if profileMap[id] == nil {
 				continue
 			}
@@ -341,12 +320,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			senderProfileImage, _, err := a.GetProfileImage(sender)
-			if err != nil {
-				a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
-			}
-			if err := a.sendNotificationEmail(notification, profileMap[id], team, senderProfileImage); err != nil {
-				mlog.Warn("Unable to send notification email.", mlog.Err(err))
+			if notificationsForCRT.Email.Contains(id) || a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
+				senderProfileImage, _, err := a.GetProfileImage(sender)
+				if err != nil {
+					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+				}
+				if err := a.sendNotificationEmail(notification, profileMap[id], team, senderProfileImage); err != nil {
+					mlog.Warn("Unable to send notification email.", mlog.Err(err))
+				}
 			}
 		}
 	}
@@ -427,7 +408,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	if sendPushNotifications {
 		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil || notifyCRT.Push.Contains(id) {
+			if profileMap[id] == nil || notificationsForCRT.Push.Contains(id) {
 				continue
 			}
 
@@ -467,7 +448,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		for _, id := range allActivityPushUserIds {
-			if profileMap[id] == nil || notifyCRT.Push.Contains(id) {
+			if profileMap[id] == nil || notificationsForCRT.Push.Contains(id) {
 				continue
 			}
 
@@ -499,7 +480,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 		}
 
-		for _, id := range notifyCRT.Push {
+		for _, id := range notificationsForCRT.Push {
 			if profileMap[id] == nil {
 				continue
 			}
@@ -558,8 +539,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		usersToReceiveNotification = append(usersToReceiveNotification, mentionedUsersList...)
 	}
 
-	if len(notifyCRT.Desktop) != 0 {
-		usersToReceiveNotification = append(usersToReceiveNotification, notifyCRT.Desktop...)
+	if len(notificationsForCRT.Desktop) != 0 {
+		usersToReceiveNotification = append(usersToReceiveNotification, notificationsForCRT.Desktop...)
 	}
 
 	if len(usersToReceiveNotification) != 0 {
