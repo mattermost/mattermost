@@ -83,7 +83,7 @@ func TestDeleteExport(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		_, err := th.Client.DeleteEmoji("export.zip")
+		_, err := th.Client.DeleteExport("export.zip")
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
@@ -106,7 +106,7 @@ func TestDeleteExport(t *testing.T) {
 		require.Len(t, exports, 1)
 		require.Equal(t, exports[0], exportName)
 
-		_, err = c.DeleteEmoji(exportName)
+		_, err = c.DeleteExport(exportName)
 		require.NoError(t, err)
 
 		exports, _, err = c.ListExports()
@@ -114,7 +114,7 @@ func TestDeleteExport(t *testing.T) {
 		require.Empty(t, exports)
 
 		// verify idempotence
-		_, err = c.DeleteEmoji(exportName)
+		_, err = c.DeleteExport(exportName)
 		require.NoError(t, err)
 	}, "successfully delete export")
 }

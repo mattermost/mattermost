@@ -1270,9 +1270,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, resp, err := client.GetFlaggedPostsForUserInChannel(user.Id, "junk", 0, 10)
+	rpl, _, err = client.GetFlaggedPostsForUserInChannel(user.Id, "junk", 0, 10)
 	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
 	require.Nil(t, rpl)
 
 	opl.AddPost(post2)
@@ -1299,9 +1298,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, resp, err = client.GetFlaggedPostsForUserInTeam(user.Id, "junk", 0, 10)
+	rpl, _, err = client.GetFlaggedPostsForUserInTeam(user.Id, "junk", 0, 10)
 	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
 	require.Nil(t, rpl)
 
 	channel3 := th.CreatePrivateChannel()
@@ -1334,7 +1332,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	post5 := th.CreatePostWithClient(th.SystemAdminClient, channel4)
 
 	preference.Name = post5.Id
-	resp, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	resp, err := client.UpdatePreferences(user.Id, &model.Preferences{preference})
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 

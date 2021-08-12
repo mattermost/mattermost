@@ -276,9 +276,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
-		_, resp, err := th.Client.CreateUserWithToken(&user, "")
+		_, _, err := th.Client.CreateUserWithToken(&user, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.missing_token.app_error")
 	})
 
@@ -544,9 +543,8 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("NoInviteId", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		_, resp, err := th.Client.CreateUserWithInviteId(&user, "")
+		_, _, err := th.Client.CreateUserWithInviteId(&user, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.missing_invite_id.app_error")
 	})
 
