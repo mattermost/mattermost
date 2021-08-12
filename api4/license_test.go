@@ -224,6 +224,7 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
+		t.Skip("MM-36695")
 		ok, resp := th.SystemAdminClient.RequestTrialLicense(1)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
