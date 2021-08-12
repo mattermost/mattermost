@@ -2180,24 +2180,8 @@
     "translation": "De e-mail met het deactiveren van de account kon niet met succes worden verzonden"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Aanpassings mail voor notificatie kon niet verstuurd worden"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "De e-mail voor het aanpassen van de gebruikersnaam kon niet verstuurd worden"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "De verificatie-e-mail voor het aanpassen van het e-mailadres kon niet verstuurd worden"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Kon geen e-mailmelding versturen voor wijzigen MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "De e-mail voor het bijwerken van het wachtwoord kon niet verstuurd worden"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "De e-mail voor het bijwerken van het wachtwoord kon niet verstuurd worden"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Fout bij het verzenden van e-mail \"Persoonlijke toegangstoken toegevoegd\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Verificatie-e-mail kon niet verstuurd worden"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Welkomst-mail kon niet verstuurd worden"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -6096,10 +6072,6 @@
     "translation": "Kan het hangende bericht niet ophalen."
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Er liep iets mis bij het permanent verwijden van de batch met reacties."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Fout bij het bewaren van de reactie."
   },
@@ -6286,10 +6258,6 @@
   {
     "id": "ent.get_users_in_channel_during",
     "translation": "Ophalen van gebruikers in kanaal tijdens opgegeven periode is mislukt."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Opschonen van records is mislukt."
   },
   {
     "id": "app.command.tryexecutecustomcommand.internal_error",
@@ -6502,10 +6470,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Er is een fout opgetreden bij het ophalen van de 'compliance'-rapporten."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Er is een fout opgetreden bij het opschonen van de reeks vlaggen."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6834,10 +6798,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "De taak kan niet worden opgehaald."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Er is een fout opgetreden bij het permanent verwijderen van de batch met bestandsinfo."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7590,10 +7550,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Er liep iets mis bij het permanent verwijden van de batch met berichten."
   },
   {
     "id": "app.post.search.app_error",
@@ -8352,10 +8308,6 @@
     "translation": "Geen enkele e-mail werd succesvol verzonden"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Mislukt om e-mail naar gebruiker te sturen limietmelding aan admin"
-  },
-  {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} wil leden uitnodigen voor jouw werkruimte"
   },
@@ -9040,10 +8992,6 @@
     "translation": "Er is een fout opgetreden bij het uitvoeren van de gevraagde bewerking."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Fout bij het verzenden van waarschuwingsmail over einde proefperiode"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt binnenkort"
   },
@@ -9070,10 +9018,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kan geen automatisch antwoord van gebruiker sturen."
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Fout bij het verzenden van e-mail einde proefperiode"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -9212,7 +9156,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Kon de limiet niet controleren van het aantal toegelaten gebruikers."
+    "translation": "Kan het aantal gebruikers in jouw Mattermost cloud instance niet controleren."
   },
   {
     "id": "app.system.system_bot.bot_displayname",
@@ -9245,5 +9189,61 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Dataretentietaak mislukt."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Jouw Mattermost abonnement is aan vernieuwing toe"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Log in op jouw klantenaccount om te verlengen"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, jouw abonnement is ingesteld om te verlopen in {{.Days}} dagen. We hopen dat je de flexibele, veilige teamsamenwerking ervaart die Mattermost mogelijk maakt. Verleng snel jouw Mattermost abonnement om er zeker van te zijn dat jouw team kan blijven profiteren van deze voordelen."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Je licentie is aan vernieuwing toe"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Vernieuw nu"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Het is niet gelukt om de e-mails over de te vernieuwen licenties te verzenden"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Het is niet gelukt om de link voor licentieverlenging te genereren"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Kan token niet verwerken bij het ongeldig maken van e-mailverificatietokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Fout bij het verwijderen van token als de e-mailverificatietokens ongeldig worden gemaakt"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Kan tokens niet op type ophalen wanneer e-mailverificatietokens ongeldig worden gemaakt"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Voor deze functie is een upgrade naar Enterprise Editie vereist."
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "Mislukt om bestandsinformatie te krijgen voor inhoudsextractie."
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "Ongeldige invoerwaarde 'to'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "Ongeldige invoerwaarde 'From'"
   }
 ]

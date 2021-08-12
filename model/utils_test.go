@@ -338,7 +338,7 @@ func TestIsValidAlphaNum(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actual := IsValidAlphaNum(tc.Input)
+		actual := isValidAlphaNum(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }
@@ -855,7 +855,7 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
-func TestIsValidHttpUrl(t *testing.T) {
+func TestIsValidHTTPUrl(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -940,12 +940,12 @@ func TestIsValidHttpUrl(t *testing.T) {
 			}()
 
 			t.Parallel()
-			require.Equal(t, testCase.Expected, IsValidHttpUrl(testCase.Value))
+			require.Equal(t, testCase.Expected, IsValidHTTPUrl(testCase.Value))
 		})
 	}
 }
 
-func TestUniqueStrings(t *testing.T) {
+func TestRemoveDuplicateStrings(t *testing.T) {
 	cases := []struct {
 		Input  []string
 		Result []string
@@ -973,7 +973,7 @@ func TestUniqueStrings(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actual := UniqueStrings(tc.Input)
+		actual := RemoveDuplicateStrings(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }

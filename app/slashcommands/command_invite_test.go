@@ -9,18 +9,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestInviteProvider(t *testing.T) {
 	th := setup(t).initBasic()
 	defer th.tearDown()
 
-	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
-	privateChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
+	channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+	privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
 	dmChannel := th.createDmChannel(th.BasicUser2)
-	privateChannel2 := th.createChannelWithAnotherUser(th.BasicTeam, model.CHANNEL_PRIVATE, th.BasicUser2.Id)
+	privateChannel2 := th.createChannelWithAnotherUser(th.BasicTeam, model.ChannelTypePrivate, th.BasicUser2.Id)
 
 	basicUser3 := th.createUser()
 	th.linkUserToTeam(basicUser3, th.BasicTeam)
@@ -72,7 +72,7 @@ func TestInviteProvider(t *testing.T) {
 	userAndInvalidPrivate := "@" + basicUser3.Username + " ~" + privateChannel2.Name
 	deactivatedUserPublicChannel := "@" + deactivatedUser.Username + " ~" + channel.Name
 
-	groupChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
+	groupChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
 	_, err = th.App.AddChannelMember(th.Context, th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
 	groupChannel.GroupConstrained = model.NewBool(true)
@@ -186,7 +186,7 @@ func TestInviteGroup(t *testing.T) {
 	require.Nil(t, err)
 	th.BasicTeam, _ = th.App.UpdateTeam(th.BasicTeam)
 
-	privateChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
+	privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
 
 	groupChannelUser1 := "@" + th.BasicUser.Username + " ~" + privateChannel.Name
 	groupChannelUser2 := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name

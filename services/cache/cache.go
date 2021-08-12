@@ -6,6 +6,8 @@ package cache
 import (
 	"errors"
 	"time"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // ErrKeyNotFound is the error when the given key is not found
@@ -42,7 +44,7 @@ type Cache interface {
 	Len() (int, error)
 
 	// GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
-	GetInvalidateClusterEvent() string
+	GetInvalidateClusterEvent() model.ClusterEvent
 
 	// Name returns the name of the cache
 	Name() string

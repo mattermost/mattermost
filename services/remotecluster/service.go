@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -31,8 +31,8 @@ const (
 	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
 	InvitationTopic               = "invitation"
 	PingTopic                     = "ping"
-	ResponseStatusOK              = model.STATUS_OK
-	ResponseStatusFail            = model.STATUS_FAIL
+	ResponseStatusOK              = model.StatusOk
+	ResponseStatusFail            = model.StatusFail
 	InviteExpiresAfter            = time.Hour * 48
 )
 

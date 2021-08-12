@@ -6,9 +6,9 @@ package sqlstore
 import (
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
@@ -260,7 +260,7 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transacti
 		"RemoteId":  reaction.RemoteId,
 	}
 
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		if _, err := transaction.Exec(
 			`INSERT INTO
 				Reactions
@@ -271,7 +271,7 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transacti
 				UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
 			return err
 		}
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		if _, err := transaction.Exec(
 			`INSERT INTO
 				Reactions

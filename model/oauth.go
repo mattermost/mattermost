@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	OAUTH_ACTION_SIGNUP       = "signup"
-	OAUTH_ACTION_LOGIN        = "login"
-	OAUTH_ACTION_EMAIL_TO_SSO = "email_to_sso"
-	OAUTH_ACTION_SSO_TO_EMAIL = "sso_to_email"
-	OAUTH_ACTION_MOBILE       = "mobile"
+	OAuthActionSignup     = "signup"
+	OAuthActionLogin      = "login"
+	OAuthActionEmailToSSO = "email_to_sso"
+	OAuthActionSSOToEmail = "sso_to_email"
+	OAuthActionMobile     = "mobile"
 )
 
 type OAuthApp struct {
@@ -66,12 +66,12 @@ func (a *OAuthApp) IsValid() *AppError {
 	}
 
 	for _, callback := range a.CallbackUrls {
-		if !IsValidHttpUrl(callback) {
+		if !IsValidHTTPUrl(callback) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
+	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHTTPUrl(a.Homepage) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -80,7 +80,7 @@ func (a *OAuthApp) IsValid() *AppError {
 	}
 
 	if a.IconURL != "" {
-		if len(a.IconURL) > 512 || !IsValidHttpUrl(a.IconURL) {
+		if len(a.IconURL) > 512 || !IsValidHTTPUrl(a.IconURL) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}
 	}

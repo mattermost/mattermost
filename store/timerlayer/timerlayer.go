@@ -10,9 +10,9 @@ import (
 	"context"
 	timemodule "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type TimerLayer struct {
@@ -534,7 +534,7 @@ func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channe
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType string) (int64, error) {
+func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.AnalyticsTypeCount(teamID, channelType)
@@ -8405,6 +8405,22 @@ func (s *TimerLayerTokenStore) Delete(token string) error {
 	return err
 }
 
+func (s *TimerLayerTokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {
+	start := timemodule.Now()
+
+	result, err := s.TokenStore.GetAllTokensByType(tokenType)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.GetAllTokensByType", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	start := timemodule.Now()
 
@@ -9327,6 +9343,22 @@ func (s *TimerLayerUserStore) InvalidateProfilesInChannelCacheByUser(userID stri
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.InvalidateProfilesInChannelCacheByUser", success, elapsed)
 	}
+}
+
+func (s *TimerLayerUserStore) IsEmpty() (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.IsEmpty()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.IsEmpty", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerUserStore) PermanentDelete(userID string) error {

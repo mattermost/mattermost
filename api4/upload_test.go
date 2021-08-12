@@ -13,8 +13,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestCreateUpload(t *testing.T) {
@@ -333,8 +333,8 @@ func TestUploadDataMultipart(t *testing.T) {
 		req, err := http.NewRequest("POST", th.Client.ApiUrl+"/uploads/"+us.Id, mpData)
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", contentType)
-		req.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
-		res, err := th.Client.HttpClient.Do(req)
+		req.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
+		res, err := th.Client.HTTPClient.Do(req)
 		require.NoError(t, err)
 		info := model.FileInfoFromJson(res.Body)
 		res.Body.Close()
@@ -357,8 +357,8 @@ func TestUploadDataMultipart(t *testing.T) {
 		req, err := http.NewRequest("POST", th.Client.ApiUrl+"/uploads/"+u.Id, mpData)
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", contentType)
-		req.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
-		res, err := th.Client.HttpClient.Do(req)
+		req.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
+		res, err := th.Client.HTTPClient.Do(req)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusNoContent, res.StatusCode)
 		require.Equal(t, int64(0), res.ContentLength)
@@ -368,8 +368,8 @@ func TestUploadDataMultipart(t *testing.T) {
 		req, err = http.NewRequest("POST", th.Client.ApiUrl+"/uploads/"+u.Id, mpData)
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", contentType)
-		req.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
-		res, err = th.Client.HttpClient.Do(req)
+		req.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
+		res, err = th.Client.HTTPClient.Do(req)
 		require.NoError(t, err)
 		info := model.FileInfoFromJson(res.Body)
 		res.Body.Close()

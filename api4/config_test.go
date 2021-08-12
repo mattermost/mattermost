@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetConfig(t *testing.T) {
@@ -34,26 +34,26 @@ func TestGetConfig(t *testing.T) {
 
 		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
 
-		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && *cfg.LdapSettings.BindPassword != "" {
+		if *cfg.LdapSettings.BindPassword != model.FakeSetting && *cfg.LdapSettings.BindPassword != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		require.Equal(t, model.FAKE_SETTING, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
+		require.Equal(t, model.FakeSetting, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
 
-		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && *cfg.FileSettings.AmazonS3SecretAccessKey != "" {
+		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FakeSetting && *cfg.FileSettings.AmazonS3SecretAccessKey != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && *cfg.EmailSettings.SMTPPassword != "" {
+		if *cfg.EmailSettings.SMTPPassword != model.FakeSetting && *cfg.EmailSettings.SMTPPassword != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && *cfg.GitLabSettings.Secret != "" {
+		if *cfg.GitLabSettings.Secret != model.FakeSetting && *cfg.GitLabSettings.Secret != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.DataSource, "did not sanitize properly")
-		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
-		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
+		require.Equal(t, model.FakeSetting, *cfg.SqlSettings.DataSource, "did not sanitize properly")
+		require.Equal(t, model.FakeSetting, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
+		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FakeSetting) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
+		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FakeSetting) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
 	})
@@ -62,13 +62,6 @@ func TestGetConfig(t *testing.T) {
 func TestGetConfigWithAccessTag(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-
-	varyByHeader := *&th.App.Config().RateLimitSettings.VaryByHeader // environment perm.
-	supportEmail := *&th.App.Config().SupportSettings.SupportEmail   // site perm.
-	defer th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.RateLimitSettings.VaryByHeader = varyByHeader
-		cfg.SupportSettings.SupportEmail = supportEmail
-	})
 
 	// set some values so that we know they're not blank
 	mockVaryByHeader := model.NewId()
@@ -81,8 +74,8 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
 	cfg, resp := th.Client.GetConfig()
 	CheckNoError(t, resp)
@@ -112,8 +105,8 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	})
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
 	cfg, resp := th.Client.GetConfig()
 	CheckNoError(t, resp)
@@ -258,7 +251,7 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		// add any sysconsole read permission
-		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SystemUserRoleId)
 		_, resp = th.Client.GetConfig()
 
 		// should be readable now
@@ -272,8 +265,8 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
 
 	// add read sysconsole integrations config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
 
 	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
@@ -293,8 +286,8 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		originalValue := *cfg.ServiceSettings.AllowCorsFrom
 
 		// add the wrong write permission
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -313,10 +306,10 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		cfg, resp := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -353,7 +346,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	CheckNoError(t, resp)
 
 	*cfg.MessageExportSettings.EnableExport = true
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	_, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
 	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -364,7 +357,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	CheckNoError(t, resp)
 
 	*cfg.MessageExportSettings.EnableExport = false
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	_, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
 	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -381,7 +374,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	CheckNoError(t, resp)
 
 	*cfg.MessageExportSettings.EnableExport = true
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	_, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
 	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -392,7 +385,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	CheckNoError(t, resp)
 
 	*cfg.MessageExportSettings.EnableExport = false
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	_, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
 	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
@@ -474,6 +467,8 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	// Forcing a flush before attempting to read log's content.
 	err = th.Server.Log.Flush(context.Background())
 	require.NoError(t, err)
+
+	require.NoError(t, logFile.Sync())
 
 	data, err := ioutil.ReadAll(logFile)
 	require.NoError(t, err)
@@ -702,7 +697,7 @@ func TestPatchConfig(t *testing.T) {
 
 			updatedConfig, _ := client.PatchConfig(&config)
 
-			assert.Equal(t, model.FAKE_SETTING, *updatedConfig.SqlSettings.DataSource)
+			assert.Equal(t, model.FakeSetting, *updatedConfig.SqlSettings.DataSource)
 		})
 
 		t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
@@ -743,7 +738,7 @@ func TestPatchConfig(t *testing.T) {
 				SiteURL: model.NewString(""),
 			},
 		}
-		updatedConfig, resp = th.SystemAdminClient.PatchConfig(&config)
+		_, resp = th.SystemAdminClient.PatchConfig(&config)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.config.update_config.clear_siteurl.app_error")
 
@@ -768,11 +763,11 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStoreFromDSN("from.json", false, false, nil)
+		f, err := config.NewStoreFromDSN("from.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStoreFromDSN("to.json", false, false, nil)
+		_, err = config.NewStoreFromDSN("to.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 

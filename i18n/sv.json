@@ -3304,28 +3304,8 @@
     "translation": "Elasticsearch aggregator worker misslyckades med att skapa indexeringsjobbet"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av reaktioner skulle raderas."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av meddelanden skulle raderas."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Din licens ger inte stöd för datalagring."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av flaggor skulle rensas."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av filinformation skulle raderas."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Misslyckades att rensa posterna."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -4744,16 +4724,8 @@
     "translation": "Du kan inte aktivera ett gästkonto då gästfunktionen ej är aktiverad."
   },
   {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Misslyckades att skicka välkomstmail via e-post"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Lyckades inte skicka e-post verifieringen"
-  },
-  {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Misslyckades att skicka epost för \"Personligt access_token tillagd\""
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -4768,24 +4740,8 @@
     "translation": "Misslyckades att skicka lösenordsåterställning via e-post."
   },
   {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Kunde inte skicka e-postmeddelande för lösenordsbyte"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Kunde inte skicka e-postnotifikatoin för MFA-byte."
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Misslyckades att skicka ändringar via e-post verifieringen"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Misslyckades med att skicka ändring av användarnamnet via e-posten"
-  },
-  {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Misslyckades med att skicka meddelandet med e-poständring"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -8396,10 +8352,6 @@
     "translation": "Inga mejl blev skickade"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Det gick inte att skicka mejl till administratören om uppnådd användarnivå"
-  },
-  {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} vill bjuda in användare till ditt workspace"
   },
@@ -8665,7 +8617,7 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id på säker anslutning att ta bort"
+    "translation": "Id på säker anslutning att ta bort."
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -9028,10 +8980,6 @@
     "translation": "Det gick inte att hämta statusen för det första administratörsbesöket på marknadsplatsen från butiken."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Det gick inte att skicka mejl med information om att testperioden är på väg att ta slut"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Din kostnadsfria testperiod på 14 dagar slutar snart"
   },
@@ -9070,10 +9018,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kunde inte skicka automatisk svar från användaren."
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Misslyckades att skicka mejl om att testperioden avslutas"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -9212,7 +9156,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Det gick inte att kontrollera gränsen för antalet tillåtna användare."
+    "translation": "Det gick inte att kontrollera antalet användare i din Mattermost cloud-instans."
   },
   {
     "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
@@ -9241,5 +9185,65 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "Kunde inte kontrollera om en testperiod kan startas"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Datagallringsjobbet misslyckades."
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "Misslyckades med att hämta filinformation för innehållsanalys."
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "Felaktigt värde i 'till'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "Felaktigt värde i 'från'"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Det går inte att analysera token för att göra mejlverifieringstoken ogiltiga"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Det går inte att ta bort token för att göra mejlverifieringstoken ogiltiga"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Misslyckades med att generera länken för licensförnyelse"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Den här funktionen kräver en uppgradering till Enterprise Edition."
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Det går inte att hämta tokens efter typ för att göra mejlverifieringstoken ogiltiga"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Din Mattermost-prenumeration ska förnyas"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Logga in på ditt kundkonto för att förnya"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, din prenumeration löper ut om {{.Days}} dagar. Vi hoppas att du uppskattar det flexibla och säkra teamsamarbete som Mattermost möjliggör. Förnya prenumerationen för att ditt team ska kunna fortsätta njuta av funktionerna."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Din licens ska förnyas"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Förnya nu"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Misslyckades med att skicka e-postmeddelanden för förnyelse av licensen"
   }
 ]

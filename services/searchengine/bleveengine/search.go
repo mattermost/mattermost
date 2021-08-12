@@ -10,8 +10,8 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search/query"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const DeletePostsBatchSize = 500
@@ -326,7 +326,7 @@ func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppE
 	}
 
 	query := bleve.NewSearchRequest(bleve.NewConjunctionQuery(queries...))
-	query.Size = model.CHANNEL_SEARCH_DEFAULT_LIMIT
+	query.Size = model.ChannelSearchDefaultLimit
 	results, err := b.ChannelIndex.Search(query)
 	if err != nil {
 		return nil, model.NewAppError("Bleveengine.SearchChannels", "bleveengine.search_channels.error", nil, err.Error(), http.StatusInternalServerError)

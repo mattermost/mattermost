@@ -24,12 +24,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
@@ -66,10 +67,10 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	cfg.SetDefaults()
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_POSTGRES
+		driverName = model.DatabaseDriverPostgres
 	}
 	dsn := ""
-	if driverName == model.DATABASE_DRIVER_POSTGRES {
+	if driverName == model.DatabaseDriverPostgres {
 		dsn = os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
 	} else {
 		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
@@ -167,14 +168,14 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
 	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
+		configStore, _ := config.NewFileStore("config.json")
 		store, _ := config.NewStoreFromBacking(configStore, nil, false)
 		server.configStore = store
 		server.UpdateConfig(func(cfg *model.Config) {
 			cfg.FileSettings = model.FileSettings{
-				DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-				AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
-				AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+				DriverName:              model.NewString(model.ImageDriverS3),
+				AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
+				AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
 				AmazonS3Bucket:          model.NewString("nosuchbucket"),
 				AmazonS3Endpoint:        model.NewString(s3Endpoint),
 				AmazonS3Region:          model.NewString(""),
@@ -515,6 +516,7 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
+	t.Skip("MM-37378")
 	// Creating a temp file to collect logs
 	tmpfile, err := ioutil.TempFile("", "mlog")
 	if err != nil {
@@ -707,7 +709,7 @@ func TestAdminAdvisor(t *testing.T) {
 		Username:    "vader" + model.NewId(),
 		Password:    "passwd1",
 		AuthService: "",
-		Roles:       model.SYSTEM_ADMIN_ROLE_ID,
+		Roles:       model.SystemAdminRoleId,
 	}
 	ruser, err := th.App.CreateUser(th.Context, &user)
 	assert.Nil(t, err, "User should be created")
@@ -716,7 +718,7 @@ func TestAdminAdvisor(t *testing.T) {
 	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
 		doCheckAdminSupportStatus(th.App, th.Context)
 
-		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
 		assert.NotNil(t, bot, "Bot should have been created now")
 		assert.Nil(t, err, "No error should be generated")
 
@@ -731,7 +733,7 @@ func TestAdminAdvisor(t *testing.T) {
 			m.SupportSettings.SupportEmail = &email
 		})
 
-		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
 		assert.NotNil(t, bot, "Bot should be already created")
 		assert.Nil(t, err, "No error should be generated")
 
@@ -751,5 +753,35 @@ func TestAdminAdvisor(t *testing.T) {
 		posts, err := th.App.GetPosts(channel.Id, 0, 100)
 		assert.Nil(t, err, "No error should be generated")
 		assert.Equal(t, 0, len(posts.Posts))
+	})
+
+	t.Run("Should not break in case of many sysadmins", func(t *testing.T) {
+		var userList []*model.User
+		for i := 0; i < 50; i++ {
+			user := model.User{
+				Email:       strings.ToLower(NewTestId()) + "success+test@example.com",
+				Nickname:    "Admin",
+				Username:    "admin" + NewTestId(),
+				Password:    "password",
+				AuthService: "",
+				Roles:       model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+			}
+			ruser, err := th.App.srv.userService.CreateUser(&user, users.UserCreateOptions{FromImport: true})
+			assert.NoError(t, err, "User should be created")
+			userList = append(userList, ruser)
+			defer th.App.PermanentDeleteUser(th.Context, ruser)
+		}
+
+		th.App.notifyAdminsOfWarnMetricStatus(th.Context, model.SystemMetricSupportEmailNotConfigured, true)
+
+		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
+		assert.NotNil(t, bot, "Bot should have been created now")
+		assert.Nil(t, err, "No error should be generated")
+
+		for _, user := range userList {
+			channel, err := th.App.getDirectChannel(bot.Id, user.Id)
+			assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
+			assert.Nil(t, err, "No error should be generated")
+		}
 	})
 }

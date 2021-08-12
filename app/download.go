@@ -12,8 +12,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
@@ -27,7 +27,7 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 }
 
 func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
-	if !model.IsValidHttpUrl(downloadURL) {
+	if !model.IsValidHTTPUrl(downloadURL) {
 		return nil, errors.Errorf("invalid url %s", downloadURL)
 	}
 
@@ -39,7 +39,7 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 		return nil, errors.Errorf("insecure url not allowed %s", downloadURL)
 	}
 
-	client := s.HTTPService.MakeClient(true)
+	client := s.HTTPService().MakeClient(true)
 	client.Timeout = HTTPRequestTimeout
 
 	var resp *http.Response

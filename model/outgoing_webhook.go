@@ -57,7 +57,7 @@ type OutgoingWebhookResponse struct {
 	ResponseType string             `json:"response_type"`
 }
 
-const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
+const OutgoingHookResponseTypeComment = "comment"
 
 func (o *OutgoingWebhookPayload) ToJSON() string {
 	b, _ := json.Marshal(o)
@@ -165,7 +165,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 	}
 
 	for _, callback := range o.CallbackURLs {
-		if !IsValidHttpUrl(callback) {
+		if !IsValidHTTPUrl(callback) {
 			return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}

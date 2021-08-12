@@ -5,6 +5,7 @@ package einterfaces
 
 import (
 	"github.com/mattermost/logr"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type MetricsInterface interface {
@@ -17,12 +18,12 @@ type MetricsInterface interface {
 	IncrementPostBroadcast()
 	IncrementPostFileAttachment(count int)
 
-	IncrementHttpRequest()
-	IncrementHttpError()
+	IncrementHTTPRequest()
+	IncrementHTTPError()
 
 	IncrementClusterRequest()
 	ObserveClusterRequestDuration(elapsed float64)
-	IncrementClusterEventType(eventType string)
+	IncrementClusterEventType(eventType model.ClusterEvent)
 
 	IncrementLogin()
 	IncrementLoginFail()
