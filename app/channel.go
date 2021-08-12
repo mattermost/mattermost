@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -2536,8 +2537,10 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				}
 				a.sanitizeProfiles(thread.Participants, false)
 				thread.Post.SanitizeProps()
-
-				payload := thread.ToJson()
+				payload, jsonErr := json.Marshal(thread)
+				if jsonErr != nil {
+					mlog.Warn("Failed to encode thread to JSON")
+				}
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 				message.Add("thread", payload)
 				a.Publish(message)
@@ -2652,7 +2655,10 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
 
-	payload := thread.ToJson()
+	payload, jsonErr := json.Marshal(thread)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode thread to JSON")
+	}
 	if a.isCRTEnabledForUser(userID) {
 		message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 		message.Add("thread", payload)

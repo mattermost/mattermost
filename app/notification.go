@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"sort"
 	"strings"
@@ -520,7 +521,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						}
 					}
 
-					message.Add("thread", userThread.ToJson())
+					payload, jsonErr := json.Marshal(userThread)
+					if jsonErr != nil {
+						mlog.Warn("Failed to encode thread to JSON")
+					}
+					message.Add("thread", payload)
+
 					a.Publish(message)
 				}
 			}

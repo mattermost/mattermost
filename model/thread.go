@@ -3,10 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-)
-
 type Thread struct {
 	PostId       string      `json:"id"`
 	ChannelId    string      `json:"channel_id"`
@@ -62,33 +58,6 @@ type GetUserThreadsOpts struct {
 	TeamOnly bool
 }
 
-func (o *ThreadResponse) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func ThreadResponseFromJson(s string) (*ThreadResponse, error) {
-	var t ThreadResponse
-	err := json.Unmarshal([]byte(s), &t)
-	return &t, err
-}
-
-func (o *Threads) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *Thread) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func ThreadFromJson(s string) (*Thread, error) {
-	var t Thread
-	err := json.Unmarshal([]byte(s), &t)
-	return &t, err
-}
-
 func (o *Thread) Etag() string {
 	return Etag(o.PostId, o.LastReplyAt)
 }
@@ -100,9 +69,4 @@ type ThreadMembership struct {
 	LastViewed     int64  `json:"last_view_at"`
 	LastUpdated    int64  `json:"last_update_at"`
 	UnreadMentions int64  `json:"unread_mentions"`
-}
-
-func (o *ThreadMembership) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
