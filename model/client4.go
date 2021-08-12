@@ -5359,7 +5359,14 @@ func (c *Client4) GetUserStatus(userId, etag string) (*Status, *Response) {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return StatusFromJson(r.Body), BuildResponse(r)
+	var s Status
+	if r.StatusCode == http.StatusNotModified {
+		return &s, BuildResponse(r)
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetUserStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &s, BuildResponse(r)
 }
 
 // GetUsersStatusesByIds returns a list of users status based on the provided user ids.
@@ -5369,7 +5376,11 @@ func (c *Client4) GetUsersStatusesByIds(userIds []string) ([]*Status, *Response)
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return StatusListFromJson(r.Body), BuildResponse(r)
+	var list []*Status
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("GetUsersStatusesByIds", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return list, BuildResponse(r)
 }
 
 // UpdateUserStatus sets a user's status based on the provided user id string.
@@ -5383,7 +5394,11 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	return StatusFromJson(r.Body), BuildResponse(r)
+	var s Status
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, BuildErrorResponse(nil, NewAppError("UpdateUserStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
+	}
+	return &s, BuildResponse(r)
 }
 
 // Emoji Section
