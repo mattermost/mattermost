@@ -378,8 +378,8 @@
         "BatchSize": 10000,
         "GlobalRelaySettings": {
             "CustomerType": "A9",
-            "SmtpUsername": "",
-            "SmtpPassword": "",
+            "SMTPUsername": "",
+            "SMTPPassword": "",
             "EmailAddress": ""
         }
     },

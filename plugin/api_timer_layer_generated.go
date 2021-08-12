@@ -1065,27 +1065,6 @@ func (api *apiTimerLayer) PermanentDeleteBot(botUserId string) *model.AppError {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetBotIconImage(botUserId)
-	api.recordTime(startTime, "GetBotIconImage", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) SetBotIconImage(botUserId string, data []byte) *model.AppError {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetBotIconImage(botUserId, data)
-	api.recordTime(startTime, "SetBotIconImage", _returnsA == nil)
-	return _returnsA
-}
-
-func (api *apiTimerLayer) DeleteBotIconImage(botUserId string) *model.AppError {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteBotIconImage(botUserId)
-	api.recordTime(startTime, "DeleteBotIconImage", _returnsA == nil)
-	return _returnsA
-}
-
 func (api *apiTimerLayer) PluginHTTP(request *http.Request) *http.Response {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.PluginHTTP(request)

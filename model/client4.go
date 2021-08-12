@@ -35,7 +35,7 @@ const (
 	HeaderRemoteclusterToken = "X-RemoteCluster-Token"
 	HeaderRemoteclusterId    = "X-RemoteCluster-Id"
 	HeaderRequestedWith      = "X-Requested-With"
-	HeaderRequestedWithXml   = "XMLHttpRequest"
+	HeaderRequestedWithXML   = "XMLHttpRequest"
 	HeaderRange              = "Range"
 	STATUS                   = "status"
 	StatusOk                 = "OK"
@@ -62,10 +62,10 @@ type Response struct {
 type Client4 struct {
 	Url        string       // The location of the server, for example  "http://localhost:8065"
 	ApiUrl     string       // The api location of the server, for example "http://localhost:8065/api/v4"
-	HttpClient *http.Client // The http client
+	HTTPClient *http.Client // The http client
 	AuthToken  string
 	AuthType   string
-	HttpHeader map[string]string // Headers to be copied over for each request
+	HTTPHeader map[string]string // Headers to be copied over for each request
 
 	// TrueString is the string value sent to the server for true boolean query parameters.
 	trueString string
@@ -131,7 +131,7 @@ func NewAPIv4SocketClient(socketPath string) *Client4 {
 	}
 
 	client := NewAPIv4Client("http://_")
-	client.HttpClient = &http.Client{Transport: tr}
+	client.HTTPClient = &http.Client{Transport: tr}
 
 	return client
 }
@@ -635,13 +635,13 @@ func (c *Client4) doApiRequestReader(method, url string, data io.Reader, headers
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	if c.HttpHeader != nil && len(c.HttpHeader) > 0 {
-		for k, v := range c.HttpHeader {
+	if c.HTTPHeader != nil && len(c.HTTPHeader) > 0 {
+		for k, v := range c.HTTPHeader {
 			rq.Header.Set(k, v)
 		}
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	}
@@ -676,7 +676,7 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return nil, BuildErrorResponse(rp, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0))
 	}
@@ -700,7 +700,7 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return nil, BuildErrorResponse(rp, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0))
 	}
@@ -724,7 +724,7 @@ func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return nil, BuildErrorResponse(rp, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0))
 	}
@@ -1566,7 +1566,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
 	}
@@ -1856,72 +1856,6 @@ func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response) {
 	}
 
 	return bot, BuildResponse(r)
-}
-
-// SetBotIconImage sets LHS bot icon image.
-func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Response) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("image", "icon.svg")
-	if err != nil {
-		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-
-	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-
-	if err = writer.Close(); err != nil {
-		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-
-	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetBotRoute(botUserId)+"/icon", bytes.NewReader(body.Bytes()))
-	if err != nil {
-		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-	rq.Header.Set("Content-Type", writer.FormDataContentType())
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HttpClient.Do(rq)
-	if err != nil || rp == nil {
-		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetBotRoute(botUserId)+"/icon", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
-	}
-
-	return CheckStatusOK(rp), BuildResponse(rp)
-}
-
-// GetBotIconImage gets LHS bot icon image. Must be logged in.
-func (c *Client4) GetBotIconImage(botUserId string) ([]byte, *Response) {
-	r, appErr := c.DoApiGet(c.GetBotRoute(botUserId)+"/icon", "")
-	if appErr != nil {
-		return nil, BuildErrorResponse(r, appErr)
-	}
-	defer closeBody(r)
-
-	data, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildErrorResponse(r, NewAppError("GetBotIconImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
-	}
-	return data, BuildResponse(r)
-}
-
-// DeleteBotIconImage deletes LHS bot icon image. Must be logged in.
-func (c *Client4) DeleteBotIconImage(botUserId string) (bool, *Response) {
-	r, appErr := c.DoApiDelete(c.GetBotRoute(botUserId) + "/icon")
-	if appErr != nil {
-		return false, BuildErrorResponse(r, appErr)
-	}
-	defer closeBody(r)
-	return CheckStatusOK(r), BuildResponse(r)
 }
 
 // Team Section
@@ -2468,7 +2402,7 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		// set to http.StatusForbidden(403)
 		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetTeamRoute(teamId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
@@ -3960,7 +3894,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetLicenseRoute(), "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
 	}
@@ -4423,7 +4357,7 @@ func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) 
 		rq.Header.Set(HeaderAuth, "BEARER "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4804,7 +4738,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetBrandRoute()+"/image", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
 	}
@@ -4972,7 +4906,7 @@ func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Respon
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 403)}
 	}
@@ -5898,7 +5832,7 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil || rp == nil {
 		return nil, BuildErrorResponse(rp, NewAppError("UploadPlugin", "model.client.connecting.app_error", nil, err.Error(), 0))
 	}

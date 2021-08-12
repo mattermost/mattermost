@@ -9345,6 +9345,22 @@ func (s *TimerLayerUserStore) InvalidateProfilesInChannelCacheByUser(userID stri
 	}
 }
 
+func (s *TimerLayerUserStore) IsEmpty() (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.IsEmpty()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.IsEmpty", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) PermanentDelete(userID string) error {
 	start := timemodule.Now()
 

@@ -1038,6 +1038,27 @@ func (_m *UserStore) InvalidateProfilesInChannelCacheByUser(userID string) {
 	_m.Called(userID)
 }
 
+// IsEmpty provides a mock function with given fields:
+func (_m *UserStore) IsEmpty() (bool, error) {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDelete provides a mock function with given fields: userID
 func (_m *UserStore) PermanentDelete(userID string) error {
 	ret := _m.Called(userID)
