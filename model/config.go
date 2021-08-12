@@ -2844,6 +2844,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates["focalboard"] == nil {
+		// Enable the channel export plugin by default
+		s.PluginStates["focalboard"] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PluginSettingsDefaultEnableMarketplace)
 	}
