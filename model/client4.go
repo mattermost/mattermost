@@ -4198,8 +4198,13 @@ func (c *Client4) GetSamlMetadata() (string, *Response, error) {
 		return "", BuildResponse(r), err
 	}
 	defer closeBody(r)
+
 	buf := new(bytes.Buffer)
-	_, _ = buf.ReadFrom(r.Body)
+	_, err = buf.ReadFrom(r.Body)
+	if err != nil {
+		return "", BuildResponse(r), err
+	}
+
 	return buf.String(), BuildResponse(r), nil
 }
 
