@@ -398,9 +398,7 @@ github.com/mattermost/gziphandler
 github.com/mattermost/ldap
 # github.com/mattermost/logr v1.0.13
 ## explicit
-github.com/mattermost/logr
-github.com/mattermost/logr/target
-# github.com/mattermost/logr/v2 v2.0.7
+# github.com/mattermost/logr/v2 v2.0.9
 ## explicit
 github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config
@@ -686,10 +684,6 @@ github.com/vmihailenco/msgpack/v5/msgpcode
 github.com/vmihailenco/tagparser/v2
 github.com/vmihailenco/tagparser/v2/internal
 github.com/vmihailenco/tagparser/v2/internal/parser
-# github.com/wiggin77/cfg v1.0.2
-github.com/wiggin77/cfg
-github.com/wiggin77/cfg/ini
-github.com/wiggin77/cfg/timeconv
 # github.com/wiggin77/merror v1.0.3
 ## explicit
 github.com/wiggin77/merror

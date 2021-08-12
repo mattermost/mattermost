@@ -117,10 +117,11 @@ func (lgr *Logr) startMetricsUpdater() {
 	for {
 		lgr.metricsMux.RLock()
 		metrics := lgr.metrics
+		c := metrics.done
 		lgr.metricsMux.RUnlock()
 
 		select {
-		case <-metrics.done:
+		case <-c:
 			return
 		case <-time.After(time.Duration(metrics.updateFreqMillis) * time.Millisecond):
 			lgr.setQueueSizeGauge(float64(len(lgr.in)))
@@ -129,8 +130,8 @@ func (lgr *Logr) startMetricsUpdater() {
 }
 
 func (lgr *Logr) stopMetricsUpdater() {
-	lgr.metricsMux.RLock()
-	defer lgr.metricsMux.RUnlock()
+	lgr.metricsMux.Lock()
+	defer lgr.metricsMux.Unlock()
 
 	if lgr.metrics != nil && lgr.metrics.done != nil {
 		close(lgr.metrics.done)

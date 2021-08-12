@@ -233,89 +233,162 @@ func (f Field) ValueString(w io.Writer, shouldQuote func(s string) bool) error {
 	return err
 }
 
+func nilField(key string) Field {
+	return String(key, "")
+}
+
 func fieldForAny(key string, val interface{}) Field {
 	switch v := val.(type) {
 	case LogCloner:
+		if v == nil {
+			return nilField(key)
+		}
 		c := v.LogClone()
 		return Field{Key: key, Type: StructType, Interface: c}
 	case *LogCloner:
+		if v == nil {
+			return nilField(key)
+		}
 		c := (*v).LogClone()
 		return Field{Key: key, Type: StructType, Interface: c}
 	case LogWriter:
+		if v == nil {
+			return nilField(key)
+		}
 		return Field{Key: key, Type: StructType, Interface: v}
 	case *LogWriter:
+		if v == nil {
+			return nilField(key)
+		}
 		return Field{Key: key, Type: StructType, Interface: *v}
 	case bool:
 		return Bool(key, v)
 	case *bool:
+		if v == nil {
+			return nilField(key)
+		}
 		return Bool(key, *v)
 	case float64:
 		return Float64(key, v)
 	case *float64:
+		if v == nil {
+			return nilField(key)
+		}
 		return Float64(key, *v)
 	case float32:
 		return Float32(key, v)
 	case *float32:
+		if v == nil {
+			return nilField(key)
+		}
 		return Float32(key, *v)
 	case int:
 		return Int(key, v)
 	case *int:
+		if v == nil {
+			return nilField(key)
+		}
 		return Int(key, *v)
 	case int64:
 		return Int64(key, v)
 	case *int64:
+		if v == nil {
+			return nilField(key)
+		}
 		return Int64(key, *v)
 	case int32:
 		return Int32(key, v)
 	case *int32:
+		if v == nil {
+			return nilField(key)
+		}
 		return Int32(key, *v)
 	case int16:
 		return Int32(key, int32(v))
 	case *int16:
+		if v == nil {
+			return nilField(key)
+		}
 		return Int32(key, int32(*v))
 	case int8:
 		return Int32(key, int32(v))
 	case *int8:
+		if v == nil {
+			return nilField(key)
+		}
 		return Int32(key, int32(*v))
 	case string:
 		return String(key, v)
 	case *string:
+		if v == nil {
+			return nilField(key)
+		}
 		return String(key, *v)
 	case uint:
 		return Uint(key, v)
 	case *uint:
+		if v == nil {
+			return nilField(key)
+		}
 		return Uint(key, *v)
 	case uint64:
 		return Uint64(key, v)
 	case *uint64:
+		if v == nil {
+			return nilField(key)
+		}
 		return Uint64(key, *v)
 	case uint32:
 		return Uint32(key, v)
 	case *uint32:
+		if v == nil {
+			return nilField(key)
+		}
 		return Uint32(key, *v)
 	case uint16:
 		return Uint32(key, uint32(v))
 	case *uint16:
+		if v == nil {
+			return nilField(key)
+		}
 		return Uint32(key, uint32(*v))
 	case uint8:
 		return Uint32(key, uint32(v))
 	case *uint8:
+		if v == nil {
+			return nilField(key)
+		}
 		return Uint32(key, uint32(*v))
 	case []byte:
+		if v == nil {
+			return nilField(key)
+		}
 		return Field{Key: key, Type: BinaryType, Interface: v}
 	case time.Time:
 		return Time(key, v)
 	case *time.Time:
+		if v == nil {
+			return nilField(key)
+		}
 		return Time(key, *v)
 	case time.Duration:
 		return Duration(key, v)
 	case *time.Duration:
+		if v == nil {
+			return nilField(key)
+		}
 		return Duration(key, *v)
 	case error:
 		return NamedErr(key, v)
 	case fmt.Stringer:
+		if v == nil {
+			return nilField(key)
+		}
 		return Field{Key: key, Type: StringerType, Interface: v}
 	case *fmt.Stringer:
+		if v == nil {
+			return nilField(key)
+		}
 		return Field{Key: key, Type: StringerType, Interface: *v}
 	default:
 		return Field{Key: key, Type: UnknownType, Interface: val}

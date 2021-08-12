@@ -44,7 +44,6 @@ func (a *Audit) LogRecord(level mlog.Level, rec Record) {
 	for k, v := range rec.Meta {
 		flds = append(flds, mlog.Any(k, v))
 	}
-
 	a.logger.Log(level, "", flds...)
 }
 
