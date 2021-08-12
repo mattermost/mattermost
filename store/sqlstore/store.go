@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	dbsql "database/sql"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,7 +16,6 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -33,7 +31,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/db/migrations"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -155,20 +152,10 @@ type SqlStore struct {
 	metrics           einterfaces.MetricsInterface
 }
 
-type TraceOnAdapter struct{}
-
 // ColumnInfo holds information about a column.
 type ColumnInfo struct {
 	DataType          string
 	CharMaximumLength int
-}
-
-func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
-	originalString := fmt.Sprintf(format, v...)
-	newString := strings.ReplaceAll(originalString, "\n", " ")
-	newString = strings.ReplaceAll(newString, "\t", " ")
-	newString = strings.ReplaceAll(newString, "\"", "")
-	mlog.Debug(newString)
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -1565,91 +1552,6 @@ func resetReadTimeout(dataSource string) (string, error) {
 	}
 	config.ReadTimeout = 0
 	return config.FormatDSN(), nil
-}
-
-type mattermConverter struct{}
-
-func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
-
-	switch t := val.(type) {
-	case model.StringMap:
-		return model.MapToJson(t), nil
-	case map[string]string:
-		return model.MapToJson(model.StringMap(t)), nil
-	case model.StringArray:
-		return model.ArrayToJson(t), nil
-	case model.StringInterface:
-		return model.StringInterfaceToJson(t), nil
-	case map[string]interface{}:
-		return model.StringInterfaceToJson(model.StringInterface(t)), nil
-	case JSONSerializable:
-		return t.ToJson(), nil
-	case *opengraph.OpenGraph:
-		return json.Marshal(t)
-	}
-
-	return val, nil
-}
-
-func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
-	switch target.(type) {
-	case *model.StringMap:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_map"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *map[string]string:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_map"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *model.StringArray:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_array"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *model.StringInterface:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_interface"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *map[string]interface{}:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_interface"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	}
-
-	return gorp.CustomScanner{}, false
-}
-
-type JSONSerializable interface {
-	ToJson() string
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
