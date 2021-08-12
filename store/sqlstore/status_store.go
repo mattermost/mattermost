@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -128,6 +129,7 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
+	mlog.Debug("updateExpiredStatuses", mlog.String("selectQuery", selectQuery), mlog.Any("selectParams", selectParams))
 	_, err = t.Select(&statuses, selectQuery, selectParams...)
 	if err != nil {
 		return nil, errors.Wrap(err, "updateExpiredStatusesT: failed to get expired dnd statuses")
@@ -146,14 +148,16 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 		Set("DNDEndTime", 0).
 		Set("Manual", false).
 		ToSql()
-
+	mlog.Debug("updateExpiredStatuses", mlog.String("updateQuery", selectQuery), mlog.Any("args", args))
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
 
-	if _, err := t.Exec(updateQuery, args...); err != nil {
+	result, err := t.Exec(updateQuery, args...)
+	if err != nil {
 		return nil, errors.Wrapf(err, "updateExpiredStatusesT: failed to update statuses")
 	}
+	mlog.Debug("updateExpiredStatuses", mlog.Any("result", result))
 
 	return statuses, nil
 }
@@ -172,7 +176,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		if err := transaction.Commit(); err != nil {
 			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: commit_transaction")
 		}
-
+		mlog.Debug("UpdateExpiredDNDStatuses", mlog.Any("statuses", statuses))
 		for _, status := range statuses {
 			status.Status = status.PrevStatus
 			status.PrevStatus = model.StatusDnd
