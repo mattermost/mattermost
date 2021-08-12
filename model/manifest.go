@@ -329,15 +329,15 @@ func (m *Manifest) IsValid() error {
 		return errors.New("a plugin name is needed")
 	}
 
-	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
+	if m.HomepageURL != "" && !IsValidHTTPUrl(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHTTPUrl(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
-	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+	if m.ReleaseNotesURL != "" && !IsValidHTTPUrl(m.ReleaseNotesURL) {
 		return errors.New("invalid ReleaseNotesURL")
 	}
 
