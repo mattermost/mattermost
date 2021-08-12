@@ -34,7 +34,7 @@ const (
 	HeaderRemoteclusterToken = "X-RemoteCluster-Token"
 	HeaderRemoteclusterId    = "X-RemoteCluster-Id"
 	HeaderRequestedWith      = "X-Requested-With"
-	HeaderRequestedWithXml   = "XMLHttpRequest"
+	HeaderRequestedWithXML   = "XMLHttpRequest"
 	HeaderRange              = "Range"
 	STATUS                   = "status"
 	StatusOk                 = "OK"
@@ -60,10 +60,10 @@ type Response struct {
 type Client4 struct {
 	Url        string       // The location of the server, for example  "http://localhost:8065"
 	ApiUrl     string       // The api location of the server, for example "http://localhost:8065/api/v4"
-	HttpClient *http.Client // The http client
+	HTTPClient *http.Client // The http client
 	AuthToken  string
 	AuthType   string
-	HttpHeader map[string]string // Headers to be copied over for each request
+	HTTPHeader map[string]string // Headers to be copied over for each request
 
 	// TrueString is the string value sent to the server for true boolean query parameters.
 	trueString string
@@ -119,7 +119,7 @@ func NewAPIv4SocketClient(socketPath string) *Client4 {
 	}
 
 	client := NewAPIv4Client("http://_")
-	client.HttpClient = &http.Client{Transport: tr}
+	client.HTTPClient = &http.Client{Transport: tr}
 
 	return client
 }
@@ -609,13 +609,13 @@ func (c *Client4) doApiRequestReader(method, url string, data io.Reader, headers
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	if c.HttpHeader != nil && len(c.HttpHeader) > 0 {
-		for k, v := range c.HttpHeader {
+	if c.HTTPHeader != nil && len(c.HTTPHeader) > 0 {
+		for k, v := range c.HTTPHeader {
 			rq.Header.Set(k, v)
 		}
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return rp, err
 	}
@@ -650,7 +650,7 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return nil, BuildResponse(rp), err
 	}
@@ -674,7 +674,7 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return nil, BuildResponse(rp), err
 	}
@@ -698,7 +698,7 @@ func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return nil, BuildResponse(rp), err
 	}
@@ -1525,7 +1525,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (*Response, error)
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return BuildResponse(rp), err
 	}
@@ -2361,7 +2361,7 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (*Response, error) {
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return BuildResponse(rp), err
 	}
@@ -3852,7 +3852,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (*Response, error) {
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return BuildResponse(rp), err
 	}
@@ -4319,7 +4319,7 @@ func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response, 
 		rq.Header.Set(HeaderAuth, "BEARER "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return nil, BuildResponse(rp), err
 	}
@@ -4696,7 +4696,7 @@ func (c *Client4) UploadBrandImage(data []byte) (*Response, error) {
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return BuildResponse(rp), err
 	}
@@ -4864,7 +4864,7 @@ func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Respon
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return nil, BuildResponse(rp), err
 	}
@@ -5790,7 +5790,7 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	rp, err := c.HttpClient.Do(rq)
+	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
 		return nil, BuildResponse(rp), err
 	}

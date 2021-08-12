@@ -3531,7 +3531,7 @@ func TestLoginCookies(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.HttpHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXml
+		th.Client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 
 		user, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
@@ -3569,7 +3569,7 @@ func TestLoginCookies(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.HttpHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXml
+		th.Client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 
 		testCases := []struct {
 			Description                   string
@@ -3621,7 +3621,7 @@ func TestCBALogin(t *testing.T) {
 
 		t.Run("missing cert subject", func(t *testing.T) {
 			th.Client.Logout()
-			th.Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
+			th.Client.HTTPHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
 			_, resp, err := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
@@ -3629,14 +3629,14 @@ func TestCBALogin(t *testing.T) {
 
 		t.Run("emails mismatch", func(t *testing.T) {
 			th.Client.Logout()
-			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
+			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
 			_, resp, err := th.Client.Login(th.BasicUser.Email, "")
 			require.Error(t, err)
 			CheckUnauthorizedStatus(t, resp)
 		})
 
 		t.Run("successful cba login", func(t *testing.T) {
-			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
 			user, _, err := th.Client.Login(th.BasicUser.Email, "")
 			require.NoError(t, err)
 			require.NotNil(t, user)
@@ -3652,7 +3652,7 @@ func TestCBALogin(t *testing.T) {
 			botUser, _, err := th.SystemAdminClient.GetUser(bot.UserId, "")
 			require.NoError(t, err)
 
-			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + botUser.Email
+			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + botUser.Email
 
 			_, _, err = th.Client.Login(botUser.Email, "")
 			CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
@@ -3668,7 +3668,7 @@ func TestCBALogin(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
-		th.Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
+		th.Client.HTTPHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.ClientSideCertEnable = true
@@ -3676,14 +3676,14 @@ func TestCBALogin(t *testing.T) {
 		})
 
 		t.Run("password required", func(t *testing.T) {
-			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
 			_, resp, err := th.Client.Login(th.BasicUser.Email, "")
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
 
 		t.Run("successful cba login with password", func(t *testing.T) {
-			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
 			user, _, err := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 			require.NoError(t, err)
 			require.NotNil(t, user)
@@ -3702,7 +3702,7 @@ func TestCBALogin(t *testing.T) {
 			_, err = th.SystemAdminClient.UpdateUserPassword(bot.UserId, "", "password")
 			require.NoError(t, err)
 
-			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + botUser.Email
+			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + botUser.Email
 
 			_, _, err = th.Client.Login(botUser.Email, "password")
 			CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
