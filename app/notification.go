@@ -525,7 +525,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					if jsonErr != nil {
 						mlog.Warn("Failed to encode thread to JSON")
 					}
-					message.Add("thread", payload)
+					message.Add("thread", string(payload))
 
 					a.Publish(message)
 				}

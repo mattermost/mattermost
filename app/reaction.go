@@ -165,6 +165,6 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode reaction to JSON")
 	}
-	message.Add("reaction", reactionJSON)
+	message.Add("reaction", string(reactionJSON))
 	a.Publish(message)
 }

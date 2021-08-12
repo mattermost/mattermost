@@ -2542,7 +2542,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 					mlog.Warn("Failed to encode thread to JSON")
 				}
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
-				message.Add("thread", payload)
+				message.Add("thread", string(payload))
 				a.Publish(message)
 			}
 		} else if !threadMembership.Following && followThread {
@@ -2655,13 +2655,13 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
 
-	payload, jsonErr := json.Marshal(thread)
-	if jsonErr != nil {
-		mlog.Warn("Failed to encode thread to JSON")
-	}
 	if a.isCRTEnabledForUser(userID) {
+		payload, jsonErr := json.Marshal(thread)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode thread to JSON")
+		}
 		message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
-		message.Add("thread", payload)
+		message.Add("thread", string(payload))
 		a.Publish(message)
 	}
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false, false)

@@ -6517,6 +6517,9 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	}
 	defer closeBody(r)
 	var fi FileInfo
+	if r.StatusCode == http.StatusNoContent {
+		return nil, BuildResponse(r)
+	}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&fi); jsonErr != nil {
 		return nil, BuildErrorResponse(nil, NewAppError("UploadData", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError))
 	}
