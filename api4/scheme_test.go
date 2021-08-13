@@ -640,7 +640,7 @@ func TestDeleteScheme(t *testing.T) {
 		require.NoError(t, err)
 
 		// Delete the Scheme.
-		_, _, err = th.SystemAdminClient.DeleteScheme(s1.Id)
+		_, err = th.SystemAdminClient.DeleteScheme(s1.Id)
 		require.NoError(t, err)
 
 		// Check the roles were deleted.
@@ -709,7 +709,7 @@ func TestDeleteScheme(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Delete the Scheme.
-		_, _, err = th.SystemAdminClient.DeleteScheme(s1.Id)
+		_, err = th.SystemAdminClient.DeleteScheme(s1.Id)
 		require.NoError(t, err)
 
 		// Check the roles were deleted.
@@ -746,28 +746,32 @@ func TestDeleteScheme(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test with unknown ID.
-		_, r2, _ := th.SystemAdminClient.DeleteScheme(model.NewId())
+		r2, err := th.SystemAdminClient.DeleteScheme(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, r2)
 
 		// Test with invalid ID.
-		_, r3, _ := th.SystemAdminClient.DeleteScheme("12345")
+		r3, err := th.SystemAdminClient.DeleteScheme("12345")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, r3)
 
 		// Test without required permissions.
-		_, r4, err := th.Client.DeleteScheme(s1.Id)
+		r4, err := th.Client.DeleteScheme(s1.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, r4)
 
 		// Test without license.
 		th.App.Srv().SetLicense(nil)
-		_, r5, _ := th.SystemAdminClient.DeleteScheme(s1.Id)
+		r5, err := th.SystemAdminClient.DeleteScheme(s1.Id)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, r5)
 
 		th.App.SetPhase2PermissionsMigrationStatus(false)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
-		_, r6, _ := th.SystemAdminClient.DeleteScheme(s1.Id)
+		r6, err := th.SystemAdminClient.DeleteScheme(s1.Id)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, r6)
 	})
 }

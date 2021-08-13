@@ -250,7 +250,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 			return err
 		}
 
-		if len(sysAdminsList) == 0 {
+		if len(sysAdmins) == 0 && len(sysAdminsList) == 0 {
 			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
 		}
 		sysAdmins = append(sysAdmins, sysAdminsList...)
@@ -259,6 +259,8 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 			mlog.Debug("Number of system admins is less than page limit", mlog.Int("count", len(sysAdminsList)))
 			break
 		}
+
+		userOptions.Page++
 	}
 
 	for _, sysAdmin := range sysAdmins {
@@ -527,7 +529,7 @@ func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.srv.Cloud
 }
 func (a *App) HTTPService() httpservice.HTTPService {
-	return a.srv.HTTPService
+	return a.srv.httpService
 }
 func (a *App) ImageProxy() *imageproxy.ImageProxy {
 	return a.srv.ImageProxy

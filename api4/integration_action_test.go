@@ -127,13 +127,11 @@ func TestPostActionCookies(t *testing.T) {
 			assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 			post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
 
-			ok, resp, err := client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
+			resp, err := client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
 			require.NotNil(t, resp)
 			if test.ExpectedSucess {
-				assert.True(t, ok)
 				assert.NoError(t, err)
 			} else {
-				assert.False(t, ok)
 				assert.Error(t, err)
 			}
 			assert.Equal(t, test.ExpectedStatusCode, resp.StatusCode)
@@ -175,47 +173,41 @@ func TestOpenDialog(t *testing.T) {
 		},
 	}
 
-	pass, _, err := client.OpenInteractiveDialog(request)
+	_, err := client.OpenInteractiveDialog(request)
 	require.NoError(t, err)
-	assert.True(t, pass)
 
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
-	pass, resp, err := client.OpenInteractiveDialog(request)
+	resp, err := client.OpenInteractiveDialog(request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
 
 	// URL is required
 	request.TriggerId = triggerId
 	request.URL = ""
-	pass, resp, err = client.OpenInteractiveDialog(request)
+	resp, err = client.OpenInteractiveDialog(request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
 
 	// Should pass with markdown formatted introduction text
 	request.URL = "http://localhost:8065"
 	request.Dialog.IntroductionText = "**Some** _introduction text"
-	pass, _, err = client.OpenInteractiveDialog(request)
+	_, err = client.OpenInteractiveDialog(request)
 	require.NoError(t, err)
-	assert.True(t, pass)
 
 	// Should pass with empty introduction text
 	request.Dialog.IntroductionText = ""
-	pass, _, err = client.OpenInteractiveDialog(request)
+	_, err = client.OpenInteractiveDialog(request)
 	require.NoError(t, err)
-	assert.True(t, pass)
 
 	// Should pass with no elements
 	request.Dialog.Elements = nil
-	pass, _, err = client.OpenInteractiveDialog(request)
+	_, err = client.OpenInteractiveDialog(request)
 	require.NoError(t, err)
-	assert.True(t, pass)
+
 	request.Dialog.Elements = []model.DialogElement{}
-	pass, _, err = client.OpenInteractiveDialog(request)
+	_, err = client.OpenInteractiveDialog(request)
 	require.NoError(t, err)
-	assert.True(t, pass)
 }
 
 func TestSubmitDialog(t *testing.T) {

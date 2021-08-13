@@ -241,7 +241,7 @@ func TestGetEmojiList(t *testing.T) {
 		require.Truef(t, found, "failed to get emoji with id %v, %v", emoji.Id, len(listEmoji))
 	}
 
-	_, _, err = client.DeleteEmoji(emojis[0].Id)
+	_, err = client.DeleteEmoji(emojis[0].Id)
 	require.NoError(t, err)
 	listEmoji, _, err = client.GetEmojiList(0, 100)
 	require.NoError(t, err)
@@ -289,9 +289,8 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
-	ok, _, err := client.DeleteEmoji(newEmoji.Id)
+	_, err = client.DeleteEmoji(newEmoji.Id)
 	require.NoError(t, err)
-	require.True(t, ok, "delete did not return OK")
 
 	_, _, err = client.GetEmoji(newEmoji.Id)
 	require.Error(t, err, "expected error fetching deleted emoji")
@@ -300,25 +299,24 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
-	ok, _, err = th.SystemAdminClient.DeleteEmoji(newEmoji.Id)
+	_, err = th.SystemAdminClient.DeleteEmoji(newEmoji.Id)
 	require.NoError(t, err)
-	require.True(t, ok, "delete did not return OK")
 
 	_, _, err = th.SystemAdminClient.GetEmoji(newEmoji.Id)
 	require.Error(t, err, "expected error fetching deleted emoji")
 
 	// Try to delete just deleted emoji
-	_, resp, err := client.DeleteEmoji(newEmoji.Id)
+	resp, err := client.DeleteEmoji(newEmoji.Id)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to delete non-existing emoji
-	_, resp, err = client.DeleteEmoji(model.NewId())
+	resp, err = client.DeleteEmoji(model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to delete without Id
-	_, resp, err = client.DeleteEmoji("")
+	resp, err = client.DeleteEmoji("")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -327,7 +325,7 @@ func TestDeleteEmoji(t *testing.T) {
 	require.NoError(t, err)
 
 	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
-	_, resp, err = client.DeleteEmoji(newEmoji.Id)
+	resp, err = client.DeleteEmoji(newEmoji.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
@@ -347,7 +345,7 @@ func TestDeleteEmoji(t *testing.T) {
 	client.Logout()
 	th.LoginBasic2()
 
-	_, resp, err = client.DeleteEmoji(newEmoji.Id)
+	resp, err = client.DeleteEmoji(newEmoji.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -369,7 +367,7 @@ func TestDeleteEmoji(t *testing.T) {
 	client.Logout()
 	th.LoginBasic2()
 
-	_, resp, err = client.DeleteEmoji(newEmoji.Id)
+	resp, err = client.DeleteEmoji(newEmoji.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -391,7 +389,7 @@ func TestDeleteEmoji(t *testing.T) {
 	client.Logout()
 	th.LoginBasic2()
 
-	_, _, err = client.DeleteEmoji(newEmoji.Id)
+	_, err = client.DeleteEmoji(newEmoji.Id)
 	require.NoError(t, err)
 
 	client.Logout()
@@ -403,7 +401,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
-	_, _, err = client.DeleteEmoji(newEmoji.Id)
+	_, err = client.DeleteEmoji(newEmoji.Id)
 	require.NoError(t, err)
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
@@ -426,7 +424,7 @@ func TestDeleteEmoji(t *testing.T) {
 	client.Logout()
 	th.LoginBasic2()
 
-	_, _, err = client.DeleteEmoji(newEmoji.Id)
+	_, err = client.DeleteEmoji(newEmoji.Id)
 	require.NoError(t, err)
 }
 
@@ -566,7 +564,7 @@ func TestGetEmojiImage(t *testing.T) {
 	require.NoError(t, err, "unable to idenitify received image")
 	require.Equal(t, imageType, "png", "expected png")
 
-	_, _, err = client.DeleteEmoji(emoji4.Id)
+	_, err = client.DeleteEmoji(emoji4.Id)
 	require.NoError(t, err)
 
 	_, resp, err = client.GetEmojiImage(emoji4.Id)

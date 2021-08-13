@@ -71,7 +71,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 		req.Header.Set(model.HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	resp, err := c.HttpClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	defer closeBody(resp)
@@ -546,6 +546,20 @@ func TestUploadFiles(t *testing.T) {
 				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 10 * 1024 })
 				return func(a *app.App) {
 					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
+				}
+			},
+		},
+
+		{
+			title:                 "Error image too large",
+			names:                 []string{"test.png"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckBadRequestStatus,
+			setupConfig: func(a *app.App) func(a *app.App) {
+				maxResSize := *a.Config().FileSettings.MaxImageResolution
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxImageResolution = 90000 })
+				return func(a *app.App) {
+					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxImageResolution = maxResSize })
 				}
 			},
 		},

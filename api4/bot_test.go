@@ -5,19 +5,13 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -299,10 +293,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageRoles.Id, model.TeamUserRoleId)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
 
-		success, resp, err := th.Client.UpdateUserRoles(createdBot.UserId, model.SystemUserRoleId)
+		resp, err = th.Client.UpdateUserRoles(createdBot.UserId, model.SystemUserRoleId)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.True(t, success)
 
 		bots, resp, err := th.Client.GetBots(0, 2, "")
 		require.NoError(t, err)
@@ -708,7 +701,7 @@ func TestGetBots(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
 	})
-	_, resp, err = th.SystemAdminClient.DeleteUser(th.BasicUser2.Id)
+	resp, err = th.SystemAdminClient.DeleteUser(th.BasicUser2.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -1288,217 +1281,6 @@ func TestAssignBot(t *testing.T) {
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	})
-}
-
-func TestSetBotIconImage(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	user := th.BasicUser
-
-	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
-
-	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.SystemUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
-	th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableBotAccountCreation = true
-	})
-
-	bot := &model.Bot{
-		Username:    GenerateTestUsername(),
-		Description: "bot",
-	}
-	bot, resp, err := th.Client.CreateBot(bot)
-	require.NoError(t, err)
-	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot.UserId)
-
-	badData, err := testutils.ReadTestFile("test.png")
-	require.NoError(t, err)
-
-	goodData, err := testutils.ReadTestFile("test.svg")
-	require.NoError(t, err)
-
-	// SetBotIconImage only allowed for bots
-	_, resp, err = th.SystemAdminClient.SetBotIconImage(user.Id, goodData)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	// png/jpg is not allowed
-	ok, resp, err := th.Client.SetBotIconImage(bot.UserId, badData)
-	require.False(t, ok, "Should return false, set icon image only allows svg")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-
-	ok, resp, err = th.Client.SetBotIconImage(model.NewId(), badData)
-	require.False(t, ok, "Should return false, set icon image not allowed")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	_, _, err = th.Client.SetBotIconImage(bot.UserId, goodData)
-	require.NoError(t, err)
-
-	// status code returns either forbidden or unauthorized
-	// note: forbidden is set as default at Client4.SetBotIconImage when request is terminated early by server
-	th.Client.Logout()
-	_, resp, err = th.Client.SetBotIconImage(bot.UserId, badData)
-	require.Error(t, err)
-	if resp.StatusCode == http.StatusForbidden {
-		CheckForbiddenStatus(t, resp)
-	} else if resp.StatusCode == http.StatusUnauthorized {
-		CheckUnauthorizedStatus(t, resp)
-	} else {
-		require.Fail(t, "Should have failed either forbidden or unauthorized")
-	}
-
-	_, _, err = th.SystemAdminClient.SetBotIconImage(bot.UserId, goodData)
-	require.NoError(t, err)
-
-	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-	actualData, appErr := th.App.ReadFile(fpath)
-	require.Nil(t, appErr)
-	require.NotNil(t, actualData)
-	require.Equal(t, goodData, actualData)
-
-	info := &model.FileInfo{Path: fpath}
-	err = th.cleanupTestFile(info)
-	require.NoError(t, err)
-}
-
-func TestGetBotIconImage(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
-
-	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.SystemUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
-	th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableBotAccountCreation = true
-	})
-
-	bot := &model.Bot{
-		Username:    GenerateTestUsername(),
-		Description: "bot",
-	}
-	bot, resp, err := th.Client.CreateBot(bot)
-	require.NoError(t, err)
-	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot.UserId)
-
-	// Get icon image for user with no icon
-	data, resp, err := th.Client.GetBotIconImage(bot.UserId)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-	require.Equal(t, 0, len(data))
-
-	// Set an icon image
-	path, _ := fileutils.FindDir("tests")
-	svgFile, err := os.Open(filepath.Join(path, "test.svg"))
-	require.NoError(t, err)
-	defer svgFile.Close()
-
-	expectedData, err := ioutil.ReadAll(svgFile)
-	require.NoError(t, err)
-
-	svgFile.Seek(0, 0)
-	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-	_, appErr := th.App.WriteFile(svgFile, fpath)
-	require.Nil(t, appErr)
-
-	data, _, err = th.Client.GetBotIconImage(bot.UserId)
-	require.NoError(t, err)
-	require.Equal(t, expectedData, data)
-
-	_, resp, err = th.Client.GetBotIconImage("junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp, err = th.Client.GetBotIconImage(model.NewId())
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	th.Client.Logout()
-	_, resp, err = th.Client.GetBotIconImage(bot.UserId)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
-
-	_, _, err = th.SystemAdminClient.GetBotIconImage(bot.UserId)
-	require.NoError(t, err)
-
-	info := &model.FileInfo{Path: "/bots/" + bot.UserId + "/icon.svg"}
-	err = th.cleanupTestFile(info)
-	require.NoError(t, err)
-}
-
-func TestDeleteBotIconImage(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
-
-	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.SystemUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
-	th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableBotAccountCreation = true
-	})
-
-	bot := &model.Bot{
-		Username:    GenerateTestUsername(),
-		Description: "bot",
-	}
-	bot, resp, err := th.Client.CreateBot(bot)
-	require.NoError(t, err)
-	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot.UserId)
-
-	// Get icon image for user with no icon
-	data, resp, err := th.Client.GetBotIconImage(bot.UserId)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-	require.Equal(t, 0, len(data))
-
-	// Set an icon image
-	svgData, err := testutils.ReadTestFile("test.svg")
-	require.NoError(t, err)
-
-	_, _, err = th.Client.SetBotIconImage(bot.UserId, svgData)
-	require.NoError(t, err)
-
-	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-	exists, appErr := th.App.FileExists(fpath)
-	require.Nil(t, appErr)
-	require.True(t, exists, "icon.svg needs to exist for the user")
-
-	data, _, err = th.Client.GetBotIconImage(bot.UserId)
-	require.NoError(t, err)
-	require.Equal(t, svgData, data)
-
-	success, resp, err := th.Client.DeleteBotIconImage("junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-	require.False(t, success)
-
-	success, resp, err = th.Client.DeleteBotIconImage(model.NewId())
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-	require.False(t, success)
-
-	success, _, err = th.Client.DeleteBotIconImage(bot.UserId)
-	require.NoError(t, err)
-	require.True(t, success)
-
-	th.Client.Logout()
-	success, resp, err = th.Client.DeleteBotIconImage(bot.UserId)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
-	require.False(t, success)
-
-	exists, appErr = th.App.FileExists(fpath)
-	require.Nil(t, appErr)
-	require.False(t, exists, "icon.svg should not for the user")
 }
 
 func TestConvertBotToUser(t *testing.T) {

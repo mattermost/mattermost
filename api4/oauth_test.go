@@ -431,11 +431,10 @@ func TestDeleteOAuthApp(t *testing.T) {
 	rapp2, _, err := client.CreateOAuthApp(oapp)
 	require.NoError(t, err)
 
-	pass, _, err := adminClient.DeleteOAuthApp(rapp.Id)
+	_, err = adminClient.DeleteOAuthApp(rapp.Id)
 	require.NoError(t, err)
-	assert.True(t, pass, "should have passed")
 
-	_, _, err = adminClient.DeleteOAuthApp(rapp2.Id)
+	_, err = adminClient.DeleteOAuthApp(rapp2.Id)
 	require.NoError(t, err)
 
 	rapp, _, err = adminClient.CreateOAuthApp(oapp)
@@ -445,35 +444,35 @@ func TestDeleteOAuthApp(t *testing.T) {
 	rapp2, _, err = client.CreateOAuthApp(oapp)
 	require.NoError(t, err)
 
-	_, resp, err := client.DeleteOAuthApp(rapp.Id)
+	resp, err := client.DeleteOAuthApp(rapp.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, _, err = client.DeleteOAuthApp(rapp2.Id)
+	_, err = client.DeleteOAuthApp(rapp2.Id)
 	require.NoError(t, err)
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp, err = client.DeleteOAuthApp(rapp.Id)
+	resp, err = client.DeleteOAuthApp(rapp.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, err = client.DeleteOAuthApp(rapp.Id)
+	resp, err = client.DeleteOAuthApp(rapp.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, err = adminClient.DeleteOAuthApp("junk")
+	resp, err = adminClient.DeleteOAuthApp("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = adminClient.DeleteOAuthApp(model.NewId())
+	resp, err = adminClient.DeleteOAuthApp(model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp, err = adminClient.DeleteOAuthApp(rapp.Id)
+	resp, err = adminClient.DeleteOAuthApp(rapp.Id)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }

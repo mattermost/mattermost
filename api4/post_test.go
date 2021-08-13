@@ -996,20 +996,18 @@ func TestPinPost(t *testing.T) {
 	client := th.Client
 
 	post := th.BasicPost
-	pass, _, err := client.PinPost(post.Id)
+	_, err := client.PinPost(post.Id)
 	require.NoError(t, err)
 
-	require.True(t, pass, "should have passed")
 	rpost, appErr := th.App.GetSinglePost(post.Id)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
-	pass, resp, err := client.PinPost("junk")
+	resp, err := client.PinPost("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	require.False(t, pass, "should have failed")
 
-	_, resp, err = client.PinPost(GenerateTestId())
+	resp, err = client.PinPost(GenerateTestId())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1025,17 +1023,17 @@ func TestPinPost(t *testing.T) {
 		assert.Nil(t, appErr)
 		adminPost := th.CreatePostWithClient(th.SystemAdminClient, channel)
 
-		_, resp, err = client.PinPost(adminPost.Id)
+		resp, err = client.PinPost(adminPost.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	client.Logout()
-	_, resp, err = client.PinPost(post.Id)
+	resp, err = client.PinPost(post.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.PinPost(post.Id)
+	_, err = th.SystemAdminClient.PinPost(post.Id)
 	require.NoError(t, err)
 }
 
@@ -1045,29 +1043,27 @@ func TestUnpinPost(t *testing.T) {
 	client := th.Client
 
 	pinnedPost := th.CreatePinnedPost()
-	pass, _, err := client.UnpinPost(pinnedPost.Id)
+	_, err := client.UnpinPost(pinnedPost.Id)
 	require.NoError(t, err)
-	require.True(t, pass, "should have passed")
 
 	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 
-	pass, resp, err := client.UnpinPost("junk")
+	resp, err := client.UnpinPost("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	require.False(t, pass, "should have failed")
 
-	_, resp, err = client.UnpinPost(GenerateTestId())
+	resp, err = client.UnpinPost(GenerateTestId())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, err = client.UnpinPost(pinnedPost.Id)
+	resp, err = client.UnpinPost(pinnedPost.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.UnpinPost(pinnedPost.Id)
+	_, err = th.SystemAdminClient.UnpinPost(pinnedPost.Id)
 	require.NoError(t, err)
 }
 
@@ -1246,10 +1242,10 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 		Name:     post1.Id,
 		Value:    "true",
 	}
-	_, _, err := client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, err := client.UpdatePreferences(user.Id, &model.Preferences{preference})
 	require.NoError(t, err)
 	preference.Name = post2.Id
-	_, _, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
 	require.NoError(t, err)
 
 	opl := model.NewPostList()
@@ -1274,9 +1270,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, resp, err := client.GetFlaggedPostsForUserInChannel(user.Id, "junk", 0, 10)
+	rpl, _, err = client.GetFlaggedPostsForUserInChannel(user.Id, "junk", 0, 10)
 	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
 	require.Nil(t, rpl)
 
 	opl.AddPost(post2)
@@ -1303,9 +1298,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, resp, err = client.GetFlaggedPostsForUserInTeam(user.Id, "junk", 0, 10)
+	rpl, _, err = client.GetFlaggedPostsForUserInTeam(user.Id, "junk", 0, 10)
 	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
 	require.Nil(t, rpl)
 
 	channel3 := th.CreatePrivateChannel()
@@ -1338,7 +1332,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	post5 := th.CreatePostWithClient(th.SystemAdminClient, channel4)
 
 	preference.Name = post5.Id
-	_, resp, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	resp, err := client.UpdatePreferences(user.Id, &model.Preferences{preference})
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1348,7 +1342,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Equal(t, opl.Posts, rpl.Posts, "posts should have matched")
 
 	th.AddUserToChannel(user, channel4)
-	_, _, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
 	require.NoError(t, err)
 
 	rpl, _, err = client.GetFlaggedPostsForUser(user.Id, 0, 10)
@@ -2021,20 +2015,20 @@ func TestDeletePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, err := client.DeletePost("")
+	resp, err := client.DeletePost("")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, err = client.DeletePost("junk")
+	resp, err = client.DeletePost("junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.DeletePost(th.BasicPost.Id)
+	resp, err = client.DeletePost(th.BasicPost.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
-	_, _, err = client.DeletePost(th.BasicPost.Id)
+	_, err = client.DeletePost(th.BasicPost.Id)
 	require.NoError(t, err)
 
 	post := th.CreatePost()
@@ -2043,17 +2037,16 @@ func TestDeletePost(t *testing.T) {
 	client.Logout()
 	client.Login(user.Email, user.Password)
 
-	_, resp, err = client.DeletePost(post.Id)
+	resp, err = client.DeletePost(post.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, err = client.DeletePost(model.NewId())
+	resp, err = client.DeletePost(model.NewId())
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	status, _, err := th.SystemAdminClient.DeletePost(post.Id)
-	require.True(t, status, "post should return status OK")
+	_, err = th.SystemAdminClient.DeletePost(post.Id)
 	require.NoError(t, err)
 }
 
@@ -2083,8 +2076,7 @@ func TestDeletePostMessage(t *testing.T) {
 
 			post := th.CreatePost()
 
-			status, _, err := th.SystemAdminClient.DeletePost(post.Id)
-			require.True(t, status, "post should return status OK")
+			_, err = th.SystemAdminClient.DeletePost(post.Id)
 			require.NoError(t, err)
 
 			timeout := time.After(5 * time.Second)
