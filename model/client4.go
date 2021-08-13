@@ -5928,7 +5928,11 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 		return nil, BuildResponse(rp), AppErrorFromJson(rp.Body)
 	}
 
-	return ManifestFromJson(rp.Body), BuildResponse(rp), nil
+	var m Manifest
+	if jsonErr := json.NewDecoder(rp.Body).Decode(&m); jsonErr != nil {
+		return nil, nil, NewAppError("uploadPlugin", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &m, BuildResponse(rp), nil
 }
 
 func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifest, *Response, error) {
@@ -5940,21 +5944,31 @@ func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifes
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ManifestFromJson(r.Body), BuildResponse(r), nil
+
+	var m Manifest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&m); jsonErr != nil {
+		return nil, nil, NewAppError("InstallPluginFromUrl", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &m, BuildResponse(r), nil
 }
 
 // InstallMarketplacePlugin will install marketplace plugin.
 func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequest) (*Manifest, *Response, error) {
-	json, err := request.ToJson()
+	js, err := request.ToJson()
 	if err != nil {
 		return nil, nil, err
 	}
-	r, err := c.DoApiPost(c.GetPluginsRoute()+"/marketplace", json)
+	r, err := c.DoApiPost(c.GetPluginsRoute()+"/marketplace", js)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ManifestFromJson(r.Body), BuildResponse(r), nil
+
+	var m Manifest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&m); jsonErr != nil {
+		return nil, nil, NewAppError("InstallMarketplacePlugin", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &m, BuildResponse(r), nil
 }
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.
@@ -5995,7 +6009,12 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ManifestListFromJson(r.Body), BuildResponse(r), nil
+
+	var list []*Manifest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetWebappPlugins", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // EnablePlugin will enable an plugin installed.
