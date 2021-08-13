@@ -384,6 +384,8 @@ func (ss *SqlStore) Context() context.Context {
 	return ss.context
 }
 
+func noOpMapper(s string) string { return s }
+
 func (ss *SqlStore) initConnection() {
 	dataSource := *ss.settings.DataSource
 	if ss.DriverName() == model.DatabaseDriverMysql {
@@ -402,7 +404,7 @@ func (ss *SqlStore) initConnection() {
 	ss.master = getDBMap(ss.settings, handle)
 	ss.masterX = sqlx.NewDb(handle, ss.DriverName())
 	if ss.DriverName() == model.DatabaseDriverMysql {
-		ss.masterX.MapperFunc(func(s string) string { return s })
+		ss.masterX.MapperFunc(noOpMapper)
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
@@ -412,7 +414,7 @@ func (ss *SqlStore) initConnection() {
 			ss.Replicas[i] = getDBMap(ss.settings, handle)
 			ss.ReplicaXs[i] = sqlx.NewDb(handle, ss.DriverName())
 			if ss.DriverName() == model.DatabaseDriverMysql {
-				ss.ReplicaXs[i].MapperFunc(func(s string) string { return s })
+				ss.ReplicaXs[i].MapperFunc(noOpMapper)
 			}
 		}
 	}
@@ -424,7 +426,7 @@ func (ss *SqlStore) initConnection() {
 			ss.searchReplicas[i] = getDBMap(ss.settings, handle)
 			ss.searchReplicaXs[i] = sqlx.NewDb(handle, ss.DriverName())
 			if ss.DriverName() == model.DatabaseDriverMysql {
-				ss.searchReplicaXs[i].MapperFunc(func(s string) string { return s })
+				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
 			}
 		}
 	}
