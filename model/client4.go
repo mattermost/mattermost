@@ -4419,7 +4419,11 @@ func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response, error) {
 	}
 	defer closeBody(r)
 
-	return GroupFromJson(r.Body), BuildResponse(r), nil
+	var g Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("LinkLdapGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
 }
 
 // UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
@@ -4432,7 +4436,11 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response, error) {
 	}
 	defer closeBody(r)
 
-	return GroupFromJson(r.Body), BuildResponse(r), nil
+	var g Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("UnlinkLdapGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
 }
 
 // MigrateIdLdap migrates the LDAP enabled users to given attribute
@@ -4539,7 +4547,11 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 	}
 	defer closeBody(r)
 
-	return GroupsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroups", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetGroupsByUserId retrieves Mattermost Groups for a user
@@ -4555,7 +4567,11 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroupsByUserId", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (*Response, error) {
@@ -6111,7 +6127,11 @@ func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupFromJson(r.Body), BuildResponse(r), nil
+	var g Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
 }
 
 func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response, error) {
@@ -6121,7 +6141,11 @@ func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Respon
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupFromJson(r.Body), BuildResponse(r), nil
+	var g Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("PatchGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
 }
 
 func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
@@ -6303,7 +6327,11 @@ func (c *Client4) GetGroupStats(groupID string) (*GroupStats, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupStatsFromJson(r.Body), BuildResponse(r), nil
+	var gs GroupStats
+	if jsonErr := json.NewDecoder(r.Body).Decode(&gs); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroupStats", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &gs, BuildResponse(r), nil
 }
 
 func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string) (*OrderedSidebarCategories, *Response, error) {
