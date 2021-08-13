@@ -757,7 +757,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.IsType(t, &json.SyntaxError{}, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a large, valid response", func(t *testing.T) {
@@ -768,7 +768,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.Equal(t, io.ErrUnexpectedEOF, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a large, invalid response", func(t *testing.T) {
@@ -779,7 +779,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.IsType(t, &json.SyntaxError{}, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a slow response", func(t *testing.T) {
