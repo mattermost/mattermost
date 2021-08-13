@@ -128,7 +128,7 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				actual := strings.TrimSpace(string(logs))
 
 				if testCase.cfg.Format == "json" {
-					reTs := regexp.MustCompile(`"timestamp":"[0-9\.\-\:\s]+"`)
+					reTs := regexp.MustCompile(`"timestamp":"[0-9\.\-\:\sZ]+"`)
 					reCaller := regexp.MustCompile(`"caller":"([^"]+):[0-9\.]+"`)
 					actual = reTs.ReplaceAllString(actual, `"timestamp":0`)
 					actual = reCaller.ReplaceAllString(actual, `"caller":"$1:0"`)
