@@ -249,18 +249,14 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, err := me.Get(context.Background(), session.Id)
-	if err != nil {
-		return err
-	}
-	oldSession.Props = session.Props
-
-	count, err := me.GetMaster().Update(oldSession)
+	_, err := me.GetMaster().Exec(`UPDATE Sessions
+		SET Props=:Props
+		WHERE Id=:Id`, map[string]interface{}{
+		"Props": model.MapToJson(session.Props),
+		"Id":    session.Id,
+	})
 	if err != nil {
 		return errors.Wrap(err, "failed to update Session")
-	}
-	if count != 1 {
-		return fmt.Errorf("updated Sessions were %d, expected 1", count)
 	}
 	return nil
 }
