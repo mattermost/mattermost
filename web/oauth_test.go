@@ -52,7 +52,7 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 
 func TestAuthorizeOAuthApp(t *testing.T) {
 	th := Setup(t).InitBasic()
-	th.Login(APIClient, th.SystemAdminUser)
+	th.Login(apiClient, th.SystemAdminUser)
 	defer th.TearDown()
 
 	enableOAuth := *th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -82,8 +82,8 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	}
 
 	// Test auth code flow
-	ruri, resp := APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	ruri, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 
 	require.NotEmpty(t, ruri, "redirect url should be set")
 
@@ -94,8 +94,8 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 
 	// Test implicit flow
 	authRequest.ResponseType = model.ImplicitResponseType
-	ruri, resp = APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	ruri, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 	require.False(t, ruri == "", "redirect url should be set")
 
 	ru, _ = url.Parse(ruri)
@@ -105,49 +105,45 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	assert.False(t, values.Get("access_token") == "", "access_token not returned")
 	assert.Equal(t, authRequest.State, values.Get("state"), "returned state doesn't match")
 
-	oldToken := APIClient.AuthToken
-	APIClient.AuthToken = values.Get("access_token")
-	_, resp = APIClient.AuthorizeOAuthApp(authRequest)
+	oldToken := apiClient.AuthToken
+	apiClient.AuthToken = values.Get("access_token")
+	_, resp, err := apiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	APIClient.AuthToken = oldToken
+	apiClient.AuthToken = oldToken
 
 	authRequest.RedirectURI = ""
-	_, resp = APIClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.RedirectURI = "http://somewhereelse.com"
-	_, resp = APIClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.RedirectURI = rapp.CallbackUrls[0]
 	authRequest.ResponseType = ""
-	_, resp = APIClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ResponseType = model.AuthCodeResponseType
 	authRequest.ClientId = ""
-	_, resp = APIClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ClientId = model.NewId()
-	_, resp = APIClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
-}
-
-func TestNilAuthorizeOAuthApp(t *testing.T) {
-	th := Setup(t).InitBasic()
-	th.Login(APIClient, th.SystemAdminUser)
-	defer th.TearDown()
-
-	_, resp := APIClient.AuthorizeOAuthApp(nil)
-	require.NotNil(t, resp.Error)
-	assert.Equal(t, "api.context.invalid_body_param.app_error", resp.Error.Id)
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
 	th := Setup(t).InitBasic()
-	th.Login(APIClient, th.SystemAdminUser)
+	th.Login(apiClient, th.SystemAdminUser)
 	defer th.TearDown()
 
 	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -175,22 +171,22 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 		State:        "123",
 	}
 
-	_, resp := APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	_, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 
-	pass, resp := APIClient.DeauthorizeOAuthApp(rapp.Id)
-	require.Nil(t, resp.Error)
+	_, err = apiClient.DeauthorizeOAuthApp(rapp.Id)
+	require.NoError(t, err)
 
-	require.True(t, pass, "should have passed")
-
-	_, resp = APIClient.DeauthorizeOAuthApp("junk")
+	resp, err := apiClient.DeauthorizeOAuthApp("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = APIClient.DeauthorizeOAuthApp(model.NewId())
-	require.Nil(t, resp.Error)
+	_, err = apiClient.DeauthorizeOAuthApp(model.NewId())
+	require.NoError(t, err)
 
-	th.Logout(APIClient)
-	_, resp = APIClient.DeauthorizeOAuthApp(rapp.Id)
+	th.Logout(apiClient)
+	resp, err = apiClient.DeauthorizeOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -200,7 +196,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	th := Setup(t).InitBasic()
-	th.Login(APIClient, th.SystemAdminUser)
+	th.Login(apiClient, th.SystemAdminUser)
 	defer th.TearDown()
 
 	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -229,8 +225,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
-	_, resp := APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - oauth providing turned off - response status code: %v", resp.StatusCode)
+	_, _, err := apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - oauth providing turned off")
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	authRequest := &model.AuthorizeRequest{
@@ -241,48 +237,48 @@ func TestOAuthAccessToken(t *testing.T) {
 		State:        "123",
 	}
 
-	redirect, resp := APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	redirect, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 	rurl, _ := url.Parse(redirect)
 
-	APIClient.Logout()
+	apiClient.Logout()
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - bad grant type")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - bad grant type")
 
 	data.Set("grant_type", model.AccessTokenGrantType)
 	data.Set("client_id", "")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - missing client id")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - missing client id")
 
 	data.Set("client_id", "junk")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - bad client id")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - bad client id")
 
 	data.Set("client_id", oauthApp.Id)
 	data.Set("client_secret", "")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - missing client secret")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - missing client secret")
 
 	data.Set("client_secret", "junk")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - bad client secret")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - bad client secret")
 
 	data.Set("client_secret", oauthApp.ClientSecret)
 	data.Set("code", "")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - missing code")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - missing code")
 
 	data.Set("code", "junk")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - bad code")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - bad code")
 
 	data.Set("code", rurl.Query().Get("code"))
 	data.Set("redirect_uri", "junk")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - non-matching redirect uri")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - non-matching redirect uri")
 
 	// reset data for successful request
 	data.Set("grant_type", model.AccessTokenGrantType)
@@ -293,30 +289,30 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	token := ""
 	refreshToken := ""
-	rsp, resp := APIClient.GetOAuthAccessToken(data)
-	require.Nil(t, resp.Error)
+	rsp, _, err := apiClient.GetOAuthAccessToken(data)
+	require.NoError(t, err)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
 	token, refreshToken = rsp.AccessToken, rsp.RefreshToken
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
-	_, err := APIClient.DoAPIGet("/oauth_test", "")
-	require.Nil(t, err)
+	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	require.NoError(t, err)
 
-	APIClient.SetOAuthToken("")
-	_, err = APIClient.DoAPIGet("/oauth_test", "")
-	require.NotNil(t, err, "should have failed - no access token provided")
+	apiClient.SetOAuthToken("")
+	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	require.Error(t, err, "should have failed - no access token provided")
 
-	APIClient.SetOAuthToken("badtoken")
-	_, err = APIClient.DoAPIGet("/oauth_test", "")
-	require.NotNil(t, err, "should have failed - bad token provided")
+	apiClient.SetOAuthToken("badtoken")
+	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	require.Error(t, err, "should have failed - bad token provided")
 
-	APIClient.SetOAuthToken(token)
-	_, err = APIClient.DoAPIGet("/oauth_test", "")
-	require.Nil(t, err)
+	apiClient.SetOAuthToken(token)
+	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	require.NoError(t, err)
 
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "should have failed - tried to reuse auth code")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "should have failed - tried to reuse auth code")
 
 	data.Set("grant_type", model.RefreshTokenGrantType)
 	data.Set("client_id", oauthApp.Id)
@@ -324,36 +320,36 @@ func TestOAuthAccessToken(t *testing.T) {
 	data.Set("refresh_token", "")
 	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 	data.Del("code")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "Should have failed - refresh token empty")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "Should have failed - refresh token empty")
 
 	data.Set("refresh_token", refreshToken)
-	rsp, resp = APIClient.GetOAuthAccessToken(data)
-	require.Nil(t, resp.Error)
+	rsp, _, err = apiClient.GetOAuthAccessToken(data)
+	require.NoError(t, err)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
 	require.NotEqual(t, rsp.RefreshToken, refreshToken, "refresh token did not update")
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
-	APIClient.SetOAuthToken(rsp.AccessToken)
-	_, err = APIClient.DoAPIGet("/oauth_test", "")
-	require.Nil(t, err)
+	apiClient.SetOAuthToken(rsp.AccessToken)
+	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	require.NoError(t, err)
 
 	data.Set("refresh_token", rsp.RefreshToken)
-	rsp, resp = APIClient.GetOAuthAccessToken(data)
-	require.Nil(t, resp.Error)
+	rsp, _, err = apiClient.GetOAuthAccessToken(data)
+	require.NoError(t, err)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
 	require.NotEqual(t, rsp.RefreshToken, refreshToken, "refresh token did not update")
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
-	APIClient.SetOAuthToken(rsp.AccessToken)
-	_, err = APIClient.DoAPIGet("/oauth_test", "")
-	require.Nil(t, err)
+	apiClient.SetOAuthToken(rsp.AccessToken)
+	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	require.NoError(t, err)
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
-	_, nErr := th.App.Srv().Store.OAuth().SaveAuthData(authData)
-	require.NoError(t, nErr)
+	_, err = th.App.Srv().Store.OAuth().SaveAuthData(authData)
+	require.NoError(t, err)
 
 	data.Set("grant_type", model.AccessTokenGrantType)
 	data.Set("client_id", oauthApp.Id)
@@ -361,10 +357,10 @@ func TestOAuthAccessToken(t *testing.T) {
 	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 	data.Set("code", authData.Code)
 	data.Del("refresh_token")
-	_, resp = APIClient.GetOAuthAccessToken(data)
-	require.NotNil(t, resp.Error, "Should have failed - code is expired")
+	_, _, err = apiClient.GetOAuthAccessToken(data)
+	require.Error(t, err, "Should have failed - code is expired")
 
-	APIClient.ClearOAuthToken()
+	apiClient.ClearOAuthToken()
 }
 
 func TestMobileLoginWithOAuth(t *testing.T) {
@@ -419,7 +415,7 @@ func TestOAuthComplete(t *testing.T) {
 	}
 
 	th := Setup(t).InitBasic()
-	th.Login(APIClient, th.SystemAdminUser)
+	th.Login(apiClient, th.SystemAdminUser)
 	defer th.TearDown()
 
 	gitLabSettingsEnable := th.App.Config().GitLabSettings.Enable
@@ -439,16 +435,16 @@ func TestOAuthComplete(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
-	r, err := HTTPGet(APIClient.URL+"/login/gitlab/complete?code=123", APIClient.HTTPClient, "", true)
-	assert.NotNil(t, err)
+	r, err := HTTPGet(apiClient.URL+"/login/gitlab/complete?code=123", apiClient.HTTPClient, "", true)
+	assert.Error(t, err)
 	closeBody(r)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
-	r, err = HTTPGet(APIClient.URL+"/login/gitlab/complete?code=123&state=!#$#F@#Yˆ&~ñ", APIClient.HTTPClient, "", true)
-	assert.NotNil(t, err)
+	r, err = HTTPGet(apiClient.URL+"/login/gitlab/complete?code=123&state=!#$#F@#Yˆ&~ñ", apiClient.HTTPClient, "", true)
+	assert.Error(t, err)
 	closeBody(r)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = APIClient.URL + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = apiClient.URL + "/oauth/authorize" })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = model.NewId() })
 
 	stateProps := map[string]string{}
@@ -457,14 +453,14 @@ func TestOAuthComplete(t *testing.T) {
 	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
 
 	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
-	r, err = HTTPGet(APIClient.URL+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), APIClient.HTTPClient, "", true)
-	assert.NotNil(t, err)
+	r, err = HTTPGet(apiClient.URL+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), apiClient.HTTPClient, "", true)
+	assert.Error(t, err)
 	closeBody(r)
 
 	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
-	r, err = HTTPGet(APIClient.URL+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), APIClient.HTTPClient, "", true)
-	assert.NotNil(t, err)
+	r, err = HTTPGet(apiClient.URL+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), apiClient.HTTPClient, "", true)
+	assert.Error(t, err)
 	closeBody(r)
 
 	// We are going to use mattermost as the provider emulating gitlab
@@ -482,8 +478,8 @@ func TestOAuthComplete(t *testing.T) {
 		Homepage:    "https://nowhere.com",
 		Description: "test",
 		CallbackUrls: []string{
-			APIClient.URL + "/signup/" + model.ServiceGitlab + "/complete",
-			APIClient.URL + "/login/" + model.ServiceGitlab + "/complete",
+			apiClient.URL + "/signup/" + model.ServiceGitlab + "/complete",
+			apiClient.URL + "/login/" + model.ServiceGitlab + "/complete",
 		},
 		CreatorId: th.SystemAdminUser.Id,
 		IsTrusted: true,
@@ -493,9 +489,9 @@ func TestOAuthComplete(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = oauthApp.Id })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = APIClient.URL + "/oauth/authorize" })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.TokenEndpoint = APIClient.URL + "/oauth/access_token" })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.UserAPIEndpoint = APIClient.APIURL + "/users/me" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = apiClient.URL + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.TokenEndpoint = apiClient.URL + "/oauth/access_token" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.UserAPIEndpoint = apiClient.APIURL + "/users/me" })
 
 	provider := &MattermostTestProvider{}
 
@@ -507,8 +503,8 @@ func TestOAuthComplete(t *testing.T) {
 		State:        "123",
 	}
 
-	redirect, resp := APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	redirect, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 	rurl, _ := url.Parse(redirect)
 
 	code := rurl.Query().Get("code")
@@ -518,19 +514,19 @@ func TestOAuthComplete(t *testing.T) {
 	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	stateProps["redirect_to"] = "/oauth/authorize"
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
-	r, err = HTTPGet(APIClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), APIClient.HTTPClient, "", false)
+	r, err = HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false)
 	if err == nil {
 		closeBody(r)
 	}
 
 	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
-	redirect, resp = APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	redirect, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
-	r, err = HTTPGet(APIClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), APIClient.HTTPClient, "", false)
+	r, err = HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false)
 	if err == nil {
 		closeBody(r)
 	}
@@ -539,36 +535,36 @@ func TestOAuthComplete(t *testing.T) {
 		th.BasicUser.Id, model.ServiceGitlab, &th.BasicUser.Email, th.BasicUser.Email, true)
 	require.NoError(t, nErr)
 
-	redirect, resp = APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	redirect, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
 	stateProps["action"] = model.OAuthActionLogin
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
-	if r, err := HTTPGet(APIClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), APIClient.HTTPClient, "", false); err == nil {
+	if r, err = HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false); err == nil {
 		closeBody(r)
 	}
 
-	redirect, resp = APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	redirect, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
 	delete(stateProps, "action")
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
-	if r, err := HTTPGet(APIClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), APIClient.HTTPClient, "", false); err == nil {
+	if r, err = HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false); err == nil {
 		closeBody(r)
 	}
 
-	redirect, resp = APIClient.AuthorizeOAuthApp(authRequest)
-	require.Nil(t, resp.Error)
+	redirect, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
 	stateProps["action"] = model.OAuthActionSignup
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
-	if r, err := HTTPGet(APIClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), APIClient.HTTPClient, "", false); err == nil {
+	if r, err := HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false); err == nil {
 		closeBody(r)
 	}
 }
@@ -612,7 +608,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	assert.Contains(t, responseWriter.Body.String(), "<!-- mobile app message -->")
 }
 
-func HTTPGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, *model.AppError) {
+func HTTPGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, error) {
 	rq, _ := http.NewRequest("GET", url, nil)
 	rq.Close = true
 
@@ -627,7 +623,7 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 	}
 
 	if rp, err := httpClient.Do(rq); err != nil {
-		return nil, model.NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
+		return nil, err
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode == 307 {
@@ -675,11 +671,9 @@ func GenerateTestAppName() string {
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {
 	t.Helper()
 
-	require.NotNil(t, resp, "Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, true)
+	require.NotNilf(t, resp, "Unexpected nil response, expected http status:%v", expectedStatus)
 
-	require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-
-	require.Equal(t, resp.StatusCode, expectedStatus, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v", expectedStatus, resp.StatusCode)
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {

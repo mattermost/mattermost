@@ -16,31 +16,31 @@ func TestAPIResctrictedViewMembers(t *testing.T) {
 	defer th.TearDown()
 
 	// Create first account for system admin
-	_, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user0", Password: "test-password-0", Username: "test-user-0", Roles: model.SystemUserRoleId})
-	require.Nil(t, err)
+	_, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user0", Password: "test-password-0", Username: "test-user-0", Roles: model.SystemUserRoleId})
+	require.Nil(t, appErr)
 
-	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
-	require.Nil(t, err)
-	user2, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
-	require.Nil(t, err)
-	user3, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user3", Password: "test-password-3", Username: "test-user-3", Roles: model.SystemUserRoleId})
-	require.Nil(t, err)
-	user4, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user4", Password: "test-password-4", Username: "test-user-4", Roles: model.SystemUserRoleId})
-	require.Nil(t, err)
-	user5, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user5", Password: "test-password-5", Username: "test-user-5", Roles: model.SystemUserRoleId})
-	require.Nil(t, err)
+	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	require.Nil(t, appErr)
+	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
+	require.Nil(t, appErr)
+	user3, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user3", Password: "test-password-3", Username: "test-user-3", Roles: model.SystemUserRoleId})
+	require.Nil(t, appErr)
+	user4, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user4", Password: "test-password-4", Username: "test-user-4", Roles: model.SystemUserRoleId})
+	require.Nil(t, appErr)
+	user5, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user5", Password: "test-password-5", Username: "test-user-5", Roles: model.SystemUserRoleId})
+	require.Nil(t, appErr)
 
-	team1, err := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
-	require.Nil(t, err)
-	team2, err := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
-	require.Nil(t, err)
+	team1, appErr := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
+	require.Nil(t, appErr)
+	team2, appErr := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "dn_" + model.NewId(), Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
+	require.Nil(t, appErr)
 
-	channel1, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
-	require.Nil(t, err)
-	channel2, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
-	require.Nil(t, err)
-	channel3, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team2.Id, CreatorId: model.NewId()}, false)
-	require.Nil(t, err)
+	channel1, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
+	require.Nil(t, appErr)
+	channel2, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team1.Id, CreatorId: model.NewId()}, false)
+	require.Nil(t, appErr)
+	channel3, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team2.Id, CreatorId: model.NewId()}, false)
+	require.Nil(t, appErr)
 
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user2, team1)
@@ -60,8 +60,8 @@ func TestAPIResctrictedViewMembers(t *testing.T) {
 	th.App.SetStatusOnline(user4.Id, true)
 	th.App.SetStatusOnline(user5.Id, true)
 
-	_, resp := th.Client.Login(user1.Username, "test-password-1")
-	CheckNoError(t, resp)
+	_, _, err := th.Client.Login(user1.Username, "test-password-1")
+	require.NoError(t, err)
 
 	t.Run("getUser", func(t *testing.T) {
 		testCases := []struct {
@@ -134,12 +134,11 @@ func TestAPIResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetUser(tc.UserId, "")
-				require.Nil(t, err)
+				_, _, err := th.Client.GetUser(tc.UserId, "")
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -216,12 +215,11 @@ func TestAPIResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetUserByUsername(tc.Username, "")
-				require.Nil(t, err)
+				_, _, err := th.Client.GetUserByUsername(tc.Username, "")
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -298,12 +296,11 @@ func TestAPIResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetUserByEmail(tc.Email, "")
-				require.Nil(t, err)
+				_, _, err := th.Client.GetUserByEmail(tc.Email, "")
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -380,12 +377,11 @@ func TestAPIResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetDefaultProfileImage(tc.UserId)
-				require.Nil(t, err)
+				_, _, err := th.Client.GetDefaultProfileImage(tc.UserId)
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -462,12 +458,11 @@ func TestAPIResctrictedViewMembers(t *testing.T) {
 					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
-				_, resp := th.Client.GetProfileImage(tc.UserId, "")
-				require.Nil(t, err)
+				_, _, err := th.Client.GetProfileImage(tc.UserId, "")
 				if tc.ExpectedError != "" {
-					CheckErrorMessage(t, resp, tc.ExpectedError)
+					CheckErrorID(t, err, tc.ExpectedError)
 				} else {
-					CheckNoError(t, resp)
+					require.NoError(t, err)
 				}
 			})
 		}

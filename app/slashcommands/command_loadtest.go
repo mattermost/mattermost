@@ -215,9 +215,9 @@ func (*LoadTestProvider) SetupCommand(a *app.App, c *request.Context, args *mode
 		if err := CreateBasicUser(a, client); err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-		_, resp := client.Login(BTestUserEmail, BTestUserPassword)
-		if resp.Error != nil {
-			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, resp.Error
+		_, _, err := client.Login(BTestUserEmail, BTestUserPassword)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 		environment, err := CreateTestEnvironmentWithTeams(
 			a,
@@ -443,18 +443,18 @@ func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, messag
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	_, resp := client.LoginById(user.Id, passwd)
-	if resp.Error != nil {
-		return &model.CommandResponse{Text: "Failed to login a user", ResponseType: model.CommandResponseTypeEphemeral}, resp.Error
+	_, _, nErr := client.LoginById(user.Id, passwd)
+	if nErr != nil {
+		return &model.CommandResponse{Text: "Failed to login a user", ResponseType: model.CommandResponseTypeEphemeral}, nErr
 	}
 
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   textMessage,
 	}
-	_, resp = client.CreatePost(post)
-	if resp.Error != nil {
-		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, resp.Error
+	_, _, nErr = client.CreatePost(post)
+	if nErr != nil {
+		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, nErr
 	}
 
 	return &model.CommandResponse{Text: "Added a post to " + channel.DisplayName, ResponseType: model.CommandResponseTypeEphemeral}, nil

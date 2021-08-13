@@ -1403,6 +1403,7 @@ type FileSettings struct {
 	EnableMobileUpload      *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
 	EnableMobileDownload    *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
 	MaxFileSize             *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxImageResolution      *int64  `access:"environment_file_storage,cloud_restrictable"`
 	DriverName              *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	Directory               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	EnablePublicLink        *bool   `access:"site_public_links,cloud_restrictable"`
@@ -1436,7 +1437,11 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(MB * 100)
+		s.MaxFileSize = NewInt64(100 * 1024 * 1024) // 100MB (IEC)
+	}
+
+	if s.MaxImageResolution == nil {
+		s.MaxImageResolution = NewInt64(7680 * 4320) // 8K, ~33MPX
 	}
 
 	if s.DriverName == nil {

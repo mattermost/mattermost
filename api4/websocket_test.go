@@ -30,7 +30,7 @@ func TestWebSocketEvent(t *testing.T) {
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 
 	WebSocketClient.Listen()
@@ -98,7 +98,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	Client := th.Client
+	client := th.Client
 	user2 := th.BasicUser2
 
 	users := make([]*model.User, 0)
@@ -109,7 +109,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	}
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
@@ -138,8 +138,8 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 
 	for _, user := range users {
 		time.Sleep(100 * time.Millisecond)
-		_, resp := Client.CreateDirectChannel(th.BasicUser.Id, user.Id)
-		require.Nil(t, resp.Error, "failed to create DM channel")
+		_, _, err := client.CreateDirectChannel(th.BasicUser.Id, user.Id)
+		require.NoError(t, err, "failed to create DM channel")
 	}
 
 	time.Sleep(5000 * time.Millisecond)
@@ -203,9 +203,9 @@ func TestWebSocketStatuses(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	Client := th.Client
+	client := th.Client
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err, err)
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
@@ -213,26 +213,28 @@ func TestWebSocketStatuses(t *testing.T) {
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "test@nowhere.com", Type: model.TeamOpen}
-	rteam, _ := Client.CreateTeam(&team)
+	rteam, _, _ := client.CreateTeam(&team)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser := Client.Must(Client.CreateUser(&user)).(*model.User)
+	ruser, _, err := client.CreateUser(&user)
+	require.NoError(t, err)
 	th.LinkUserToTeam(ruser, rteam)
-	_, nErr := th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
-	require.NoError(t, nErr)
+	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	require.NoError(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser2 := Client.Must(Client.CreateUser(&user2)).(*model.User)
+	ruser2, _, err := client.CreateUser(&user2)
+	require.NoError(t, err)
 	th.LinkUserToTeam(ruser2, rteam)
-	_, nErr = th.App.Srv().Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
-	require.NoError(t, nErr)
+	_, err = th.App.Srv().Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
+	require.NoError(t, err)
 
-	Client.Login(user.Email, user.Password)
+	client.Login(user.Email, user.Password)
 
 	th.LoginBasic2()
 
-	WebSocketClient2, err2 := th.CreateWebSocketClient()
-	require.Nil(t, err2, err2)
+	WebSocketClient2, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
 
 	time.Sleep(1000 * time.Millisecond)
 

@@ -27,7 +27,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-var APIClient *model.Client4
+var apiClient *model.Client4
 var URL string
 
 type TestHelper struct {
@@ -115,7 +115,7 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 
 	web := New(a, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
-	APIClient = model.NewAPIv4Client(URL)
+	apiClient = model.NewAPIv4Client(URL)
 
 	s.Store.MarkSystemRanUnitTests()
 
