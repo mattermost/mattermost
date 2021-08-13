@@ -1511,11 +1511,15 @@ func doCommandWebhookCleanup(s *Server) {
 }
 
 const (
-	SessionsCleanupBatchSize = 1000
+	sessionsCleanupBatchSize = 1000
 )
 
 func doSessionCleanup(s *Server) {
-	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
+	mlog.Debug("Cleaning up session store.")
+	err := s.Store.Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
+	if err != nil {
+		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
+	}
 }
 
 func doCheckAdminSupportStatus(a *App, c *request.Context) {
