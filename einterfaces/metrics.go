@@ -18,8 +18,8 @@ type MetricsInterface interface {
 	IncrementPostBroadcast()
 	IncrementPostFileAttachment(count int)
 
-	IncrementHttpRequest()
-	IncrementHttpError()
+	IncrementHTTPRequest()
+	IncrementHTTPError()
 
 	IncrementClusterRequest()
 	ObserveClusterRequestDuration(elapsed float64)

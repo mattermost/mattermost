@@ -26,6 +26,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
@@ -758,5 +759,35 @@ func TestAdminAdvisor(t *testing.T) {
 		posts, err := th.App.GetPosts(channel.Id, 0, 100)
 		assert.Nil(t, err, "No error should be generated")
 		assert.Equal(t, 0, len(posts.Posts))
+	})
+
+	t.Run("Should not break in case of many sysadmins", func(t *testing.T) {
+		var userList []*model.User
+		for i := 0; i < 50; i++ {
+			user := model.User{
+				Email:       strings.ToLower(NewTestId()) + "success+test@example.com",
+				Nickname:    "Admin",
+				Username:    "admin" + NewTestId(),
+				Password:    "password",
+				AuthService: "",
+				Roles:       model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+			}
+			ruser, err := th.App.srv.userService.CreateUser(&user, users.UserCreateOptions{FromImport: true})
+			assert.NoError(t, err, "User should be created")
+			userList = append(userList, ruser)
+			defer th.App.PermanentDeleteUser(th.Context, ruser)
+		}
+
+		th.App.notifyAdminsOfWarnMetricStatus(th.Context, model.SystemMetricSupportEmailNotConfigured, true)
+
+		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
+		assert.NotNil(t, bot, "Bot should have been created now")
+		assert.Nil(t, err, "No error should be generated")
+
+		for _, user := range userList {
+			channel, err := th.App.getDirectChannel(bot.Id, user.Id)
+			assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
+			assert.Nil(t, err, "No error should be generated")
+		}
 	})
 }

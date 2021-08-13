@@ -152,8 +152,7 @@ func (src *fileSrc) set(cfg mlog.LoggerConfiguration) {
 
 // Close cleans up resources.
 func (src *fileSrc) Close() error {
-	var err error
-	return err
+	return nil
 }
 
 func logTargetCfgFromJSON(data []byte) (mlog.LoggerConfiguration, error) {
