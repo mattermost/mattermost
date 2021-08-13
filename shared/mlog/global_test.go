@@ -133,7 +133,7 @@ func TestLoggingAfterInitialized(t *testing.T) {
 					actual = reTs.ReplaceAllString(actual, `"timestamp":0`)
 					actual = reCaller.ReplaceAllString(actual, `"caller":"$1:0"`)
 				} else {
-					reTs := regexp.MustCompile(`\[\d\d\d\d-\d\d-\d\d\s[0-9\:\.\s\-]+\]`)
+					reTs := regexp.MustCompile(`\[\d\d\d\d-\d\d-\d\d\s[0-9\:\.\s\-Z]+\]`)
 					reCaller := regexp.MustCompile(`caller="([^"]+):[0-9\.]+"`)
 					actual = reTs.ReplaceAllString(actual, "TIME")
 					actual = reCaller.ReplaceAllString(actual, `caller="$1:0"`)
