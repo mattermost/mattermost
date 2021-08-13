@@ -617,9 +617,14 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.NotifyProps[key] = value
 }
 
-func (u *User) SetCustomStatus(cs *CustomStatus) {
+func (u *User) SetCustomStatus(cs *CustomStatus) error {
 	u.MakeNonNil()
-	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
+	statusJSON, jsonErr := json.Marshal(cs)
+	if jsonErr != nil {
+		return jsonErr
+	}
+	u.Props[UserPropsKeyCustomStatus] = string(statusJSON)
+	return nil
 }
 
 func (u *User) ClearCustomStatus() {

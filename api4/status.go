@@ -134,8 +134,9 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	customStatus := model.CustomStatusFromJson(r.Body)
-	if customStatus == nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
+	var customStatus model.CustomStatus
+	jsonErr := json.NewDecoder(r.Body).Decode(&customStatus)
+	if jsonErr != nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
 		c.SetInvalidParam("custom_status")
 		return
 	}
@@ -146,7 +147,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	customStatus.PreSave()
-	err := c.App.SetCustomStatus(c.Params.UserId, customStatus)
+	err := c.App.SetCustomStatus(c.Params.UserId, &customStatus)
 	if err != nil {
 		c.Err = err
 		return
@@ -190,8 +191,8 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	recentCustomStatus := model.CustomStatusFromJson(r.Body)
-	if recentCustomStatus == nil {
+	var recentCustomStatus model.CustomStatus
+	if jsonErr := json.NewDecoder(r.Body).Decode(&recentCustomStatus); jsonErr != nil {
 		c.SetInvalidParam("recent_custom_status")
 		return
 	}
@@ -201,7 +202,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, recentCustomStatus); err != nil {
+	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, &recentCustomStatus); err != nil {
 		c.Err = err
 		return
 	}
