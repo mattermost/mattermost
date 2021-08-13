@@ -6113,8 +6113,11 @@ func (c *Client4) GetServerBusy() (*ServerBusyState, *Response, error) {
 	}
 	defer closeBody(r)
 
-	sbs := ServerBusyStateFromJson(r.Body)
-	return sbs, BuildResponse(r), nil
+	var sbs ServerBusyState
+	if jsonErr := json.NewDecoder(r.Body).Decode(&sbs); jsonErr != nil {
+		return nil, nil, NewAppError("GetServerBusy", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &sbs, BuildResponse(r), nil
 }
 
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.

@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -120,7 +121,11 @@ func (s *Server) clusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMe
 }
 
 func (s *Server) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
-	s.serverBusyStateChanged(model.ServerBusyStateFromJson(bytes.NewReader(msg.Data)))
+	var sbs model.ServerBusyState
+	if jsonErr := json.Unmarshal(msg.Data, &sbs); jsonErr != nil {
+		mlog.Warn("Failed to decode server busy state from JSON", mlog.Err(jsonErr))
+	}
+	s.serverBusyStateChanged(&sbs)
 }
 
 func (s *Server) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {
