@@ -684,7 +684,11 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 		return nil, BuildResponse(rp), AppErrorFromJson(rp.Body)
 	}
 
-	return EmojiFromJson(rp.Body), BuildResponse(rp), nil
+	var e Emoji
+	if jsonErr := json.NewDecoder(rp.Body).Decode(&e); jsonErr != nil {
+		return nil, nil, NewAppError("DoEmojiUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &e, BuildResponse(rp), nil
 }
 
 func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response, error) {
@@ -5366,7 +5370,12 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 		return nil, nil, err
 	}
 
-	if err := writer.WriteField("emoji", emoji.ToJson()); err != nil {
+	emojiJSON, jsonErr := json.Marshal(emoji)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("CreateEmoji", "api.marshal_error", nil, jsonErr.Error(), 0)
+	}
+
+	if err := writer.WriteField("emoji", string(emojiJSON)); err != nil {
 		return nil, nil, err
 	}
 
@@ -5385,7 +5394,12 @@ func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiListFromJson(r.Body), BuildResponse(r), nil
+
+	var list []*Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetEmojiList", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetSortedEmojiList returns a page of custom emoji on the system sorted based on the sort
@@ -5397,7 +5411,11 @@ func (c *Client4) GetSortedEmojiList(page, perPage int, sort string) ([]*Emoji, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetSortedEmojiList", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
@@ -5417,7 +5435,11 @@ func (c *Client4) GetEmoji(emojiId string) (*Emoji, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiFromJson(r.Body), BuildResponse(r), nil
+	var e Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&e); jsonErr != nil {
+		return nil, nil, NewAppError("GetEmoji", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &e, BuildResponse(r), nil
 }
 
 // GetEmojiByName returns a custom emoji based on the name string.
@@ -5427,7 +5449,11 @@ func (c *Client4) GetEmojiByName(name string) (*Emoji, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiFromJson(r.Body), BuildResponse(r), nil
+	var e Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&e); jsonErr != nil {
+		return nil, nil, NewAppError("GetEmojiByName", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &e, BuildResponse(r), nil
 }
 
 // GetEmojiImage returns the emoji image.
@@ -5457,7 +5483,11 @@ func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("SearchEmoji", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // AutocompleteEmoji returns a list of emoji starting with or matching name.
@@ -5468,7 +5498,11 @@ func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Respon
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("AutocompleteEmoji", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // Reaction Section
