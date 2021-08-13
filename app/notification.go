@@ -212,14 +212,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						return
 					}
 				}
+
+				updateFollowing := *a.Config().ServiceSettings.ThreadAutoFollow
 				if mentionType == ThreadMention || mentionType == CommentMention {
 					incrementMentions = false
+					updateFollowing = false
 				}
-
 				opts := store.ThreadMembershipOpts{
 					Following:             true,
 					IncrementMentions:     incrementMentions,
-					UpdateFollowing:       *a.Config().ServiceSettings.ThreadAutoFollow,
+					UpdateFollowing:       updateFollowing,
 					UpdateViewedTimestamp: userID == post.UserId,
 					UpdateParticipants:    userID == post.UserId,
 				}
@@ -467,7 +469,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
-	a.Publish(message)
+	published, err := a.publishWebsocketEventForPermalinkPost(post, message)
+	if err != nil {
+		return nil, err
+	}
+	if !published {
+		a.Publish(message)
+	}
 
 	// If this is a reply in a thread, notify participants
 	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled && post.RootId != "" {
@@ -500,6 +508,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if userThread != nil {
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
+
+					previewPost := post.GetPreviewPost()
+					if previewPost != nil {
+						previewedChannel, err := a.GetChannel(previewPost.Post.ChannelId)
+						if err != nil {
+							return nil, err
+						}
+						if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) {
+							userThread.Post.Metadata.Embeds[0].Data = nil
+						}
+					}
+
 					message.Add("thread", userThread.ToJson())
 					a.Publish(message)
 				}
@@ -1066,8 +1086,10 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	if overridesAllowed && n.Channel.Type != model.ChannelTypeDirect {
-		if value, ok := n.Post.GetProps()["override_username"]; ok && n.Post.GetProp("from_webhook") == "true" {
-			return value.(string)
+		if value := n.Post.GetProps()["override_username"]; value != nil && n.Post.GetProp("from_webhook") == "true" {
+			if s, ok := value.(string); ok {
+				return s
+			}
 		}
 	}
 

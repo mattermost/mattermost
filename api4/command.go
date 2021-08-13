@@ -261,7 +261,9 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Write([]byte(model.CommandListToJson(commands)))
+	if err := json.NewEncoder(w).Encode(commands); err != nil {
+		mlog.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -374,7 +376,9 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write([]byte(model.CommandListToJson(commands)))
+	if err := json.NewEncoder(w).Encode(commands); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *http.Request) {

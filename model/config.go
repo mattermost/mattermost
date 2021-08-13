@@ -27,7 +27,7 @@ import (
 const (
 	ConnSecurityNone     = ""
 	ConnSecurityPlain    = "PLAIN"
-	ConnSecurityTls      = "TLS"
+	ConnSecurityTLS      = "TLS"
 	ConnSecurityStarttls = "STARTTLS"
 
 	ImageDriverLocal = "local"
@@ -96,8 +96,8 @@ const (
 	SitenameMaxLength = 30
 
 	ServiceSettingsDefaultSiteUrl          = "http://localhost:8065"
-	ServiceSettingsDefaultTlsCertFile      = ""
-	ServiceSettingsDefaultTlsKeyFile       = ""
+	ServiceSettingsDefaultTLSCertFile      = ""
+	ServiceSettingsDefaultTLSKeyFile       = ""
 	ServiceSettingsDefaultReadTimeout      = 300
 	ServiceSettingsDefaultWriteTimeout     = 300
 	ServiceSettingsDefaultIdleTimeout      = 60
@@ -298,6 +298,7 @@ type ServiceSettings struct {
 	EnablePostIconOverride                            *bool    `access:"integrations_integration_management"`
 	GoogleDeveloperKey                                *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableLinkPreviews                                *bool    `access:"site_posts"`
+	EnablePermalinkPreviews                           *bool    `access:"site_posts"`
 	RestrictLinkPreviews                              *string  `access:"site_posts"`
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
@@ -339,6 +340,7 @@ type ServiceSettings struct {
 	ClusterLogTimeoutMilliseconds                     *int     `access:"write_restrictable,cloud_restrictable"`
 	EnablePreviewFeatures                             *bool    `access:"experimental_features"`
 	EnableTutorial                                    *bool    `access:"experimental_features"`
+	EnableOnboardingFlow                              *bool    `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental_features"`
 	EnableAPITeamDeletion                             *bool
@@ -395,6 +397,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableLinkPreviews == nil {
 		s.EnableLinkPreviews = NewBool(true)
+	}
+
+	if s.EnablePermalinkPreviews == nil {
+		s.EnablePermalinkPreviews = NewBool(true)
 	}
 
 	if s.RestrictLinkPreviews == nil {
@@ -462,11 +468,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.TLSKeyFile == nil {
-		s.TLSKeyFile = NewString(ServiceSettingsDefaultTlsKeyFile)
+		s.TLSKeyFile = NewString(ServiceSettingsDefaultTLSKeyFile)
 	}
 
 	if s.TLSCertFile == nil {
-		s.TLSCertFile = NewString(ServiceSettingsDefaultTlsCertFile)
+		s.TLSCertFile = NewString(ServiceSettingsDefaultTLSCertFile)
 	}
 
 	if s.TLSMinVer == nil {
@@ -557,6 +563,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableTutorial == nil {
 		s.EnableTutorial = NewBool(true)
+	}
+
+	if s.EnableOnboardingFlow == nil {
+		s.EnableOnboardingFlow = NewBool(true)
 	}
 
 	// Must be manually enabled for existing installations.
@@ -1328,6 +1338,7 @@ type FileSettings struct {
 	EnableMobileUpload      *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
 	EnableMobileDownload    *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
 	MaxFileSize             *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxImageResolution      *int64  `access:"environment_file_storage,cloud_restrictable"`
 	DriverName              *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	Directory               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	EnablePublicLink        *bool   `access:"site_public_links,cloud_restrictable"`
@@ -1361,7 +1372,11 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(MB * 100)
+		s.MaxFileSize = NewInt64(100 * 1024 * 1024) // 100MB (IEC)
+	}
+
+	if s.MaxImageResolution == nil {
+		s.MaxImageResolution = NewInt64(7680 * 4320) // 8K, ~33MPX
 	}
 
 	if s.DriverName == nil {
@@ -2718,8 +2733,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 type GlobalRelayMessageExportSettings struct {
 	CustomerType      *string `access:"compliance_compliance_export"` // must be either A9 or A10, dictates SMTP server url
-	SmtpUsername      *string `access:"compliance_compliance_export"`
-	SmtpPassword      *string `access:"compliance_compliance_export"`
+	SMTPUsername      *string `access:"compliance_compliance_export"`
+	SMTPPassword      *string `access:"compliance_compliance_export"`
 	EmailAddress      *string `access:"compliance_compliance_export"` // the address to send messages to
 	SMTPServerTimeout *int    `access:"compliance_compliance_export"`
 }
@@ -2728,11 +2743,11 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	if s.CustomerType == nil {
 		s.CustomerType = NewString(GlobalrelayCustomerTypeA9)
 	}
-	if s.SmtpUsername == nil {
-		s.SmtpUsername = NewString("")
+	if s.SMTPUsername == nil {
+		s.SMTPUsername = NewString("")
 	}
-	if s.SmtpPassword == nil {
-		s.SmtpPassword = NewString("")
+	if s.SMTPPassword == nil {
+		s.SMTPPassword = NewString("")
 	}
 	if s.EmailAddress == nil {
 		s.EmailAddress = NewString("")
@@ -3001,16 +3016,16 @@ type Config struct {
 }
 
 func (o *Config) Clone() *Config {
+	buf, err := json.Marshal(o)
+	if err != nil {
+		panic(err)
+	}
 	var ret Config
-	if err := json.Unmarshal([]byte(o.ToJson()), &ret); err != nil {
+	err = json.Unmarshal(buf, &ret)
+	if err != nil {
 		panic(err)
 	}
 	return &ret
-}
-
-func (o *Config) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func (o *Config) ToJsonFiltered(tagType, tagValue string) string {
@@ -3277,7 +3292,7 @@ func (s *FileSettings) isValid() *AppError {
 }
 
 func (s *EmailSettings) isValid() *AppError {
-	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTls || *s.ConnectionSecurity == ConnSecurityStarttls || *s.ConnectionSecurity == ConnSecurityPlain) {
+	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS || *s.ConnectionSecurity == ConnSecurityStarttls || *s.ConnectionSecurity == ConnSecurityPlain) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3313,7 +3328,7 @@ func (s *RateLimitSettings) isValid() *AppError {
 }
 
 func (s *LdapSettings) isValid() *AppError {
-	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTls || *s.ConnectionSecurity == ConnSecurityStarttls) {
+	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS || *s.ConnectionSecurity == ConnSecurityStarttls) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3374,11 +3389,11 @@ func (s *LdapSettings) isValid() *AppError {
 
 func (s *SamlSettings) isValid() *AppError {
 	if *s.Enable {
-		if *s.IdpUrl == "" || !IsValidHttpUrl(*s.IdpUrl) {
+		if *s.IdpUrl == "" || !IsValidHTTPUrl(*s.IdpUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if *s.IdpDescriptorUrl == "" || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
+		if *s.IdpDescriptorUrl == "" || !IsValidHTTPUrl(*s.IdpDescriptorUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -3399,7 +3414,7 @@ func (s *SamlSettings) isValid() *AppError {
 		}
 
 		if *s.Verify {
-			if *s.AssertionConsumerServiceURL == "" || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
+			if *s.AssertionConsumerServiceURL == "" || !IsValidHTTPUrl(*s.AssertionConsumerServiceURL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -3448,11 +3463,11 @@ func (s *SamlSettings) isValid() *AppError {
 }
 
 func (s *ServiceSettings) isValid() *AppError {
-	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTls) {
+	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.ConnectionSecurity == ConnSecurityTls && !*s.UseLetsEncrypt {
+	if *s.ConnectionSecurity == ConnSecurityTLS && !*s.UseLetsEncrypt {
 		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSCertFile == "" {
@@ -3643,9 +3658,9 @@ func (s *MessageExportSettings) isValid() *AppError {
 				// validating email addresses is hard - just make sure it contains an '@' sign
 				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.email_address.app_error", nil, "", http.StatusBadRequest)
-			} else if s.GlobalRelaySettings.SmtpUsername == nil || *s.GlobalRelaySettings.SmtpUsername == "" {
+			} else if s.GlobalRelaySettings.SMTPUsername == nil || *s.GlobalRelaySettings.SMTPUsername == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_username.app_error", nil, "", http.StatusBadRequest)
-			} else if s.GlobalRelaySettings.SmtpPassword == nil || *s.GlobalRelaySettings.SmtpPassword == "" {
+			} else if s.GlobalRelaySettings.SMTPPassword == nil || *s.GlobalRelaySettings.SMTPPassword == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_password.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -3746,8 +3761,8 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
-		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FakeSetting
+	if o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
+		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
 	}
 
 	if o.ServiceSettings.GfycatApiSecret != nil && *o.ServiceSettings.GfycatApiSecret != "" {
@@ -3873,7 +3888,7 @@ func isDomainName(s string) bool {
 
 func isSafeLink(link *string) bool {
 	if link != nil {
-		if IsValidHttpUrl(*link) {
+		if IsValidHTTPUrl(*link) {
 			return true
 		} else if strings.HasPrefix(*link, "/") {
 			return true

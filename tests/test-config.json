@@ -22,6 +22,7 @@
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableLinkPreviews": false,
+        "EnablePermalinkPreviews": false,
         "EnableTesting": false,
         "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
@@ -54,6 +55,7 @@
         "ClusterLogTimeoutMilliseconds": 2000,
         "EnablePreviewFeatures": true,
         "EnableTutorial": true,
+        "EnableOnboardingFlow": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
         "EnableAPITeamDeletion": false,
@@ -120,6 +122,7 @@
         "EnableMobileUpload": true,
         "EnableMobileDownload": true,
         "MaxFileSize": 52428800,
+        "MaxImageResolution": 33177600,
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
@@ -355,8 +358,8 @@
         "BatchSize": 10000,
         "GlobalRelaySettings": {
             "CustomerType": "A9",
-            "SmtpUsername": "",
-            "SmtpPassword": "",
+            "SMTPUsername": "",
+            "SMTPPassword": "",
             "EmailAddress": ""
         }
     },

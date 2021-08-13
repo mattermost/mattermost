@@ -424,6 +424,7 @@ type UserStore interface {
 	DeactivateGuests() ([]string, error)
 	AutocompleteUsersInChannel(teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
+	IsEmpty() (bool, error)
 }
 
 type BotStore interface {
@@ -450,7 +451,7 @@ type SessionStore interface {
 	UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error)
 	UpdateProps(session *model.Session) error
 	AnalyticsSessionCount() (int64, error)
-	Cleanup(expiryTime int64, batchSize int64)
+	Cleanup(expiryTime int64, batchSize int64) error
 }
 
 type AuditStore interface {
@@ -934,7 +935,7 @@ type ThreadMembershipOpts struct {
 	// IncrementMentions indicates whether or not the mentions count for
 	// the thread should be incremented.
 	IncrementMentions bool
-	// UpdateFollowing indicates whether or not a membership update should be forced.
+	// UpdateFollowing indicates whether or not the following state should be changed.
 	UpdateFollowing bool
 	// UpdateViewedTimestamp indicates whether or not the LastViewed field of the
 	// membership should be updated.

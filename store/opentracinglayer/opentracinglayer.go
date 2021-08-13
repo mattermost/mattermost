@@ -6955,7 +6955,7 @@ func (s *OpenTracingLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
+func (s *OpenTracingLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.Cleanup")
 	s.Root.Store.SetContext(newCtx)
@@ -6964,8 +6964,13 @@ func (s *OpenTracingLayerSessionStore) Cleanup(expiryTime int64, batchSize int64
 	}()
 
 	defer span.Finish()
-	s.SessionStore.Cleanup(expiryTime, batchSize)
+	err := s.SessionStore.Cleanup(expiryTime, batchSize)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
 
+	return err
 }
 
 func (s *OpenTracingLayerSessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
@@ -10354,6 +10359,24 @@ func (s *OpenTracingLayerUserStore) InvalidateProfilesInChannelCacheByUser(userI
 	defer span.Finish()
 	s.UserStore.InvalidateProfilesInChannelCacheByUser(userID)
 
+}
+
+func (s *OpenTracingLayerUserStore) IsEmpty() (bool, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.IsEmpty")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.UserStore.IsEmpty()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
 }
 
 func (s *OpenTracingLayerUserStore) PermanentDelete(userID string) error {

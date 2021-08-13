@@ -6281,19 +6281,20 @@ func (s *TimerLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
+func (s *TimerLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 	start := timemodule.Now()
 
-	s.SessionStore.Cleanup(expiryTime, batchSize)
+	err := s.SessionStore.Cleanup(expiryTime, batchSize)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if true {
+		if err == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.Cleanup", success, elapsed)
 	}
+	return err
 }
 
 func (s *TimerLayerSessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
@@ -9343,6 +9344,22 @@ func (s *TimerLayerUserStore) InvalidateProfilesInChannelCacheByUser(userID stri
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.InvalidateProfilesInChannelCacheByUser", success, elapsed)
 	}
+}
+
+func (s *TimerLayerUserStore) IsEmpty() (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.IsEmpty()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.IsEmpty", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerUserStore) PermanentDelete(userID string) error {

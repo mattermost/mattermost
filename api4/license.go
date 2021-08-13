@@ -181,6 +181,11 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.Srv().LicenseManager == nil {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	canStartTrialLicense, err := c.App.Srv().LicenseManager.CanStartTrial()
 	if err != nil {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.error", nil, err.Error(), http.StatusInternalServerError)
@@ -278,6 +283,11 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().LicenseManager == nil {
+		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	license, err := c.App.Srv().LicenseManager.GetPrevTrial()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -1756,7 +1756,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
-		if license := c.App.Srv().License(); license == nil || !*license.Features.SAML {
+		if license := c.App.Srv().License(); license == nil || !*license.Features.FutureFeatures {
 			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -1810,7 +1810,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "success")
 
-	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXml {
+	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 
