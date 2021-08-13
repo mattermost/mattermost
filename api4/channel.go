@@ -1718,16 +1718,16 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var s model.Scheme
-	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil || !model.IsValidId(s.Id) {
+	var p model.SchemeIDPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil || p.SchemeID == nil || !model.IsValidId(*p.SchemeID) {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
-	schemeID := s.Id
+	schemeID := p.SchemeID
 
 	auditRec := c.MakeAuditRecord("updateChannelScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("new_scheme_id", schemeID)
+	auditRec.AddMeta("new_scheme_id", *schemeID)
 
 	if c.App.Srv().License() == nil {
 		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)
@@ -1739,7 +1739,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	scheme, err := c.App.GetScheme(schemeID)
+	scheme, err := c.App.GetScheme(*schemeID)
 	if err != nil {
 		c.Err = err
 		return

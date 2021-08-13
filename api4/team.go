@@ -1581,12 +1581,12 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var s model.Scheme
-	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil || !model.IsValidId(s.Id) {
+	var p model.SchemeIDPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil || p.SchemeID == nil || (!model.IsValidId(*p.SchemeID) && *p.SchemeID != "") {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
-	schemeID := s.Id
+	schemeID := p.SchemeID
 
 	auditRec := c.MakeAuditRecord("updateTeamScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -1601,16 +1601,18 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	scheme, err := c.App.GetScheme(schemeID)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	auditRec.AddMeta("scheme", scheme)
+	if *schemeID != "" {
+		scheme, err := c.App.GetScheme(*schemeID)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		auditRec.AddMeta("scheme", scheme)
 
-	if scheme.Scope != model.SchemeScopeTeam {
-		c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
-		return
+		if scheme.Scope != model.SchemeScopeTeam {
+			c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
@@ -1620,7 +1622,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("team", team)
 
-	team.SchemeId = &schemeID
+	team.SchemeId = schemeID
 
 	_, err = c.App.UpdateTeamScheme(team)
 	if err != nil {
