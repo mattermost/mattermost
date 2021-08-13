@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS ChannelMembers (
     LastViewedAt bigint(20),
     MsgCount bigint(20),
     MentionCount bigint(20),
-    NotifyProps json,
+    NotifyProps text,
     LastUpdateAt bigint(20),
     PRIMARY KEY (ChannelId, UserId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

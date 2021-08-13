@@ -1,3 +1,5 @@
+ALTER TABLE channels DROP COLUMN IF EXISTS totalmsgcountroot;
+
 CREATE INDEX IF NOT EXISTS idx_channels_name ON channels (name);
 
 ALTER TABLE channels DROP COLUMN IF EXISTS shared;

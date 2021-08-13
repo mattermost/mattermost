@@ -73,3 +73,5 @@ CREATE INDEX IF NOT EXISTS idx_channels_scheme_id ON channels (schemeid);
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS shared boolean;
 
 DROP INDEX IF EXISTS idx_channels_name;
+
+ALTER TABLE channels ADD COLUMN IF NOT EXISTS totalmsgcountroot bigint;

@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS channelmembers (
     lastviewedat bigint,
     msgcount bigint,
     mentioncount bigint,
-    notifyprops jsonb,
+    notifyprops varchar(2000),
     lastupdateat bigint,
     PRIMARY KEY (channelid, userid)
 );

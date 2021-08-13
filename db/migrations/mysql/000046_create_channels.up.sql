@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Channels (
     Type varchar(1),
     DisplayName varchar(64),
     Name varchar(64),
-    Header varchar(1024),
+    Header text,
     Purpose varchar(128),
     LastPostAt bigint(20),
     TotalMsgCount bigint(20),
@@ -15,14 +15,14 @@ CREATE TABLE IF NOT EXISTS Channels (
     CreatorId varchar(26),
     PRIMARY KEY (Id),
     UNIQUE KEY Name (Name, TeamId),
-    KEY idx_channels_displayname (DisplayName),
-    KEY idx_channels_txt (Name,DisplayName),
+    KEY idx_channels_team_id (TeamId),
     KEY idx_channels_name (Name),
     KEY idx_channels_update_at (UpdateAt),
-    KEY idx_channels_team_id (TeamId),
-    KEY idx_channels_delete_at (DeleteAt),
     KEY idx_channels_create_at (CreateAt),
-    KEY idx_channel_search_txt (Name,DisplayName,Purpose)
+    KEY idx_channels_delete_at (DeleteAt),
+    KEY idx_channels_displayname (DisplayName),
+    FULLTEXT KEY idx_channels_txt (Name,DisplayName),
+    FULLTEXT KEY idx_channel_search_txt (Name,DisplayName,Purpose)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @preparedStatement = (SELECT IF(
@@ -159,3 +159,18 @@ SET @preparedStatement = (SELECT IF(
 PREPARE removeIndexIfExists FROM @preparedStatement;
 EXECUTE removeIndexIfExists;
 DEALLOCATE PREPARE removeIndexIfExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Channels'
+        AND table_schema = DATABASE()
+        AND column_name = 'TotalMsgCountRoot'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE Channels ADD COLUMN TotalMsgCountRoot bigint(20);'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
