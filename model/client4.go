@@ -5631,7 +5631,11 @@ func (c *Client4) GetJob(id string) (*Job, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return JobFromJson(r.Body), BuildResponse(r), nil
+	var j Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&j); jsonErr != nil {
+		return nil, nil, NewAppError("GetJob", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &j, BuildResponse(r), nil
 }
 
 // GetJobs gets all jobs, sorted with the job that was created most recently first.
@@ -5641,7 +5645,11 @@ func (c *Client4) GetJobs(page int, perPage int) ([]*Job, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return JobsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetJobs", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
@@ -5651,7 +5659,11 @@ func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return JobsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetJobsByType", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // CreateJob creates a job based on the provided job struct.
@@ -5665,7 +5677,11 @@ func (c *Client4) CreateJob(job *Job) (*Job, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return JobFromJson(r.Body), BuildResponse(r), nil
+	var j Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&j); jsonErr != nil {
+		return nil, nil, NewAppError("CreateJob", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &j, BuildResponse(r), nil
 }
 
 // CancelJob requests the cancellation of the job with the provided Id.
