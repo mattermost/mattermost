@@ -5268,7 +5268,11 @@ func (c *Client4) ListCommandAutocompleteSuggestions(userInput, teamId string) (
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return AutocompleteSuggestionsFromJSON(r.Body), BuildResponse(r), nil
+	var list []AutocompleteSuggestion
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("ListCommandAutocompleteSuggestions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetCommandById will retrieve a command by id.
@@ -5302,7 +5306,7 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 	}
 	defer closeBody(r)
 
-	response, err := CommandResponseFromJson(r.Body)
+	response, err := CommandResponseFromJSON(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ExecuteCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -5327,7 +5331,7 @@ func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*Co
 	}
 	defer closeBody(r)
 
-	response, err := CommandResponseFromJson(r.Body)
+	response, err := CommandResponseFromJSON(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}

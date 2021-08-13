@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"net/url"
 	"path"
 	"reflect"
@@ -291,24 +290,6 @@ func (ad *AutocompleteData) IsValid() error {
 	return nil
 }
 
-// ToJSON encodes AutocompleteData struct to the json
-func (ad *AutocompleteData) ToJSON() ([]byte, error) {
-	b, err := json.Marshal(ad)
-	if err != nil {
-		return nil, errors.Wrapf(err, "can't marshal slash command %s", ad.Trigger)
-	}
-	return b, nil
-}
-
-// AutocompleteDataFromJSON decodes AutocompleteData struct from the json
-func AutocompleteDataFromJSON(data []byte) (*AutocompleteData, error) {
-	var ad AutocompleteData
-	if err := json.Unmarshal(data, &ad); err != nil {
-		return nil, errors.Wrap(err, "can't unmarshal AutocompleteData")
-	}
-	return &ad, nil
-}
-
 // Equals method checks if argument is the same.
 func (a *AutocompleteArg) Equals(arg *AutocompleteArg) bool {
 	if a.Name != arg.Name ||
@@ -417,32 +398,6 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		a.Data = &AutocompleteDynamicListArg{FetchURL: url}
 	}
 	return nil
-}
-
-// AutocompleteSuggestionsToJSON returns json for a list of AutocompleteSuggestion objects
-func AutocompleteSuggestionsToJSON(suggestions []AutocompleteSuggestion) []byte {
-	b, _ := json.Marshal(suggestions)
-	return b
-}
-
-// AutocompleteSuggestionsFromJSON returns list of AutocompleteSuggestions from json.
-func AutocompleteSuggestionsFromJSON(data io.Reader) []AutocompleteSuggestion {
-	var o []AutocompleteSuggestion
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-// AutocompleteStaticListItemsToJSON returns json for a list of AutocompleteStaticListItem objects
-func AutocompleteStaticListItemsToJSON(items []AutocompleteListItem) []byte {
-	b, _ := json.Marshal(items)
-	return b
-}
-
-// AutocompleteStaticListItemsFromJSON returns list of AutocompleteStaticListItem from json.
-func AutocompleteStaticListItemsFromJSON(data io.Reader) []AutocompleteListItem {
-	var o []AutocompleteListItem
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func stringNotInSlice(a string, slice []string) bool {
