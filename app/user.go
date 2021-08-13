@@ -12,6 +12,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -225,8 +226,8 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 		case errors.As(nErr, &nfErr):
 			return nil, model.NewAppError("createUserOrGuest", "api.user.check_user_password.invalid.app_error", nil, "", http.StatusBadRequest)
-		case errors.Is(nErr, users.UserCountError):
-			return nil, model.NewAppError("createUserOrGuest", "app.user.get_total_users_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		case errors.Is(nErr, users.UserStoreIsEmptyError):
+			return nil, model.NewAppError("createUserOrGuest", "app.user.store_is_empty.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		case errors.As(nErr, &invErr):
 			switch invErr.Field {
 			case "email":
@@ -715,8 +716,7 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 		return appErr
 	}
 
-	path := "users/" + user.Id + "/profile.png"
-
+	path := getProfileImagePath(user.Id)
 	if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
 		return err
 	}
@@ -753,7 +753,7 @@ func (a *App) SetProfileImage(userID string, imageData *multipart.FileHeader) *m
 }
 
 func (a *App) SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError {
-	if limitErr := checkImageLimits(file); limitErr != nil {
+	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -787,7 +787,11 @@ func (a *App) SetProfileImageFromFile(userID string, file io.Reader) *model.AppE
 	if err != nil {
 		return err
 	}
-	path := "users/" + userID + "/profile.png"
+
+	path := getProfileImagePath(userID)
+	if storedData, err := a.ReadFile(path); err == nil && bytes.Equal(storedData, buf.Bytes()) {
+		return nil
+	}
 
 	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -2275,7 +2279,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	}
 	membership, storeErr := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
 	if storeErr != nil {
-		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 	}
 
 	post, err := a.GetSinglePost(threadID)
@@ -2309,4 +2313,8 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	message.Add("channel_id", post.ChannelId)
 	a.Publish(message)
 	return thread, nil
+}
+
+func getProfileImagePath(userID string) string {
+	return filepath.Join("users", userID, "profile.png")
 }

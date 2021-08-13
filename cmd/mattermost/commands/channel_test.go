@@ -113,7 +113,8 @@ func TestListChannels(t *testing.T) {
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
-	th.Client.Must(th.Client.DeleteChannel(channel.Id))
+	_, err := th.Client.DeleteChannel(channel.Id)
+	require.NoError(t, err)
 	privateChannel := th.CreatePrivateChannel()
 
 	output := th.CheckCommand(t, "channel", "list", th.BasicTeam.Name)
@@ -124,7 +125,8 @@ func TestListChannels(t *testing.T) {
 
 	require.True(t, strings.Contains(output, privateChannel.Name+" (private)"), "should have private channel")
 
-	th.Client.Must(th.Client.DeleteChannel(privateChannel.Id))
+	_, err = th.Client.DeleteChannel(privateChannel.Id)
+	require.NoError(t, err)
 
 	output = th.CheckCommand(t, "channel", "list", th.BasicTeam.Name)
 
@@ -136,7 +138,8 @@ func TestRestoreChannel(t *testing.T) {
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
-	th.Client.Must(th.Client.DeleteChannel(channel.Id))
+	_, err := th.Client.DeleteChannel(channel.Id)
+	require.NoError(t, err)
 
 	th.CheckCommand(t, "channel", "restore", th.BasicTeam.Name+":"+channel.Name)
 

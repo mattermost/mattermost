@@ -967,12 +967,14 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	groupMembers, err := ss.Group().GetMemberUsers(group.Id)
+	require.NoError(t, err)
 	beforeRestoreCount := len(groupMembers)
 
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
 
 	groupMembers, err = ss.Group().GetMemberUsers(group.Id)
+	require.NoError(t, err)
 	afterRestoreCount := len(groupMembers)
 
 	require.Equal(t, beforeRestoreCount+1, afterRestoreCount)
