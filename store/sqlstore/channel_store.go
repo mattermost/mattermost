@@ -420,8 +420,6 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 }
 
 func (s SqlChannelStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
-
 	s.CreateIndexIfNotExists("idx_publicchannels_team_id", "PublicChannels", "TeamId")
 	s.CreateIndexIfNotExists("idx_publicchannels_delete_at", "PublicChannels", "DeleteAt")
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {

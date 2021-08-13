@@ -493,9 +493,6 @@ func upgradeDatabaseToVersion50(sqlStore *SqlStore) {
 	//    DELETE from Systems WHERE Name = 'migration_advanced_permissions_phase_2';
 
 	if shouldPerformUpgrade(sqlStore, Version4100, Version500) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeUser", "boolean", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
-
 		saveSchemaVersion(sqlStore, Version500)
 	}
 }
@@ -608,7 +605,6 @@ func upgradeDatabaseToVersion511(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5110, Version5120) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
 		saveSchemaVersion(sqlStore, Version5120)
 	}
 }
@@ -968,7 +964,6 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
 	sqlStore.RemoveIndexIfExists("idx_posts_channel_id", "Posts")
 	sqlStore.RemoveIndexIfExists("idx_publicchannels_name", "PublicChannels")
-	sqlStore.RemoveIndexIfExists("idx_channelmembers_channel_id", "ChannelMembers")
 	sqlStore.RemoveIndexIfExists("idx_emoji_name", "Emoji")
 	sqlStore.RemoveIndexIfExists("idx_oauthaccessdata_client_id", "OAuthAccessData")
 	sqlStore.RemoveIndexIfExists("idx_oauthauthdata_client_id", "OAuthAuthData")
