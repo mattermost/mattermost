@@ -409,6 +409,7 @@ func (ss *SqlStore) initConnection() {
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		ss.ReplicaXs = make([]*sqlx.DB, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 			ss.Replicas[i] = getDBMap(ss.settings, handle)
@@ -421,6 +422,7 @@ func (ss *SqlStore) initConnection() {
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
+		ss.searchReplicaXs = make([]*sqlx.DB, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 			ss.searchReplicas[i] = getDBMap(ss.settings, handle)
