@@ -3601,7 +3601,7 @@ func TestCBALogin(t *testing.T) {
 	t.Run("primary", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.App.Srv().SetLicense(model.NewTestLicense("saml"))
+		th.App.Srv().SetLicense(model.NewTestLicense("future_features"))
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
@@ -3662,7 +3662,7 @@ func TestCBALogin(t *testing.T) {
 	t.Run("secondary", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.App.Srv().SetLicense(model.NewTestLicense("saml"))
+		th.App.Srv().SetLicense(model.NewTestLicense("future_features"))
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true

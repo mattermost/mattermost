@@ -691,7 +691,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_load_configuration_plugin", "main.go")
 
-	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", `{"id": "testloadpluginconfig", "backend": {"executable": "backend.exe"}, "settings_schema": {
+	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", `{"id": "testloadpluginconfig", "server": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
 			{
 				"key": "MyStringSetting",
@@ -950,7 +950,7 @@ func TestInstallPlugin(t *testing.T) {
 		}
 
 	`,
-		`{"id": "testinstallplugin", "backend": {"executable": "backend.exe"}, "settings_schema": {
+		`{"id": "testinstallplugin", "server": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
 			{
 				"key": "DownloadURL",
@@ -1068,7 +1068,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	}
 	th.App.srv.sqlStore = th.GetSqlStore()
 	setupPluginAPITest(t, code,
-		fmt.Sprintf(`{"id": "%v", "backend": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
+		fmt.Sprintf(`{"id": "%v", "server": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
 		id, th.App, th.Context)
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
 	require.NoError(t, err)
@@ -1511,8 +1511,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		`,
 		},
 		[]string{
-			`{"id": "testplugininterserver", "backend": {"executable": "backend.exe"}}`,
-			`{"id": "testplugininterclient", "backend": {"executable": "backend.exe"}}`,
+			`{"id": "testplugininterserver", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testplugininterclient", "server": {"executable": "backend.exe"}}`,
 		},
 		[]string{
 			"testplugininterserver",
@@ -1573,7 +1573,7 @@ func TestAPIMetrics(t *testing.T) {
 	}
 `
 		utils.CompileGo(t, code, backend)
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "backend": {"executable": "backend.exe"}}`), 0600)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 
 		// Don't care about these mocks
 		metricsMock.On("ObservePluginHookDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
