@@ -1467,8 +1467,8 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	schemeRoles := model.SchemeRolesFromJson(r.Body)
-	if schemeRoles == nil {
+	var schemeRoles model.SchemeRoles
+	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParam("scheme_roles")
 		return
 	}
@@ -1718,11 +1718,12 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || !model.IsValidId(*schemeID) {
+	var s model.Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil || !model.IsValidId(s.Id) {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
+	schemeID := s.Id
 
 	auditRec := c.MakeAuditRecord("updateChannelScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -1738,7 +1739,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	scheme, err := c.App.GetScheme(*schemeID)
+	scheme, err := c.App.GetScheme(schemeID)
 	if err != nil {
 		c.Err = err
 		return

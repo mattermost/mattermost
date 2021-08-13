@@ -5672,7 +5672,11 @@ func (c *Client4) CreateScheme(scheme *Scheme) (*Scheme, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SchemeFromJson(r.Body), BuildResponse(r), nil
+	var s Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("CreateScheme", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetScheme gets a single scheme by ID.
@@ -5682,7 +5686,11 @@ func (c *Client4) GetScheme(id string) (*Scheme, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SchemeFromJson(r.Body), BuildResponse(r), nil
+	var s Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("GetScheme", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetSchemes gets all schemes, sorted with the most recently created first, optionally filtered by scope.
@@ -5692,7 +5700,11 @@ func (c *Client4) GetSchemes(scope string, page int, perPage int) ([]*Scheme, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SchemesFromJson(r.Body), BuildResponse(r), nil
+	var list []*Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetSchemes", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // DeleteScheme deletes a single scheme by ID.
@@ -5716,7 +5728,11 @@ func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SchemeFromJson(r.Body), BuildResponse(r), nil
+	var s Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("PatchScheme", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetTeamsForScheme gets the teams using this scheme, sorted alphabetically by display name.

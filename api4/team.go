@@ -951,8 +951,8 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	schemeRoles := model.SchemeRolesFromJson(r.Body)
-	if schemeRoles == nil {
+	var schemeRoles model.SchemeRoles
+	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParam("scheme_roles")
 		return
 	}
@@ -1581,11 +1581,12 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || (!model.IsValidId(*schemeID) && *schemeID != "") {
+	var s model.Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil || !model.IsValidId(s.Id) {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
+	schemeID := s.Id
 
 	auditRec := c.MakeAuditRecord("updateTeamScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -1600,18 +1601,16 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *schemeID != "" {
-		scheme, err := c.App.GetScheme(*schemeID)
-		if err != nil {
-			c.Err = err
-			return
-		}
-		auditRec.AddMeta("scheme", scheme)
+	scheme, err := c.App.GetScheme(schemeID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.AddMeta("scheme", scheme)
 
-		if scheme.Scope != model.SchemeScopeTeam {
-			c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
-			return
-		}
+	if scheme.Scope != model.SchemeScopeTeam {
+		c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
@@ -1621,7 +1620,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("team", team)
 
-	team.SchemeId = schemeID
+	team.SchemeId = &schemeID
 
 	_, err = c.App.UpdateTeamScheme(team)
 	if err != nil {
