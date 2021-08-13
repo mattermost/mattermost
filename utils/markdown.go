@@ -35,7 +35,9 @@ func StripMarkdown(markdown string) (string, error) {
 
 // MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
 func MarkdownToHTML(markdown string) (string, error) {
-	md := goldmark.New()
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+	)
 	var b strings.Builder
 
 	err := md.Convert([]byte(markdown), &b)
