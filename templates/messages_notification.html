@@ -82,6 +82,22 @@
       }
     }
   </style>
+  <style media="screen and (min-width:480px)">
+    .moz-text-html .mj-column-per-100 {
+      width: 100% !important;
+      max-width: 100%;
+    }
+
+    .moz-text-html .mj-column-per-50 {
+      width: 50% !important;
+      max-width: 50%;
+    }
+
+    .moz-text-html .mj-column-per-90 {
+      width: 90% !important;
+      max-width: 90%;
+    }
+  </style>
   <style type="text/css">
     @media only screen and (max-width:480px) {
       table.mj-full-width-mobile {
@@ -110,17 +126,21 @@
       font-size: 28px !important;
       line-height: 36px !important;
       letter-spacing: -0.01em !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
     }
 
     .subTitle div {
       font-size: 16px !important;
       line-height: 24px !important;
-      color: rgba(61, 60, 64, 0.64) !important;
+      color: rgba(63, 67, 80, 1) !important;
+    }
+
+    .subTitle a {
+      color: rgba(28, 88, 217, 1) !important;
     }
 
     .button a {
-      background-color: #166DE0 !important;
+      background-color: #1C58D9 !important;
       font-weight: 600 !important;
       font-size: 16px !important;
       line-height: 18px !important;
@@ -142,7 +162,7 @@
     .info div {
       font-size: 14px !important;
       line-height: 20px !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
       padding: 40px 0px !important;
     }
 
@@ -150,26 +170,26 @@
       font-weight: 600 !important;
       font-size: 16px !important;
       line-height: 24px !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
       padding: 0px 0px 4px 0px !important;
     }
 
     .footerInfo div {
       font-size: 14px !important;
       line-height: 20px !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
       padding: 0px 48px 0px 48px !important;
     }
 
     .footerInfo a {
-      color: #166DE0 !important;
+      color: #1C58D9 !important;
     }
 
     .appDownloadButton a {
       background-color: #FFFFFF !important;
-      border: 1px solid #166DE0 !important;
+      border: 1px solid #1C58D9 !important;
       box-sizing: border-box !important;
-      color: #166DE0 !important;
+      color: #1C58D9 !important;
       padding: 13px 20px !important;
       font-weight: 600 !important;
       font-size: 14px !important;
@@ -179,7 +199,7 @@
     .emailFooter div {
       font-size: 12px !important;
       line-height: 16px !important;
-      color: rgba(61, 60, 64, 0.56) !important;
+      color: rgba(63, 67, 80, 0.56) !important;
       padding: 8px 24px 8px 24px !important;
     }
 
@@ -218,21 +238,21 @@
       font-weight: 600 !important;
       font-size: 14px !important;
       line-height: 20px !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
     }
 
     .time {
       font-family: Open Sans, sans-serif;
       font-size: 12px;
       line-height: 16px;
-      color: rgba(61, 60, 64, 0.56);
+      color: rgba(63, 67, 80, 0.56);
       padding: 2px 6px;
       align-items: center;
       float: left;
     }
 
     .channelBg {
-      background: rgba(61, 60, 64, 0.08);
+      background: rgba(63, 67, 80, 0.08);
       border-radius: 4px;
       display: flex;
     }
@@ -251,7 +271,7 @@
       line-height: 16px;
       letter-spacing: 0.01em;
       text-transform: uppercase;
-      color: rgba(61, 60, 64, 0.64);
+      color: rgba(63, 67, 80, 0.64);
       padding: 2px 6px 2px 0px;
     }
 
@@ -259,7 +279,8 @@
       text-align: left !important;
       font-size: 14px !important;
       line-height: 20px !important;
-      color: #3D3C40 !important;
+      color: #3F4350;
+       !important;
       padding: 0px !important;
     }
 
@@ -338,7 +359,7 @@
                                     <tbody>
                                       <tr>
                                         <td style="width:132px;">
-                                          <img alt="" height="21" src="{{.Props.SiteURL}}/static/images/logo_email_blue.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132" />
+                                          <img alt="" height="21" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132" />
                                         </td>
                                       </tr>
                                     </tbody>
