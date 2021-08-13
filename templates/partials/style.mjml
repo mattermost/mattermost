@@ -24,13 +24,13 @@
     font-size: 28px !important;
     line-height: 36px !important;
     letter-spacing: -0.01em !important;
-    color: #3D3C40 !important;
+    color: #3F4350 !important;
   }
 
   .subTitle div {
     font-size: 16px !important;
     line-height: 24px !important;
-    color: rgba(61, 60, 64, 0.64) !important;
+    color: rgba(63, 67, 80, 1) !important;
   }
 
   .subTitle a {
@@ -80,7 +80,7 @@
   }
 
   .footerInfo a {
-    color: #166DE0 !important;
+    color: #1C58D9 !important;
   }
 
   .appDownloadButton a{
@@ -97,7 +97,7 @@
   .emailFooter div {
     font-size: 12px !important;
     line-height: 16px !important;
-    color: rgba(61, 60, 64, 0.56) !important;
+    color: rgba(63, 67, 80, 0.56) !important;
     padding: 8px 24px 8px 24px !important;
   }
 
