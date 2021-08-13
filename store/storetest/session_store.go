@@ -70,6 +70,15 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
+	session.Props[model.SessionPropOs] = "linux"
+	session.Props[model.SessionPropBrowser] = "Chrome"
+	err = ss.Session().UpdateProps(session)
+	require.NoError(t, err)
+
+	session2, err := ss.Session().Get(context.Background(), session.Id)
+	require.NoError(t, err)
+	require.Equal(t, session.Props, session2.Props, "should match")
+
 	data, err := ss.Session().GetSessions(s1.UserId)
 	require.NoError(t, err)
 	require.Len(t, data, 3, "should match len")
