@@ -27,8 +27,8 @@ func (api *API) InitWebhookLocal() {
 }
 
 func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	hook := model.IncomingWebhookFromJson(r.Body)
-	if hook == nil {
+	var hook model.IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
 		c.SetInvalidParam("incoming_webhook")
 		return
 	}
@@ -54,7 +54,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec.AddMeta("channel", channel)
 	c.LogAudit("attempt")
 
-	incomingHook, err := c.App.CreateIncomingWebhookForChannel(hook.UserId, channel, hook)
+	incomingHook, err := c.App.CreateIncomingWebhookForChannel(hook.UserId, channel, &hook)
 	if err != nil {
 		c.Err = err
 		return

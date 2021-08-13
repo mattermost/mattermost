@@ -3917,7 +3917,12 @@ func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookFromJson(r.Body), BuildResponse(r), nil
+
+	var iw IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iw); jsonErr != nil {
+		return nil, nil, NewAppError("CreateIncomingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &iw, BuildResponse(r), nil
 }
 
 // UpdateIncomingWebhook updates an incoming webhook for a channel.
@@ -3931,7 +3936,12 @@ func (c *Client4) UpdateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookFromJson(r.Body), BuildResponse(r), nil
+
+	var iw IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iw); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateIncomingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &iw, BuildResponse(r), nil
 }
 
 // GetIncomingWebhooks returns a page of incoming webhooks on the system. Page counting starts at 0.
@@ -3942,7 +3952,14 @@ func (c *Client4) GetIncomingWebhooks(page int, perPage int, etag string) ([]*In
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var iwl []*IncomingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return iwl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iwl); jsonErr != nil {
+		return nil, nil, NewAppError("GetIncomingWebhooks", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return iwl, BuildResponse(r), nil
 }
 
 // GetIncomingWebhooksForTeam returns a page of incoming webhooks for a team. Page counting starts at 0.
@@ -3953,7 +3970,14 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var iwl []*IncomingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return iwl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iwl); jsonErr != nil {
+		return nil, nil, NewAppError("GetIncomingWebhooksForTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return iwl, BuildResponse(r), nil
 }
 
 // GetIncomingWebhook returns an Incoming webhook given the hook ID.
@@ -3963,7 +3987,14 @@ func (c *Client4) GetIncomingWebhook(hookID string, etag string) (*IncomingWebho
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var iw IncomingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return &iw, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iw); jsonErr != nil {
+		return nil, nil, NewAppError("GetIncomingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &iw, BuildResponse(r), nil
 }
 
 // DeleteIncomingWebhook deletes and Incoming Webhook given the hook ID.

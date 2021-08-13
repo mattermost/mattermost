@@ -28,8 +28,8 @@ func (api *API) InitWebhook() {
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	hook := model.IncomingWebhookFromJson(r.Body)
-	if hook == nil {
+	var hook model.IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
 		c.SetInvalidParam("incoming_webhook")
 		return
 	}
@@ -72,7 +72,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		userId = hook.UserId
 	}
 
-	incomingHook, err := c.App.CreateIncomingWebhookForChannel(userId, channel, hook)
+	incomingHook, err := c.App.CreateIncomingWebhookForChannel(userId, channel, &hook)
 	if err != nil {
 		c.Err = err
 		return
@@ -94,8 +94,8 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedHook := model.IncomingWebhookFromJson(r.Body)
-	if updatedHook == nil {
+	var updatedHook model.IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
 		c.SetInvalidParam("incoming_webhook")
 		return
 	}
@@ -157,7 +157,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	incomingHook, err := c.App.UpdateIncomingWebhook(oldHook, updatedHook)
+	incomingHook, err := c.App.UpdateIncomingWebhook(oldHook, &updatedHook)
 	if err != nil {
 		c.Err = err
 		return
@@ -210,7 +210,12 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.IncomingWebhookListToJson(hooks)))
+	js, jsonErr := json.Marshal(hooks)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getIncomingHooks", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
