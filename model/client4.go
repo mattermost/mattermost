@@ -4018,7 +4018,11 @@ func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var ow OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ow); jsonErr != nil {
+		return nil, nil, NewAppError("CreateOutgoingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ow, BuildResponse(r), nil
 }
 
 // UpdateOutgoingWebhook creates an outgoing webhook for a team or channel.
@@ -4032,7 +4036,11 @@ func (c *Client4) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var ow OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ow); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateOutgoingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ow, BuildResponse(r), nil
 }
 
 // GetOutgoingWebhooks returns a page of outgoing webhooks on the system. Page counting starts at 0.
@@ -4043,7 +4051,14 @@ func (c *Client4) GetOutgoingWebhooks(page int, perPage int, etag string) ([]*Ou
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var owl []*OutgoingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return owl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&owl); jsonErr != nil {
+		return nil, nil, NewAppError("GetOutgoingWebhooks", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return owl, BuildResponse(r), nil
 }
 
 // GetOutgoingWebhook outgoing webhooks on the system requested by Hook Id.
@@ -4053,7 +4068,11 @@ func (c *Client4) GetOutgoingWebhook(hookId string) (*OutgoingWebhook, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var ow OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ow); jsonErr != nil {
+		return nil, nil, NewAppError("GetOutgoingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ow, BuildResponse(r), nil
 }
 
 // GetOutgoingWebhooksForChannel returns a page of outgoing webhooks for a channel. Page counting starts at 0.
@@ -4064,7 +4083,14 @@ func (c *Client4) GetOutgoingWebhooksForChannel(channelId string, page int, perP
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var owl []*OutgoingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return owl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&owl); jsonErr != nil {
+		return nil, nil, NewAppError("GetOutgoingWebhooksForChannel", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return owl, BuildResponse(r), nil
 }
 
 // GetOutgoingWebhooksForTeam returns a page of outgoing webhooks for a team. Page counting starts at 0.
@@ -4075,7 +4101,14 @@ func (c *Client4) GetOutgoingWebhooksForTeam(teamId string, page int, perPage in
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var owl []*OutgoingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return owl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&owl); jsonErr != nil {
+		return nil, nil, NewAppError("GetOutgoingWebhooksForTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return owl, BuildResponse(r), nil
 }
 
 // RegenOutgoingHookToken regenerate the outgoing webhook token.
@@ -4085,7 +4118,11 @@ func (c *Client4) RegenOutgoingHookToken(hookId string) (*OutgoingWebhook, *Resp
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var ow OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ow); jsonErr != nil {
+		return nil, nil, NewAppError("RegenOutgoingHookToken", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ow, BuildResponse(r), nil
 }
 
 // DeleteOutgoingWebhook delete the outgoing webhook on the system requested by Hook Id.

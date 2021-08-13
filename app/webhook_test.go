@@ -673,7 +673,9 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if testCase.WebhookResponse != nil {
-					w.Write([]byte(testCase.WebhookResponse.ToJson()))
+					js, jsonErr := json.Marshal(testCase.WebhookResponse)
+					require.NoError(t, jsonErr)
+					w.Write(js)
 				} else {
 					w.Write([]byte(`{"text": "sample response text from test server"}`))
 				}
