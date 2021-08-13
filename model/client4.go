@@ -5622,7 +5622,11 @@ func (c *Client4) GetRole(id string) (*Role, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleFromJson(r.Body), BuildResponse(r), nil
+	var role Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&role); jsonErr != nil {
+		return nil, nil, NewAppError("GetRole", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &role, BuildResponse(r), nil
 }
 
 // GetRoleByName gets a single role by Name.
@@ -5632,7 +5636,11 @@ func (c *Client4) GetRoleByName(name string) (*Role, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleFromJson(r.Body), BuildResponse(r), nil
+	var role Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&role); jsonErr != nil {
+		return nil, nil, NewAppError("GetRoleByName", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &role, BuildResponse(r), nil
 }
 
 // GetRolesByNames returns a list of roles based on the provided role names.
@@ -5642,7 +5650,11 @@ func (c *Client4) GetRolesByNames(roleNames []string) ([]*Role, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetRolesByNames", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // PatchRole partially updates a role in the system. Any missing fields are not updated.
@@ -5656,7 +5668,11 @@ func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleFromJson(r.Body), BuildResponse(r), nil
+	var role Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&role); jsonErr != nil {
+		return nil, nil, NewAppError("PatchRole", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &role, BuildResponse(r), nil
 }
 
 // Schemes Section
@@ -5693,7 +5709,7 @@ func (c *Client4) GetScheme(id string) (*Scheme, *Response, error) {
 	return &s, BuildResponse(r), nil
 }
 
-// GetSchemes gets all schemes, sorted with the most recently created first, optionally filtered by scope.
+// GetSchemes ets all schemes, sorted with the most recently created first, optionally filtered by scope.
 func (c *Client4) GetSchemes(scope string, page int, perPage int) ([]*Scheme, *Response, error) {
 	r, err := c.DoApiGet(c.GetSchemesRoute()+fmt.Sprintf("?scope=%v&page=%v&per_page=%v", scope, page, perPage), "")
 	if err != nil {
