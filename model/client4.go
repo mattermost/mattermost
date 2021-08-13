@@ -4354,7 +4354,11 @@ func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ClusterInfosFromJson(r.Body), BuildResponse(r), nil
+	var list []*ClusterInfo
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetClusterStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // LDAP Section
