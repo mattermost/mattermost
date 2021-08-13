@@ -9346,10 +9346,10 @@ func (s *TimerLayerUserStore) InvalidateProfilesInChannelCacheByUser(userID stri
 	}
 }
 
-func (s *TimerLayerUserStore) IsEmpty() (bool, error) {
+func (s *TimerLayerUserStore) IsEmpty(excludeBots bool) (bool, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.IsEmpty()
+	result, err := s.UserStore.IsEmpty(excludeBots)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

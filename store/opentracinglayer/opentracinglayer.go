@@ -10361,7 +10361,7 @@ func (s *OpenTracingLayerUserStore) InvalidateProfilesInChannelCacheByUser(userI
 
 }
 
-func (s *OpenTracingLayerUserStore) IsEmpty() (bool, error) {
+func (s *OpenTracingLayerUserStore) IsEmpty(excludeBots bool) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.IsEmpty")
 	s.Root.Store.SetContext(newCtx)
@@ -10370,7 +10370,7 @@ func (s *OpenTracingLayerUserStore) IsEmpty() (bool, error) {
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.IsEmpty()
+	result, err := s.UserStore.IsEmpty(excludeBots)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
