@@ -30,8 +30,8 @@ func (api *API) InitCommand() {
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	cmd := model.CommandFromJson(r.Body)
-	if cmd == nil {
+	var cmd model.Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
 		c.SetInvalidParam("command")
 		return
 	}
@@ -47,7 +47,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd.CreatorId = c.AppContext.Session().UserId
 
-	rcmd, err := c.App.CreateCommand(cmd)
+	rcmd, err := c.App.CreateCommand(&cmd)
 	if err != nil {
 		c.Err = err
 		return
@@ -69,8 +69,8 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := model.CommandFromJson(r.Body)
-	if cmd == nil || cmd.Id != c.Params.CommandId {
+	var cmd model.Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil || cmd.Id != c.Params.CommandId {
 		c.SetInvalidParam("command")
 		return
 	}
@@ -106,7 +106,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rcmd, err := c.App.UpdateCommand(oldCmd, cmd)
+	rcmd, err := c.App.UpdateCommand(oldCmd, &cmd)
 	if err != nil {
 		c.Err = err
 		return

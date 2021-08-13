@@ -5189,7 +5189,12 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandFromJson(r.Body), BuildResponse(r), nil
+
+	var command Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&command); jsonErr != nil {
+		return nil, nil, NewAppError("CreateCommand", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &command, BuildResponse(r), nil
 }
 
 // UpdateCommand updates a command based on the provided Command struct.
@@ -5203,7 +5208,11 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandFromJson(r.Body), BuildResponse(r), nil
+	var command Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&command); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateCommand", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &command, BuildResponse(r), nil
 }
 
 // MoveCommand moves a command to a different team.
@@ -5239,7 +5248,12 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandListFromJson(r.Body), BuildResponse(r), nil
+
+	var list []*Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("ListCommands", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // ListCommandAutocompleteSuggestions will retrieve a list of suggestions for a userInput.
@@ -5261,7 +5275,11 @@ func (c *Client4) GetCommandById(cmdId string) (*Command, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandFromJson(r.Body), BuildResponse(r), nil
+	var command Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&command); jsonErr != nil {
+		return nil, nil, NewAppError("GetCommandById", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &command, BuildResponse(r), nil
 }
 
 // ExecuteCommand executes a given slash command.
@@ -5319,7 +5337,11 @@ func (c *Client4) ListAutocompleteCommands(teamId string) ([]*Command, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("ListAutocompleteCommands", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // RegenCommandToken will create a new token if the user have the right permissions.
