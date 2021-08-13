@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"runtime"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -27,18 +26,6 @@ const (
 	DefaultMaxQueueSize            = 1000
 	DefaultMetricsUpdateFreqMillis = 15000
 )
-
-var (
-	mlogPkg string
-)
-
-func init() {
-	// Calc current package name
-	pcs := make([]uintptr, 2)
-	_ = runtime.Callers(0, pcs)
-	tmp := runtime.FuncForPC(pcs[1]).Name()
-	mlogPkg = GetPackageName(tmp)
-}
 
 type LoggerIFace interface {
 	IsLevelEnabled(Level) bool
@@ -153,7 +140,7 @@ type Logger struct {
 
 // NewLogger creates a new Logger instance which can be configured via `(*Logger).Configure`.
 func NewLogger(options ...Option) *Logger {
-	options = append(options, logr.StackFilter(GetPackageName(mlogPkg)))
+	options = append(options, logr.StackFilter(logr.GetPackageName("NewLogger")))
 
 	lgr, _ := logr.New(options...)
 	log := lgr.NewLogger()

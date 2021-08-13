@@ -9,22 +9,6 @@ import (
 	"time"
 )
 
-var (
-	logrPkg string
-)
-
-func init() {
-	logrPkg = GetPackageName()
-}
-
-// GetPackageName returns the package name of the caller.
-func GetPackageName() string {
-	pcs := make([]uintptr, 2)
-	_ = runtime.Callers(1, pcs)
-	tmp := runtime.FuncForPC(pcs[1]).Name()
-	return getPackageName(tmp)
-}
-
 // LogRec collects raw, unformatted data to be logged.
 // TODO:  pool these?  how to reliably know when targets are done with them? Copy for each target?
 type LogRec struct {
@@ -86,7 +70,7 @@ func (rec *LogRec) prep() {
 			frame, more := frames.Next()
 
 			// remove all package entries that are in filter.
-			pkg := getPackageName(frame.Function)
+			pkg := ResolvePackageName(frame.Function)
 			if _, ok := filter[pkg]; !ok && pkg != "" {
 				rec.frames = append(rec.frames, frame)
 			}
@@ -181,21 +165,6 @@ func (rec *LogRec) String() string {
 	defer rec.logger.lgr.ReleaseBuffer(buf)
 	buf, _ = f.Format(rec, rec.Level(), buf)
 	return strings.TrimSpace(buf.String())
-}
-
-// getPackageName reduces a fully qualified function name to the package name
-// By sirupsen: https://github.com/sirupsen/logrus/blob/master/entry.go
-func getPackageName(f string) string {
-	for {
-		lastPeriod := strings.LastIndex(f, ".")
-		lastSlash := strings.LastIndex(f, "/")
-		if lastPeriod > lastSlash {
-			f = f[:lastPeriod]
-		} else {
-			break
-		}
-	}
-	return f
 }
 
 func calcCaller(frames []runtime.Frame) string {
