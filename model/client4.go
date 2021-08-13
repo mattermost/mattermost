@@ -1369,7 +1369,11 @@ func (c *Client4) GetSessions(userId, etag string) ([]*Session, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SessionsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Session
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetSessions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // RevokeSession revokes a user session based on the provided user id and session id strings.
