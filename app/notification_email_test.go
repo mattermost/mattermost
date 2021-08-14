@@ -914,9 +914,7 @@ func TestMarkdownConversion(t *testing.T) {
 				Message: tt.args,
 			}
 			got, err := th.App.getNotificationEmailBody(recipient, post, channel, "ChannelName", "sender", "testteam", "http://localhost:8065/landing#/testteam", model.EmailNotificationContentsFull, true, i18n.GetUserTranslations("en"), "user-avatar.png")
-			if err != nil {
-				t.Fatalf("error: %v", err)
-			}
+			require.NoError(t, err)
 			require.Contains(t, got, tt.want)
 		})
 	}
