@@ -5714,26 +5714,51 @@ func testGetKnownUsers(t *testing.T, ss store.Store) {
 }
 
 func testIsEmpty(t *testing.T, ss store.Store) {
-	ok, err := ss.User().IsEmpty()
+	ok, err := ss.User().IsEmpty(false)
 	require.NoError(t, err)
 	require.True(t, ok)
 
-	u := model.User{
+	ok, err = ss.User().IsEmpty(true)
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	u := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
 
-	_, err = ss.User().Save(&u)
+	u, err = ss.User().Save(u)
 	require.NoError(t, err)
 
-	ok, err = ss.User().IsEmpty()
+	ok, err = ss.User().IsEmpty(false)
 	require.NoError(t, err)
 	require.False(t, ok)
+
+	ok, err = ss.User().IsEmpty(true)
+	require.NoError(t, err)
+	require.False(t, ok)
+
+	b := &model.Bot{
+		UserId:   u.Id,
+		OwnerId:  model.NewId(),
+		Username: model.NewId(),
+	}
+
+	_, err = ss.Bot().Save(b)
+	require.NoError(t, err)
+
+	ok, err = ss.User().IsEmpty(false)
+	require.NoError(t, err)
+	require.False(t, ok)
+
+	ok, err = ss.User().IsEmpty(true)
+	require.NoError(t, err)
+	require.True(t, ok)
 
 	err = ss.User().PermanentDelete(u.Id)
 	require.NoError(t, err)
 
-	ok, err = ss.User().IsEmpty()
+	ok, err = ss.User().IsEmpty(false)
 	require.NoError(t, err)
 	require.True(t, ok)
 }
