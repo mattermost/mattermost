@@ -286,12 +286,22 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		mlog.Warn("Unable to find sender of post for batched email notification")
 	}
 
+	// the title text is: {{ .SenderName }} and {{.CountMinusOne}} others sent you new messages
+	// which implies the number of unique users, not the number of messages
 	data := es.NewEmailTemplateData(user.Locale)
+	nicknameSet := make(map[string]bool)
+	for _, notification := range notifications {
+		nicknameSet[notification.post.UserId] = true
+	}
+	data.Props["Title"] = translateFunc(
+		"api.email_batching.send_batched_email_notification.title",
+		len(nicknameSet),
+		map[string]interface{}{
+			"SenderName":    firstSender.GetDisplayName(displayNameFormat),
+			"CountMinusOne": strconv.Itoa(len(nicknameSet) - 1),
+		},
+	)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications), map[string]interface{}{
-		"SenderName":    firstSender.GetDisplayName(displayNameFormat),
-		"CountMinusOne": strconv.Itoa(len(notifications) - 1),
-	})
 	data.Props["SubTitle"] = translateFunc("api.email_batching.send_batched_email_notification.subTitle")
 	data.Props["Button"] = translateFunc("api.email_batching.send_batched_email_notification.button")
 	data.Props["ButtonURL"] = siteURL
