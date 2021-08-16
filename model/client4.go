@@ -4833,7 +4833,12 @@ func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SamlCertificateStatusFromJson(r.Body), BuildResponse(r), nil
+
+	var status SamlCertificateStatus
+	if jsonErr := json.NewDecoder(r.Body).Decode(&status); jsonErr != nil {
+		return nil, nil, NewAppError("GetSamlCertificateStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &status, BuildResponse(r), nil
 }
 
 func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataResponse, *Response, error) {
@@ -4845,7 +4850,11 @@ func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataR
 	}
 
 	defer closeBody(r)
-	return SamlMetadataResponseFromJson(r.Body), BuildResponse(r), nil
+	var resp SamlMetadataResponse
+	if jsonErr := json.NewDecoder(r.Body).Decode(&resp); jsonErr != nil {
+		return nil, nil, NewAppError("GetSamlMetadataFromIdp", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &resp, BuildResponse(r), nil
 }
 
 // ResetSamlAuthDataToEmail resets the AuthData field of SAML users to their Email.
