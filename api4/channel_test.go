@@ -126,7 +126,7 @@ func TestCreateChannel(t *testing.T) {
 	})
 
 	// Test posting Garbage
-	r, err := client.DoApiPost("/channels", "garbage")
+	r, err := client.DoAPIPost("/channels", "garbage")
 	require.Error(t, err, "expected error")
 	require.Equal(t, http.StatusBadRequest, r.StatusCode, "Expected 400 Bad Request")
 
@@ -435,7 +435,7 @@ func TestCreateDirectChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := client.DoApiPost("/channels/direct", "garbage")
+	r, err := client.DoAPIPost("/channels/direct", "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -2346,7 +2346,7 @@ func TestViewChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := client.DoApiPost(fmt.Sprintf("/channels/members/%v/view", th.BasicUser.Id), "garbage")
+	r, err := client.DoAPIPost(fmt.Sprintf("/channels/members/%v/view", th.BasicUser.Id), "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 

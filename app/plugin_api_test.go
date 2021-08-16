@@ -69,7 +69,7 @@ func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	})
 }
 
-func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c *request.Context) string {
+func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c *request.Context) string {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -124,10 +124,10 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 	return pluginDir
 }
 
-func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
+func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
 
 	asMain := pluginID != "test_db_driver"
-	return setupMultiPluginApiTest(t,
+	return setupMultiPluginAPITest(t,
 		[]string{pluginCode}, []string{pluginManifest}, []string{pluginID},
 		asMain, app, c)
 }
@@ -138,7 +138,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 
 	pluginID := "com.mattermost.sample"
 
-	pluginDir := setupPluginApiTest(t,
+	pluginDir := setupPluginAPITest(t,
 		`
 		package main
 
@@ -847,9 +847,9 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 }
 
 func TestInstallPlugin(t *testing.T) {
-	// TODO(ilgooz): remove this setup func to use existent setupPluginApiTest().
-	// following setupTest() func is a modified version of setupPluginApiTest().
-	// we need a modified version of setupPluginApiTest() because it wasn't possible to use it directly here
+	// TODO(ilgooz): remove this setup func to use existent setupPluginAPITest().
+	// following setupTest() func is a modified version of setupPluginAPITest().
+	// we need a modified version of setupPluginAPITest() because it wasn't possible to use it directly here
 	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
 	// dirs and this behavior tends to break this test as a result.
 	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) (func(), string) {
@@ -1067,7 +1067,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 		schema = settingsSchema
 	}
 	th.App.srv.sqlStore = th.GetSqlStore()
-	setupPluginApiTest(t, code,
+	setupPluginAPITest(t, code,
 		fmt.Sprintf(`{"id": "%v", "server": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
 		id, th.App, th.Context)
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
@@ -1404,7 +1404,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	setupMultiPluginApiTest(t,
+	setupMultiPluginAPITest(t,
 		[]string{`
 		package main
 
@@ -1529,7 +1529,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	assert.Equal(t, "ok", ret)
 }
 
-func TestApiMetrics(t *testing.T) {
+func TestAPIMetrics(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1581,7 +1581,7 @@ func TestApiMetrics(t *testing.T) {
 		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
 
 		// Setup mocks
-		metricsMock.On("ObservePluginApiDuration", pluginID, "UpdateUser", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginAPIDuration", pluginID, "UpdateUser", true, mock.Anything).Return()
 
 		_, _, activationErr := env.Activate(pluginID)
 		require.NoError(t, activationErr)
