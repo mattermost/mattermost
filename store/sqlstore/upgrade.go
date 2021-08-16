@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5380
+	CurrentSchemaVersion   = Version600
+	Version600             = "6.0.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -1522,9 +1523,9 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 	}
 
-	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
-	//saveSchemaVersion(sqlStore, Version600)
-	// }
+	if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+		saveSchemaVersion(sqlStore, Version600)
+	}
 }
 
 func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
