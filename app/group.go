@@ -101,7 +101,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		groupJSON, jsonErr := json.Marshal(updatedGroup)
 		if jsonErr != nil {
-			mlog.Warn("Failed to encode group to JSON")
+			mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
 		}
 		messageWs.Add("group", string(groupJSON))
 		a.Publish(messageWs)
@@ -130,7 +130,7 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		groupJSON, jsonErr := json.Marshal(deletedGroup)
 		if jsonErr != nil {
-			mlog.Warn("Failed to encode group to JSON")
+			mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
 		}
 		messageWs.Add("group", string(groupJSON))
 		a.Publish(messageWs)

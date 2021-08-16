@@ -201,7 +201,7 @@ func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
 	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b); success {
 		var license model.License
 		if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-			mlog.Warn("Failed to decode license from JSON")
+			mlog.Warn("Failed to decode license from JSON", mlog.Err(jsonErr))
 			return false
 		}
 		s.SetLicense(&license)
