@@ -4796,22 +4796,6 @@
     "translation": "Отсутствует узел служб SSO Identity Provider в XML."
   },
   {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Невозможно прочитать файл изображения профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Пустой массив 'image' в запросе."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Нет файла 'image' в запросе."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Невозможно загрузить изображение профиля. Слишком большой файл."
-  },
-  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Пожалуйста, добавьте меня в команды и каналы, c которыми мне нужно взаимодействовать. Это можно сделать в браузере или в приложении Mattermost для ПК."
   },
@@ -4870,22 +4854,6 @@
   {
     "id": "api.bot.create_disabled",
     "translation": "Создание бота было отключено."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Не получилось удалить изображение профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Не удалось загрузить изображение профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Не удалось открыть файл изображения."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Не удалось разобрать составную форму."
   },
   {
     "id": "api.channel.add_guest.added",

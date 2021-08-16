@@ -5,12 +5,15 @@ package api4
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDataRetentionGetPolicy(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp := th.Client.GetDataRetentionPolicy()
+	_, resp, err := th.Client.GetDataRetentionPolicy()
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
