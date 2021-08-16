@@ -3186,7 +3186,7 @@ func (o *Config) Clone() *Config {
 	return &ret
 }
 
-func (o *Config) ToJSONFiltered(tagType, tagValue string) (string, error) {
+func (o *Config) ToJSONFiltered(tagType, tagValue string) ([]byte, error) {
 	filteredConfigMap := structToMapFilteredByTag(*o, tagType, tagValue)
 	for key, value := range filteredConfigMap {
 		v, ok := value.(map[string]interface{})
@@ -3194,8 +3194,7 @@ func (o *Config) ToJSONFiltered(tagType, tagValue string) (string, error) {
 			delete(filteredConfigMap, key)
 		}
 	}
-	b, err := json.Marshal(filteredConfigMap)
-	return string(b), err
+	return json.Marshal(filteredConfigMap)
 }
 
 func (o *Config) GetSSOService(service string) *SSOSettings {

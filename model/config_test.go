@@ -1342,7 +1342,7 @@ func TestConfigToJSONFiltered(t *testing.T) {
 	require.NoError(t, err)
 
 	unmarshaledCfg := make(map[string]json.RawMessage)
-	err = json.Unmarshal([]byte(jsonCfgFiltered), &unmarshaledCfg)
+	err = json.Unmarshal(jsonCfgFiltered, &unmarshaledCfg)
 	require.NoError(t, err)
 
 	_, ok := unmarshaledCfg["SqlSettings"]

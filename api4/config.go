@@ -74,7 +74,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte(js))
+		w.Write(js)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
@@ -185,7 +185,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte(js))
+		w.Write(js)
 		return
 	}
 
@@ -311,7 +311,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte(js))
+		w.Write(js)
 		return
 	}
 
