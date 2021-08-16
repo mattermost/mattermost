@@ -75,6 +75,8 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 		return t.ToJson(), nil
 	case *opengraph.OpenGraph:
 		return json.Marshal(t)
+	case *model.PostImage:
+		return json.Marshal(t)
 	}
 
 	return val, nil
