@@ -4,7 +4,7 @@
 package main
 
 import (
-	"bytes"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -32,7 +32,11 @@ func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Req
 		if err != nil {
 			break
 		}
-		req := model.WebSocketRequestFromJson(bytes.NewReader(msg))
+		var req model.WebSocketRequest
+		err = json.Unmarshal(msg, &req)
+		if err != nil {
+			break
+		}
 		resp := model.NewWebSocketResponse("OK", req.Seq, map[string]interface{}{"action": req.Action, "value": req.Data["value"]})
 		respJSON, err := resp.ToJSON()
 		if err != nil {

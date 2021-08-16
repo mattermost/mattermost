@@ -4,9 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
-
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
@@ -21,15 +18,4 @@ type WebSocketRequest struct {
 	Session Session            `json:"-"`
 	T       i18n.TranslateFunc `json:"-"`
 	Locale  string             `json:"-"`
-}
-
-func (o *WebSocketRequest) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func WebSocketRequestFromJson(data io.Reader) *WebSocketRequest {
-	var o *WebSocketRequest
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
