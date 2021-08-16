@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app"
-	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
@@ -3307,7 +3306,6 @@ func TestAutocompleteChannels(t *testing.T) {
 	defer th.TearDown()
 
 	// A private channel to make sure private channels are not used
-	config.DisableDebugLogForTest(th.TestLogger)
 	ptown, _, _ := th.Client.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3320,7 +3318,6 @@ func TestAutocompleteChannels(t *testing.T) {
 		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 	})
-	config.EnableDebugLogForTest(th.TestLogger)
 	defer func() {
 		th.Client.DeleteChannel(ptown.Id)
 		th.Client.DeleteChannel(tower.Id)
@@ -3389,7 +3386,6 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, u4)
 
 	// A private channel to make sure private channels are not used
-	config.EnableDebugLogForTest(th.TestLogger)
 	ptown, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3408,7 +3404,6 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	defer func() {
 		th.Client.DeleteChannel(mypriv.Id)
 	}()
-	config.DisableDebugLogForTest(th.TestLogger)
 
 	dc1, _, err := th.Client.CreateDirectChannel(th.BasicUser.Id, u1.Id)
 	require.NoError(t, err)
@@ -3519,7 +3514,6 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	require.NoError(t, err)
 
 	// A private channel to make sure private channels are not used
-	config.DisableDebugLogForTest(th.TestLogger)
 	town, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3543,8 +3537,6 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	}()
 	_, _, err = th.SystemAdminClient.AddChannelMember(mypriv.Id, guest.Id)
 	require.NoError(t, err)
-
-	config.EnableDebugLogForTest(th.TestLogger)
 
 	dc1, _, err := th.SystemAdminClient.CreateDirectChannel(th.BasicUser.Id, guest.Id)
 	require.NoError(t, err)

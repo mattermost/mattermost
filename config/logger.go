@@ -96,16 +96,6 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	return cfg, nil
 }
 
-// DON'T USE THIS Modify the level on the app logger
-func DisableDebugLogForTest(testLogger *mlog.Logger) {
-	// TODO: allow mlog to change log levels
-}
-
-// DON'T USE THIS Modify the level on the app logger
-func EnableDebugLogForTest(testLogger *mlog.Logger) {
-	// TODO: allow mlog to change log levels
-}
-
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
 		fileLocation, _ = fileutils.FindDir("logs")

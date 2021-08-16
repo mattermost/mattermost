@@ -250,9 +250,6 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	var err *model.AppError
 	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
 		panic(err)
@@ -278,9 +275,6 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 		Password:      "Password1",
 		EmailVerified: true,
 	}
-
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
 
 	var err *model.AppError
 	if guest {
@@ -343,9 +337,6 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 		option(channel)
 	}
 
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	var appErr *model.AppError
 	if channel, appErr = th.App.CreateChannel(th.Context, channel, true); appErr != nil {
 		panic(appErr)
@@ -371,9 +362,6 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 }
 
 func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
@@ -383,9 +371,6 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 }
 
 func (th *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.CreateGroupChannel([]string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
@@ -404,9 +389,6 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	var err *model.AppError
 	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
@@ -422,9 +404,6 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	var err *model.AppError
 	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
@@ -433,9 +412,6 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 }
 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
 		panic(err)
@@ -443,9 +419,6 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	err := th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, "")
 	if err != nil {
 		panic(err)
@@ -453,9 +426,6 @@ func (th *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
@@ -469,9 +439,6 @@ func (th *TestHelper) CreateRole(roleName string) *model.Role {
 }
 
 func (th *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	scheme, err := th.App.CreateScheme(&model.Scheme{
 		DisplayName: "Test Scheme Display Name",
 		Name:        model.NewId(),
@@ -512,9 +479,6 @@ func (th *TestHelper) CreateGroup() *model.Group {
 		RemoteId:    model.NewId(),
 	}
 
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	var err *model.AppError
 	if group, err = th.App.CreateGroup(group); err != nil {
 		panic(err)
@@ -523,9 +487,6 @@ func (th *TestHelper) CreateGroup() *model.Group {
 }
 
 func (th *TestHelper) CreateEmoji() *model.Emoji {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	emoji, err := th.App.Srv().Store.Emoji().Save(&model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewRandomString(10),
@@ -537,9 +498,6 @@ func (th *TestHelper) CreateEmoji() *model.Emoji {
 }
 
 func (th *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emojiName string) *model.Reaction {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	reaction, err := th.App.SaveReactionForPost(th.Context, &model.Reaction{
 		UserId:    user.Id,
 		PostId:    post.Id,
@@ -676,9 +634,6 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		panic(err1)
@@ -704,9 +659,6 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		panic(err1)

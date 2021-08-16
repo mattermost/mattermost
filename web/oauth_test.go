@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -713,9 +712,6 @@ func (th *TestHelper) Logout(client *model.Client4) {
 }
 
 func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	results := make(map[string][]string)
 
 	for _, roleName := range []string{
@@ -737,9 +733,6 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 }
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	for roleName, permissions := range data {
 		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
@@ -792,9 +785,6 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 // }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	config.DisableDebugLogForTest(th.TestLogger)
-	defer config.EnableDebugLogForTest(th.TestLogger)
-
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		panic(err1)
