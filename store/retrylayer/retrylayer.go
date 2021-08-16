@@ -11250,11 +11250,11 @@ func (s *RetryLayerUserStore) InvalidateProfilesInChannelCacheByUser(userID stri
 
 }
 
-func (s *RetryLayerUserStore) IsEmpty() (bool, error) {
+func (s *RetryLayerUserStore) IsEmpty(excludeBots bool) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.IsEmpty()
+		result, err := s.UserStore.IsEmpty(excludeBots)
 		if err == nil {
 			return result, nil
 		}
