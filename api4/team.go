@@ -1582,11 +1582,16 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var p model.SchemeIDPatch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil || p.SchemeID == nil || (!model.IsValidId(*p.SchemeID) && *p.SchemeID != "") {
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
+
 	schemeID := p.SchemeID
+	if p.SchemeID == nil || (!model.IsValidId(*p.SchemeID) && *p.SchemeID != "") {
+		c.SetInvalidParam("scheme_id")
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("updateTeamScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
