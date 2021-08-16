@@ -172,6 +172,18 @@ func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post,
 	return translateFunc("app.notification.subject.group_message.generic", subjectParameters)
 }
 
+/**
+* If the channel name is longer than i characters, replace remaining characters with ...
+ */
+func truncateChannelNames(name string, i int) string {
+	runes := []rune(name)
+	if len(runes) > i {
+		newString := string(runes[:i])
+		return newString + "..."
+	}
+	return name
+}
+
 type postData struct {
 	SenderName  string
 	ChannelName string
@@ -236,7 +248,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		// mentions
 		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
-		pData.ChannelName = channelName
+		pData.ChannelName = truncateChannelNames(channelName, 9)
 	}
 
 	// only include posts in notification email if email notification contents type is set to full
