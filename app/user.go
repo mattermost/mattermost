@@ -226,8 +226,8 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 		case errors.As(nErr, &nfErr):
 			return nil, model.NewAppError("createUserOrGuest", "api.user.check_user_password.invalid.app_error", nil, "", http.StatusBadRequest)
-		case errors.Is(nErr, users.UserCountError):
-			return nil, model.NewAppError("createUserOrGuest", "app.user.get_total_users_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		case errors.Is(nErr, users.UserStoreIsEmptyError):
+			return nil, model.NewAppError("createUserOrGuest", "app.user.store_is_empty.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		case errors.As(nErr, &invErr):
 			switch invErr.Field {
 			case "email":
@@ -753,7 +753,7 @@ func (a *App) SetProfileImage(userID string, imageData *multipart.FileHeader) *m
 }
 
 func (a *App) SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError {
-	if limitErr := checkImageLimits(file); limitErr != nil {
+	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 	}
 

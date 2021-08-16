@@ -939,26 +939,6 @@ func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 	return api.app.PermanentDeleteBot(userID)
 }
 
-func (api *PluginAPI) GetBotIconImage(userID string) ([]byte, *model.AppError) {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return nil, err
-	}
-
-	return api.app.GetBotIconImage(userID)
-}
-
-func (api *PluginAPI) SetBotIconImage(userID string, data []byte) *model.AppError {
-	return api.app.SetBotIconImage(userID, bytes.NewReader(data))
-}
-
-func (api *PluginAPI) DeleteBotIconImage(userID string) *model.AppError {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return err
-	}
-
-	return api.app.DeleteBotIconImage(userID)
-}
-
 func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
 	return api.app.PublishUserTyping(userID, channelID, parentId)
 }
