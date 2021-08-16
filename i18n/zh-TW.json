@@ -5876,38 +5876,6 @@
     "translation": "請將我加入想要互動的團隊與頻道。請用瀏覽器或是桌面應用程式加入。"
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "無法上傳個人資訊圖片。檔案太大。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "無法解析 multipart 表單"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "無法開啟圖片檔案"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "要求的 'image' 欄位沒有檔案"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "要求的 'image' 欄位為空陣列"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "無法上傳個人頭像"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "無法讀取頭像檔案"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "無法刪除個人頭像"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "建立機器人已被停用。"
   },
