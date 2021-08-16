@@ -1610,7 +1610,12 @@ func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string, includeC
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamsUnreadFromJson(r.Body), BuildResponse(r), nil
+
+	var list []*TeamUnread
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamsUnreadForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUserAudits returns a list of audit based on the provided user id string.
@@ -2030,7 +2035,11 @@ func (c *Client4) CreateTeam(team *Team) (*Team, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("CreateTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // GetTeam returns a team based on the provided team id string.
@@ -2040,7 +2049,11 @@ func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // GetAllTeams returns all teams based on permissions.
@@ -2051,7 +2064,11 @@ func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Res
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetAllTeams", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetAllTeamsWithTotalCount returns all teams based on permissions.
@@ -2062,8 +2079,11 @@ func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) 
 		return nil, 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	teamsListWithCount := TeamsWithCountFromJson(r.Body)
-	return teamsListWithCount.Teams, teamsListWithCount.TotalCount, BuildResponse(r), nil
+	var listWithCount TeamsWithCount
+	if jsonErr := json.NewDecoder(r.Body).Decode(&listWithCount); jsonErr != nil {
+		return nil, 0, nil, NewAppError("GetAllTeamsWithTotalCount", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return listWithCount.Teams, listWithCount.TotalCount, BuildResponse(r), nil
 }
 
 // GetAllTeamsExcludePolicyConstrained returns all teams which are not part of a data retention policy.
@@ -2075,7 +2095,11 @@ func (c *Client4) GetAllTeamsExcludePolicyConstrained(etag string, page int, per
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetAllTeamsExcludePolicyConstrained", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetTeamByName returns a team based on the provided team name string.
@@ -2085,7 +2109,11 @@ func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamByName", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // SearchTeams returns teams matching the provided search term.
@@ -2099,7 +2127,11 @@ func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("SearchTeams", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
@@ -2119,8 +2151,11 @@ func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Respons
 		return nil, 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	twc := TeamsWithCountFromJson(r.Body)
-	return twc.Teams, twc.TotalCount, BuildResponse(r), nil
+	var listWithCount TeamsWithCount
+	if jsonErr := json.NewDecoder(r.Body).Decode(&listWithCount); jsonErr != nil {
+		return nil, 0, nil, NewAppError("GetAllTeamsWithTotalCount", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return listWithCount.Teams, listWithCount.TotalCount, BuildResponse(r), nil
 }
 
 // TeamExists returns true or false if the team exist or not.
@@ -2141,7 +2176,11 @@ func (c *Client4) GetTeamsForUser(userId, etag string) ([]*Team, *Response, erro
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamsForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetTeamMember returns a team member based on the provided team and user id strings.
@@ -2151,7 +2190,14 @@ func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Resp
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMemberFromJson(r.Body), BuildResponse(r), nil
+	var tm TeamMember
+	if r.StatusCode == http.StatusNotModified {
+		return &tm, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tm); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamMember", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &tm, BuildResponse(r), nil
 }
 
 // UpdateTeamMemberRoles will update the roles on a team for a user.
@@ -2190,7 +2236,11 @@ func (c *Client4) UpdateTeam(team *Team) (*Team, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // PatchTeam partially updates a team. Any missing fields are not updated.
@@ -2204,7 +2254,11 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("PatchTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // RestoreTeam restores a previously deleted team.
@@ -2214,7 +2268,11 @@ func (c *Client4) RestoreTeam(teamId string) (*Team, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("RestoreTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // RegenerateTeamInviteId requests a new invite ID to be generated.
@@ -2224,7 +2282,11 @@ func (c *Client4) RegenerateTeamInviteId(teamId string) (*Team, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("RegenerateTeamInviteId", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // SoftDeleteTeam deletes the team softly (archive only, not permanent delete).
@@ -2257,7 +2319,11 @@ func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) (*Team, *Resp
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateTeamPrivacy", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // GetTeamMembers returns team members based on the provided team id string.
@@ -2268,7 +2334,14 @@ func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMembersFromJson(r.Body), BuildResponse(r), nil
+	var tms []*TeamMember
+	if r.StatusCode == http.StatusNotModified {
+		return tms, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tms); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return tms, BuildResponse(r), nil
 }
 
 // GetTeamMembersWithoutDeletedUsers returns team members based on the provided team id string. Additional parameters of sort and exclude_deleted_users accepted as well
@@ -2280,7 +2353,14 @@ func (c *Client4) GetTeamMembersSortAndWithoutDeletedUsers(teamId string, page i
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMembersFromJson(r.Body), BuildResponse(r), nil
+	var tms []*TeamMember
+	if r.StatusCode == http.StatusNotModified {
+		return tms, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tms); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamMembersSortAndWithoutDeletedUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return tms, BuildResponse(r), nil
 }
 
 // GetTeamMembersForUser returns the team members for a user.
@@ -2290,7 +2370,14 @@ func (c *Client4) GetTeamMembersForUser(userId string, etag string) ([]*TeamMemb
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMembersFromJson(r.Body), BuildResponse(r), nil
+	var tms []*TeamMember
+	if r.StatusCode == http.StatusNotModified {
+		return tms, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tms); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamMembersForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return tms, BuildResponse(r), nil
 }
 
 // GetTeamMembersByIds will return an array of team members based on the
@@ -2301,7 +2388,11 @@ func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamM
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMembersFromJson(r.Body), BuildResponse(r), nil
+	var tms []*TeamMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tms); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamMembersByIds", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return tms, BuildResponse(r), nil
 }
 
 // AddTeamMember adds user to a team and return a team member.
@@ -2316,7 +2407,11 @@ func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMemberFromJson(r.Body), BuildResponse(r), nil
+	var tm TeamMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tm); jsonErr != nil {
+		return nil, nil, NewAppError("AddTeamMember", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &tm, BuildResponse(r), nil
 }
 
 // AddTeamMemberFromInvite adds a user to a team and return a team member using an invite id
@@ -2337,7 +2432,11 @@ func (c *Client4) AddTeamMemberFromInvite(token, inviteId string) (*TeamMember, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMemberFromJson(r.Body), BuildResponse(r), nil
+	var tm TeamMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tm); jsonErr != nil {
+		return nil, nil, NewAppError("AddTeamMemberFromInvite", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &tm, BuildResponse(r), nil
 }
 
 // AddTeamMembers adds a number of users to a team and returns the team members.
@@ -2347,13 +2446,20 @@ func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember
 		member := &TeamMember{TeamId: teamId, UserId: userId}
 		members = append(members, member)
 	}
-
-	r, err := c.DoApiPost(c.teamMembersRoute(teamId)+"/batch", TeamMembersToJson(members))
+	js, jsonErr := json.Marshal(members)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("AddTeamMembers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoApiPost(c.teamMembersRoute(teamId)+"/batch", string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMembersFromJson(r.Body), BuildResponse(r), nil
+	var tms []*TeamMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tms); jsonErr != nil {
+		return nil, nil, NewAppError("AddTeamMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return tms, BuildResponse(r), nil
 }
 
 // AddTeamMembers adds a number of users to a team and returns the team members.
@@ -2363,13 +2469,21 @@ func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) ([]*
 		member := &TeamMember{TeamId: teamId, UserId: userId}
 		members = append(members, member)
 	}
+	js, jsonErr := json.Marshal(members)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("AddTeamMembersGracefully", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 
-	r, err := c.DoApiPost(c.teamMembersRoute(teamId)+"/batch?graceful="+c.boolString(true), TeamMembersToJson(members))
+	r, err := c.DoApiPost(c.teamMembersRoute(teamId)+"/batch?graceful="+c.boolString(true), string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamMembersWithErrorFromJson(r.Body), BuildResponse(r), nil
+	var tms []*TeamMemberWithError
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tms); jsonErr != nil {
+		return nil, nil, NewAppError("AddTeamMembersGracefully", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return tms, BuildResponse(r), nil
 }
 
 // RemoveTeamMember will remove a user from a team.
@@ -2390,7 +2504,11 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response, erro
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamStatsFromJson(r.Body), BuildResponse(r), nil
+	var ts TeamStats
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ts); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamStats", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ts, BuildResponse(r), nil
 }
 
 // GetTotalUsersStats returns a total system user stats.
@@ -2417,7 +2535,11 @@ func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamUnreadFromJson(r.Body), BuildResponse(r), nil
+	var tu TeamUnread
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tu); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamUnread", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &tu, BuildResponse(r), nil
 }
 
 // ImportTeam will import an exported team from other app into a existing team.
@@ -2495,7 +2617,11 @@ func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r), nil
+	var list []*EmailInviteWithError
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("InviteUsersToTeamGracefully", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // InviteGuestsToTeam invite guest by email to some channels in a team.
@@ -2514,7 +2640,11 @@ func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []strin
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r), nil
+	var list []*EmailInviteWithError
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("InviteGuestsToTeamGracefully", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
@@ -2534,7 +2664,11 @@ func (c *Client4) GetTeamInviteInfo(inviteId string) (*Team, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamFromJson(r.Body), BuildResponse(r), nil
+	var t Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&t); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamInviteInfo", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &t, BuildResponse(r), nil
 }
 
 // SetTeamIcon sets team icon of the team.
@@ -6101,7 +6235,11 @@ func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TeamListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetTeamsForScheme", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetChannelsForScheme gets the channels using this scheme, sorted alphabetically by display name.

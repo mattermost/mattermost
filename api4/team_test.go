@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -343,7 +344,9 @@ func TestUpdateTeam(t *testing.T) {
 		originalTeamId := team.Id
 		team.Id = model.NewId()
 
-		r, err := th.Client.DoApiPut("/teams/"+originalTeamId, team.ToJson())
+		teamJSON, jsonErr := json.Marshal(team)
+		require.NoError(t, jsonErr)
+		r, err := th.Client.DoApiPut("/teams/"+originalTeamId, string(teamJSON))
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
