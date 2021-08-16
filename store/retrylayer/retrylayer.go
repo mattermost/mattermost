@@ -7550,9 +7550,23 @@ func (s *RetryLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 
 }
 
-func (s *RetryLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
+func (s *RetryLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 
-	s.SessionStore.Cleanup(expiryTime, batchSize)
+	tries := 0
+	for {
+		err := s.SessionStore.Cleanup(expiryTime, batchSize)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
@@ -11236,11 +11250,11 @@ func (s *RetryLayerUserStore) InvalidateProfilesInChannelCacheByUser(userID stri
 
 }
 
-func (s *RetryLayerUserStore) IsEmpty() (bool, error) {
+func (s *RetryLayerUserStore) IsEmpty(excludeBots bool) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.IsEmpty()
+		result, err := s.UserStore.IsEmpty(excludeBots)
 		if err == nil {
 			return result, nil
 		}

@@ -115,9 +115,8 @@ func TestCreateCommand(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			actual, _ := th.RunCommandWithOutput(t, testCase.Args...)
 
-			cmds, response := th.SystemAdminClient.ListCommands(team.Id, true)
-
-			require.Nil(t, response.Error, "Failed to list commands")
+			cmds, _, err := th.SystemAdminClient.ListCommands(team.Id, true)
+			require.NoError(t, err, "Failed to list commands")
 
 			if testCase.ExpectedErr == "" {
 				assert.NotZero(t, len(cmds), "Failed to create command")
