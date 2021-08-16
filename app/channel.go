@@ -641,7 +641,7 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode channel to JSON", mlog.Err(jsonErr))
 	}
-	messageWs.Add("channel", channelJSON)
+	messageWs.Add("channel", string(channelJSON))
 	a.Publish(messageWs)
 
 	return channel, nil
@@ -1271,7 +1271,7 @@ func (a *App) updateChannelMember(member *model.ChannelMember) (*model.ChannelMe
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
 	}
-	evt.Add("channelMember", memberJSON)
+	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
 
 	return member, nil
@@ -3196,7 +3196,7 @@ func (a *App) setChannelsMuted(channelIDs []string, userID string, muted bool) (
 			mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
 		}
 
-		evt.Add("channelMember", memberJSON)
+		evt.Add("channelMember", string(memberJSON))
 		a.Publish(evt)
 	}
 
@@ -3302,7 +3302,7 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 		if jsonErr != nil {
 			mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
 		}
-		message.Add("channelMember", memberJSON)
+		message.Add("channelMember", string(memberJSON))
 		a.Publish(message)
 		return nil
 	}

@@ -2062,7 +2062,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 			if jsonErr != nil {
 				mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
 			}
-			evt.Add("channelMember", memberJSON)
+			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
 		}
 	}
@@ -2107,7 +2107,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 			if jsonErr != nil {
 				mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
 			}
-			evt.Add("channelMember", memberJSON)
+			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
 		}
 	}
