@@ -7908,38 +7908,6 @@
     "translation": "Моля, добавете ме към екипи и канали, в които искате да взаимодействам. За целта използвайте браузър или Mattermost настолното приложение."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Не можа да се качи изображение на икона. Файлът е твърде голям."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Формуляра от множество части не можа да се обработи."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Файла с изображението не може да се отвори."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Липсва файл под 'image' в заявката."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Празен масив под 'image' в заявката."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Изображението на икона не можа да се качи."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Не може да се прочете файла с изображение на икона."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Изображението на иконата не можа да бъде изтрито."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Създаването на бот е забранено."
   },

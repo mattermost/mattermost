@@ -7955,38 +7955,6 @@
     "translation": "Kérem, adjon hozzá azokhoz a csapatokhoz és csatornákhoz, amelyekben szeretné, hogy részt vegyek. Ehhez használjon egy böngészőt vagy a Mattermost alkalmazást."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Az ikon képet nem lehetett feltölteni. A fájl túl nagy."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nem sikerült értelmezni a többrészes űrlapot."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "A képfájl nem nyitható meg."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nincs fájl a kérés 'image' mezőjében."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Üres tömb a kérés 'image' mezőjében."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nem sikerült feltölteni az ikon képet."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Nem olvasható az ikon képfálj."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nem sikerült törölni az ikon képet."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "A bot létrehozása le van tiltva."
   },
@@ -9245,9 +9213,5 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Érvénytelen érték 'from'"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.read.app_error",
-    "translation": "Nem olvasható a kép adata."
   }
 ]
