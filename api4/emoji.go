@@ -85,6 +85,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	var emoji model.Emoji
 	if jsonErr := json.Unmarshal([]byte(props["emoji"][0]), &emoji); jsonErr != nil {
 		c.SetInvalidParam("emoji")
+		return
 	}
 
 	auditRec.AddMeta("emoji", emoji)
