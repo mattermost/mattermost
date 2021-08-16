@@ -1646,17 +1646,9 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		// to handle a case of empty map. So we just ignore it.
 		if len(props) > 0 {
 			// unpack the keys and values to pass to MySQL.
-			args := make([]interface{}, 0, len(props))
-			for k, v := range props {
-				args = append(args, "$."+k)
-				args = append(args, v)
-			}
+			args, argString := constructMySQLJSONArgs(props)
 			args = append(args, userID, channelID)
 
-			// We calculate the number of ? to set in the query string.
-			argString := strings.Repeat("?, ", len(props)*2)
-			// Strip off the trailing comma.
-			argString = argString[:len(argString)-2]
 			// Example: UPDATE ChannelMembers
 			// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
 			// WHERE ...
