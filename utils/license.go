@@ -127,6 +127,7 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 	var license model.License
 	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
 		mlog.Error("Failed to decode license from JSON", mlog.Err(jsonErr))
+		return nil, nil
 	}
 
 	return &license, licenseBytes

@@ -132,7 +132,7 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 		if jsonErr != nil {
 			mlog.Warn("Failed to encode group to JSON")
 		}
-		messageWs.Add("group", groupJSON)
+		messageWs.Add("group", string(groupJSON))
 		a.Publish(messageWs)
 	}
 
