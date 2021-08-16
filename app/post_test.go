@@ -53,7 +53,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("post rejected by plugin leaves cache ready for non-deduplicated try", func(t *testing.T) {
-		setupPluginApiTest(t, `
+		setupPluginAPITest(t, `
 			package main
 
 			import (
@@ -102,7 +102,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("slow posting after cache entry blocks duplicate request", func(t *testing.T) {
-		setupPluginApiTest(t, `
+		setupPluginAPITest(t, `
 			package main
 
 			import (

@@ -218,18 +218,18 @@ func TestModifyIncomingWebhook(t *testing.T) {
 
 	modifiedDescription := "myhookincdesc2"
 	modifiedDisplayName := "myhookincname2"
-	modifiedIconUrl := "myhookincicon2"
+	modifiedIconURL := "myhookincicon2"
 	modifiedChannelLocked := true
 	modifiedChannelId := th.BasicChannel2.Id
 
-	th.CheckCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", modifiedChannelId, "--description", modifiedDescription, "--display-name", modifiedDisplayName, "--icon", modifiedIconUrl, "--lock-to-channel", strconv.FormatBool(modifiedChannelLocked))
+	th.CheckCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", modifiedChannelId, "--description", modifiedDescription, "--display-name", modifiedDisplayName, "--icon", modifiedIconURL, "--lock-to-channel", strconv.FormatBool(modifiedChannelLocked))
 
 	modifiedHook, err := th.App.GetIncomingWebhook(oldHook.Id)
 	require.Nil(t, err, "unable to retrieve modified incoming webhook")
 
 	successUpdate := modifiedHook.DisplayName != modifiedDisplayName ||
 		modifiedHook.Description != modifiedDescription ||
-		modifiedHook.IconURL != modifiedIconUrl ||
+		modifiedHook.IconURL != modifiedIconURL ||
 		modifiedHook.ChannelLocked != modifiedChannelLocked ||
 		modifiedHook.ChannelId != modifiedChannelId
 	require.False(t, successUpdate, "Failed to update incoming webhook")
