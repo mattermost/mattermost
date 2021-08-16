@@ -9208,5 +9208,9 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "この機能を利用するには、Enterprise Editionへのアップグレードが必要です。"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "ユーザーストアが空であるかどうか確認できませんでした。"
   }
 ]
