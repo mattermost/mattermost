@@ -619,7 +619,7 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.Warn(jsonErr.Error())
 	}
 
-	if _, err := w.Write([]byte(sbsJSON)); err != nil {
+	if _, err := w.Write(sbsJSON); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }

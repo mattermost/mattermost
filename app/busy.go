@@ -137,7 +137,7 @@ func (b *Busy) ClusterEventChanged(sbs *model.ServerBusyState) {
 	}
 }
 
-func (b *Busy) ToJSON() (string, error) {
+func (b *Busy) ToJSON() ([]byte, error) {
 	b.mux.RLock()
 	defer b.mux.RUnlock()
 
@@ -148,8 +148,8 @@ func (b *Busy) ToJSON() (string, error) {
 	}
 	sbsJSON, jsonErr := json.Marshal(sbs)
 	if jsonErr != nil {
-		return "", fmt.Errorf("failed to encode server busy state to JSON: %w", jsonErr)
+		return []byte{}, fmt.Errorf("failed to encode server busy state to JSON: %w", jsonErr)
 	}
 
-	return string(sbsJSON), nil
+	return sbsJSON, nil
 }
