@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -690,20 +689,6 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 	}
 
 	return s.cleanupThreads(postID, rootID, false)
-}
-
-// TODO: Move to adapters.go.
-// Blocked on https://github.com/mattermost/mattermost-server/pull/18093
-type jsonStringVal string
-
-func (str jsonStringVal) Value() (driver.Value, error) {
-	return strconv.Quote(string(str)), nil
-}
-
-type jsonKeyPath string
-
-func (str jsonKeyPath) Value() (driver.Value, error) {
-	return "{" + string(str) + "}", nil
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
