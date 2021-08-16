@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -5760,8 +5761,9 @@ func TestThreadSocketEvents(t *testing.T) {
 				case ev := <-userWSClient.EventChannel:
 					if ev.EventType() == model.WebsocketEventThreadUpdated {
 						caught = true
-						thread, err2 := model.ThreadResponseFromJson(ev.GetData()["thread"].(string))
-						require.NoError(t, err2)
+						var thread model.ThreadResponse
+						jsonErr := json.Unmarshal([]byte(ev.GetData()["thread"].(string)), &thread)
+						require.NoError(t, jsonErr)
 						for _, p := range thread.Participants {
 							if p.Id != th.BasicUser.Id && p.Id != th.BasicUser2.Id {
 								require.Fail(t, "invalid participants")

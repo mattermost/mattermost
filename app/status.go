@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -21,10 +22,14 @@ func (a *App) AddStatusCache(status *model.Status) {
 	a.AddStatusCacheSkipClusterSend(status)
 
 	if a.Cluster() != nil {
+		statusJSON, jsonErr := json.Marshal(status)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode status to JSON")
+		}
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventUpdateStatus,
 			SendType: model.ClusterSendBestEffort,
-			Data:     []byte(status.ToClusterJson()),
+			Data:     statusJSON,
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}

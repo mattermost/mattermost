@@ -64,14 +64,18 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// No permission check required
-
-	statusMap, err := c.App.GetUserStatusesByIds(userIds)
+	statuses, err := c.App.GetUserStatusesByIds(userIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(model.StatusListToJson(statusMap)))
+	js, jsonErr := json.Marshal(statuses)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUserStatusesByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -80,8 +84,8 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := model.StatusFromJson(r.Body)
-	if status == nil {
+	var status model.Status
+	if jsonErr := json.NewDecoder(r.Body).Decode(&status); jsonErr != nil {
 		c.SetInvalidParam("status")
 		return
 	}

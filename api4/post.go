@@ -775,7 +775,12 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	js, jsonErr := json.Marshal(infos)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getFileInfosForPost", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set(model.HeaderEtagServer, model.GetEtagForFileInfos(infos))
-	w.Write([]byte(model.FileInfosToJson(infos)))
+	w.Write(js)
 }

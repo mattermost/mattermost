@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -77,7 +78,10 @@ func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
 }
 
 func (s *Server) clusterUpdateStatusHandler(msg *model.ClusterMessage) {
-	status := model.StatusFromJson(bytes.NewReader(msg.Data))
+	var status model.Status
+	if jsonErr := json.Unmarshal(msg.Data, &status); jsonErr != nil {
+		mlog.Warn("Failed to decode status from JSON")
+	}
 	s.statusCache.Set(status.UserId, status)
 }
 

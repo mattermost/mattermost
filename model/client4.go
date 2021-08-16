@@ -656,7 +656,11 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 		return nil, BuildResponse(rp), AppErrorFromJson(rp.Body)
 	}
 
-	return FileUploadResponseFromJson(rp.Body), BuildResponse(rp), nil
+	var res FileUploadResponse
+	if jsonErr := json.NewDecoder(rp.Body).Decode(&res); jsonErr != nil {
+		return nil, nil, NewAppError("doUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &res, BuildResponse(rp), nil
 }
 
 func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response, error) {
@@ -1854,7 +1858,11 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (*Response, error) {
 
 // CreateBot creates a bot in the system based on the provided bot struct.
 func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response, error) {
-	r, err := c.doApiPostBytes(c.botsRoute(), bot.ToJson())
+	buf, err := json.Marshal(bot)
+	if err != nil {
+		return nil, nil, NewAppError("CreateBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.doApiPostBytes(c.botsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1871,7 +1879,11 @@ func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response, error) {
 
 // PatchBot partially updates a bot. Any missing fields are not updated.
 func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response, error) {
-	r, err := c.doApiPutBytes(c.botRoute(userId), patch.ToJson())
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("PatchBot", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.doApiPutBytes(c.botRoute(userId), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4118,7 +4130,12 @@ func (c *Client4) GetFileInfo(fileId string) (*FileInfo, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return FileInfoFromJson(r.Body), BuildResponse(r), nil
+
+	var fi FileInfo
+	if jsonErr := json.NewDecoder(r.Body).Decode(&fi); jsonErr != nil {
+		return nil, nil, NewAppError("GetFileInfo", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &fi, BuildResponse(r), nil
 }
 
 // GetFileInfosForPost gets all the file info objects attached to a post.
@@ -4128,7 +4145,15 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return FileInfosFromJson(r.Body), BuildResponse(r), nil
+
+	var list []*FileInfo
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetFileInfosForPost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // General/System Section
@@ -5826,7 +5851,14 @@ func (c *Client4) GetUserStatus(userId, etag string) (*Status, *Response, error)
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return StatusFromJson(r.Body), BuildResponse(r), nil
+	var s Status
+	if r.StatusCode == http.StatusNotModified {
+		return &s, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("GetUserStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetUsersStatusesByIds returns a list of users status based on the provided user ids.
@@ -5836,7 +5868,11 @@ func (c *Client4) GetUsersStatusesByIds(userIds []string) ([]*Status, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return StatusListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Status
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersStatusesByIds", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // UpdateUserStatus sets a user's status based on the provided user id string.
@@ -5850,7 +5886,11 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return StatusFromJson(r.Body), BuildResponse(r), nil
+	var s Status
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateUserStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // Emoji Section
@@ -5989,7 +6029,11 @@ func (c *Client4) SaveReaction(reaction *Reaction) (*Reaction, *Response, error)
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ReactionFromJson(r.Body), BuildResponse(r), nil
+	var re Reaction
+	if jsonErr := json.NewDecoder(r.Body).Decode(&re); jsonErr != nil {
+		return nil, nil, NewAppError("SaveReaction", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &re, BuildResponse(r), nil
 }
 
 // GetReactions returns a list of reactions to a post.
@@ -5999,7 +6043,11 @@ func (c *Client4) GetReactions(postId string) ([]*Reaction, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ReactionsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Reaction
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetReactions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // DeleteReaction deletes reaction of a user in a post.
@@ -6019,7 +6067,11 @@ func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return MapPostIdToReactionsFromJson(r.Body), BuildResponse(r), nil
+	reactions := map[string][]*Reaction{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&reactions); jsonErr != nil {
+		return nil, nil, NewAppError("GetBulkReactions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return reactions, BuildResponse(r), nil
 }
 
 // Timezone Section
@@ -6945,7 +6997,14 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return FileInfoFromJson(r.Body), BuildResponse(r), nil
+	var fi FileInfo
+	if r.StatusCode == http.StatusNoContent {
+		return nil, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&fi); jsonErr != nil {
+		return nil, nil, NewAppError("UploadData", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &fi, BuildResponse(r), nil
 }
 
 func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) (*Response, error) {
