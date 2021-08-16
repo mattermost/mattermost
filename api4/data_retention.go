@@ -330,8 +330,13 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	payload := []byte(channels.ToJson())
-	w.Write(payload)
+	channelsJSON, jsonErr := json.Marshal(channels)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(channelsJSON)
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {

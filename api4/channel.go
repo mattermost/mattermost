@@ -1390,8 +1390,8 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	view := model.ChannelViewFromJson(r.Body)
-	if view == nil {
+	var view model.ChannelView
+	if jsonErr := json.NewDecoder(r.Body).Decode(&view); jsonErr != nil {
 		c.SetInvalidParam("channel_view")
 		return
 	}
@@ -1407,7 +1407,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	times, err := c.App.ViewChannel(view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
+	times, err := c.App.ViewChannel(&view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
 	if err != nil {
 		c.Err = err
 		return

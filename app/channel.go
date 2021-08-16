@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -636,7 +637,11 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	a.invalidateCacheForChannel(channel)
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil)
-	messageWs.Add("channel", channel.ToJson())
+	channelJSON, jsonErr := json.Marshal(channel)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode channel to JSON", mlog.Err(jsonErr))
+	}
+	messageWs.Add("channel", string(channelJSON))
 	a.Publish(messageWs)
 
 	return channel, nil
@@ -1262,7 +1267,11 @@ func (a *App) updateChannelMember(member *model.ChannelMember) (*model.ChannelMe
 
 	// Notify the clients that the member notify props changed
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
-	evt.Add("channelMember", member.ToJson())
+	memberJSON, jsonErr := json.Marshal(member)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+	}
+	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
 
 	return member, nil
@@ -3181,7 +3190,13 @@ func (a *App) setChannelsMuted(channelIDs []string, userID string, muted bool) (
 		a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
 		evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
-		evt.Add("channelMember", member.ToJson())
+
+		memberJSON, jsonErr := json.Marshal(member)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		}
+
+		evt.Add("channelMember", string(memberJSON))
 		a.Publish(evt)
 	}
 
@@ -3283,7 +3298,11 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 	clearSessionCache := func(channelMember model.ChannelMember) error {
 		a.ClearSessionCacheForUser(channelMember.UserId)
 		message := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", channelMember.UserId, nil)
-		message.Add("channelMember", channelMember.ToJson())
+		memberJSON, jsonErr := json.Marshal(channelMember)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		}
+		message.Add("channelMember", string(memberJSON))
 		a.Publish(message)
 		return nil
 	}

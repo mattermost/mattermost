@@ -2449,7 +2449,11 @@ func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*
 
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response, error) {
-	r, err := c.DoApiPost(c.channelsRoute(), channel.ToJson())
+	channelJSON, jsonErr := json.Marshal(channel)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("CreateChannel", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoApiPost(c.channelsRoute(), string(channelJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2465,7 +2469,11 @@ func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response, error) {
 
 // UpdateChannel updates a channel based on the provided channel struct.
 func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response, error) {
-	r, err := c.DoApiPut(c.channelRoute(channel.Id), channel.ToJson())
+	channelJSON, jsonErr := json.Marshal(channel)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("UpdateChannel", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoApiPut(c.channelRoute(channel.Id), string(channelJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2605,7 +2613,11 @@ func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ChannelStatsFromJson(r.Body), BuildResponse(r), nil
+	var stats ChannelStats
+	if jsonErr := json.NewDecoder(r.Body).Decode(&stats); jsonErr != nil {
+		return nil, nil, NewAppError("GetChannelStats", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &stats, BuildResponse(r), nil
 }
 
 // GetChannelMembersTimezones gets a list of timezones for a channel.
@@ -2740,7 +2752,11 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId strin
 
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	r, err := c.DoApiPost(c.channelsForTeamRoute(teamId)+"/search", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoApiPost(c.channelsForTeamRoute(teamId)+"/search", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2756,7 +2772,11 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 
 // SearchArchivedChannels returns the archived channels on a team matching the provided search term.
 func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	r, err := c.DoApiPost(c.channelsForTeamRoute(teamId)+"/search_archived", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchArchivedChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoApiPost(c.channelsForTeamRoute(teamId)+"/search_archived", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2772,7 +2792,11 @@ func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) (
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response, error) {
-	r, err := c.DoApiPost(c.channelsRoute()+"/search", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchAllChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoApiPost(c.channelsRoute()+"/search", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2788,7 +2812,11 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 
 // SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
 func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	r, err := c.DoApiPost(c.channelsRoute()+"/search", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchAllChannelsPaged", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoApiPost(c.channelsRoute()+"/search", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2804,7 +2832,11 @@ func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCo
 
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response, error) {
-	r, err := c.DoApiPost(c.channelsRoute()+"/group/search", search.ToJson())
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchGroupChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoApiPost(c.channelsRoute()+"/group/search", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
