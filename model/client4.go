@@ -2499,22 +2499,6 @@ func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel,
 	return ch, BuildResponse(r), nil
 }
 
-// ConvertChannelToPrivate converts public to private channel.
-func (c *Client4) ConvertChannelToPrivate(channelId string) (*Channel, *Response, error) {
-	r, err := c.DoAPIPost(c.channelRoute(channelId)+"/convert", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var ch *Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("ConvertChannelToPrivate", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return ch, BuildResponse(r), nil
-}
-
 // UpdateChannelPrivacy updates channel privacy
 func (c *Client4) UpdateChannelPrivacy(channelId string, privacy ChannelType) (*Channel, *Response, error) {
 	requestBody := map[string]string{"privacy": string(privacy)}
