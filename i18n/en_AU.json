@@ -9213,5 +9213,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Invalid input value 'from'"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Failed to check if user store is empty."
   }
 ]
