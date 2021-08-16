@@ -5880,38 +5880,6 @@
     "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub aplikacji Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony. Plik jest zbyt duży."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nie udało się przetworzyć wieloczęściowego formularza"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Nie można otworzyć pliku obrazu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Brak pliku w polu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Pusta tablica w kluczu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Nie można odczytać obrazu ikony"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nie można usunąć obrazu ikony"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Tworzenie botów zostało wyłączone."
   },
@@ -5970,10 +5938,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6188,10 +6152,6 @@
     "translation": "Nie udało się pobrać użytkowników na kanale w określonym przedziale czasowym"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Nie można wyczyścić rekordów"
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Nie można zapisać emoji"
   },
@@ -6250,10 +6210,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas czyszczenia partii flag"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6536,10 +6492,6 @@
     "translation": "Nie można uzyskać zadania"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania informacji o wielu plikach"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Nie można zapisać informacji o pliku"
   },
@@ -6626,10 +6578,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Nie można uzyskać wielu wpisów do indeksowania"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania partii wpisów"
   },
   {
     "id": "app.post.overwrite.app_error",

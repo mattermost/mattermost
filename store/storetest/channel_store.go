@@ -659,20 +659,20 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 
 	channelID := result.Id
 
-	result, err = ss.Channel().GetByName(o1.TeamId, "", true)
+	_, err = ss.Channel().GetByName(o1.TeamId, "", true)
 	require.Error(t, err, "Missing id should have failed")
 
 	result, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
 	require.NoError(t, err)
 	require.Equal(t, o1.ToJson(), result.ToJson(), "invalid returned channel")
 
-	result, err = ss.Channel().GetByName(o1.TeamId, "", false)
+	_, err = ss.Channel().GetByName(o1.TeamId, "", false)
 	require.Error(t, err, "Missing id should have failed")
 
 	nErr = ss.Channel().Delete(channelID, model.GetMillis())
 	require.NoError(t, nErr, "channel should have been deleted")
 
-	result, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
+	_, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
 	require.Error(t, err, "Deleted channel should not be returned by GetByName()")
 }
 
@@ -4610,8 +4610,11 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		} else if i == 3 || i == 4 {
 			timeZone["manualTimezone"] = "PST"
 			timeZone["useAutomaticTimezone"] = "false"
-		} else if i == 5 || i == 6 {
-			timeZone["autoTimezone"] = "PST"
+		} else if i == 5 {
+			timeZone["autoTimezone"] = "CET"
+			timeZone["useAutomaticTimezone"] = "true"
+		} else if i == 6 {
+			timeZone["automaticTimezone"] = "CET"
 			timeZone["useAutomaticTimezone"] = "true"
 		} else {
 			// Give every user with auto timezone set to true a random manual timezone to ensure that manual timezone is not looked at if auto is set

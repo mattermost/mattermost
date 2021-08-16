@@ -69,13 +69,13 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("FirstName").SetMaxSize(64)
 		table.ColMap("LastName").SetMaxSize(64)
 		table.ColMap("Roles").SetMaxSize(256)
-		table.ColMap("Props").SetMaxSize(4000)
-		table.ColMap("NotifyProps").SetMaxSize(2000)
+		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
+		table.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
 		table.ColMap("RemoteId").SetMaxSize(26)
 		table.ColMap("Position").SetMaxSize(128)
-		table.ColMap("Timezone").SetMaxSize(256)
+		table.ColMap("Timezone").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return us
@@ -2001,4 +2001,30 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 	}
 
 	return userIds, nil
+}
+
+// IsEmpty returns whether or not the Users table is empty.
+func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
+	var hasRows bool
+
+	builder := us.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("Users")
+
+	if excludeBots {
+		builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+	}
+
+	builder = builder.Suffix(")")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrapf(err, "users_is_empty_to_sql")
+	}
+
+	if err = us.GetReplica().SelectOne(&hasRows, query, args...); err != nil {
+		return false, errors.Wrap(err, "failed to check if table is empty")
+	}
+	return !hasRows, nil
 }

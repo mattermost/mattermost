@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -53,7 +52,7 @@ func (ad *AccessData) IsValid() *AppError {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.refresh_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if ad.RedirectUri == "" || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
+	if ad.RedirectUri == "" || len(ad.RedirectUri) > 256 || !IsValidHTTPUrl(ad.RedirectUri) {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -71,14 +70,4 @@ func (ad *AccessData) IsExpired() bool {
 	}
 
 	return false
-}
-
-func (ad *AccessData) ToJson() string {
-	b, _ := json.Marshal(ad)
-	return string(b)
-}
-
-func (ar *AccessResponse) ToJson() string {
-	b, _ := json.Marshal(ar)
-	return string(b)
 }

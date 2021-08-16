@@ -5876,38 +5876,6 @@
     "translation": "請將我加入想要互動的團隊與頻道。請用瀏覽器或是桌面應用程式加入。"
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "無法上傳個人資訊圖片。檔案太大。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "無法解析 multipart 表單"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "無法開啟圖片檔案"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "要求的 'image' 欄位沒有檔案"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "要求的 'image' 欄位為空陣列"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "無法上傳個人頭像"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "無法讀取頭像檔案"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "無法刪除個人頭像"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "建立機器人已被停用。"
   },
@@ -5950,10 +5918,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "無法刪除品牌圖片，沒有找到檔案。"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "永久批次刪除回應時遇到錯誤"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6170,10 +6134,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "刪除頻道訊息失敗"
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "清除紀錄失敗。"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6414,10 +6374,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "取得規範報告時遇到錯誤"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "永久批次清除標記時遇到錯誤"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6746,10 +6702,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "無法取得工作"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "永久批次刪除檔案資訊時遇到錯誤"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7390,10 +7342,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "無法取得文章以建立索引"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "永久批次刪除訊息時遇到錯誤"
   },
   {
     "id": "app.post.search.app_error",

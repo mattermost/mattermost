@@ -147,7 +147,7 @@ func getConfigStore(command *cobra.Command) (*config.Store, error) {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}
 
-	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, false, nil)
+	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize config store")
 	}
@@ -273,6 +273,10 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 }
 
 func configMigrateCmdF(command *cobra.Command, args []string) error {
+	if err := utils.TranslationsPreInit(); err != nil {
+		return errors.Wrap(err, "failed to load translations while migrating config")
+	}
+
 	from := args[0]
 	to := args[1]
 

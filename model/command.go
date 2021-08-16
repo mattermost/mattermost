@@ -43,20 +43,10 @@ type Command struct {
 	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 }
 
-func (o *Command) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
 func CommandFromJson(data io.Reader) *Command {
 	var o *Command
 	json.NewDecoder(data).Decode(&o)
 	return o
-}
-
-func CommandListToJson(l []*Command) string {
-	b, _ := json.Marshal(l)
-	return string(b)
 }
 
 func CommandListFromJson(data io.Reader) []*Command {
@@ -109,7 +99,7 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !IsValidHttpUrl(o.URL) {
+	if !IsValidHTTPUrl(o.URL) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.url_http.app_error", nil, "", http.StatusBadRequest)
 	}
 

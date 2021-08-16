@@ -31,7 +31,6 @@ const (
 	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	MB               = 1 << 20
 )
 
 type StringInterface map[string]interface{}
@@ -392,6 +391,8 @@ var reservedName = []string{
 	"plugins",
 	"post",
 	"signup",
+	"boards",
+	"playbooks",
 }
 
 func IsValidChannelIdentifier(s string) bool {
@@ -486,7 +487,7 @@ func ClearMentionTags(post string) string {
 	return post
 }
 
-func IsValidHttpUrl(rawUrl string) bool {
+func IsValidHTTPUrl(rawUrl string) bool {
 	if strings.Index(rawUrl, "http://") != 0 && strings.Index(rawUrl, "https://") != 0 {
 		return false
 	}

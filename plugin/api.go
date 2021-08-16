@@ -463,19 +463,19 @@ type API interface {
 	// CreateChannelSidebarCategory creates a new sidebar category for a set of channels.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
 
 	// GetChannelSidebarCategories returns sidebar categories.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 
 	// UpdateChannelSidebarCategories updates the channel sidebar categories.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 
 	// SearchUsers returns a list of users based on some search criteria.
@@ -994,25 +994,6 @@ type API interface {
 	// @tag Bot
 	// Minimum server version: 5.10
 	PermanentDeleteBot(botUserId string) *model.AppError
-
-	// GetBotIconImage gets LHS bot icon image.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	GetBotIconImage(botUserId string) ([]byte, *model.AppError)
-
-	// SetBotIconImage sets LHS bot icon image.
-	// Icon image must be SVG format, all other formats are rejected.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	SetBotIconImage(botUserId string, data []byte) *model.AppError
-
-	// DeleteBotIconImage deletes LHS bot icon image.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	DeleteBotIconImage(botUserId string) *model.AppError
 
 	// PluginHTTP allows inter-plugin requests to plugin APIs.
 	//

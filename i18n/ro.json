@@ -5884,38 +5884,6 @@
     "translation": "Adăugați-mă la echipele și canalele pe care doriți să interacționați. Pentru a face acest lucru, utilizați browserul sau aplicația Mattermost Desktop."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Imposibil de încărcat imaginea pictogramei. Fișierul este prea mare."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nu s-a putut parsa forma multipartidă."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Nu sa putut deschide fişierul de imagine."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nici un fișier sub 'imaginea' în cerere."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Gama goală sub 'imagine' în cerere."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nu s-a putut încărca imaginea pictogramei."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Imposibil de citit fișierul de imagine cu pictograme."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nu s-a putut șterge imaginea pictogramei."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Crearea boților a fost dezactivată."
   },
@@ -5972,10 +5940,6 @@
     "translation": "Eroarea de a primi utilizatorii pe canal în perioada specificată."
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Eroare la ștergerea înregistrărilor."
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Identificatorul furnizorului de servicii este necesar"
   },
@@ -5986,10 +5950,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "Nu a reușit să ștergi postările canalului"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Am intalnit o eroare permanent a şterge lotul de reacţii."
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6468,10 +6428,6 @@
     "translation": "Am intalnit o eroare regăsirea rapoarte de conformitate."
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Am întâlnit o eroare la curățarea lotului de steaguri."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Am întâlnit o eroare la actualizarea preferințelor."
   },
@@ -6826,10 +6782,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Imposibil de obținut lucrarea."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Am întâlnit o eroare ștergând definitiv lotul de informații despre fișiere."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7234,10 +7186,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Imposibil de obținut lotul de postări pentru indexare."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Am întâmpinat o eroare la ștergerea definitivă a lotului de postări."
   },
   {
     "id": "app.post.overwrite.app_error",
