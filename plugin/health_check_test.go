@@ -48,7 +48,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		}
 	`, backend)
 
-	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
@@ -91,7 +91,7 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		}
 	`, backend)
 
-	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)

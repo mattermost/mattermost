@@ -616,7 +616,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
+	o1.Message = model.NewRandomString(10)
 	deleteByID := model.NewId()
 
 	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false)
