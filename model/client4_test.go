@@ -91,6 +91,10 @@ func TestClient4SetToken(t *testing.T) {
 		}
 
 		assert.Equal(t, expected, strings.TrimSpace(token[1]))
+
+		var user User
+		err := json.NewEncoder(w).Encode(&user)
+		assert.NoError(t, err)
 	}))
 
 	client := NewAPIv4Client(server.URL)

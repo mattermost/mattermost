@@ -763,7 +763,12 @@ func (c *Client4) login(m map[string]string) (*User, *Response, error) {
 	defer closeBody(r)
 	c.AuthToken = r.Header.Get(HeaderToken)
 	c.AuthType = HeaderBearer
-	return UserFromJson(r.Body), BuildResponse(r), nil
+
+	var user User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
+		return nil, nil, NewAppError("login", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &user, BuildResponse(r), nil
 }
 
 // Logout terminates the current user's session.
@@ -796,12 +801,21 @@ func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Resp
 
 // CreateUser creates a user in the system based on the provided user struct.
 func (c *Client4) CreateUser(user *User) (*User, *Response, error) {
-	r, err := c.DoApiPost(c.usersRoute(), user.ToJson())
+	userJSON, jsonErr := json.Marshal(user)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("CreateUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+
+	r, err := c.DoApiPost(c.usersRoute(), string(userJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("CreateUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // CreateUserWithToken creates a user in the system based on the provided tokenId.
@@ -821,7 +835,11 @@ func (c *Client4) CreateUserWithToken(user *User, tokenId string) (*User, *Respo
 	}
 	defer closeBody(r)
 
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("CreateUserWithToken", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // CreateUserWithInviteId creates a user in the system based on the provided invited id.
@@ -841,7 +859,11 @@ func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *R
 	}
 	defer closeBody(r)
 
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("CreateUserWithInviteId", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // GetMe returns the logged in user.
@@ -851,7 +873,14 @@ func (c *Client4) GetMe(etag string) (*User, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if r.StatusCode == http.StatusNotModified {
+		return &u, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("GetMe", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // GetUser returns a user based on the provided user id string.
@@ -861,7 +890,14 @@ func (c *Client4) GetUser(userId, etag string) (*User, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if r.StatusCode == http.StatusNotModified {
+		return &u, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("GetUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // GetUserByUsername returns a user based on the provided user name string.
@@ -871,7 +907,14 @@ func (c *Client4) GetUserByUsername(userName, etag string) (*User, *Response, er
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if r.StatusCode == http.StatusNotModified {
+		return &u, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("GetUserByUsername", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // GetUserByEmail returns a user based on the provided user email string.
@@ -881,7 +924,14 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if r.StatusCode == http.StatusNotModified {
+		return &u, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("GetUserByEmail", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // AutocompleteUsersInTeam returns the users on a team based on search term.
@@ -892,7 +942,14 @@ func (c *Client4) AutocompleteUsersInTeam(teamId string, username string, limit 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAutocompleteFromJson(r.Body), BuildResponse(r), nil
+	var u UserAutocomplete
+	if r.StatusCode == http.StatusNotModified {
+		return &u, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("AutocompleteUsersInTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // AutocompleteUsersInChannel returns the users in a channel based on search term.
@@ -903,7 +960,14 @@ func (c *Client4) AutocompleteUsersInChannel(teamId string, channelId string, us
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAutocompleteFromJson(r.Body), BuildResponse(r), nil
+	var u UserAutocomplete
+	if r.StatusCode == http.StatusNotModified {
+		return &u, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("AutocompleteUsersInChannel", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // AutocompleteUsers returns the users in the system based on search term.
@@ -914,7 +978,14 @@ func (c *Client4) AutocompleteUsers(username string, limit int, etag string) (*U
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAutocompleteFromJson(r.Body), BuildResponse(r), nil
+	var u UserAutocomplete
+	if r.StatusCode == http.StatusNotModified {
+		return &u, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("AutocompleteUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // GetDefaultProfileImage gets the default user's profile image. Must be logged in.
@@ -956,7 +1027,14 @@ func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Respon
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersInTeam returns a page of users on a team. Page counting starts at 0.
@@ -967,7 +1045,14 @@ func (c *Client4) GetUsersInTeam(teamId string, page int, perPage int, etag stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersInTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetNewUsersInTeam returns a page of users on a team. Page counting starts at 0.
@@ -978,7 +1063,14 @@ func (c *Client4) GetNewUsersInTeam(teamId string, page int, perPage int, etag s
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetNewUsersInTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetRecentlyActiveUsersInTeam returns a page of users on a team. Page counting starts at 0.
@@ -989,7 +1081,14 @@ func (c *Client4) GetRecentlyActiveUsersInTeam(teamId string, page int, perPage 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetRecentlyActiveUsersInTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetActiveUsersInTeam returns a page of users on a team. Page counting starts at 0.
@@ -1000,7 +1099,14 @@ func (c *Client4) GetActiveUsersInTeam(teamId string, page int, perPage int, eta
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetActiveUsersInTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersNotInTeam returns a page of users who are not in a team. Page counting starts at 0.
@@ -1011,7 +1117,14 @@ func (c *Client4) GetUsersNotInTeam(teamId string, page int, perPage int, etag s
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersNotInTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
@@ -1022,7 +1135,14 @@ func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, eta
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersInChannel", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersInChannelByStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status
@@ -1033,7 +1153,14 @@ func (c *Client4) GetUsersInChannelByStatus(channelId string, page int, perPage 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersInChannelByStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersNotInChannel returns a page of users not in a channel. Page counting starts at 0.
@@ -1044,7 +1171,14 @@ func (c *Client4) GetUsersNotInChannel(teamId, channelId string, page int, perPa
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersNotInChannel", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersWithoutTeam returns a page of users on the system that aren't on any teams. Page counting starts at 0.
@@ -1055,7 +1189,14 @@ func (c *Client4) GetUsersWithoutTeam(page int, perPage int, etag string) ([]*Us
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersWithoutTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersInGroup returns a page of users in a group. Page counting starts at 0.
@@ -1066,7 +1207,14 @@ func (c *Client4) GetUsersInGroup(groupID string, page int, perPage int, etag st
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersInGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersByIds returns a list of users based on the provided user ids.
@@ -1076,7 +1224,11 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersByIds", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersByIds returns a list of users based on the provided user ids.
@@ -1096,7 +1248,11 @@ func (c *Client4) GetUsersByIdsWithOptions(userIds []string, options *UserGetByI
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersByIdsWithOptions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersByUsernames returns a list of users based on the provided usernames.
@@ -1106,7 +1262,11 @@ func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response, e
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsersByUsernames", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUsersByGroupChannelIds returns a map with channel ids as keys
@@ -1134,7 +1294,11 @@ func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserListFromJson(r.Body), BuildResponse(r), nil
+	var list []*User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("SearchUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // UpdateUser updates a user in the system based on the provided user struct.
@@ -1148,7 +1312,11 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // PatchUser partially updates a user in the system. Any missing fields are not updated.
@@ -1162,7 +1330,11 @@ func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("PatchUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // UpdateUserAuth updates a user AuthData (uthData, authService and password) in the system.
@@ -1176,7 +1348,11 @@ func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAuthFromJson(r.Body), BuildResponse(r), nil
+	var ua UserAuth
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ua); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateUserAuth", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ua, BuildResponse(r), nil
 }
 
 // UpdateUserMfa activates multi-factor authentication for a user if activate
@@ -1322,7 +1498,11 @@ func (c *Client4) ConvertBotToUser(userId string, userPatch *UserPatch, setSyste
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("ConvertBotToUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // PermanentDeleteAll permanently deletes all users in the system. This is a local only endpoint
@@ -1468,7 +1648,11 @@ func (c *Client4) VerifyUserEmailWithoutToken(userId string) (*User, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserFromJson(r.Body), BuildResponse(r), nil
+	var u User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("VerifyUserEmailWithoutToken", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // SendVerificationEmail will send an email to the user with the provided email address, if
@@ -1545,7 +1729,11 @@ func (c *Client4) CreateUserAccessToken(userId, description string) (*UserAccess
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAccessTokenFromJson(r.Body), BuildResponse(r), nil
+	var uat UserAccessToken
+	if jsonErr := json.NewDecoder(r.Body).Decode(&uat); jsonErr != nil {
+		return nil, nil, NewAppError("CreateUserAccessToken", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &uat, BuildResponse(r), nil
 }
 
 // GetUserAccessTokens will get a page of access tokens' id, description, is_active
@@ -1558,7 +1746,11 @@ func (c *Client4) GetUserAccessTokens(page int, perPage int) ([]*UserAccessToken
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAccessTokenListFromJson(r.Body), BuildResponse(r), nil
+	var list []*UserAccessToken
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUserAccessTokens", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetUserAccessToken will get a user access tokens' id, description, is_active
@@ -1571,7 +1763,11 @@ func (c *Client4) GetUserAccessToken(tokenId string) (*UserAccessToken, *Respons
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAccessTokenFromJson(r.Body), BuildResponse(r), nil
+	var uat UserAccessToken
+	if jsonErr := json.NewDecoder(r.Body).Decode(&uat); jsonErr != nil {
+		return nil, nil, NewAppError("GetUserAccessToken", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &uat, BuildResponse(r), nil
 }
 
 // GetUserAccessTokensForUser will get a paged list of user access tokens showing id,
@@ -1585,7 +1781,11 @@ func (c *Client4) GetUserAccessTokensForUser(userId string, page, perPage int) (
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAccessTokenListFromJson(r.Body), BuildResponse(r), nil
+	var list []*UserAccessToken
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUserAccessTokensForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // RevokeUserAccessToken will revoke a user access token by id. Must have the
@@ -1612,7 +1812,11 @@ func (c *Client4) SearchUserAccessTokens(search *UserAccessTokenSearch) ([]*User
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserAccessTokenListFromJson(r.Body), BuildResponse(r), nil
+	var list []*UserAccessToken
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("SearchUserAccessTokens", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // DisableUserAccessToken will disable a user access token by id. Must have the
@@ -2197,7 +2401,11 @@ func (c *Client4) GetTotalUsersStats(etag string) (*UsersStats, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UsersStatsFromJson(r.Body), BuildResponse(r), nil
+	var stats UsersStats
+	if jsonErr := json.NewDecoder(r.Body).Decode(&stats); jsonErr != nil {
+		return nil, nil, NewAppError("GetTotalUsersStats", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &stats, BuildResponse(r), nil
 }
 
 // GetTeamUnread will return a TeamUnread object that contains the amount of
@@ -6187,7 +6395,11 @@ func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfServic
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UserTermsOfServiceFromJson(r.Body), BuildResponse(r), nil
+	var u UserTermsOfService
+	if jsonErr := json.NewDecoder(r.Body).Decode(&u); jsonErr != nil {
+		return nil, nil, NewAppError("GetUserTermsOfService", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &u, BuildResponse(r), nil
 }
 
 // CreateTermsOfService creates new terms of service.
@@ -6278,7 +6490,11 @@ func (c *Client4) TeamMembersMinusGroupMembers(teamID string, groupIDs []string,
 		return nil, 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	ugc := UsersWithGroupsAndCountFromJson(r.Body)
+
+	var ugc UsersWithGroupsAndCount
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ugc); jsonErr != nil {
+		return nil, 0, nil, NewAppError("TeamMembersMinusGroupMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	return ugc.Users, ugc.Count, BuildResponse(r), nil
 }
 
@@ -6290,7 +6506,10 @@ func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []s
 		return nil, 0, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	ugc := UsersWithGroupsAndCountFromJson(r.Body)
+	var ugc UsersWithGroupsAndCount
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ugc); jsonErr != nil {
+		return nil, 0, nil, NewAppError("ChannelMembersMinusGroupMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	return ugc.Users, ugc.Count, BuildResponse(r), nil
 }
 

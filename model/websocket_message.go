@@ -4,7 +4,6 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -242,7 +241,12 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 		if err != nil {
 			return nil
 		}
-		o.Data["user"] = UserFromJson(bytes.NewReader(buf))
+
+		var user User
+		if err = json.Unmarshal(buf, &user); err != nil {
+			return nil
+		}
+		o.Data["user"] = &user
 	}
 	ev.data = o.Data
 	ev.broadcast = o.Broadcast

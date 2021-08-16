@@ -145,7 +145,14 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
-	w.Write([]byte(model.UserListToJson(profiles)))
+
+	js, jsonErr := json.Marshal(profiles)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("localGetUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -177,7 +184,13 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UserListToJson(users)))
+	js, jsonErr := json.Marshal(users)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("localGetUsersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
