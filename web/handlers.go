@@ -329,13 +329,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if c.App.Metrics() != nil {
-			c.App.Metrics().IncrementHttpError()
+			c.App.Metrics().IncrementHTTPError()
 		}
 	}
 
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
-		c.App.Metrics().IncrementHttpRequest()
+		c.App.Metrics().IncrementHTTPRequest()
 
 		if r.URL.Path != model.ApiUrlSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
@@ -355,7 +355,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 
 		if csrfHeader == session.GetCSRF() {
 			csrfCheckPassed = true
-		} else if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXml {
+		} else if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
 

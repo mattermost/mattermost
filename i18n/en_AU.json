@@ -3548,14 +3548,6 @@
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "An error occurred while permanently deleting the batch of reactions."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "An error occurred while permanently deleting the batch of posts."
-  },
-  {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "Invalid policy."
   },
@@ -3566,18 +3558,6 @@
   {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your licence does not support Data Retention."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "An error occurred while cleaning up the batch of flags."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "An error occurred while permanently deleting the batch of file infos."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Failed to purge records."
   },
   {
     "id": "ent.compliance.run_failed.error",
