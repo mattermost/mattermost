@@ -6858,7 +6858,11 @@ func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType Gro
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
+	var gs GroupSyncable
+	if jsonErr := json.NewDecoder(r.Body).Decode(&gs); jsonErr != nil {
+		return nil, nil, NewAppError("LinkGroupSyncable", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &gs, BuildResponse(r), nil
 }
 
 func (c *Client4) UnlinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType) (*Response, error) {
@@ -6877,7 +6881,11 @@ func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType Grou
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
+	var gs GroupSyncable
+	if jsonErr := json.NewDecoder(r.Body).Decode(&gs); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroupSyncable", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &gs, BuildResponse(r), nil
 }
 
 func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response, error) {
@@ -6886,7 +6894,11 @@ func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableTy
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupSyncablesFromJson(r.Body), BuildResponse(r), nil
+	var list []*GroupSyncable
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroupSyncables", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
@@ -6896,7 +6908,11 @@ func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType Gr
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
+	var gs GroupSyncable
+	if jsonErr := json.NewDecoder(r.Body).Decode(&gs); jsonErr != nil {
+		return nil, nil, NewAppError("PatchGroupSyncable", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &gs, BuildResponse(r), nil
 }
 
 func (c *Client4) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response, error) {
