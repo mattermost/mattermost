@@ -6599,7 +6599,12 @@ func (c *Client4) GetPlugins() (*PluginsResponse, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return PluginsResponseFromJson(r.Body), BuildResponse(r), nil
+
+	var resp PluginsResponse
+	if jsonErr := json.NewDecoder(r.Body).Decode(&resp); jsonErr != nil {
+		return nil, nil, NewAppError("GetPlugins", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &resp, BuildResponse(r), nil
 }
 
 // GetPluginStatuses will return the plugins installed on any server in the cluster, for reporting
