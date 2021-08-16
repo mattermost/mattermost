@@ -437,7 +437,7 @@
                                         <tbody>
                                           <tr>
                                             <td style="width:276px;">
-                                              <img alt="" height="auto" src="cid:{{.SenderPhoto}}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="276" />
+                                              <img alt="" height="auto" src="cid:{{.Props.SenderPhoto}}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="276" />
                                             </td>
                                           </tr>
                                         </tbody>
@@ -454,14 +454,14 @@
                                   <tr>
                                     <td>
                                       <div class="postNameAndTime">
-                                        <div class="senderName">{{.SenderName}}</div>
-                                        {{if .Time}}
-                                        <div class="time">{{.Time}}</div>
+                                        <div class="senderName">{{.Props.SenderName}}</div>
+                                        {{if .Props.Time}}
+                                        <div class="time">{{.Props.Time}}</div>
                                         {{end}}
-                                        {{if .ChannelName}}
+                                        {{if .Props.ChannelName}}
                                         <div class="channelBg">
                                           <div class="channelLogo"><img src="{{$.Props.SiteURL}}/static/images/channel_icon.png" width=10px height=10px></img></div>
-                                          <div class="channelName">{{.ChannelName}}</div>
+                                          <div class="channelName">{{.Props.ChannelName}}</div>
                                         </div>
                                         {{end}}
                                       </div>
@@ -469,16 +469,16 @@
                                   </tr>
                                   <tr>
                                     <td align="center" class="senderMessage" style="font-size:0px;padding:0px;word-break:break-word;">
-                                      <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Message}}</div>
+                                      <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.Message}}</div>
                                     </td>
                                   </tr>
-                                  {{if .MessageURL}}
+                                  {{if .Props.MessageURL}}
                                   <tr>
                                     <td align="center" vertical-align="middle" class="messageButton" style="font-size:0px;padding:16px 0px 0px 0px;word-break:break-word;">
                                       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                         <tr>
                                           <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
-                                            <a href="{{.MessageURL}}" style="display:inline-block;background:#FFFFFF;color:#ffffff;font-family:Open Sans, sans-serif;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:4px;" target="_blank">
+                                            <a href="{{.Props.MessageURL}}" style="display:inline-block;background:#FFFFFF;color:#ffffff;font-family:Open Sans, sans-serif;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:4px;" target="_blank">
                                               {{$.Props.MessageButton}}
                                             </a>
                                           </td>
