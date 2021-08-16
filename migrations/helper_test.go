@@ -48,7 +48,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	options = append(options, app.SkipPostInitializiation())
 
 	testLogger, _ := mlog.NewLogger()
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(newConfig.LogSettings, nil, config.GetLogFileLocation)
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
 	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}

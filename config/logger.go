@@ -29,7 +29,7 @@ const (
 
 type fileLocationFunc func(string) string
 
-func MloggerConfigFromLoggerConfig(s model.LogSettings, configSrc LogConfigSrc, getFileFunc fileLocationFunc) (mlog.LoggerConfiguration, error) {
+func MloggerConfigFromLoggerConfig(s *model.LogSettings, configSrc LogConfigSrc, getFileFunc fileLocationFunc) (mlog.LoggerConfiguration, error) {
 	cfg := make(mlog.LoggerConfiguration)
 
 	var targetCfg mlog.TargetCfg
@@ -113,17 +113,18 @@ func GetNotificationsLogFileLocation(fileLocation string) string {
 }
 
 func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.NotificationLogSettings) *model.LogSettings {
-	return &model.LogSettings{
-		ConsoleJson:           notificationLogSettings.ConsoleJson,
-		ConsoleLevel:          notificationLogSettings.ConsoleLevel,
-		EnableConsole:         notificationLogSettings.EnableConsole,
-		EnableFile:            notificationLogSettings.EnableFile,
-		FileJson:              notificationLogSettings.FileJson,
-		FileLevel:             notificationLogSettings.FileLevel,
-		FileLocation:          notificationLogSettings.FileLocation,
-		AdvancedLoggingConfig: notificationLogSettings.AdvancedLoggingConfig,
-		EnableColor:           notificationLogSettings.EnableColor,
-	}
+	settings := &model.LogSettings{}
+	settings.SetDefaults()
+	settings.ConsoleJson = notificationLogSettings.ConsoleJson
+	settings.ConsoleLevel = notificationLogSettings.ConsoleLevel
+	settings.EnableConsole = notificationLogSettings.EnableConsole
+	settings.EnableFile = notificationLogSettings.EnableFile
+	settings.FileJson = notificationLogSettings.FileJson
+	settings.FileLevel = notificationLogSettings.FileLevel
+	settings.FileLocation = notificationLogSettings.FileLocation
+	settings.AdvancedLoggingConfig = notificationLogSettings.AdvancedLoggingConfig
+	settings.EnableColor = notificationLogSettings.EnableColor
+	return settings
 }
 
 func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.TargetCfg, error) {

@@ -273,7 +273,7 @@ func TestRudderTelemetry(t *testing.T) {
 	defer deferredAssertions(t)
 
 	testLogger, _ := mlog.NewLogger()
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(cfg.LogSettings, nil, config.GetLogFileLocation)
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(&cfg.LogSettings, nil, config.GetLogFileLocation)
 	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}

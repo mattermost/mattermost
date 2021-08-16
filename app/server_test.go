@@ -516,28 +516,23 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
-	// Creating a temp file to collect logs
-	tmpfile, err := ioutil.TempFile("", "mlog")
-	if err != nil {
-		require.NoError(t, err)
-	}
-	tmpFilename := tmpfile.Name()
-
+	// Creating a temp dir for log
+	tmpDir, err := os.MkdirTemp("", "mlog-test")
+	require.NoError(t, err, "cannot create tmp dir for log file")
 	defer func() {
-		require.NoError(t, tmpfile.Close())
-		require.NoError(t, os.Remove(tmpfile.Name()))
+		err2 := os.RemoveAll(tmpDir)
+		assert.NoError(t, err2)
 	}()
 
 	// Creating logger to log to console and temp file
 	logger, _ := mlog.NewLogger()
 
-	logSettings := model.LogSettings{
-		EnableConsole: model.NewBool(true),
-		ConsoleJson:   model.NewBool(true),
-		EnableFile:    model.NewBool(true),
-		FileLocation:  &tmpFilename,
-		FileLevel:     &mlog.LvlInfo.Name,
-	}
+	logSettings := model.NewLogSettings()
+	logSettings.EnableConsole = model.NewBool(true)
+	logSettings.ConsoleJson = model.NewBool(true)
+	logSettings.EnableFile = model.NewBool(true)
+	logSettings.FileLocation = &tmpDir
+	logSettings.FileLevel = &mlog.LvlInfo.Name
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
 	require.NoError(t, err)
@@ -572,16 +567,22 @@ func TestPanicLog(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+
+	err = logger.Flush()
+	assert.NoError(t, err, "flush should succeed")
 	s.Shutdown()
 
 	// Checking whether panic was logged
 	var panicLogged = false
 	var infoLogged = false
 
-	_, err = tmpfile.Seek(0, 0)
+	logFile, err := os.Open(config.GetLogFileLocation(tmpDir))
+	require.NoError(t, err, "cannot open log file")
+
+	_, err = logFile.Seek(0, 0)
 	require.NoError(t, err)
 
-	scanner := bufio.NewScanner(tmpfile)
+	scanner := bufio.NewScanner(logFile)
 	for scanner.Scan() {
 		if !infoLogged && strings.Contains(scanner.Text(), "inside panic handler") {
 			infoLogged = true

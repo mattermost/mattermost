@@ -804,7 +804,7 @@ func (s *Server) initLogging() error {
 		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
 	}
 
-	if err := s.configureLogger("logging", s.Log, s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
+	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
@@ -820,7 +820,7 @@ func (s *Server) initLogging() error {
 	mlog.InitGlobalLogger(s.Log)
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-	if err := s.configureLogger("notification logging", s.NotificationsLog, *notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
+	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
 			return err
@@ -830,7 +830,7 @@ func (s *Server) initLogging() error {
 }
 
 // configureLogger applies the specified configuration to a logger.
-func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings model.LogSettings, configStore *config.Store, getPath func(string) string) error {
+func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings *model.LogSettings, configStore *config.Store, getPath func(string) string) error {
 	// Advanced logging is E20 only, however logging must be initialized before the license
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.

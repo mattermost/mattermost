@@ -1223,6 +1223,12 @@ type LogSettings struct {
 	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
 }
 
+func NewLogSettings() *LogSettings {
+	settings := &LogSettings{}
+	settings.SetDefaults()
+	return settings
+}
+
 func (s *LogSettings) SetDefaults() {
 	if s.EnableConsole == nil {
 		s.EnableConsole = NewBool(true)
