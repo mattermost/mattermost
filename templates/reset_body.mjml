@@ -8,7 +8,7 @@
       <mj-include path="./partials/header.mjml" />
       <mj-section padding="0px">
         <mj-column>
-          <mj-image src="{{.Props.SiteURL}}/static/images/forgot_password_illustration_new.png" width="312px" padding="0px" />
+          <mj-image src="{{.Props.SiteURL}}/static/images/forgot_password_illustration.png" width="312px" padding="0px" />
           <mj-text css-class="info" padding="0px">
             {{.Props.Info}}
           </mj-text>
