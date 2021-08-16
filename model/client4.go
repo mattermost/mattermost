@@ -6615,7 +6615,11 @@ func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return PluginStatusesFromJson(r.Body), BuildResponse(r), nil
+	var list PluginStatuses
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetPluginStatuses", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // RemovePlugin will disable and delete a plugin.
