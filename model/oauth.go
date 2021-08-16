@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"unicode/utf8"
 )
@@ -108,11 +106,6 @@ func (a *OAuthApp) PreUpdate() {
 	a.UpdateAt = GetMillis()
 }
 
-func (a *OAuthApp) ToJson() string {
-	b, _ := json.Marshal(a)
-	return string(b)
-}
-
 // Generate a valid strong etag so the browser can cache the results
 func (a *OAuthApp) Etag() string {
 	return Etag(a.Id, a.UpdateAt)
@@ -131,21 +124,4 @@ func (a *OAuthApp) IsValidRedirectURL(url string) bool {
 	}
 
 	return false
-}
-
-func OAuthAppFromJson(data io.Reader) *OAuthApp {
-	var app *OAuthApp
-	json.NewDecoder(data).Decode(&app)
-	return app
-}
-
-func OAuthAppListToJson(l []*OAuthApp) string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
-func OAuthAppListFromJson(data io.Reader) []*OAuthApp {
-	var o []*OAuthApp
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

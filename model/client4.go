@@ -5374,7 +5374,12 @@ func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("CreateOAuthApp", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // UpdateOAuthApp updates a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
@@ -5388,7 +5393,11 @@ func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateOAuthApp", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // GetOAuthApps gets a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
@@ -5399,7 +5408,11 @@ func (c *Client4) GetOAuthApps(page, perPage int) ([]*OAuthApp, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppListFromJson(r.Body), BuildResponse(r), nil
+	var list []*OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetOAuthApps", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetOAuthApp gets a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
@@ -5409,7 +5422,11 @@ func (c *Client4) GetOAuthApp(appId string) (*OAuthApp, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("GetOAuthApp", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // GetOAuthAppInfo gets a sanitized version of a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
@@ -5419,7 +5436,11 @@ func (c *Client4) GetOAuthAppInfo(appId string) (*OAuthApp, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("GetOAuthAppInfo", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // DeleteOAuthApp deletes a registered OAuth 2.0 client application.
@@ -5439,7 +5460,11 @@ func (c *Client4) RegenerateOAuthAppSecret(appId string) (*OAuthApp, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("RegenerateOAuthAppSecret", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // GetAuthorizedOAuthAppsForUser gets a page of OAuth 2.0 client applications the user has authorized to use access their account.
@@ -5450,7 +5475,11 @@ func (c *Client4) GetAuthorizedOAuthAppsForUser(userId string, page, perPage int
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppListFromJson(r.Body), BuildResponse(r), nil
+	var list []*OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetAuthorizedOAuthAppsForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
