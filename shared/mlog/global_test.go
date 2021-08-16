@@ -107,7 +107,7 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				testCase.cfg.Options = json.RawMessage(fmt.Sprintf(`{"filename": "%s"}`, filePath))
 			}
 
-			logger := mlog.NewLogger()
+			logger, _ := mlog.NewLogger()
 			err := logger.ConfigureTargets(map[string]mlog.TargetCfg{testCase.description: testCase.cfg})
 			require.NoError(t, err)
 

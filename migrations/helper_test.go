@@ -32,7 +32,7 @@ type TestHelper struct {
 	TestLogger *mlog.Logger
 }
 
-func setupTestHelper(tb testing.TB, enterprise bool) *TestHelper {
+func setupTestHelper(enterprise bool) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
@@ -47,7 +47,7 @@ func setupTestHelper(tb testing.TB, enterprise bool) *TestHelper {
 	options = append(options, app.StoreOverride(mainHelper.Store))
 	options = append(options, app.SkipPostInitializiation())
 
-	testLogger := mlog.NewLogger()
+	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(newConfig.LogSettings, nil, config.GetLogFileLocation)
 	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
@@ -102,11 +102,11 @@ func setupTestHelper(tb testing.TB, enterprise bool) *TestHelper {
 }
 
 func SetupEnterprise(tb testing.TB) *TestHelper {
-	return setupTestHelper(tb, true)
+	return setupTestHelper(true)
 }
 
 func Setup(tb testing.TB) *TestHelper {
-	return setupTestHelper(tb, false)
+	return setupTestHelper(false)
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {

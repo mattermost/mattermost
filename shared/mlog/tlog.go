@@ -18,7 +18,7 @@ import (
 
 // CreateTestLogger creates a logger for unit tests, using the `TB.Log`
 func CreateTestLogger(tb testing.TB, writer io.Writer, levels ...Level) *Logger {
-	logger := NewLogger()
+	logger, _ := NewLogger()
 
 	filter := logr.NewCustomFilter(levels...)
 	formatter := &formatters.Plain{}
@@ -58,7 +58,7 @@ func AddWriterTarget(logger *Logger, w io.Writer, useJSON bool, levels ...Level)
 // CreateConsoleTestLogger creates a logger for unit tests. Log records are output to `os.Stdout`.
 // Logs can also be mirrored to the optional `io.Writer`.
 func CreateConsoleTestLogger(useJSON bool, level Level) *Logger {
-	logger := NewLogger()
+	logger, _ := NewLogger()
 
 	filter := logr.StdFilter{
 		Lvl:        level,

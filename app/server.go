@@ -786,22 +786,29 @@ func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
 
 // initLogging initializes and configures the logger(s). This may be called more than once.
 func (s *Server) initLogging() error {
+	var err error
 	// create the app logger if needed
 	if s.Log == nil {
-		s.Log = mlog.NewLogger()
+		s.Log, err = mlog.NewLogger()
+		if err != nil {
+			return err
+		}
 	}
 
 	// create notification logger if needed
 	if s.NotificationsLog == nil {
-		s.NotificationsLog = mlog.NewLogger().With(mlog.String("logSource", "notifications"))
+		l, err := mlog.NewLogger()
+		if err != nil {
+			return err
+		}
+		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
 	}
 
 	if err := s.configureLogger("logging", s.Log, s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
-		if !errors.Is(err, mlog.ConfigurationLockedError{}) {
+		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
 			mlog.InitGlobalLogger(nil)
-			mlog.Error("Error configuring logger", mlog.Err(err))
 			return err
 		}
 	}
@@ -814,7 +821,7 @@ func (s *Server) initLogging() error {
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
 	if err := s.configureLogger("notification logging", s.NotificationsLog, *notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
-		if !errors.Is(err, mlog.ConfigurationLockedError{}) {
+		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
 			return err
 		}
@@ -822,7 +829,7 @@ func (s *Server) initLogging() error {
 	return nil
 }
 
-// configureLogger applies the specified configuration to a logger and watches for changes, reloading as needed.
+// configureLogger applies the specified configuration to a logger.
 func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings model.LogSettings, configStore *config.Store, getPath func(string) string) error {
 	// Advanced logging is E20 only, however logging must be initialized before the license
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
@@ -835,9 +842,6 @@ func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings m
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-	}
-
-	if logConfigSrc != nil {
 		mlog.Info("Loaded configuration for "+name, mlog.String("source", dsn))
 	}
 
@@ -944,7 +948,10 @@ func (s *Server) enableLoggingMetrics() {
 	s.Log.SetMetricsCollector(s.Metrics.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
-	s.initLogging()
+	if err := s.initLogging(); err != nil {
+		mlog.Error("Error re-configuring logging for metrics")
+		return
+	}
 
 	mlog.Debug("Logging metrics enabled")
 }
@@ -1066,8 +1073,12 @@ func (s *Server) Shutdown() {
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
-	_ = s.NotificationsLog.ShutdownWithTimeout(timeoutCtx)
-	_ = s.Log.ShutdownWithTimeout(timeoutCtx)
+	if err = s.NotificationsLog.ShutdownWithTimeout(timeoutCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "Error shutting down notification logger: %v", err)
+	}
+	if err = s.Log.ShutdownWithTimeout(timeoutCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
+	}
 }
 
 func (s *Server) Restart() error {

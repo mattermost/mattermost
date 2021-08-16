@@ -350,8 +350,8 @@ func TestGetLogs(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		_, resp, err3 := th.Client.GetLogs(0, 10)
-		require.Error(t, err3)
+		_, resp, err2 := th.Client.GetLogs(0, 10)
+		require.Error(t, err2)
 		CheckForbiddenStatus(t, resp)
 	})
 

@@ -41,6 +41,7 @@ func (fcs *FakeConfigService) AsymmetricSigningKey() *ecdsa.PrivateKey          
 
 func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, func(t *testing.T), func()) {
 	serverIfaceMock := &mocks.ServerIface{}
+	logger, _ := mlog.NewLogger()
 
 	configService := &FakeConfigService{cfg}
 	serverIfaceMock.On("Config").Return(cfg)
@@ -57,7 +58,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 		func(m *model.Manifest) plugin.API { return pluginsAPIMock },
 		nil,
 		pluginDir, webappPluginDir,
-		mlog.NewLogger(),
+		logger,
 		nil)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
 
@@ -271,7 +272,7 @@ func TestRudderTelemetry(t *testing.T) {
 	defer cleanUp()
 	defer deferredAssertions(t)
 
-	testLogger := mlog.NewLogger()
+	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(cfg.LogSettings, nil, config.GetLogFileLocation)
 	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())

@@ -21,7 +21,7 @@ type Audit struct {
 }
 
 func (a *Audit) Init(maxQueueSize int) {
-	a.logger = mlog.NewLogger(
+	a.logger, _ = mlog.NewLogger(
 		mlog.MaxQueueSize(maxQueueSize),
 		mlog.OnLoggerError(a.onLoggerError),
 		mlog.OnQueueFull(a.onQueueFull),

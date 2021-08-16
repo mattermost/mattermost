@@ -530,7 +530,7 @@ func TestPanicLog(t *testing.T) {
 	}()
 
 	// Creating logger to log to console and temp file
-	logger := mlog.NewLogger()
+	logger, _ := mlog.NewLogger()
 
 	logSettings := model.LogSettings{
 		EnableConsole: model.NewBool(true),
@@ -573,7 +573,6 @@ func TestPanicLog(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-	logger.Shutdown()
 	s.Shutdown()
 
 	// Checking whether panic was logged

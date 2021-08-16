@@ -7,6 +7,7 @@ package mlog
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -139,17 +140,23 @@ type Logger struct {
 }
 
 // NewLogger creates a new Logger instance which can be configured via `(*Logger).Configure`.
-func NewLogger(options ...Option) *Logger {
+// Some options with invalid values can cause an error to be returned, however `NewLogger()`
+// using just defaults never errors.
+func NewLogger(options ...Option) (*Logger, error) {
 	options = append(options, logr.StackFilter(logr.GetPackageName("NewLogger")))
 
-	lgr, _ := logr.New(options...)
+	lgr, err := logr.New(options...)
+	if err != nil {
+		return nil, err
+	}
+
 	log := lgr.NewLogger()
 	var lockConfig int32
 
 	return &Logger{
 		log:        &log,
 		lockConfig: &lockConfig,
-	}
+	}, nil
 }
 
 // Configure provides a new configuration for this logger.
@@ -162,7 +169,7 @@ func NewLogger(options ...Option) *Logger {
 //     cfgFile > cfgEscaped
 func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
 	if atomic.LoadInt32(l.lockConfig) != 0 {
-		return ConfigurationLockedError{}
+		return ErrConfigurationLock
 	}
 
 	cfgMap := make(LoggerConfiguration)
@@ -201,7 +208,7 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
 // Typically `mlog.Configure` is used instead which accepts JSON formatted configuration.
 func (l *Logger) ConfigureTargets(cfg LoggerConfiguration) error {
 	if atomic.LoadInt32(l.lockConfig) != 0 {
-		return ConfigurationLockedError{}
+		return ErrConfigurationLock
 	}
 	return logrcfg.ConfigureTargets(l.log.Logr(), cfg.toTargetCfg(), nil)
 }
@@ -395,11 +402,6 @@ func (lw *logWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// ConfigurationLockedError is returned when one of a logger's configuration APIs is called
+// ErrConfigurationLock is returned when one of a logger's configuration APIs is called
 // while the configuration is locked.
-type ConfigurationLockedError struct {
-}
-
-func (e ConfigurationLockedError) Error() string {
-	return "configuration is locked"
-}
+var ErrConfigurationLock = errors.New("configuration is locked")
