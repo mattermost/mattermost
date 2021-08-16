@@ -9,8 +9,8 @@ import (
 )
 
 func (api *API) InitStatus() {
-	api.Router.Handle("get_statuses", api.ApiWebSocketHandler(api.getStatuses))
-	api.Router.Handle("get_statuses_by_ids", api.ApiWebSocketHandler(api.getStatusesByIds))
+	api.Router.Handle("get_statuses", api.APIWebSocketHandler(api.getStatuses))
+	api.Router.Handle("get_statuses_by_ids", api.APIWebSocketHandler(api.getStatusesByIds))
 }
 
 func (api *API) getStatuses(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
