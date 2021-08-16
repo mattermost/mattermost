@@ -493,8 +493,8 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 				return appErr
 			case errors.Is(err, users.AcceptedDomainError):
 				return model.NewAppError("importUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
-			case errors.Is(err, users.UserCountError):
-				return model.NewAppError("importUser", "app.user.get_total_users_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			case errors.Is(err, users.UserStoreIsEmptyError):
+				return model.NewAppError("importUser", "app.user.store_is_empty.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			case errors.As(err, &invErr):
 				switch invErr.Field {
 				case "email":
