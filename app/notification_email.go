@@ -199,7 +199,7 @@ type postData struct {
  */
 func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
 	pData := postData{
-		SenderName:  truncateUserNames(senderName, 9),
+		SenderName:  truncateUserNames(senderName, 22),
 		SenderPhoto: senderPhoto,
 	}
 
