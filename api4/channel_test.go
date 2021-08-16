@@ -126,7 +126,7 @@ func TestCreateChannel(t *testing.T) {
 	})
 
 	// Test posting Garbage
-	r, err := client.DoApiPost("/channels", "garbage")
+	r, err := client.DoAPIPost("/channels", "garbage")
 	require.Error(t, err, "expected error")
 	require.Equal(t, http.StatusBadRequest, r.StatusCode, "Expected 400 Bad Request")
 
@@ -435,7 +435,7 @@ func TestCreateDirectChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := client.DoApiPost("/channels/direct", "garbage")
+	r, err := client.DoAPIPost("/channels/direct", "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -1855,75 +1855,6 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	}, "Permanent deletion with EnableAPIChannelDeletion set")
 }
 
-func TestConvertChannelToPrivate(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	client := th.Client
-
-	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, th.BasicTeam.Id, false)
-	_, resp, err := client.ConvertChannelToPrivate(defaultChannel.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-
-	privateChannel := th.CreatePrivateChannel()
-	_, resp, err = client.ConvertChannelToPrivate(privateChannel.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-
-	publicChannel := th.CreatePublicChannel()
-	_, resp, err = client.ConvertChannelToPrivate(publicChannel.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-
-	th.LoginTeamAdmin()
-	th.RemovePermissionFromRole(model.PermissionConvertPublicChannelToPrivate.Id, model.TeamAdminRoleId)
-
-	_, resp, err = client.ConvertChannelToPrivate(publicChannel.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-
-	th.AddPermissionToRole(model.PermissionConvertPublicChannelToPrivate.Id, model.TeamAdminRoleId)
-
-	rchannel, resp, err := client.ConvertChannelToPrivate(publicChannel.Id)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
-	require.Equal(t, model.ChannelTypePrivate, rchannel.Type, "channel should be converted from public to private")
-
-	rchannel, resp, err = th.SystemAdminClient.ConvertChannelToPrivate(privateChannel.Id)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-	require.Nil(t, rchannel, "should not return a channel")
-
-	rchannel, resp, err = th.SystemAdminClient.ConvertChannelToPrivate(defaultChannel.Id)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-	require.Nil(t, rchannel, "should not return a channel")
-
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	WebSocketClient.Listen()
-
-	publicChannel2 := th.CreatePublicChannel()
-	rchannel, resp, err = th.SystemAdminClient.ConvertChannelToPrivate(publicChannel2.Id)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
-	require.Equal(t, model.ChannelTypePrivate, rchannel.Type, "channel should be converted from public to private")
-
-	timeout := time.After(10 * time.Second)
-
-	for {
-		select {
-		case resp := <-WebSocketClient.EventChannel:
-			if resp.EventType() == model.WebsocketEventChannelConverted && resp.GetData()["channel_id"].(string) == publicChannel2.Id {
-				return
-			}
-		case <-timeout:
-			require.Fail(t, "timed out waiting for channel_converted event")
-			return
-		}
-	}
-}
-
 func TestUpdateChannelPrivacy(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2415,7 +2346,7 @@ func TestViewChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := client.DoApiPost(fmt.Sprintf("/channels/members/%v/view", th.BasicUser.Id), "garbage")
+	r, err := client.DoAPIPost(fmt.Sprintf("/channels/members/%v/view", th.BasicUser.Id), "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 

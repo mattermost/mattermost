@@ -52,7 +52,7 @@ func TestCreateTeam(t *testing.T) {
 		CheckErrorID(t, err, "model.team.is_valid.characters.app_error")
 		CheckBadRequestStatus(t, resp)
 
-		r, err := client.DoApiPost("/teams", "garbage")
+		r, err := client.DoAPIPost("/teams", "garbage")
 		require.Error(t, err, "should have errored")
 
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
@@ -343,7 +343,7 @@ func TestUpdateTeam(t *testing.T) {
 		originalTeamId := team.Id
 		team.Id = model.NewId()
 
-		r, err := th.Client.DoApiPut("/teams/"+originalTeamId, team.ToJson())
+		r, err := th.Client.DoAPIPut("/teams/"+originalTeamId, team.ToJson())
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -484,7 +484,7 @@ func TestPatchTeam(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		r, err2 := client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
+		r, err2 := client.DoAPIPut("/teams/"+team.Id+"/patch", "garbage")
 		require.Error(t, err2, "should have errored")
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 	})
@@ -2029,7 +2029,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should return error with invalid JSON in body.
-	_, err = client.DoApiPost("/teams/"+team.Id+"/members", "invalid")
+	_, err = client.DoAPIPost("/teams/"+team.Id+"/members", "invalid")
 	require.Error(t, err)
 	CheckErrorID(t, err, "api.team.add_team_member.invalid_body.app_error")
 
@@ -3138,7 +3138,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("invalid data in request body", func(t *testing.T) {
-		res, err := th.SystemAdminClient.DoApiPost("/teams/"+th.BasicTeam.Id+"/invite-guests/email", "bad data")
+		res, err := th.SystemAdminClient.DoAPIPost("/teams/"+th.BasicTeam.Id+"/invite-guests/email", "bad data")
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.team.invite_guests_to_channels.invalid_body.app_error")
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
