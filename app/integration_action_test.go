@@ -29,8 +29,9 @@ func TestPostActionInvalidURL(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 	}))
 	defer ts.Close()
 
@@ -155,8 +156,9 @@ func TestPostAction(t *testing.T) {
 			})
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				request := model.PostActionIntegrationRequestFromJson(r.Body)
-				assert.NotNil(t, request)
+				var request model.PostActionIntegrationRequest
+				jsonErr := json.NewDecoder(r.Body).Decode(&request)
+				assert.NoError(t, jsonErr)
 
 				assert.Equal(t, request.UserId, th.BasicUser.Id)
 				assert.Equal(t, request.UserName, th.BasicUser.Username)
@@ -410,8 +412,9 @@ func TestPostActionProps(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 
 		fmt.Fprintf(w, `{
 			"update": {
@@ -606,8 +609,9 @@ func TestPostActionRelativeURL(t *testing.T) {
 	defer th.TearDown()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 		fmt.Fprintf(w, `{"post": {"message": "updated"}, "ephemeral_text": "foo"}`)
 	}))
 	defer ts.Close()
