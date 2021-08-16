@@ -180,7 +180,7 @@ func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, er
 }
 
 // GetThreadFollowers provides a mock function with given fields: threadID
-func (_m *ThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	ret := _m.Called(threadID)
 
 	var r0 []string

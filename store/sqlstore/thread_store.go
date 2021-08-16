@@ -359,12 +359,25 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	return result, nil
 }
 
-func (s *SqlThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	var users []string
+
+	fetchConditions := sq.And{
+		sq.Eq{"PostId": threadID},
+	}
+
+	if fetchOnlyActive {
+		fetchConditions =
+			sq.And{
+				sq.Eq{"Following": true},
+				fetchConditions,
+			}
+	}
+
 	query, args, _ := s.getQueryBuilder().
 		Select("ThreadMemberships.UserId").
 		From("ThreadMemberships").
-		Where(sq.Eq{"PostId": threadID}).ToSql()
+		Where(fetchConditions).ToSql()
 	_, err := s.GetReplica().Select(&users, query, args...)
 
 	if err != nil {

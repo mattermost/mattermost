@@ -67,7 +67,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if isCRTAllowed && post.RootId != "" {
 		tchan = make(chan store.StoreResult, 1)
 		go func() {
-			followers, err := a.Srv().Store.Thread().GetThreadFollowers(post.RootId)
+			followers, err := a.Srv().Store.Thread().GetThreadFollowers(post.RootId, true)
 			tchan <- store.StoreResult{Data: followers, NErr: err}
 			close(tchan)
 		}()
