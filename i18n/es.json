@@ -5836,38 +5836,6 @@
     "translation": "Por favor agregame a los equipos y canales en los que quieres que interactúe. Para ello, utiliza el navegador o la Aplicación de Escritorio de Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "No se pudo cargar la imagen del perfil. El archivo es muy grande."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "No se pudo analizar el formulario multipart."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "No se pudo abrir el archivo de imagen."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "No hay un archivo bajo 'image' en la solicitud."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Arreglo vacío bajo 'image' en la solicitud."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "No se pudo cargar el icono."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "No se puede leer el archivo del icono."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "No se puede borrar la imagen del icono."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Creación de Bots ha sido deshabilitado."
   },

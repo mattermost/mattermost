@@ -7932,38 +7932,6 @@
     "translation": "Lägg till mig i grupper och kanaler som du vill att jag ska interagera i. För att göra detta, använd webbläsare eller Mattermost skrivbordsapp."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Gick inte att ladda upp ikonbild. Filen är för stor."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Gick inte att tolka multipart-formuläret."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Kunde inte öppna bildfilen."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Inga filer under 'image' i förfrågan."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Tom matris för 'bild' i förfrågan."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Kunde inte ladda upp ikonbilden."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Kan ej läsa filen för ikonbild."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Kunde inte radera ikonbilden."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Bot-skapande är avstängt."
   },

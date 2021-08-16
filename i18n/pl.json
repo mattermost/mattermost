@@ -5880,38 +5880,6 @@
     "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub aplikacji Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony. Plik jest zbyt duży."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nie udało się przetworzyć wieloczęściowego formularza"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Nie można otworzyć pliku obrazu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Brak pliku w polu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Pusta tablica w kluczu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Nie można odczytać obrazu ikony"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nie można usunąć obrazu ikony"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Tworzenie botów zostało wyłączone."
   },

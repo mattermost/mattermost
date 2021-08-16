@@ -5600,34 +5600,6 @@
     "translation": "Bot ekleme özelliği devre dışı bırakılmış."
   },
   {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Simge görseli silinemedi."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Simge görseli dosyası okunamadı."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Simge görseli yüklenemedi."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "İstekte 'image' altında bir dosya yok."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Görsel dosyası açılamadı."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Çok parçalı form işlenemedi."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Simge görseli yüklenemedi. Dosya çok büyük."
-  },
-  {
     "id": "api.channel.add_guest.added",
     "translation": "%v, %v tarafından kanala konuk olarak eklendi."
   },
@@ -5638,10 +5610,6 @@
   {
     "id": "api.channel.add_members.user_denied",
     "translation": "Şu kullanıcıların kanal üyesi olarak eklenmesi grup kısıtlamaları nedeniyle reddedildi: {{ .UserIDs }}"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "İstekte 'image' altındaki dizi boş."
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
@@ -9265,5 +9233,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Belirtilen 'nereden' değeri geçersiz"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Kullanıcı mağazasının boş olup olmadığı denetlenemedi."
   }
 ]

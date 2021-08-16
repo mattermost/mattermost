@@ -7928,38 +7928,6 @@
     "translation": "Моля, добавете ме към екипи и канали, в които искате да взаимодействам. За целта използвайте браузър или Mattermost настолното приложение."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Не можа да се качи изображение на икона. Файлът е твърде голям."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Формуляра от множество части не можа да се обработи."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Файла с изображението не може да се отвори."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Липсва файл под 'image' в заявката."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Празен масив под 'image' в заявката."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Изображението на икона не можа да се качи."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Не може да се прочете файла с изображение на икона."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Изображението на иконата не можа да бъде изтрито."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Създаването на бот е забранено."
   },
@@ -9237,5 +9205,37 @@
   {
     "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": "Неуспешно генериране връзката за подновяване на лиценза"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Невъзможно анализирането на маркера при анулиране на маркерите за проверка по ел.поща"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Невъзможно премахването на маркера при анулиране на маркерите за проверка по ел.поща"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Невъзможно получаването на маркери по тип при анулирането на маркери за проверка по ел.поща"
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "Неуспешно получаване на информация за файла при извличане на съдържание."
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "Невалидна входна стойност 'До'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "Невалидна входна стойност 'От'"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Неуспешна проверка дали потребителското хранилище е празно."
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Функцията изисква надграждане до версия Enterprise Edition."
   }
 ]

@@ -5904,38 +5904,6 @@
     "translation": "Voeg me toe aan de teams en kanalen waarin je met me wil praten. Gebruik hiervoor je browser of de Mattermost desktop app."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Kan het bestand niet uploaden. Het bestand is te groot."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Kan het 'multipart'-formulier niet verwerken."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Kan afbeeldingsbestand niet openen."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Geen bestand bij 'image' in aanvraag."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Lege array bij 'image' in aanvraag."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Kan de pictogram afbeelding niet uploaden."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Kan het pictogram bestand niet lezen."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Kan de pictogram afbeelding niet verwijderen."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Het aanmaken van een bot is uitgeschakeld."
   },

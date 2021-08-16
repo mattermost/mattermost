@@ -5876,38 +5876,6 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий. "
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Неможливо обробити форму з декількох частин"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Не вдається відкрити файл зображення"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\"."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Порожній масив 'image' в запиті"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Не вдається прочитати файл зображення піктограми."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Створення ботів вимкнено."
   },

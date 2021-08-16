@@ -5876,38 +5876,6 @@
     "translation": "Veuillez m'ajouter aux équipes et canaux dans lesquels vous voulez que j’interagisse. Pour faire ça, utilisez votre navigateur ou l'application de bureau Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Impossible d'envoyer le fichier d'image. Le fichier est trop volumineux."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Impossible d'interpréter le formulaire multipart."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Impossible d'ouvrir le fichier image"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Aucun fichier dans le champ « image » de la requête."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Aucune image transmise dans la requête."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Impossible d'envoyer le fichier d'icône."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Impossible de lire le fichier d'icône."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Impossible de supprimer l'icône."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "La création de bots a été désactivée."
   },

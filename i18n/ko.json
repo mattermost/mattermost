@@ -5872,38 +5872,6 @@
     "translation": "나를 대화하기를 원하는 팀과 채널에 추가하여 주십시오. 이렇게 하려면 브라우저 또는 Mattermost 데스크탑 앱을 사용하십시오."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "용량이 커서 아이콘 이미지 파일을 업로드 할 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "잘못된 multipart form을 파싱할 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "이미지 파일을 열 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "요청의 'image' 속성 아래에 파일이 없습니다"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "요청의 'image' 속성에 빈 배열이 전달되었습니다"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "아이콘 이미지를 업로드 할 수 없습니다."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "아이콘 이미지 파일을 읽을 수 없습니다."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "아이콘 이미지를 삭제할 수 없습니다."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "봇을 생성할 수 없습니다."
   },
