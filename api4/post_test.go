@@ -208,7 +208,7 @@ func TestCreatePost(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := client.DoApiPost("/posts", "garbage")
+	r, err := client.DoAPIPost("/posts", "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -240,7 +240,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 	require.Equal(t, ephemeralPost.Post.Message, rpost.Message, "message didn't match")
 	require.Equal(t, 0, int(rpost.EditAt), "newly created ephemeral post shouldn't have EditAt set")
 
-	r, err := client.DoApiPost("/posts/ephemeral", "garbage")
+	r, err := client.DoAPIPost("/posts/ephemeral", "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -646,7 +646,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 		}
 	}
 
-	handler := api.ApiHandler(createPost)
+	handler := api.APIHandler(createPost)
 	resp := httptest.NewRecorder()
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -935,7 +935,7 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("invalid requests", func(t *testing.T) {
-		r, err := client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
+		r, err := client.DoAPIPut("/posts/"+post.Id+"/patch", "garbage")
 		require.EqualError(t, err, ": Invalid or missing post in request body., ")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 

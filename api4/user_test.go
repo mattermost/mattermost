@@ -90,7 +90,7 @@ func TestCreateUser(t *testing.T) {
 		// Creating a user as sysadmin should verify the user with the EmailVerified flag.
 		require.True(t, ruser2.EmailVerified)
 
-		r, err2 := client.DoApiPost("/users", "garbage")
+		r, err2 := client.DoAPIPost("/users", "garbage")
 		require.Error(t, err2, "should have errored")
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
@@ -886,7 +886,7 @@ func TestSaveUserTermsOfService(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("Invalid data", func(t *testing.T) {
-		resp, err := th.Client.DoApiPost("/users/"+th.BasicUser.Id+"/terms_of_service", "{}")
+		resp, err := th.Client.DoAPIPost("/users/"+th.BasicUser.Id+"/terms_of_service", "{}")
 		require.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -1719,7 +1719,7 @@ func TestUpdateUser(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := th.Client.DoApiPut("/users/"+ruser.Id, "garbage")
+	r, err := th.Client.DoAPIPut("/users/"+ruser.Id, "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -1833,7 +1833,7 @@ func TestPatchUser(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := th.Client.DoApiPut("/users/"+user.Id+"/patch", "garbage")
+	r, err := th.Client.DoAPIPut("/users/"+user.Id+"/patch", "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -2404,7 +2404,7 @@ func TestGetUsers(t *testing.T) {
 		require.Empty(t, rusers, "should be no users")
 
 		// Check default params for page and per_page
-		_, err = client.DoApiGet("/users", "")
+		_, err = client.DoAPIGet("/users", "")
 		require.NoError(t, err)
 	})
 
@@ -2485,7 +2485,7 @@ func TestGetActiveUsersInTeam(t *testing.T) {
 	require.Len(t, rusers, 1, "should be 1 per page")
 
 	// Check case where we have supplied both active and inactive flags
-	_, err = th.Client.DoApiGet("/users?inactive=true&active=true", "")
+	_, err = th.Client.DoAPIGet("/users?inactive=true&active=true", "")
 	require.Error(t, err)
 
 	th.Client.Logout()
@@ -5011,9 +5011,9 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.SamlSettings.Enable = true
 		*cfg.SamlSettings.Verify = false
 		*cfg.SamlSettings.Encrypt = false
-		*cfg.SamlSettings.IdpUrl = "https://localhost/adfs/ls"
-		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
-		*cfg.SamlSettings.IdpMetadataUrl = "https://localhost/adfs/metadata"
+		*cfg.SamlSettings.IdpURL = "https://localhost/adfs/ls"
+		*cfg.SamlSettings.IdpDescriptorURL = "https://localhost/adfs/services/trust"
+		*cfg.SamlSettings.IdpMetadataURL = "https://localhost/adfs/metadata"
 		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
