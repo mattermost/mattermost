@@ -88,6 +88,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
 		panic("failed to add writer target to test logger: " + errW.Error())
 	}
+	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, SetLogger(testLogger))
 
