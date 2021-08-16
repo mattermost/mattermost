@@ -1325,19 +1325,19 @@ type CRTNotifiers struct {
 }
 
 func (c *CRTNotifiers) addUserToNotify(user *model.User, mentions *ExplicitMentions) {
-	// whether or not user will get a notification
-	shouldNotifyOnDesktop := user.NotifyProps[model.DesktopNotifyProp] != model.UserNotifyNone
-	shouldPushNotification := user.NotifyProps[model.PushNotifyProp] != model.UserNotifyNone
+	// user notify props
+	desktop := user.NotifyProps[model.DesktopNotifyProp]
+	push := user.NotifyProps[model.PushNotifyProp]
 	shouldEmail := user.NotifyProps[model.EmailNotifyProp] == "true"
 
-	// thread notify props
+	// user thread notify props
 	desktopThreads := user.NotifyProps[model.DesktopThreadsNotifyProp]
 	emailThreads := user.NotifyProps[model.EmailThreadsNotifyProp]
 	pushThreads := user.NotifyProps[model.PushThreadsNotifyProp]
 
 	_, userWasMentioned := mentions.Mentions[user.Id]
 
-	if shouldNotifyOnDesktop && (userWasMentioned || desktopThreads == model.UserNotifyAll) {
+	if desktop != model.UserNotifyNone && (userWasMentioned || desktopThreads == model.UserNotifyAll || desktop == model.UserNotifyAll) {
 		c.Desktop = append(c.Desktop, user.Id)
 	}
 
@@ -1345,7 +1345,7 @@ func (c *CRTNotifiers) addUserToNotify(user *model.User, mentions *ExplicitMenti
 		c.Email = append(c.Email, user.Id)
 	}
 
-	if shouldPushNotification && (userWasMentioned || pushThreads == model.UserNotifyAll) {
+	if push != model.UserNotifyNone && (userWasMentioned || pushThreads == model.UserNotifyAll || push == model.UserNotifyAll) {
 		c.Push = append(c.Push, user.Id)
 	}
 }
