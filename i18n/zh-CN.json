@@ -9208,5 +9208,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "无效的 ‘from’ 值"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "检查用户储存是否为空失败。"
   }
 ]
