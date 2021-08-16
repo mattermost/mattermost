@@ -78,8 +78,9 @@ func (s *Server) registerClusterHandlers() {
 }
 
 func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
-	event := model.WebSocketEventFromJson(bytes.NewReader(msg.Data))
-	if event == nil {
+	event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+	if err != nil {
+		mlog.Warn("Failed to decode event from JSON", mlog.Err(err))
 		return
 	}
 	s.PublishSkipClusterSend(event)

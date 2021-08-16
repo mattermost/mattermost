@@ -254,7 +254,8 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 			i := seqNum
 			for err == nil {
 				_, buf, err = conn.ReadMessage()
-				ev := model.WebSocketEventFromJson(bytes.NewReader(buf))
+				ev, jsonErr := model.WebSocketEventFromJSON(bytes.NewReader(buf))
+				require.NoError(t, jsonErr)
 				require.LessOrEqual(t, int(i), limit)
 				assert.Equal(t, i, ev.GetSequence())
 				i++

@@ -34,7 +34,11 @@ func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Req
 		}
 		req := model.WebSocketRequestFromJson(bytes.NewReader(msg))
 		resp := model.NewWebSocketResponse("OK", req.Seq, map[string]interface{}{"action": req.Action, "value": req.Data["value"]})
-		if err = ws.WriteMessage(mt, resp.ToJson()); err != nil {
+		respJSON, err := resp.ToJSON()
+		if err != nil {
+			break
+		}
+		if err = ws.WriteMessage(mt, respJSON); err != nil {
 			break
 		}
 	}
