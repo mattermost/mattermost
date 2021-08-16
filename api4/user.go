@@ -2719,8 +2719,8 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	typingRequest := model.TypingRequestFromJson(r.Body)
-	if typingRequest == nil {
+	var typingRequest model.TypingRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&typingRequest); jsonErr != nil {
 		c.SetInvalidParam("typing_request")
 		return
 	}
