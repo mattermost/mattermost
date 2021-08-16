@@ -808,7 +808,7 @@ func (c *Client4) CreateUser(user *User) (*User, *Response, error) {
 
 	r, err := c.DoApiPost(c.usersRoute(), string(userJSON))
 	if err != nil {
-		return nil, nil, err
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	var u User
