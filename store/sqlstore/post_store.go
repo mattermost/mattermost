@@ -655,30 +655,42 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 	return result
 }
 
-func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) error {
-	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return store.NewErrNotFound("Post", postId)
-		}
-
-		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
+func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) error {
+	var err error
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		_, err = s.GetMaster().Exec(`UPDATE Posts
+			SET DeleteAt = $1,
+				UpdateAt = $1,
+				Props = jsonb_set(Props, $2, $3)
+			WHERE Id = $4 OR RootId = $4`, time, jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID), postID)
+	} else {
+		_, err = s.GetMaster().Exec(`UPDATE Posts
+			SET DeleteAt = ?,
+			UpdateAt = ?,
+			Props = JSON_SET(Props, ?, ?)
+			Where Id = ? OR RootId = ?`, time, time, "$."+model.PostPropsDeleteBy, deleteByID, postID, postID)
 	}
 
-	post.AddProp(model.PostPropsDeleteBy, deleteByID)
-
-	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.GetProps())})
 	if err != nil {
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	return s.cleanupThreads(post.Id, post.RootId, false)
+	// TODO: change this to later delete thread directly from postID
+	rootID, err := s.GetReplica().SelectStr("SELECT RootId FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return store.NewErrNotFound("Post", postID)
+		}
+
+		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
+	}
+
+	return s.cleanupThreads(postID, rootID, false)
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
 	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postId})
 	if err != nil && err != sql.ErrNoRows {
 		return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 	}

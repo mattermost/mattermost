@@ -67,6 +67,8 @@ const (
 
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
+
+	PostPropsPreviewedPost = "previewed_post"
 )
 
 type Post struct {
@@ -738,4 +740,15 @@ func (o *Post) ToNilIfInvalid() *Post {
 		return nil
 	}
 	return o
+}
+
+func (o *Post) GetPreviewPost() *PreviewPost {
+	for _, embed := range o.Metadata.Embeds {
+		if embed.Type == PostEmbedPermalink {
+			if previewPost, ok := embed.Data.(*PreviewPost); ok {
+				return previewPost
+			}
+		}
+	}
+	return nil
 }

@@ -107,9 +107,16 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Nickname: username[0],
 			Password: slashcommands.UserPassword}
 
-		user, resp := client.CreateUser(user)
-		if resp.Error != nil {
-			c.Err = resp.Error
+		user, _, err = client.CreateUser(user)
+		if err != nil {
+			var appErr *model.AppError
+			ok = errors.As(err, &appErr)
+			if ok {
+				c.Err = appErr
+			} else {
+				c.Err = model.NewAppError("manualTest", "app.user.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
 			return
 		}
 
@@ -119,9 +126,15 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		userID = user.Id
 
 		// Login as user to generate auth token
-		_, resp = client.LoginById(user.Id, slashcommands.UserPassword)
-		if resp.Error != nil {
-			c.Err = resp.Error
+		_, _, err = client.LoginById(user.Id, slashcommands.UserPassword)
+		if err != nil {
+			var appErr *model.AppError
+			ok = errors.As(err, &appErr)
+			if ok {
+				c.Err = appErr
+			} else {
+				c.Err = model.NewAppError("manualTest", "api.user.login.bot_login_forbidden.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 			return
 		}
 

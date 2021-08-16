@@ -34,8 +34,8 @@ type TestMessageExportSettings struct {
 
 type TestGlobalRelaySettings struct {
 	Customertype string
-	Smtpusername string
-	Smtppassword string
+	SMTPUsername string
+	SMTPPassword string
 }
 
 type TestServiceSettings struct {
@@ -327,8 +327,8 @@ func TestConfigToMap(t *testing.T) {
 					"Exportformat": "abc",
 					"TestGlobalRelaySettings": map[string]interface{}{
 						"Customertype": "abc",
-						"Smtpusername": "def",
-						"Smtppassword": "ghi",
+						"SMTPUsername": "def",
+						"SMTPPassword": "ghi",
 					},
 				},
 			},
@@ -351,8 +351,8 @@ func TestPrintConfigValues(t *testing.T) {
 		"Siteurl: \"abc\"\nWebsocketurl: \"def\"\nLicensedfieldlocation: \"ghi\"\n",
 		"Sitename: \"abc\"\nMaxuserperteam: \"1\"\n",
 		"Androidlatestversion: \"abc\"\nAndroidminversion: \"def\"\nDesktoplatestversion: \"ghi\"\n",
-		"Enableexport: \"true\"\nExportformat: \"abc\"\nTestGlobalRelaySettings:\n\tCustomertype: \"abc\"\n\tSmtpusername: \"def\"\n\tSmtppassword: \"ghi\"\n",
-		"Customertype: \"abc\"\nSmtpusername: \"def\"\nSmtppassword: \"ghi\"\n",
+		"Enableexport: \"true\"\nExportformat: \"abc\"\nTestGlobalRelaySettings:\n\tCustomertype: \"abc\"\n\tSMTPUsername: \"def\"\n\tSMTPPassword: \"ghi\"\n",
+		"Customertype: \"abc\"\nSMTPUsername: \"def\"\nSMTPPassword: \"ghi\"\n",
 	}
 
 	commands := []string{

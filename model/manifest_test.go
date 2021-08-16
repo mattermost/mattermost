@@ -707,44 +707,6 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"amd64",
 			"path/to/executable",
 		},
-		{
-			"deprecated backend field, ignored since server present",
-			&Manifest{
-				Server: &ManifestServer{
-					Executables: map[string]string{
-						"linux-amd64":   "linux-amd64/path/to/executable",
-						"darwin-amd64":  "darwin-amd64/path/to/executable",
-						"windows-amd64": "windows-amd64/path/to/executable",
-						"linux-arm64":   "linux-arm64/path/to/executable",
-					},
-				},
-				Backend: &ManifestServer{
-					Executables: map[string]string{
-						"linux-amd64":   "linux-amd64/path/to/executable",
-						"darwin-amd64":  "darwin-amd64/path/to/executable",
-						"windows-amd64": "windows-amd64/path/to/executable",
-					},
-				},
-			},
-			"linux",
-			"amd64",
-			"linux-amd64/path/to/executable",
-		},
-		{
-			"deprecated backend field used, since no server present",
-			&Manifest{
-				Backend: &ManifestServer{
-					Executables: map[string]string{
-						"linux-amd64":   "linux-amd64/path/to/executable",
-						"darwin-amd64":  "darwin-amd64/path/to/executable",
-						"windows-amd64": "windows-amd64/path/to/executable",
-					},
-				},
-			},
-			"linux",
-			"amd64",
-			"linux-amd64/path/to/executable",
-		},
 	}
 
 	for _, testCase := range testCases {
@@ -789,28 +751,6 @@ func TestManifestHasServer(t *testing.T) {
 			"multiple executables",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
-						"linux-amd64":   "linux-amd64/path/to/executable",
-						"darwin-amd64":  "darwin-amd64/path/to/executable",
-						"windows-amd64": "windows-amd64/path/to/executable",
-					},
-				},
-			},
-			true,
-		},
-		{
-			"single executable defined via deprecated backend",
-			&Manifest{
-				Backend: &ManifestServer{
-					Executable: "path/to/executable",
-				},
-			},
-			true,
-		},
-		{
-			"multiple executables defined via deprecated backend",
-			&Manifest{
-				Backend: &ManifestServer{
 					Executables: map[string]string{
 						"linux-amd64":   "linux-amd64/path/to/executable",
 						"darwin-amd64":  "darwin-amd64/path/to/executable",

@@ -483,7 +483,7 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	o4.Message = model.NewRandomString(10)
 	o4.RootId = o1.Id
 
-	o3, err = ss.Post().Save(o3)
+	_, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
 	o4, err = ss.Post().Save(o4)
@@ -500,7 +500,7 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	require.Equal(t, post.CreateAt, o1.CreateAt, "invalid returned post")
 	require.Equal(t, int64(1), post.ReplyCount, "wrong replyCount computed")
 
-	post, err = ss.Post().GetSingle(o2.Id, false)
+	_, err = ss.Post().GetSingle(o2.Id, false)
 	require.Error(t, err, "should not return deleted post")
 
 	post, err = ss.Post().GetSingle(o2.Id, true)
@@ -615,7 +615,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
+	o1.Message = model.NewRandomString(10)
 	deleteByID := model.NewId()
 
 	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false)
