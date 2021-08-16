@@ -9213,5 +9213,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Érvénytelen érték 'from'"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Nem sikerült leellenőrizni, hogy a felhasználói tár üres-e."
   }
 ]
