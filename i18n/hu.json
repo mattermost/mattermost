@@ -9245,5 +9245,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Érvénytelen érték 'from'"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.read.app_error",
+    "translation": "Nem olvasható a kép adata."
   }
 ]
