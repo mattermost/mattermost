@@ -69,7 +69,12 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
-		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
@@ -167,7 +172,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if mergeErr != nil {
-		c.Err = model.NewAppError("getConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	auditRec.Success()
@@ -175,7 +180,12 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
-		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 		return
 	}
 
@@ -291,12 +301,17 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if mergeErr != nil {
-		c.Err = model.NewAppError("getConfig", "api.config.patch_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
-		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 		return
 	}
 

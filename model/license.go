@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 )
@@ -66,11 +65,6 @@ type TrialLicenseRequest struct {
 	Users                 int    `json:"users"`
 	TermsAccepted         bool   `json:"terms_accepted"`
 	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
-}
-
-func (tlr *TrialLicenseRequest) ToJson() string {
-	b, _ := json.Marshal(tlr)
-	return string(b)
 }
 
 type Features struct {
@@ -286,11 +280,6 @@ func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
-func (l *License) ToJson() string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
 func (l *License) IsTrialLicense() bool {
 	return l.IsTrial || (l.ExpiresAt-l.StartsAt) == trialDuration.Milliseconds() || (l.ExpiresAt-l.StartsAt) == adminTrialDuration.Milliseconds()
 }
@@ -319,12 +308,6 @@ func NewTestLicense(features ...string) *License {
 	json.Unmarshal(featureJson, &ret.Features)
 
 	return ret
-}
-
-func LicenseFromJson(data io.Reader) *License {
-	var o *License
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (lr *LicenseRecord) IsValid() *AppError {

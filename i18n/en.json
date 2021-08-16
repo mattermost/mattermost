@@ -1974,7 +1974,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Failed to marshal."
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -3725,6 +3725,10 @@
   {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Error reading file from backend"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Failed to unmarshal."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",

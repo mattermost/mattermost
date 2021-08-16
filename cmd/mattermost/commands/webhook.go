@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -374,7 +375,9 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to find webhook '%s'", webhookArg)
 	}
 
-	updatedHook := model.OutgoingWebhookFromJson(strings.NewReader(oldHook.ToJson()))
+	var updatedHook model.OutgoingWebhook
+	js, _ := json.Marshal(oldHook)
+	json.Unmarshal(js, &updatedHook)
 
 	channelArg, _ := command.Flags().GetString("channel")
 	if channelArg != "" {
@@ -434,7 +437,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		updatedHook.CallbackURLs = callbackURLs
 	}
 
-	updatedWebhook, appErr := app.UpdateOutgoingWebhook(oldHook, updatedHook)
+	updatedWebhook, appErr := app.UpdateOutgoingWebhook(oldHook, &updatedHook)
 	if appErr != nil {
 		return appErr
 	}

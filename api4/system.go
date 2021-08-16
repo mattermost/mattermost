@@ -612,9 +612,14 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// We call to ToJson because it actually returns a different struct
+	// We call to ToJSON because it actually returns a different struct
 	// along with doing some computations.
-	if _, err := w.Write([]byte(c.App.Srv().Busy.ToJson())); err != nil {
+	sbsJSON, jsonErr := c.App.Srv().Busy.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn(jsonErr.Error())
+	}
+
+	if _, err := w.Write(sbsJSON); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -739,7 +744,12 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.MapWarnMetricStatusToJson(status)))
+	js, jsonErr := json.Marshal(status)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getWarnMetricsStatus", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -764,8 +774,8 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ack := model.SendWarnMetricAckFromJson(r.Body)
-	if ack == nil {
+	var ack model.SendWarnMetricAck
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
 		c.SetInvalidParam("ack")
 		return
 	}

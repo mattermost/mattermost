@@ -684,7 +684,11 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 		return nil, BuildResponse(rp), AppErrorFromJson(rp.Body)
 	}
 
-	return EmojiFromJson(rp.Body), BuildResponse(rp), nil
+	var e Emoji
+	if jsonErr := json.NewDecoder(rp.Body).Decode(&e); jsonErr != nil {
+		return nil, nil, NewAppError("DoEmojiUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &e, BuildResponse(rp), nil
 }
 
 func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response, error) {
@@ -1549,7 +1553,11 @@ func (c *Client4) GetSessions(userId, etag string) ([]*Session, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SessionsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Session
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetSessions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // RevokeSession revokes a user session based on the provided user id and session id strings.
@@ -4443,7 +4451,12 @@ func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookFromJson(r.Body), BuildResponse(r), nil
+
+	var iw IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iw); jsonErr != nil {
+		return nil, nil, NewAppError("CreateIncomingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &iw, BuildResponse(r), nil
 }
 
 // UpdateIncomingWebhook updates an incoming webhook for a channel.
@@ -4457,7 +4470,12 @@ func (c *Client4) UpdateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookFromJson(r.Body), BuildResponse(r), nil
+
+	var iw IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iw); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateIncomingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &iw, BuildResponse(r), nil
 }
 
 // GetIncomingWebhooks returns a page of incoming webhooks on the system. Page counting starts at 0.
@@ -4468,7 +4486,14 @@ func (c *Client4) GetIncomingWebhooks(page int, perPage int, etag string) ([]*In
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var iwl []*IncomingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return iwl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iwl); jsonErr != nil {
+		return nil, nil, NewAppError("GetIncomingWebhooks", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return iwl, BuildResponse(r), nil
 }
 
 // GetIncomingWebhooksForTeam returns a page of incoming webhooks for a team. Page counting starts at 0.
@@ -4479,7 +4504,14 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var iwl []*IncomingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return iwl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iwl); jsonErr != nil {
+		return nil, nil, NewAppError("GetIncomingWebhooksForTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return iwl, BuildResponse(r), nil
 }
 
 // GetIncomingWebhook returns an Incoming webhook given the hook ID.
@@ -4489,7 +4521,14 @@ func (c *Client4) GetIncomingWebhook(hookID string, etag string) (*IncomingWebho
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return IncomingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var iw IncomingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return &iw, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&iw); jsonErr != nil {
+		return nil, nil, NewAppError("GetIncomingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &iw, BuildResponse(r), nil
 }
 
 // DeleteIncomingWebhook deletes and Incoming Webhook given the hook ID.
@@ -4513,7 +4552,11 @@ func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var ow OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ow); jsonErr != nil {
+		return nil, nil, NewAppError("CreateOutgoingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ow, BuildResponse(r), nil
 }
 
 // UpdateOutgoingWebhook creates an outgoing webhook for a team or channel.
@@ -4527,7 +4570,11 @@ func (c *Client4) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var ow OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ow); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateOutgoingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ow, BuildResponse(r), nil
 }
 
 // GetOutgoingWebhooks returns a page of outgoing webhooks on the system. Page counting starts at 0.
@@ -4538,7 +4585,14 @@ func (c *Client4) GetOutgoingWebhooks(page int, perPage int, etag string) ([]*Ou
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var owl []*OutgoingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return owl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&owl); jsonErr != nil {
+		return nil, nil, NewAppError("GetOutgoingWebhooks", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return owl, BuildResponse(r), nil
 }
 
 // GetOutgoingWebhook outgoing webhooks on the system requested by Hook Id.
@@ -4548,7 +4602,11 @@ func (c *Client4) GetOutgoingWebhook(hookId string) (*OutgoingWebhook, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var ow OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ow); jsonErr != nil {
+		return nil, nil, NewAppError("GetOutgoingWebhook", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ow, BuildResponse(r), nil
 }
 
 // GetOutgoingWebhooksForChannel returns a page of outgoing webhooks for a channel. Page counting starts at 0.
@@ -4559,7 +4617,14 @@ func (c *Client4) GetOutgoingWebhooksForChannel(channelId string, page int, perP
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var owl []*OutgoingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return owl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&owl); jsonErr != nil {
+		return nil, nil, NewAppError("GetOutgoingWebhooksForChannel", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return owl, BuildResponse(r), nil
 }
 
 // GetOutgoingWebhooksForTeam returns a page of outgoing webhooks for a team. Page counting starts at 0.
@@ -4570,7 +4635,14 @@ func (c *Client4) GetOutgoingWebhooksForTeam(teamId string, page int, perPage in
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookListFromJson(r.Body), BuildResponse(r), nil
+	var owl []*OutgoingWebhook
+	if r.StatusCode == http.StatusNotModified {
+		return owl, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&owl); jsonErr != nil {
+		return nil, nil, NewAppError("GetOutgoingWebhooksForTeam", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return owl, BuildResponse(r), nil
 }
 
 // RegenOutgoingHookToken regenerate the outgoing webhook token.
@@ -4580,7 +4652,11 @@ func (c *Client4) RegenOutgoingHookToken(hookId string) (*OutgoingWebhook, *Resp
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OutgoingWebhookFromJson(r.Body), BuildResponse(r), nil
+	var ow OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ow); jsonErr != nil {
+		return nil, nil, NewAppError("RegenOutgoingHookToken", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &ow, BuildResponse(r), nil
 }
 
 // DeleteOutgoingWebhook delete the outgoing webhook on the system requested by Hook Id.
@@ -4880,7 +4956,11 @@ func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ClusterInfosFromJson(r.Body), BuildResponse(r), nil
+	var list []*ClusterInfo
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetClusterStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // LDAP Section
@@ -4945,7 +5025,11 @@ func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response, error) {
 	}
 	defer closeBody(r)
 
-	return GroupFromJson(r.Body), BuildResponse(r), nil
+	var g Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("LinkLdapGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
 }
 
 // UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
@@ -4958,7 +5042,11 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response, error) {
 	}
 	defer closeBody(r)
 
-	return GroupFromJson(r.Body), BuildResponse(r), nil
+	var g Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("UnlinkLdapGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
 }
 
 // MigrateIdLdap migrates the LDAP enabled users to given attribute
@@ -5065,7 +5153,11 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 	}
 	defer closeBody(r)
 
-	return GroupsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroups", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetGroupsByUserId retrieves Mattermost Groups for a user
@@ -5081,7 +5173,11 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroupsByUserId", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (*Response, error) {
@@ -5699,7 +5795,12 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandFromJson(r.Body), BuildResponse(r), nil
+
+	var command Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&command); jsonErr != nil {
+		return nil, nil, NewAppError("CreateCommand", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &command, BuildResponse(r), nil
 }
 
 // UpdateCommand updates a command based on the provided Command struct.
@@ -5713,7 +5814,11 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandFromJson(r.Body), BuildResponse(r), nil
+	var command Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&command); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateCommand", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &command, BuildResponse(r), nil
 }
 
 // MoveCommand moves a command to a different team.
@@ -5749,7 +5854,12 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandListFromJson(r.Body), BuildResponse(r), nil
+
+	var list []*Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("ListCommands", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // ListCommandAutocompleteSuggestions will retrieve a list of suggestions for a userInput.
@@ -5760,7 +5870,11 @@ func (c *Client4) ListCommandAutocompleteSuggestions(userInput, teamId string) (
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return AutocompleteSuggestionsFromJSON(r.Body), BuildResponse(r), nil
+	var list []AutocompleteSuggestion
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("ListCommandAutocompleteSuggestions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetCommandById will retrieve a command by id.
@@ -5771,7 +5885,11 @@ func (c *Client4) GetCommandById(cmdId string) (*Command, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandFromJson(r.Body), BuildResponse(r), nil
+	var command Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&command); jsonErr != nil {
+		return nil, nil, NewAppError("GetCommandById", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &command, BuildResponse(r), nil
 }
 
 // ExecuteCommand executes a given slash command.
@@ -5790,7 +5908,7 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 	}
 	defer closeBody(r)
 
-	response, err := CommandResponseFromJson(r.Body)
+	response, err := CommandResponseFromJSON(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ExecuteCommand", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -5815,7 +5933,7 @@ func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*Co
 	}
 	defer closeBody(r)
 
-	response, err := CommandResponseFromJson(r.Body)
+	response, err := CommandResponseFromJSON(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -5829,7 +5947,11 @@ func (c *Client4) ListAutocompleteCommands(teamId string) ([]*Command, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CommandListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("ListAutocompleteCommands", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // RegenCommandToken will create a new token if the user have the right permissions.
@@ -5911,7 +6033,12 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 		return nil, nil, err
 	}
 
-	if err := writer.WriteField("emoji", emoji.ToJson()); err != nil {
+	emojiJSON, jsonErr := json.Marshal(emoji)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("CreateEmoji", "api.marshal_error", nil, jsonErr.Error(), 0)
+	}
+
+	if err := writer.WriteField("emoji", string(emojiJSON)); err != nil {
 		return nil, nil, err
 	}
 
@@ -5930,7 +6057,12 @@ func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiListFromJson(r.Body), BuildResponse(r), nil
+
+	var list []*Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetEmojiList", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetSortedEmojiList returns a page of custom emoji on the system sorted based on the sort
@@ -5942,7 +6074,11 @@ func (c *Client4) GetSortedEmojiList(page, perPage int, sort string) ([]*Emoji, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetSortedEmojiList", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
@@ -5962,7 +6098,11 @@ func (c *Client4) GetEmoji(emojiId string) (*Emoji, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiFromJson(r.Body), BuildResponse(r), nil
+	var e Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&e); jsonErr != nil {
+		return nil, nil, NewAppError("GetEmoji", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &e, BuildResponse(r), nil
 }
 
 // GetEmojiByName returns a custom emoji based on the name string.
@@ -5972,7 +6112,11 @@ func (c *Client4) GetEmojiByName(name string) (*Emoji, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiFromJson(r.Body), BuildResponse(r), nil
+	var e Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&e); jsonErr != nil {
+		return nil, nil, NewAppError("GetEmojiByName", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &e, BuildResponse(r), nil
 }
 
 // GetEmojiImage returns the emoji image.
@@ -6002,7 +6146,11 @@ func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("SearchEmoji", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // AutocompleteEmoji returns a list of emoji starting with or matching name.
@@ -6013,7 +6161,11 @@ func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Respon
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return EmojiListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("AutocompleteEmoji", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // Reaction Section
@@ -6112,7 +6264,11 @@ func (c *Client4) GetJob(id string) (*Job, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return JobFromJson(r.Body), BuildResponse(r), nil
+	var j Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&j); jsonErr != nil {
+		return nil, nil, NewAppError("GetJob", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &j, BuildResponse(r), nil
 }
 
 // GetJobs gets all jobs, sorted with the job that was created most recently first.
@@ -6122,7 +6278,11 @@ func (c *Client4) GetJobs(page int, perPage int) ([]*Job, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return JobsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetJobs", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
@@ -6132,7 +6292,11 @@ func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return JobsFromJson(r.Body), BuildResponse(r), nil
+	var list []*Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetJobsByType", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // CreateJob creates a job based on the provided job struct.
@@ -6146,7 +6310,11 @@ func (c *Client4) CreateJob(job *Job) (*Job, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return JobFromJson(r.Body), BuildResponse(r), nil
+	var j Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&j); jsonErr != nil {
+		return nil, nil, NewAppError("CreateJob", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &j, BuildResponse(r), nil
 }
 
 // CancelJob requests the cancellation of the job with the provided Id.
@@ -6183,7 +6351,11 @@ func (c *Client4) GetRole(id string) (*Role, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleFromJson(r.Body), BuildResponse(r), nil
+	var role Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&role); jsonErr != nil {
+		return nil, nil, NewAppError("GetRole", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &role, BuildResponse(r), nil
 }
 
 // GetRoleByName gets a single role by Name.
@@ -6193,7 +6365,11 @@ func (c *Client4) GetRoleByName(name string) (*Role, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleFromJson(r.Body), BuildResponse(r), nil
+	var role Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&role); jsonErr != nil {
+		return nil, nil, NewAppError("GetRoleByName", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &role, BuildResponse(r), nil
 }
 
 // GetRolesByNames returns a list of roles based on the provided role names.
@@ -6203,7 +6379,11 @@ func (c *Client4) GetRolesByNames(roleNames []string) ([]*Role, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleListFromJson(r.Body), BuildResponse(r), nil
+	var list []*Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetRolesByNames", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // PatchRole partially updates a role in the system. Any missing fields are not updated.
@@ -6217,7 +6397,11 @@ func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleFromJson(r.Body), BuildResponse(r), nil
+	var role Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&role); jsonErr != nil {
+		return nil, nil, NewAppError("PatchRole", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &role, BuildResponse(r), nil
 }
 
 // Schemes Section
@@ -6233,7 +6417,11 @@ func (c *Client4) CreateScheme(scheme *Scheme) (*Scheme, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SchemeFromJson(r.Body), BuildResponse(r), nil
+	var s Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("CreateScheme", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetScheme gets a single scheme by ID.
@@ -6243,17 +6431,25 @@ func (c *Client4) GetScheme(id string) (*Scheme, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SchemeFromJson(r.Body), BuildResponse(r), nil
+	var s Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("GetScheme", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
-// GetSchemes gets all schemes, sorted with the most recently created first, optionally filtered by scope.
+// GetSchemes ets all schemes, sorted with the most recently created first, optionally filtered by scope.
 func (c *Client4) GetSchemes(scope string, page int, perPage int) ([]*Scheme, *Response, error) {
 	r, err := c.DoApiGet(c.schemesRoute()+fmt.Sprintf("?scope=%v&page=%v&per_page=%v", scope, page, perPage), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SchemesFromJson(r.Body), BuildResponse(r), nil
+	var list []*Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetSchemes", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // DeleteScheme deletes a single scheme by ID.
@@ -6277,7 +6473,11 @@ func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SchemeFromJson(r.Body), BuildResponse(r), nil
+	var s Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("PatchScheme", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetTeamsForScheme gets the teams using this scheme, sorted alphabetically by display name.
@@ -6365,7 +6565,11 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 		return nil, BuildResponse(rp), AppErrorFromJson(rp.Body)
 	}
 
-	return ManifestFromJson(rp.Body), BuildResponse(rp), nil
+	var m Manifest
+	if jsonErr := json.NewDecoder(rp.Body).Decode(&m); jsonErr != nil {
+		return nil, nil, NewAppError("uploadPlugin", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &m, BuildResponse(rp), nil
 }
 
 func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifest, *Response, error) {
@@ -6377,21 +6581,31 @@ func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifes
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ManifestFromJson(r.Body), BuildResponse(r), nil
+
+	var m Manifest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&m); jsonErr != nil {
+		return nil, nil, NewAppError("InstallPluginFromUrl", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &m, BuildResponse(r), nil
 }
 
 // InstallMarketplacePlugin will install marketplace plugin.
 func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequest) (*Manifest, *Response, error) {
-	json, err := request.ToJson()
+	js, err := request.ToJson()
 	if err != nil {
 		return nil, nil, err
 	}
-	r, err := c.DoApiPost(c.pluginsRoute()+"/marketplace", json)
+	r, err := c.DoApiPost(c.pluginsRoute()+"/marketplace", js)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ManifestFromJson(r.Body), BuildResponse(r), nil
+
+	var m Manifest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&m); jsonErr != nil {
+		return nil, nil, NewAppError("InstallMarketplacePlugin", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &m, BuildResponse(r), nil
 }
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.
@@ -6432,7 +6646,12 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ManifestListFromJson(r.Body), BuildResponse(r), nil
+
+	var list []*Manifest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetWebappPlugins", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // EnablePlugin will enable an plugin installed.
@@ -6550,8 +6769,11 @@ func (c *Client4) GetServerBusy() (*ServerBusyState, *Response, error) {
 	}
 	defer closeBody(r)
 
-	sbs := ServerBusyStateFromJson(r.Body)
-	return sbs, BuildResponse(r), nil
+	var sbs ServerBusyState
+	if jsonErr := json.NewDecoder(r.Body).Decode(&sbs); jsonErr != nil {
+		return nil, nil, NewAppError("GetServerBusy", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &sbs, BuildResponse(r), nil
 }
 
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.
@@ -6610,7 +6832,11 @@ func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupFromJson(r.Body), BuildResponse(r), nil
+	var g Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
 }
 
 func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response, error) {
@@ -6620,7 +6846,11 @@ func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Respon
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupFromJson(r.Body), BuildResponse(r), nil
+	var g Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("PatchGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
 }
 
 func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
@@ -6809,7 +7039,11 @@ func (c *Client4) GetGroupStats(groupID string) (*GroupStats, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupStatsFromJson(r.Body), BuildResponse(r), nil
+	var gs GroupStats
+	if jsonErr := json.NewDecoder(r.Body).Decode(&gs); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroupStats", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &gs, BuildResponse(r), nil
 }
 
 func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string) (*OrderedSidebarCategories, *Response, error) {

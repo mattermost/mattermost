@@ -1981,7 +1981,12 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		session.Sanitize()
 	}
 
-	w.Write([]byte(model.SessionsToJson(sessions)))
+	js, jsonErr := json.Marshal(sessions)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getSessions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {

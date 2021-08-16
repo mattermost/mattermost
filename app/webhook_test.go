@@ -673,7 +673,9 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if testCase.WebhookResponse != nil {
-					w.Write([]byte(testCase.WebhookResponse.ToJson()))
+					js, jsonErr := json.Marshal(testCase.WebhookResponse)
+					require.NoError(t, jsonErr)
+					w.Write(js)
 				} else {
 					w.Write([]byte(`{"text": "sample response text from test server"}`))
 				}
@@ -755,7 +757,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.IsType(t, &json.SyntaxError{}, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a large, valid response", func(t *testing.T) {
@@ -766,7 +768,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.Equal(t, io.ErrUnexpectedEOF, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a large, invalid response", func(t *testing.T) {
@@ -777,7 +779,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.IsType(t, &json.SyntaxError{}, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a slow response", func(t *testing.T) {

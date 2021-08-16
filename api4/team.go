@@ -986,8 +986,8 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	schemeRoles := model.SchemeRolesFromJson(r.Body)
-	if schemeRoles == nil {
+	var schemeRoles model.SchemeRoles
+	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParam("scheme_roles")
 		return
 	}
@@ -1395,9 +1395,9 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	guestsInvite := model.GuestsInviteFromJson(r.Body)
-	if guestsInvite == nil {
-		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, "", http.StatusBadRequest)
+	var guestsInvite model.GuestsInvite
+	if jsonErr := json.NewDecoder(r.Body).Decode(&guestsInvite); jsonErr != nil {
+		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -1436,7 +1436,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		var err *model.AppError
 
 		if guestsInvite.Emails != nil {
-			invitesWithError, err = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, guestsInvite, c.AppContext.Session().UserId)
+			invitesWithError, err = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		}
 
 		if len(invitesOverLimit) > 0 {
@@ -1460,7 +1460,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		w.Write(js)
 	} else {
-		err := c.App.InviteGuestsToChannels(c.Params.TeamId, guestsInvite, c.AppContext.Session().UserId)
+		err := c.App.InviteGuestsToChannels(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		if err != nil {
 			c.Err = err
 			return
@@ -1635,8 +1635,14 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || (!model.IsValidId(*schemeID) && *schemeID != "") {
+	var p model.SchemeIDPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		c.SetInvalidParam("scheme_id")
+		return
+	}
+
+	schemeID := p.SchemeID
+	if p.SchemeID == nil || (!model.IsValidId(*p.SchemeID) && *p.SchemeID != "") {
 		c.SetInvalidParam("scheme_id")
 		return
 	}

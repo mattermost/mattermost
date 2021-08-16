@@ -264,7 +264,12 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Write([]byte(model.ManifestListToJson(clientManifests)))
+	js, jsonErr := json.Marshal(clientManifests)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getWebappPlugins", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {

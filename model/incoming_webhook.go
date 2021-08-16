@@ -41,30 +41,7 @@ type IncomingWebhookRequest struct {
 	IconEmoji   string             `json:"icon_emoji"`
 }
 
-func (o *IncomingWebhook) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func IncomingWebhookFromJson(data io.Reader) *IncomingWebhook {
-	var o *IncomingWebhook
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func IncomingWebhookListToJson(l []*IncomingWebhook) string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
-func IncomingWebhookListFromJson(data io.Reader) []*IncomingWebhook {
-	var o []*IncomingWebhook
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *IncomingWebhook) IsValid() *AppError {
-
 	if !IsValidId(o.Id) {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.id.app_error", nil, "", http.StatusBadRequest)
 
@@ -186,7 +163,7 @@ func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	return nil, err
 }
 
-func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *AppError) {
+func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *AppError) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
 	by := buf.Bytes()
@@ -204,12 +181,4 @@ func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *A
 	o.Attachments = StringifySlackFieldValue(o.Attachments)
 
 	return o, nil
-}
-
-func (o *IncomingWebhookRequest) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-	return string(b)
 }
