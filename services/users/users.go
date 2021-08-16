@@ -43,7 +43,7 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 
 	// Below is a special case where the first user in the entire
 	// system is granted the system_admin role
-	if ok, err := us.store.IsEmpty(); err != nil {
+	if ok, err := us.store.IsEmpty(true); err != nil {
 		return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
 	} else if ok {
 		user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
