@@ -26,7 +26,7 @@
             {{.Props.InviteFooterInfo}}
           </mj-text>
           <mj-text css-class="footerInfo" padding="4px 0px 0px 0px" font-weight="600">
-              <a href="mattermost.com" color="#166DE0">
+              <a href="mattermost.com" color="#1C58D9">
             {{.Props.InviteFooterLearnMore}}</a>
           </mj-text>
         </mj-column>
