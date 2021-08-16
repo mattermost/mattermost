@@ -1387,7 +1387,11 @@ func (c *Client4) GenerateMfaSecret(userId string) (*MfaSecret, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return MfaSecretFromJson(r.Body), BuildResponse(r), nil
+	var secret MfaSecret
+	if jsonErr := json.NewDecoder(r.Body).Decode(&secret); jsonErr != nil {
+		return nil, nil, NewAppError("GenerateMfaSecret", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &secret, BuildResponse(r), nil
 }
 
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
