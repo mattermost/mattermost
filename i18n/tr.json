@@ -9213,5 +9213,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Belirtilen 'nereden' değeri geçersiz"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Kullanıcı mağazasının boş olup olmadığı denetlenemedi."
   }
 ]
