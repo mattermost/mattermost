@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -101,7 +102,7 @@ func (a *App) TriggerWebhook(c *request.Context, payload *model.OutgoingWebhookP
 		if jsonErr != nil {
 			mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
 		}
-		body = strings.NewReader(string(js))
+		body = bytes.NewReader(js)
 		contentType = "application/json"
 	} else {
 		body = strings.NewReader(payload.ToFormValues())

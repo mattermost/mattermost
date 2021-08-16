@@ -357,7 +357,7 @@ func testCreatePostWithOutgoingHook(
 
 		hookJSON, jsonErr := json.Marshal(outGoingHookResponse)
 		require.NoError(t, jsonErr)
-		fmt.Fprint(w, string(hookJSON))
+		w.Write(hookJSON)
 		success <- true
 	}))
 	defer ts.Close()
