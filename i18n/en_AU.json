@@ -8943,38 +8943,6 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Unable to upload icon image. File is too large."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Could not parse multipart form."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Could not open image file."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "No file under 'image' in request."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Empty array under 'image' in request."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Couldn't upload icon image."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Couldn't delete icon image."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Bot creation has been disabled."
   },
@@ -9265,5 +9233,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Invalid input value 'from'"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Failed to check if user store is empty."
   }
 ]

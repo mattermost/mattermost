@@ -4772,18 +4772,6 @@
     "translation": "Der Benutzer konnte nicht gefunden werden."
   },
   {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Konnte Symbolbild nicht hochladen."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Konnte Symbolbild-Datei nicht lesen."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Konnte Symbolbild nicht hochladen."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Bot-Erstellung wurde deaktiviert."
   },
@@ -5930,30 +5918,6 @@
   {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Bitte fügen Sie mich den Teams und Kanälen hinzu, mit denen ich interagieren soll. Um dies zu tun, verwenden Sie den Browser oder die Mattermost-Desktop-App."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Konnte Symbolbild-Datei nicht hochladen. Datei ist zu groß."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Kann Multipart-Formular nicht verarbeiten."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Konnte Bilddatei nicht öffnen."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Keine Datei unter 'image' in der Anfrage."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Leeres Array unterhalb von 'image' in der Anfrage."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten."
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -9265,5 +9229,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Ungültiger Eingabewert 'von'"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Es konnte nicht geprüft werden, ob der Benutzerspeicher leer ist."
   }
 ]

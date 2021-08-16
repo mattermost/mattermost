@@ -5876,38 +5876,6 @@
     "translation": "ブラウザ、もしくはMattermostデスクトップアプリから、Botをチーム・チャンネルに追加してください。"
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "プロフィール画像をアップロードできません。ファイルが大き過ぎます。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "マルチパートフォームを解析できません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "画像ファイルを開けません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "リクエストの'image'以下にファイルがありません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "リクエストの'image'以下の配列が空です。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "アイコン画像をアップロードできませんでした。"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "アイコン画像ファイルを読み込めませんでした。"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "アイコン画像を削除できませんでした。"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Bot作成は無効化されています。"
   },
@@ -9260,5 +9228,9 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "この機能を利用するには、Enterprise Editionへのアップグレードが必要です。"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "ユーザーストアが空であるかどうか確認できませんでした。"
   }
 ]

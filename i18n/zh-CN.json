@@ -5244,10 +5244,6 @@
     "translation": "解析身份提供商返回的元数据为证书失败。"
   },
   {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "请求中图片数组为空。"
-  },
-  {
     "id": "api.channel.add_members.error",
     "translation": "添加频道成员时发生错误。"
   },
@@ -5542,34 +5538,6 @@
   {
     "id": "api.bot.create_disabled",
     "translation": "机器人创建已停用。"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "无法删除图标。"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "无法读取图标文件。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "无法上传图标。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "请求中缺失图片文件。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "无法打开图片文件。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "无法解析混合表单。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "无法上传图标。文件太大。"
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
@@ -9260,5 +9228,9 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "无效的 ‘from’ 值"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "检查用户储存是否为空失败。"
   }
 ]
