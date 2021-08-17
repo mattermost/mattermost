@@ -735,7 +735,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 		return false, err
 	}
 
-	for _, cm := range *channelMembers {
+	for _, cm := range channelMembers {
 		postForUser := post.Clone()
 		if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
 			postForUser.Metadata.Embeds[0].Data = nil

@@ -261,7 +261,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
-	if err := a.Srv().Store.Preference().Save(&model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
+	if err := a.Srv().Store.Preference().Save(model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
 		mlog.Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
@@ -868,7 +868,7 @@ func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError 
 			return err
 		}
 
-		for _, channel := range *channelsForUser {
+		for _, channel := range channelsForUser {
 			a.invalidateCacheForChannelMembers(channel.Id)
 		}
 	}
@@ -2056,7 +2056,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 			mlog.Warn("Failed to get channel members for user on promote guest to user", mlog.Err(err))
 		}
 
-		for _, member := range *channelMembers {
+		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
@@ -2097,7 +2097,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 			continue
 		}
 
-		for _, member := range *channelMembers {
+		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)

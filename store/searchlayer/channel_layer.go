@@ -132,8 +132,8 @@ func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, mem
 	return channel, err
 }
 
-func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
-	var channelList *model.ChannelList
+func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
+	var channelList model.ChannelList
 	var err error
 
 	allFailed := true
@@ -165,7 +165,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 	return channelList, nil
 }
 
-func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (*model.ChannelList, error) {
+func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (model.ChannelList, error) {
 	channelIds, err := engine.SearchChannels(teamId, term)
 	if err != nil {
 		return nil, err
@@ -183,7 +183,7 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 		}
 	}
 
-	return &channelList, nil
+	return channelList, nil
 }
 
 func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) error {
