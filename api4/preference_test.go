@@ -298,7 +298,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 			}
 
 			var received model.Preferences
-			jsonErr := json.Unmarshal([]byte(event.GetData()["preference"].(string)), &received)
+			jsonErr := json.Unmarshal([]byte(event.GetData()["preferences"].(string)), &received)
 			require.NoError(t, jsonErr)
 
 			for i, p := range *preferences {
