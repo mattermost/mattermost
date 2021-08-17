@@ -7,7 +7,6 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
@@ -25,8 +24,6 @@ func TestMain(m *testing.M) {
 		EnableResources: true,
 		WithReadReplica: replicaFlag,
 	}
-
-	mlog.DisableZap()
 
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()

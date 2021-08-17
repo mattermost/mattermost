@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var randomJPEG []byte
@@ -59,8 +58,7 @@ func BenchmarkUploadFile(b *testing.B) {
 	prepareTestImages(b)
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
-	// disable logging in the benchmark, as best we can
-	th.App.Log().SetConsoleLevel(mlog.LevelError)
+
 	teamID := model.NewId()
 	channelID := model.NewId()
 	userID := model.NewId()
