@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/websocket"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -59,6 +60,7 @@ type WebConnConfig struct {
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
+	ID               string
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
 	WebSocket        *websocket.Conn
@@ -166,6 +168,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	}
 
 	wc := &WebConn{
+		ID:                 model.NewId(),
 		App:                a,
 		send:               cfg.activeQueue,
 		deadQueue:          cfg.deadQueue,
@@ -185,6 +188,15 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	wc.SetSessionToken(cfg.Session.Token)
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
+
+	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		wc.App.Srv().Go(func() {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.OnWebSocketConnect(wc.ID, wc.UserId)
+				return true
+			}, plugin.OnWebSocketConnectID)
+		})
+	}
 
 	return wc
 }
@@ -266,6 +278,15 @@ func (wc *WebConn) Pump() {
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
+
+	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		wc.App.Srv().Go(func() {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.OnWebSocketDisconnect(wc.ID, wc.UserId)
+				return true
+			}, plugin.OnWebSocketDisconnectID)
+		})
+	}
 }
 
 func (wc *WebConn) readPump() {
@@ -291,6 +312,15 @@ func (wc *WebConn) readPump() {
 			return
 		}
 		wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
+
+		if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			wc.App.Srv().Go(func() {
+				pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.WebSocketMessageHasBeenPosted(wc.ID, wc.UserId, &req)
+					return true
+				}, plugin.WebSocketMessageHasBeenPostedID)
+			})
+		}
 	}
 }
 
