@@ -9634,6 +9634,22 @@ func (s *TimerLayerUserStore) UpdateMfaSecret(userID string, secret string) erro
 	return err
 }
 
+func (s *TimerLayerUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	start := timemodule.Now()
+
+	err := s.UserStore.UpdateNotifyProps(userID, props)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.UpdateNotifyProps", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerUserStore) UpdatePassword(userID string, newPassword string) error {
 	start := timemodule.Now()
 

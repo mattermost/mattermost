@@ -1143,20 +1143,22 @@ func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *
 	return nil
 }
 
-func (a *App) UpdateUserNotifyProps(userID string, props map[string]string, sendNotifications bool) (*model.User, *model.AppError) {
-	user, err := a.GetUser(userID)
+func (a *App) updateUserNotifyProps(userID string, props map[string]string) *model.AppError {
+	err := a.srv.userService.UpdateUserNotifyProps(userID, props)
 	if err != nil {
-		return nil, err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
-	user.NotifyProps = props
+	a.InvalidateCacheForUser(userID)
+	a.onUserProfileChange(userID)
 
-	ruser, err := a.UpdateUser(user, sendNotifications)
-	if err != nil {
-		return nil, err
-	}
-
-	return ruser, nil
+	return nil
 }
 
 func (a *App) UpdateMfa(activate bool, userID, token string) *model.AppError {

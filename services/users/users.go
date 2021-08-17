@@ -193,6 +193,10 @@ func (us *UserService) UpdateUser(user *model.User, allowRoleUpdate bool) (*mode
 	return us.store.Update(user, allowRoleUpdate)
 }
 
+func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]string) error {
+	return us.store.UpdateNotifyProps(userID, props)
+}
+
 func (us *UserService) DeactivateAllGuests() ([]string, error) {
 	users, err := us.store.DeactivateGuests()
 	if err != nil {
