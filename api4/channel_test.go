@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -3238,7 +3237,6 @@ func TestAutocompleteChannels(t *testing.T) {
 	defer th.TearDown()
 
 	// A private channel to make sure private channels are not used
-	utils.DisableDebugLogForTest()
 	ptown, _, _ := th.Client.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3251,7 +3249,6 @@ func TestAutocompleteChannels(t *testing.T) {
 		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 	})
-	utils.EnableDebugLogForTest()
 	defer func() {
 		th.Client.DeleteChannel(ptown.Id)
 		th.Client.DeleteChannel(tower.Id)
@@ -3320,7 +3317,6 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, u4)
 
 	// A private channel to make sure private channels are not used
-	utils.DisableDebugLogForTest()
 	ptown, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3339,7 +3335,6 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	defer func() {
 		th.Client.DeleteChannel(mypriv.Id)
 	}()
-	utils.EnableDebugLogForTest()
 
 	dc1, _, err := th.Client.CreateDirectChannel(th.BasicUser.Id, u1.Id)
 	require.NoError(t, err)
@@ -3450,7 +3445,6 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	require.NoError(t, err)
 
 	// A private channel to make sure private channels are not used
-	utils.DisableDebugLogForTest()
 	town, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3474,8 +3468,6 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	}()
 	_, _, err = th.SystemAdminClient.AddChannelMember(mypriv.Id, guest.Id)
 	require.NoError(t, err)
-
-	utils.EnableDebugLogForTest()
 
 	dc1, _, err := th.SystemAdminClient.CreateDirectChannel(th.BasicUser.Id, guest.Id)
 	require.NoError(t, err)

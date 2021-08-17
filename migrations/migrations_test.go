@@ -16,7 +16,7 @@ func TestGetMigrationState(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	migrationKey := model.NewId()

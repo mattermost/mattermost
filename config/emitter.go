@@ -57,7 +57,7 @@ func (e *logSrcEmitter) RemoveListener(id string) {
 }
 
 // invokeConfigListeners synchronously notifies all listeners about the configuration change.
-func (e *logSrcEmitter) invokeConfigListeners(oldCfg, newCfg mlog.LogTargetCfg) {
+func (e *logSrcEmitter) invokeConfigListeners(oldCfg, newCfg mlog.LoggerConfiguration) {
 	e.listeners.Range(func(key, value interface{}) bool {
 		listener := value.(LogSrcListener)
 		listener(oldCfg, newCfg)

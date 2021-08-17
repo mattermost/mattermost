@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/api4"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
@@ -92,8 +91,6 @@ func TestMain(m *testing.M) {
 		EnableStore:     true,
 		EnableResources: true,
 	}
-
-	mlog.DisableZap()
 
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
