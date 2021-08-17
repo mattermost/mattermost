@@ -455,7 +455,6 @@ func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID stri
 		UserId:    model.NewId(),
 		CreateAt:  createAt,
 		RootId:    postID,
-		ParentId:  postID,
 	})
 	require.NoError(t, err)
 	return reply

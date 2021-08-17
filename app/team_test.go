@@ -264,7 +264,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
 		require.Nil(t, err)
-		assert.Len(t, *members, 2)
+		assert.Len(t, members, 2)
 	})
 
 	t.Run("invalid add a guest using a regular invite", func(t *testing.T) {
@@ -364,8 +364,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("group-constrained team", func(t *testing.T) {
@@ -504,7 +504,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	channels, err := th.App.GetPublicChannelsForTeam(team.Id, 0, 1000)
 	require.Nil(t, err)
 
-	for _, channel := range *channels {
+	for _, channel := range channels {
 		err2 := th.App.PermanentDeleteChannel(channel)
 		require.Nil(t, err2)
 	}
@@ -1001,8 +1001,8 @@ func TestGetTeamStats(t *testing.T) {
 		require.NotNil(t, teamStats)
 		members, err := th.App.GetChannelMembersPage(th.BasicChannel.Id, 0, 5)
 		require.Nil(t, err)
-		assert.Equal(t, int64(len(*members)), teamStats.TotalMemberCount)
-		assert.Equal(t, int64(len(*members)), teamStats.ActiveMemberCount)
+		assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(len(members)), teamStats.ActiveMemberCount)
 	})
 
 	t.Run("with view restrictions to not see anything", func(t *testing.T) {
