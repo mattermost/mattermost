@@ -1383,6 +1383,20 @@ func (_m *UserStore) UpdateMfaSecret(userID string, secret string) error {
 	return r0
 }
 
+// UpdateNotifyProps provides a mock function with given fields: userID, props
+func (_m *UserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	ret := _m.Called(userID, props)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]string) error); ok {
+		r0 = rf(userID, props)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdatePassword provides a mock function with given fields: userID, newPassword
 func (_m *UserStore) UpdatePassword(userID string, newPassword string) error {
 	ret := _m.Called(userID, newPassword)

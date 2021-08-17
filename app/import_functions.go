@@ -527,7 +527,10 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 			}
 		}
 		if hasNotifyPropsChanged {
-			if savedUser, appErr = a.UpdateUserNotifyProps(user.Id, user.NotifyProps, false); appErr != nil {
+			if appErr = a.updateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
+				return appErr
+			}
+			if savedUser, appErr = a.GetUser(user.Id); appErr != nil {
 				return appErr
 			}
 		}
