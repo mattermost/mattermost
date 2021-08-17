@@ -471,7 +471,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	if len(mentionedUsersList) != 0 {
-		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
+		message.Add("mentions", model.ArrayToJSON(mentionedUsersList))
 	}
 
 	published, err := a.publishWebsocketEventForPermalinkPost(post, message)

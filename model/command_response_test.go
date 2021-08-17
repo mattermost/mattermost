@@ -35,7 +35,7 @@ func TestCommandResponseFromPlainText(t *testing.T) {
 	assert.Equal(t, "foo", response.Text)
 }
 
-func TestCommandResponseFromJson(t *testing.T) {
+func TestCommandResponseFromJSON(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {

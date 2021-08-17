@@ -78,7 +78,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	defer closeBody(resp)
 
 	if resp.StatusCode >= 300 {
-		return nil, model.BuildResponse(resp), model.AppErrorFromJson(resp.Body)
+		return nil, model.BuildResponse(resp), model.AppErrorFromJSON(resp.Body)
 	}
 
 	var res model.FileUploadResponse

@@ -345,15 +345,15 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		}
 	}
 
-	if utf8.RuneCountInString(ArrayToJson(o.Filenames)) > PostFilenamesMaxRunes {
+	if utf8.RuneCountInString(ArrayToJSON(o.Filenames)) > PostFilenamesMaxRunes {
 		return NewAppError("Post.IsValid", "model.post.is_valid.filenames.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(ArrayToJson(o.FileIds)) > PostFileidsMaxRunes {
+	if utf8.RuneCountInString(ArrayToJSON(o.FileIds)) > PostFileidsMaxRunes {
 		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(StringInterfaceToJson(o.GetProps())) > PostPropsMaxRunes {
+	if utf8.RuneCountInString(StringInterfaceToJSON(o.GetProps())) > PostPropsMaxRunes {
 		return NewAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 

@@ -575,7 +575,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("link", link)
 
-	w.Write([]byte(model.MapToJson(resp)))
+	w.Write([]byte(model.MapToJSON(resp)))
 }
 
 func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {

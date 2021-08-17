@@ -98,7 +98,7 @@ func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Write([]byte(model.ArrayToJson(order)))
+	w.Write([]byte(model.ArrayToJSON(order)))
 }
 
 func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -115,7 +115,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryOrder := model.ArrayFromJson(r.Body)
+	categoryOrder := model.ArrayFromJSON(r.Body)
 
 	for _, categoryId := range categoryOrder {
 		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
@@ -131,7 +131,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	auditRec.Success()
-	w.Write([]byte(model.ArrayToJson(categoryOrder)))
+	w.Write([]byte(model.ArrayToJSON(categoryOrder)))
 }
 
 func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {

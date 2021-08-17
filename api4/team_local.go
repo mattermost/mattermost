@@ -76,7 +76,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	emailList := model.ArrayFromJson(r.Body)
+	emailList := model.ArrayFromJSON(r.Body)
 	if len(emailList) == 0 {
 		c.SetInvalidParam("user_email")
 		return

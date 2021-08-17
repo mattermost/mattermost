@@ -3212,7 +3212,7 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	return nil
 }
 
-func ConfigFromJson(data io.Reader) *Config {
+func ConfigFromJSON(data io.Reader) *Config {
 	var o *Config
 	json.NewDecoder(data).Decode(&o)
 	return o

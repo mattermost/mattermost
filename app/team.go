@@ -572,7 +572,7 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+	tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
 
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
@@ -1872,7 +1872,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
 
 		return tokenData["teamId"], nil
 	}

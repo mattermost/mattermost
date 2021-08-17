@@ -54,7 +54,7 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+	tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
 
 	team, nErr := a.Srv().Store.Team().Get(tokenData["teamId"])
 	if nErr != nil {
@@ -294,7 +294,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	if e != nil {
 		return nil, e
 	}
-	user, err1 := provider.GetUserFromJson(userData, tokenUser)
+	user, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusInternalServerError)
 	}
@@ -1814,7 +1814,7 @@ func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model
 }
 
 func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
-	oauthUser, err1 := provider.GetUserFromJson(userData, tokenUser)
+	oauthUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
 	}

@@ -105,7 +105,7 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -214,7 +214,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		config = c.App.ClientConfigWithComputed()
 	}
 
-	w.Write([]byte(model.MapToJson(config)))
+	w.Write([]byte(model.MapToJSON(config)))
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -225,11 +225,11 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(model.StringInterfaceToJson(envConfig)))
+	w.Write([]byte(model.StringInterfaceToJSON(envConfig)))
 }
 
 func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -384,7 +384,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 }
 
 func migrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")

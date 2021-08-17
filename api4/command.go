@@ -476,5 +476,5 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]string)
 	resp["token"] = rcmd.Token
 
-	w.Write([]byte(model.MapToJson(resp)))
+	w.Write([]byte(model.MapToJSON(resp)))
 }
