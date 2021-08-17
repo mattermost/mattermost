@@ -102,11 +102,14 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 
 	a.OverrideIconURLIfEmoji(post)
 
-	post.Metadata = &model.PostMetadata{}
+	if post.Metadata == nil {
+		post.Metadata = &model.PostMetadata{}
+	}
 
 	if post.DeleteAt > 0 {
 		// For deleted posts we don't fill out metadata nor do we return the post content
 		post.Message = ""
+		post.Metadata = &model.PostMetadata{}
 		return post
 	}
 
@@ -128,12 +131,14 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	// Embeds and image dimensions
 	firstLink, images := a.getFirstLinkAndImages(post.Message)
 
+	if post.Metadata.Embeds == nil {
+		post.Metadata.Embeds = []*model.PostEmbed{}
+	}
+
 	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
 		mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
-	} else if embed == nil {
-		post.Metadata.Embeds = []*model.PostEmbed{}
-	} else {
-		post.Metadata.Embeds = []*model.PostEmbed{embed}
+	} else if embed != nil {
+		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
 	}
 
 	post.Metadata.Images = a.getImagesForPost(post, images, isNewPost)
