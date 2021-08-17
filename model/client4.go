@@ -3876,7 +3876,12 @@ func (c *Client4) SearchFilesWithParams(teamId string, params *SearchParameter) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return FileInfoListFromJson(r.Body), BuildResponse(r), nil
+
+	var list FileInfoList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("SearchFilesWithParams", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &list, BuildResponse(r), nil
 }
 
 // SearchPosts returns any posts with matching terms string.
