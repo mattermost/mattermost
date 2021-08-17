@@ -145,7 +145,6 @@ func TestHandleCommandResponsePost(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		UserId:    th.BasicUser.Id,
 		RootId:    "",
-		ParentId:  "",
 	}
 
 	resp := &model.CommandResponse{
@@ -161,7 +160,6 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, args.ChannelId, post.ChannelId)
 	assert.Equal(t, args.RootId, post.RootId)
-	assert.Equal(t, args.ParentId, post.ParentId)
 	assert.Equal(t, args.UserId, post.UserId)
 	assert.Equal(t, resp.Type, post.Type)
 	assert.Equal(t, resp.Props, post.GetProps())

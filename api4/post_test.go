@@ -47,17 +47,10 @@ func TestCreatePost(t *testing.T) {
 	require.Nil(t, rpost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
 
 	post.RootId = rpost.Id
-	post.ParentId = rpost.Id
 	_, _, err2 = client.CreatePost(post)
 	require.NoError(t, err2)
 
 	post.RootId = "junk"
-	_, resp, err2 = client.CreatePost(post)
-	require.Error(t, err2)
-	CheckBadRequestStatus(t, resp)
-
-	post.RootId = rpost.Id
-	post.ParentId = "junk"
 	_, resp, err2 = client.CreatePost(post)
 	require.Error(t, err2)
 	CheckBadRequestStatus(t, resp)
@@ -130,7 +123,6 @@ func TestCreatePost(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 
 		post.RootId = rpost.Id
-		post.ParentId = rpost.Id
 		post.Message = "a post with no channel mentions"
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
@@ -148,19 +140,16 @@ func TestCreatePost(t *testing.T) {
 		}
 
 		post.RootId = rpost.Id
-		post.ParentId = rpost.Id
 		post.Message = "a post with @channel"
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
 		post.RootId = rpost.Id
-		post.ParentId = rpost.Id
 		post.Message = "a post with @all"
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
 		post.RootId = rpost.Id
-		post.ParentId = rpost.Id
 		post.Message = "a post with @here"
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
@@ -182,7 +171,6 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	post.RootId = ""
-	post.ParentId = ""
 	post.Type = model.PostTypeSystemGeneric
 	_, resp, err := client.CreatePost(post)
 	require.Error(t, err)
@@ -190,13 +178,11 @@ func TestCreatePost(t *testing.T) {
 
 	post.Type = ""
 	post.RootId = rpost2.Id
-	post.ParentId = rpost2.Id
 	_, resp, err = client.CreatePost(post)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	post.RootId = ""
-	post.ParentId = ""
 	post.ChannelId = "junk"
 	_, resp, err = client.CreatePost(post)
 	require.Error(t, err)
@@ -1703,7 +1689,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	post3 := th.CreatePost()
 	post4 := th.CreatePost()
 	post5 := th.CreatePost()
-	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id, ParentId: post4.Id}
+	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id}
 	post6, _, err := client.CreatePost(replyPost)
 	require.NoError(t, err)
 	post7, _, err := client.CreatePost(replyPost)
@@ -1907,7 +1893,6 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		ChannelId: channelId,
 		Message:   model.NewId(),
 		RootId:    post4.Id,
-		ParentId:  post4.Id,
 	})
 	require.NoError(t, err)
 	post13 := th.CreatePost()

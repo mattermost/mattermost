@@ -53,8 +53,7 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	rp, err := a.CreatePost(c, post, channel, true, setOnline)
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
-			err.Id == "api.post.create_post.channel_root_id.app_error" ||
-			err.Id == "api.post.create_post.parent_id.app_error" {
+			err.Id == "api.post.create_post.channel_root_id.app_error" {
 			err.StatusCode = http.StatusBadRequest
 		}
 
@@ -75,7 +74,6 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 				post.UserId,
 				&model.Post{
 					ChannelId: channel.Id,
-					ParentId:  post.ParentId,
 					RootId:    post.RootId,
 					UserId:    post.UserId,
 					Message:   T("api.post.create_post.town_square_read_only"),
@@ -230,7 +228,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 			ephemeralPost = &model.Post{
 				UserId:    user.Id,
 				RootId:    post.RootId,
-				ParentId:  post.ParentId,
 				ChannelId: channel.Id,
 				Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
 				Props:     model.StringInterface{model.PostPropsMentionHighlightDisabled: true},
@@ -253,17 +250,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		rootPost := parentPostList.Posts[post.RootId]
 		if rootPost.RootId != "" {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
-		}
-
-		if post.ParentId == "" {
-			post.ParentId = post.RootId
-		}
-
-		if post.RootId != post.ParentId {
-			parent := parentPostList.Posts[post.ParentId]
-			if parent == nil {
-				return nil, model.NewAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "", http.StatusInternalServerError)
-			}
 		}
 	}
 

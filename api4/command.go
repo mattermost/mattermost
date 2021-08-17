@@ -414,7 +414,6 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		ChannelId: query.Get("channel_id"),
 		TeamId:    c.Params.TeamId,
 		RootId:    query.Get("root_id"),
-		ParentId:  query.Get("parent_id"),
 		UserId:    c.AppContext.Session().UserId,
 		T:         c.AppContext.T,
 		Session:   *c.AppContext.Session(),
