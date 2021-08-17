@@ -64,7 +64,7 @@ func testClearOld(t *testing.T, ss store.Store) {
 	err := ss.ProductNotices().View("testuser", noticesA)
 	require.NoError(t, err)
 
-	err = ss.ProductNotices().ClearOldNotices(&model.ProductNotices{
+	err = ss.ProductNotices().ClearOldNotices(model.ProductNotices{
 		{
 			ID: "noticeA",
 		},

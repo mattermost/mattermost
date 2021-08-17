@@ -30,7 +30,7 @@ type SqlStore interface {
 func cleanupChannels(t *testing.T, ss store.Store) {
 	list, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, err, "error cleaning all channels", err)
-	for _, channel := range *list {
+	for _, channel := range list {
 		err = ss.Channel().PermanentDelete(channel.Id)
 		assert.NoError(t, err)
 	}
@@ -206,7 +206,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 
 	members, nErr := ss.Channel().GetMembers(o1.Id, 0, 100)
 	require.NoError(t, nErr)
-	require.Len(t, *members, 2, "should have saved 2 members")
+	require.Len(t, members, 2, "should have saved 2 members")
 
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 	require.Error(t, nErr, "shoudn't be a able to update from save")
@@ -242,7 +242,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 
 	members, nErr = ss.Channel().GetMembers(o1.Id, 0, 100)
 	require.NoError(t, nErr)
-	require.Len(t, *members, 1, "should have saved just 1 member")
+	require.Len(t, members, 1, "should have saved just 1 member")
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -274,7 +274,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 
 	members, nErr := ss.Channel().GetMembers(c1.Id, 0, 100)
 	require.NoError(t, nErr)
-	require.Len(t, *members, 2, "should have saved 2 members")
+	require.Len(t, members, 2, "should have saved 2 members")
 }
 
 func testChannelStoreUpdate(t *testing.T, ss store.Store) {
@@ -432,7 +432,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 
 	channelsTeam, err := ss.Channel().GetTeamChannels(o1.TeamId)
 	require.NoError(t, err, err)
-	require.Greater(t, len(*channelsTeam), 0, "too little")
+	require.Greater(t, len(channelsTeam), 0, "too little")
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -623,11 +623,11 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 
 	list, nErr := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false, 0)
 	require.NoError(t, nErr)
-	require.Len(t, *list, 1, "invalid number of channels")
+	require.Len(t, list, 1, "invalid number of channels")
 
 	list, nErr = ss.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
 	require.NoError(t, nErr)
-	require.Len(t, *list, 1, "invalid number of channels")
+	require.Len(t, list, 1, "invalid number of channels")
 
 	cresult := ss.Channel().PermanentDelete(o2.Id)
 	require.NoError(t, cresult)
@@ -637,7 +637,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(nErr, &nfErr))
 	} else {
-		require.Equal(t, &model.ChannelList{}, list)
+		require.Equal(t, model.ChannelList{}, list)
 	}
 
 	nErr = ss.Channel().PermanentDeleteByTeam(o1.TeamId)
@@ -771,8 +771,8 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 
 	list, nErr := ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
 	require.NoError(t, nErr, nErr)
-	require.Len(t, *list, 1, "wrong list")
-	require.Equal(t, o1.Name, (*list)[0].Name, "missing channel")
+	require.Len(t, list, 1, "wrong list")
+	require.Equal(t, o1.Name, list[0].Name, "missing channel")
 
 	o2 := model.Channel{}
 	o2.TeamId = o1.TeamId
@@ -784,7 +784,7 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 
 	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
 	require.NoError(t, nErr, nErr)
-	require.Len(t, *list, 1, "wrong list")
+	require.Len(t, list, 1, "wrong list")
 
 	o3 := model.Channel{}
 	o3.TeamId = o1.TeamId
@@ -800,15 +800,15 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 
 	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
 	require.NoError(t, nErr, nErr)
-	require.Len(t, *list, 2, "wrong list length")
+	require.Len(t, list, 2, "wrong list length")
 
 	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 1, userId)
 	require.NoError(t, nErr, nErr)
-	require.Len(t, *list, 1, "wrong list length")
+	require.Len(t, list, 1, "wrong list length")
 
 	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 1, 1, userId)
 	require.NoError(t, nErr, nErr)
-	require.Len(t, *list, 1, "wrong list length")
+	require.Len(t, list, 1, "wrong list length")
 
 }
 
@@ -3177,10 +3177,10 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 
 	list, nErr := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false, 0)
 	require.NoError(t, nErr)
-	require.Len(t, *list, 3)
-	require.Equal(t, o1.Id, (*list)[0].Id, "missing channel")
-	require.Equal(t, o2.Id, (*list)[1].Id, "missing channel")
-	require.Equal(t, o3.Id, (*list)[2].Id, "missing channel")
+	require.Len(t, list, 3)
+	require.Equal(t, o1.Id, list[0].Id, "missing channel")
+	require.Equal(t, o2.Id, list[1].Id, "missing channel")
+	require.Equal(t, o3.Id, list[2].Id, "missing channel")
 
 	ids, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
 	require.NoError(t, err)
@@ -3211,31 +3211,31 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	// should return 1
 	list, nErr = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false, 0)
 	require.NoError(t, nErr)
-	require.Len(t, *list, 1)
-	require.Equal(t, o1.Id, (*list)[0].Id, "missing channel")
+	require.Len(t, list, 1)
+	require.Equal(t, o1.Id, list[0].Id, "missing channel")
 
 	// Should return all
 	list, nErr = ss.Channel().GetChannels(o1.TeamId, m1.UserId, true, 0)
 	require.NoError(t, nErr)
-	require.Len(t, *list, 3)
-	require.Equal(t, o1.Id, (*list)[0].Id, "missing channel")
-	require.Equal(t, o2.Id, (*list)[1].Id, "missing channel")
-	require.Equal(t, o3.Id, (*list)[2].Id, "missing channel")
+	require.Len(t, list, 3)
+	require.Equal(t, o1.Id, list[0].Id, "missing channel")
+	require.Equal(t, o2.Id, list[1].Id, "missing channel")
+	require.Equal(t, o3.Id, list[2].Id, "missing channel")
 
 	// Should still return all
 	list, nErr = ss.Channel().GetChannels(o1.TeamId, m1.UserId, true, 10)
 	require.NoError(t, nErr)
-	require.Len(t, *list, 3)
-	require.Equal(t, o1.Id, (*list)[0].Id, "missing channel")
-	require.Equal(t, o2.Id, (*list)[1].Id, "missing channel")
-	require.Equal(t, o3.Id, (*list)[2].Id, "missing channel")
+	require.Len(t, list, 3)
+	require.Equal(t, o1.Id, list[0].Id, "missing channel")
+	require.Equal(t, o2.Id, list[1].Id, "missing channel")
+	require.Equal(t, o3.Id, list[2].Id, "missing channel")
 
 	// Should return 2
 	list, nErr = ss.Channel().GetChannels(o1.TeamId, m1.UserId, true, 20)
 	require.NoError(t, nErr)
-	require.Len(t, *list, 2)
-	require.Equal(t, o1.Id, (*list)[0].Id, "missing channel")
-	require.Equal(t, o3.Id, (*list)[1].Id, "missing channel")
+	require.Len(t, list, 2)
+	require.Equal(t, o1.Id, list[0].Id, "missing channel")
+	require.Equal(t, o3.Id, list[1].Id, "missing channel")
 
 	require.True(
 		t,
@@ -3335,22 +3335,22 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	list, nErr := ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{})
 	require.NoError(t, nErr)
-	assert.Len(t, *list, 2)
-	assert.Equal(t, c1.Id, (*list)[0].Id)
-	assert.Equal(t, "Name", (*list)[0].TeamDisplayName)
-	assert.Equal(t, c3.Id, (*list)[1].Id)
-	assert.Equal(t, "Name2", (*list)[1].TeamDisplayName)
+	assert.Len(t, list, 2)
+	assert.Equal(t, c1.Id, list[0].Id)
+	assert.Equal(t, "Name", list[0].TeamDisplayName)
+	assert.Equal(t, c3.Id, list[1].Id)
+	assert.Equal(t, "Name2", list[1].TeamDisplayName)
 
 	count1, nErr := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{})
 	require.NoError(t, nErr)
 
 	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, nErr)
-	assert.Len(t, *list, 3)
-	assert.Equal(t, c1.Id, (*list)[0].Id)
-	assert.Equal(t, "Name", (*list)[0].TeamDisplayName)
-	assert.Equal(t, c2.Id, (*list)[1].Id)
-	assert.Equal(t, c3.Id, (*list)[2].Id)
+	assert.Len(t, list, 3)
+	assert.Equal(t, c1.Id, list[0].Id)
+	assert.Equal(t, "Name", list[0].TeamDisplayName)
+	assert.Equal(t, c2.Id, list[1].Id)
+	assert.Equal(t, c3.Id, list[2].Id)
 
 	count2, nErr := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, nErr)
@@ -3360,19 +3360,19 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	list, nErr = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, nErr)
-	assert.Len(t, *list, 1)
-	assert.Equal(t, c1.Id, (*list)[0].Id)
-	assert.Equal(t, "Name", (*list)[0].TeamDisplayName)
+	assert.Len(t, list, 1)
+	assert.Equal(t, c1.Id, list[0].Id)
+	assert.Equal(t, "Name", list[0].TeamDisplayName)
 
 	// Not associated to group
 	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{NotAssociatedToGroup: group.Id})
 	require.NoError(t, nErr)
-	assert.Len(t, *list, 1)
+	assert.Len(t, list, 1)
 
 	// Exclude channel names
 	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludeChannelNames: []string{c1.Name}})
 	require.NoError(t, nErr)
-	assert.Len(t, *list, 1)
+	assert.Len(t, list, 1)
 
 	// Exclude policy constrained
 	policy, nErr := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
@@ -3385,21 +3385,21 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, nErr)
 	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludePolicyConstrained: true})
 	require.NoError(t, nErr)
-	assert.Len(t, *list, 1)
-	assert.Equal(t, c3.Id, (*list)[0].Id)
+	assert.Len(t, list, 1)
+	assert.Equal(t, c3.Id, list[0].Id)
 
 	// Without the policy ID
 	list, nErr = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{})
 	require.NoError(t, nErr)
-	assert.Len(t, *list, 1)
-	assert.Equal(t, c1.Id, (*list)[0].Id)
-	assert.Nil(t, (*list)[0].PolicyID)
+	assert.Len(t, list, 1)
+	assert.Equal(t, c1.Id, list[0].Id)
+	assert.Nil(t, list[0].PolicyID)
 	// With the policy ID
 	list, nErr = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludePolicyID: true})
 	require.NoError(t, nErr)
-	assert.Len(t, *list, 1)
-	assert.Equal(t, c1.Id, (*list)[0].Id)
-	assert.Equal(t, *(*list)[0].PolicyID, policy.ID)
+	assert.Len(t, list, 1)
+	assert.Equal(t, c1.Id, list[0].Id)
+	assert.Equal(t, *list[0].PolicyID, policy.ID)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -3494,7 +3494,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 	t.Run("only o3 listed in more channels", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetMoreChannels(teamId, userId, 0, 100)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&o3}, list)
+		require.Equal(t, model.ChannelList{&o3}, list)
 	})
 
 	// o6 is another channel on the team to which the user does not belong, and would thus
@@ -3525,19 +3525,19 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 	t.Run("both o3 and o6 listed in more channels", func(t *testing.T) {
 		list, err := ss.Channel().GetMoreChannels(teamId, userId, 0, 100)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o3, &o6}, list)
+		require.Equal(t, model.ChannelList{&o3, &o6}, list)
 	})
 
 	t.Run("only o3 listed in more channels with offset 0, limit 1", func(t *testing.T) {
 		list, err := ss.Channel().GetMoreChannels(teamId, userId, 0, 1)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o3}, list)
+		require.Equal(t, model.ChannelList{&o3}, list)
 	})
 
 	t.Run("only o6 listed in more channels with offset 1, limit 1", func(t *testing.T) {
 		list, err := ss.Channel().GetMoreChannels(teamId, userId, 1, 1)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o6}, list)
+		require.Equal(t, model.ChannelList{&o6}, list)
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
@@ -3589,7 +3589,7 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 	t.Run("only p1 initially listed in private channels", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetPrivateChannelsForTeam(teamId, 0, 100)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&p1}, list)
+		require.Equal(t, model.ChannelList{&p1}, list)
 	})
 
 	// p3 is another private channel on the team
@@ -3617,19 +3617,19 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 	t.Run("both p1 and p3 listed in private channels", func(t *testing.T) {
 		list, err := ss.Channel().GetPrivateChannelsForTeam(teamId, 0, 100)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&p1, &p3}, list)
+		require.Equal(t, model.ChannelList{&p1, &p3}, list)
 	})
 
 	t.Run("only p1 listed in private channels with offset 0, limit 1", func(t *testing.T) {
 		list, err := ss.Channel().GetPrivateChannelsForTeam(teamId, 0, 1)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&p1}, list)
+		require.Equal(t, model.ChannelList{&p1}, list)
 	})
 
 	t.Run("only p3 listed in private channels with offset 1, limit 1", func(t *testing.T) {
 		list, err := ss.Channel().GetPrivateChannelsForTeam(teamId, 1, 1)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&p3}, list)
+		require.Equal(t, model.ChannelList{&p3}, list)
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
@@ -3681,7 +3681,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	t.Run("only o1 initially listed in public channels", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&o1}, list)
+		require.Equal(t, model.ChannelList{&o1}, list)
 	})
 
 	// o4 is another public channel on the team
@@ -3709,19 +3709,19 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	t.Run("both o1 and o4 listed in public channels", func(t *testing.T) {
 		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o1, &o4}, list)
+		require.Equal(t, model.ChannelList{&o1, &o4}, list)
 	})
 
 	t.Run("only o1 listed in public channels with offset 0, limit 1", func(t *testing.T) {
 		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 1)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o1}, list)
+		require.Equal(t, model.ChannelList{&o1}, list)
 	})
 
 	t.Run("only o4 listed in public channels with offset 1, limit 1", func(t *testing.T) {
 		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 1, 1)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o4}, list)
+		require.Equal(t, model.ChannelList{&o4}, list)
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
@@ -3773,13 +3773,13 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	t.Run("oc1 by itself should be found as a public channel in the team", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id})
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&oc1}, list)
+		require.Equal(t, model.ChannelList{&oc1}, list)
 	})
 
 	t.Run("only oc1, among others, should be found as a public channel in the team", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id})
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&oc1}, list)
+		require.Equal(t, model.ChannelList{&oc1}, list)
 	})
 
 	// oc4 is another public channel on the team
@@ -3808,7 +3808,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	t.Run("only oc1 and oc4, among others, should be found as a public channel in the team", func(t *testing.T) {
 		list, err := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id, oc4.Id})
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&oc1, &oc4}, list)
+		require.Equal(t, model.ChannelList{&oc1, &oc4}, list)
 	})
 
 	t.Run("random channel id should not be found as a public channel in the team", func(t *testing.T) {
@@ -3903,11 +3903,11 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("with channels", func(t *testing.T) {
-		var members *model.ChannelMembers
+		var members model.ChannelMembers
 		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
 		require.NoError(t, err)
 
-		assert.Len(t, *members, 2)
+		assert.Len(t, members, 2)
 	})
 
 	t.Run("with channels and direct messages", func(t *testing.T) {
@@ -3924,11 +3924,11 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 		_, nErr = ss.Channel().CreateDirectChannel(&u3, &u4)
 		require.NoError(t, nErr)
 
-		var members *model.ChannelMembers
+		var members model.ChannelMembers
 		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
 		require.NoError(t, err)
 
-		assert.Len(t, *members, 4)
+		assert.Len(t, members, 4)
 	})
 
 	t.Run("with channels, direct channels and group messages", func(t *testing.T) {
@@ -3952,11 +3952,11 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 			_, err = ss.Channel().SaveMember(cm)
 			require.NoError(t, err)
 		}
-		var members *model.ChannelMembers
+		var members model.ChannelMembers
 		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
 		require.NoError(t, err)
 
-		assert.Len(t, *members, 5)
+		assert.Len(t, members, 5)
 	})
 }
 
@@ -4001,11 +4001,11 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 
 	members, err := ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
 	require.NoError(t, err)
-	assert.Len(t, *members, 1)
+	assert.Len(t, members, 1)
 
 	members, err = ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
 	require.NoError(t, err)
-	assert.Len(t, *members, 1)
+	assert.Len(t, members, 1)
 }
 
 func testCountPostsAfter(t *testing.T, ss store.Store) {
@@ -4940,31 +4940,31 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 	t.Run("three public channels matching 'ChannelA', but already a member of one and one deleted", func(t *testing.T) {
 		channels, err := ss.Channel().SearchMore(m1.UserId, teamId, "ChannelA")
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o3}, channels)
+		require.Equal(t, model.ChannelList{&o3}, channels)
 	})
 
 	t.Run("one public channels, but already a member", func(t *testing.T) {
 		channels, err := ss.Channel().SearchMore(m1.UserId, teamId, o4.Name)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{}, channels)
+		require.Equal(t, model.ChannelList{}, channels)
 	})
 
 	t.Run("three matching channels, but only two public", func(t *testing.T) {
 		channels, err := ss.Channel().SearchMore(m1.UserId, teamId, "off-")
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o7, &o6}, channels)
+		require.Equal(t, model.ChannelList{&o7, &o6}, channels)
 	})
 
 	t.Run("one channel matching 'off-topic'", func(t *testing.T) {
 		channels, err := ss.Channel().SearchMore(m1.UserId, teamId, "off-topic")
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o6}, channels)
+		require.Equal(t, model.ChannelList{&o6}, channels)
 	})
 
 	t.Run("search purpose", func(t *testing.T) {
 		channels, err := ss.Channel().SearchMore(m1.UserId, teamId, "now searchable")
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o9}, channels)
+		require.Equal(t, model.ChannelList{&o9}, channels)
 	})
 }
 
@@ -5159,23 +5159,23 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		TeamId          string
 		Term            string
 		IncludeDeleted  bool
-		ExpectedResults *model.ChannelList
+		ExpectedResults model.ChannelList
 	}{
-		{"ChannelA", teamId, "ChannelA", false, &model.ChannelList{&o1, &o3}},
-		{"ChannelA, include deleted", teamId, "ChannelA", true, &model.ChannelList{&o1, &o3, &o13}},
-		{"ChannelA, other team", otherTeamId, "ChannelA", false, &model.ChannelList{&o2}},
-		{"empty string", teamId, "", false, &model.ChannelList{&o1, &o3, &o12, &o11, &o7, &o6, &o10, &o9}},
-		{"no matches", teamId, "blargh", false, &model.ChannelList{}},
-		{"prefix", teamId, "off-", false, &model.ChannelList{&o7, &o6}},
-		{"full match with dash", teamId, "off-topic", false, &model.ChannelList{&o6}},
-		{"town square", teamId, "town square", false, &model.ChannelList{&o9}},
-		{"the in name", teamId, "thename", false, &model.ChannelList{&o10}},
-		{"Mobile", teamId, "Mobile", false, &model.ChannelList{&o11}},
-		{"search purpose", teamId, "now searchable", false, &model.ChannelList{&o12}},
-		{"pipe ignored", teamId, "town square |", false, &model.ChannelList{&o9}},
+		{"ChannelA", teamId, "ChannelA", false, model.ChannelList{&o1, &o3}},
+		{"ChannelA, include deleted", teamId, "ChannelA", true, model.ChannelList{&o1, &o3, &o13}},
+		{"ChannelA, other team", otherTeamId, "ChannelA", false, model.ChannelList{&o2}},
+		{"empty string", teamId, "", false, model.ChannelList{&o1, &o3, &o12, &o11, &o7, &o6, &o10, &o9}},
+		{"no matches", teamId, "blargh", false, model.ChannelList{}},
+		{"prefix", teamId, "off-", false, model.ChannelList{&o7, &o6}},
+		{"full match with dash", teamId, "off-topic", false, model.ChannelList{&o6}},
+		{"town square", teamId, "town square", false, model.ChannelList{&o9}},
+		{"the in name", teamId, "thename", false, model.ChannelList{&o10}},
+		{"Mobile", teamId, "Mobile", false, model.ChannelList{&o11}},
+		{"search purpose", teamId, "now searchable", false, model.ChannelList{&o12}},
+		{"pipe ignored", teamId, "town square |", false, model.ChannelList{&o9}},
 	}
 
-	for name, search := range map[string]func(teamId string, term string, includeDeleted bool) (*model.ChannelList, error){
+	for name, search := range map[string]func(teamId string, term string, includeDeleted bool) (model.ChannelList, error){
 		"AutocompleteInTeam": ss.Channel().AutocompleteInTeam,
 		"SearchInTeam":       ss.Channel().SearchInTeam,
 	} {
@@ -5186,7 +5186,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 
 				// AutoCompleteInTeam doesn't currently sort its output results.
 				if name == "AutocompleteInTeam" {
-					sort.Sort(ByChannelDisplayName(*channels))
+					sort.Sort(ByChannelDisplayName(channels))
 				}
 
 				require.Equal(t, testCase.ExpectedResults, channels)
@@ -5259,10 +5259,10 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 	searchAndCheck := func(t *testing.T, term string, includeDeleted bool, expectedDisplayNames []string) {
 		res, searchErr := ss.Channel().SearchForUserInTeam(userId, teamId, term, includeDeleted)
 		require.NoError(t, searchErr)
-		require.Len(t, *res, len(expectedDisplayNames))
+		require.Len(t, res, len(expectedDisplayNames))
 
 		resultDisplayNames := []string{}
-		for _, c := range *res {
+		for _, c := range res {
 			resultDisplayNames = append(resultDisplayNames, c.DisplayName)
 		}
 		require.ElementsMatch(t, expectedDisplayNames, resultDisplayNames)
@@ -5502,54 +5502,54 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		Description     string
 		Term            string
 		Opts            store.ChannelSearchOpts
-		ExpectedResults *model.ChannelList
+		ExpectedResults model.ChannelList
 		TotalCount      int
 	}{
-		{"Search FooBar by display name", "bardisplay", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
-		{"Search FooBar by display name2", "foobar", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
-		{"Search FooBar by display name3", "displayname", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
-		{"Search FooBar by name", "what", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
-		{"Search FooBar by name2", "ever", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
-		{"ChannelA", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3}, 0},
-		{"ChannelA, include deleted", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: true}, &model.ChannelList{&o1, &o2, &o3, &o13}, 0},
-		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o6, &o7, &o8, &o9, &o10, &o11, &o12, &o14}, 0},
-		{"no matches", "blargh", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{}, 0},
-		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6, &o7, &o8}, 0},
-		{"full match with dash", "off-topic", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6}, 0},
-		{"town square", "town square", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}, 0},
-		{"which in name", "which", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o10}, 0},
-		{"Mobile", "Mobile", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o11}, 0},
-		{"search purpose", "now searchable", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o12}, 0},
-		{"pipe ignored", "town square |", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}, 0},
-		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, &model.ChannelList{&o7, &o8}, 0},
-		{"exclude defaults search 'town'", "town", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"town-square"}}, &model.ChannelList{}, 0},
-		{"exclude by group association", "off-", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, &model.ChannelList{&o6, &o8}, 0},
-		{"paginate includes count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(100)}, &model.ChannelList{&o6, &o7, &o8}, 3},
-		{"paginate, page 2 correct entries and count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(2), Page: model.NewInt(1)}, &model.ChannelList{&o8}, 3},
-		{"Filter private", "", store.ChannelSearchOpts{IncludeDeleted: false, Private: true}, &model.ChannelList{&o4, &o5, &o8}, 3},
-		{"Filter public", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o6, &o7}, 10},
-		{"Filter public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
-		{"Filter public and private and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 14},
-		{"Filter group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, GroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o5}, 1},
-		{"Filter exclude group constrained and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, ExcludeGroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 13},
-		{"Filter private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeGroupConstrained: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o4, &o8}, 2},
-		{"Exclude policy constrained", "", store.ChannelSearchOpts{ExcludePolicyConstrained: true}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o6, &o7, &o8, &o9, &o10, &o11, &o12}, 0},
-		{"Filter team 2", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o2, &o14}, 2},
-		{"Filter team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{}, 0},
-		{"Filter team 1 and team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o4, &o5, &o8}, 3},
-		{"Filter team 1 and team 2, public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
-		{"Filter team 1 and team 2, public and private and group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, GroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o5}, 1},
-		{"Filter team 1 and team 2, public and private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, ExcludeGroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 12},
-		{"Filter deleted returns only deleted channels", "", store.ChannelSearchOpts{Deleted: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o13}, 1},
+		{"Search FooBar by display name", "bardisplay", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name2", "foobar", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name3", "displayname", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o14}, 1},
+		{"Search FooBar by name", "what", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o14}, 1},
+		{"Search FooBar by name2", "ever", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o14}, 1},
+		{"ChannelA", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o1, &o2, &o3}, 0},
+		{"ChannelA, include deleted", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: true}, model.ChannelList{&o1, &o2, &o3, &o13}, 0},
+		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o6, &o7, &o8, &o9, &o10, &o11, &o12, &o14}, 0},
+		{"no matches", "blargh", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{}, 0},
+		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o6, &o7, &o8}, 0},
+		{"full match with dash", "off-topic", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o6}, 0},
+		{"town square", "town square", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o9}, 0},
+		{"which in name", "which", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o10}, 0},
+		{"Mobile", "Mobile", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o11}, 0},
+		{"search purpose", "now searchable", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o12}, 0},
+		{"pipe ignored", "town square |", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o9}, 0},
+		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, model.ChannelList{&o7, &o8}, 0},
+		{"exclude defaults search 'town'", "town", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"town-square"}}, model.ChannelList{}, 0},
+		{"exclude by group association", "off-", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, model.ChannelList{&o6, &o8}, 0},
+		{"paginate includes count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(100)}, model.ChannelList{&o6, &o7, &o8}, 3},
+		{"paginate, page 2 correct entries and count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(2), Page: model.NewInt(1)}, model.ChannelList{&o8}, 3},
+		{"Filter private", "", store.ChannelSearchOpts{IncludeDeleted: false, Private: true}, model.ChannelList{&o4, &o5, &o8}, 3},
+		{"Filter public", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o1, &o2, &o3, &o6, &o7}, 10},
+		{"Filter public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
+		{"Filter public and private and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 14},
+		{"Filter group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, GroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o5}, 1},
+		{"Filter exclude group constrained and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, ExcludeGroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 13},
+		{"Filter private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeGroupConstrained: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o4, &o8}, 2},
+		{"Exclude policy constrained", "", store.ChannelSearchOpts{ExcludePolicyConstrained: true}, model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o6, &o7, &o8, &o9, &o10, &o11, &o12}, 0},
+		{"Filter team 2", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o2, &o14}, 2},
+		{"Filter team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{}, 0},
+		{"Filter team 1 and team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o4, &o5, &o8}, 3},
+		{"Filter team 1 and team 2, public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
+		{"Filter team 1 and team 2, public and private and group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, GroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o5}, 1},
+		{"Filter team 1 and team 2, public and private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, ExcludeGroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 12},
+		{"Filter deleted returns only deleted channels", "", store.ChannelSearchOpts{Deleted: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, model.ChannelList{&o13}, 1},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			channels, count, err := ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
 			require.NoError(t, err)
-			require.Equal(t, len(*testCase.ExpectedResults), len(*channels))
-			for i, expected := range *testCase.ExpectedResults {
-				require.Equal(t, expected.Id, (*channels)[i].Id)
+			require.Equal(t, len(testCase.ExpectedResults), len(channels))
+			for i, expected := range testCase.ExpectedResults {
+				require.Equal(t, expected.Id, channels[i].Id)
 			}
 			if testCase.Opts.Page != nil || testCase.Opts.PerPage != nil {
 				require.Equal(t, int64(testCase.TotalCount), count)
@@ -5571,10 +5571,10 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	_, err := ss.Channel().SaveMember(m1)
 	require.NoError(t, err)
 
-	var members *model.ChannelMembers
+	var members model.ChannelMembers
 	members, nErr = ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId})
 	require.NoError(t, nErr, nErr)
-	rm1 := (*members)[0]
+	rm1 := members[0]
 
 	require.Equal(t, m1.ChannelId, rm1.ChannelId, "bad team id")
 	require.Equal(t, m1.UserId, rm1.UserId, "bad user id")
@@ -5585,7 +5585,7 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 
 	members, nErr = ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId, m2.UserId, model.NewId()})
 	require.NoError(t, nErr, nErr)
-	require.Len(t, *members, 2, "return wrong number of results")
+	require.Len(t, members, 2, "return wrong number of results")
 
 	_, nErr = ss.Channel().GetMembersByIds(m1.ChannelId, []string{})
 	require.Error(t, nErr, "empty user ids - should have failed")
@@ -5628,24 +5628,24 @@ func testChannelStoreGetMembersByChannelIds(t *testing.T, ss store.Store) {
 	t.Run("should return the user's members for the given channels", func(t *testing.T) {
 		result, nErr := ss.Channel().GetMembersByChannelIds([]string{channel1.Id, channel2.Id}, userId)
 		require.NoError(t, nErr)
-		assert.Len(t, *result, 2)
+		assert.Len(t, result, 2)
 
-		assert.Equal(t, userId, (*result)[0].UserId)
-		assert.True(t, (*result)[0].ChannelId == channel1.Id || (*result)[1].ChannelId == channel1.Id)
-		assert.Equal(t, userId, (*result)[1].UserId)
-		assert.True(t, (*result)[0].ChannelId == channel2.Id || (*result)[1].ChannelId == channel2.Id)
+		assert.Equal(t, userId, result[0].UserId)
+		assert.True(t, result[0].ChannelId == channel1.Id || result[1].ChannelId == channel1.Id)
+		assert.Equal(t, userId, result[1].UserId)
+		assert.True(t, result[0].ChannelId == channel2.Id || result[1].ChannelId == channel2.Id)
 	})
 
 	t.Run("should not error or return anything for invalid channel IDs", func(t *testing.T) {
 		result, nErr := ss.Channel().GetMembersByChannelIds([]string{model.NewId(), model.NewId()}, userId)
 		require.NoError(t, nErr)
-		assert.Len(t, *result, 0)
+		assert.Len(t, result, 0)
 	})
 
 	t.Run("should not error or return anything for invalid user IDs", func(t *testing.T) {
 		result, nErr := ss.Channel().GetMembersByChannelIds([]string{channel1.Id, channel2.Id}, model.NewId())
 		require.NoError(t, nErr)
-		assert.Len(t, *result, 0)
+		assert.Len(t, result, 0)
 	})
 }
 
@@ -5794,7 +5794,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 			require.NoError(t, err)
 
 			resultIds := []string{}
-			for _, gc := range *result {
+			for _, gc := range result {
 				resultIds = append(resultIds, gc.Id)
 			}
 
@@ -6315,7 +6315,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("o1 and o2 initially listed in public channels", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&o1, &o2}, channels)
+		require.Equal(t, model.ChannelList{&o1, &o2}, channels)
 	})
 
 	o1.DeleteAt = model.GetMillis()
@@ -6327,7 +6327,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("o1 still listed in public channels when marked as deleted", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&o1, &o2}, channels)
+		require.Equal(t, model.ChannelList{&o1, &o2}, channels)
 	})
 
 	ss.Channel().PermanentDelete(o1.Id)
@@ -6335,7 +6335,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("o1 no longer listed in public channels when permanently deleted", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&o2}, channels)
+		require.Equal(t, model.ChannelList{&o2}, channels)
 	})
 
 	o2.Type = model.ChannelTypePrivate
@@ -6345,7 +6345,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("o2 no longer listed since now private", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{}, channels)
+		require.Equal(t, model.ChannelList{}, channels)
 	})
 
 	o2.Type = model.ChannelTypeOpen
@@ -6355,7 +6355,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("o2 listed once again since now public", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&o2}, channels)
+		require.Equal(t, model.ChannelList{&o2}, channels)
 	})
 
 	// o3 is a public channel on the team that already existed in the PublicChannels table.
@@ -6411,7 +6411,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("verify o3 INSERT converted to UPDATE", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
 		require.NoError(t, channelErr)
-		require.Equal(t, &model.ChannelList{&o2, &o3}, channels)
+		require.Equal(t, model.ChannelList{&o2, &o3}, channels)
 	})
 
 	// o4 is a public channel on the team that existed in the Channels table but was omitted from the PublicChannels table.
@@ -6442,7 +6442,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("verify o4 UPDATE converted to INSERT", func(t *testing.T) {
 		channels, err := ss.Channel().SearchInTeam(teamId, "", true)
 		require.NoError(t, err)
-		require.Equal(t, &model.ChannelList{&o2, &o3, &o4}, channels)
+		require.Equal(t, model.ChannelList{&o2, &o3, &o4}, channels)
 	})
 }
 
@@ -6594,7 +6594,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	// Get all the channel members. Check there are 3.
 	d1, err := ss.Channel().GetMembers(c1.Id, 0, 1000)
 	assert.NoError(t, err)
-	assert.Len(t, *d1, 3)
+	assert.Len(t, d1, 3)
 
 	// Deactivate users 1 & 2.
 	u1.DeleteAt = model.GetMillis()
@@ -6610,8 +6610,8 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	// Get all the channel members. Check there is now only 1: m3.
 	d2, err := ss.Channel().GetMembers(c1.Id, 0, 1000)
 	assert.NoError(t, err)
-	assert.Len(t, *d2, 1)
-	assert.Equal(t, u3.Id, (*d2)[0].UserId)
+	assert.Len(t, d2, 1)
+	assert.Equal(t, u3.Id, d2[0].UserId)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
