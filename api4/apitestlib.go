@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -468,24 +469,24 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	}
 
 	return &model.Client4{
-		ApiUrl:     "http://_" + model.ApiUrlSuffix,
+		APIURL:     "http://_" + model.APIURLSuffix,
 		HTTPClient: httpClient,
 	}
 }
 
-func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
+func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
 }
 
-func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, *model.AppError) {
+func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemAdminClient.AuthToken)
 }
 
-func (th *TestHelper) CreateWebSocketSystemManagerClient() (*model.WebSocketClient, *model.AppError) {
+func (th *TestHelper) CreateWebSocketSystemManagerClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemManagerClient.AuthToken)
 }
 
-func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
+func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), client.AuthToken)
 }
 
@@ -501,9 +502,9 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 	}
 
 	utils.DisableDebugLogForTest()
-	rbot, resp := client.CreateBot(bot)
-	if resp.Error != nil {
-		panic(resp.Error)
+	rbot, _, err := client.CreateBot(bot)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 	return rbot
@@ -527,9 +528,9 @@ func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 	}
 
 	utils.DisableDebugLogForTest()
-	rteam, resp := client.CreateTeam(team)
-	if resp.Error != nil {
-		panic(resp.Error)
+	rteam, _, err := client.CreateTeam(team)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 	return rteam
@@ -548,13 +549,13 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	ruser, response := client.CreateUser(user)
-	if response.Error != nil {
-		panic(response.Error)
+	ruser, _, err := client.CreateUser(user)
+	if err != nil {
+		panic(err)
 	}
 
 	ruser.Password = "Pa$$word11"
-	_, err := th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return nil
 	}
@@ -608,8 +609,8 @@ func (th *TestHelper) SetupSamlConfig() {
 		*cfg.SamlSettings.Enable = true
 		*cfg.SamlSettings.Verify = false
 		*cfg.SamlSettings.Encrypt = false
-		*cfg.SamlSettings.IdpUrl = "https://does.notmatter.com"
-		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
+		*cfg.SamlSettings.IdpURL = "https://does.notmatter.com"
+		*cfg.SamlSettings.IdpDescriptorURL = "https://localhost/adfs/services/trust"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
@@ -651,9 +652,9 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 	}
 
 	utils.DisableDebugLogForTest()
-	rchannel, resp := client.CreateChannel(channel)
-	if resp.Error != nil {
-		panic(resp.Error)
+	rchannel, _, err := client.CreateChannel(channel)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 	return rchannel
@@ -680,9 +681,9 @@ func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
-	if resp.Error != nil {
-		panic(resp.Error)
+	rpost, _, err := client.CreatePost(post)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 	return rpost
@@ -698,9 +699,9 @@ func (th *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
-	if resp.Error != nil {
-		panic(resp.Error)
+	rpost, _, err := client.CreatePost(post)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 	return rpost
@@ -713,9 +714,9 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
-	if resp.Error != nil {
-		panic(resp.Error)
+	rpost, _, err := client.CreatePost(post)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 	return rpost
@@ -769,45 +770,45 @@ func (th *TestHelper) LoginSystemManager() {
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	if resp.Error != nil {
-		panic(resp.Error)
+	_, _, err := client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
-	if resp.Error != nil {
-		panic(resp.Error)
+	_, _, err := client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
-	if resp.Error != nil {
-		panic(resp.Error)
+	_, _, err := client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.SystemManagerUser.Email, th.SystemManagerUser.Password)
-	if resp.Error != nil {
-		panic(resp.Error)
+	_, _, err := client.Login(th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 }
 
 func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	_, resp := client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
-	if resp.Error != nil {
-		panic(resp.Error)
+	_, _, err := client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+	if err != nil {
+		panic(err)
 	}
 	utils.EnableDebugLogForTest()
 }
@@ -947,82 +948,90 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
-func CheckNoError(t *testing.T, resp *model.Response) {
+func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {
 	t.Helper()
 
-	require.Nil(t, resp.Error, "expected no error")
-}
-
-func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
-	t.Helper()
-
-	require.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v", expectedStatus, expectError)
-	if expectError {
-		require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-	} else {
-		require.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
-	}
-	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	require.NotNilf(t, resp, "Unexpected nil response, expected http status:%v", expectedStatus)
+	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v", expectedStatus, resp.StatusCode)
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusOK, false)
+	checkHTTPStatus(t, resp, http.StatusOK)
 }
 
 func CheckCreatedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusCreated, false)
+	checkHTTPStatus(t, resp, http.StatusCreated)
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusForbidden, true)
+	checkHTTPStatus(t, resp, http.StatusForbidden)
 }
 
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusUnauthorized, true)
+	checkHTTPStatus(t, resp, http.StatusUnauthorized)
 }
 
 func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotFound, true)
+	checkHTTPStatus(t, resp, http.StatusNotFound)
 }
 
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusBadRequest, true)
+	checkHTTPStatus(t, resp, http.StatusBadRequest)
 }
 
 func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotImplemented, true)
+	checkHTTPStatus(t, resp, http.StatusNotImplemented)
 }
 
 func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge, true)
+	checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge)
 }
 
 func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
+	checkHTTPStatus(t, resp, http.StatusInternalServerError)
 }
 
 func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
+	checkHTTPStatus(t, resp, http.StatusServiceUnavailable)
 }
 
-func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
+func CheckErrorID(t *testing.T, err error, errorId string) {
 	t.Helper()
 
-	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
-	require.Equalf(t, errorId, resp.Error.Id, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
+	require.Error(t, err, "should have errored with id: %s", errorId)
+
+	var appError *model.AppError
+	ok := errors.As(err, &appError)
+	require.True(t, ok, "should have been a model.AppError")
+
+	require.Equalf(t, errorId, appError.Id, "incorrect error id, actual: %s, expected: %s", appError.Id, errorId)
+}
+
+func CheckErrorMessage(t *testing.T, err error, message string) {
+	t.Helper()
+
+	require.Error(t, err, "should have errored with message: %s", message)
+
+	var appError *model.AppError
+	ok := errors.As(err, &appError)
+	require.True(t, ok, "should have been a model.AppError")
+
+	require.Equalf(t, message, appError.Message, "incorrect error message, actual: %s, expected: %s", appError.Id, message)
 }
 
 func CheckStartsWith(t *testing.T, value, prefix, message string) {
+	t.Helper()
+
 	require.True(t, strings.HasPrefix(value, prefix), message, value)
 }
 

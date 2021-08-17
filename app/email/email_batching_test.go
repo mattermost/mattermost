@@ -96,7 +96,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	_, err = th.store.Channel().UpdateMember(channelMember)
 	require.NoError(t, err)
 
-	nErr := th.store.Preference().Save(&model.Preferences{{
+	nErr := th.store.Preference().Save(model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PreferenceCategoryNotifications,
 		Name:     model.PreferenceNameEmailInterval,
@@ -118,7 +118,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	require.NoError(t, err)
 
 	// We reset the interval to something shorter
-	nErr = th.store.Preference().Save(&model.Preferences{{
+	nErr = th.store.Preference().Save(model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PreferenceCategoryNotifications,
 		Name:     model.PreferenceNameEmailInterval,
@@ -254,7 +254,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	require.NoError(t, err)
 
 	// preference value is not an integer, so we'll fall back to the default 15min value
-	nErr := th.store.Preference().Save(&model.Preferences{{
+	nErr := th.store.Preference().Save(model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PreferenceCategoryNotifications,
 		Name:     model.PreferenceNameEmailInterval,

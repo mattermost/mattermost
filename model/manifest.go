@@ -176,9 +176,6 @@ type Manifest struct {
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
-	// Backend is a deprecated flag for defining the server-side portion of your plugin. Going forward, use Server instead.
-	Backend *ManifestServer `json:"backend,omitempty" yaml:"backend,omitempty"`
-
 	// If your plugin extends the web app, you'll need to define webapp.
 	Webapp *ManifestWebapp `json:"webapp,omitempty" yaml:"webapp,omitempty"`
 
@@ -278,11 +275,6 @@ func (m *Manifest) ClientManifest() *Manifest {
 func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 	server := m.Server
 
-	// Support the deprecated backend parameter.
-	if server == nil {
-		server = m.Backend
-	}
-
 	if server == nil {
 		return ""
 	}
@@ -301,7 +293,7 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 }
 
 func (m *Manifest) HasServer() bool {
-	return m.Server != nil || m.Backend != nil
+	return m.Server != nil
 }
 
 func (m *Manifest) HasWebapp() bool {
@@ -329,15 +321,15 @@ func (m *Manifest) IsValid() error {
 		return errors.New("a plugin name is needed")
 	}
 
-	if m.HomepageURL != "" && !IsValidHTTPUrl(m.HomepageURL) {
+	if m.HomepageURL != "" && !IsValidHTTPURL(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL != "" && !IsValidHTTPUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHTTPURL(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
-	if m.ReleaseNotesURL != "" && !IsValidHTTPUrl(m.ReleaseNotesURL) {
+	if m.ReleaseNotesURL != "" && !IsValidHTTPURL(m.ReleaseNotesURL) {
 		return errors.New("invalid ReleaseNotesURL")
 	}
 

@@ -43,6 +43,18 @@ func (a jsonArray) Value() (driver.Value, error) {
 	return out.Bytes(), nil
 }
 
+type jsonStringVal string
+
+func (str jsonStringVal) Value() (driver.Value, error) {
+	return strconv.Quote(string(str)), nil
+}
+
+type jsonKeyPath string
+
+func (str jsonKeyPath) Value() (driver.Value, error) {
+	return "{" + string(str) + "}", nil
+}
+
 type TraceOnAdapter struct{}
 
 func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {

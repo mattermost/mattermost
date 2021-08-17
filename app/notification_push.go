@@ -363,7 +363,7 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 		mlog.String("status", model.PushSendPrepare),
 	)
 
-	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.ApiUrlSuffixV1 + "/send_push"
+	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
 	request, err := http.NewRequest("POST", url, strings.NewReader(msg.ToJson()))
 	if err != nil {
 		return err
@@ -403,7 +403,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 
 	request, err := http.NewRequest(
 		"POST",
-		strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.ApiUrlSuffixV1+"/ack",
+		strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.APIURLSuffixV1+"/ack",
 		strings.NewReader(ack.ToJson()),
 	)
 
@@ -571,7 +571,7 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	}
 
 	if oi, ok := post.GetProp("override_icon_url").(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
-		msg.OverrideIconUrl = oi
+		msg.OverrideIconURL = oi
 	}
 
 	if fw, ok := post.GetProp("from_webhook").(string); ok {

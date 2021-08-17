@@ -384,7 +384,6 @@ func (th *SearchTestHelper) createFileInfo(creatorID, postID, name, content, ext
 
 func (th *SearchTestHelper) createReply(userID, message, hashtags string, parent *model.Post, createAt int64, pinned bool) (*model.Post, error) {
 	replyModel := th.createPostModel(userID, parent.ChannelId, message, hashtags, parent.Type, createAt, pinned)
-	replyModel.ParentId = parent.Id
 	replyModel.RootId = parent.Id
 	return th.Store.Post().Save(replyModel)
 }
@@ -466,10 +465,10 @@ func (th *SearchTestHelper) checkFileInfoInSearchResults(t *testing.T, fileID st
 	assert.Contains(t, fileIDS, fileID, "Did not find expected file in search results.")
 }
 
-func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string, results *model.ChannelList) {
+func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string, results model.ChannelList) {
 	t.Helper()
-	channelIds := make([]string, len(*results))
-	for i, channel := range *results {
+	channelIds := make([]string, len(results))
+	for i, channel := range results {
 		channelIds[i] = channel.Id
 	}
 	require.ElementsMatch(t, expected, channelIds)
