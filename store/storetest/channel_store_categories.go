@@ -165,7 +165,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		nErr = ss.Preference().Save(&model.Preferences{
+		nErr = ss.Preference().Save(model.Preferences{
 			{
 				UserId:   userId,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -223,7 +223,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		nErr = ss.Preference().Save(&model.Preferences{
+		nErr = ss.Preference().Save(model.Preferences{
 			{
 				UserId:   userId,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -292,7 +292,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		)
 		require.NoError(t, err)
 
-		err = ss.Preference().Save(&model.Preferences{
+		err = ss.Preference().Save(model.Preferences{
 			{
 				UserId:   userId,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -336,7 +336,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		nErr = ss.Preference().Save(&model.Preferences{
+		nErr = ss.Preference().Save(model.Preferences{
 			{
 				UserId:   userId,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -2028,7 +2028,7 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, ss store.Store) {
 		}, 10)
 		require.NoError(t, nErr)
 
-		err := ss.Channel().UpdateSidebarChannelsByPreferences(&model.Preferences{
+		err := ss.Channel().UpdateSidebarChannelsByPreferences(model.Preferences{
 			model.Preference{
 				Name:     channel.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -2047,7 +2047,7 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, ss store.Store) {
 		require.NotEmpty(t, res)
 
 		require.NotPanics(t, func() {
-			_ = ss.Channel().UpdateSidebarChannelsByPreferences(&model.Preferences{
+			_ = ss.Channel().UpdateSidebarChannelsByPreferences(model.Preferences{
 				model.Preference{
 					Name:     "fakeid",
 					Category: model.PreferenceCategoryFavoriteChannel,

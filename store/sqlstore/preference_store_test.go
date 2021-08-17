@@ -52,7 +52,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 			},
 		}
 
-		err := ss.Preference().Save(&features)
+		err := ss.Preference().Save(features)
 		require.NoError(t, err)
 
 		ss.Preference().(*SqlPreferenceStore).deleteUnusedFeatures()
