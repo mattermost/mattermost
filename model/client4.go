@@ -6660,11 +6660,11 @@ func (c *Client4) InstallPluginFromURL(downloadURL string, force bool) (*Manifes
 
 // InstallMarketplacePlugin will install marketplace plugin.
 func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequest) (*Manifest, *Response, error) {
-	js, err := request.ToJson()
+	buf, err := json.Marshal(request)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, NewAppError("InstallMarketplacePlugin", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, err := c.DoAPIPost(c.pluginsRoute()+"/marketplace", js)
+	r, err := c.DoAPIPost(c.pluginsRoute()+"/marketplace", string(buf))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
