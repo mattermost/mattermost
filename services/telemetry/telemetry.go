@@ -1208,7 +1208,7 @@ func (ts *TelemetryService) trackChannelModeration() {
 func (ts *TelemetryService) initRudder(endpoint string, rudderKey string) {
 	if ts.rudderClient == nil {
 		config := rudder.Config{}
-		config.Logger = rudder.StdLogger(ts.log.StdLog(mlog.String("source", "rudder")))
+		config.Logger = rudder.StdLogger(ts.log.With(mlog.String("source", "rudder")).StdLogger(mlog.LvlDebug))
 		config.Endpoint = endpoint
 		// For testing
 		if endpoint != RudderDataplaneURL {

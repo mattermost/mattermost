@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"os/user"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -66,7 +64,7 @@ func (a *App) LogAuditRec(rec *audit.Record, err error) {
 }
 
 // LogAuditRecWithLevel logs an audit record using specified Level.
-func (a *App) LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel, err error) {
+func (a *App) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error) {
 	if rec == nil {
 		return
 	}
@@ -106,64 +104,27 @@ func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record 
 }
 
 func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) error {
-	var errs error
-
 	adt.OnQueueFull = s.onAuditTargetQueueFull
 	adt.OnError = s.onAuditError
 
-	// Configure target for rotating file output (E0, E10)
-	if *s.Config().ExperimentalAuditSettings.FileEnabled {
-		opts := audit.FileOptions{
-			Filename:   *s.Config().ExperimentalAuditSettings.FileName,
-			MaxSize:    *s.Config().ExperimentalAuditSettings.FileMaxSizeMB,
-			MaxAge:     *s.Config().ExperimentalAuditSettings.FileMaxAgeDays,
-			MaxBackups: *s.Config().ExperimentalAuditSettings.FileMaxBackups,
-			Compress:   *s.Config().ExperimentalAuditSettings.FileCompress,
-		}
-
-		maxQueueSize := *s.Config().ExperimentalAuditSettings.FileMaxQueueSize
-		if maxQueueSize <= 0 {
-			maxQueueSize = audit.DefMaxQueueSize
-		}
-
-		filter := adt.MakeFilter(LevelAPI, LevelContent, LevelPerms, LevelCLI)
-		formatter := adt.MakeJSONFormatter()
-		formatter.DisableTimestamp = false
-		target, err := audit.NewFileTarget(filter, formatter, opts, maxQueueSize)
-		if err != nil {
-			errs = multierror.Append(err)
-		} else {
-			mlog.Debug("File audit target created successfully", mlog.String("filename", opts.Filename))
-			adt.AddTarget(target)
-		}
-	}
-
-	// Advanced logging for audit requires license.
+	var logConfigSrc config.LogConfigSrc
 	dsn := *s.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
-	if !bAllowAdvancedLogging || dsn == "" {
-		return errs
-	}
-	cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
-	if err != nil {
-		errs = multierror.Append(fmt.Errorf("invalid config for audit, %w", err))
-		return errs
-	}
-	mlog.Debug("Loaded audit configuration", mlog.String("source", dsn))
-
-	for name, t := range cfg.Get() {
-		if len(t.Levels) == 0 {
-			t.Levels = mlog.MLvlAuditAll
-		}
-		target, err := mlog.NewLogrTarget(name, t)
+	if bAllowAdvancedLogging && dsn != "" {
+		var err error
+		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.configStore)
 		if err != nil {
-			errs = multierror.Append(err)
-			continue
+			return fmt.Errorf("invalid config source for audit, %w", err)
 		}
-		if target != nil {
-			adt.AddTarget(target)
-		}
+		mlog.Debug("Loaded audit configuration", mlog.String("source", dsn))
 	}
-	return errs
+
+	// ExperimentalAuditSettings provides basic file audit (E0, E10); logConfigSrc provides advanced config (E20).
+	cfg, err := config.MloggerConfigFromAuditConfig(s.Config().ExperimentalAuditSettings, logConfigSrc)
+	if err != nil {
+		return fmt.Errorf("invalid config for audit, %w", err)
+	}
+
+	return adt.Configure(cfg)
 }
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
