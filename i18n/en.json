@@ -2145,10 +2145,6 @@
     "translation": "Invalid ChannelId for RootId parameter."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Invalid ParentId parameter."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Invalid RootId parameter."
   },
@@ -7811,10 +7807,6 @@
     "translation": "Invalid command hook id."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Invalid parent id."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Invalid root id."
   },
@@ -8607,20 +8599,12 @@
     "translation": "Invalid original id."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Invalid parent id."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Invalid props."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Invalid root id."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Invalid root ID must be set if parent ID set."
   },
   {
     "id": "model.post.is_valid.type.app_error",
