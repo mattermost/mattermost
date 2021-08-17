@@ -64,6 +64,8 @@ type Preference struct {
 	Value    string `json:"value"`
 }
 
+type Preferences []Preference
+
 func (o *Preference) IsValid() *AppError {
 	if !IsValidId(o.UserId) {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.id.app_error", nil, "user_id="+o.UserId, http.StatusBadRequest)

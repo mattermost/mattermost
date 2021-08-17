@@ -4671,8 +4671,12 @@ func (c *Client4) GetPreferences(userId string) (Preferences, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	preferences, _ := PreferencesFromJson(r.Body)
-	return preferences, BuildResponse(r), nil
+
+	var prefs Preferences
+	if jsonErr := json.NewDecoder(r.Body).Decode(&prefs); jsonErr != nil {
+		return nil, nil, NewAppError("GetPreferences", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return prefs, BuildResponse(r), nil
 }
 
 // UpdatePreferences saves the user's preferences.
@@ -4711,8 +4715,11 @@ func (c *Client4) GetPreferencesByCategory(userId string, category string) (Pref
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	preferences, _ := PreferencesFromJson(r.Body)
-	return preferences, BuildResponse(r), nil
+	var prefs Preferences
+	if jsonErr := json.NewDecoder(r.Body).Decode(&prefs); jsonErr != nil {
+		return nil, nil, NewAppError("GetPreferencesByCategory", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return prefs, BuildResponse(r), nil
 }
 
 // GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string.

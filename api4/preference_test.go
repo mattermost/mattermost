@@ -4,7 +4,7 @@
 package api4
 
 import (
-	"strings"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -297,8 +297,9 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 				continue
 			}
 
-			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
-			require.NoError(t, err)
+			var received model.Preferences
+			jsonErr := json.Unmarshal([]byte(event.GetData()["preference"].(string)), &received)
+			require.NoError(t, jsonErr)
 
 			for i, p := range *preferences {
 				require.Equal(t, received[i].UserId, p.UserId, "received incorrect UserId")
@@ -629,8 +630,9 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 				continue
 			}
 
-			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
-			require.NoError(t, err)
+			var received model.Preferences
+			jsonErr := json.Unmarshal([]byte(event.GetData()["preferences"].(string)), &received)
+			require.NoError(t, jsonErr)
 
 			for i, preference := range *preferences {
 				require.Equal(t, preference.UserId, received[i].UserId)
