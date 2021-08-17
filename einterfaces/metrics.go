@@ -4,8 +4,8 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/logr"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type MetricsInterface interface {
@@ -66,7 +66,7 @@ type MetricsInterface interface {
 	ObservePluginAPIDuration(pluginID, apiName string, success bool, elapsed float64)
 
 	ObserveEnabledUsers(users int64)
-	GetLoggerMetricsCollector() logr.MetricsCollector
+	GetLoggerMetricsCollector() mlog.MetricsCollector
 
 	IncrementRemoteClusterMsgSentCounter(remoteID string)
 	IncrementRemoteClusterMsgReceivedCounter(remoteID string)
