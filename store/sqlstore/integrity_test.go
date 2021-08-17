@@ -181,7 +181,6 @@ func createPost(ss store.Store, channelId, userId, rootId, parentId string) *mod
 	m.ChannelId = channelId
 	m.UserId = userId
 	m.RootId = rootId
-	m.ParentId = parentId
 	m.Message = "zz" + model.NewId() + "b"
 	p, _ := ss.Post().Save(&m)
 	return p
@@ -195,7 +194,7 @@ func createPostWithUserId(ss store.Store, id string) *model.Post {
 	return createPost(ss, model.NewId(), id, "", "")
 }
 
-func createPreferences(ss store.Store, userId string) *model.Preferences {
+func createPreferences(ss store.Store, userId string) model.Preferences {
 	preferences := model.Preferences{
 		{
 			UserId:   userId,
@@ -204,8 +203,8 @@ func createPreferences(ss store.Store, userId string) *model.Preferences {
 			Value:    "somevalue",
 		},
 	}
-	ss.Preference().Save(&preferences)
-	return &preferences
+	ss.Preference().Save(preferences)
+	return preferences
 }
 
 func createReaction(ss store.Store, userId, postId string) *model.Reaction {
@@ -600,51 +599,6 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 				ChildId:  &info.Id,
 			}, data.Records[0])
 			dbmap.Delete(info)
-		})
-	})
-}
-
-func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
-		store := ss.(*SqlStore)
-		dbmap := store.GetMaster()
-
-		t.Run("should generate a report with no records", func(t *testing.T) {
-			result := checkPostsPostsParentIdIntegrity(store)
-			require.NoError(t, result.Err)
-			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Empty(t, data.Records)
-		})
-
-		t.Run("should generate a report with no records", func(t *testing.T) {
-			root := createPost(ss, model.NewId(), model.NewId(), "", "")
-			parent := createPost(ss, model.NewId(), model.NewId(), root.Id, root.Id)
-			post := createPost(ss, model.NewId(), model.NewId(), root.Id, parent.Id)
-			result := checkPostsPostsParentIdIntegrity(store)
-			require.NoError(t, result.Err)
-			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Empty(t, data.Records)
-			dbmap.Delete(parent)
-			dbmap.Delete(root)
-			dbmap.Delete(post)
-		})
-
-		t.Run("should generate a report with one record", func(t *testing.T) {
-			root := createPost(ss, model.NewId(), model.NewId(), "", "")
-			parent := createPost(ss, model.NewId(), model.NewId(), root.Id, root.Id)
-			parentId := parent.Id
-			post := createPost(ss, model.NewId(), model.NewId(), root.Id, parent.Id)
-			dbmap.Delete(parent)
-			result := checkPostsPostsParentIdIntegrity(store)
-			require.NoError(t, result.Err)
-			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
-			require.Equal(t, model.OrphanedRecord{
-				ParentId: &parentId,
-				ChildId:  &post.Id,
-			}, data.Records[0])
-			dbmap.Delete(root)
-			dbmap.Delete(post)
 		})
 	})
 }

@@ -73,7 +73,7 @@ func TestConfigEnableDeveloper(t *testing.T) {
 		EnableDeveloper *bool
 		ExpectedSiteURL string
 	}{
-		{"enable developer is true", NewBool(true), ServiceSettingsDefaultSiteUrl},
+		{"enable developer is true", NewBool(true), ServiceSettingsDefaultSiteURL},
 		{"enable developer is false", NewBool(false), ""},
 		{"enable developer is nil", nil, ""},
 	}
@@ -144,8 +144,8 @@ func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 	*c1.SamlSettings.Verify = false
 	*c1.SamlSettings.Encrypt = false
 
-	*c1.SamlSettings.IdpUrl = "http://test.url.com"
-	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpURL = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorURL = "http://test.url.com"
 	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
 	*c1.SamlSettings.ServiceProviderIdentifier = "http://test.url.com"
 	*c1.SamlSettings.EmailAttribute = "Email"
@@ -161,8 +161,8 @@ func TestConfigServiceProviderDefault(t *testing.T) {
 			Enable:             NewBool(true),
 			Verify:             NewBool(false),
 			Encrypt:            NewBool(false),
-			IdpUrl:             NewString("http://test.url.com"),
-			IdpDescriptorUrl:   NewString("http://test2.url.com"),
+			IdpURL:             NewString("http://test.url.com"),
+			IdpDescriptorURL:   NewString("http://test2.url.com"),
 			IdpCertificateFile: NewString("certificatefile"),
 			EmailAttribute:     NewString("Email"),
 			UsernameAttribute:  NewString("Username"),
@@ -170,7 +170,7 @@ func TestConfigServiceProviderDefault(t *testing.T) {
 	}
 
 	c1.SetDefaults()
-	assert.Equal(t, *c1.SamlSettings.ServiceProviderIdentifier, *c1.SamlSettings.IdpDescriptorUrl)
+	assert.Equal(t, *c1.SamlSettings.ServiceProviderIdentifier, *c1.SamlSettings.IdpDescriptorURL)
 
 	err := c1.SamlSettings.isValid()
 	require.Nil(t, err)
@@ -184,9 +184,9 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	*c1.SamlSettings.Verify = false
 	*c1.SamlSettings.Encrypt = false
 
-	*c1.SamlSettings.IdpUrl = "http://test.url.com"
-	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
-	*c1.SamlSettings.IdpMetadataUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpURL = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorURL = "http://test.url.com"
+	*c1.SamlSettings.IdpMetadataURL = "http://test.url.com"
 	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
 	*c1.SamlSettings.ServiceProviderIdentifier = "http://test.url.com"
 	*c1.SamlSettings.EmailAttribute = "Email"
@@ -688,7 +688,7 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *tes
 	require.Equal(t, 10000, *mes.BatchSize)
 }
 
-func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
+func TestDisplaySettingsIsValidCustomURLSchemes(t *testing.T) {
 	tests := []struct {
 		name  string
 		value []string
@@ -760,12 +760,12 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 			ds := &DisplaySettings{}
 			ds.SetDefaults()
 
-			ds.CustomUrlSchemes = test.value
+			ds.CustomURLSchemes = test.value
 
 			if err := ds.isValid(); err != nil && test.valid {
-				t.Error("Expected CustomUrlSchemes to be valid but got error:", err)
+				t.Error("Expected CustomURLSchemes to be valid but got error:", err)
 			} else if err == nil && !test.valid {
-				t.Error("Expected CustomUrlSchemes to be invalid but got no error")
+				t.Error("Expected CustomURLSchemes to be invalid but got no error")
 			}
 		})
 	}
@@ -1334,29 +1334,29 @@ func TestConfigMarketplaceDefaults(t *testing.T) {
 		c.SetDefaults()
 
 		require.True(t, *c.PluginSettings.EnableMarketplace)
-		require.Equal(t, PluginSettingsDefaultMarketplaceUrl, *c.PluginSettings.MarketplaceUrl)
+		require.Equal(t, PluginSettingsDefaultMarketplaceURL, *c.PluginSettings.MarketplaceURL)
 	})
 
 	t.Run("old marketplace url", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
 
-		*c.PluginSettings.MarketplaceUrl = PluginSettingsOldMarketplaceUrl
+		*c.PluginSettings.MarketplaceURL = PluginSettingsOldMarketplaceURL
 		c.SetDefaults()
 
 		require.True(t, *c.PluginSettings.EnableMarketplace)
-		require.Equal(t, PluginSettingsDefaultMarketplaceUrl, *c.PluginSettings.MarketplaceUrl)
+		require.Equal(t, PluginSettingsDefaultMarketplaceURL, *c.PluginSettings.MarketplaceURL)
 	})
 
 	t.Run("custom marketplace url", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
 
-		*c.PluginSettings.MarketplaceUrl = "https://marketplace.example.com"
+		*c.PluginSettings.MarketplaceURL = "https://marketplace.example.com"
 		c.SetDefaults()
 
 		require.True(t, *c.PluginSettings.EnableMarketplace)
-		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
+		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceURL)
 	})
 }
 

@@ -66,10 +66,10 @@ func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.Comm
 
 	if user.IsGuest() {
 		members, err := a.GetChannelMembersForUser(team.Id, args.UserId)
-		if err != nil || len(*members) == 0 {
+		if err != nil || len(members) == 0 {
 			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
-		channel, err := a.GetChannel((*members)[0].ChannelId)
+		channel, err := a.GetChannel(members[0].ChannelId)
 		if err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

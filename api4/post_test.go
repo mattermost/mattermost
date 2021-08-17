@@ -47,17 +47,10 @@ func TestCreatePost(t *testing.T) {
 	require.Nil(t, rpost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
 
 	post.RootId = rpost.Id
-	post.ParentId = rpost.Id
 	_, _, err2 = client.CreatePost(post)
 	require.NoError(t, err2)
 
 	post.RootId = "junk"
-	_, resp, err2 = client.CreatePost(post)
-	require.Error(t, err2)
-	CheckBadRequestStatus(t, resp)
-
-	post.RootId = rpost.Id
-	post.ParentId = "junk"
 	_, resp, err2 = client.CreatePost(post)
 	require.Error(t, err2)
 	CheckBadRequestStatus(t, resp)
@@ -130,7 +123,6 @@ func TestCreatePost(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 
 		post.RootId = rpost.Id
-		post.ParentId = rpost.Id
 		post.Message = "a post with no channel mentions"
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
@@ -148,19 +140,16 @@ func TestCreatePost(t *testing.T) {
 		}
 
 		post.RootId = rpost.Id
-		post.ParentId = rpost.Id
 		post.Message = "a post with @channel"
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
 		post.RootId = rpost.Id
-		post.ParentId = rpost.Id
 		post.Message = "a post with @all"
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
 		post.RootId = rpost.Id
-		post.ParentId = rpost.Id
 		post.Message = "a post with @here"
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
@@ -182,7 +171,6 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	post.RootId = ""
-	post.ParentId = ""
 	post.Type = model.PostTypeSystemGeneric
 	_, resp, err := client.CreatePost(post)
 	require.Error(t, err)
@@ -190,13 +178,11 @@ func TestCreatePost(t *testing.T) {
 
 	post.Type = ""
 	post.RootId = rpost2.Id
-	post.ParentId = rpost2.Id
 	_, resp, err = client.CreatePost(post)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	post.RootId = ""
-	post.ParentId = ""
 	post.ChannelId = "junk"
 	_, resp, err = client.CreatePost(post)
 	require.Error(t, err)
@@ -207,7 +193,7 @@ func TestCreatePost(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := client.DoApiPost("/posts", "garbage")
+	r, err := client.DoAPIPost("/posts", "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -239,7 +225,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 	require.Equal(t, ephemeralPost.Post.Message, rpost.Message, "message didn't match")
 	require.Equal(t, 0, int(rpost.EditAt), "newly created ephemeral post shouldn't have EditAt set")
 
-	r, err := client.DoApiPost("/posts/ephemeral", "garbage")
+	r, err := client.DoAPIPost("/posts/ephemeral", "garbage")
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -641,7 +627,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 		}
 	}
 
-	handler := api.ApiHandler(createPost)
+	handler := api.APIHandler(createPost)
 	resp := httptest.NewRecorder()
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -926,7 +912,7 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("invalid requests", func(t *testing.T) {
-		r, err := client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
+		r, err := client.DoAPIPut("/posts/"+post.Id+"/patch", "garbage")
 		require.EqualError(t, err, ": Invalid or missing post in request body., ")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
@@ -1225,10 +1211,10 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 		Name:     post1.Id,
 		Value:    "true",
 	}
-	_, err := client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, err := client.UpdatePreferences(user.Id, model.Preferences{preference})
 	require.NoError(t, err)
 	preference.Name = post2.Id
-	_, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, err = client.UpdatePreferences(user.Id, model.Preferences{preference})
 	require.NoError(t, err)
 
 	opl := model.NewPostList()
@@ -1289,7 +1275,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	post4 := th.CreatePostWithClient(client, channel3)
 
 	preference.Name = post4.Id
-	client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	client.UpdatePreferences(user.Id, model.Preferences{preference})
 
 	opl.AddPost(post4)
 	opl.AddOrder(post4.Id)
@@ -1315,7 +1301,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	post5 := th.CreatePostWithClient(th.SystemAdminClient, channel4)
 
 	preference.Name = post5.Id
-	resp, err := client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	resp, err := client.UpdatePreferences(user.Id, model.Preferences{preference})
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1325,7 +1311,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Equal(t, opl.Posts, rpl.Posts, "posts should have matched")
 
 	th.AddUserToChannel(user, channel4)
-	_, err = client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, err = client.UpdatePreferences(user.Id, model.Preferences{preference})
 	require.NoError(t, err)
 
 	rpl, _, err = client.GetFlaggedPostsForUser(user.Id, 0, 10)
@@ -1686,7 +1672,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	post3 := th.CreatePost()
 	post4 := th.CreatePost()
 	post5 := th.CreatePost()
-	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id, ParentId: post4.Id}
+	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id}
 	post6, _, err := client.CreatePost(replyPost)
 	require.NoError(t, err)
 	post7, _, err := client.CreatePost(replyPost)
@@ -1890,7 +1876,6 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		ChannelId: channelId,
 		Message:   model.NewId(),
 		RootId:    post4.Id,
-		ParentId:  post4.Id,
 	})
 	require.NoError(t, err)
 	post13 := th.CreatePost()

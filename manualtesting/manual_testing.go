@@ -35,7 +35,7 @@ type TestEnvironment struct {
 
 // Init adds manualtest endpoint to the API.
 func Init(api4 *api4.API) {
-	api4.BaseRoutes.Root.Handle("/manualtest", api4.ApiHandler(manualTest)).Methods("GET")
+	api4.BaseRoutes.Root.Handle("/manualtest", api4.APIHandler(manualTest)).Methods("GET")
 }
 
 func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
@@ -184,11 +184,11 @@ func getChannelID(a app.AppIface, channelname string, teamid string, userid stri
 		return "", false
 	}
 
-	for _, channel := range *channels {
+	for _, channel := range channels {
 		if channel.Name == channelname {
 			return channel.Id, true
 		}
 	}
-	mlog.Debug("Could not find channel", mlog.String("Channel name", channelname), mlog.Int("Possibilities searched", len(*channels)))
+	mlog.Debug("Could not find channel", mlog.String("Channel name", channelname), mlog.Int("Possibilities searched", len(channels)))
 	return "", false
 }
