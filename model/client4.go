@@ -6874,7 +6874,11 @@ func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response, er
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TermsOfServiceFromJson(r.Body), BuildResponse(r), nil
+	var tos TermsOfService
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tos); jsonErr != nil {
+		return nil, nil, NewAppError("GetTermsOfService", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &tos, BuildResponse(r), nil
 }
 
 // GetUserTermsOfService fetches user's latest terms of service action if the latest action was for acceptance.
@@ -6901,7 +6905,11 @@ func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TermsOfServiceFromJson(r.Body), BuildResponse(r), nil
+	var tos TermsOfService
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tos); jsonErr != nil {
+		return nil, nil, NewAppError("CreateTermsOfService", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &tos, BuildResponse(r), nil
 }
 
 func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
