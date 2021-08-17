@@ -177,16 +177,16 @@ type ChannelStore interface {
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error)
 	GetDeletedByName(team_id string, name string) (*model.Channel, error)
-	GetDeleted(team_id string, offset int, limit int, userID string) (*model.ChannelList, error)
-	GetChannels(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error)
-	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
+	GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error)
+	GetChannels(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error)
+	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
-	GetMoreChannels(teamID string, userID string, offset int, limit int) (*model.ChannelList, error)
-	GetPrivateChannelsForTeam(teamID string, offset int, limit int) (*model.ChannelList, error)
-	GetPublicChannelsForTeam(teamID string, offset int, limit int) (*model.ChannelList, error)
-	GetPublicChannelsByIdsForTeam(teamID string, channelIds []string) (*model.ChannelList, error)
+	GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error)
+	GetPrivateChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, error)
+	GetPublicChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, error)
+	GetPublicChannelsByIdsForTeam(teamID string, channelIds []string) (model.ChannelList, error)
 	GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error)
-	GetTeamChannels(teamID string) (*model.ChannelList, error)
+	GetTeamChannels(teamID string) (model.ChannelList, error)
 	GetAll(teamID string) ([]*model.Channel, error)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
 	GetForPost(postID string) (*model.Channel, error)
@@ -194,7 +194,7 @@ type ChannelStore interface {
 	SaveMember(member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
-	GetMembers(channelID string, offset, limit int) (*model.ChannelMembers, error)
+	GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
@@ -221,18 +221,18 @@ type ChannelStore interface {
 	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
 	IncrementMentionCount(channelID string, userID string, updateThreads, isRoot bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
-	GetMembersForUser(teamID string, userID string) (*model.ChannelMembers, error)
-	GetMembersForUserWithPagination(teamID, userID string, page, perPage int) (*model.ChannelMembers, error)
-	AutocompleteInTeam(teamID string, term string, includeDeleted bool) (*model.ChannelList, error)
-	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (*model.ChannelList, error)
-	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, error)
-	SearchInTeam(teamID string, term string, includeDeleted bool) (*model.ChannelList, error)
-	SearchArchivedInTeam(teamID string, term string, userID string) (*model.ChannelList, error)
-	SearchForUserInTeam(userID string, teamID string, term string, includeDeleted bool) (*model.ChannelList, error)
-	SearchMore(userID string, teamID string, term string) (*model.ChannelList, error)
-	SearchGroupChannels(userID, term string) (*model.ChannelList, error)
-	GetMembersByIds(channelID string, userIds []string) (*model.ChannelMembers, error)
-	GetMembersByChannelIds(channelIds []string, userID string) (*model.ChannelMembers, error)
+	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
+	GetMembersForUserWithPagination(teamID, userID string, page, perPage int) (model.ChannelMembers, error)
+	AutocompleteInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error)
+	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error)
+	SearchAllChannels(term string, opts ChannelSearchOpts) (model.ChannelListWithTeamData, int64, error)
+	SearchInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error)
+	SearchArchivedInTeam(teamID string, term string, userID string) (model.ChannelList, error)
+	SearchForUserInTeam(userID string, teamID string, term string, includeDeleted bool) (model.ChannelList, error)
+	SearchMore(userID string, teamID string, term string) (model.ChannelList, error)
+	SearchGroupChannels(userID, term string) (model.ChannelList, error)
+	GetMembersByIds(channelID string, userIds []string) (model.ChannelMembers, error)
+	GetMembersByChannelIds(channelIds []string, userID string) (model.ChannelMembers, error)
 	AnalyticsDeletedTypeCount(teamID string, channelType string) (int64, error)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, error)
 	ClearCaches()
@@ -248,8 +248,8 @@ type ChannelStore interface {
 	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) error
 	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
-	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error
-	DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error
+	UpdateSidebarChannelsByPreferences(preferences model.Preferences) error
+	DeleteSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarCategory(categoryID string) error
 	GetAllChannelsForExportAfter(limit int, afterID string) ([]*model.ChannelForExport, error)
 	GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error)
@@ -574,7 +574,7 @@ type CommandWebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) error
+	Save(preferences model.Preferences) error
 	GetCategory(userID string, category string) (model.Preferences, error)
 	Get(userID string, category string, name string) (*model.Preference, error)
 	GetAll(userID string) (model.Preferences, error)
@@ -746,7 +746,7 @@ type TermsOfServiceStore interface {
 type ProductNoticesStore interface {
 	View(userID string, notices []string) error
 	Clear(notices []string) error
-	ClearOldNotices(currentNotices *model.ProductNotices) error
+	ClearOldNotices(currentNotices model.ProductNotices) error
 	GetViews(userID string) ([]model.ProductNoticeViewState, error)
 }
 

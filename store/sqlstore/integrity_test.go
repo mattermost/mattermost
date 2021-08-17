@@ -194,7 +194,7 @@ func createPostWithUserId(ss store.Store, id string) *model.Post {
 	return createPost(ss, model.NewId(), id, "", "")
 }
 
-func createPreferences(ss store.Store, userId string) *model.Preferences {
+func createPreferences(ss store.Store, userId string) model.Preferences {
 	preferences := model.Preferences{
 		{
 			UserId:   userId,
@@ -203,8 +203,8 @@ func createPreferences(ss store.Store, userId string) *model.Preferences {
 			Value:    "somevalue",
 		},
 	}
-	ss.Preference().Save(&preferences)
-	return &preferences
+	ss.Preference().Save(preferences)
+	return preferences
 }
 
 func createReaction(ss store.Store, userId, postId string) *model.Reaction {
