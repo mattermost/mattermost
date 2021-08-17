@@ -1311,6 +1311,11 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
+	sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+	sqlStore.RemoveColumnIfExists("Posts", "ParentId")
+	sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+	sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
+
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
 }

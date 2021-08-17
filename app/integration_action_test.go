@@ -530,7 +530,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
@@ -559,7 +559,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -818,7 +818,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
@@ -841,7 +841,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -1016,7 +1016,7 @@ func TestDoPluginRequest(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
@@ -1060,7 +1060,7 @@ func TestDoPluginRequest(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)

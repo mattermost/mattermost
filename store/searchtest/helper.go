@@ -384,7 +384,6 @@ func (th *SearchTestHelper) createFileInfo(creatorID, postID, name, content, ext
 
 func (th *SearchTestHelper) createReply(userID, message, hashtags string, parent *model.Post, createAt int64, pinned bool) (*model.Post, error) {
 	replyModel := th.createPostModel(userID, parent.ChannelId, message, hashtags, parent.Type, createAt, pinned)
-	replyModel.ParentId = parent.Id
 	replyModel.RootId = parent.Id
 	return th.Store.Post().Save(replyModel)
 }

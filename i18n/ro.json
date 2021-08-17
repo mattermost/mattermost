@@ -5884,38 +5884,6 @@
     "translation": "Adăugați-mă la echipele și canalele pe care doriți să interacționați. Pentru a face acest lucru, utilizați browserul sau aplicația Mattermost Desktop."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Imposibil de încărcat imaginea pictogramei. Fișierul este prea mare."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nu s-a putut parsa forma multipartidă."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Nu sa putut deschide fişierul de imagine."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nici un fișier sub 'imaginea' în cerere."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Gama goală sub 'imagine' în cerere."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nu s-a putut încărca imaginea pictogramei."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Imposibil de citit fișierul de imagine cu pictograme."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nu s-a putut șterge imaginea pictogramei."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Crearea boților a fost dezactivată."
   },

@@ -1937,7 +1937,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if limitErr := checkImageLimits(file); limitErr != nil {
+	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.check_image_limits.app_error",
 			nil, limitErr.Error(), http.StatusBadRequest)
 	}
