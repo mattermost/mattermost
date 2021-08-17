@@ -7300,7 +7300,12 @@ func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response, er
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UploadSessionFromJson(r.Body), BuildResponse(r), nil
+
+	var s UploadSession
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("CreateUpload", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetUpload returns the upload session for the specified uploadId.
@@ -7310,7 +7315,11 @@ func (c *Client4) GetUpload(uploadId string) (*UploadSession, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UploadSessionFromJson(r.Body), BuildResponse(r), nil
+	var s UploadSession
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("GetUpload", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetUploadsForUser returns the upload sessions created by the specified
@@ -7321,7 +7330,11 @@ func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UploadSessionsFromJson(r.Body), BuildResponse(r), nil
+	var list []*UploadSession
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUploadsForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // UploadData performs an upload. On success it returns
