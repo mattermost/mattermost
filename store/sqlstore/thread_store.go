@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"strconv"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -658,14 +659,21 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	}
 
 	if opts.UpdateParticipants {
-		thread, getErr := s.get(trx, postId)
-		if getErr != nil {
-			return nil, getErr
-		}
-		if thread != nil && !thread.Participants.Contains(userId) {
-			thread.Participants = append(thread.Participants, userId)
-			if _, err = s.update(trx, thread); err != nil {
-				return nil, err
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			if _, err2 := trx.Exec(`UPDATE Threads
+				SET participants = participants || $1::jsonb
+				WHERE postid=$2
+				AND NOT participants ? $3`, jsonArray([]string{userId}), postId, userId); err2 != nil {
+				return nil, err2
+			}
+		} else {
+			// CONCAT('$[', JSON_LENGTH(Participants), ']') just generates $[n]
+			// which is the positional syntax required for appending.
+			if _, err2 := trx.Exec(`UPDATE Threads
+				SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
+				WHERE PostId=?
+				AND NOT JSON_CONTAINS(Participants, ?)`, userId, postId, strconv.Quote(userId)); err2 != nil {
+				return nil, err2
 			}
 		}
 	}

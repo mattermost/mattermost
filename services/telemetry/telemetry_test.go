@@ -73,7 +73,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	serverIfaceMock.On("GetRoleByName", context.Background(), "channel_user").Return(&model.Role{Permissions: []string{"cu-test1", "cu-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "channel_guest").Return(&model.Role{Permissions: []string{"cg-test1", "cg-test2"}}, nil)
 	serverIfaceMock.On("GetSchemes", "team", 0, 100).Return([]*model.Scheme{}, nil)
-	serverIfaceMock.On("HttpService").Return(httpservice.MakeHTTPService(configService))
+	serverIfaceMock.On("HTTPService").Return(httpservice.MakeHTTPService(configService))
 
 	storeMock := &storeMocks.Store{}
 	storeMock.On("GetDbVersion", false).Return("5.24.0", nil)
@@ -532,7 +532,7 @@ func TestRudderTelemetry(t *testing.T) {
 
 		config := telemetryService.getRudderConfig()
 
-		assert.Equal(t, "arudderstackplace", config.DataplaneUrl)
+		assert.Equal(t, "arudderstackplace", config.DataplaneURL)
 		assert.Equal(t, "abc123", config.RudderKey)
 	})
 }

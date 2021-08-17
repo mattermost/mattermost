@@ -75,8 +75,8 @@ func TestStructToMap(t *testing.T) {
 					"Exportformat": "abc",
 					"TestGlobalRelaySettings": map[string]interface{}{
 						"Customertype": "abc",
-						"Smtpusername": "def",
-						"Smtppassword": "ghi",
+						"SMTPUsername": "def",
+						"SMTPPassword": "ghi",
 					},
 				},
 			},

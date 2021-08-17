@@ -182,11 +182,11 @@ func (_m *PreferenceStore) PermanentDeleteByUser(userID string) error {
 }
 
 // Save provides a mock function with given fields: preferences
-func (_m *PreferenceStore) Save(preferences *model.Preferences) error {
+func (_m *PreferenceStore) Save(preferences model.Preferences) error {
 	ret := _m.Called(preferences)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Preferences) error); ok {
+	if rf, ok := ret.Get(0).(func(model.Preferences) error); ok {
 		r0 = rf(preferences)
 	} else {
 		r0 = ret.Error(0)

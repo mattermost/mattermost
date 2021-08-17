@@ -53,7 +53,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("post rejected by plugin leaves cache ready for non-deduplicated try", func(t *testing.T) {
-		setupPluginApiTest(t, `
+		setupPluginAPITest(t, `
 			package main
 
 			import (
@@ -78,7 +78,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`, `{"id": "testrejectfirstpost", "backend": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App, th.Context)
+		`, `{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App, th.Context)
 
 		pendingPostId := model.NewId()
 		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
@@ -102,7 +102,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("slow posting after cache entry blocks duplicate request", func(t *testing.T) {
-		setupPluginApiTest(t, `
+		setupPluginAPITest(t, `
 			package main
 
 			import (
@@ -128,7 +128,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App, th.Context)
+		`, `{"id": "testdelayfirstpost", "server": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App, th.Context)
 
 		var post *model.Post
 		pendingPostId := model.NewId()
@@ -346,7 +346,6 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		Message:       "asd",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        userInChannel.Id,
 		CreateAt:      0,
@@ -368,7 +367,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply one",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -381,7 +379,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply two",
 		ChannelId:     channel.Id,
 		RootId:        res1.Id,
-		ParentId:      res1.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -394,7 +391,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply three",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -473,7 +469,7 @@ func TestImageProxy(t *testing.T) {
 		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 	})
 
-	th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+	th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 	for name, tc := range map[string]struct {
 		ProxyType              string
@@ -688,7 +684,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -805,7 +801,7 @@ func TestPatchPost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -1098,7 +1094,7 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -2313,7 +2309,6 @@ func TestReplyToPostWithLag(t *testing.T) {
 			UserId:    th.BasicUser2.Id,
 			ChannelId: th.BasicChannel.Id,
 			RootId:    root.Id,
-			ParentId:  root.Id,
 			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
 		}, th.BasicChannel, false, true)
 		require.Nil(t, appErr)

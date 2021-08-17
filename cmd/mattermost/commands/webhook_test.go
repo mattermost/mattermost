@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/api4"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -44,13 +43,13 @@ func TestListWebhooks(t *testing.T) {
 
 	dispName := "myhookinc"
 	hook := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
-	_, resp := adminClient.CreateIncomingWebhook(hook)
-	api4.CheckNoError(t, resp)
+	_, _, err := adminClient.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	dispName2 := "myhookout"
 	outHook := &model.OutgoingWebhook{DisplayName: dispName2, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
-	_, resp = adminClient.CreateOutgoingWebhook(outHook)
-	api4.CheckNoError(t, resp)
+	_, _, err = adminClient.CreateOutgoingWebhook(outHook)
+	require.NoError(t, err)
 
 	output := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
@@ -91,8 +90,8 @@ func TestShowWebhook(t *testing.T) {
 		ChannelId:   th.BasicChannel.Id,
 		TeamId:      th.BasicChannel.TeamId,
 	}
-	incomingWebhook, resp := adminClient.CreateIncomingWebhook(hook)
-	api4.CheckNoError(t, resp)
+	incomingWebhook, _, err := adminClient.CreateIncomingWebhook(hook)
+	require.NoError(t, err)
 
 	// should return an error when no webhookid is provided
 	require.Error(t, th.RunCommand(t, "webhook", "show"))
@@ -114,8 +113,8 @@ func TestShowWebhook(t *testing.T) {
 		Username:     "some-user-name",
 		IconURL:      "http://some-icon-url/",
 	}
-	outgoingWebhook, resp := adminClient.CreateOutgoingWebhook(outgoingHook)
-	api4.CheckNoError(t, resp)
+	outgoingWebhook, _, err := adminClient.CreateOutgoingWebhook(outgoingHook)
+	require.NoError(t, err)
 
 	// valid outgoing webhook should return webhook data
 	output = th.CheckCommand(t, "webhook", "show", outgoingWebhook.Id)
@@ -219,18 +218,18 @@ func TestModifyIncomingWebhook(t *testing.T) {
 
 	modifiedDescription := "myhookincdesc2"
 	modifiedDisplayName := "myhookincname2"
-	modifiedIconUrl := "myhookincicon2"
+	modifiedIconURL := "myhookincicon2"
 	modifiedChannelLocked := true
 	modifiedChannelId := th.BasicChannel2.Id
 
-	th.CheckCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", modifiedChannelId, "--description", modifiedDescription, "--display-name", modifiedDisplayName, "--icon", modifiedIconUrl, "--lock-to-channel", strconv.FormatBool(modifiedChannelLocked))
+	th.CheckCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", modifiedChannelId, "--description", modifiedDescription, "--display-name", modifiedDisplayName, "--icon", modifiedIconURL, "--lock-to-channel", strconv.FormatBool(modifiedChannelLocked))
 
 	modifiedHook, err := th.App.GetIncomingWebhook(oldHook.Id)
 	require.Nil(t, err, "unable to retrieve modified incoming webhook")
 
 	successUpdate := modifiedHook.DisplayName != modifiedDisplayName ||
 		modifiedHook.Description != modifiedDescription ||
-		modifiedHook.IconURL != modifiedIconUrl ||
+		modifiedHook.IconURL != modifiedIconURL ||
 		modifiedHook.ChannelLocked != modifiedChannelLocked ||
 		modifiedHook.ChannelId != modifiedChannelId
 	require.False(t, successUpdate, "Failed to update incoming webhook")
@@ -424,13 +423,13 @@ func TestDeleteWebhooks(t *testing.T) {
 
 	dispName := "myhookinc"
 	inHookStruct := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
-	incomingHook, resp := adminClient.CreateIncomingWebhook(inHookStruct)
-	api4.CheckNoError(t, resp)
+	incomingHook, _, err := adminClient.CreateIncomingWebhook(inHookStruct)
+	require.NoError(t, err)
 
 	dispName2 := "myhookout"
 	outHookStruct := &model.OutgoingWebhook{DisplayName: dispName2, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
-	outgoingHook, resp := adminClient.CreateOutgoingWebhook(outHookStruct)
-	api4.CheckNoError(t, resp)
+	outgoingHook, _, err := adminClient.CreateOutgoingWebhook(outHookStruct)
+	require.NoError(t, err)
 
 	hooksBeforeDeletion := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
