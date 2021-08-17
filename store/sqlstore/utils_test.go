@@ -129,7 +129,7 @@ func TestMySQLJSONArgs(t *testing.T) {
 
 	for _, test := range tests {
 		args, argString := constructMySQLJSONArgs(test.props)
-		assert.Equal(t, test.args, args)
+		assert.ElementsMatch(t, test.args, args)
 		assert.Equal(t, test.argString, argString)
 	}
 }
