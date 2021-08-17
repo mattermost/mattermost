@@ -4901,7 +4901,11 @@ func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Resp
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ComplianceFromJson(r.Body), BuildResponse(r), nil
+	var comp Compliance
+	if jsonErr := json.NewDecoder(r.Body).Decode(&comp); jsonErr != nil {
+		return nil, nil, NewAppError("CreateComplianceReport", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &comp, BuildResponse(r), nil
 }
 
 // GetComplianceReports returns list of compliance reports.
@@ -4912,7 +4916,11 @@ func (c *Client4) GetComplianceReports(page, perPage int) (Compliances, *Respons
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CompliancesFromJson(r.Body), BuildResponse(r), nil
+	var comp Compliances
+	if jsonErr := json.NewDecoder(r.Body).Decode(&comp); jsonErr != nil {
+		return nil, nil, NewAppError("GetComplianceReports", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return comp, BuildResponse(r), nil
 }
 
 // GetComplianceReport returns a compliance report.
@@ -4922,7 +4930,11 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ComplianceFromJson(r.Body), BuildResponse(r), nil
+	var comp Compliance
+	if jsonErr := json.NewDecoder(r.Body).Decode(&comp); jsonErr != nil {
+		return nil, nil, NewAppError("GetComplianceReport", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &comp, BuildResponse(r), nil
 }
 
 // DownloadComplianceReport returns a full compliance report as a file.
