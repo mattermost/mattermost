@@ -5928,10 +5928,6 @@
     "translation": "Não foi possível mover canais de mensagens diretas ou de grupo"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Encontramos um erro ao apagar o lote de reações."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Não é possível salvar a reação."
   },
@@ -6070,10 +6066,6 @@
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "O URL do site não pode ser limpo."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Falha ao limpar registros."
   },
   {
     "id": "app.recover.save.app_error",
@@ -6278,10 +6270,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Encontramos um erro ao obter o relatório de conformidade."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Encontramos um erro ao limpar o lote de flags."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6742,10 +6730,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Não foi possível obter o job."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Encontramos um erro ao apagar o lote de arquivos de informações."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7978,10 +7962,6 @@
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "Não foi possível obter o lote de canais para indexação."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Encontramos um erro ao excluir permanentemente o lote de postagens."
   },
   {
     "id": "app.import.marshal.app_error",

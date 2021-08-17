@@ -67,8 +67,8 @@ type ChannelWithTeamData struct {
 }
 
 type ChannelsWithCount struct {
-	Channels   *ChannelListWithTeamData `json:"channels"`
-	TotalCount int64                    `json:"total_count"`
+	Channels   ChannelListWithTeamData `json:"channels"`
+	TotalCount int64                   `json:"total_count"`
 }
 
 type ChannelPatch struct {

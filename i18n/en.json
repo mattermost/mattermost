@@ -184,38 +184,6 @@
     "translation": "Bot creation has been disabled."
   },
   {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Couldn't delete icon image."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Couldn't upload icon image."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Empty array under 'image' in request."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "No file under 'image' in request."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Could not open image file."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Could not parse multipart form."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Unable to upload icon image. File is too large."
-  },
-  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
@@ -258,14 +226,6 @@
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Your license does not support groups"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2187,10 +2147,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Invalid ParentId parameter."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -6443,6 +6399,10 @@
     "translation": "No emails were successfully sent"
   },
   {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Failed to check if user store is empty."
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
@@ -7495,6 +7455,18 @@
     "translation": "Error"
   },
   {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "Invalid input value 'from'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "Invalid input value 'to'"
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "Failed to get file information for content extraction."
+  },
+  {
     "id": "group_not_associated_to_synced_team",
     "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
@@ -7845,10 +7817,6 @@
   {
     "id": "model.command_hook.id.app_error",
     "translation": "Invalid command hook id."
-  },
-  {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Invalid parent id."
   },
   {
     "id": "model.command_hook.root_id.app_error",
@@ -8643,20 +8611,12 @@
     "translation": "Invalid original id."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Invalid parent id."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Invalid props."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Invalid root id."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Invalid root ID must be set if parent ID set."
   },
   {
     "id": "model.post.is_valid.type.app_error",

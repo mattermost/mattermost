@@ -2128,28 +2128,8 @@
     "translation": "Работникът на агрегатора Elasticsearch не успя да създаде заданието за индексиране"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Срещнахме грешка при трайното изтриване партида от реакции."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Срещнахме грешка при трайното изтриване на партида от публикации."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Вашият лиценз не поддържа съхранение на данни."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Срещнахме грешка при прочистването на партида от флагове."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Срещнахме грешка при трайно изтриване на пакет от файлова информация."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Неуспешно почистване на записи."
   },
   {
     "id": "ent.compliance.run_failed.error",

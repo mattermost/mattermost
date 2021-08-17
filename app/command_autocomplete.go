@@ -267,7 +267,6 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 	params.Add("channel_id", commandArgs.ChannelId)
 	params.Add("team_id", commandArgs.TeamId)
 	params.Add("root_id", commandArgs.RootId)
-	params.Add("parent_id", commandArgs.ParentId)
 	params.Add("user_id", commandArgs.UserId)
 	params.Add("site_url", commandArgs.SiteURL)
 

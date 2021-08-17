@@ -330,11 +330,16 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			IncrementMentions:     false,
 			UpdateFollowing:       true,
 			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
+			UpdateParticipants:    true,
 		}
 		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.Equal(t, int64(0), tm.LastViewed)
+
+		// No update since array has same elements.
+		th, e := ss.Thread().Get(newPosts[0].Id)
+		require.NoError(t, e)
+		assert.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, th.Participants)
 
 		opts.UpdateViewedTimestamp = true
 		_, e = ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
@@ -342,6 +347,13 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err2)
 		require.Greater(t, m2.LastViewed, int64(0))
+
+		// Adding a new participant
+		_, e = ss.Thread().MaintainMembership("newuser", newPosts[0].Id, opts)
+		require.NoError(t, e)
+		th, e = ss.Thread().Get(newPosts[0].Id)
+		require.NoError(t, e)
+		assert.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId, "newuser"}, th.Participants)
 	})
 
 	t.Run("Thread membership 'viewed' timestamp is updated properly for new membership", func(t *testing.T) {
@@ -443,7 +455,6 @@ func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID stri
 		UserId:    model.NewId(),
 		CreateAt:  createAt,
 		RootId:    postID,
-		ParentId:  postID,
 	})
 	require.NoError(t, err)
 	return reply

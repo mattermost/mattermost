@@ -493,8 +493,8 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 				return appErr
 			case errors.Is(err, users.AcceptedDomainError):
 				return model.NewAppError("importUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
-			case errors.Is(err, users.UserCountError):
-				return model.NewAppError("importUser", "app.user.get_total_users_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			case errors.Is(err, users.UserStoreIsEmptyError):
+				return model.NewAppError("importUser", "app.user.store_is_empty.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			case errors.As(err, &invErr):
 				switch invErr.Field {
 				case "email":
@@ -510,7 +510,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
-		if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
+		if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
 			mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
 
@@ -527,7 +527,10 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 			}
 		}
 		if hasNotifyPropsChanged {
-			if savedUser, appErr = a.UpdateUserNotifyProps(user.Id, user.NotifyProps, false); appErr != nil {
+			if appErr = a.updateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
+				return appErr
+			}
+			if savedUser, appErr = a.GetUser(user.Id); appErr != nil {
 				return appErr
 			}
 		}
@@ -683,7 +686,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	if len(preferences) > 0 {
-		if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+		if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -837,7 +840,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	for _, team := range allTeams {
 		if len(teamThemePreferencesByID[team.Id]) > 0 {
 			pref := teamThemePreferencesByID[team.Id]
-			if err := a.Srv().Store.Preference().Save(&pref); err != nil {
+			if err := a.Srv().Store.Preference().Save(pref); err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -878,7 +881,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 		return model.NewAppError("importUserChannels", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	existingMembershipsByChannelId := map[string]model.ChannelMember{}
-	for _, channelMembership := range *existingMemberships {
+	for _, channelMembership := range existingMemberships {
 		existingMembershipsByChannelId[channelMembership.ChannelId] = channelMembership
 	}
 	for _, cdata := range *data {
@@ -1011,7 +1014,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 	for _, channel := range allChannels {
 		if len(channelPreferencesByID[channel.Id]) > 0 {
 			pref := channelPreferencesByID[channel.Id]
-			if err := a.Srv().Store.Preference().Save(&pref); err != nil {
+			if err := a.Srv().Store.Preference().Save(pref); err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -1093,7 +1096,6 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		}
 		reply.UserId = user.Id
 		reply.ChannelId = post.ChannelId
-		reply.ParentId = post.Id
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
@@ -1453,7 +1455,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			}
 
 			if len(preferences) > 0 {
-				if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+				if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
@@ -1561,7 +1563,7 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 		}
 	}
 
-	if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -1747,7 +1749,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			}
 
 			if len(preferences) > 0 {
-				if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+				if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}

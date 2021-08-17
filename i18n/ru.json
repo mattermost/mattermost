@@ -5672,10 +5672,6 @@
     "translation": "Эта версия вашего браузера больше не поддерживается Mattermost"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Не удалось очистить записи."
-  },
-  {
     "id": "ent.get_users_in_channel_during",
     "translation": "Не удалось получить пользователей в канале в течение указанного периода времени."
   },
@@ -6042,10 +6038,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "Невозможно переместить каналы личных сообщений или групповые каналы"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета реакций."
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6456,10 +6448,6 @@
     "translation": "Невозможно скачать это задание"
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой при очистке пакета флагов."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Возникла ошибка при обновлении настроек."
   },
@@ -6836,10 +6824,6 @@
     "translation": "Не удалось получить задание."
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета информации о файлах."
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Не удалось сохранить информацию о файле."
   },
@@ -6990,10 +6974,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Невозможно получить пакет сообщений для индексации."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ошибка перманентного удаления пакета сообщений."
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -8605,7 +8585,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Статус для Id канала `{{.ChannelId}}`"
+    "translation": "Статус для идентификатора канала `{{.ChannelId}}`"
   },
   {
     "id": "api.command_share.channel_status.help",
@@ -8617,11 +8597,11 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Удалённый id общего канала `{{.RemoteId}}` не существует для этого канала."
+    "translation": "Удалённое безопасное соединение общего канала `{{.RemoteId}}` не существует для этого канала."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Невозможно пригласить удалённый кластер на общий канал, созданный где-то в другом месте."
+    "translation": "Невозможно пригласить безопасное соединение на общий канал, созданный где-то в другом месте."
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -8637,39 +8617,39 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Отображает состояние для всех удаленных кластеров"
+    "translation": "Отображает статус для всех безопасных соединений"
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SiteURL не установлен. Пожалуйста, установите его через системную консоль."
+    "translation": "URL сайта не задан. Установите его в Системной консоли > Окружение > Веб-сервер."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Служба удаленного кластера не включена."
+    "translation": "Служба безопасного соединения не включена."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Служба удаленного кластера отключена."
+    "translation": "Служба безопасного соединения отключена."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Идентификатор удаления удаленного кластера"
+    "translation": "Идентификатор удаляемого безопасного соединения."
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Не смог удалить удалённый кластер: {{.Error}}"
+    "translation": "Не получилось удалить безопасное соединение: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Удаляет удалённый кластер"
+    "translation": "Удаляет безопасное соединение"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Никаких удаленных кластеров не найдено."
+    "translation": "Безопасных подключений не найдено."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Имя | SiteURL | RemoteId | Invite Accepted | Online | Последний пинг |"
+    "translation": "| Безопасное соединение | Отображаемое имя | Идентификатор подключения | URL сайта | Приглашение принято | Онлайн | Последний пинг |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8769,7 +8749,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Принять приглашение от удаленного кластера"
+    "translation": "Принять приглашение от внешнего кластера Mattermost"
   },
   {
     "id": "api.command_share.share_read_only.hint",
@@ -8781,7 +8761,7 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Remote | SiteURL | Описание | Только для чтения | InviteAccepted | Онлайн | Последняя синхронизация |"
+    "translation": "| Безопасное соединение | URL сайта | Только чтение | Приглашение принято | Онлайн | Последняя синхронизация |"
   },
   {
     "id": "api.command_share.hint",
@@ -8893,19 +8873,19 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Для отключения должен быть указан валидный удалённый кластер"
+    "translation": "Для отключения должен быть указано действительное безопасное соединение"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Идентификатор удалённого кластера некорректен: {{.Error}}"
+    "translation": "Идентификатор безопасного соединения некорректен: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id существующей удалённой инсталляции. Смотрите команду `remote` для добавления."
+    "translation": "ID существующего безопасного соединения. См. Команду `secure-connection`, чтобы добавить безопасное соединение."
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "Удаленный кластер уже приглашен."
+    "translation": "Безопасное соединение уже приглашено."
   },
   {
     "id": "api.command_share.permission_required",
@@ -8917,7 +8897,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Никакие удалённые объекты в этот общий канал не приглашались."
+    "translation": "Никакие безопасные соединения в этот общий канал не приглашались."
   },
   {
     "id": "api.command_share.name",
@@ -8925,7 +8905,7 @@
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Должен быть указан действительный идентификатор удаленного кластера для приглашения."
+    "translation": "Должен быть указан действительный идентификатор безопасного соединения для приглашения."
   },
   {
     "id": "api.command_share.missing_action",
@@ -8937,7 +8917,7 @@
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Приглашение канала отправлено `{{.Name}} {{.SiteURL}}`."
+    "translation": "Приглашение общего канала отправлено `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -8945,11 +8925,11 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Не удалось получить статус удалённых объектов: {{.Error}}."
+    "translation": "Не удалось получить статус для безопасных соединений: {{.Error}}."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Ошибка при извлечении удалённых кластеров: {{.Error}}"
+    "translation": "Ошибка при получении безопасных соединений: {{.Error}}"
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -9026,5 +9006,9 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "Введенный текст превышает лимит символов. Заголовок канала ограничен {{.MaxLength}} символами."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Между этими пользователями невозможно создать прямой канал, потому что у них нет общей команды."
   }
 ]

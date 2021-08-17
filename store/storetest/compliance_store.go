@@ -31,7 +31,7 @@ func cleanupStoreState(t *testing.T, ss store.Store) {
 	//remove existing channels
 	allChannels, nErr := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, nErr, "error cleaning all test channels", nErr)
-	for _, channel := range *allChannels {
+	for _, channel := range allChannels {
 		nErr = ss.Channel().PermanentDelete(channel.Id)
 		require.NoError(t, nErr, "failed cleaning up test channel %s", channel.Id)
 	}
@@ -357,7 +357,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 			post.UserId = u1.Id
 			post.CreateAt = createAt
 			post.Message = "zz" + model.NewId() + "b"
-			post, nErr = ss.Post().Save(post)
+			_, nErr = ss.Post().Save(post)
 			require.NoError(t, nErr)
 		}
 

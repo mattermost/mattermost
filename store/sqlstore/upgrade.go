@@ -20,6 +20,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version5380
+	Version600             = "6.0.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -329,7 +330,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 					data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
 				}
 
-				sqlStore.Preference().Save(&data)
+				sqlStore.Preference().Save(data)
 			}
 		}
 
@@ -1520,10 +1521,15 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
 		sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
 		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+		sqlStore.RemoveColumnIfExists("Posts", "ParentId")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+		sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
 	}
 
 	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
-	//saveSchemaVersion(sqlStore, Version600)
+	// 	saveSchemaVersion(sqlStore, Version600)
 	// }
 }
 
@@ -1577,6 +1583,13 @@ func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
 		return true
 	}
 	if jsonBFn("Users", "Timezone") {
+		return true
+	}
+
+	if sqlStore.DoesColumnExist("Posts", "ParentId") {
+		return true
+	}
+	if sqlStore.DoesColumnExist("CommandWebhooks", "ParentId") {
 		return true
 	}
 

@@ -967,12 +967,14 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	groupMembers, err := ss.Group().GetMemberUsers(group.Id)
+	require.NoError(t, err)
 	beforeRestoreCount := len(groupMembers)
 
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
 
 	groupMembers, err = ss.Group().GetMemberUsers(group.Id)
+	require.NoError(t, err)
 	afterRestoreCount := len(groupMembers)
 
 	require.Equal(t, beforeRestoreCount+1, afterRestoreCount)
@@ -4399,9 +4401,9 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
 			require.NoError(t, err)
 
-			require.GreaterOrEqual(t, len(*members), 4) // sanity check for channel membership
+			require.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 
-			for _, member := range *members {
+			for _, member := range members {
 				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
 					require.True(t, member.SchemeAdmin)
 				} else {

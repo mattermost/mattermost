@@ -3304,28 +3304,8 @@
     "translation": "Elasticsearch aggregator worker misslyckades med att skapa indexeringsjobbet"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av reaktioner skulle raderas."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av meddelanden skulle raderas."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Din licens ger inte stöd för datalagring."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av flaggor skulle rensas."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av filinformation skulle raderas."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Misslyckades att rensa posterna."
   },
   {
     "id": "ent.compliance.run_failed.error",
