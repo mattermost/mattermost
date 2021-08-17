@@ -327,9 +327,12 @@ func TestGetLogs(t *testing.T) {
 		mlog.Info(strconv.Itoa(i))
 	}
 
+	err := th.TestLogger.Flush()
+	require.NoError(t, err, "failed to flush log")
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err := c.GetLogs(0, 10)
-		require.NoError(t, err)
+		logs, _, err2 := c.GetLogs(0, 10)
+		require.NoError(t, err2)
 		require.Len(t, logs, 10)
 
 		for i := 10; i < 20; i++ {
@@ -347,8 +350,8 @@ func TestGetLogs(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		_, resp, err := th.Client.GetLogs(0, 10)
-		require.Error(t, err)
+		_, resp, err2 := th.Client.GetLogs(0, 10)
+		require.Error(t, err2)
 		CheckForbiddenStatus(t, resp)
 	})
 

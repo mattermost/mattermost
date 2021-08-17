@@ -19,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
-	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type TestHelper struct {
@@ -172,12 +171,10 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	utils.DisableDebugLogForTest()
 	var err error
 	if team, err = th.store.Team().Save(team); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return team
 }
 
@@ -192,13 +189,11 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 		CreatorId:   th.BasicUser.Id,
 	}
 
-	utils.DisableDebugLogForTest()
 	var err error
 	if channel, err = th.store.Channel().Save(channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
 		panic(err)
 	}
 
-	utils.EnableDebugLogForTest()
 	return channel
 }
 
