@@ -4718,7 +4718,12 @@ func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return PreferenceFromJson(r.Body), BuildResponse(r), nil
+
+	var pref Preference
+	if jsonErr := json.NewDecoder(r.Body).Decode(&pref); jsonErr != nil {
+		return nil, nil, NewAppError("GetPreferenceByCategoryAndName", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &pref, BuildResponse(r), nil
 }
 
 // SAML Section

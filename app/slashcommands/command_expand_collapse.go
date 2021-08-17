@@ -4,12 +4,14 @@
 package slashcommands
 
 import (
+	"encoding/json"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type ExpandProvider struct {
@@ -75,7 +77,12 @@ func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool)
 	}
 
 	socketMessage := model.NewWebSocketEvent(model.WebsocketEventPreferenceChanged, "", "", args.UserId, nil)
-	socketMessage.Add("preference", pref.ToJson())
+
+	prefJSON, jsonErr := json.Marshal(pref)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
+	}
+	socketMessage.Add("preference", string(prefJSON))
 	a.Publish(socketMessage)
 
 	var rmsg string

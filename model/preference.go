@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -63,17 +62,6 @@ type Preference struct {
 	Category string `json:"category"`
 	Name     string `json:"name"`
 	Value    string `json:"value"`
-}
-
-func (o *Preference) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func PreferenceFromJson(data io.Reader) *Preference {
-	var o *Preference
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (o *Preference) IsValid() *AppError {
