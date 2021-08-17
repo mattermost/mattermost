@@ -366,6 +366,7 @@ type ServiceSettings struct {
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
 	EnableSVGs                                        *bool `access:"site_posts"`
 	EnableLatex                                       *bool `access:"site_posts"`
+	EnableInlineLatex                                 *bool `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string // telemetry: none
@@ -790,6 +791,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			s.EnableLatex = NewBool(false)
 		}
+	}
+
+	if s.EnableInlineLatex == nil {
+		s.EnableInlineLatex = NewBool(false)
 	}
 
 	if s.EnableLocalMode == nil {
