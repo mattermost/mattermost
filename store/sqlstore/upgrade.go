@@ -1526,6 +1526,8 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.RemoveColumnIfExists("Posts", "ParentId")
 		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
 		sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
+
+		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 	}
 
 	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
@@ -1591,6 +1593,22 @@ func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
 	}
 	if sqlStore.DoesColumnExist("CommandWebhooks", "ParentId") {
 		return true
+	}
+
+	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "Posts"),
+			mlog.String("column", "FileIds"),
+			mlog.Err(err),
+		)
+		return true
+	}
+
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
+			return true
+		}
 	}
 
 	return false
