@@ -5,7 +5,6 @@ package remotecluster
 
 import (
 	"context"
-	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -21,8 +20,8 @@ type mockServer struct {
 	user    *model.User
 }
 
-func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
-	testLogger := mlog.CreateTestLogger(t, nil, mlog.StdAll...)
+func newMockServer(remotes []*model.RemoteCluster) *mockServer {
+	testLogger := mlog.CreateConsoleTestLogger(true, mlog.LvlDebug)
 
 	return &mockServer{
 		remotes: remotes,

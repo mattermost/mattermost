@@ -4,7 +4,6 @@
 package web
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"io"
@@ -581,8 +580,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 
 	translationFunc := i18n.GetUserTranslations("en")
 	c.AppContext.SetT(translationFunc)
-	buffer := &bytes.Buffer{}
-	c.Logger = mlog.CreateTestLogger(t, buffer, mlog.StdAll...)
+	c.Logger = mlog.CreateConsoleTestLogger(true, mlog.LvlDebug)
 	defer c.Logger.Shutdown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
