@@ -172,6 +172,18 @@ func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post,
 	return translateFunc("app.notification.subject.group_message.generic", subjectParameters)
 }
 
+/**
+* If the name is longer than i characters, replace remaining characters with ...
+ */
+func truncateUserNames(name string, i int) string {
+	runes := []rune(name)
+	if len(runes) > i {
+		newString := string(runes[:i])
+		return newString + "..."
+	}
+	return name
+}
+
 type postData struct {
 	SenderName  string
 	ChannelName string
@@ -187,7 +199,7 @@ type postData struct {
  */
 func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
 	pData := postData{
-		SenderName:  senderName,
+		SenderName:  truncateUserNames(senderName, 22),
 		SenderPhoto: senderPhoto,
 	}
 
