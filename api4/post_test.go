@@ -2044,8 +2044,8 @@ func TestDeletePostEvent(t *testing.T) {
 	WebSocketClient.Listen()
 	defer WebSocketClient.Close()
 
-	_, resp := th.SystemAdminClient.DeletePost(th.BasicPost.Id)
-	CheckNoError(t, resp)
+	_, err = th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+	require.NoError(t, err)
 
 	var received bool
 
