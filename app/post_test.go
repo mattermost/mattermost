@@ -15,15 +15,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine/mocks"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -53,12 +53,12 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("post rejected by plugin leaves cache ready for non-deduplicated try", func(t *testing.T) {
-		setupPluginApiTest(t, `
+		setupPluginAPITest(t, `
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/plugin"
-				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
 			)
 
 			type MyPlugin struct {
@@ -78,7 +78,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`, `{"id": "testrejectfirstpost", "backend": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App, th.Context)
+		`, `{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App, th.Context)
 
 		pendingPostId := model.NewId()
 		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
@@ -102,12 +102,12 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("slow posting after cache entry blocks duplicate request", func(t *testing.T) {
-		setupPluginApiTest(t, `
+		setupPluginAPITest(t, `
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/plugin"
-				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
 				"time"
 			)
 
@@ -128,7 +128,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App, th.Context)
+		`, `{"id": "testdelayfirstpost", "server": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App, th.Context)
 
 		var post *model.Post
 		pendingPostId := model.NewId()
@@ -346,7 +346,6 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		Message:       "asd",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        userInChannel.Id,
 		CreateAt:      0,
@@ -368,7 +367,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply one",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -381,7 +379,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply two",
 		ChannelId:     channel.Id,
 		RootId:        res1.Id,
-		ParentId:      res1.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -394,7 +391,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply three",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -473,7 +469,7 @@ func TestImageProxy(t *testing.T) {
 		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 	})
 
-	th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+	th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 	for name, tc := range map[string]struct {
 		ProxyType              string
@@ -651,7 +647,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Delete the post.
-	post, err = th.App.DeletePost(post.Id, userID)
+	_, err = th.App.DeletePost(post.Id, userID)
 	assert.Nil(t, err)
 
 	// Wait for the cleanup routine to finish.
@@ -688,7 +684,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -755,6 +751,41 @@ func TestCreatePost(t *testing.T) {
 			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		})
 	})
+
+	t.Run("Sets PostPropsPreviewedPost when a permalink is the first link", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		channelForPreview := th.CreateChannel(th.BasicTeam)
+		previewPost := &model.Post{
+			ChannelId: channelForPreview.Id,
+			Message:   permalink,
+			UserId:    th.BasicUser.Id,
+		}
+
+		previewPost, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, false, false)
+		require.Nil(t, err)
+
+		assert.Equal(t, previewPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
+	})
 }
 
 func TestPatchPost(t *testing.T) {
@@ -770,7 +801,7 @@ func TestPatchPost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -939,7 +970,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		testlib.AssertLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
 
 	t.Run("does not log warning for bot user not in channel", func(t *testing.T) {
@@ -962,7 +993,78 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		testlib.AssertNoLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
+	})
+
+	t.Run("marks channel as viewed for reply post when CRT is off", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
+		})
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    th.BasicUser2.Id,
+		}
+		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		time.Sleep(1 * time.Millisecond)
+		replyPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test reply",
+			UserId:    th.BasicUser.Id,
+			RootId:    rootPost.Id,
+		}
+		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		require.NotEqual(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
+
+	t.Run("does not mark channel as viewed for reply post when CRT is on", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    th.BasicUser2.Id,
+		}
+		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		time.Sleep(1 * time.Millisecond)
+		replyPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test reply",
+			UserId:    th.BasicUser.Id,
+			RootId:    rootPost.Id,
+		}
+		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
+		require.Nil(t, appErr)
+
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, nErr)
+
+		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
 }
 
@@ -992,7 +1094,7 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -1013,6 +1115,45 @@ func TestUpdatePost(t *testing.T) {
 		rpost, err = th.App.UpdatePost(th.Context, post, false)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+
+	t.Run("Sets PostPropsPreviewedPost when a post is updated to have a permalink as the first link", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		channelForTestPost := th.CreateChannel(th.BasicTeam)
+		testPost := &model.Post{
+			ChannelId: channelForTestPost.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		testPost, err = th.App.CreatePost(th.Context, testPost, channelForTestPost, false, false)
+		require.Nil(t, err)
+		assert.Equal(t, testPost.GetProps(), model.StringInterface{})
+
+		testPost.Message = permalink
+		testPost, err = th.App.UpdatePost(th.Context, testPost, false)
+		require.Nil(t, err)
+		assert.Equal(t, testPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
 	})
 }
 
@@ -2168,7 +2309,6 @@ func TestReplyToPostWithLag(t *testing.T) {
 			UserId:    th.BasicUser2.Id,
 			ChannelId: th.BasicChannel.Id,
 			RootId:    root.Id,
-			ParentId:  root.Id,
 			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
 		}, th.BasicChannel, false, true)
 		require.Nil(t, appErr)
@@ -2287,7 +2427,8 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 
 	// unfollow thread
 	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
-		Following: false,
+		Following:       false,
+		UpdateFollowing: true,
 	})
 	require.NoError(t, nErr)
 	require.False(t, m.Following)
@@ -2298,6 +2439,83 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	// User should be following thread after posting in it, even after previously
 	// unfollowing it, if ThreadAutoFollow is true
 	m, err = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
+	require.Nil(t, err)
+	require.True(t, m.Following)
+}
+
+func TestGetPostIfAuthorized(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
+	post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, false, false)
+	require.Nil(t, err)
+	require.NotNil(t, post)
+
+	session1, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	require.Nil(t, err)
+	require.NotNil(t, session1)
+
+	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+	require.Nil(t, err)
+	require.NotNil(t, session2)
+
+	// User is not authorized to get post
+	_, err = th.App.GetPostIfAuthorized(post.Id, session2)
+	require.NotNil(t, err)
+
+	// User is authorized to get post
+	_, err = th.App.GetPostIfAuthorized(post.Id, session1)
+	require.Nil(t, err)
+}
+
+func TestShouldNotRefollowOnOthersReply(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	appErr := th.App.JoinChannel(th.Context, channel, user.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(th.Context, channel, user2.Id)
+	require.Nil(t, appErr)
+	p1, err := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, false, false)
+	require.Nil(t, err)
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user2.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
+	require.Nil(t, err)
+
+	// User2 unfollows thread
+	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user2.Id, p1.Id, store.ThreadMembershipOpts{
+		Following:       false,
+		UpdateFollowing: true,
+	})
+	require.NoError(t, nErr)
+	require.False(t, m.Following)
+
+	// user posts in the thread
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "another reply"}, channel, false, false)
+	require.Nil(t, err)
+
+	// User2 should still not be following the thread because they manually
+	// unfollowed the thread
+	m, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
+	require.Nil(t, err)
+	require.False(t, m.Following)
+
+	// user posts in the thread mentioning user2
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "reply with mention @" + user2.Username}, channel, false, false)
+	require.Nil(t, err)
+
+	// User2 should now be following the thread because they were explicitly mentioned
+	m, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, err)
 	require.True(t, m.Following)
 }

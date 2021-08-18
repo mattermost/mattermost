@@ -4,14 +4,14 @@
 package app
 
 import (
-	"strings"
+	"bytes"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestBusySet(t *testing.T) {
@@ -116,7 +116,7 @@ type ClusterMock struct {
 }
 
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
-	sbs := model.ServerBusyStateFromJson(strings.NewReader(msg.Data))
+	sbs := model.ServerBusyStateFromJson(bytes.NewReader(msg.Data))
 	c.Busy.ClusterEventChanged(sbs)
 }
 

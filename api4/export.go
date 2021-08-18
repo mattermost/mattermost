@@ -9,14 +9,14 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitExport() {
-	api.BaseRoutes.Exports.Handle("", api.ApiSessionRequired(listExports)).Methods("GET")
-	api.BaseRoutes.Export.Handle("", api.ApiSessionRequired(deleteExport)).Methods("DELETE")
-	api.BaseRoutes.Export.Handle("", api.ApiSessionRequired(downloadExport)).Methods("GET")
+	api.BaseRoutes.Exports.Handle("", api.APISessionRequired(listExports)).Methods("GET")
+	api.BaseRoutes.Export.Handle("", api.APISessionRequired(deleteExport)).Methods("DELETE")
+	api.BaseRoutes.Export.Handle("", api.APISessionRequired(downloadExport)).Methods("GET")
 }
 
 func listExports(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -15,16 +15,16 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/email"
-	"github.com/mattermost/mattermost-server/v5/app/imaging"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/users"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/app/email"
+	"github.com/mattermost/mattermost-server/v6/app/imaging"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
 func (a *App) CreateTeam(c *request.Context, team *model.Team) (*model.Team, *model.AppError) {
@@ -1235,19 +1235,18 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	var channelList *model.ChannelList
-
+	var channelList model.ChannelList
 	var nErr error
 	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true, 0); nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
-			channelList = &model.ChannelList{}
+			channelList = model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	for _, channel := range *channelList {
+	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
 			if nErr = a.Srv().Store.Channel().RemoveMember(channel.Id, user.Id); nErr != nil {
@@ -1654,7 +1653,7 @@ func (a *App) FindTeamByName(name string) bool {
 	return true
 }
 
-func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
 	data, err := a.Srv().Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1681,17 +1680,29 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 			membersMap[id] = unreads(data[i], mu)
 		} else {
 			membersMap[id] = unreads(data[i], &model.TeamUnread{
-				MsgCount:         0,
-				MentionCount:     0,
-				MentionCountRoot: 0,
-				MsgCountRoot:     0,
-				TeamId:           id,
+				MsgCount:           0,
+				MentionCount:       0,
+				MentionCountRoot:   0,
+				MsgCountRoot:       0,
+				ThreadCount:        0,
+				ThreadMentionCount: 0,
+				TeamId:             id,
 			})
 		}
 	}
 
-	for _, val := range membersMap {
-		members = append(members, val)
+	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
+
+	for _, member := range membersMap {
+		if includeCollapsedThreads {
+			data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, member.TeamId, model.GetUserThreadsOpts{TotalsOnly: true, TeamOnly: true})
+			if err != nil {
+				return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			member.ThreadCount = data.TotalUnreadThreads
+			member.ThreadMentionCount = data.TotalUnreadMentions
+		}
+		members = append(members, member)
 	}
 
 	return members, nil
@@ -1727,7 +1738,7 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		for _, c := range *channels {
+		for _, c := range channels {
 			a.PermanentDeleteChannel(c)
 		}
 	}
@@ -1926,7 +1937,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if limitErr := checkImageLimits(file); limitErr != nil {
+	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.check_image_limits.app_error",
 			nil, limitErr.Error(), http.StatusBadRequest)
 	}

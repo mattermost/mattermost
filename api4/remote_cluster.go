@@ -10,9 +10,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitRemoteCluster() {
@@ -213,7 +214,9 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(info.ToJson()))
+	if err := json.NewEncoder(w).Encode(info); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -259,7 +262,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil || !user.IsRemote() {
-		c.SetInvalidUrlParam("user_id")
+		c.SetInvalidURLParam("user_id")
 		return
 	}
 	auditRec.AddMeta("user", user)

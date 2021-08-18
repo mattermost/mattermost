@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type ChannelData struct {
 	Channel *Channel       `json:"channel"`
 	Member  *ChannelMember `json:"member"`
@@ -20,15 +15,4 @@ func (o *ChannelData) Etag() string {
 	}
 
 	return Etag(o.Channel.Id, o.Channel.UpdateAt, o.Channel.LastPostAt, mt)
-}
-
-func (o *ChannelData) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func ChannelDataFromJson(data io.Reader) *ChannelData {
-	var o *ChannelData
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

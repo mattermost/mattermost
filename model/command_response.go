@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
+	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
 )
 
 const (
@@ -30,11 +30,6 @@ type CommandResponse struct {
 	SkipSlackParsing bool               `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
 	Attachments      []*SlackAttachment `json:"attachments"`
 	ExtraResponses   []*CommandResponse `json:"extra_responses"`
-}
-
-func (o *CommandResponse) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandResponse, error) {

@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // AutocompleteDynamicArgProvider dynamically provides auto-completion args for built-in commands.
@@ -267,7 +267,6 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 	params.Add("channel_id", commandArgs.ChannelId)
 	params.Add("team_id", commandArgs.TeamId)
 	params.Add("root_id", commandArgs.RootId)
-	params.Add("parent_id", commandArgs.ParentId)
 	params.Add("user_id", commandArgs.UserId)
 	params.Add("site_url", commandArgs.SiteURL)
 

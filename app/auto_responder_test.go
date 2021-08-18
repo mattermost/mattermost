@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestSetAutoResponderStatus(t *testing.T) {
@@ -271,7 +271,6 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 		if post.Type == model.PostTypeAutoResponder {
 			autoResponderPostFound = true
 			assert.Equal(t, savedPost.Id, post.RootId)
-			assert.Equal(t, savedPost.Id, post.ParentId)
 		}
 	}
 	assert.True(t, autoResponderPostFound)
@@ -304,7 +303,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
 		RootId:    parentPost.Id,
-		ParentId:  parentPost.Id},
+	},
 		th.BasicChannel,
 		false, true)
 
@@ -321,7 +320,6 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 		if post.Type == model.PostTypeAutoResponder {
 			autoResponderPostFound = true
 			assert.Equal(t, savedPost.RootId, post.RootId)
-			assert.Equal(t, savedPost.ParentId, post.ParentId)
 		}
 	}
 	assert.True(t, autoResponderPostFound)

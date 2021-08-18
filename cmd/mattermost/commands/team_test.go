@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -22,7 +22,8 @@ func TestCreateTeam(t *testing.T) {
 
 	th.CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
 
-	found := th.SystemAdminClient.Must(th.SystemAdminClient.TeamExists(name, "")).(bool)
+	found, _, err := th.SystemAdminClient.TeamExists(name, "")
+	require.NoError(t, err)
 
 	require.True(t, found, "Failed to create Team")
 }
@@ -33,7 +34,8 @@ func TestJoinTeam(t *testing.T) {
 
 	th.CheckCommand(t, "team", "add", th.BasicTeam.Name, th.BasicUser.Email)
 
-	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")).([]*model.User)
+	profiles, _, err := th.SystemAdminClient.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 
 	found := false
 
@@ -53,7 +55,8 @@ func TestLeaveTeam(t *testing.T) {
 
 	th.CheckCommand(t, "team", "remove", th.BasicTeam.Name, th.BasicUser.Email)
 
-	profiles := th.Client.Must(th.Client.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")).([]*model.User)
+	profiles, _, err := th.Client.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 
 	found := false
 
@@ -181,8 +184,8 @@ func TestRestoreTeams(t *testing.T) {
 
 	th.CheckCommand(t, "team", "restore", name)
 
-	found := th.SystemAdminClient.Must(th.SystemAdminClient.TeamExists(name, "")).(bool)
-
+	found, _, err := th.SystemAdminClient.TeamExists(name, "")
+	require.NoError(t, err)
 	require.True(t, found)
 }
 

@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -70,51 +69,9 @@ type ChannelMemberForExport struct {
 	Username    string
 }
 
-func (o *ChannelMembers) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func (o *ChannelUnread) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *ChannelUnreadAt) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func ChannelMembersFromJson(data io.Reader) *ChannelMembers {
-	var o *ChannelMembers
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func ChannelUnreadFromJson(data io.Reader) *ChannelUnread {
-	var o *ChannelUnread
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func ChannelUnreadAtFromJson(data io.Reader) *ChannelUnreadAt {
-	var o *ChannelUnreadAt
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *ChannelMember) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
-}
-
-func ChannelMemberFromJson(data io.Reader) *ChannelMember {
-	var o *ChannelMember
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (o *ChannelMember) IsValid() *AppError {

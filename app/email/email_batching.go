@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -170,7 +170,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 				continue
 			}
 
-			for _, channelMember := range *channelMembers {
+			for _, channelMember := range channelMembers {
 				if channelMember.LastViewedAt >= batchStartTime {
 					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userID))
 					delete(job.pendingNotifications, userID)

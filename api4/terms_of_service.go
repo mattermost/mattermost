@@ -4,16 +4,18 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitTermsOfService() {
-	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(getLatestTermsOfService)).Methods("GET")
-	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(createTermsOfService)).Methods("POST")
+	api.BaseRoutes.TermsOfService.Handle("", api.APISessionRequired(getLatestTermsOfService)).Methods("GET")
+	api.BaseRoutes.TermsOfService.Handle("", api.APISessionRequired(createTermsOfService)).Methods("POST")
 }
 
 func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -23,7 +25,9 @@ func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Write([]byte(termsOfService.ToJson()))
+	if err := json.NewEncoder(w).Encode(termsOfService); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -62,9 +66,13 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.Write([]byte(termsOfService.ToJson()))
+		if err := json.NewEncoder(w).Encode(termsOfService); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	} else {
-		w.Write([]byte(oldTermsOfService.ToJson()))
+		if err := json.NewEncoder(w).Encode(oldTermsOfService); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 	}
 	auditRec.Success()
 }

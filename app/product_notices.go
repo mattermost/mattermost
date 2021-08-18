@@ -15,12 +15,12 @@ import (
 	"github.com/pkg/errors"
 	date_constraints "github.com/reflog/dateconstraints"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const MaxRepeatViewings = 3
@@ -377,7 +377,7 @@ func (a *App) UpdateProductNotices() *model.AppError {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.parse_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := a.Srv().Store.ProductNotices().ClearOldNotices(&cachedNotices); err != nil {
+	if err := a.Srv().Store.ProductNotices().ClearOldNotices(cachedNotices); err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.clear_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil

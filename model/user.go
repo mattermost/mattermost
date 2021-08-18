@@ -18,8 +18,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/services/timezones"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -852,18 +852,6 @@ func HashPassword(password string) string {
 	}
 
 	return string(hash)
-}
-
-// ComparePassword compares the hash
-// This function is deprecated and will be removed in a future release.
-func ComparePassword(hash string, password string) bool {
-
-	if password == "" || hash == "" {
-		return false
-	}
-
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)

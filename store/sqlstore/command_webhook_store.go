@@ -9,9 +9,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlCommandWebhookStore struct {
@@ -28,7 +28,6 @@ func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
 		tablec.ColMap("UserId").SetMaxSize(26)
 		tablec.ColMap("ChannelId").SetMaxSize(26)
 		tablec.ColMap("RootId").SetMaxSize(26)
-		tablec.ColMap("ParentId").SetMaxSize(26)
 	}
 
 	return s

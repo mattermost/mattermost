@@ -21,11 +21,3 @@ func CommandMoveRequestFromJson(data io.Reader) (*CommandMoveRequest, error) {
 	}
 	return &cmr, nil
 }
-
-func (cmr *CommandMoveRequest) ToJson() string {
-	b, err := json.Marshal(cmr)
-	if err != nil {
-		return ""
-	}
-	return string(b)
-}

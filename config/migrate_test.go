@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type cleanUpFn func(store *Store)
@@ -121,7 +121,7 @@ func TestMigrate(t *testing.T) {
 		err = Migrate(sourceDSN, destinationDSN)
 		require.NoError(t, err)
 
-		destinationfile, err := NewFileStore(destinationDSN, false)
+		destinationfile, err := NewFileStore(destinationDSN)
 		require.NoError(t, err)
 		destination, err := NewStoreFromBacking(destinationfile, nil, false)
 		require.NoError(t, err)
@@ -141,7 +141,7 @@ func TestMigrate(t *testing.T) {
 		sourceDSN := path.Join(pwd, "config-custom.json")
 		destinationDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 
-		sourcefile, err := NewFileStore(sourceDSN, false)
+		sourcefile, err := NewFileStore(sourceDSN)
 		require.NoError(t, err)
 		source, err := NewStoreFromBacking(sourcefile, nil, false)
 		require.NoError(t, err)

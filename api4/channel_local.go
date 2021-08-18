@@ -4,40 +4,43 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitChannelLocal() {
-	api.BaseRoutes.Channels.Handle("", api.ApiLocal(getAllChannels)).Methods("GET")
-	api.BaseRoutes.Channels.Handle("", api.ApiLocal(localCreateChannel)).Methods("POST")
-	api.BaseRoutes.Channel.Handle("", api.ApiLocal(getChannel)).Methods("GET")
-	api.BaseRoutes.ChannelByName.Handle("", api.ApiLocal(getChannelByName)).Methods("GET")
-	api.BaseRoutes.Channel.Handle("", api.ApiLocal(localDeleteChannel)).Methods("DELETE")
-	api.BaseRoutes.Channel.Handle("/patch", api.ApiLocal(localPatchChannel)).Methods("PUT")
-	api.BaseRoutes.Channel.Handle("/move", api.ApiLocal(localMoveChannel)).Methods("POST")
-	api.BaseRoutes.Channel.Handle("/privacy", api.ApiLocal(localUpdateChannelPrivacy)).Methods("PUT")
-	api.BaseRoutes.Channel.Handle("/restore", api.ApiLocal(localRestoreChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("", api.APILocal(getAllChannels)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("", api.APILocal(localCreateChannel)).Methods("POST")
+	api.BaseRoutes.Channel.Handle("", api.APILocal(getChannel)).Methods("GET")
+	api.BaseRoutes.ChannelByName.Handle("", api.APILocal(getChannelByName)).Methods("GET")
+	api.BaseRoutes.Channel.Handle("", api.APILocal(localDeleteChannel)).Methods("DELETE")
+	api.BaseRoutes.Channel.Handle("/patch", api.APILocal(localPatchChannel)).Methods("PUT")
+	api.BaseRoutes.Channel.Handle("/move", api.APILocal(localMoveChannel)).Methods("POST")
+	api.BaseRoutes.Channel.Handle("/privacy", api.APILocal(localUpdateChannelPrivacy)).Methods("PUT")
+	api.BaseRoutes.Channel.Handle("/restore", api.APILocal(localRestoreChannel)).Methods("POST")
 
-	api.BaseRoutes.ChannelMember.Handle("", api.ApiLocal(localRemoveChannelMember)).Methods("DELETE")
-	api.BaseRoutes.ChannelMember.Handle("", api.ApiLocal(getChannelMember)).Methods("GET")
-	api.BaseRoutes.ChannelMembers.Handle("", api.ApiLocal(localAddChannelMember)).Methods("POST")
-	api.BaseRoutes.ChannelMembers.Handle("", api.ApiLocal(getChannelMembers)).Methods("GET")
+	api.BaseRoutes.ChannelMember.Handle("", api.APILocal(localRemoveChannelMember)).Methods("DELETE")
+	api.BaseRoutes.ChannelMember.Handle("", api.APILocal(getChannelMember)).Methods("GET")
+	api.BaseRoutes.ChannelMembers.Handle("", api.APILocal(localAddChannelMember)).Methods("POST")
+	api.BaseRoutes.ChannelMembers.Handle("", api.APILocal(getChannelMembers)).Methods("GET")
 
-	api.BaseRoutes.ChannelsForTeam.Handle("", api.ApiLocal(getPublicChannelsForTeam)).Methods("GET")
-	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiLocal(getDeletedChannelsForTeam)).Methods("GET")
-	api.BaseRoutes.ChannelsForTeam.Handle("/private", api.ApiLocal(getPrivateChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("", api.APILocal(getPublicChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.APILocal(getDeletedChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/private", api.APILocal(getPrivateChannelsForTeam)).Methods("GET")
 
-	api.BaseRoutes.ChannelByName.Handle("", api.ApiLocal(getChannelByName)).Methods("GET")
-	api.BaseRoutes.ChannelByNameForTeamName.Handle("", api.ApiLocal(getChannelByNameForTeamName)).Methods("GET")
+	api.BaseRoutes.ChannelByName.Handle("", api.APILocal(getChannelByName)).Methods("GET")
+	api.BaseRoutes.ChannelByNameForTeamName.Handle("", api.APILocal(getChannelByNameForTeamName)).Methods("GET")
 }
 
 func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	channel := model.ChannelFromJson(r.Body)
-	if channel == nil {
+	var channel *model.Channel
+	err := json.NewDecoder(r.Body).Decode(&channel)
+	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
@@ -46,9 +49,9 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel", channel)
 
-	sc, err := c.App.CreateChannel(c.AppContext, channel, false)
-	if err != nil {
-		c.Err = err
+	sc, appErr := c.App.CreateChannel(c.AppContext, channel, false)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -57,7 +60,9 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("name=" + channel.Name)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(sc.ToJson()))
+	if err := json.NewEncoder(w).Encode(sc); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -99,7 +104,9 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec.Success()
 	c.LogAudit("name=" + updatedChannel.Name)
 
-	w.Write([]byte(updatedChannel.ToJson()))
+	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localRestoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -127,7 +134,9 @@ func localRestoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
-	w.Write([]byte(channel.ToJson()))
+	if err := json.NewEncoder(w).Encode(channel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -210,7 +219,9 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(cm.ToJson()))
+	if err := json.NewEncoder(w).Encode(cm); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localRemoveChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -263,15 +274,16 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch := model.ChannelPatchFromJson(r.Body)
-	if patch == nil {
+	var patch *model.ChannelPatch
+	err := json.NewDecoder(r.Body).Decode(&patch)
+	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
 
-	originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	originalOldChannel, appErr := c.App.GetChannel(c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	channel := originalOldChannel.DeepCopy()
@@ -281,15 +293,15 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("channel", channel)
 
 	channel.Patch(patch)
-	rchannel, err := c.App.UpdateChannel(channel)
-	if err != nil {
-		c.Err = err
+	rchannel, appErr := c.App.UpdateChannel(channel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	err = c.App.FillInChannelProps(rchannel)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.FillInChannelProps(rchannel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -297,7 +309,9 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 	auditRec.AddMeta("patch", rchannel)
 
-	w.Write([]byte(rchannel.ToJson()))
+	if err := json.NewEncoder(w).Encode(rchannel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -367,7 +381,9 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("channel=" + channel.Name)
 	c.LogAudit("team=" + team.Name)
 
-	w.Write([]byte(channel.ToJson()))
+	if err := json.NewEncoder(w).Encode(channel); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {

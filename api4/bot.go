@@ -5,29 +5,23 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitBot() {
-	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(createBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(patchBot)).Methods("PUT")
-	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(getBot)).Methods("GET")
-	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(getBots)).Methods("GET")
-	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/enable", api.ApiSessionRequired(enableBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/convert_to_user", api.ApiSessionRequired(convertBotToUser)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(assignBot)).Methods("POST")
-
-	api.BaseRoutes.Bot.Handle("/icon", api.ApiSessionRequiredTrustRequester(getBotIconImage)).Methods("GET")
-	api.BaseRoutes.Bot.Handle("/icon", api.ApiSessionRequired(setBotIconImage)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/icon", api.ApiSessionRequired(deleteBotIconImage)).Methods("DELETE")
+	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(createBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(patchBot)).Methods("PUT")
+	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(getBot)).Methods("GET")
+	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(getBots)).Methods("GET")
+	api.BaseRoutes.Bot.Handle("/disable", api.APISessionRequired(disableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/enable", api.APISessionRequired(enableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/convert_to_user", api.APISessionRequired(convertBotToUser)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(assignBot)).Methods("POST")
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -74,7 +68,9 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("bot", createdBot) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(createdBot.ToJson())
+	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -109,7 +105,9 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("bot", updatedBot)
 
-	w.Write(updatedBot.ToJson())
+	if err := json.NewEncoder(w).Encode(updatedBot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -148,7 +146,9 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(bot.ToJson())
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -183,7 +183,9 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(bots.ToJson())
+	if err := json.NewEncoder(w).Encode(bots); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func disableBot(c *Context, w http.ResponseWriter, _ *http.Request) {
@@ -220,7 +222,9 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	auditRec.Success()
 	auditRec.AddMeta("bot", bot)
 
-	w.Write(bot.ToJson())
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
@@ -258,129 +262,9 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("bot", bot)
 
-	w.Write(bot.ToJson())
-}
-
-func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireBotUserId()
-	if c.Err != nil {
-		return
+	if err := json.NewEncoder(w).Encode(bot); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
-	botUserId := c.Params.BotUserId
-
-	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, botUserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if !canSee {
-		c.SetPermissionError(model.PermissionViewMembers)
-		return
-	}
-
-	img, err := c.App.GetBotIconImage(botUserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	user, err := c.App.GetUser(botUserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	etag := strconv.FormatInt(user.LastPictureUpdate, 10)
-	if c.HandleEtag(etag, "Get Icon Image", w, r) {
-		return
-	}
-
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
-	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Header().Set("Content-Type", "image/svg+xml")
-	w.Write(img)
-}
-
-func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
-
-	c.RequireBotUserId()
-	if c.Err != nil {
-		return
-	}
-	botUserId := c.Params.BotUserId
-
-	auditRec := c.MakeAuditRecord("setBotIconImage", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("bot_id", botUserId)
-
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
-		c.Err = err
-		return
-	}
-
-	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
-		c.Err = model.NewAppError("setBotIconImage", "api.bot.set_bot_icon_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
-		return
-	}
-
-	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
-		c.Err = model.NewAppError("setBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	m := r.MultipartForm
-	imageArray, ok := m.File["image"]
-	if !ok {
-		c.Err = model.NewAppError("setBotIconImage", "api.bot.set_bot_icon_image.no_file.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if len(imageArray) <= 0 {
-		c.Err = model.NewAppError("setBotIconImage", "api.bot.set_bot_icon_image.array.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	imageData := imageArray[0]
-	if err := c.App.SetBotIconImageFromMultiPartFile(botUserId, imageData); err != nil {
-		c.Err = err
-		return
-	}
-
-	auditRec.Success()
-	c.LogAudit("")
-
-	ReturnStatusOK(w)
-}
-
-func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
-
-	c.RequireBotUserId()
-	if c.Err != nil {
-		return
-	}
-	botUserId := c.Params.BotUserId
-
-	auditRec := c.MakeAuditRecord("deleteBotIconImage", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("bot_id", botUserId)
-
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
-		c.Err = err
-		return
-	}
-
-	if err := c.App.DeleteBotIconImage(botUserId); err != nil {
-		c.Err = err
-		return
-	}
-
-	auditRec.Success()
-	c.LogAudit("")
-
-	ReturnStatusOK(w)
 }
 
 func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -423,5 +307,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("convertedTo", user)
 
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

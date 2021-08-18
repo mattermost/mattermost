@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -611,11 +611,11 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		WebhookResponse            *model.OutgoingWebhookResponse
 	}
 
-	createOutgoingWebhook := func(channel *model.Channel, testCallBackUrl string, th *TestHelper) (*model.OutgoingWebhook, *model.AppError) {
+	createOutgoingWebhook := func(channel *model.Channel, testCallBackURL string, th *TestHelper) (*model.OutgoingWebhook, *model.AppError) {
 		outgoingWebhook := model.OutgoingWebhook{
 			ChannelId:    channel.Id,
 			TeamId:       channel.TeamId,
-			CallbackURLs: []string{testCallBackUrl},
+			CallbackURLs: []string{testCallBackURL},
 			Username:     "some-user-name",
 			IconURL:      "http://some-icon/",
 			DisplayName:  "some-display-name",

@@ -11,11 +11,11 @@ import (
 
 	"github.com/mattermost/gziphandler"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/shared/templates"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/templates"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
@@ -65,7 +65,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if IsApiCall(c.App, r) {
+	if IsAPICall(c.App, r) {
 		Handle404(c.App, w, r)
 		return
 	}

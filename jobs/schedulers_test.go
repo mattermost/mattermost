@@ -9,11 +9,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 type MockScheduler struct {
@@ -60,10 +60,10 @@ func TestScheduler(t *testing.T) {
 		ConfigService: &testutils.StaticConfigService{
 			Cfg: &model.Config{
 				// mock config
-				DataRetentionSettings: *&model.DataRetentionSettings{
+				DataRetentionSettings: model.DataRetentionSettings{
 					EnableMessageDeletion: model.NewBool(true),
 				},
-				MessageExportSettings: *&model.MessageExportSettings{
+				MessageExportSettings: model.MessageExportSettings{
 					EnableExport: model.NewBool(true),
 				},
 			},

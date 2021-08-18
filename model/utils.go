@@ -22,7 +22,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/pborman/uuid"
 )
 
@@ -31,7 +31,6 @@ const (
 	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	MB               = 1 << 20
 )
 
 type StringInterface map[string]interface{}
@@ -392,6 +391,8 @@ var reservedName = []string{
 	"plugins",
 	"post",
 	"signup",
+	"boards",
+	"playbooks",
 }
 
 func IsValidChannelIdentifier(s string) bool {
@@ -486,12 +487,12 @@ func ClearMentionTags(post string) string {
 	return post
 }
 
-func IsValidHttpUrl(rawUrl string) bool {
-	if strings.Index(rawUrl, "http://") != 0 && strings.Index(rawUrl, "https://") != 0 {
+func IsValidHTTPURL(rawURL string) bool {
+	if strings.Index(rawURL, "http://") != 0 && strings.Index(rawURL, "https://") != 0 {
 		return false
 	}
 
-	if u, err := url.ParseRequestURI(rawUrl); err != nil || u.Scheme == "" || u.Host == "" {
+	if u, err := url.ParseRequestURI(rawURL); err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
 

@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -1733,7 +1733,7 @@ func TestImportUserTeams(t *testing.T) {
 				for _, teamMember := range teamMembers {
 					channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(teamMember.TeamId, user.Id)
 					require.NoError(t, err)
-					totalMembers += len(*channelMembers)
+					totalMembers += len(channelMembers)
 				}
 				require.Equal(t, tc.expectedUserChannels, totalMembers)
 			}
@@ -1871,9 +1871,9 @@ func TestImportUserChannels(t *testing.T) {
 				}
 				channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(th.BasicTeam.Id, user.Id)
 				require.NoError(t, err)
-				require.Len(t, *channelMembers, tc.expectedUserChannels)
+				require.Len(t, channelMembers, tc.expectedUserChannels)
 				if tc.expectedUserChannels == 1 {
-					channelMember := (*channelMembers)[0]
+					channelMember := channelMembers[0]
 					require.Equal(t, tc.expectedExplicitRoles, channelMember.ExplicitRoles, "Not matching expected explicit roles")
 					require.Equal(t, tc.expectedRoles, channelMember.Roles, "not matching expected roles")
 					if tc.expectedNotifyProps != nil {

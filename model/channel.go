@@ -67,8 +67,8 @@ type ChannelWithTeamData struct {
 }
 
 type ChannelsWithCount struct {
-	Channels   *ChannelListWithTeamData `json:"channels"`
-	TotalCount int64                    `json:"total_count"`
+	Channels   ChannelListWithTeamData `json:"channels"`
+	TotalCount int64                   `json:"total_count"`
 }
 
 type ChannelPatch struct {
@@ -168,52 +168,6 @@ func (o *Channel) DeepCopy() *Channel {
 func (o *Channel) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
-}
-
-func (o *ChannelPatch) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *ChannelsWithCount) ToJson() []byte {
-	b, _ := json.Marshal(o)
-	return b
-}
-
-func ChannelsWithCountFromJson(data io.Reader) *ChannelsWithCount {
-	var o *ChannelsWithCount
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func ChannelFromJson(data io.Reader) *Channel {
-	var o *Channel
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func ChannelPatchFromJson(data io.Reader) *ChannelPatch {
-	var o *ChannelPatch
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func ChannelModerationsFromJson(data io.Reader) []*ChannelModeration {
-	var o []*ChannelModeration
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func ChannelModerationsPatchFromJson(data io.Reader) []*ChannelModerationPatch {
-	var o []*ChannelModerationPatch
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func ChannelMemberCountsByGroupFromJson(data io.Reader) []*ChannelMemberCountByGroup {
-	var o []*ChannelMemberCountByGroup
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (o *Channel) Etag() string {

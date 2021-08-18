@@ -10,10 +10,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 // marshalConfig converts the given configuration into JSON bytes for persistence.
@@ -81,12 +81,12 @@ func desanitize(actual, target *model.Config) {
 		}
 	}
 
-	if *target.MessageExportSettings.GlobalRelaySettings.SmtpPassword == model.FakeSetting {
-		*target.MessageExportSettings.GlobalRelaySettings.SmtpPassword = *actual.MessageExportSettings.GlobalRelaySettings.SmtpPassword
+	if *target.MessageExportSettings.GlobalRelaySettings.SMTPPassword == model.FakeSetting {
+		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword = *actual.MessageExportSettings.GlobalRelaySettings.SMTPPassword
 	}
 
-	if target.ServiceSettings.GfycatApiSecret != nil && *target.ServiceSettings.GfycatApiSecret == model.FakeSetting {
-		*target.ServiceSettings.GfycatApiSecret = *actual.ServiceSettings.GfycatApiSecret
+	if target.ServiceSettings.GfycatAPISecret != nil && *target.ServiceSettings.GfycatAPISecret == model.FakeSetting {
+		*target.ServiceSettings.GfycatAPISecret = *actual.ServiceSettings.GfycatAPISecret
 	}
 
 	if *target.ServiceSettings.SplitKey == model.FakeSetting {

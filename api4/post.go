@@ -9,30 +9,30 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitPost() {
-	api.BaseRoutes.Posts.Handle("", api.ApiSessionRequired(createPost)).Methods("POST")
-	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(getPost)).Methods("GET")
-	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(deletePost)).Methods("DELETE")
-	api.BaseRoutes.Posts.Handle("/ephemeral", api.ApiSessionRequired(createEphemeralPost)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/thread", api.ApiSessionRequired(getPostThread)).Methods("GET")
-	api.BaseRoutes.Post.Handle("/files/info", api.ApiSessionRequired(getFileInfosForPost)).Methods("GET")
-	api.BaseRoutes.PostsForChannel.Handle("", api.ApiSessionRequired(getPostsForChannel)).Methods("GET")
-	api.BaseRoutes.PostsForUser.Handle("/flagged", api.ApiSessionRequired(getFlaggedPostsForUser)).Methods("GET")
+	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost)).Methods("GET")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods("GET")
+	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods("GET")
+	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel)).Methods("GET")
+	api.BaseRoutes.PostsForUser.Handle("/flagged", api.APISessionRequired(getFlaggedPostsForUser)).Methods("GET")
 
-	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.ApiSessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
+	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
-	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(updatePost)).Methods("PUT")
-	api.BaseRoutes.Post.Handle("/patch", api.ApiSessionRequired(patchPost)).Methods("PUT")
-	api.BaseRoutes.PostForUser.Handle("/set_unread", api.ApiSessionRequired(setPostUnread)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/pin", api.ApiSessionRequired(pinPost)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/unpin", api.ApiSessionRequired(unpinPost)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
+	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
+	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -96,7 +96,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
-	w.Write([]byte(rp.ToJson()))
+	if err := json.NewEncoder(w).Encode(rp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -126,7 +128,14 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
 	rp = c.App.PreparePostForClient(rp, true, false)
-	w.Write([]byte(rp.ToJson()))
+	rp, err := c.App.SanitizePostMetadataForUser(rp, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if err := json.NewEncoder(w).Encode(rp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -212,8 +221,15 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.AddCursorIdsForPostList(list, afterPost, beforePost, since, page, perPage, collapsedThreads)
 	clientPostList := c.App.PreparePostListForClient(list)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
-	w.Write([]byte(clientPostList.ToJson()))
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -235,7 +251,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	if c.Params.LimitAfter == 0 {
-		c.SetInvalidUrlParam("limit_after")
+		c.SetInvalidURLParam("limit_after")
 		return
 	}
 
@@ -268,11 +284,18 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	postList.PrevPostId = c.App.GetPrevPostIdFromPostList(postList, collapsedThreads)
 
 	clientPostList := c.App.PreparePostListForClient(postList)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
-	w.Write([]byte(clientPostList.ToJson()))
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -329,7 +352,15 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	pl.SortByCreateAt()
-	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
+	clientPostList := c.App.PreparePostListForClient(pl)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -338,38 +369,27 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := c.App.GetSinglePost(c.Params.PostId)
+	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session())
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	channel, err := c.App.GetChannel(post.ChannelId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
-		if channel.Type == model.ChannelTypeOpen {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
-				c.SetPermissionError(model.PermissionReadPublicChannel)
-				return
-			}
-		} else {
-			c.SetPermissionError(model.PermissionReadChannel)
-			return
-		}
 	}
 
 	post = c.App.PreparePostForClient(post, false, false)
+	post, err = c.App.SanitizePostMetadataForUser(post, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
 	}
 
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
-	w.Write([]byte(post.ToJson()))
+	if err := json.NewEncoder(w).Encode(post); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
@@ -426,26 +446,13 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	post, ok := list.Posts[c.Params.PostId]
 	if !ok {
-		c.SetInvalidUrlParam("post_id")
+		c.SetInvalidURLParam("post_id")
 		return
 	}
 
-	channel, err := c.App.GetChannel(post.ChannelId)
-	if err != nil {
+	if _, err = c.App.GetPostIfAuthorized(post.Id, c.AppContext.Session()); err != nil {
 		c.Err = err
 		return
-	}
-
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
-		if channel.Type == model.ChannelTypeOpen {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
-				c.SetPermissionError(model.PermissionReadPublicChannel)
-				return
-			}
-		} else {
-			c.SetPermissionError(model.PermissionReadChannel)
-			return
-		}
 	}
 
 	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {
@@ -453,10 +460,17 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientPostList := c.App.PreparePostListForClient(list)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 
-	w.Write([]byte(clientPostList.ToJson()))
+	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -524,11 +538,18 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientPostList := c.App.PreparePostListForClient(results.PostList)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(clientPostList, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(results.ToJson()))
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -586,7 +607,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("update", rpost)
 
-	w.Write([]byte(rpost.ToJson()))
+	if err := json.NewEncoder(w).Encode(rpost); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -636,7 +659,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("patch", patchedPost)
 
-	w.Write([]byte(patchedPost.ToJson()))
+	if err := json.NewEncoder(w).Encode(patchedPost); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -662,7 +687,9 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	w.Write([]byte(state.ToJson()))
+	if err := json.NewEncoder(w).Encode(state); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {

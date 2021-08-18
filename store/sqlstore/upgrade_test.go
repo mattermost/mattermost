@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestStoreUpgradeDotRelease(t *testing.T) {
@@ -125,13 +125,12 @@ func createChannelMemberWithLastViewAt(ss store.Store, channelId, userId string,
 	cm, _ := ss.Channel().SaveMember(&m)
 	return cm
 }
-func createPostWithTimestamp(ss store.Store, channelId, userId, rootId, parentId string, timestamp int64) *model.Post {
+func createPostWithTimestamp(ss store.Store, channelId, userId, rootId string, timestamp int64) *model.Post {
 	m := model.Post{}
 	m.CreateAt = timestamp
 	m.ChannelId = channelId
 	m.UserId = userId
 	m.RootId = rootId
-	m.ParentId = parentId
 	m.Message = "zz" + model.NewId() + "b"
 	p, _ := ss.Post().Save(&m)
 	return p
@@ -225,10 +224,10 @@ func TestMsgCountRootMigration(t *testing.T) {
 						}
 						for i, pt := range testChannel.PostTimes {
 							rt := testChannel.ReplyTimes[i]
-							post := createPostWithTimestamp(ss, channel.Id, model.NewId(), "", "", pt)
+							post := createPostWithTimestamp(ss, channel.Id, model.NewId(), "", pt)
 							require.NotNil(t, post)
 							if rt > 0 {
-								reply := createPostWithTimestamp(ss, channel.Id, model.NewId(), post.Id, post.Id, rt)
+								reply := createPostWithTimestamp(ss, channel.Id, model.NewId(), post.Id, rt)
 								require.NotNil(t, reply)
 							}
 						}
@@ -242,7 +241,7 @@ func TestMsgCountRootMigration(t *testing.T) {
 						members, err := ss.Channel().GetMembersByIds(channel.Id, userIds)
 						require.NoError(t, err)
 
-						for _, m := range *members {
+						for _, m := range members {
 							for i, uid := range userIds {
 								if m.UserId == uid {
 									assert.Equal(t, testChannel.ExpectedMembershipMsgCountRoot[i], m.MsgCountRoot)
@@ -276,12 +275,12 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		//   - user2: reply 2 to root post 1
 		//   - user1: reply 3 to root post 1
 		//   - user2: reply 4 to root post 1
-		rootPost1 := createPostWithTimestamp(ss, c1.Id, uId2, "", "", 1)
+		rootPost1 := createPostWithTimestamp(ss, c1.Id, uId2, "", 1)
 		lastReplyAt := int64(40)
-		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, rootPost1.Id, 10)
-		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, rootPost1.Id, 20)
-		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, rootPost1.Id, 30)
-		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, rootPost1.Id, lastReplyAt)
+		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, 10)
+		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, 20)
+		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, 30)
+		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, lastReplyAt)
 
 		// Check created thread is good
 		goodThread1, err := ss.Thread().Get(rootPost1.Id)
@@ -319,7 +318,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		cm2, err := ss.Channel().GetMember(context.Background(), c1.Id, uId2)
 		require.NoError(t, err)
 		cm2.LastViewedAt = lastReplyAt - 10
-		cm2, err = ss.Channel().UpdateMember(cm2)
+		_, err = ss.Channel().UpdateMember(cm2)
 		require.NoError(t, err)
 
 		// Update ThreadMembership with bad data, as we might expect because

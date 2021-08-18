@@ -17,9 +17,9 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -126,7 +126,7 @@ func (a *App) PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal
 		if seqVal == "" {
 			// Sequence_number must be sent with connection id.
 			// A client must be either non-compliant or fully compliant.
-			return nil, errors.New("Sequence number not present in websocket request")
+			return nil, errors.New("sequence number not present in websocket request")
 		}
 		var err error
 		cfg.sequence, err = strconv.Atoi(seqVal)

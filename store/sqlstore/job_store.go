@@ -12,8 +12,8 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlJobStore struct {
@@ -28,7 +28,7 @@ func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(32)
 		table.ColMap("Status").SetMaxSize(32)
-		table.ColMap("Data").SetMaxSize(1024)
+		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return s

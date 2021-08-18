@@ -8,8 +8,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
@@ -45,7 +46,10 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 
 	jCopy := job.DeepCopy()
 	a.Srv().Go(func() {
-		a.Compliance().RunComplianceJob(jCopy)
+		err := a.Compliance().RunComplianceJob(jCopy)
+		if err != nil {
+			mlog.Warn("Error running compliance job", mlog.Err(err))
+		}
 	})
 
 	return job, nil

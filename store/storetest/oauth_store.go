@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestOAuthStore(t *testing.T, ss store.Store) {
@@ -305,7 +305,7 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	p.Category = model.PreferenceCategoryAuthorizedOAuthApp
 	p.Name = a1.Id
 	p.Value = "true"
-	nErr := ss.Preference().Save(&model.Preferences{p})
+	nErr := ss.Preference().Save(model.Preferences{p})
 	require.NoError(t, nErr)
 
 	apps, err = ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000)
@@ -328,7 +328,7 @@ func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
 	p.Category = model.PreferenceCategoryAuthorizedOAuthApp
 	p.Name = a1.Id
 	p.Value = "true"
-	nErr := ss.Preference().Save(&model.Preferences{p})
+	nErr := ss.Preference().Save(model.Preferences{p})
 	require.NoError(t, nErr)
 
 	apps, err := ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000)

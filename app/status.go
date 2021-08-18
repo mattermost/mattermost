@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
@@ -24,7 +24,7 @@ func (a *App) AddStatusCache(status *model.Status) {
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventUpdateStatus,
 			SendType: model.ClusterSendBestEffort,
-			Data:     status.ToClusterJson(),
+			Data:     []byte(status.ToClusterJson()),
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}
@@ -437,11 +437,11 @@ func (a *App) RemoveCustomStatus(userID string) *model.AppError {
 }
 
 func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
-	var newRCS *model.RecentCustomStatuses
+	var newRCS model.RecentCustomStatuses
 
 	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
 	if err != nil || pref.Value == "" {
-		newRCS = &model.RecentCustomStatuses{*status}
+		newRCS = model.RecentCustomStatuses{*status}
 	} else {
 		existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
 		newRCS = existingRCS.Add(status)

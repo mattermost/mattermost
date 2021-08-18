@@ -9,40 +9,45 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestGetBrandImage(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
-	_, resp := Client.GetBrandImage()
+	_, resp, err := client.GetBrandImage()
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.GetBrandImage()
+	client.Logout()
+	_, resp, err = client.GetBrandImage()
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetBrandImage()
+	_, resp, err = th.SystemAdminClient.GetBrandImage()
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
 func TestUploadBrandImage(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	_, resp := Client.UploadBrandImage(data)
+	resp, err := client.UploadBrandImage(data)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetProfileImage when request is terminated early by server
-	Client.Logout()
-	_, resp = Client.UploadBrandImage(data)
+	client.Logout()
+	resp, err = client.UploadBrandImage(data)
+	require.Error(t, err)
 	if resp.StatusCode == http.StatusForbidden {
 		CheckForbiddenStatus(t, resp)
 	} else if resp.StatusCode == http.StatusUnauthorized {
@@ -51,7 +56,8 @@ func TestUploadBrandImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	_, resp = th.SystemAdminClient.UploadBrandImage(data)
+	resp, err = th.SystemAdminClient.UploadBrandImage(data)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 }
 
@@ -62,20 +68,25 @@ func TestDeleteBrandImage(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	_, resp := th.SystemAdminClient.UploadBrandImage(data)
+	resp, err := th.SystemAdminClient.UploadBrandImage(data)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	resp = th.Client.DeleteBrandImage()
+	resp, err = th.Client.DeleteBrandImage()
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
 
-	resp = th.Client.DeleteBrandImage()
+	resp, err = th.Client.DeleteBrandImage()
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	resp = th.SystemAdminClient.DeleteBrandImage()
+	resp, err = th.SystemAdminClient.DeleteBrandImage()
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
-	resp = th.SystemAdminClient.DeleteBrandImage()
+	resp, err = th.SystemAdminClient.DeleteBrandImage()
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }

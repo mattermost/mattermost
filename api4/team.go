@@ -15,8 +15,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -32,48 +33,48 @@ func init() {
 }
 
 func (api *API) InitTeam() {
-	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(getAllTeams)).Methods("GET")
-	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateTeamScheme)).Methods("PUT")
-	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchTeams)).Methods("POST")
-	api.BaseRoutes.TeamsForUser.Handle("", api.ApiSessionRequired(getTeamsForUser)).Methods("GET")
-	api.BaseRoutes.TeamsForUser.Handle("/unread", api.ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(createTeam)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(getAllTeams)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateTeamScheme)).Methods("PUT")
+	api.BaseRoutes.Teams.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchTeams)).Methods("POST")
+	api.BaseRoutes.TeamsForUser.Handle("", api.APISessionRequired(getTeamsForUser)).Methods("GET")
+	api.BaseRoutes.TeamsForUser.Handle("/unread", api.APISessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(getTeam)).Methods("GET")
-	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(updateTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(deleteTeam)).Methods("DELETE")
-	api.BaseRoutes.Team.Handle("/patch", api.ApiSessionRequired(patchTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/restore", api.ApiSessionRequired(restoreTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/privacy", api.ApiSessionRequired(updateTeamPrivacy)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/stats", api.ApiSessionRequired(getTeamStats)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.ApiSessionRequired(regenerateTeamInviteId)).Methods("POST")
+	api.BaseRoutes.Team.Handle("", api.APISessionRequired(getTeam)).Methods("GET")
+	api.BaseRoutes.Team.Handle("", api.APISessionRequired(updateTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("", api.APISessionRequired(deleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/patch", api.APISessionRequired(patchTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/restore", api.APISessionRequired(restoreTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/stats", api.APISessionRequired(getTeamStats)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods("POST")
 
-	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequired(setTeamIcon)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequired(removeTeamIcon)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(removeTeamIcon)).Methods("DELETE")
 
-	api.BaseRoutes.TeamMembers.Handle("", api.ApiSessionRequired(getTeamMembers)).Methods("GET")
-	api.BaseRoutes.TeamMembers.Handle("/ids", api.ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
-	api.BaseRoutes.TeamMembersForUser.Handle("", api.ApiSessionRequired(getTeamMembersForUser)).Methods("GET")
-	api.BaseRoutes.TeamMembers.Handle("", api.ApiSessionRequired(addTeamMember)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("/members/invite", api.ApiSessionRequired(addUserToTeamFromInvite)).Methods("POST")
-	api.BaseRoutes.TeamMembers.Handle("/batch", api.ApiSessionRequired(addTeamMembers)).Methods("POST")
-	api.BaseRoutes.TeamMember.Handle("", api.ApiSessionRequired(removeTeamMember)).Methods("DELETE")
+	api.BaseRoutes.TeamMembers.Handle("", api.APISessionRequired(getTeamMembers)).Methods("GET")
+	api.BaseRoutes.TeamMembers.Handle("/ids", api.APISessionRequired(getTeamMembersByIds)).Methods("POST")
+	api.BaseRoutes.TeamMembersForUser.Handle("", api.APISessionRequired(getTeamMembersForUser)).Methods("GET")
+	api.BaseRoutes.TeamMembers.Handle("", api.APISessionRequired(addTeamMember)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/members/invite", api.APISessionRequired(addUserToTeamFromInvite)).Methods("POST")
+	api.BaseRoutes.TeamMembers.Handle("/batch", api.APISessionRequired(addTeamMembers)).Methods("POST")
+	api.BaseRoutes.TeamMember.Handle("", api.APISessionRequired(removeTeamMember)).Methods("DELETE")
 
-	api.BaseRoutes.TeamForUser.Handle("/unread", api.ApiSessionRequired(getTeamUnread)).Methods("GET")
+	api.BaseRoutes.TeamForUser.Handle("/unread", api.APISessionRequired(getTeamUnread)).Methods("GET")
 
-	api.BaseRoutes.TeamByName.Handle("", api.ApiSessionRequired(getTeamByName)).Methods("GET")
-	api.BaseRoutes.TeamMember.Handle("", api.ApiSessionRequired(getTeamMember)).Methods("GET")
-	api.BaseRoutes.TeamByName.Handle("/exists", api.ApiSessionRequired(teamExists)).Methods("GET")
-	api.BaseRoutes.TeamMember.Handle("/roles", api.ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
-	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.ApiSessionRequired(updateTeamMemberSchemeRoles)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/import", api.ApiSessionRequired(importTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/invite/email", api.ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/invite-guests/email", api.ApiSessionRequired(inviteGuestsToChannels)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("/invites/email", api.ApiSessionRequired(invalidateAllEmailInvites)).Methods("DELETE")
-	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.ApiHandler(getInviteInfo)).Methods("GET")
+	api.BaseRoutes.TeamByName.Handle("", api.APISessionRequired(getTeamByName)).Methods("GET")
+	api.BaseRoutes.TeamMember.Handle("", api.APISessionRequired(getTeamMember)).Methods("GET")
+	api.BaseRoutes.TeamByName.Handle("/exists", api.APISessionRequired(teamExists)).Methods("GET")
+	api.BaseRoutes.TeamMember.Handle("/roles", api.APISessionRequired(updateTeamMemberRoles)).Methods("PUT")
+	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.APISessionRequired(updateTeamMemberSchemeRoles)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/import", api.APISessionRequired(importTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/invite/email", api.APISessionRequired(inviteUsersToTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/invite-guests/email", api.APISessionRequired(inviteGuestsToChannels)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/invites/email", api.APISessionRequired(invalidateAllEmailInvites)).Methods("DELETE")
+	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.APIHandler(getInviteInfo)).Methods("GET")
 
-	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/members_minus_group_members", api.ApiSessionRequired(teamMembersMinusGroupMembers)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/members_minus_group_members", api.APISessionRequired(teamMembersMinusGroupMembers)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -105,7 +106,9 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rteam.ToJson()))
+	if err := json.NewEncoder(w).Encode(rteam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -126,7 +129,9 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), team)
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -147,7 +152,9 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), team)
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -189,7 +196,9 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("update", updatedTeam)
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), updatedTeam)
-	w.Write([]byte(updatedTeam.ToJson()))
+	if err := json.NewEncoder(w).Encode(updatedTeam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -230,7 +239,9 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("patched", patchedTeam)
 	c.LogAudit("")
 
-	w.Write([]byte(patchedTeam.ToJson()))
+	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -264,7 +275,9 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team)
 	auditRec.Success()
 
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -316,7 +329,9 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team)
 	auditRec.Success()
 
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -345,7 +360,9 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("team", patchedTeam)
 	c.LogAudit("")
 
-	w.Write([]byte(patchedTeam.ToJson()))
+	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -420,8 +437,9 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// optional team id to be excluded from the result
 	teamId := r.URL.Query().Get("exclude_team")
+	includeCollapsedThreads := r.URL.Query().Get("include_collapsed_threads") == "true"
 
-	unreadTeamsList, err := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId)
+	unreadTeamsList, err := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId, includeCollapsedThreads)
 	if err != nil {
 		c.Err = err
 		return
@@ -458,7 +476,9 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(team.ToJson()))
+	if err := json.NewEncoder(w).Encode(team); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -643,7 +663,9 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(member.ToJson()))
+	if err := json.NewEncoder(w).Encode(member); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -681,7 +703,9 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(member.ToJson()))
+	if err := json.NewEncoder(w).Encode(member); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -853,7 +877,9 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(unreadTeam.ToJson()))
+	if err := json.NewEncoder(w).Encode(unreadTeam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -879,7 +905,9 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(stats.ToJson()))
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {

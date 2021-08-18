@@ -10,8 +10,8 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search/query"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const DeletePostsBatchSize = 500
@@ -28,9 +28,9 @@ func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError
 	return nil
 }
 
-func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
+func (b *BleveEngine) SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
 	channelQueries := []query.Query{}
-	for _, channel := range *channels {
+	for _, channel := range channels {
 		channelIdQ := bleve.NewTermQuery(channel.Id)
 		channelIdQ.SetField("ChannelId")
 		channelQueries = append(channelQueries, channelIdQ)
@@ -520,9 +520,9 @@ func (b *BleveEngine) IndexFile(file *model.FileInfo, channelId string) *model.A
 	return nil
 }
 
-func (b *BleveEngine) SearchFiles(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, *model.AppError) {
+func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, *model.AppError) {
 	channelQueries := []query.Query{}
-	for _, channel := range *channels {
+	for _, channel := range channels {
 		channelIdQ := bleve.NewTermQuery(channel.Id)
 		channelIdQ.SetField("ChannelId")
 		channelQueries = append(channelQueries, channelIdQ)

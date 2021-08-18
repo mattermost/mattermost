@@ -13,9 +13,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type SendFileResultFunc func(us *model.UploadSession, rc *model.RemoteCluster, resp *Response, err error)
@@ -98,7 +98,7 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	if err != nil {
 		return nil, fmt.Errorf("invalid siteURL while sending file to remote %s: %w", task.rc.RemoteId, err)
 	}
-	u.Path = path.Join(u.Path, model.ApiUrlSuffix, "remotecluster", "upload", task.us.Id)
+	u.Path = path.Join(u.Path, model.APIURLSuffix, "remotecluster", "upload", task.us.Id)
 
 	req, err := http.NewRequest("POST", u.String(), r)
 	if err != nil {

@@ -15,11 +15,11 @@ import (
 	"sync"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -74,7 +74,6 @@ func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID str
 	}
 
 	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {
-		post.ParentId = ""
 		a.SendEphemeralPost(post.UserId, post)
 	}
 
@@ -570,7 +569,6 @@ func (a *App) HandleCommandResponsePost(c *request.Context, command *model.Comma
 	post := &model.Post{}
 	post.ChannelId = args.ChannelId
 	post.RootId = args.RootId
-	post.ParentId = args.ParentId
 	post.UserId = args.UserId
 	post.Type = response.Type
 	post.SetProps(response.Props)

@@ -6,8 +6,8 @@ package sqlstore
 import (
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type relationalCheckConfig struct {
@@ -147,16 +147,6 @@ func checkPostsFileInfoIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 		parentIdAttr: "PostId",
 		childName:    "FileInfo",
 		childIdAttr:  "Id",
-	})
-}
-
-func checkPostsPostsParentIdIntegrity(ss *SqlStore) model.IntegrityCheckResult {
-	return checkParentChildIntegrity(ss, relationalCheckConfig{
-		parentName:         "Posts",
-		parentIdAttr:       "ParentId",
-		childName:          "Posts",
-		childIdAttr:        "Id",
-		canParentIdBeEmpty: true,
 	})
 }
 
@@ -474,7 +464,6 @@ func checkCommandsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckRes
 
 func checkPostsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkPostsFileInfoIntegrity(ss)
-	results <- checkPostsPostsParentIdIntegrity(ss)
 	results <- checkPostsPostsRootIdIntegrity(ss)
 	results <- checkPostsReactionsIntegrity(ss)
 }

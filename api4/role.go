@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var notAllowedPermissions = []string{
@@ -17,10 +19,10 @@ var notAllowedPermissions = []string{
 }
 
 func (api *API) InitRole() {
-	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getRole)).Methods("GET")
-	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.ApiSessionRequiredTrustRequester(getRoleByName)).Methods("GET")
-	api.BaseRoutes.Roles.Handle("/names", api.ApiSessionRequiredTrustRequester(getRolesByNames)).Methods("POST")
-	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}/patch", api.ApiSessionRequired(patchRole)).Methods("PUT")
+	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.APISessionRequiredTrustRequester(getRole)).Methods("GET")
+	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.APISessionRequiredTrustRequester(getRoleByName)).Methods("GET")
+	api.BaseRoutes.Roles.Handle("/names", api.APISessionRequiredTrustRequester(getRolesByNames)).Methods("POST")
+	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}/patch", api.APISessionRequired(patchRole)).Methods("PUT")
 }
 
 func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -35,7 +37,9 @@ func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(role.ToJson()))
+	if err := json.NewEncoder(w).Encode(role); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -50,7 +54,9 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(role.ToJson()))
+	if err := json.NewEncoder(w).Encode(role); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -167,5 +173,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("patch", role)
 	c.LogAudit("")
 
-	w.Write([]byte(role.ToJson()))
+	if err := json.NewEncoder(w).Encode(role); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

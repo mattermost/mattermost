@@ -8,16 +8,17 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/markdown"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/markdown"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
@@ -171,6 +172,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
+	participantMemberships := map[string]*model.ThreadMembership{}
+	membershipsMutex := &sync.Mutex{}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
@@ -203,25 +206,33 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					}
 
 					if membership != nil && !membership.Following {
+						membershipsMutex.Lock()
+						participantMemberships[userID] = membership
+						membershipsMutex.Unlock()
 						return
 					}
 				}
+
+				updateFollowing := *a.Config().ServiceSettings.ThreadAutoFollow
 				if mentionType == ThreadMention || mentionType == CommentMention {
 					incrementMentions = false
+					updateFollowing = false
 				}
-
 				opts := store.ThreadMembershipOpts{
 					Following:             true,
 					IncrementMentions:     incrementMentions,
-					UpdateFollowing:       *a.Config().ServiceSettings.ThreadAutoFollow,
+					UpdateFollowing:       updateFollowing,
 					UpdateViewedTimestamp: userID == post.UserId,
 					UpdateParticipants:    userID == post.UserId,
 				}
-				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
+				threadMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
 				}
+				membershipsMutex.Lock()
+				participantMemberships[userID] = threadMembership
+				membershipsMutex.Unlock()
 
 				mac <- nil
 			}(id)
@@ -458,7 +469,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
-	a.Publish(message)
+	published, err := a.publishWebsocketEventForPermalinkPost(post, message)
+	if err != nil {
+		return nil, err
+	}
+	if !published {
+		a.Publish(message)
+	}
 
 	// If this is a reply in a thread, notify participants
 	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled && post.RootId != "" {
@@ -469,14 +486,20 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for _, uid := range followers {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
 			// check if a participant has overridden collapsed threads settings
-			if preference, err := a.Srv().Store.Preference().Get(uid, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); err == nil {
+			if preference, prefErr := a.Srv().Store.Preference().Get(uid, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); prefErr == nil {
 				sendEvent = preference.Value == "on"
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
-				threadMembership, err := a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
-				if err != nil {
-					return nil, errors.Wrapf(err, "cannot get thread membership %q for user %q", post.RootId, uid)
+				threadMembership := participantMemberships[uid]
+				if threadMembership == nil {
+					threadMembership, err = a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
+					if err != nil {
+						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications. user_id=%q thread_id=%q", uid, post.RootId)
+					}
+					if threadMembership == nil {
+						continue
+					}
 				}
 				userThread, err := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
 				if err != nil {
@@ -485,6 +508,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if userThread != nil {
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
+
+					previewPost := post.GetPreviewPost()
+					if previewPost != nil {
+						previewedChannel, err := a.GetChannel(previewPost.Post.ChannelId)
+						if err != nil {
+							return nil, err
+						}
+						if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) {
+							userThread.Post.Metadata.Embeds[0].Data = nil
+						}
+					}
+
 					message.Add("thread", userThread.ToJson())
 					a.Publish(message)
 				}
@@ -534,7 +569,6 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *mode
 	ephemeralPost := &model.Post{
 		UserId:    sender.Id,
 		RootId:    post.RootId,
-		ParentId:  post.ParentId,
 		ChannelId: channel.Id,
 		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupName": group.Name}),
 	}
@@ -1051,8 +1085,10 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	if overridesAllowed && n.Channel.Type != model.ChannelTypeDirect {
-		if value, ok := n.Post.GetProps()["override_username"]; ok && n.Post.GetProp("from_webhook") == "true" {
-			return value.(string)
+		if value := n.Post.GetProps()["override_username"]; value != nil && n.Post.GetProp("from_webhook") == "true" {
+			if s, ok := value.(string); ok {
+				return s
+			}
 		}
 	}
 

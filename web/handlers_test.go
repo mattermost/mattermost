@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -196,7 +196,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
-	request.Header.Add(model.HeaderRequestedWith, model.HeaderRequestedWithXml)
+	request.Header.Add(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 	response = httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 
@@ -458,7 +458,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXml)
+		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -508,7 +508,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXml)
+		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,

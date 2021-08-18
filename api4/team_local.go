@@ -4,34 +4,36 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/app/email"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/email"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (api *API) InitTeamLocal() {
-	api.BaseRoutes.Teams.Handle("", api.ApiLocal(localCreateTeam)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("", api.ApiLocal(getAllTeams)).Methods("GET")
-	api.BaseRoutes.Teams.Handle("/search", api.ApiLocal(searchTeams)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("", api.APILocal(localCreateTeam)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("", api.APILocal(getAllTeams)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/search", api.APILocal(searchTeams)).Methods("POST")
 
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(getTeam)).Methods("GET")
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(updateTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(localDeleteTeam)).Methods("DELETE")
-	api.BaseRoutes.Team.Handle("/invite/email", api.ApiLocal(localInviteUsersToTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/patch", api.ApiLocal(patchTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/privacy", api.ApiLocal(updateTeamPrivacy)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/restore", api.ApiLocal(restoreTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("", api.APILocal(getTeam)).Methods("GET")
+	api.BaseRoutes.Team.Handle("", api.APILocal(updateTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("", api.APILocal(localDeleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/invite/email", api.APILocal(localInviteUsersToTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/patch", api.APILocal(patchTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/privacy", api.APILocal(updateTeamPrivacy)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/restore", api.APILocal(restoreTeam)).Methods("POST")
 
-	api.BaseRoutes.TeamByName.Handle("", api.ApiLocal(getTeamByName)).Methods("GET")
-	api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")
-	api.BaseRoutes.TeamMember.Handle("", api.ApiLocal(removeTeamMember)).Methods("DELETE")
+	api.BaseRoutes.TeamByName.Handle("", api.APILocal(getTeamByName)).Methods("GET")
+	api.BaseRoutes.TeamMembers.Handle("", api.APILocal(addTeamMember)).Methods("POST")
+	api.BaseRoutes.TeamMember.Handle("", api.APILocal(removeTeamMember)).Methods("DELETE")
 }
 
 func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -220,5 +222,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rteam.ToJson()))
+	if err := json.NewEncoder(w).Encode(rteam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

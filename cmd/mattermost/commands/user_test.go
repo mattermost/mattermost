@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateUserWithTeam(t *testing.T) {
@@ -24,7 +24,8 @@ func TestCreateUserWithTeam(t *testing.T) {
 
 	th.CheckCommand(t, "team", "add", th.BasicTeam.Id, email)
 
-	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")).([]*model.User)
+	profiles, _, err := th.SystemAdminClient.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")
+	require.NoError(t, err)
 
 	found := false
 

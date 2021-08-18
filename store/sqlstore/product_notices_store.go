@@ -9,8 +9,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlProductNoticesStore struct {
@@ -42,9 +42,9 @@ func (s SqlProductNoticesStore) Clear(notices []string) error {
 	return nil
 }
 
-func (s SqlProductNoticesStore) ClearOldNotices(currentNotices *model.ProductNotices) error {
+func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNotices) error {
 	var notices []string
-	for _, currentNotice := range *currentNotices {
+	for _, currentNotice := range currentNotices {
 		notices = append(notices, currentNotice.ID)
 	}
 	sql, args, _ := s.getQueryBuilder().Delete("ProductNoticeViewState").Where(sq.NotEq{"NoticeId": notices}).ToSql()

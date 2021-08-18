@@ -14,10 +14,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
@@ -69,9 +69,8 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 	}
 
 	context := &plugin.Context{
-		RequestId:      model.NewId(),
-		UserAgent:      r.UserAgent(),
-		SourcePluginId: sourcePluginId,
+		RequestId: model.NewId(),
+		UserAgent: r.UserAgent(),
 	}
 
 	r.Header.Set("Mattermost-Plugin-ID", sourcePluginId)
@@ -167,7 +166,7 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 			}
 
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
-			if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXml && !csrfCheckPassed {
+			if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML && !csrfCheckPassed {
 				csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
 				sid := ""
 				userID := ""

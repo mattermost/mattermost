@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/pkg/errors"
 )
 
@@ -99,7 +99,7 @@ func (us *UserService) ClearUserSessionCache(userID string) {
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventClearSessionCacheForUser,
 			SendType: model.ClusterSendReliable,
-			Data:     userID,
+			Data:     []byte(userID),
 		}
 		us.cluster.SendClusterMessage(msg)
 	}

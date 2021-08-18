@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mail"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/shared/templates"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mail"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/pkg/errors"
 )
 
@@ -552,7 +552,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
 
 			if !*es.config().EmailSettings.SendEmailNotifications {
-				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtomURL"].(string)))
+				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
 			}
 
 			embeddedFiles := make(map[string]io.Reader)

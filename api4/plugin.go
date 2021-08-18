@@ -13,10 +13,10 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/pkg/errors"
 )
 
@@ -27,22 +27,22 @@ const (
 func (api *API) InitPlugin() {
 	mlog.Debug("EXPERIMENTAL: Initializing plugin api")
 
-	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(uploadPlugin)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
-	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
-	api.BaseRoutes.Plugins.Handle("/install_from_url", api.ApiSessionRequired(installPluginFromUrl)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(installMarketplacePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(getPlugins)).Methods("GET")
+	api.BaseRoutes.Plugin.Handle("", api.APISessionRequired(removePlugin)).Methods("DELETE")
+	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APISessionRequired(installPluginFromURL)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(installMarketplacePlugin)).Methods("POST")
 
-	api.BaseRoutes.Plugins.Handle("/statuses", api.ApiSessionRequired(getPluginStatuses)).Methods("GET")
-	api.BaseRoutes.Plugin.Handle("/enable", api.ApiSessionRequired(enablePlugin)).Methods("POST")
-	api.BaseRoutes.Plugin.Handle("/disable", api.ApiSessionRequired(disablePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/statuses", api.APISessionRequired(getPluginStatuses)).Methods("GET")
+	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequired(enablePlugin)).Methods("POST")
+	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequired(disablePlugin)).Methods("POST")
 
-	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods("GET")
 
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(getMarketplacePlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(getMarketplacePlugins)).Methods("GET")
 
-	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.ApiHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.ApiSessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -95,15 +95,15 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 }
 
-func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
+func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*c.App.Config().PluginSettings.Enable ||
 		*c.App.Config().PluginSettings.RequirePluginSignature ||
 		!*c.App.Config().PluginSettings.EnableUploads {
-		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("installPluginFromURL", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("installPluginFromUrl", audit.Fail)
+	auditRec := c.MakeAuditRecord("installPluginFromURL", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
@@ -117,7 +117,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("installPluginFromURL", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -162,7 +162,9 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec.AddMeta("plugin_desc", manifest.Description)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(manifest.ToJson()))
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -182,7 +184,9 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(response.ToJson()))
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -202,7 +206,9 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(response.ToJson()))
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -386,7 +392,9 @@ func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, forc
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(manifest.ToJson()))
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -444,5 +452,7 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 	}
 
 	auditRec.Success()
-	w.Write([]byte(firstAdminVisitMarketplaceObj.ToJson()))
+	if err := json.NewEncoder(w).Encode(firstAdminVisitMarketplaceObj); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

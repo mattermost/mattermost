@@ -19,15 +19,15 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/tracing"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	app_opentracing "github.com/mattermost/mattermost-server/v6/app/opentracing"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/tracing"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/opentracinglayer"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -320,7 +320,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.IsOAuth = false
 		}
 
-		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
+		if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
@@ -328,17 +328,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if c.App.Metrics() != nil {
-			c.App.Metrics().IncrementHttpError()
+			c.App.Metrics().IncrementHTTPError()
 		}
 	}
 
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
-		c.App.Metrics().IncrementHttpRequest()
+		c.App.Metrics().IncrementHTTPRequest()
 
-		if r.URL.Path != model.ApiUrlSuffix+"/websocket" {
+		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}
 }
@@ -354,7 +354,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 
 		if csrfHeader == session.GetCSRF() {
 			csrfCheckPassed = true
-		} else if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXml {
+		} else if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
 
@@ -390,9 +390,9 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 	return csrfCheckNeeded, csrfCheckPassed
 }
 
-// ApiHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
+// APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
 // granted.
-func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
 		App:            w.app,
 		HandleFunc:     h,
@@ -409,10 +409,10 @@ func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 	return handler
 }
 
-// ApiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
+// APIHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
 // allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
 // websocket.
-func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
 		App:            w.app,
 		HandleFunc:     h,
@@ -429,9 +429,9 @@ func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 	return handler
 }
 
-// ApiSessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
+// APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
 		App:            w.app,
 		HandleFunc:     h,

@@ -2180,24 +2180,8 @@
     "translation": "Ocurrió un error al enviar el correo electrónico de desactivación de cuenta"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del correo electrónico"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del nombre de usuario"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Error al enviar la notificación por correo electrónico para verificar el cambio satisfactorio del correo electrónico"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "No se puede enviar la notificación por correo electrónico para el cambio de MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio de contraseña"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "Error al enviar la notificación por correo del cambio satisfactorio de contraseña"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Error al enviar el correo electrónico de token de acceso personal añadido correctamente"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Error al enviar la notificación por correo electrónico de la verificación del correo electrónico"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Error al enviar la notificación de bienvenida por correo electrónico"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5860,38 +5836,6 @@
     "translation": "Por favor agregame a los equipos y canales en los que quieres que interactúe. Para ello, utiliza el navegador o la Aplicación de Escritorio de Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "No se pudo cargar la imagen del perfil. El archivo es muy grande."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "No se pudo analizar el formulario multipart."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "No se pudo abrir el archivo de imagen."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "No hay un archivo bajo 'image' en la solicitud."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Arreglo vacío bajo 'image' en la solicitud."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "No se pudo cargar el icono."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "No se puede leer el archivo del icono."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "No se puede borrar la imagen del icono."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Creación de Bots ha sido deshabilitado."
   },
@@ -5998,10 +5942,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "Error al eliminar los mensajes del canal"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Encontramos un error al eliminar permanentemente el lote de reacciones."
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6320,10 +6260,6 @@
     "translation": "No se pudo obtener los usuarios del canal en el período de tiempo especificado."
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "No se pudo purgar los registros."
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "No se puede habilitar guardar token de acceso."
   },
@@ -6510,10 +6446,6 @@
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Error al enviar correo electrónico al administrador"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Hemos detectado un error al limpiar los lotes para los mensajes marcados."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6850,10 +6782,6 @@
   {
     "id": "ent.message_export.actiance_export.get_attachment_error",
     "translation": "Fallado para coger lima info para un poste."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Hemos detectado un error al eliminar permanentemente el lote de información archivos."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7458,10 +7386,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "No se puede obtener los mensajes en lote para la indexación."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Hemos detectado un error al eliminar permanentemente el lote de los mensajes."
   },
   {
     "id": "app.post.search.app_error",

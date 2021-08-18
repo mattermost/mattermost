@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestSystemStore(t *testing.T, ss store.Store) {
@@ -51,10 +51,18 @@ func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
 	err := ss.System().SaveOrUpdate(system)
 	require.NoError(t, err)
 
+	res, err := ss.System().GetByName(system.Name)
+	require.NoError(t, err)
+	assert.Equal(t, system.Value, res.Value)
+
 	system.Value = "value2"
 
 	err = ss.System().SaveOrUpdate(system)
 	require.NoError(t, err)
+
+	res, err = ss.System().GetByName(system.Name)
+	require.NoError(t, err)
+	assert.Equal(t, system.Value, res.Value)
 }
 
 func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.Store) {

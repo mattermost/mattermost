@@ -6,10 +6,10 @@ package slashcommands
 import (
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type ExpandProvider struct {
@@ -70,7 +70,7 @@ func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool)
 		Value:    strconv.FormatBool(isCollapse),
 	}
 
-	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
+	if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 

@@ -14,8 +14,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type permissionInheritanceTestData struct {
@@ -221,7 +221,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 
 	// assign the scheme to the team
 	team.SchemeId = &teamScheme.Id
-	team, err = th.App.UpdateTeamScheme(team)
+	_, err = th.App.UpdateTeamScheme(team)
 	require.Nil(t, err)
 
 	// test 24 combinations where the higher-scoped scheme is a TEAM scheme

@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type TestConfig struct {
@@ -34,8 +34,8 @@ type TestMessageExportSettings struct {
 
 type TestGlobalRelaySettings struct {
 	Customertype string
-	Smtpusername string
-	Smtppassword string
+	SMTPUsername string
+	SMTPPassword string
 }
 
 type TestServiceSettings struct {
@@ -61,7 +61,7 @@ type TestNewConfig struct {
 }
 
 type TestNewServiceSettings struct {
-	SiteUrl                  *string
+	SiteURL                  *string
 	UseLetsEncrypt           *bool
 	TLSStrictTransportMaxAge *int64
 	AllowedThemes            []string
@@ -327,8 +327,8 @@ func TestConfigToMap(t *testing.T) {
 					"Exportformat": "abc",
 					"TestGlobalRelaySettings": map[string]interface{}{
 						"Customertype": "abc",
-						"Smtpusername": "def",
-						"Smtppassword": "ghi",
+						"SMTPUsername": "def",
+						"SMTPPassword": "ghi",
 					},
 				},
 			},
@@ -351,8 +351,8 @@ func TestPrintConfigValues(t *testing.T) {
 		"Siteurl: \"abc\"\nWebsocketurl: \"def\"\nLicensedfieldlocation: \"ghi\"\n",
 		"Sitename: \"abc\"\nMaxuserperteam: \"1\"\n",
 		"Androidlatestversion: \"abc\"\nAndroidminversion: \"def\"\nDesktoplatestversion: \"ghi\"\n",
-		"Enableexport: \"true\"\nExportformat: \"abc\"\nTestGlobalRelaySettings:\n\tCustomertype: \"abc\"\n\tSmtpusername: \"def\"\n\tSmtppassword: \"ghi\"\n",
-		"Customertype: \"abc\"\nSmtpusername: \"def\"\nSmtppassword: \"ghi\"\n",
+		"Enableexport: \"true\"\nExportformat: \"abc\"\nTestGlobalRelaySettings:\n\tCustomertype: \"abc\"\n\tSMTPUsername: \"def\"\n\tSMTPPassword: \"ghi\"\n",
+		"Customertype: \"abc\"\nSMTPUsername: \"def\"\nSMTPPassword: \"ghi\"\n",
 	}
 
 	commands := []string{
@@ -483,7 +483,7 @@ func TestUpdateMap(t *testing.T) {
 	// create a config to make changes
 	config := TestNewConfig{
 		TestNewServiceSettings{
-			SiteUrl:                  model.NewString("abc.def"),
+			SiteURL:                  model.NewString("abc.def"),
 			UseLetsEncrypt:           model.NewBool(false),
 			TLSStrictTransportMaxAge: model.NewInt64(36),
 			AllowedThemes:            []string{"Hello", "World"},
@@ -505,7 +505,7 @@ func TestUpdateMap(t *testing.T) {
 	}{
 		{
 			Name:           "check for Map and string",
-			configSettings: []string{"TestNewServiceSettings", "SiteUrl"},
+			configSettings: []string{"TestNewServiceSettings", "SiteURL"},
 			newVal:         []string{"siteurl"},
 			expected:       "siteurl",
 		},
@@ -564,9 +564,9 @@ func TestConfigMigrate(t *testing.T) {
 	sqlDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
-	ds, err := config.NewStoreFromDSN(sqlDSN, false, false, nil)
+	ds, err := config.NewStoreFromDSN(sqlDSN, false, nil)
 	require.NoError(t, err)
-	fs, err := config.NewStoreFromDSN(fileDSN, false, false, nil)
+	fs, err := config.NewStoreFromDSN(fileDSN, false, nil)
 	require.NoError(t, err)
 
 	defer ds.Close()

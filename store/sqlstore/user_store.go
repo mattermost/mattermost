@@ -16,9 +16,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -69,13 +69,13 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("FirstName").SetMaxSize(64)
 		table.ColMap("LastName").SetMaxSize(64)
 		table.ColMap("Roles").SetMaxSize(256)
-		table.ColMap("Props").SetMaxSize(4000)
-		table.ColMap("NotifyProps").SetMaxSize(2000)
+		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
+		table.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
 		table.ColMap("RemoteId").SetMaxSize(26)
 		table.ColMap("Position").SetMaxSize(128)
-		table.ColMap("Timezone").SetMaxSize(256)
+		table.ColMap("Timezone").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return us
@@ -224,6 +224,18 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	user.Sanitize(map[string]bool{})
 	oldUser.Sanitize(map[string]bool{})
 	return &model.UserUpdate{New: user, Old: oldUser}, nil
+}
+
+func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	if _, err := us.GetMaster().Exec(`UPDATE Users
+		SET NotifyProps = :NotifyProps
+		WHERE Id = :UserId`, map[string]interface{}{
+		"NotifyProps": model.MapToJson(props),
+		"UserId":      userID}); err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
+	}
+
+	return nil
 }
 
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) error {
@@ -2001,4 +2013,30 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 	}
 
 	return userIds, nil
+}
+
+// IsEmpty returns whether or not the Users table is empty.
+func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
+	var hasRows bool
+
+	builder := us.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("Users")
+
+	if excludeBots {
+		builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+	}
+
+	builder = builder.Suffix(")")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrapf(err, "users_is_empty_to_sql")
+	}
+
+	if err = us.GetReplica().SelectOne(&hasRows, query, args...); err != nil {
+		return false, errors.Wrap(err, "failed to check if table is empty")
+	}
+	return !hasRows, nil
 }

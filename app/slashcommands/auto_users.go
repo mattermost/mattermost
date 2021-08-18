@@ -7,11 +7,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type AutoUserCreator struct {
@@ -39,23 +39,23 @@ func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *Au
 }
 
 // Basic test team and user so you always know one
-func CreateBasicUser(a *app.App, client *model.Client4) *model.AppError {
-	found, _ := client.TeamExists(BTestTeamName, "")
+func CreateBasicUser(a *app.App, client *model.Client4) error {
+	found, _, _ := client.TeamExists(BTestTeamName, "")
 	if found {
 		return nil
 	}
 
 	newteam := &model.Team{DisplayName: BTestTeamDisplayName, Name: BTestTeamName, Email: BTestTeamEmail, Type: BTestTeamType}
-	basicteam, resp := client.CreateTeam(newteam)
-	if resp.Error != nil {
-		return resp.Error
+	basicteam, _, err := client.CreateTeam(newteam)
+	if err != nil {
+		return err
 	}
 	newuser := &model.User{Email: BTestUserEmail, Nickname: BTestUserName, Password: BTestUserPassword}
-	ruser, resp := client.CreateUser(newuser)
-	if resp.Error != nil {
-		return resp.Error
+	ruser, _, err := client.CreateUser(newuser)
+	if err != nil {
+		return err
 	}
-	_, err := a.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = a.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

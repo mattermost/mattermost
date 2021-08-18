@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
@@ -530,14 +530,14 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
 		import (
 			"net/http"
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 		)
 
 		type MyPlugin struct {
@@ -559,7 +559,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -818,14 +818,14 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
 		import (
 			"net/http"
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 		)
 
 		type MyPlugin struct {
@@ -841,7 +841,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -1016,7 +1016,7 @@ func TestDoPluginRequest(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
@@ -1025,7 +1025,7 @@ func TestDoPluginRequest(t *testing.T) {
 			"reflect"
 			"sort"
 
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -1060,7 +1060,7 @@ func TestDoPluginRequest(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)

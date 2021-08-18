@@ -4,20 +4,22 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/avct/uasurfer"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitCompliance() {
-	api.BaseRoutes.Compliance.Handle("/reports", api.ApiSessionRequired(createComplianceReport)).Methods("POST")
-	api.BaseRoutes.Compliance.Handle("/reports", api.ApiSessionRequired(getComplianceReports)).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getComplianceReport)).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.ApiSessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(createComplianceReport)).Methods("POST")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(getComplianceReports)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(getComplianceReport)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
 }
 
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -49,7 +51,9 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.LogAudit("")
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rjob.ToJson()))
+	if err := json.NewEncoder(w).Encode(rjob); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -68,7 +72,9 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.Write([]byte(crs.ToJson()))
+	if err := json.NewEncoder(w).Encode(crs); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -95,7 +101,9 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("compliance_id", job.Id)
 	auditRec.AddMeta("compliance_desc", job.Desc)
 
-	w.Write([]byte(job.ToJson()))
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {

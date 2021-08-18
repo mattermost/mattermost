@@ -4,22 +4,24 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitOAuth() {
-	api.BaseRoutes.OAuthApps.Handle("", api.ApiSessionRequired(createOAuthApp)).Methods("POST")
-	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(updateOAuthApp)).Methods("PUT")
-	api.BaseRoutes.OAuthApps.Handle("", api.ApiSessionRequired(getOAuthApps)).Methods("GET")
-	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(getOAuthApp)).Methods("GET")
-	api.BaseRoutes.OAuthApp.Handle("/info", api.ApiSessionRequired(getOAuthAppInfo)).Methods("GET")
-	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(deleteOAuthApp)).Methods("DELETE")
-	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.ApiSessionRequired(regenerateOAuthAppSecret)).Methods("POST")
+	api.BaseRoutes.OAuthApps.Handle("", api.APISessionRequired(createOAuthApp)).Methods("POST")
+	api.BaseRoutes.OAuthApp.Handle("", api.APISessionRequired(updateOAuthApp)).Methods("PUT")
+	api.BaseRoutes.OAuthApps.Handle("", api.APISessionRequired(getOAuthApps)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("", api.APISessionRequired(getOAuthApp)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("/info", api.APISessionRequired(getOAuthAppInfo)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("", api.APISessionRequired(deleteOAuthApp)).Methods("DELETE")
+	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.APISessionRequired(regenerateOAuthAppSecret)).Methods("POST")
 
-	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.ApiSessionRequired(getAuthorizedOAuthApps)).Methods("GET")
+	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.APISessionRequired(getAuthorizedOAuthApps)).Methods("GET")
 }
 
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -55,7 +57,9 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("client_id=" + rapp.Id)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rapp.ToJson()))
+	if err := json.NewEncoder(w).Encode(rapp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -112,7 +116,9 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("update", updatedOAuthApp)
 	c.LogAudit("success")
 
-	w.Write([]byte(updatedOAuthApp.ToJson()))
+	if err := json.NewEncoder(w).Encode(updatedOAuthApp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -162,7 +168,9 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(oauthApp.ToJson()))
+	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -178,7 +186,9 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	oauthApp.Sanitize()
-	w.Write([]byte(oauthApp.ToJson()))
+	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -257,7 +267,9 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(oauthApp.ToJson()))
+	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
