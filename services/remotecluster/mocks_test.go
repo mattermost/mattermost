@@ -5,12 +5,7 @@ package remotecluster
 
 import (
 	"context"
-	"fmt"
-	"strings"
-	"sync"
 	"testing"
-
-	"go.uber.org/zap/zapcore"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -22,14 +17,16 @@ import (
 
 type mockServer struct {
 	remotes []*model.RemoteCluster
-	logger  *mockLogger
+	logger  *mlog.Logger
 	user    *model.User
 }
 
 func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
+	testLogger := mlog.CreateTestLogger(t, nil, mlog.StdAll...)
+
 	return &mockServer{
 		remotes: remotes,
-		logger:  &mockLogger{t: t},
+		logger:  testLogger,
 	}
 }
 
@@ -64,88 +61,3 @@ func (ms *mockServer) GetStore() store.Store {
 	return storeMock
 }
 func (ms *mockServer) Shutdown() { ms.logger.Shutdown() }
-
-type mockLogger struct {
-	t   *testing.T
-	mux sync.Mutex
-}
-
-func (ml *mockLogger) IsLevelEnabled(level mlog.LogLevel) bool {
-	return true
-}
-func (ml *mockLogger) Debug(s string, flds ...mlog.Field) {
-	ml.mux.Lock()
-	defer ml.mux.Unlock()
-	if ml.t != nil {
-		ml.t.Log("debug", s, fieldsToStrings(flds))
-	}
-}
-func (ml *mockLogger) Info(s string, flds ...mlog.Field) {
-	ml.mux.Lock()
-	defer ml.mux.Unlock()
-	if ml.t != nil {
-		ml.t.Log("info", s, fieldsToStrings(flds))
-	}
-}
-func (ml *mockLogger) Warn(s string, flds ...mlog.Field) {
-	ml.mux.Lock()
-	defer ml.mux.Unlock()
-	if ml.t != nil {
-		ml.t.Log("warn", s, fieldsToStrings(flds))
-	}
-}
-func (ml *mockLogger) Error(s string, flds ...mlog.Field) {
-	ml.mux.Lock()
-	defer ml.mux.Unlock()
-	if ml.t != nil {
-		ml.t.Log("error", s, fieldsToStrings(flds))
-	}
-}
-func (ml *mockLogger) Critical(s string, flds ...mlog.Field) {
-	ml.mux.Lock()
-	defer ml.mux.Unlock()
-	if ml.t != nil {
-		ml.t.Log("crit", s, fieldsToStrings(flds))
-	}
-}
-func (ml *mockLogger) Log(level mlog.LogLevel, s string, flds ...mlog.Field) {
-	ml.mux.Lock()
-	defer ml.mux.Unlock()
-	if ml.t != nil {
-		ml.t.Log(level.Name, s, fieldsToStrings(flds))
-	}
-}
-func (ml *mockLogger) LogM(levels []mlog.LogLevel, s string, flds ...mlog.Field) {
-	ml.mux.Lock()
-	defer ml.mux.Unlock()
-	if ml.t != nil {
-		ml.t.Log(levelsToString(levels), s, fieldsToStrings(flds))
-	}
-}
-func (ml *mockLogger) Shutdown() {
-	ml.mux.Lock()
-	defer ml.mux.Unlock()
-	ml.t = nil
-}
-
-func levelsToString(levels []mlog.LogLevel) string {
-	sb := strings.Builder{}
-	for _, l := range levels {
-		sb.WriteString(l.Name)
-		sb.WriteString(",")
-	}
-	return sb.String()
-}
-
-func fieldsToStrings(fields []mlog.Field) []string {
-	encoder := zapcore.NewMapObjectEncoder()
-	for _, zapField := range fields {
-		zapField.AddTo(encoder)
-	}
-
-	var result []string
-	for k, v := range encoder.Fields {
-		result = append(result, fmt.Sprintf("%s:%v", k, v))
-	}
-	return result
-}

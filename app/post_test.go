@@ -346,7 +346,6 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		Message:       "asd",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        userInChannel.Id,
 		CreateAt:      0,
@@ -368,7 +367,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply one",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -381,7 +379,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply two",
 		ChannelId:     channel.Id,
 		RootId:        res1.Id,
-		ParentId:      res1.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -394,7 +391,6 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		Message:       "reply three",
 		ChannelId:     channel.Id,
 		RootId:        rootPost.Id,
-		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        user.Id,
 		CreateAt:      0,
@@ -974,7 +970,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		testlib.AssertLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
 
 	t.Run("does not log warning for bot user not in channel", func(t *testing.T) {
@@ -997,7 +993,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		testlib.AssertNoLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
 
 	t.Run("marks channel as viewed for reply post when CRT is off", func(t *testing.T) {
@@ -2313,7 +2309,6 @@ func TestReplyToPostWithLag(t *testing.T) {
 			UserId:    th.BasicUser2.Id,
 			ChannelId: th.BasicChannel.Id,
 			RootId:    root.Id,
-			ParentId:  root.Id,
 			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
 		}, th.BasicChannel, false, true)
 		require.Nil(t, appErr)
