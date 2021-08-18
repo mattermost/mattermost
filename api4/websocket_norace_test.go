@@ -21,15 +21,15 @@ func TestWebSocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 
 	time.Sleep(300 * time.Millisecond)
 
 	// Test closing and reconnecting
 	WebSocketClient.Close()
-	err = WebSocketClient.Connect()
-	require.Nil(t, err)
+	appErr := WebSocketClient.Connect()
+	require.Nil(t, appErr)
 
 	WebSocketClient.Listen()
 

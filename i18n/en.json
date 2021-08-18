@@ -228,14 +228,6 @@
     "translation": "Your license does not support groups"
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
@@ -2105,10 +2097,6 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "An error occurred while opening the public key file."
-  },
-  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -2155,10 +2143,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Invalid ParentId parameter."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -6779,14 +6763,6 @@
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
@@ -7831,10 +7807,6 @@
     "translation": "Invalid command hook id."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Invalid parent id."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Invalid root id."
   },
@@ -8604,7 +8576,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -8627,20 +8599,12 @@
     "translation": "Invalid original id."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Invalid parent id."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Invalid props."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Invalid root id."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Invalid root ID must be set if parent ID set."
   },
   {
     "id": "model.post.is_valid.type.app_error",

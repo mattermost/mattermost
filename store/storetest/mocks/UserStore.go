@@ -1038,20 +1038,20 @@ func (_m *UserStore) InvalidateProfilesInChannelCacheByUser(userID string) {
 	_m.Called(userID)
 }
 
-// IsEmpty provides a mock function with given fields:
-func (_m *UserStore) IsEmpty() (bool, error) {
-	ret := _m.Called()
+// IsEmpty provides a mock function with given fields: excludeBots
+func (_m *UserStore) IsEmpty(excludeBots bool) (bool, error) {
+	ret := _m.Called(excludeBots)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func() bool); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(bool) bool); ok {
+		r0 = rf(excludeBots)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(bool) error); ok {
+		r1 = rf(excludeBots)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1376,6 +1376,20 @@ func (_m *UserStore) UpdateMfaSecret(userID string, secret string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(userID, secret)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateNotifyProps provides a mock function with given fields: userID, props
+func (_m *UserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	ret := _m.Called(userID, props)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]string) error); ok {
+		r0 = rf(userID, props)
 	} else {
 		r0 = ret.Error(0)
 	}

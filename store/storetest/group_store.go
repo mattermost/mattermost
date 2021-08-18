@@ -2556,7 +2556,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            "zz" + model.NewId(),
+		Name:            NewTestId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
@@ -2799,7 +2799,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            "zz" + model.NewId(),
+		Name:            NewTestId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
@@ -2853,7 +2853,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            "zz" + model.NewId(),
+		Name:            NewTestId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamInvite,
 	}
@@ -3045,7 +3045,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		CompanyName:      model.NewId(),
 		AllowOpenInvite:  false,
 		InviteId:         model.NewId(),
-		Name:             "zz" + model.NewId(),
+		Name:             NewTestId(),
 		Email:            "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
@@ -3112,7 +3112,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            "zz" + model.NewId(),
+		Name:            NewTestId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamInvite,
 	}
@@ -3216,7 +3216,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            "zz" + model.NewId(),
+		Name:            NewTestId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamInvite,
 	}
@@ -3475,7 +3475,7 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		CompanyName:      model.NewId(),
 		AllowOpenInvite:  false,
 		InviteId:         model.NewId(),
-		Name:             "zz" + model.NewId(),
+		Name:             NewTestId(),
 		Email:            model.NewId() + "@simulator.amazonses.com",
 		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
@@ -3943,7 +3943,7 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 
 	team := &model.Team{
 		DisplayName: "A Name",
-		Name:        "zz" + model.NewId(),
+		Name:        NewTestId(),
 		Type:        model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(team)
@@ -4046,7 +4046,7 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
 
 	team := &model.Team{
 		DisplayName: "A Name",
-		Name:        "zz" + model.NewId(),
+		Name:        NewTestId(),
 		Type:        model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(team)
@@ -4401,9 +4401,9 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
 			require.NoError(t, err)
 
-			require.GreaterOrEqual(t, len(*members), 4) // sanity check for channel membership
+			require.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 
-			for _, member := range *members {
+			for _, member := range members {
 				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
 					require.True(t, member.SchemeAdmin)
 				} else {
@@ -4455,7 +4455,7 @@ func groupTestGroupTeamCount(t *testing.T, ss store.Store) {
 		Description:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            "zz" + model.NewId(),
+		Name:            NewTestId(),
 		Email:           model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	})

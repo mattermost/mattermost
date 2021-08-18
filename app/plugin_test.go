@@ -724,11 +724,14 @@ func TestPluginPanicLogs(t *testing.T) {
 		}
 		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
 		assert.Nil(t, err)
+
+		th.TestLogger.Flush()
+
 		// We shutdown plugins first so that the read on the log buffer is race-free.
 		th.App.Srv().ShutDownPlugins()
 		tearDown()
 
-		testlib.AssertLog(t, th.LogBuffer, mlog.LevelDebug, "panic: some text from panic")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "panic: some text from panic")
 	})
 }
 

@@ -43,7 +43,7 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 
 	// Below is a special case where the first user in the entire
 	// system is granted the system_admin role
-	if ok, err := us.store.IsEmpty(); err != nil {
+	if ok, err := us.store.IsEmpty(true); err != nil {
 		return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
 	} else if ok {
 		user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
@@ -191,6 +191,10 @@ func (us *UserService) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*mo
 
 func (us *UserService) UpdateUser(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
 	return us.store.Update(user, allowRoleUpdate)
+}
+
+func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]string) error {
+	return us.store.UpdateNotifyProps(userID, props)
 }
 
 func (us *UserService) DeactivateAllGuests() ([]string, error) {
