@@ -54,7 +54,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		o := model.Post{}
 		o.ChannelId = c.Id
 		o.UserId = u.Id
-		o.Message = NewTestId() 
+		o.Message = NewTestId()
 
 		otmp, err3 := ss.Post().Save(&o)
 		require.NoError(t, err3)
@@ -62,7 +62,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		o2.ChannelId = c.Id
 		o2.UserId = model.NewId()
 		o2.RootId = otmp.Id
-		o2.Message = NewTestId() 
+		o2.Message = NewTestId()
 
 		o3 := model.Post{}
 		o3.ChannelId = c.Id
@@ -73,7 +73,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		o4 := model.Post{}
 		o4.ChannelId = c.Id
 		o4.UserId = model.NewId()
-		o4.Message = NewTestId() 
+		o4.Message = NewTestId()
 
 		newPosts, errIdx, err3 := ss.Post().SaveMultiple([]*model.Post{&o2, &o3, &o4})
 
@@ -138,7 +138,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		rootPost.RootId = model.NewId()
 		rootPost.ChannelId = model.NewId()
 		rootPost.UserId = model.NewId()
-		rootPost.Message = NewTestId() 
+		rootPost.Message = NewTestId()
 
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
@@ -159,7 +159,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		replyPost2 := model.Post{}
 		replyPost2.ChannelId = rootPost.ChannelId
 		replyPost2.UserId = model.NewId()
-		replyPost2.Message = NewTestId() 
+		replyPost2.Message = NewTestId()
 		replyPost2.RootId = rootPost.Id
 
 		replyPost3 := model.Post{}
@@ -185,7 +185,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		rootPost.RootId = model.NewId()
 		rootPost.ChannelId = model.NewId()
 		rootPost.UserId = model.NewId()
-		rootPost.Message = NewTestId() 
+		rootPost.Message = NewTestId()
 
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
@@ -214,7 +214,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		rootPost := model.Post{}
 		rootPost.ChannelId = model.NewId()
 		rootPost.UserId = model.NewId()
-		rootPost.Message = NewTestId() 
+		rootPost.Message = NewTestId()
 
 		newPosts1, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost})
 		require.NoError(t, err)
