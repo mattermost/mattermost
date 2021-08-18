@@ -2764,7 +2764,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	ch1 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        NewTestId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(&ch1, -1)
@@ -2773,7 +2773,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	ch2 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        NewTestId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	c2, nErr := ss.Channel().Save(&ch2, -1)
@@ -2993,7 +2993,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	ch1 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        NewTestId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(&ch1, -1)
@@ -3002,7 +3002,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	ch2 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        NewTestId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	c2, nErr := ss.Channel().Save(&ch2, -1)
