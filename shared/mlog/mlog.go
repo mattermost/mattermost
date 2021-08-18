@@ -103,13 +103,25 @@ var String = logr.String
 
 // Stringer constructs a field containing a key and a fmt.Stringer value.
 // The fmt.Stringer's `String` method is called lazily.
-var Stringer = logr.Stringer
+var Stringer = func(key string, s fmt.Stringer) logr.Field {
+	if s == nil {
+		return Field{Key: key, Type: logr.StringType, String: ""}
+	}
+	return Field{Key: key, Type: logr.StringType, String: s.String()}
+}
 
 // Err constructs a field containing a default key ("error") and error value.
-var Err = logr.Err
+var Err = func(err error) logr.Field {
+	return NamedErr("error", err)
+}
 
 // NamedErr constructs a field containing a key and error value.
-var NamedErr = logr.NamedErr
+var NamedErr = func(key string, err error) logr.Field {
+	if err == nil {
+		return Field{Key: key, Type: logr.StringType, String: ""}
+	}
+	return Field{Key: key, Type: logr.StringType, String: err.Error()}
+}
 
 // Bool constructs a field containing a key and bool value.
 var Bool = logr.Bool
