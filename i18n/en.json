@@ -2323,6 +2323,10 @@
     "translation": "An error occurred building the push notification message."
   },
   {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Reply to Thread"
+  },
+  {
     "id": "api.push_notifications.session.expired",
     "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
   },

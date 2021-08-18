@@ -367,11 +367,10 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 	}
 
 	if fetchOnlyActive {
-		fetchConditions =
-			sq.And{
-				sq.Eq{"Following": true},
-				fetchConditions,
-			}
+		fetchConditions = sq.And{
+			sq.Eq{"Following": true},
+			fetchConditions,
+		}
 	}
 
 	query, args, _ := s.getQueryBuilder().

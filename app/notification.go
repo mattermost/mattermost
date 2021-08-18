@@ -179,11 +179,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}()
 
 		// find which users in the channel are set up to always receive mobile notifications
+		// excludes CRT users since those should be added in notificationsForCRT
 		for _, profile := range profileMap {
 			if (profile.NotifyProps[model.PushNotifyProp] == model.UserNotifyAll ||
 				channelMemberNotifyPropsMap[profile.Id][model.PushNotifyProp] == model.ChannelNotifyAll) &&
 				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
-				!post.IsSystemMessage() {
+				!post.IsSystemMessage() &&
+				!(a.isCRTEnabledForUser(profile.Id) && post.RootId != "") {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
 		}

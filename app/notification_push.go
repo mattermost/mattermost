@@ -563,9 +563,13 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		IsIdLoaded: false,
 	}
 
+	userLocale := i18n.GetUserTranslations(user.Locale)
 	cfg := a.Config()
 	if contentsConfig != model.GenericNoChannelNotification || channel.Type == model.ChannelTypeDirect {
 		msg.ChannelName = channelName
+		if a.isCRTEnabledForUser(user.Id) && post.RootId != "" {
+			msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads")
+		}
 	}
 
 	msg.SenderName = senderName
@@ -595,7 +599,6 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		}
 	}
 
-	userLocale := i18n.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
 	msg.Message = a.getPushNotificationMessage(
