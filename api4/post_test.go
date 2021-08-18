@@ -2018,6 +2018,41 @@ func TestDeletePost(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestDeletePostEvent(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	WebSocketClient.Listen()
+	defer WebSocketClient.Close()
+
+	_, err = th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+	require.NoError(t, err)
+
+	var received bool
+
+	for {
+		var exit bool
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			if event.EventType() == model.WebsocketEventPostDeleted {
+				var post model.Post
+				err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &post)
+				require.NoError(t, err)
+				received = true
+			}
+		case <-time.After(500 * time.Millisecond):
+			exit = true
+		}
+		if exit {
+			break
+		}
+	}
+
+	require.True(t, received)
+}
+
 func TestDeletePostMessage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)

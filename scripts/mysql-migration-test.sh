@@ -1,3 +1,5 @@
+./scripts/jq-dep-check.sh
+
 TMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'tmpConfigDir'`
 DUMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'dumpDir'`
 
@@ -10,14 +12,16 @@ echo "Importing mysql dump from version 5.0"
 docker exec -i mattermost-mysql mysql -D migrated -uroot -pmostest < $(pwd)/scripts/mattermost-mysql-5.0.sql
 
 echo "Setting up config for db migration"
-make ARGS="config set SqlSettings.DataSource 'mmuser:mostest@tcp(localhost:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' --config $TMPDIR/config.json" run-cli
-make ARGS="config set SqlSettings.DriverName 'mysql' --config $TMPDIR/config.json" run-cli
+cat $TMPDIR/config.json | \
+    jq '.SqlSettings.DataSource = "mmuser:mostest@tcp(localhost:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"' | \
+    jq '.SqlSettings.DriverName = "mysql"' > $TMPDIR/config.json
 
 echo "Running the migration"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
 echo "Setting up config for fresh db setup"
-make ARGS="config set SqlSettings.DataSource 'mmuser:mostest@tcp(localhost:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' --config $TMPDIR/config.json" run-cli
+cat $TMPDIR/config.json | \
+    jq '.SqlSettings.DataSource = "mmuser:mostest@tcp(localhost:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"' > $TMPDIR/config.json
 
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
