@@ -200,6 +200,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 }
 
 func TestWebSocketStatuses(t *testing.T) {
+	t.Skip("MM-38004")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
