@@ -2319,12 +2319,12 @@
     "translation": "An error occurred fetching the ID-loaded push notification."
   },
   {
-    "id": "api.push_notifications.message.parse.app_error",
-    "translation": "An error occurred building the push notification message."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
     "translation": "Reply to Thread"
+  },
+  {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "An error occurred building the push notification message."
   },
   {
     "id": "api.push_notifications.session.expired",
