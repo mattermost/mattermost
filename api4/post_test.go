@@ -2040,7 +2040,7 @@ func TestDeletePostEvent(t *testing.T) {
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	WebSocketClient.Listen()
 	defer WebSocketClient.Close()
 
