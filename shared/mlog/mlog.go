@@ -106,7 +106,12 @@ var String = logr.String
 var Stringer = logr.Stringer
 
 // Err constructs a field containing a default key ("error") and error value.
-var Err = func(err error) logr.Field { return Field{Key: "error", Type: logr.StringType, String: err.Error()} }
+var Err = func(err error) logr.Field {
+	if err == nil {
+		return Field{Key: "error", Type: logr.StringType, String: "nil"}
+	}
+	return Field{Key: "error", Type: logr.StringType, String: err.Error()}
+}
 
 // NamedErr constructs a field containing a key and error value.
 var NamedErr = logr.NamedErr
