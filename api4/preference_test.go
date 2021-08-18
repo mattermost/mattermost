@@ -44,7 +44,7 @@ func TestGetPreferences(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(user1.Id, &preferences1)
+	client.UpdatePreferences(user1.Id, preferences1)
 
 	prefs, _, err := client.GetPreferences(user1.Id)
 	require.NoError(t, err)
@@ -102,7 +102,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(user1.Id, &preferences1)
+	client.UpdatePreferences(user1.Id, preferences1)
 
 	prefs, _, err := client.GetPreferencesByCategory(user1.Id, category)
 	require.NoError(t, err)
@@ -160,7 +160,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(user.Id, &preferences)
+	client.UpdatePreferences(user.Id, preferences)
 
 	pref, _, err := client.GetPreferenceByCategoryAndName(user.Id, model.PreferenceCategoryDirectChannelShow, name)
 	require.NoError(t, err)
@@ -170,7 +170,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	require.Equal(t, preferences[0].Name, pref.Name, "Name preference not saved")
 
 	preferences[0].Value = model.NewId()
-	client.UpdatePreferences(user.Id, &preferences)
+	client.UpdatePreferences(user.Id, preferences)
 
 	_, resp, err := client.GetPreferenceByCategoryAndName(user.Id, "junk", preferences[0].Name)
 	require.Error(t, err)
@@ -221,7 +221,7 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, err := client.UpdatePreferences(user1.Id, &preferences1)
+	_, err := client.UpdatePreferences(user1.Id, preferences1)
 	require.NoError(t, err)
 
 	preferences := model.Preferences{
@@ -232,7 +232,7 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	resp, err := client.UpdatePreferences(user1.Id, &preferences)
+	resp, err := client.UpdatePreferences(user1.Id, preferences)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -243,16 +243,16 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	resp, err = client.UpdatePreferences(user1.Id, &preferences)
+	resp, err = client.UpdatePreferences(user1.Id, preferences)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = client.UpdatePreferences(th.BasicUser2.Id, &preferences)
+	resp, err = client.UpdatePreferences(th.BasicUser2.Id, preferences)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	resp, err = client.UpdatePreferences(user1.Id, &preferences1)
+	resp, err = client.UpdatePreferences(user1.Id, preferences1)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -270,7 +270,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	require.Equal(t, wsResp.Status, model.StatusOk, "expected OK from auth challenge")
 
 	userId := th.BasicUser.Id
-	preferences := &model.Preferences{
+	preferences := model.Preferences{
 		{
 			UserId:   userId,
 			Category: model.NewId(),
@@ -300,7 +300,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
 			require.NoError(t, err)
 
-			for i, p := range *preferences {
+			for i, p := range preferences {
 				require.Equal(t, received[i].UserId, p.UserId, "received incorrect UserId")
 				require.Equal(t, received[i].Category, p.Category, "received incorrect Category")
 				require.Equal(t, received[i].Name, p.Name, "received incorrect Name")
@@ -338,7 +338,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		require.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -357,7 +357,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 
 		// And unfavorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -391,7 +391,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		dmChannel := th.CreateDmChannel(user2)
 
 		// Favorite the channel
-		_, err := th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err := th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -417,7 +417,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
 
 		// And unfavorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -482,7 +482,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		require.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -501,7 +501,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		assert.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel for the second user
-		_, err = client2.UpdatePreferences(user2.Id, &model.Preferences{
+		_, err = client2.UpdatePreferences(user2.Id, model.Preferences{
 			{
 				UserId:   user2.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -520,7 +520,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 
 		// And unfavorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -561,21 +561,21 @@ func TestDeletePreferences(t *testing.T) {
 		preferences = append(preferences, preference)
 	}
 
-	client.UpdatePreferences(th.BasicUser.Id, &preferences)
+	client.UpdatePreferences(th.BasicUser.Id, preferences)
 
 	// delete 10 preferences
 	th.LoginBasic2()
 
-	resp, err := client.DeletePreferences(th.BasicUser2.Id, &preferences)
+	resp, err := client.DeletePreferences(th.BasicUser2.Id, preferences)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
 
-	_, err = client.DeletePreferences(th.BasicUser.Id, &preferences)
+	_, err = client.DeletePreferences(th.BasicUser.Id, preferences)
 	require.NoError(t, err)
 
-	resp, err = client.DeletePreferences(th.BasicUser2.Id, &preferences)
+	resp, err = client.DeletePreferences(th.BasicUser2.Id, preferences)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -583,7 +583,7 @@ func TestDeletePreferences(t *testing.T) {
 	require.Len(t, prefs, originalCount, "should've deleted preferences")
 
 	client.Logout()
-	resp, err = client.DeletePreferences(th.BasicUser.Id, &preferences)
+	resp, err = client.DeletePreferences(th.BasicUser.Id, preferences)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -593,7 +593,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	defer th.TearDown()
 
 	userId := th.BasicUser.Id
-	preferences := &model.Preferences{
+	preferences := model.Preferences{
 		{
 			UserId:   userId,
 			Category: model.NewId(),
@@ -632,7 +632,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
 			require.NoError(t, err)
 
-			for i, preference := range *preferences {
+			for i, preference := range preferences {
 				require.Equal(t, preference.UserId, received[i].UserId)
 				require.Equal(t, preference.Category, received[i].Category)
 				require.Equal(t, preference.Name, received[i].Name)
@@ -670,7 +670,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		require.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -688,7 +688,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 
 		// And unfavorite the channel by deleting the preference
-		_, err = th.Client.DeletePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.DeletePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -721,7 +721,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		dmChannel := th.CreateDmChannel(user2)
 
 		// Favorite the channel
-		_, err := th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err := th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -747,7 +747,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
 
 		// And unfavorite the channel by deleting the preference
-		_, err = th.Client.DeletePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.DeletePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -811,7 +811,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		require.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel for both users
-		_, err = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -821,7 +821,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		_, err = client2.UpdatePreferences(user2.Id, &model.Preferences{
+		_, err = client2.UpdatePreferences(user2.Id, model.Preferences{
 			{
 				UserId:   user2.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -840,7 +840,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 
 		// And unfavorite the channel for the first user by deleting the preference
-		_, err = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,

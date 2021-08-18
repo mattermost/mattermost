@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -170,7 +169,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		t.Run("Should set defaults for missing fields", func(t *testing.T) {
-			_, err = th.SystemAdminClient.DoApiPut("/config", "{}")
+			_, err = th.SystemAdminClient.DoAPIPut("/config", "{}")
 			require.NoError(t, err)
 		})
 
@@ -468,7 +467,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
 
 	// Forcing a flush before attempting to read log's content.
-	err = th.Server.Log.Flush(context.Background())
+	err = th.Server.Audit.Flush()
 	require.NoError(t, err)
 
 	require.NoError(t, logFile.Sync())
@@ -584,7 +583,7 @@ func TestGetOldClientConfig(t *testing.T) {
 	t.Run("missing format", func(t *testing.T) {
 		client := th.Client
 
-		resp, err := client.DoApiGet("/config/client", "")
+		resp, err := client.DoAPIGet("/config/client", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -592,7 +591,7 @@ func TestGetOldClientConfig(t *testing.T) {
 	t.Run("invalid format", func(t *testing.T) {
 		client := th.Client
 
-		resp, err := client.DoApiGet("/config/client?format=junk", "")
+		resp, err := client.DoAPIGet("/config/client?format=junk", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
