@@ -197,6 +197,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	threadParticipants := map[string]bool{post.UserId: true}
 	participantMemberships := map[string]*model.ThreadMembership{}
 	membershipsMutex := &sync.Mutex{}
+	newFollowersMap := map[string]bool{}
 	followersMutex := &sync.Mutex{}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		var rootMentions *ExplicitMentions
@@ -210,6 +211,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				}
 			}
 		}
+
 		for id := range mentions.Mentions {
 			threadParticipants[id] = true
 		}
@@ -258,7 +260,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				// add new followers to existing followers
 				if threadMembership.Following && !followers.Contains(userID) {
 					followersMutex.Lock()
-					followers = append(followers, userID)
+					newFollowersMap[userID] = true
 					followersMutex.Unlock()
 				}
 
@@ -271,6 +273,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentionAutofollowChans = append(mentionAutofollowChans, mac)
 		}
 	}
+
+	for id := range newFollowersMap {
+		if !followers.Contains(id) {
+			followers = append(followers, id)
+		}
+	}
+
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
 
