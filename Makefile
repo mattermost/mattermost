@@ -426,8 +426,9 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=ecover.out
 
 test-data: run-server ## Add test data to the local instance.
- 	# TODO: Replace sleep with something better.
-	sleep 10
+	@if ! ./scripts/wait-for-system-start.sh; then \
+		make stop; \
+	fi
 
 	@echo ServiceSettings.EnableLocalMode must be set to true.
 
