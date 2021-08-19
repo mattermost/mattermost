@@ -52,9 +52,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
-	f.PluginIncidentManagement = "1.16.1"
+	f.PluginIncidentManagement = "1.17.0"
 	f.PluginApps = ""
-	f.PluginFocalboard = ""
+	f.PluginFocalboard = "0.9.0"
 	f.TimedDND = false
 	f.PermalinkPreviews = true
 	f.GlobalHeader = false
