@@ -37,6 +37,10 @@
     color: rgb(28, 88, 217) !important;
   }
 
+  .subTitle a {
+    color: rgba(28, 88, 217, 1) !important;
+  }
+
   .button a {
     background-color: #1C58D9 !important;
     font-weight: 600 !important;
