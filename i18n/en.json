@@ -2097,10 +2097,6 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "An error occurred while opening the public key file."
-  },
-  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -2235,6 +2231,10 @@
     "translation": " notified the channel."
   },
   {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " commented on a thread you are following."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
     "translation": " commented on your post."
   },
@@ -2313,6 +2313,10 @@
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
     "translation": "An error occurred fetching the ID-loaded push notification."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Reply to Thread"
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -5475,6 +5479,14 @@
     "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} replied to a thread"
+  },
+  {
     "id": "app.notification.footer.info",
     "translation": " and go to Account Settings > Notifications"
   },
@@ -6765,14 +6777,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -8588,7 +8592,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",

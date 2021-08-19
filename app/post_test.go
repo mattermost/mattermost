@@ -970,7 +970,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		testlib.AssertLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
 
 	t.Run("does not log warning for bot user not in channel", func(t *testing.T) {
@@ -993,7 +993,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		testlib.AssertNoLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
 
 	t.Run("marks channel as viewed for reply post when CRT is off", func(t *testing.T) {

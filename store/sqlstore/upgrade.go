@@ -1316,6 +1316,9 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
 	sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
 
+	// allow 10 files per post
+	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
 }

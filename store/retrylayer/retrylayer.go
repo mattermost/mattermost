@@ -9842,11 +9842,11 @@ func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadFollowers(threadID)
+		result, err := s.ThreadStore.GetThreadFollowers(threadID, fetchOnlyActive)
 		if err == nil {
 			return result, nil
 		}

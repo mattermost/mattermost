@@ -320,7 +320,7 @@ func ToJson(v interface{}) []byte {
 	return b
 }
 
-func GetServerIpAddress(iface string) string {
+func GetServerIPAddress(iface string) string {
 	var addrs []net.Addr
 	if iface == "" {
 		var err error
