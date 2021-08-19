@@ -44,7 +44,7 @@ type FeatureFlags struct {
 	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
 	InviteMembersButton string
 
-	// Enable different team menu button treatments, possible values = ("none", "sidebar_bg_color", "inverted_sidebarbg__color")
+	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebarbg__color")
 	AddChannelButton string
 }
 
