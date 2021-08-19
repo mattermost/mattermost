@@ -14,14 +14,14 @@ docker exec -i mattermost-postgres psql -U mmuser -d migrated < $(pwd)/scripts/m
 echo "Setting up config for db migration"
 cat $TMPDIR/config.json | \
     jq '.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/migrated?sslmode=disable&connect_timeout=10"'| \
-    jq '.SqlSettings.DriverName = "postgres"' > $TMPDIR/config.json
+    jq '.SqlSettings.DriverName = "postgres"' > $TMPDIR/config.json.tmp && mv $TMPDIR/config.json.tmp $TMPDIR/config.json
 
 echo "Running the migration"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
 echo "Setting up config for fresh db setup"
 cat $TMPDIR/config.json | \
-    jq '.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/latest?sslmode=disable&connect_timeout=10"' > $TMPDIR/config.json
+    jq '.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/latest?sslmode=disable&connect_timeout=10"' > $TMPDIR/config.json.tmp && mv $TMPDIR/config.json.tmp $TMPDIR/config.json
 
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli

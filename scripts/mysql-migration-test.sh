@@ -14,14 +14,14 @@ docker exec -i mattermost-mysql mysql -D migrated -uroot -pmostest < $(pwd)/scri
 echo "Setting up config for db migration"
 cat $TMPDIR/config.json | \
     jq '.SqlSettings.DataSource = "mmuser:mostest@tcp(localhost:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"' | \
-    jq '.SqlSettings.DriverName = "mysql"' > $TMPDIR/config.json
+    jq '.SqlSettings.DriverName = "mysql"' > $TMPDIR/config.json.tmp && mv $TMPDIR/config.json.tmp $TMPDIR/config.json
 
 echo "Running the migration"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
 echo "Setting up config for fresh db setup"
 cat $TMPDIR/config.json | \
-    jq '.SqlSettings.DataSource = "mmuser:mostest@tcp(localhost:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"' > $TMPDIR/config.json
+    jq '.SqlSettings.DataSource = "mmuser:mostest@tcp(localhost:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"' > $TMPDIR/config.json.tmp && mv $TMPDIR/config.json.tmp $TMPDIR/config.json
 
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
