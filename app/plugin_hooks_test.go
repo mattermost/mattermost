@@ -918,7 +918,7 @@ func TestHookContext(t *testing.T) {
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", ctx.Session().Id).Return(nil)
 	mockAPI.On("LogInfo", ctx.RequestId()).Return(nil)
-	mockAPI.On("LogError", ctx.IpAddress()).Return(nil)
+	mockAPI.On("LogError", ctx.IPAddress()).Return(nil)
 	mockAPI.On("LogWarn", ctx.AcceptLanguage()).Return(nil)
 	mockAPI.On("DeleteTeam", ctx.UserAgent()).Return(nil)
 
@@ -939,7 +939,7 @@ func TestHookContext(t *testing.T) {
 		func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 			p.API.LogDebug(c.SessionId)
 			p.API.LogInfo(c.RequestId)
-			p.API.LogError(c.IpAddress)
+			p.API.LogError(c.IPAddress)
 			p.API.LogWarn(c.AcceptLanguage)
 			p.API.DeleteTeam(c.UserAgent)
 		}

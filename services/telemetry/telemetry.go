@@ -710,7 +710,7 @@ func (ts *TelemetryService) trackConfig() {
 		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
 		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
 		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
+		"use_ip_address":                        *cfg.ClusterSettings.UseIPAddress,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
 		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
