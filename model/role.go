@@ -73,7 +73,7 @@ func init() {
 			PermissionReadElasticsearchPostAggregationJob,
 		},
 		PermissionSysconsoleWriteEnvironmentWebServer.Id: {
-			PermissionTestSiteUrl,
+			PermissionTestSiteURL,
 			PermissionReloadConfig,
 			PermissionInvalidateCaches,
 		},
@@ -89,7 +89,7 @@ func init() {
 		PermissionSysconsoleWriteEnvironmentFileStorage.Id: {
 			PermissionTestS3,
 		},
-		PermissionSysconsoleWriteEnvironmentSmtp.Id: {
+		PermissionSysconsoleWriteEnvironmentSMTP.Id: {
 			PermissionTestEmail,
 		},
 		PermissionSysconsoleReadReportingServerLogs.Id: {
@@ -216,7 +216,7 @@ func init() {
 		PermissionSysconsoleReadEnvironmentElasticsearch.Id,
 		PermissionSysconsoleReadEnvironmentFileStorage.Id,
 		PermissionSysconsoleReadEnvironmentImageProxy.Id,
-		PermissionSysconsoleReadEnvironmentSmtp.Id,
+		PermissionSysconsoleReadEnvironmentSMTP.Id,
 		PermissionSysconsoleReadEnvironmentPushNotificationServer.Id,
 		PermissionSysconsoleReadEnvironmentHighAvailability.Id,
 		PermissionSysconsoleReadEnvironmentRateLimiting.Id,
@@ -274,7 +274,7 @@ func init() {
 		PermissionSysconsoleReadEnvironmentElasticsearch.Id,
 		PermissionSysconsoleReadEnvironmentFileStorage.Id,
 		PermissionSysconsoleReadEnvironmentImageProxy.Id,
-		PermissionSysconsoleReadEnvironmentSmtp.Id,
+		PermissionSysconsoleReadEnvironmentSMTP.Id,
 		PermissionSysconsoleReadEnvironmentPushNotificationServer.Id,
 		PermissionSysconsoleReadEnvironmentHighAvailability.Id,
 		PermissionSysconsoleReadEnvironmentRateLimiting.Id,
@@ -287,7 +287,7 @@ func init() {
 		PermissionSysconsoleWriteEnvironmentElasticsearch.Id,
 		PermissionSysconsoleWriteEnvironmentFileStorage.Id,
 		PermissionSysconsoleWriteEnvironmentImageProxy.Id,
-		PermissionSysconsoleWriteEnvironmentSmtp.Id,
+		PermissionSysconsoleWriteEnvironmentSMTP.Id,
 		PermissionSysconsoleWriteEnvironmentPushNotificationServer.Id,
 		PermissionSysconsoleWriteEnvironmentHighAvailability.Id,
 		PermissionSysconsoleWriteEnvironmentRateLimiting.Id,

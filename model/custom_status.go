@@ -79,7 +79,7 @@ func RuneToHexadecimalString(r rune) string {
 
 type RecentCustomStatuses []CustomStatus
 
-func (rcs *RecentCustomStatuses) Contains(cs *CustomStatus) bool {
+func (rcs RecentCustomStatuses) Contains(cs *CustomStatus) bool {
 	var csJSON = cs.ToJson()
 
 	// status is empty
@@ -87,7 +87,7 @@ func (rcs *RecentCustomStatuses) Contains(cs *CustomStatus) bool {
 		return false
 	}
 
-	for _, status := range *rcs {
+	for _, status := range rcs {
 		if status.ToJson() == csJSON {
 			return true
 		}
@@ -96,11 +96,11 @@ func (rcs *RecentCustomStatuses) Contains(cs *CustomStatus) bool {
 	return false
 }
 
-func (rcs *RecentCustomStatuses) Add(cs *CustomStatus) *RecentCustomStatuses {
-	newRCS := (*rcs)[:0]
+func (rcs RecentCustomStatuses) Add(cs *CustomStatus) RecentCustomStatuses {
+	newRCS := rcs[:0]
 
 	// if same `text` exists in existing recent custom statuses, modify existing status
-	for _, status := range *rcs {
+	for _, status := range rcs {
 		if status.Text != cs.Text {
 			newRCS = append(newRCS, status)
 		}
@@ -109,33 +109,32 @@ func (rcs *RecentCustomStatuses) Add(cs *CustomStatus) *RecentCustomStatuses {
 	if len(newRCS) > MaxRecentCustomStatuses {
 		newRCS = newRCS[:MaxRecentCustomStatuses]
 	}
-	return &newRCS
+	return newRCS
 }
 
-func (rcs *RecentCustomStatuses) Remove(cs *CustomStatus) *RecentCustomStatuses {
+func (rcs RecentCustomStatuses) Remove(cs *CustomStatus) RecentCustomStatuses {
 	var csJSON = cs.ToJson()
 	if csJSON == "" || (cs.Emoji == "" && cs.Text == "") {
 		return rcs
 	}
 
-	newRCS := (*rcs)[:0]
-	for _, status := range *rcs {
+	newRCS := rcs[:0]
+	for _, status := range rcs {
 		if status.ToJson() != csJSON {
 			newRCS = append(newRCS, status)
 		}
 	}
 
-	return &newRCS
+	return newRCS
 }
 
-func (rcs *RecentCustomStatuses) ToJson() string {
-	rcsCopy := *rcs
-	b, _ := json.Marshal(rcsCopy)
+func (rcs RecentCustomStatuses) ToJson() string {
+	b, _ := json.Marshal(rcs)
 	return string(b)
 }
 
-func RecentCustomStatusesFromJson(data io.Reader) *RecentCustomStatuses {
-	var rcs *RecentCustomStatuses
+func RecentCustomStatusesFromJson(data io.Reader) RecentCustomStatuses {
+	var rcs RecentCustomStatuses
 	_ = json.NewDecoder(data).Decode(&rcs)
 	return rcs
 }

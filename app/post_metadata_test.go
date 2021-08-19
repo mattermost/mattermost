@@ -301,7 +301,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 			require.Nil(t, err)
 
-			post.AddProp(model.PostPropsOverrideIconUrl, url)
+			post.AddProp(model.PostPropsOverrideIconURL, url)
 			post.AddProp(model.PostPropsOverrideIconEmoji, emoji)
 
 			return th.App.PreparePostForClient(post, false, false)
@@ -309,12 +309,12 @@ func TestPreparePostForClient(t *testing.T) {
 
 		emoji := "basketball"
 		url := "http://host.com/image.png"
-		overridenUrl := "/static/emoji/1f3c0.png"
+		overridenURL := "/static/emoji/1f3c0.png"
 
 		t.Run("does not override icon URL", func(t *testing.T) {
 			clientPost := prepare(false, url, emoji)
 
-			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconUrl]
+			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconURL]
 			assert.True(t, ok)
 			assert.EqualValues(t, url, s)
 			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
@@ -325,9 +325,9 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("overrides icon URL", func(t *testing.T) {
 			clientPost := prepare(true, url, emoji)
 
-			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconUrl]
+			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconURL]
 			assert.True(t, ok)
-			assert.EqualValues(t, overridenUrl, s)
+			assert.EqualValues(t, overridenURL, s)
 			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
@@ -337,9 +337,9 @@ func TestPreparePostForClient(t *testing.T) {
 			colonEmoji := ":basketball:"
 			clientPost := prepare(true, url, colonEmoji)
 
-			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconUrl]
+			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconURL]
 			assert.True(t, ok)
-			assert.EqualValues(t, overridenUrl, s)
+			assert.EqualValues(t, overridenURL, s)
 			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, colonEmoji, s)
@@ -599,7 +599,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		return th
 	}

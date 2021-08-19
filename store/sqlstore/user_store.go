@@ -226,6 +226,18 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	return &model.UserUpdate{New: user, Old: oldUser}, nil
 }
 
+func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	if _, err := us.GetMaster().Exec(`UPDATE Users
+		SET NotifyProps = :NotifyProps
+		WHERE Id = :UserId`, map[string]interface{}{
+		"NotifyProps": model.MapToJson(props),
+		"UserId":      userID}); err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
+	}
+
+	return nil
+}
+
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) error {
 	curTime := model.GetMillis()
 
@@ -2001,4 +2013,30 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 	}
 
 	return userIds, nil
+}
+
+// IsEmpty returns whether or not the Users table is empty.
+func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
+	var hasRows bool
+
+	builder := us.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("Users")
+
+	if excludeBots {
+		builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+	}
+
+	builder = builder.Suffix(")")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrapf(err, "users_is_empty_to_sql")
+	}
+
+	if err = us.GetReplica().SelectOne(&hasRows, query, args...); err != nil {
+		return false, errors.Wrap(err, "failed to check if table is empty")
+	}
+	return !hasRows, nil
 }
