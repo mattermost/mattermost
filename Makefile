@@ -425,7 +425,12 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: start-docker prepackaged-binaries ## Add test data to the local instance.
+test-data: run-server ## Add test data to the local instance.
+ 	# TODO: Replace sleep with something better.
+	sleep 10
+
+	@echo ServiceSettings.EnableLocalMode must be set to true.
+
 	bin/mmctl config set TeamSettings.MaxUsersPerTeam 100 --local
 	bin/mmctl sampledata -u 60 --local
 
