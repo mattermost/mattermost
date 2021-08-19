@@ -2249,14 +2249,14 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = NewTestId() + "AAAAAAAAAAA"
+	o1.Message = NewTestId()
 	o1, err := ss.Post().Save(o1)
 	require.NoError(t, err)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = NewTestId() + "CCCCCCCCC"
+	o2.Message = NewTestId()
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -2264,7 +2264,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = NewTestId() + "QQQQQQQQQQ"
+	o3.Message = NewTestId()
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
@@ -2375,14 +2375,14 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = NewTestId() + "AAAAAAAAAAA"
+	o1.Message = NewTestId()
 	o1, err := ss.Post().Save(o1)
 	require.NoError(t, err)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = NewTestId() + "CCCCCCCCC"
+	o2.Message = NewTestId()
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -2390,7 +2390,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = NewTestId() + "QQQQQQQQQQ"
+	o3.Message = NewTestId()
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
@@ -2476,21 +2476,21 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = NewTestId() + "AAAAAAAAAAA"
+	o1.Message = NewTestId()
 	o1, err := ss.Post().Save(o1)
 	require.NoError(t, err)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = NewTestId() + "CCCCCCCCC"
+	o2.Message = NewTestId()
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
 
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = NewTestId() + "QQQQQQQQQQ"
+	o3.Message = NewTestId()
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
