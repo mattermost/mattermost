@@ -2,12 +2,13 @@
 
 TMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'tmpConfigDir'`
 DUMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'dumpDir'`
+SCHEMA_VERSION=$1
 
 echo "Creating databases"
 docker exec mattermost-mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
 
-echo "Importing mysql dump from version 5.0"
-docker exec -i mattermost-mysql mysql -D migrated -uroot -pmostest < $(pwd)/scripts/mattermost-mysql-5.0.sql
+echo "Importing mysql dump from version ${SCHEMA_VERSION}"
+docker exec -i mattermost-mysql mysql -D migrated -uroot -pmostest < $(pwd)/scripts/mattermost-mysql-$SCHEMA_VERSION.sql
 
 echo "Setting up config for db migration"
 cat config/config.json | \
@@ -25,12 +26,14 @@ cat config/config.json | \
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
-for i in "ChannelMembers SchemeGuest" "ChannelMembers MsgCountRoot" "ChannelMembers MentionCountRoot" "Channels TotalMsgCountRoot"; do
+if [ "$SCHEMA_VERSION" == "5.0" ]; then
+  for i in "ChannelMembers SchemeGuest" "ChannelMembers MsgCountRoot" "ChannelMembers MentionCountRoot" "Channels TotalMsgCountRoot"; do
     a=( $i );
     echo "Ignoring known MySQL mismatch: ${a[0]}.${a[1]}"
     docker exec mattermost-mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
     docker exec mattermost-mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
-done
+  done
+fi
 
 echo "Generating dump"
 docker exec mattermost-mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > $DUMPDIR/migrated.sql
