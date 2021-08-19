@@ -201,7 +201,6 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		postMessage := a.GetMessageForNotification(post, translateFunc)
-		postMessage = html.EscapeString(postMessage)
 		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage)
 		if mdErr != nil {
 			mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))

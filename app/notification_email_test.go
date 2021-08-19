@@ -838,6 +838,11 @@ func TestMarkdownConversion(t *testing.T) {
 			want: "This is <strong>Mattermost</strong>",
 		},
 		{
+			name: "markdown: blockquote",
+			args: "> This is Mattermost blockquote",
+			want: "<blockquote>\n<p>This is Mattermost blockquote</p>\n</blockquote>",
+		},
+		{
 			name: "markdown: emphasis",
 			args: "This is *Mattermost*",
 			want: "This is <em>Mattermost</em>",
