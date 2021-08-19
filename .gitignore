@@ -32,6 +32,7 @@ imports/imports.go
 .prebuild
 .npminstall
 .yarninstall
+/prepackaged_plugins
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
