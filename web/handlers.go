@@ -113,7 +113,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
 	c.AppContext.SetT(t)
 	c.AppContext.SetRequestId(requestID)
-	c.AppContext.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
+	c.AppContext.SetIPAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
 	c.AppContext.SetUserAgent(r.UserAgent())
 	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.AppContext.SetPath(r.URL.Path)
@@ -126,7 +126,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		_ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, carrier)
 		ext.HTTPMethod.Set(span, r.Method)
 		ext.HTTPUrl.Set(span, c.AppContext.Path())
-		ext.PeerAddress.Set(span, c.AppContext.IpAddress())
+		ext.PeerAddress.Set(span, c.AppContext.IPAddress())
 		span.SetTag("request_id", c.AppContext.RequestId())
 		span.SetTag("user_agent", c.AppContext.UserAgent())
 
@@ -257,7 +257,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Logger = c.App.Log().With(
 		mlog.String("path", c.AppContext.Path()),
 		mlog.String("request_id", c.AppContext.RequestId()),
-		mlog.String("ip_addr", c.AppContext.IpAddress()),
+		mlog.String("ip_addr", c.AppContext.IPAddress()),
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
 	)
