@@ -157,7 +157,7 @@ func (lt *LoadTestProvider) doCommand(a *app.App, c *request.Context, args *mode
 	}
 
 	if strings.HasPrefix(message, "url") {
-		return lt.UrlCommand(a, c, args, message)
+		return lt.URLCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "json") {
@@ -352,7 +352,7 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c *request.Context, arg
 		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, err2
 	}
 	for i := 0; i < 1000; i++ {
-		testPoster.CreateRandomPostNested(c, rpost.Id, rpost.Id)
+		testPoster.CreateRandomPostNested(c, rpost.Id)
 	}
 
 	return &model.CommandResponse{Text: "Added threaded post", ResponseType: model.CommandResponseTypeEphemeral}, nil
@@ -460,7 +460,7 @@ func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, messag
 	return &model.CommandResponse{Text: "Added a post to " + channel.DisplayName, ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) UrlCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) URLCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	url := strings.TrimSpace(strings.TrimPrefix(message, "url"))
 	if url == "" {
 		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.CommandResponseTypeEphemeral}, nil

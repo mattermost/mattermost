@@ -60,7 +60,6 @@ func postSliceColumnsWithTypes() []struct {
 		{"UserId", reflect.String},
 		{"ChannelId", reflect.String},
 		{"RootId", reflect.String},
-		{"ParentId", reflect.String},
 		{"OriginalId", reflect.String},
 		{"Message", reflect.String},
 		{"Type", reflect.String},
@@ -84,7 +83,6 @@ func postToSlice(post *model.Post) []interface{} {
 		post.UserId,
 		post.ChannelId,
 		post.RootId,
-		post.ParentId,
 		post.OriginalId,
 		post.Message,
 		post.Type,
@@ -141,14 +139,13 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("RootId").SetMaxSize(26)
-		table.ColMap("ParentId").SetMaxSize(26)
 		table.ColMap("OriginalId").SetMaxSize(26)
 		table.ColMap("Message").SetMaxSize(model.PostMessageMaxBytesV2)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("Filenames").SetMaxSize(model.PostFilenamesMaxRunes)
-		table.ColMap("FileIds").SetMaxSize(300)
+		table.ColMap("FileIds").SetMaxSize(model.PostFileidsMaxRunes)
 		table.ColMap("RemoteId").SetMaxSize(26)
 	}
 
@@ -2229,7 +2226,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		Join("Users ON p.UserId = Users.Id").
 		Where(sq.And{
 			sq.Gt{"p.Id": afterId},
-			sq.Eq{"p.ParentId": string("")},
+			sq.Eq{"p.RootId": string("")},
 			sq.Eq{"p.DeleteAt": int(0)},
 			sq.Eq{"Channels.DeleteAt": int(0)},
 			sq.Eq{"Users.DeleteAt": int(0)},

@@ -42,9 +42,9 @@ func (s SqlProductNoticesStore) Clear(notices []string) error {
 	return nil
 }
 
-func (s SqlProductNoticesStore) ClearOldNotices(currentNotices *model.ProductNotices) error {
+func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNotices) error {
 	var notices []string
-	for _, currentNotice := range *currentNotices {
+	for _, currentNotice := range currentNotices {
 		notices = append(notices, currentNotice.ID)
 	}
 	sql, args, _ := s.getQueryBuilder().Delete("ProductNoticeViewState").Where(sq.NotEq{"NoticeId": notices}).ToSql()

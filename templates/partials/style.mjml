@@ -24,17 +24,17 @@
     font-size: 28px !important;
     line-height: 36px !important;
     letter-spacing: -0.01em !important;
-    color: #3D3C40 !important;
+    color: #3F4350 !important;
   }
 
   .subTitle div {
     font-size: 16px !important;
     line-height: 24px !important;
-    color: rgba(61, 60, 64, 0.64) !important;
+    color: rgba(63, 67, 80, 0.64) !important;
   }
 
   .subTitle a {
-    color: rgba(28, 88, 217, 1) !important;
+    color: rgb(28, 88, 217) !important;
   }
 
   .button a {
@@ -80,7 +80,7 @@
   }
 
   .footerInfo a {
-    color: #166DE0 !important;
+    color: #1C58D9 !important;
   }
 
   .appDownloadButton a{
@@ -97,7 +97,7 @@
   .emailFooter div {
     font-size: 12px !important;
     line-height: 16px !important;
-    color: rgba(61, 60, 64, 0.56) !important;
+    color: rgba(63, 67, 80, 0.56) !important;
     padding: 8px 24px 8px 24px !important;
   }
 
@@ -135,21 +135,21 @@
     font-weight: 600 !important;
     font-size: 14px !important;
     line-height: 20px !important;
-    color: #3D3C40 !important;
+    color: #3F4350 !important;
   }
 
   .time {
     font-family: Open Sans, sans-serif;
     font-size: 12px;
     line-height: 16px;
-    color: rgba(61, 60, 64, 0.56);
+    color: rgba(63, 67, 80, 0.56);
     padding: 2px 6px;
     align-items: center;
     float: left;
   }
     
   .channelBg {
-    background: rgba(61, 60, 64, 0.08);
+    background: rgba(63, 67, 80, 0.08);
     border-radius: 4px;
     display: flex;
   }
@@ -168,7 +168,7 @@
     line-height: 16px;
     letter-spacing: 0.01em;
     text-transform: uppercase;
-    color: rgba(61, 60, 64, 0.64);
+    color: rgba(63, 67, 80, 0.64);
     padding: 2px 6px 2px 0px;
   }
   
@@ -176,7 +176,7 @@
     text-align: left !important;
     font-size: 14px !important;
     line-height: 20px !important;
-    color: #3D3C40 !important;
+    color: #3F4350 !important;
     padding: 0px !important;
   }
 

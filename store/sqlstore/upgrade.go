@@ -329,7 +329,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 					data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
 				}
 
-				sqlStore.Preference().Save(&data)
+				sqlStore.Preference().Save(data)
 			}
 		}
 
@@ -1310,6 +1310,14 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+
+	sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+	sqlStore.RemoveColumnIfExists("Posts", "ParentId")
+	sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+	sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
+
+	// allow 10 files per post
+	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
