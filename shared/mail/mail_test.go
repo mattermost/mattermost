@@ -125,7 +125,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, emailCC)
+	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, "", "", "", emailCC)
 	require.NoError(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
@@ -163,7 +163,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 		"test1.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 		"test2.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 	}
-	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, emailCC)
+	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, "", "", "", emailCC)
 	require.NoError(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
@@ -333,24 +333,82 @@ func TestSendMail(t *testing.T) {
 
 	testCases := map[string]struct {
 		replyTo     mail.Address
+		messageID   string
+		inReplyTo   string
+		references  string
 		contains    string
 		notContains string
 	}{
 		"adds reply-to header": {
 			mail.Address{Address: "foo@test.com"},
+			"",
+			"",
+			"",
 			"\r\nReply-To: <foo@test.com>\r\n",
 			"",
 		},
 		"doesn't add reply-to header": {
 			mail.Address{},
 			"",
+			"",
+			"",
+			"",
 			"\r\nReply-To:",
+		},
+		
+		"adds message-id header" : {
+			mail.Address{},
+			"<abc123@mattermost.com>",
+			"",
+			"",
+			"\r\nMessage-ID: <abc123@mattermost.com>\r\n",
+			"",
+		},
+		"doesn't add message-id header" : {
+			mail.Address{},
+			"",
+			"",
+			"",
+			"",
+			"\r\nMessage-ID:",
+		},
+		"adds in-reply-to header" : {
+			mail.Address{},
+			"",
+			"<defg456@mattermost.com>",
+			"",
+			"\r\nIn-Reply-To: <defg456@mattermost.com>\r\n",
+			"",
+		},
+		"doesn't add in-reply-to header" : {
+			mail.Address{},
+			"",
+			"",
+			"",
+			"",
+			"\r\nIn-Reply-To:",
+		},	
+		"adds references header" : {
+			mail.Address{},
+			"",
+			"",
+			"<ghi789@mattermost.com>",
+			"\r\nReferences: <ghi789@mattermost.com>\r\n",
+			"",
+		},
+		"doesn't add references header" : {
+			mail.Address{},
+			"",
+			"",
+			"",
+			"",
+			"\r\nReferences:",
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil}
+			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references} // update this
 			err = SendMail(mocm, mail, time.Now())
 			require.NoError(t, err)
 			if tc.contains != "" {
