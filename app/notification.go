@@ -255,12 +255,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return
 				}
 
+				followersMutex.Lock()
 				// add new followers to existing followers
 				if threadMembership.Following && !followers.Contains(userID) {
-					followersMutex.Lock()
 					followers = append(followers, userID)
-					followersMutex.Unlock()
 				}
+				followersMutex.Unlock()
 
 				membershipsMutex.Lock()
 				participantMemberships[userID] = threadMembership
