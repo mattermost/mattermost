@@ -182,7 +182,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 			resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 			require.NoError(t, err, "Could not get message from mailbox")
 			require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message %s", resultsEmail.Body.Text)
-			// Usign the message size because the inbucket API doesn't return embedded attachments through the API
+			// Using the message size because the inbucket API doesn't return embedded attachments through the API
 			require.Greater(t, resultsEmail.Size, 1500, "the file size should be more because the embedded attachemtns")
 		}
 	}
@@ -408,7 +408,7 @@ func TestSendMail(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references} // update this
+			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references}
 			err = SendMail(mocm, mail, time.Now())
 			require.NoError(t, err)
 			if tc.contains != "" {
