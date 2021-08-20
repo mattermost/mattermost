@@ -534,7 +534,7 @@ type MailToLinkContent struct {
 	MailBody      string `json:"mail_body"`
 }
 
-func (mlc *MailToLinkContent) ToJson() string {
+func (mlc *MailToLinkContent) ToJSON() string {
 	b, _ := json.Marshal(mlc)
 	return string(b)
 }
@@ -573,7 +573,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 		MailBody:      mailBody,
 	}
 
-	return mailToLinkContent.ToJson()
+	return mailToLinkContent.ToJSON()
 }
 
 func (a *App) DoLocalRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {

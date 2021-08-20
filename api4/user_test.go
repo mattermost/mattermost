@@ -222,7 +222,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 		token := model.NewToken(
 			app.TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
@@ -247,7 +247,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 		token := model.NewToken(
 			app.TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
@@ -272,7 +272,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 		token := model.NewToken(
 			app.TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
@@ -288,7 +288,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		past49Hours := timeNow.Add(-49*time.Hour).UnixNano() / int64(time.Millisecond)
 		token := model.NewToken(
 			app.TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = past49Hours
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
@@ -320,7 +320,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		token := model.NewToken(
 			app.TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
@@ -341,7 +341,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		token := model.NewToken(
 			app.TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
@@ -359,7 +359,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		token := model.NewToken(
 			app.TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 

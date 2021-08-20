@@ -624,7 +624,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	channelIds := model.ArrayFromJson(r.Body)
+	channelIds := model.ArrayFromJSON(r.Body)
 
 	if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
@@ -841,7 +841,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -886,7 +886,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	usernames := model.ArrayFromJson(r.Body)
+	usernames := model.ArrayFromJSON(r.Body)
 
 	if len(usernames) == 0 {
 		c.SetInvalidParam("usernames")
@@ -1333,7 +1333,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
 	if !model.IsValidUserRoles(newRoles) {
@@ -1381,7 +1381,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 
 	active, ok := props["active"].(bool)
 	if !ok {
@@ -1519,7 +1519,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	loginId := props["login_id"]
 	if loginId == "" {
@@ -1531,7 +1531,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp["mfa_required"] = false
 
 	if !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
-		w.Write([]byte(model.StringInterfaceToJson(resp)))
+		w.Write([]byte(model.StringInterfaceToJSON(resp)))
 		return
 	}
 
@@ -1541,7 +1541,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		resp["mfa_required"] = user.MfaActive
 	}
 
-	w.Write([]byte(model.StringInterfaceToJson(resp)))
+	w.Write([]byte(model.StringInterfaceToJSON(resp)))
 }
 
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1568,7 +1568,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	activate, ok := props["activate"].(bool)
 	if !ok {
 		c.SetInvalidParam("activate")
@@ -1635,7 +1635,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	newPassword := props["new_password"]
 
 	auditRec := c.MakeAuditRecord("updatePassword", audit.Fail)
@@ -1694,7 +1694,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	token := props["token"]
 	if len(token) != model.TokenSize {
@@ -1722,7 +1722,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	email := props["email"]
 	email = strings.ToLower(email)
@@ -1811,7 +1811,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, "", http.StatusUnauthorized)
 	}()
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
@@ -2003,7 +2003,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	sessionId := props["session_id"]
 	if sessionId == "" {
 		c.SetInvalidParam("session_id")
@@ -2080,7 +2080,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	deviceId := props["device_id"]
 	if deviceId == "" {
@@ -2169,7 +2169,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	token := props["token"]
 	if len(token) != model.TokenSize {
@@ -2192,7 +2192,7 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	email := props["email"]
 	email = strings.ToLower(email)
@@ -2267,7 +2267,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
+	w.Write([]byte(model.MapToJSON(map[string]string{"follow_link": link})))
 }
 
 func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2442,7 +2442,7 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	tokenId := props["token_id"]
 	if tokenId == "" {
@@ -2486,7 +2486,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	tokenId := props["token_id"]
 
 	if tokenId == "" {
@@ -2531,7 +2531,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	tokenId := props["token_id"]
 	if tokenId == "" {
@@ -2576,7 +2576,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 
 	userId := c.AppContext.Session().UserId
 	termsOfServiceId, ok := props["termsOfServiceId"].(string)
@@ -2843,7 +2843,7 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
@@ -2902,7 +2902,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
@@ -2923,7 +2923,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("matches")
 		return
 	}
-	usersMap := model.MapFromJson(strings.NewReader(model.StringInterfaceToJson(matches)))
+	usersMap := model.MapFromJSON(strings.NewReader(model.StringInterfaceToJSON(matches)))
 
 	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
 	defer c.LogAuditRec(auditRec)

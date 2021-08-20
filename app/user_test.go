@@ -60,7 +60,7 @@ func TestCreateOAuthUser(t *testing.T) {
 		mockUser := &model.User{Id: "abcdef", AuthData: model.NewString("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
 		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.Anything, mock.Anything).Return(true)
-		providerMock.On("GetUserFromJson", mock.Anything, mock.Anything).Return(mockUser, nil)
+		providerMock.On("GetUserFromJSON", mock.Anything, mock.Anything).Return(mockUser, nil)
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
@@ -735,7 +735,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("invalid token type", func(t *testing.T) {
 		token := model.NewToken(
 			TokenTypeVerifyEmail,
-			model.MapToJson(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
@@ -746,7 +746,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("expired token", func(t *testing.T) {
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
@@ -758,7 +758,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("invalid team id", func(t *testing.T) {
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": model.NewId(), "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
@@ -770,7 +770,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		newUser, err := th.App.CreateUserWithToken(th.Context, &user, token)
@@ -790,7 +790,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -820,11 +820,11 @@ func TestCreateUserWithToken(t *testing.T) {
 		grantedInvitationEmail := model.NewId() + "other-email@restricted.com"
 		forbiddenDomainToken := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		grantedDomainToken := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(forbiddenDomainToken))
 		require.NoError(t, th.App.Srv().Store.Token().Save(grantedDomainToken))
@@ -867,7 +867,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		guest := model.User{

@@ -118,7 +118,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
-	postIds := model.ArrayFromJson(r.Body)
+	postIds := model.ArrayFromJSON(r.Body)
 	for _, postId := range postIds {
 		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), postId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)

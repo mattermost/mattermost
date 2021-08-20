@@ -285,7 +285,7 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	privacy, ok := props["privacy"].(string)
 	if !ok {
 		c.SetInvalidParam("privacy")
@@ -574,7 +574,7 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -615,7 +615,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	var member model.TeamMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil {
-		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJson()", http.StatusBadRequest)
+		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest)
 		return
 	}
 	if member.TeamId != c.Params.TeamId {
@@ -951,7 +951,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
 	if !model.IsValidUserRoles(newRoles) {
@@ -1121,7 +1121,7 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var payload []byte
 	if props.Page != nil && props.PerPage != nil {
 		twc := map[string]interface{}{"teams": teams, "total_count": totalCount}
-		payload = model.ToJson(twc)
+		payload = model.ToJSON(twc)
 	} else {
 		js, jsonErr := json.Marshal(teams)
 		if jsonErr != nil {
@@ -1165,7 +1165,7 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := map[string]bool{"exists": exists}
-	w.Write([]byte(model.MapBoolToJson(resp)))
+	w.Write([]byte(model.MapBoolToJSON(resp)))
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1254,7 +1254,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write([]byte(model.MapToJson(data)))
+	w.Write([]byte(model.MapToJSON(data)))
 }
 
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1275,7 +1275,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailList := model.ArrayFromJson(r.Body)
+	emailList := model.ArrayFromJSON(r.Body)
 
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
@@ -1315,7 +1315,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		scheduledAt := model.GetMillis()
 		jobData := map[string]string{
-			"emailList":   model.ArrayToJson(emailList),
+			"emailList":   model.ArrayToJSON(emailList),
 			"teamID":      c.Params.TeamId,
 			"senderID":    c.AppContext.Session().UserId,
 			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
@@ -1492,7 +1492,7 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	result["description"] = team.Description
 	result["name"] = team.Name
 	result["id"] = team.Id
-	w.Write([]byte(model.MapToJson(result)))
+	w.Write([]byte(model.MapToJSON(result)))
 }
 
 func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Request) {

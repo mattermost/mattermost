@@ -453,13 +453,13 @@ func TestOAuthComplete(t *testing.T) {
 	stateProps["team_id"] = th.BasicTeam.Id
 	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
 
-	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 	r, err = HTTPGet(apiClient.URL+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), apiClient.HTTPClient, "", true)
 	assert.Error(t, err)
 	closeBody(r)
 
 	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
-	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 	r, err = HTTPGet(apiClient.URL+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), apiClient.HTTPClient, "", true)
 	assert.Error(t, err)
 	closeBody(r)
@@ -514,7 +514,7 @@ func TestOAuthComplete(t *testing.T) {
 	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
 	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	stateProps["redirect_to"] = "/oauth/authorize"
-	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 	r, err = HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false)
 	if err == nil {
 		closeBody(r)
@@ -542,7 +542,7 @@ func TestOAuthComplete(t *testing.T) {
 
 	code = rurl.Query().Get("code")
 	stateProps["action"] = model.OAuthActionLogin
-	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 	if r, err = HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false); err == nil {
 		closeBody(r)
 	}
@@ -553,7 +553,7 @@ func TestOAuthComplete(t *testing.T) {
 
 	code = rurl.Query().Get("code")
 	delete(stateProps, "action")
-	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 	if r, err = HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false); err == nil {
 		closeBody(r)
 	}
@@ -564,7 +564,7 @@ func TestOAuthComplete(t *testing.T) {
 
 	code = rurl.Query().Get("code")
 	stateProps["action"] = model.OAuthActionSignup
-	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 	if r, err := HTTPGet(apiClient.URL+"/login/"+model.ServiceGitlab+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), apiClient.HTTPClient, "", false); err == nil {
 		closeBody(r)
 	}
@@ -602,7 +602,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAuthActionMobile
 	stateProps["redirect_to"] = th.App.Config().NativeAppSettings.AppCustomURLSchemes[0]
-	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), nil)
 
 	completeOAuth(c, responseWriter, request2)
@@ -631,7 +631,7 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 		return rp, nil
 	} else if rp.StatusCode >= 300 {
 		defer closeBody(rp)
-		return rp, model.AppErrorFromJson(rp.Body)
+		return rp, model.AppErrorFromJSON(rp.Body)
 	} else {
 		return rp, nil
 	}
@@ -647,7 +647,7 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error) {
 	var user model.User
 	if err := json.NewDecoder(data).Decode(&user); err != nil {
 		return nil, err

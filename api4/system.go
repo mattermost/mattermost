@@ -186,11 +186,11 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	w.Write([]byte(model.MapToJson(s)))
+	w.Write([]byte(model.MapToJSON(s)))
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
 	}
@@ -225,7 +225,7 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	siteURL := props["site_url"]
 	if siteURL == "" {
 		c.SetInvalidParam("site_url")
@@ -334,7 +334,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
 
-	w.Write([]byte(model.ArrayToJson(lines)))
+	w.Write([]byte(model.ArrayToJSON(lines)))
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -351,7 +351,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	m := model.MapFromJson(r.Body)
+	m := model.MapFromJSON(r.Body)
 	lvl := m["level"]
 	msg := m["message"]
 
@@ -372,7 +372,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	m["message"] = msg
-	w.Write([]byte(model.MapToJson(m)))
+	w.Write([]byte(model.MapToJSON(m)))
 }
 
 func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -420,7 +420,7 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
 	}
@@ -459,7 +459,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = ""
 
 	if !*c.App.Config().ServiceSettings.EnableLinkPreviews {
-		w.Write([]byte(model.MapToJson(m)))
+		w.Write([]byte(model.MapToJSON(m)))
 		return
 	}
 
@@ -472,7 +472,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	var location string
 	if err := redirectLocationDataCache.Get(url, &location); err == nil {
 		m["location"] = location
-		w.Write([]byte(model.MapToJson(m)))
+		w.Write([]byte(model.MapToJSON(m)))
 		return
 	}
 
@@ -486,7 +486,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Cache failures to prevent retries.
 		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
 		// Always return a success status and a JSON string to limit information returned to client.
-		w.Write([]byte(model.MapToJson(m)))
+		w.Write([]byte(model.MapToJSON(m)))
 		return
 	}
 	defer func() {
@@ -498,7 +498,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
 	m["location"] = location
 
-	w.Write([]byte(model.MapToJson(m)))
+	w.Write([]byte(model.MapToJSON(m)))
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -705,7 +705,7 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 		s = map[string]interface{}{"percentage": percentage, "error": nil}
 	}
 
-	w.Write([]byte(model.StringInterfaceToJson(s)))
+	w.Write([]byte(model.StringInterfaceToJSON(s)))
 }
 
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -848,7 +848,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	ids := model.ArrayFromJson(r.Body)
+	ids := model.ArrayFromJSON(r.Body)
 	err := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
 	if err != nil {
 		c.Err = err

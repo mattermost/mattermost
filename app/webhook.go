@@ -194,7 +194,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 		}
 	}
 
-	if utf8.RuneCountInString(model.StringInterfaceToJson(base.GetProps())) > model.PostPropsMaxUserRunes {
+	if utf8.RuneCountInString(model.StringInterfaceToJSON(base.GetProps())) > model.PostPropsMaxUserRunes {
 		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 	}
 
@@ -227,7 +227,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			}
 			origAttachments, _ := newProps["attachments"].([]*model.SlackAttachment)
 			newProps["attachments"] = append(origAttachments, &newAttachment)
-			newPropsString := model.StringInterfaceToJson(newProps)
+			newPropsString := model.StringInterfaceToJSON(newProps)
 			runeCount := utf8.RuneCountInString(newPropsString)
 
 			if runeCount <= model.PostPropsMaxUserRunes {

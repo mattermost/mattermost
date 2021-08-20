@@ -511,7 +511,7 @@ func (a *App) CreateGroupChannel(userIDs []string, creatorId string) (*model.Cha
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, "", nil)
-	message.Add("teammate_ids", model.ArrayToJson(userIDs))
+	message.Add("teammate_ids", model.ArrayToJSON(userIDs))
 	a.Publish(message)
 
 	return channel, nil
@@ -528,7 +528,7 @@ func (a *App) createGroupChannel(userIDs []string) (*model.Channel, *model.AppEr
 	}
 
 	if len(users) != len(userIDs) {
-		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIDs), http.StatusBadRequest)
+		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
 	group := &model.Channel{
@@ -607,7 +607,7 @@ func (a *App) GetGroupChannel(userIDs []string) (*model.Channel, *model.AppError
 	}
 
 	if len(users) != len(userIDs) {
-		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIDs), http.StatusBadRequest)
+		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
 	channel, appErr := a.GetChannelByName(model.GetGroupNameFromUserIds(userIDs), "", true)

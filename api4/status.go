@@ -49,7 +49,7 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")

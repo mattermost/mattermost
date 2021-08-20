@@ -668,7 +668,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapBoolFromJson(r.Body)
+	props := model.MapBoolFromJSON(r.Body)
 	collapsedThreadsSupported := props["collapsed_threads_supported"]
 
 	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {

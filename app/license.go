@@ -271,7 +271,7 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer resp.Body.Close()
-	licenseResponse := model.MapFromJson(resp.Body)
+	licenseResponse := model.MapFromJSON(resp.Body)
 
 	if _, ok := licenseResponse["license"]; !ok {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, licenseResponse["message"], http.StatusBadRequest)

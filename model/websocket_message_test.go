@@ -75,7 +75,7 @@ func TestWebSocketEventImmutable(t *testing.T) {
 	require.Equal(t, m, copy)
 }
 
-func TestWebSocketEventFromJson(t *testing.T) {
+func TestWebSocketEventFromJSON(t *testing.T) {
 	ev, err := WebSocketEventFromJSON(bytes.NewReader([]byte("junk")))
 	require.Error(t, err)
 	require.Nil(t, ev, "should not have parsed")
@@ -125,7 +125,7 @@ func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
 
 var stringSink []byte
 
-func BenchmarkWebSocketEvent_ToJson(b *testing.B) {
+func BenchmarkWebSocketEvent_ToJSON(b *testing.B) {
 	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil)
 	for i := 0; i < 100; i++ {
 		event.GetData()[NewId()] = NewId()

@@ -34,7 +34,7 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -86,7 +86,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
