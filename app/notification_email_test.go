@@ -833,6 +833,11 @@ func TestMarkdownConversion(t *testing.T) {
 		want string
 	}{
 		{
+			name: "markdown: escape string test",
+			args: "<b>not bold</b>",
+			want: "&lt;b&gt;not bold&lt;/b&gt;",
+		},
+		{
 			name: "markdown: strong",
 			args: "This is **Mattermost**",
 			want: "This is <strong>Mattermost</strong>",

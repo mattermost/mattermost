@@ -4,6 +4,8 @@
 package utils
 
 import (
+	"html"
+	"regexp"
 	"strings"
 
 	"github.com/yuin/goldmark"
@@ -35,12 +37,19 @@ func StripMarkdown(markdown string) (string, error) {
 
 // MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
 func MarkdownToHTML(markdown string) (string, error) {
+	re := regexp.MustCompile(`<(.*)>.*?|<(.*) />`)
+	markdownClean := re.ReplaceAllFunc([]byte(markdown), func(s []byte) []byte {
+		out := html.EscapeString(string(s))
+		return []byte(out)
+	})
+
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM),
 	)
+
 	var b strings.Builder
 
-	err := md.Convert([]byte(markdown), &b)
+	err := md.Convert(markdownClean, &b)
 	if err != nil {
 		return "", err
 	}
