@@ -47,7 +47,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 
 	for _, preference := range preferences {
 		data, _ := ss.Preference().Get(preference.UserId, preference.Category, preference.Name)
-		require.Equal(t, data.ToJson(), preference.ToJson(), "got incorrect preference after first Save")
+		require.Equal(t, data, &preference, "got incorrect preference after first Save")
 	}
 
 	preferences[0].Value = "value2a"
@@ -57,7 +57,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 
 	for _, preference := range preferences {
 		data, _ := ss.Preference().Get(preference.UserId, preference.Category, preference.Name)
-		require.Equal(t, data.ToJson(), preference.ToJson(), "got incorrect preference after second Save")
+		require.Equal(t, data, &preference, "got incorrect preference after second Save")
 	}
 }
 
@@ -94,7 +94,7 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 
 	data, err := ss.Preference().Get(userId, category, name)
 	require.NoError(t, err)
-	require.Equal(t, preferences[0].ToJson(), data.ToJson(), "got incorrect preference")
+	require.Equal(t, &preferences[0], data, "got incorrect preference")
 
 	// make sure getting a missing preference fails
 	_, err = ss.Preference().Get(model.NewId(), model.NewId(), model.NewId())

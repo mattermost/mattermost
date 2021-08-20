@@ -502,12 +502,12 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
-	ack, err := model.PushNotificationAckFromJson(r.Body)
-	if err != nil {
+	var ack model.PushNotificationAck
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
 		c.Err = model.NewAppError("pushNotificationAck",
 			"api.push_notifications_ack.message.parse.app_error",
 			nil,
-			err.Error(),
+			jsonErr.Error(),
 			http.StatusBadRequest,
 		)
 		return
@@ -523,7 +523,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SendAckToPushProxy(ack)
+	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
 		if err != nil {
 			// Log the error only, then continue to fetch notification message
@@ -542,7 +542,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		msg, appError := notificationInterface.GetNotificationMessage(ack, c.AppContext.Session().UserId)
+		msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
 		if appError != nil {
 			c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
 			return

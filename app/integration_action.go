@@ -242,7 +242,11 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		}
 		return "", nil
 	}
-	resp, appErr = a.DoActionRequest(c, upstreamURL, upstreamRequest.ToJson())
+	requestJSON, jsonErr := json.Marshal(upstreamRequest)
+	if jsonErr != nil {
+		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	resp, appErr = a.DoActionRequest(c, upstreamURL, requestJSON)
 	if appErr != nil {
 		return "", appErr
 	}

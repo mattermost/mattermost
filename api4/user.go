@@ -2226,8 +2226,8 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
-	switchRequest := model.SwitchRequestFromJson(r.Body)
-	if switchRequest == nil {
+	var switchRequest model.SwitchRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&switchRequest); jsonErr != nil {
 		c.SetInvalidParam("switch_request")
 		return
 	}
@@ -2719,8 +2719,8 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	typingRequest := model.TypingRequestFromJson(r.Body)
-	if typingRequest == nil {
+	var typingRequest model.TypingRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&typingRequest); jsonErr != nil {
 		c.SetInvalidParam("typing_request")
 		return
 	}
@@ -2834,7 +2834,12 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UploadSessionsToJson(uss)))
+	js, jsonErr := json.Marshal(uss)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUploadsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {

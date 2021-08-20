@@ -13,11 +13,19 @@ import (
 )
 
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
-	s.installPluginFromData(model.PluginEventDataFromJson(bytes.NewReader(msg.Data)))
+	var data model.PluginEventData
+	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
+	s.installPluginFromData(data)
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
-	s.removePluginFromData(model.PluginEventDataFromJson(bytes.NewReader(msg.Data)))
+	var data model.PluginEventData
+	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
+	s.removePluginFromData(data)
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
@@ -70,8 +78,9 @@ func (s *Server) registerClusterHandlers() {
 }
 
 func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
-	event := model.WebSocketEventFromJson(bytes.NewReader(msg.Data))
-	if event == nil {
+	event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+	if err != nil {
+		mlog.Warn("Failed to decode event from JSON", mlog.Err(err))
 		return
 	}
 	s.PublishSkipClusterSend(event)

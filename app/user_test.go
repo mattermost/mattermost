@@ -38,9 +38,10 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	t.Run("create user successfully", func(t *testing.T) {
 		glUser := oauthgitlab.GitLabUser{Id: 42, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
-		json := glUser.ToJson()
+		js, jsonErr := json.Marshal(glUser)
+		require.NoError(t, jsonErr)
 
-		user, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, strings.NewReader(json), th.BasicTeam.Id, nil)
+		user, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, bytes.NewReader(js), th.BasicTeam.Id, nil)
 		require.Nil(t, err)
 
 		require.Equal(t, glUser.Username, user.Username, "usernames didn't match")

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -1024,18 +1025,19 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		// Don't do any checking if it's a benchmark
 		if _, ok := h.t.(*testing.B); ok {
 			resp := model.NewOkPushResponse()
-			fmt.Fprintln(w, (&resp).ToJson())
+			jsonData, _ := json.Marshal(&resp)
+			fmt.Fprintln(w, jsonData)
 			return
 		}
 
-		var notification *model.PushNotification
-		var notificationAck *model.PushNotificationAck
+		var notification model.PushNotification
+		var notificationAck model.PushNotificationAck
 		var err error
 		if r.URL.Path == "/api/v1/send_push" {
-			notification, err = model.PushNotificationFromJson(r.Body)
-			if err != nil {
+			if err = json.NewDecoder(r.Body).Decode(&notification); err != nil {
 				resp := model.NewErrorPushResponse("fail")
-				fmt.Fprintln(w, (&resp).ToJson())
+				jsonData, _ := json.Marshal(&resp)
+				fmt.Fprintln(w, jsonData)
 				return
 			}
 			// We verify that messages are being sent in order per-device.
@@ -1047,10 +1049,10 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 				defer h.serialUserMap.Delete(notification.DeviceId)
 			}
 		} else {
-			notificationAck, err = model.PushNotificationAckFromJson(r.Body)
-			if err != nil {
+			if err = json.NewDecoder(r.Body).Decode(&notificationAck); err != nil {
 				resp := model.NewErrorPushResponse("fail")
-				fmt.Fprintln(w, (&resp).ToJson())
+				jsonData, _ := json.Marshal(&resp)
+				fmt.Fprintln(w, jsonData)
 				return
 			}
 		}
@@ -1061,9 +1063,9 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		// Little bit of duplicate condition check so that we can check the in-order property
 		// first.
 		if r.URL.Path == "/api/v1/send_push" {
-			h._notifications = append(h._notifications, notification)
+			h._notifications = append(h._notifications, &notification)
 		} else {
-			h._notificationAcks = append(h._notificationAcks, notificationAck)
+			h._notificationAcks = append(h._notificationAcks, &notificationAck)
 		}
 
 		var resp model.PushResponse
@@ -1077,7 +1079,8 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 				resp = model.NewRemovePushResponse()
 			}
 		}
-		fmt.Fprintln(w, (&resp).ToJson())
+		jsonData, _ := json.Marshal(&resp)
+		fmt.Fprintln(w, jsonData)
 	}
 }
 

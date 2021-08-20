@@ -1387,7 +1387,11 @@ func (c *Client4) GenerateMfaSecret(userId string) (*MfaSecret, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return MfaSecretFromJson(r.Body), BuildResponse(r), nil
+	var secret MfaSecret
+	if jsonErr := json.NewDecoder(r.Body).Decode(&secret); jsonErr != nil {
+		return nil, nil, NewAppError("GenerateMfaSecret", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &secret, BuildResponse(r), nil
 }
 
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
@@ -3872,7 +3876,12 @@ func (c *Client4) SearchFilesWithParams(teamId string, params *SearchParameter) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return FileInfoListFromJson(r.Body), BuildResponse(r), nil
+
+	var list FileInfoList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("SearchFilesWithParams", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &list, BuildResponse(r), nil
 }
 
 // SearchPosts returns any posts with matching terms string.
@@ -4662,8 +4671,12 @@ func (c *Client4) GetPreferences(userId string) (Preferences, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	preferences, _ := PreferencesFromJson(r.Body)
-	return preferences, BuildResponse(r), nil
+
+	var prefs Preferences
+	if jsonErr := json.NewDecoder(r.Body).Decode(&prefs); jsonErr != nil {
+		return nil, nil, NewAppError("GetPreferences", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return prefs, BuildResponse(r), nil
 }
 
 // UpdatePreferences saves the user's preferences.
@@ -4702,8 +4715,11 @@ func (c *Client4) GetPreferencesByCategory(userId string, category string) (Pref
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	preferences, _ := PreferencesFromJson(r.Body)
-	return preferences, BuildResponse(r), nil
+	var prefs Preferences
+	if jsonErr := json.NewDecoder(r.Body).Decode(&prefs); jsonErr != nil {
+		return nil, nil, NewAppError("GetPreferencesByCategory", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return prefs, BuildResponse(r), nil
 }
 
 // GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string.
@@ -4714,7 +4730,12 @@ func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return PreferenceFromJson(r.Body), BuildResponse(r), nil
+
+	var pref Preference
+	if jsonErr := json.NewDecoder(r.Body).Decode(&pref); jsonErr != nil {
+		return nil, nil, NewAppError("GetPreferenceByCategoryAndName", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &pref, BuildResponse(r), nil
 }
 
 // SAML Section
@@ -4829,7 +4850,12 @@ func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return SamlCertificateStatusFromJson(r.Body), BuildResponse(r), nil
+
+	var status SamlCertificateStatus
+	if jsonErr := json.NewDecoder(r.Body).Decode(&status); jsonErr != nil {
+		return nil, nil, NewAppError("GetSamlCertificateStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &status, BuildResponse(r), nil
 }
 
 func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataResponse, *Response, error) {
@@ -4841,7 +4867,11 @@ func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataR
 	}
 
 	defer closeBody(r)
-	return SamlMetadataResponseFromJson(r.Body), BuildResponse(r), nil
+	var resp SamlMetadataResponse
+	if jsonErr := json.NewDecoder(r.Body).Decode(&resp); jsonErr != nil {
+		return nil, nil, NewAppError("GetSamlMetadataFromIdp", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &resp, BuildResponse(r), nil
 }
 
 // ResetSamlAuthDataToEmail resets the AuthData field of SAML users to their Email.
@@ -4878,7 +4908,11 @@ func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Resp
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ComplianceFromJson(r.Body), BuildResponse(r), nil
+	var comp Compliance
+	if jsonErr := json.NewDecoder(r.Body).Decode(&comp); jsonErr != nil {
+		return nil, nil, NewAppError("CreateComplianceReport", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &comp, BuildResponse(r), nil
 }
 
 // GetComplianceReports returns list of compliance reports.
@@ -4889,7 +4923,11 @@ func (c *Client4) GetComplianceReports(page, perPage int) (Compliances, *Respons
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return CompliancesFromJson(r.Body), BuildResponse(r), nil
+	var comp Compliances
+	if jsonErr := json.NewDecoder(r.Body).Decode(&comp); jsonErr != nil {
+		return nil, nil, NewAppError("GetComplianceReports", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return comp, BuildResponse(r), nil
 }
 
 // GetComplianceReport returns a compliance report.
@@ -4899,7 +4937,11 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ComplianceFromJson(r.Body), BuildResponse(r), nil
+	var comp Compliance
+	if jsonErr := json.NewDecoder(r.Body).Decode(&comp); jsonErr != nil {
+		return nil, nil, NewAppError("GetComplianceReport", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &comp, BuildResponse(r), nil
 }
 
 // DownloadComplianceReport returns a full compliance report as a file.
@@ -5361,7 +5403,12 @@ func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("CreateOAuthApp", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // UpdateOAuthApp updates a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
@@ -5375,7 +5422,11 @@ func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateOAuthApp", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // GetOAuthApps gets a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
@@ -5386,7 +5437,11 @@ func (c *Client4) GetOAuthApps(page, perPage int) ([]*OAuthApp, *Response, error
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppListFromJson(r.Body), BuildResponse(r), nil
+	var list []*OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetOAuthApps", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetOAuthApp gets a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
@@ -5396,7 +5451,11 @@ func (c *Client4) GetOAuthApp(appId string) (*OAuthApp, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("GetOAuthApp", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // GetOAuthAppInfo gets a sanitized version of a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
@@ -5406,7 +5465,11 @@ func (c *Client4) GetOAuthAppInfo(appId string) (*OAuthApp, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("GetOAuthAppInfo", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // DeleteOAuthApp deletes a registered OAuth 2.0 client application.
@@ -5426,7 +5489,11 @@ func (c *Client4) RegenerateOAuthAppSecret(appId string) (*OAuthApp, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppFromJson(r.Body), BuildResponse(r), nil
+	var oapp OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oapp); jsonErr != nil {
+		return nil, nil, NewAppError("RegenerateOAuthAppSecret", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &oapp, BuildResponse(r), nil
 }
 
 // GetAuthorizedOAuthAppsForUser gets a page of OAuth 2.0 client applications the user has authorized to use access their account.
@@ -5437,7 +5504,11 @@ func (c *Client4) GetAuthorizedOAuthAppsForUser(userId string, page, perPage int
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return OAuthAppListFromJson(r.Body), BuildResponse(r), nil
+	var list []*OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetAuthorizedOAuthAppsForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
@@ -5541,7 +5612,11 @@ func (c *Client4) GetDataRetentionPolicy() (*GlobalRetentionPolicy, *Response, e
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GlobalRetentionPolicyFromJson(r.Body), BuildResponse(r), nil
+	var p GlobalRetentionPolicy
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("GetDataRetentionPolicy", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &p, BuildResponse(r), nil
 }
 
 // GetDataRetentionPolicyByID will get the details for the granular data retention policy with the specified ID.
@@ -5551,11 +5626,12 @@ func (c *Client4) GetDataRetentionPolicyByID(policyID string) (*RetentionPolicyW
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	policy, err := RetentionPolicyWithTeamAndChannelCountsFromJson(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.GetDataRetentionPolicyByID", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
+
+	var p RetentionPolicyWithTeamAndChannelCounts
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("GetDataRetentionPolicyByID", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	return policy, BuildResponse(r), nil
+	return &p, BuildResponse(r), nil
 }
 
 // GetDataRetentionPoliciesCount will get the total number of granular data retention policies.
@@ -5583,26 +5659,31 @@ func (c *Client4) GetDataRetentionPolicies(page, perPage int) (*RetentionPolicyW
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	policies, err := RetentionPolicyWithTeamAndChannelCountsListFromJson(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.GetDataRetentionPolicies", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
+
+	var p RetentionPolicyWithTeamAndChannelCountsList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("GetDataRetentionPolicies", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	return policies, BuildResponse(r), nil
+	return &p, BuildResponse(r), nil
 }
 
 // CreateDataRetentionPolicy will create a new granular data retention policy which will be applied to
 // the specified teams and channels. The Id field of `policy` must be empty.
 func (c *Client4) CreateDataRetentionPolicy(policy *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	r, err := c.DoAPIPostBytes(c.dataRetentionRoute()+"/policies", policy.ToJson())
+	policyJSON, jsonErr := json.Marshal(policy)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("CreateDataRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes(c.dataRetentionRoute()+"/policies", policyJSON)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	newPolicy, err := RetentionPolicyWithTeamAndChannelCountsFromJson(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.CreateDataRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
+	var p RetentionPolicyWithTeamAndChannelCounts
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("CreateDataRetentionPolicy", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	return newPolicy, BuildResponse(r), nil
+	return &p, BuildResponse(r), nil
 }
 
 // DeleteDataRetentionPolicy will delete the granular data retention policy with the specified ID.
@@ -5618,16 +5699,20 @@ func (c *Client4) DeleteDataRetentionPolicy(policyID string) (*Response, error) 
 // PatchDataRetentionPolicy will patch the granular data retention policy with the specified ID.
 // The Id field of `patch` must be non-empty.
 func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	r, err := c.DoAPIPatchBytes(c.dataRetentionPolicyRoute(patch.ID), patch.ToJson())
+	patchJSON, jsonErr := json.Marshal(patch)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("PatchDataRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPatchBytes(c.dataRetentionPolicyRoute(patch.ID), patchJSON)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	policy, err := RetentionPolicyWithTeamAndChannelCountsFromJson(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("Client4.PatchDataRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode)
+	var p RetentionPolicyWithTeamAndChannelCounts
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("PatchDataRetentionPolicy", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	return policy, BuildResponse(r), nil
+	return &p, BuildResponse(r), nil
 }
 
 // GetTeamsForRetentionPolicy will get the teams to which the specified policy is currently applied.
@@ -6575,11 +6660,11 @@ func (c *Client4) InstallPluginFromURL(downloadURL string, force bool) (*Manifes
 
 // InstallMarketplacePlugin will install marketplace plugin.
 func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequest) (*Manifest, *Response, error) {
-	js, err := request.ToJson()
+	buf, err := json.Marshal(request)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, NewAppError("InstallMarketplacePlugin", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	r, err := c.DoAPIPost(c.pluginsRoute()+"/marketplace", js)
+	r, err := c.DoAPIPost(c.pluginsRoute()+"/marketplace", string(buf))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6599,7 +6684,12 @@ func (c *Client4) GetPlugins() (*PluginsResponse, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return PluginsResponseFromJson(r.Body), BuildResponse(r), nil
+
+	var resp PluginsResponse
+	if jsonErr := json.NewDecoder(r.Body).Decode(&resp); jsonErr != nil {
+		return nil, nil, NewAppError("GetPlugins", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &resp, BuildResponse(r), nil
 }
 
 // GetPluginStatuses will return the plugins installed on any server in the cluster, for reporting
@@ -6610,7 +6700,11 @@ func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return PluginStatusesFromJson(r.Body), BuildResponse(r), nil
+	var list PluginStatuses
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetPluginStatuses", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // RemovePlugin will disable and delete a plugin.
@@ -6780,7 +6874,11 @@ func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response, er
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TermsOfServiceFromJson(r.Body), BuildResponse(r), nil
+	var tos TermsOfService
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tos); jsonErr != nil {
+		return nil, nil, NewAppError("GetTermsOfService", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &tos, BuildResponse(r), nil
 }
 
 // GetUserTermsOfService fetches user's latest terms of service action if the latest action was for acceptance.
@@ -6807,7 +6905,11 @@ func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return TermsOfServiceFromJson(r.Body), BuildResponse(r), nil
+	var tos TermsOfService
+	if jsonErr := json.NewDecoder(r.Body).Decode(&tos); jsonErr != nil {
+		return nil, nil, NewAppError("CreateTermsOfService", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &tos, BuildResponse(r), nil
 }
 
 func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
@@ -6845,7 +6947,11 @@ func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType Gro
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
+	var gs GroupSyncable
+	if jsonErr := json.NewDecoder(r.Body).Decode(&gs); jsonErr != nil {
+		return nil, nil, NewAppError("LinkGroupSyncable", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &gs, BuildResponse(r), nil
 }
 
 func (c *Client4) UnlinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType) (*Response, error) {
@@ -6864,7 +6970,11 @@ func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType Grou
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
+	var gs GroupSyncable
+	if jsonErr := json.NewDecoder(r.Body).Decode(&gs); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroupSyncable", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &gs, BuildResponse(r), nil
 }
 
 func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response, error) {
@@ -6873,7 +6983,11 @@ func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableTy
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupSyncablesFromJson(r.Body), BuildResponse(r), nil
+	var list []*GroupSyncable
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetGroupSyncables", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
@@ -6883,7 +6997,11 @@ func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType Gr
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return GroupSyncableFromJson(r.Body), BuildResponse(r), nil
+	var gs GroupSyncable
+	if jsonErr := json.NewDecoder(r.Body).Decode(&gs); jsonErr != nil {
+		return nil, nil, NewAppError("PatchGroupSyncable", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &gs, BuildResponse(r), nil
 }
 
 func (c *Client4) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response, error) {
@@ -7182,7 +7300,12 @@ func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response, er
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UploadSessionFromJson(r.Body), BuildResponse(r), nil
+
+	var s UploadSession
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("CreateUpload", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetUpload returns the upload session for the specified uploadId.
@@ -7192,7 +7315,11 @@ func (c *Client4) GetUpload(uploadId string) (*UploadSession, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UploadSessionFromJson(r.Body), BuildResponse(r), nil
+	var s UploadSession
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("GetUpload", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
 }
 
 // GetUploadsForUser returns the upload sessions created by the specified
@@ -7203,7 +7330,11 @@ func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return UploadSessionsFromJson(r.Body), BuildResponse(r), nil
+	var list []*UploadSession
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUploadsForUser", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // UploadData performs an upload. On success it returns
