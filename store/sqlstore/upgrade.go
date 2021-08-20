@@ -1300,10 +1300,21 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
 
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
+		if sqlStore.DoesColumnExist("Posts", "ParentId") {
+			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId")
+		} else {
+			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON")
+		}
+	}
+
 	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+		sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+	}
 	sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
@@ -1311,7 +1322,9 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
 	sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
-	sqlStore.RemoveColumnIfExists("Posts", "ParentId")
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+		sqlStore.RemoveColumnIfExists("Posts", "ParentId")
+	}
 	sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
 	sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
 
@@ -1331,6 +1344,10 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 
 	sqlStore.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
 	sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
+
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+	}
 
 	// saveSchemaVersion(sqlStore, Version600)
 	// }

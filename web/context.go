@@ -35,7 +35,7 @@ func (c *Context) LogAuditRec(rec *audit.Record) {
 // LogAuditRec logs an audit record using specified Level.
 // If the context is flagged with a permissions error then `level`
 // is ignored and the audit record is emitted with `LevelPerms`.
-func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel) {
+func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 	if rec == nil {
 		return
 	}
@@ -59,7 +59,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 		UserID:    c.AppContext.Session().UserId,
 		SessionID: c.AppContext.Session().Id,
 		Client:    c.AppContext.UserAgent(),
-		IPAddress: c.AppContext.IpAddress(),
+		IPAddress: c.AppContext.IPAddress(),
 		Meta:      audit.Meta{audit.KeyClusterID: c.App.GetClusterId()},
 	}
 	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
@@ -68,7 +68,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 }
 
 func (c *Context) LogAudit(extraInfo string) {
-	audit := &model.Audit{UserId: c.AppContext.Session().UserId, IpAddress: c.AppContext.IpAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
+	audit := &model.Audit{UserId: c.AppContext.Session().UserId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 		c.LogErrorByCode(appErr)
@@ -80,7 +80,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.AppContext.Session().UserId)
 	}
 
-	audit := &model.Audit{UserId: userId, IpAddress: c.AppContext.IpAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
+	audit := &model.Audit{UserId: userId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 		c.LogErrorByCode(appErr)

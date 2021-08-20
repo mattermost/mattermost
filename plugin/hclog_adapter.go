@@ -115,7 +115,7 @@ func (h *hclogAdapter) ResetNamed(name string) hclog.Logger {
 }
 
 func (h *hclogAdapter) StandardLogger(opts *hclog.StandardLoggerOptions) *log.Logger {
-	return h.wrappedLogger.StdLog()
+	return h.wrappedLogger.StdLogger(mlog.LvlInfo)
 }
 
 func (h *hclogAdapter) StandardWriter(opts *hclog.StandardLoggerOptions) io.Writer {
