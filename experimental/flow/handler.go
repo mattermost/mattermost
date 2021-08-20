@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/flow/steps"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type fh struct {

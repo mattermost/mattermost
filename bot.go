@@ -1,12 +1,8 @@
 package pluginapi
 
 import (
-	"bytes"
-	"io"
-	"io/ioutil"
-
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 const (
@@ -106,37 +102,4 @@ func (b *BotService) UpdateActive(botUserID string, isActive bool) (*model.Bot, 
 // Minimum server version: 5.10
 func (b *BotService) DeletePermanently(botUserID string) error {
 	return normalizeAppErr(b.api.PermanentDeleteBot(botUserID))
-}
-
-// GetIconImage gets the bot icon image shown for the bot in the LHS.
-//
-// Minimum server version: 5.14
-func (b *BotService) GetIconImage(botUserID string) (io.Reader, error) {
-	contentBytes, appErr := b.api.GetBotIconImage(botUserID)
-	if appErr != nil {
-		return nil, normalizeAppErr(appErr)
-	}
-
-	return bytes.NewReader(contentBytes), nil
-}
-
-// SetIconImage sets the bot icon image to be shown in the LHS.
-//
-// Icon image must be SVG format, as all other formats are rejected.
-//
-// Minimum server version: 5.14
-func (b *BotService) SetIconImage(botUserID string, content io.Reader) error {
-	contentBytes, err := ioutil.ReadAll(content)
-	if err != nil {
-		return err
-	}
-
-	return normalizeAppErr(b.api.SetBotIconImage(botUserID, contentBytes))
-}
-
-// DeleteIconImage deletes the bot icon image shown for the bot in the LHS.
-//
-// Minimum server version: 5.14
-func (b *BotService) DeleteIconImage(botUserID string) error {
-	return normalizeAppErr(b.api.DeleteBotIconImage(botUserID))
 }

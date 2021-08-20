@@ -7,7 +7,7 @@ package mock_flow
 import (
 	gomock "github.com/golang/mock/gomock"
 	freetextfetcher "github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	reflect "reflect"
 )
 

@@ -4,13 +4,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 )
 
 type ensureBotOptions struct {
 	ProfileImagePath string
-	IconImagePath    string
 }
 
 type EnsureBotOption func(*ensureBotOptions)
@@ -18,12 +17,6 @@ type EnsureBotOption func(*ensureBotOptions)
 func ProfileImagePath(path string) EnsureBotOption {
 	return func(args *ensureBotOptions) {
 		args.ProfileImagePath = path
-	}
-}
-
-func IconImagePath(path string) EnsureBotOption {
-	return func(args *ensureBotOptions) {
-		args.IconImagePath = path
 	}
 }
 
@@ -41,7 +34,6 @@ func (b *BotService) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retB
 	// Default options
 	o := &ensureBotOptions{
 		ProfileImagePath: "",
-		IconImagePath:    "",
 	}
 
 	for _, setter := range options {
@@ -53,9 +45,15 @@ func (b *BotService) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retB
 		return "", err
 	}
 
-	err = b.setBotImages(botID, o.ProfileImagePath, o.IconImagePath)
-	if err != nil {
-		return "", err
+	if o.ProfileImagePath != "" {
+		imageBytes, err := b.readFile(o.ProfileImagePath)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to read profile image")
+		}
+		appErr := b.api.SetProfileImage(botID, imageBytes)
+		if appErr != nil {
+			return "", errors.Wrap(appErr, "failed to set profile image")
+		}
 	}
 
 	return botID, nil
@@ -147,32 +145,6 @@ func (b *BotService) ensureBot(bot *model.Bot) (retBotID string, retErr error) {
 	}
 
 	return createdBot.UserId, nil
-}
-
-func (b *BotService) setBotImages(botID, profileImagePath, iconImagePath string) error {
-	if profileImagePath != "" {
-		imageBytes, err := b.readFile(profileImagePath)
-		if err != nil {
-			return errors.Wrap(err, "failed to read profile image")
-		}
-		appErr := b.api.SetProfileImage(botID, imageBytes)
-		if appErr != nil {
-			return errors.Wrap(appErr, "failed to set profile image")
-		}
-	}
-
-	if iconImagePath != "" {
-		imageBytes, err := b.readFile(iconImagePath)
-		if err != nil {
-			return errors.Wrap(err, "failed to read icon image")
-		}
-		appErr := b.api.SetBotIconImage(botID, imageBytes)
-		if appErr != nil {
-			return errors.Wrap(appErr, "failed to set icon image")
-		}
-	}
-
-	return nil
 }
 
 func (b *BotService) readFile(path string) ([]byte, error) {

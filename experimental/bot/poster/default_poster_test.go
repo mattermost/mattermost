@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 
 	pluginapi "github.com/mattermost/mattermost-plugin-api"
@@ -104,7 +104,7 @@ func TestDMWithAttachments(t *testing.T) {
 		Id:        expectedPostID,
 		UserId:    botID,
 		ChannelId: dmChannelID,
-		Type:      model.POST_SLACK_ATTACHMENT,
+		Type:      model.PostTypeSlackAttachment,
 		Props: model.StringInterface{
 			"attachments": attachments,
 		},

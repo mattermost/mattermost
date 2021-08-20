@@ -7,8 +7,8 @@ import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 // FreetextFetcher defines the behavior of free text fetchers

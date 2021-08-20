@@ -1,13 +1,12 @@
 package pluginapi_test
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -73,32 +72,6 @@ func TestUpdateBotStatus(t *testing.T) {
 	})
 }
 
-func TestSetBotIconImage(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-		api.On("SetBotIconImage", "1", []byte{2}).Return(nil)
-
-		err := client.Bot.SetIconImage("1", bytes.NewReader([]byte{2}))
-		require.NoError(t, err)
-	})
-
-	t.Run("failure", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-		appErr := newAppError()
-
-		api.On("SetBotIconImage", "1", []byte{2}).Return(appErr)
-
-		err := client.Bot.SetIconImage("1", bytes.NewReader([]byte{2}))
-		require.Equal(t, appErr, err)
-	})
-}
-
 func TestGetBot(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
@@ -124,36 +97,6 @@ func TestGetBot(t *testing.T) {
 		bot, err := client.Bot.Get("1", true)
 		require.Equal(t, appErr, err)
 		require.Zero(t, bot)
-	})
-}
-
-func TestGetBotIconImage(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-		api.On("GetBotIconImage", "1").Return([]byte{2}, nil)
-
-		content, err := client.Bot.GetIconImage("1")
-		require.NoError(t, err)
-		contentBytes, err := ioutil.ReadAll(content)
-		require.NoError(t, err)
-		require.Equal(t, []byte{2}, contentBytes)
-	})
-
-	t.Run("failure", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-		appErr := newAppError()
-
-		api.On("GetBotIconImage", "1").Return(nil, appErr)
-
-		content, err := client.Bot.GetIconImage("1")
-		require.Equal(t, appErr, err)
-		require.Zero(t, content)
 	})
 }
 
@@ -254,32 +197,6 @@ func TestListBot(t *testing.T) {
 			api.AssertExpectations(t)
 		})
 	}
-}
-
-func TestDeleteBotIconImage(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-		api.On("DeleteBotIconImage", "1").Return(nil)
-
-		err := client.Bot.DeleteIconImage("1")
-		require.NoError(t, err)
-	})
-
-	t.Run("failure", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-		appErr := newAppError()
-
-		api.On("DeleteBotIconImage", "1").Return(appErr)
-
-		err := client.Bot.DeleteIconImage("1")
-		require.Equal(t, appErr, err)
-	})
 }
 
 func TestDeleteBotPermanently(t *testing.T) {
@@ -417,76 +334,6 @@ func TestEnsureBot(t *testing.T) {
 			assert.Equal(t, expectedBotID, botID)
 		})
 
-		t.Run("should set the bot icon image when specified", func(t *testing.T) {
-			api := &plugintest.API{}
-			defer api.AssertExpectations(t)
-			client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-			expectedBotID := model.NewId()
-
-			iconImageFile, err := ioutil.TempFile("", "profile_image")
-			require.NoError(t, err)
-
-			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
-			require.NoError(t, err)
-
-			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-			api.On("GetBundlePath").Return("", nil)
-			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
-			api.On("GetServerVersion").Return("5.10.0")
-			api.On("PatchBot", expectedBotID, &model.BotPatch{
-				Username:    &testbot.Username,
-				DisplayName: &testbot.DisplayName,
-				Description: &testbot.Description,
-			}).Return(nil, nil)
-
-			botID, err := client.Bot.EnsureBot(testbot, pluginapi.IconImagePath(iconImageFile.Name()))
-			require.NoError(t, err)
-			assert.Equal(t, expectedBotID, botID)
-		})
-
-		t.Run("should set both the profile image and bot icon image when specified", func(t *testing.T) {
-			api := &plugintest.API{}
-			defer api.AssertExpectations(t)
-			client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-			expectedBotID := model.NewId()
-
-			profileImageFile, err := ioutil.TempFile("", "profile_image")
-			require.NoError(t, err)
-
-			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
-			require.NoError(t, err)
-
-			iconImageFile, err := ioutil.TempFile("", "profile_image")
-			require.NoError(t, err)
-
-			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
-			require.NoError(t, err)
-
-			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
-			api.On("GetBundlePath").Return("", nil)
-			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
-			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
-			api.On("GetServerVersion").Return("5.10.0")
-			api.On("PatchBot", expectedBotID, &model.BotPatch{
-				Username:    &testbot.Username,
-				DisplayName: &testbot.DisplayName,
-				Description: &testbot.Description,
-			}).Return(nil, nil)
-
-			botID, err := client.Bot.EnsureBot(
-				testbot,
-				pluginapi.ProfileImagePath(profileImageFile.Name()),
-				pluginapi.IconImagePath(iconImageFile.Name()),
-			)
-			require.NoError(t, err)
-			assert.Equal(t, expectedBotID, botID)
-		})
-
 		t.Run("should find and update the bot with new bot details", func(t *testing.T) {
 			api := &plugintest.API{}
 			defer api.AssertExpectations(t)
@@ -515,7 +362,6 @@ func TestEnsureBot(t *testing.T) {
 			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
-			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
 			api.On("PatchBot", expectedBotID, &model.BotPatch{
 				Username:    &expectedBotUsername,
 				DisplayName: &expectedBotDisplayName,
@@ -530,7 +376,6 @@ func TestEnsureBot(t *testing.T) {
 			botID, err := client.Bot.EnsureBot(
 				updatedTestBot,
 				pluginapi.ProfileImagePath(profileImageFile.Name()),
-				pluginapi.IconImagePath(iconImageFile.Name()),
 			)
 			require.NoError(t, err)
 			assert.Equal(t, expectedBotID, botID)
@@ -638,76 +483,6 @@ func TestEnsureBot(t *testing.T) {
 			api.On("GetServerVersion").Return("5.10.0")
 
 			botID, err := client.Bot.EnsureBot(testbot, pluginapi.ProfileImagePath(profileImageFile.Name()))
-			require.NoError(t, err)
-			assert.Equal(t, expectedBotID, botID)
-		})
-
-		t.Run("should create bot and set the bot icon image when specified", func(t *testing.T) {
-			api := &plugintest.API{}
-			defer api.AssertExpectations(t)
-			client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-			expectedBotID := model.NewId()
-
-			iconImageFile, err := ioutil.TempFile("", "profile_image")
-			require.NoError(t, err)
-
-			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
-			require.NoError(t, err)
-
-			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
-			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
-			api.On("CreateBot", testbot).Return(&model.Bot{
-				UserId: expectedBotID,
-			}, nil)
-			api.On("KVSet", plugin.BotUserKey, []byte(expectedBotID)).Return(nil)
-			api.On("GetBundlePath").Return("", nil)
-			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
-			api.On("GetServerVersion").Return("5.10.0")
-
-			botID, err := client.Bot.EnsureBot(testbot, pluginapi.IconImagePath(iconImageFile.Name()))
-			require.NoError(t, err)
-			assert.Equal(t, expectedBotID, botID)
-		})
-
-		t.Run("should create bot and set both the profile image and bot icon image when specified", func(t *testing.T) {
-			api := &plugintest.API{}
-			defer api.AssertExpectations(t)
-			client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-			expectedBotID := model.NewId()
-
-			profileImageFile, err := ioutil.TempFile("", "profile_image")
-			require.NoError(t, err)
-
-			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
-			require.NoError(t, err)
-
-			iconImageFile, err := ioutil.TempFile("", "profile_image")
-			require.NoError(t, err)
-
-			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
-			require.NoError(t, err)
-
-			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
-			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
-			api.On("CreateBot", testbot).Return(&model.Bot{
-				UserId: expectedBotID,
-			}, nil)
-			api.On("KVSet", plugin.BotUserKey, []byte(expectedBotID)).Return(nil)
-			api.On("GetBundlePath").Return("", nil)
-			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
-			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
-			api.On("GetServerVersion").Return("5.10.0")
-
-			botID, err := client.Bot.EnsureBot(
-				testbot,
-				pluginapi.ProfileImagePath(profileImageFile.Name()),
-				pluginapi.IconImagePath(iconImageFile.Name()),
-			)
 			require.NoError(t, err)
 			assert.Equal(t, expectedBotID, botID)
 		})

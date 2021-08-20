@@ -3,7 +3,7 @@ package settings
 import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (

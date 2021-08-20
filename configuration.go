@@ -1,9 +1,12 @@
 package pluginapi
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"bytes"
+	"encoding/json"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/pkg/errors"
 )
 
@@ -73,7 +76,17 @@ func (c *ConfigurationService) CheckRequiredServerConfiguration(req *model.Confi
 	}
 
 	mergedCfg := mc.(model.Config)
-	if mergedCfg.ToJson() != cfg.ToJson() {
+	mergedCfgJSON, err := json.Marshal(mergedCfg)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to marshal merged config")
+	}
+
+	cjfJSON, err := json.Marshal(cfg)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to marshal config")
+	}
+
+	if !bytes.Equal(mergedCfgJSON, cjfJSON) {
 		return false, nil
 	}
 

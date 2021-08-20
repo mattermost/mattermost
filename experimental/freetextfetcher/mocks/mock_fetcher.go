@@ -7,8 +7,8 @@ package mock_freetext_fetcher
 import (
 	gomock "github.com/golang/mock/gomock"
 	logger "github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
-	model "github.com/mattermost/mattermost-server/v5/model"
-	plugin "github.com/mattermost/mattermost-server/v5/plugin"
+	model "github.com/mattermost/mattermost-server/v6/model"
+	plugin "github.com/mattermost/mattermost-server/v6/plugin"
 	reflect "reflect"
 )
 

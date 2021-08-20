@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/common"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (

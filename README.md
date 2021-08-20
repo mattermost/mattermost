@@ -6,7 +6,7 @@
 
 A hackathon project to explore reworking the Mattermost Plugin API.
 
-The plugin API as exposed in [github.com/mattermost/mattermost-server/plugin](http://github.com/mattermost/mattermost-server/blob/master/plugin/api.go) began with the hope of adopting a consistent interface and style. But our vision for how to structure the API changed over time, along with our ability to remain consistent. 
+The plugin API as exposed in [github.com/mattermost/mattermost-server/plugin](http://github.com/mattermost/mattermost-server/blob/master/plugin/api.go) began with the hope of adopting a consistent interface and style. But our vision for how to structure the API changed over time, along with our ability to remain consistent.
 
 Fixing the API in place is difficult. Any backwards incompatible changes to the RPC API would break existing plugins. Even backwards incompatible changes to the plugin helpers would break semver, requiring a coordinated major version bump with parent repository. Adding new methods improves the experience for newer plugins, but forever clutters the [plugin GoDoc](https://godoc.org/github.com/mattermost/mattermost-server/plugin).
 
@@ -23,11 +23,11 @@ Usage of this package is altogether optional, allowing plugin authors to switch 
 
 ## Getting Started
 
-This package is in a pre-alpha state. To start using this API with your own plugin, first change all your import statements to reference the newly moduled `v5` version of the Mattermost server:
+This package is in a pre-alpha state. To start using this API with your own plugin, first change all your import statements to reference the newly moduled `v6` version of the Mattermost server:
 ```diff
 import (
 -    "github.com/mattermost/mattermost-server"
-+    "github.com/mattermost/mattermost-server/v5"
++    "github.com/mattermost/mattermost-server/v6"
 )
 ```
 

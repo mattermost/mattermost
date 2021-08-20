@@ -3,7 +3,7 @@ package common
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func SlackAttachmentError(w http.ResponseWriter, errorMessage string) {

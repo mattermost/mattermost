@@ -3,8 +3,8 @@ package freetextfetcher
 import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 // Manager defines the behavior of the freetext manager

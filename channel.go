@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/pkg/errors"
 )
 
@@ -275,14 +275,10 @@ func (c *ChannelService) waitForChannelCreation(channelID string) error {
 	return errors.Errorf("giving up waiting for channel creation, channelID=%s", channelID)
 }
 
-func channelMembersToChannelMemberSlice(cm *model.ChannelMembers) []*model.ChannelMember {
-	if cm == nil {
-		return nil
-	}
-
-	cmp := make([]*model.ChannelMember, len(*cm))
-	for i := 0; i < len(*cm); i++ {
-		cmp[i] = &(*cm)[i]
+func channelMembersToChannelMemberSlice(cm model.ChannelMembers) []*model.ChannelMember {
+	cmp := make([]*model.ChannelMember, len(cm))
+	for i := 0; i < len(cm); i++ {
+		cmp[i] = &(cm)[i]
 	}
 
 	return cmp
