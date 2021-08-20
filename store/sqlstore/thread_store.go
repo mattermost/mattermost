@@ -315,17 +315,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 				}
 			}
 		}
-		var users []*model.User
-		if opts.Extended {
-			var err error
-			users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
-			}
-		} else {
-			for _, userId := range userIds {
-				users = append(users, &model.User{Id: userId})
-			}
+		users, err := s.User().GetParticipantProfilesByIds(context.Background(), userIds, opts.Extended, true)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 		}
 
 		for _, thread := range threads {
@@ -435,17 +427,21 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 	thread.LastViewedAt = threadMembership.LastViewed
 	thread.UnreadMentions = threadMembership.UnreadMentions
 
-	var users []*model.User
-	if extended {
-		var err error
-		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get thread for user id=%s", threadMembership.UserId)
+	users, err := s.User().GetParticipantProfilesByIds(context.Background(), thread.Participants, extended, true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get thread for user id=%s", threadMembership.UserId)
+	}
+
+	var participants []*model.User
+	for _, participantId := range thread.Participants {
+		var participant *model.User
+		for _, u := range users {
+			if u.Id == participantId {
+				participant = u
+				break
+			}
 		}
-	} else {
-		for _, userId := range thread.Participants {
-			users = append(users, &model.User{Id: userId})
-		}
+		participants = append(participants, participant)
 	}
 
 	result := &model.ThreadResponse{
@@ -455,7 +451,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		LastViewedAt:   thread.LastViewedAt,
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
-		Participants:   users,
+		Participants:   participants,
 		Post:           thread.Post.ToNilIfInvalid(),
 	}
 

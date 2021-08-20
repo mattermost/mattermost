@@ -798,17 +798,9 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 			}
 		}
 	}
-	var users []*model.User
-	if extended {
-		var err error
-		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		for _, userId := range userIds {
-			users = append(users, &model.User{Id: userId})
-		}
+	users, err := s.User().GetParticipantProfilesByIds(context.Background(), userIds, extended, true)
+	if err != nil {
+		return nil, err
 	}
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
@@ -2413,7 +2405,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 		if thread, found := threadByRoot[rootId]; !found {
 			// calculate participants
 			var participants model.StringArray
-			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId OR Id=:RootId", map[string]interface{}{"RootId": rootId}); err != nil {
+			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId AND DeleteAt=0", map[string]interface{}{"RootId": rootId}); err != nil {
 				return err
 			}
 			// calculate reply count
@@ -2440,8 +2432,13 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 			// metadata exists, update it
 			for _, post := range posts {
 				thread.ReplyCount += 1
-				if !thread.Participants.Contains(post.UserId) {
-					thread.Participants = append(thread.Participants, post.UserId)
+				if post.RootId != "" {
+					if !thread.Participants.Contains(post.UserId) {
+						thread.Participants = append(thread.Participants, post.UserId)
+					} else {
+						thread.Participants = thread.Participants.Remove(post.UserId)
+						thread.Participants = append(thread.Participants, post.UserId)
+					}
 				}
 				if post.CreateAt > thread.LastReplyAt {
 					thread.LastReplyAt = post.CreateAt

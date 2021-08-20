@@ -10912,6 +10912,26 @@ func (s *RetryLayerUserStore) GetNewUsersForTeam(teamID string, offset int, limi
 
 }
 
+func (s *RetryLayerUserStore) GetParticipantProfilesByIds(ctx context.Context, userIds []string, extended bool, allowFromCache bool) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.GetParticipantProfilesByIds(ctx, userIds, extended, allowFromCache)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerUserStore) GetProfileByGroupChannelIdsForUser(userID string, channelIds []string) (map[string][]*model.User, error) {
 
 	tries := 0

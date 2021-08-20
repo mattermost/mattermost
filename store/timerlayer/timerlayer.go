@@ -9045,6 +9045,22 @@ func (s *TimerLayerUserStore) GetNewUsersForTeam(teamID string, offset int, limi
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetParticipantProfilesByIds(ctx context.Context, userIds []string, extended bool, allowFromCache bool) ([]*model.User, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.GetParticipantProfilesByIds(ctx, userIds, extended, allowFromCache)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetParticipantProfilesByIds", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetProfileByGroupChannelIdsForUser(userID string, channelIds []string) (map[string][]*model.User, error) {
 	start := timemodule.Now()
 
