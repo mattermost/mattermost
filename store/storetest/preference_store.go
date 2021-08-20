@@ -42,7 +42,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 			Value:    "value1b",
 		},
 	}
-	err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(preferences)
 	require.NoError(t, err, "saving preference returned error")
 
 	for _, preference := range preferences {
@@ -52,7 +52,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 
 	preferences[0].Value = "value2a"
 	preferences[1].Value = "value2b"
-	err = ss.Preference().Save(&preferences)
+	err = ss.Preference().Save(preferences)
 	require.NoError(t, err, "saving preference returned error")
 
 	for _, preference := range preferences {
@@ -89,7 +89,7 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	data, err := ss.Preference().Get(userId, category, name)
@@ -132,7 +132,7 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	preferencesByCategory, err := ss.Preference().GetCategory(userId, category)
@@ -181,7 +181,7 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	result, err := ss.Preference().GetAll(userId)
@@ -225,7 +225,7 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	err = ss.Preference().PermanentDeleteByUser(userId)
@@ -240,7 +240,7 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	err := ss.Preference().Save(&model.Preferences{preference})
+	err := ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, err)
 
 	preferences, err := ss.Preference().GetAll(preference.UserId)
@@ -272,7 +272,7 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	err := ss.Preference().Save(model.Preferences{preference1, preference2})
 	require.NoError(t, err)
 
 	preferences, err := ss.Preference().GetAll(userId)
@@ -307,7 +307,7 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	err := ss.Preference().Save(model.Preferences{preference1, preference2})
 	require.NoError(t, err)
 
 	preferences, err := ss.Preference().GetAll(userId)
@@ -378,7 +378,7 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	nErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	nErr := ss.Preference().Save(model.Preferences{preference1, preference2})
 	require.NoError(t, nErr)
 
 	_, _, nErr = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})

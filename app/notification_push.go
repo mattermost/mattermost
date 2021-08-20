@@ -200,6 +200,10 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_thread")
 	}
 
+	if replyToThreadType == model.UserNotifyAll {
+		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread")
+	}
+
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
@@ -574,9 +578,13 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		IsIdLoaded: false,
 	}
 
+	userLocale := i18n.GetUserTranslations(user.Locale)
 	cfg := a.Config()
 	if contentsConfig != model.GenericNoChannelNotification || channel.Type == model.ChannelTypeDirect {
 		msg.ChannelName = channelName
+		if a.isCRTEnabledForUser(user.Id) && post.RootId != "" {
+			msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads")
+		}
 	}
 
 	msg.SenderName = senderName
@@ -606,7 +614,6 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		}
 	}
 
-	userLocale := i18n.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
 	msg.Message = a.getPushNotificationMessage(

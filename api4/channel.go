@@ -957,7 +957,7 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var channels *model.ChannelList
+	var channels model.ChannelList
 	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
 		channels, appErr = c.App.SearchChannels(c.Params.TeamId, props.Term)
@@ -996,7 +996,7 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var channels *model.ChannelList
+	var channels model.ChannelList
 	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
 		channels, appErr = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.AppContext.Session().UserId)

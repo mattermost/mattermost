@@ -353,7 +353,7 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c *request.Context, arg
 		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, err2
 	}
 	for i := 0; i < 1000; i++ {
-		testPoster.CreateRandomPostNested(c, rpost.Id, rpost.Id)
+		testPoster.CreateRandomPostNested(c, rpost.Id)
 	}
 
 	return &model.CommandResponse{Text: "Added threaded post", ResponseType: model.CommandResponseTypeEphemeral}, nil

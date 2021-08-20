@@ -50,7 +50,7 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	}
 }
 
-func (s SqlPreferenceStore) Save(preferences *model.Preferences) error {
+func (s SqlPreferenceStore) Save(preferences model.Preferences) error {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -58,7 +58,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) error {
 	}
 
 	defer finalizeTransaction(transaction)
-	for _, preference := range *preferences {
+	for _, preference := range preferences {
 		preference := preference
 		if upsertErr := s.save(transaction, &preference); upsertErr != nil {
 			return upsertErr

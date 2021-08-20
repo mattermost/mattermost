@@ -767,14 +767,14 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 // UpdateSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
 // At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
-func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
+func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences model.Preferences) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
-	for _, preference := range *preferences {
+	for _, preference := range preferences {
 		preference := preference
 
 		if preference.Category != model.PreferenceCategoryFavoriteChannel {
@@ -918,14 +918,14 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *gorp.Transa
 
 // DeleteSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
 // At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
-func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
+func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences model.Preferences) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
-	for _, preference := range *preferences {
+	for _, preference := range preferences {
 		preference := preference
 
 		if preference.Category != model.PreferenceCategoryFavoriteChannel {

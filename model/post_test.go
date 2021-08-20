@@ -53,16 +53,7 @@ func TestPostIsValid(t *testing.T) {
 	require.NotNil(t, err)
 
 	o.RootId = ""
-	o.ParentId = "123"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
 
-	o.ParentId = NewId()
-	o.RootId = ""
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
-
-	o.ParentId = ""
 	o.Message = strings.Repeat("0", maxPostSize+1)
 	err = o.IsValid(maxPostSize)
 	require.NotNil(t, err)

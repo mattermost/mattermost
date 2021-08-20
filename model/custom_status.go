@@ -67,7 +67,7 @@ func RuneToHexadecimalString(r rune) string {
 
 type RecentCustomStatuses []CustomStatus
 
-func (rcs *RecentCustomStatuses) Contains(cs *CustomStatus) (bool, error) {
+func (rcs RecentCustomStatuses) Contains(cs *CustomStatus) (bool, error) {
 	if cs == nil {
 		return false, nil
 	}
@@ -82,7 +82,7 @@ func (rcs *RecentCustomStatuses) Contains(cs *CustomStatus) (bool, error) {
 		return false, nil
 	}
 
-	for _, status := range *rcs {
+	for _, status := range rcs {
 		js, jsonErr := json.Marshal(status)
 		if jsonErr != nil {
 			return false, jsonErr
@@ -95,11 +95,11 @@ func (rcs *RecentCustomStatuses) Contains(cs *CustomStatus) (bool, error) {
 	return false, nil
 }
 
-func (rcs *RecentCustomStatuses) Add(cs *CustomStatus) *RecentCustomStatuses {
-	newRCS := (*rcs)[:0]
+func (rcs RecentCustomStatuses) Add(cs *CustomStatus) RecentCustomStatuses {
+	newRCS := rcs[:0]
 
 	// if same `text` exists in existing recent custom statuses, modify existing status
-	for _, status := range *rcs {
+	for _, status := range rcs {
 		if status.Text != cs.Text {
 			newRCS = append(newRCS, status)
 		}
@@ -108,10 +108,10 @@ func (rcs *RecentCustomStatuses) Add(cs *CustomStatus) *RecentCustomStatuses {
 	if len(newRCS) > MaxRecentCustomStatuses {
 		newRCS = newRCS[:MaxRecentCustomStatuses]
 	}
-	return &newRCS
+	return newRCS
 }
 
-func (rcs *RecentCustomStatuses) Remove(cs *CustomStatus) (*RecentCustomStatuses, error) {
+func (rcs RecentCustomStatuses) Remove(cs *CustomStatus) (RecentCustomStatuses, error) {
 	if cs == nil {
 		return rcs, nil
 	}
@@ -125,8 +125,8 @@ func (rcs *RecentCustomStatuses) Remove(cs *CustomStatus) (*RecentCustomStatuses
 		return rcs, nil
 	}
 
-	newRCS := (*rcs)[:0]
-	for _, status := range *rcs {
+	newRCS := rcs[:0]
+	for _, status := range rcs {
 		js, jsonErr := json.Marshal(status)
 		if jsonErr != nil {
 			return rcs, jsonErr
@@ -136,5 +136,5 @@ func (rcs *RecentCustomStatuses) Remove(cs *CustomStatus) (*RecentCustomStatuses
 		}
 	}
 
-	return &newRCS, nil
+	return newRCS, nil
 }

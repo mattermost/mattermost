@@ -48,7 +48,7 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 		}
 	}
 
-	if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -58,7 +58,7 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 		}
 	}
 
-	if err := a.Srv().Store.Channel().UpdateSidebarChannelsByPreferences(&preferences); err != nil {
+	if err := a.Srv().Store.Channel().UpdateSidebarChannelsByPreferences(preferences); err != nil {
 		return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -92,7 +92,7 @@ func (a *App) DeletePreferences(userID string, preferences model.Preferences) *m
 		}
 	}
 
-	if err := a.Srv().Store.Channel().DeleteSidebarChannelsByPreferences(&preferences); err != nil {
+	if err := a.Srv().Store.Channel().DeleteSidebarChannelsByPreferences(preferences); err != nil {
 		return model.NewAppError("DeletePreferences", "api.preference.delete_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

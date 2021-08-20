@@ -783,7 +783,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
 		require.Nil(t, err)
-		assert.Len(t, *members, 2)
+		assert.Len(t, members, 2)
 	})
 
 	t.Run("valid guest request", func(t *testing.T) {
@@ -804,8 +804,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("create guest having email domain restrictions", func(t *testing.T) {
@@ -849,8 +849,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
@@ -886,8 +886,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 }
 
@@ -1184,7 +1184,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
-		require.Len(t, *channelMembers, 1)
+		require.Len(t, channelMembers, 1)
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -1202,7 +1202,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
-		assert.Len(t, *channelMembers, 3)
+		assert.Len(t, channelMembers, 3)
 	})
 
 	t.Run("Must invalidate channel stats cache when promoting a guest", func(t *testing.T) {
@@ -1347,7 +1347,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
-		require.Len(t, *channelMembers, 3)
+		require.Len(t, channelMembers, 3)
 
 		err = th.App.DemoteUserToGuest(user)
 		require.Nil(t, err)
@@ -1365,7 +1365,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
-		assert.Len(t, *channelMembers, 3)
+		assert.Len(t, channelMembers, 3)
 	})
 
 	t.Run("Must be removed as team and channel admin", func(t *testing.T) {

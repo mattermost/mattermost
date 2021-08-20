@@ -82,7 +82,7 @@ func TestBroadcastMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
 		defer mockServer.Shutdown()
 
 		service, err := NewRemoteClusterService(mockServer)
@@ -139,7 +139,7 @@ func TestBroadcastMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
 		defer mockServer.Shutdown()
 
 		service, err := NewRemoteClusterService(mockServer)

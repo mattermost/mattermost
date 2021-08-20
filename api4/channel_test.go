@@ -22,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -544,7 +543,7 @@ func TestCreateGroupChannel(t *testing.T) {
 	require.Equal(t, model.ChannelTypeGroup, rgc.Type, "should have created a channel of group type")
 
 	m, _ := th.App.GetChannelMembersPage(rgc.Id, 0, 10)
-	require.Len(t, *m, 3, "should have 3 channel members")
+	require.Len(t, m, 3, "should have 3 channel members")
 
 	// saving duplicate group channel
 	rgc2, _, err := client.CreateGroupChannel([]string{user3.Id, user2.Id})
@@ -1045,48 +1044,48 @@ func TestGetAllChannels(t *testing.T) {
 		require.NoError(t, err)
 
 		// At least, all the not-deleted channels created during the InitBasic
-		require.True(t, len(*channels) >= 3)
-		for _, c := range *channels {
+		require.True(t, len(channels) >= 3)
+		for _, c := range channels {
 			require.NotEqual(t, c.TeamId, "")
 		}
 
 		channels, _, err = client.GetAllChannels(0, 10, "")
 		require.NoError(t, err)
-		require.True(t, len(*channels) >= 3)
+		require.True(t, len(channels) >= 3)
 
 		channels, _, err = client.GetAllChannels(1, 1, "")
 		require.NoError(t, err)
-		require.Len(t, *channels, 1)
+		require.Len(t, channels, 1)
 
 		channels, _, err = client.GetAllChannels(10000, 10000, "")
 		require.NoError(t, err)
-		require.Empty(t, *channels)
+		require.Empty(t, channels)
 
 		channels, _, err = client.GetAllChannels(0, 10000, "")
 		require.NoError(t, err)
-		beforeCount := len(*channels)
+		beforeCount := len(channels)
 
-		firstChannel := (*channels)[0].Channel
+		firstChannel := channels[0].Channel
 
 		_, err = client.DeleteChannel(firstChannel.Id)
 		require.NoError(t, err)
 
 		channels, _, err = client.GetAllChannels(0, 10000, "")
 		var ids []string
-		for _, item := range *channels {
+		for _, item := range channels {
 			ids = append(ids, item.Channel.Id)
 		}
 		require.NoError(t, err)
-		require.Len(t, *channels, beforeCount-1)
+		require.Len(t, channels, beforeCount-1)
 		require.NotContains(t, ids, firstChannel.Id)
 
 		channels, _, err = client.GetAllChannelsIncludeDeleted(0, 10000, "")
 		ids = []string{}
-		for _, item := range *channels {
+		for _, item := range channels {
 			ids = append(ids, item.Channel.Id)
 		}
 		require.NoError(t, err)
-		require.True(t, len(*channels) > beforeCount)
+		require.True(t, len(channels) > beforeCount)
 		require.Contains(t, ids, firstChannel.Id)
 	})
 
@@ -1097,7 +1096,7 @@ func TestGetAllChannels(t *testing.T) {
 	sysManagerChannels, resp, err := th.SystemManagerClient.GetAllChannels(0, 10000, "")
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
-	policyChannel := (*sysManagerChannels)[0]
+	policyChannel := (sysManagerChannels)[0]
 	policy, err := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
@@ -1116,7 +1115,7 @@ func TestGetAllChannels(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				break
@@ -1130,7 +1129,7 @@ func TestGetAllChannels(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				require.Nil(t, channel.PolicyID)
@@ -1145,7 +1144,7 @@ func TestGetAllChannels(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				require.Equal(t, *channel.PolicyID, policy.ID)
@@ -1165,23 +1164,23 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 	require.NoError(t, err)
 
 	// At least, all the not-deleted channels created during the InitBasic
-	require.True(t, len(*channels) >= 3)
-	for _, c := range *channels {
+	require.True(t, len(channels) >= 3)
+	for _, c := range channels {
 		require.NotEqual(t, c.TeamId, "")
 	}
 	require.Equal(t, int64(6), total)
 
 	channels, _, _, err = th.SystemAdminClient.GetAllChannelsWithCount(0, 10, "")
 	require.NoError(t, err)
-	require.True(t, len(*channels) >= 3)
+	require.True(t, len(channels) >= 3)
 
 	channels, _, _, err = th.SystemAdminClient.GetAllChannelsWithCount(1, 1, "")
 	require.NoError(t, err)
-	require.Len(t, *channels, 1)
+	require.Len(t, channels, 1)
 
 	channels, _, _, err = th.SystemAdminClient.GetAllChannelsWithCount(10000, 10000, "")
 	require.NoError(t, err)
-	require.Empty(t, *channels)
+	require.Empty(t, channels)
 
 	_, _, resp, err := client.GetAllChannelsWithCount(0, 20, "")
 	require.Error(t, err)
@@ -1506,12 +1505,12 @@ func TestSearchAllChannels(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			var channels *model.ChannelListWithTeamData
+			var channels model.ChannelListWithTeamData
 			channels, _, err = th.SystemAdminClient.SearchAllChannels(testCase.Search)
 			require.NoError(t, err)
-			assert.Equal(t, len(testCase.ExpectedChannelIds), len(*channels))
+			assert.Equal(t, len(testCase.ExpectedChannelIds), len(channels))
 			actualChannelIds := []string{}
-			for _, channelWithTeamData := range *channels {
+			for _, channelWithTeamData := range channels {
 				actualChannelIds = append(actualChannelIds, channelWithTeamData.Channel.Id)
 			}
 			assert.ElementsMatch(t, testCase.ExpectedChannelIds, actualChannelIds)
@@ -1521,7 +1520,7 @@ func TestSearchAllChannels(t *testing.T) {
 	// Searching with no terms returns all default channels
 	allChannels, _, err := th.SystemAdminClient.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	require.NoError(t, err)
-	assert.True(t, len(*allChannels) >= 3)
+	assert.True(t, len(allChannels) >= 3)
 
 	_, resp, err := client.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	require.Error(t, err)
@@ -1531,7 +1530,7 @@ func TestSearchAllChannels(t *testing.T) {
 	sysManagerChannels, resp, err := th.SystemManagerClient.GetAllChannels(0, 10000, "")
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
-	policyChannel := (*sysManagerChannels)[0]
+	policyChannel := sysManagerChannels[0]
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
@@ -1546,7 +1545,7 @@ func TestSearchAllChannels(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				require.Nil(t, channel.PolicyID)
@@ -1560,7 +1559,7 @@ func TestSearchAllChannels(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == policyChannel.Id {
 				found = true
 				require.Equal(t, *channel.PolicyID, policy.ID)
@@ -1582,7 +1581,7 @@ func TestSearchAllChannelsPaged(t *testing.T) {
 	search.PerPage = model.NewInt(2)
 	channelsWithCount, _, err := th.SystemAdminClient.SearchAllChannelsPaged(search)
 	require.NoError(t, err)
-	require.Len(t, *channelsWithCount.Channels, 2)
+	require.Len(t, channelsWithCount.Channels, 2)
 
 	search.Term = th.BasicChannel.Name
 	_, resp, err := client.SearchAllChannels(search)
@@ -2102,19 +2101,19 @@ func TestGetChannelMembers(t *testing.T) {
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		members, _, err := client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 		require.NoError(t, err)
-		require.Len(t, *members, 3, "should only be 3 users in channel")
+		require.Len(t, members, 3, "should only be 3 users in channel")
 
 		members, _, err = client.GetChannelMembers(th.BasicChannel.Id, 0, 2, "")
 		require.NoError(t, err)
-		require.Len(t, *members, 2, "should only be 2 users")
+		require.Len(t, members, 2, "should only be 2 users")
 
 		members, _, err = client.GetChannelMembers(th.BasicChannel.Id, 1, 1, "")
 		require.NoError(t, err)
-		require.Len(t, *members, 1, "should only be 1 user")
+		require.Len(t, members, 1, "should only be 1 user")
 
 		members, _, err = client.GetChannelMembers(th.BasicChannel.Id, 1000, 100000, "")
 		require.NoError(t, err)
-		require.Empty(t, *members, "should be 0 users")
+		require.Empty(t, members, "should be 0 users")
 
 		_, resp, err := client.GetChannelMembers("junk", 0, 60, "")
 		require.Error(t, err)
@@ -2151,7 +2150,7 @@ func TestGetChannelMembersByIds(t *testing.T) {
 
 	cm, _, err := client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
 	require.NoError(t, err)
-	require.Equal(t, th.BasicUser.Id, (*cm)[0].UserId, "returned wrong user")
+	require.Equal(t, th.BasicUser.Id, cm[0].UserId, "returned wrong user")
 
 	_, resp, err := client.GetChannelMembersByIds(th.BasicChannel.Id, []string{})
 	require.Error(t, err)
@@ -2159,15 +2158,15 @@ func TestGetChannelMembersByIds(t *testing.T) {
 
 	cm1, _, err := client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk"})
 	require.NoError(t, err)
-	require.Empty(t, *cm1, "no users should be returned")
+	require.Empty(t, cm1, "no users should be returned")
 
 	cm1, _, err = client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk", th.BasicUser.Id})
 	require.NoError(t, err)
-	require.Len(t, *cm1, 1, "1 member should be returned")
+	require.Len(t, cm1, 1, "1 member should be returned")
 
 	cm1, _, err = client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser2.Id, th.BasicUser.Id})
 	require.NoError(t, err)
-	require.Len(t, *cm1, 2, "2 members should be returned")
+	require.Len(t, cm1, 2, "2 members should be returned")
 
 	_, resp, err = client.GetChannelMembersByIds("junk", []string{th.BasicUser.Id})
 	require.Error(t, err)
@@ -2242,7 +2241,7 @@ func TestGetChannelMembersForUser(t *testing.T) {
 
 	members, _, err := client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
 	require.NoError(t, err)
-	require.Len(t, *members, 6, "should have 6 members on team")
+	require.Len(t, members, 6, "should have 6 members on team")
 
 	_, resp, err := client.GetChannelMembersForUser("", th.BasicTeam.Id, "")
 	require.Error(t, err)
@@ -3240,7 +3239,6 @@ func TestAutocompleteChannels(t *testing.T) {
 	defer th.TearDown()
 
 	// A private channel to make sure private channels are not used
-	utils.DisableDebugLogForTest()
 	ptown, _, _ := th.Client.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3253,7 +3251,6 @@ func TestAutocompleteChannels(t *testing.T) {
 		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 	})
-	utils.EnableDebugLogForTest()
 	defer func() {
 		th.Client.DeleteChannel(ptown.Id)
 		th.Client.DeleteChannel(tower.Id)
@@ -3291,8 +3288,8 @@ func TestAutocompleteChannels(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			channels, _, err := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment)
 			require.NoError(t, err)
-			names := make([]string, len(*channels))
-			for i, c := range *channels {
+			names := make([]string, len(channels))
+			for i, c := range channels {
 				names[i] = c.Name
 			}
 			for _, name := range tc.expectedIncludes {
@@ -3322,7 +3319,6 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, u4)
 
 	// A private channel to make sure private channels are not used
-	utils.DisableDebugLogForTest()
 	ptown, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3341,7 +3337,6 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	defer func() {
 		th.Client.DeleteChannel(mypriv.Id)
 	}()
-	utils.EnableDebugLogForTest()
 
 	dc1, _, err := th.Client.CreateDirectChannel(th.BasicUser.Id, u1.Id)
 	require.NoError(t, err)
@@ -3406,8 +3401,8 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			channels, _, err := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamID, tc.fragment)
 			require.NoError(t, err)
-			names := make([]string, len(*channels))
-			for i, c := range *channels {
+			names := make([]string, len(channels))
+			for i, c := range channels {
 				names[i] = c.Name
 			}
 			for _, name := range tc.expectedIncludes {
@@ -3452,7 +3447,6 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	require.NoError(t, err)
 
 	// A private channel to make sure private channels are not used
-	utils.DisableDebugLogForTest()
 	town, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3476,8 +3470,6 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	}()
 	_, _, err = th.SystemAdminClient.AddChannelMember(mypriv.Id, guest.Id)
 	require.NoError(t, err)
-
-	utils.EnableDebugLogForTest()
 
 	dc1, _, err := th.SystemAdminClient.CreateDirectChannel(th.BasicUser.Id, guest.Id)
 	require.NoError(t, err)
@@ -3538,8 +3530,8 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			channels, _, err := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamID, tc.fragment)
 			require.NoError(t, err)
-			names := make([]string, len(*channels))
-			for i, c := range *channels {
+			names := make([]string, len(channels))
+			for i, c := range channels {
 				names[i] = c.Name
 			}
 			for _, name := range tc.expectedIncludes {

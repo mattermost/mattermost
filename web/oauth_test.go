@@ -4,7 +4,6 @@
 package web
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -380,8 +379,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	translationFunc := i18n.GetUserTranslations("en")
 	c.AppContext.SetT(translationFunc)
-	buffer := &bytes.Buffer{}
-	c.Logger = mlog.NewTestingLogger(t, buffer)
+	c.Logger = th.TestLogger
 	provider := &MattermostTestProvider{}
 	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
@@ -583,8 +581,8 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 
 	translationFunc := i18n.GetUserTranslations("en")
 	c.AppContext.SetT(translationFunc)
-	buffer := &bytes.Buffer{}
-	c.Logger = mlog.NewTestingLogger(t, buffer)
+	c.Logger = mlog.CreateConsoleTestLogger(true, mlog.LvlDebug)
+	defer c.Logger.Shutdown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	provider := &MattermostTestProvider{}
@@ -716,8 +714,6 @@ func (th *TestHelper) Logout(client *model.Client4) {
 }
 
 func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
-	utils.DisableDebugLogForTest()
-
 	results := make(map[string][]string)
 
 	for _, roleName := range []string{
@@ -730,24 +726,18 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 	} {
 		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
-			utils.EnableDebugLogForTest()
 			panic(err1)
 		}
 
 		results[roleName] = role.Permissions
 	}
-
-	utils.EnableDebugLogForTest()
 	return results
 }
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
-	utils.DisableDebugLogForTest()
-
 	for roleName, permissions := range data {
 		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
-			utils.EnableDebugLogForTest()
 			panic(err1)
 		}
 
@@ -759,12 +749,9 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 
 		_, err2 := th.App.UpdateRole(role)
 		if err2 != nil {
-			utils.EnableDebugLogForTest()
 			panic(err2)
 		}
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
 // func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
@@ -800,17 +787,13 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 // }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	utils.DisableDebugLogForTest()
-
 	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err1)
 	}
 
 	for _, existingPermission := range role.Permissions {
 		if existingPermission == permission {
-			utils.EnableDebugLogForTest()
 			return
 		}
 	}
@@ -819,9 +802,6 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 
 	_, err2 := th.App.UpdateRole(role)
 	if err2 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err2)
 	}
-
-	utils.EnableDebugLogForTest()
 }

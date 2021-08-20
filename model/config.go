@@ -537,7 +537,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if isUpdate {
 		// When updating an existing configuration, ensure that defaults are set.
 		if s.TrustedProxyIPHeader == nil {
-			s.TrustedProxyIPHeader = []string{HeaderForwarded, HeaderRealIp}
+			s.TrustedProxyIPHeader = []string{HeaderForwarded, HeaderRealIP}
 		}
 	} else {
 		// When generating a blank configuration, leave the list empty.
@@ -844,7 +844,7 @@ type ClusterSettings struct {
 	NetworkInterface                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	BindAddress                                 *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	AdvertiseAddress                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	UseIpAddress                                *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	UseIPAddress                                *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	DEPRECATED_DO_NOT_USE_UseExperimentalGossip *bool   `json:"UseExperimentalGossip" access:"environment_high_availability,write_restrictable,cloud_restrictable"` // Deprecated: do not use
 	EnableGossipCompression                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	EnableExperimentalGossipEncryption          *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
@@ -881,8 +881,8 @@ func (s *ClusterSettings) SetDefaults() {
 		s.AdvertiseAddress = NewString("")
 	}
 
-	if s.UseIpAddress == nil {
-		s.UseIpAddress = NewBool(true)
+	if s.UseIPAddress == nil {
+		s.UseIPAddress = NewBool(true)
 	}
 
 	if s.DEPRECATED_DO_NOT_USE_UseExperimentalGossip == nil {
@@ -1221,6 +1221,12 @@ type LogSettings struct {
 	EnableDiagnostics      *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
+}
+
+func NewLogSettings() *LogSettings {
+	settings := &LogSettings{}
+	settings.SetDefaults()
+	return settings
 }
 
 func (s *LogSettings) SetDefaults() {

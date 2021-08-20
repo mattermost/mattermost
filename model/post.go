@@ -80,7 +80,6 @@ type Post struct {
 	UserId     string `json:"user_id"`
 	ChannelId  string `json:"channel_id"`
 	RootId     string `json:"root_id"`
-	ParentId   string `json:"parent_id"`
 	OriginalId string `json:"original_id"`
 
 	Message string `json:"message"`
@@ -193,7 +192,6 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.UserId = o.UserId
 	dst.ChannelId = o.ChannelId
 	dst.RootId = o.RootId
-	dst.ParentId = o.ParentId
 	dst.OriginalId = o.OriginalId
 	dst.Message = o.Message
 	dst.MessageSource = o.MessageSource
@@ -288,14 +286,6 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 
 	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if !(IsValidId(o.ParentId) || o.ParentId == "") {
-		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(o.ParentId) == 26 && o.RootId == "" {
-		return NewAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(len(o.OriginalId) == 26 || o.OriginalId == "") {

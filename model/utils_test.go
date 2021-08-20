@@ -343,8 +343,8 @@ func TestIsValidAlphaNum(t *testing.T) {
 	}
 }
 
-func TestGetServerIpAddress(t *testing.T) {
-	require.NotEmpty(t, GetServerIpAddress(""), "Should find local ip address")
+func TestGetServerIPAddress(t *testing.T) {
+	require.NotEmpty(t, GetServerIPAddress(""), "Should find local ip address")
 }
 
 func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {

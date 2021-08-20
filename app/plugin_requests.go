@@ -118,7 +118,7 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
-		IpAddress:      utils.GetIPAddress(r, s.Config().ServiceSettings.TrustedProxyIPHeader),
+		IPAddress:      utils.GetIPAddress(r, s.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
