@@ -342,7 +342,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode team to JSON", mlog.Err(jsonErr))
 	}
-	message.Add("team", teamJSON)
+	message.Add("team", string(teamJSON))
 	a.Publish(message)
 }
 
@@ -488,7 +488,7 @@ func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
 	}
-	message.Add("member", tmJSON)
+	message.Add("member", string(tmJSON))
 	a.Publish(message)
 }
 
@@ -2040,7 +2040,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 			if jsonErr != nil {
 				mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
 			}
-			message.Add("member", tmJSON)
+			message.Add("member", string(tmJSON))
 			a.Publish(message)
 		}
 
