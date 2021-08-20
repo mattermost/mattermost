@@ -2432,12 +2432,10 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 			// metadata exists, update it
 			for _, post := range posts {
 				thread.ReplyCount += 1
-				if post.RootId != "" {
-					if thread.Participants.Contains(post.UserId) {
-						thread.Participants = thread.Participants.Remove(post.UserId)
-					}
-					thread.Participants = append(thread.Participants, post.UserId)
+				if thread.Participants.Contains(post.UserId) {
+					thread.Participants = thread.Participants.Remove(post.UserId)
 				}
+				thread.Participants = append(thread.Participants, post.UserId)
 				if post.CreateAt > thread.LastReplyAt {
 					thread.LastReplyAt = post.CreateAt
 				}
