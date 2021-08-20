@@ -2045,7 +2045,6 @@ func (us SqlUserStore) GetParticipantProfilesByIds(ctx context.Context, userIds 
 	var users []*model.User
 
 	if extended {
-		var users []*model.User
 		query := us.usersQuery.
 			Where(map[string]interface{}{
 				"u.Id": userIds,
