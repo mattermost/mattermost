@@ -4365,7 +4365,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ungültige Datei-Ids. Uploads sind auf maximal fünf Dateien begrenzt. Bitte verwenden Sie zusätzliche Nachrichten für mehr Dateien."
+    "translation": "Ungültige Datei-Ids. Uploads sind auf maximal 10 Dateien begrenzt. Bitte verwenden Sie zusätzliche Nachrichten für mehr Dateien."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -9181,5 +9181,21 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Es konnte nicht geprüft werden, ob der Benutzerspeicher leer ist."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} hat auf ein Thema geantwortet"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "Während Sie weg waren, hat {{.SenderName}} auf ein Thema geantwortet, das Sie beobachten."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Auf das Thema antworten"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " einen Kommentar zu einem Thema abgegeben, das Sie verfolgen."
   }
 ]
