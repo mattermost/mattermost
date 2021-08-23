@@ -35,7 +35,7 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 }
 
 func (s SqlStatusStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
+	s.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
 }
 
 func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {

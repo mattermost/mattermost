@@ -2231,6 +2231,10 @@
     "translation": " notified the channel."
   },
   {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " commented on a thread you are following."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
     "translation": " commented on your post."
   },
@@ -2309,6 +2313,10 @@
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
     "translation": "An error occurred fetching the ID-loaded push notification."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Reply to Thread"
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -5469,6 +5477,14 @@
   {
     "id": "app.notification.body.mention.title",
     "translation": "{{.SenderName}} mentioned you in a message"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} replied to a thread"
   },
   {
     "id": "app.notification.footer.info",
