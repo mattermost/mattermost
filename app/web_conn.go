@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -41,6 +42,14 @@ const (
 	reconnectLossless = "lossless"
 )
 
+const websocketMessagePluginPrefix = "custom_"
+
+type pluginWSPostedHook struct {
+	connectionID string
+	userID       string
+	req          *model.WebSocketRequest
+}
+
 type WebConnConfig struct {
 	WebSocket    *websocket.Conn
 	Session      model.Session
@@ -60,7 +69,6 @@ type WebConnConfig struct {
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
-	ID               string
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
 	WebSocket        *websocket.Conn
@@ -92,6 +100,7 @@ type WebConn struct {
 	connectionID atomic.Value
 	endWritePump chan struct{}
 	pumpFinished chan struct{}
+	pluginPosted chan pluginWSPostedHook
 }
 
 // CheckConnResult indicates whether a connectionID was present in the hub or not.
@@ -168,7 +177,6 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	}
 
 	wc := &WebConn{
-		ID:                 model.NewId(),
 		App:                a,
 		send:               cfg.activeQueue,
 		deadQueue:          cfg.deadQueue,
@@ -182,6 +190,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		active:             cfg.Active,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
+		pluginPosted:       make(chan pluginWSPostedHook, 10),
 	}
 
 	wc.SetSession(&cfg.Session)
@@ -192,13 +201,26 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		wc.App.Srv().Go(func() {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.OnWebSocketConnect(wc.ID, wc.UserId)
+				hooks.OnWebSocketConnect(wc.GetConnectionID(), wc.UserId)
 				return true
 			}, plugin.OnWebSocketConnectID)
 		})
 	}
 
 	return wc
+}
+
+func (wc *WebConn) pluginPostedConsumer(wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for msg := range wc.pluginPosted {
+		if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.WebSocketMessageHasBeenPosted(msg.connectionID, msg.userID, msg.req)
+				return true
+			}, plugin.WebSocketMessageHasBeenPostedID)
+		}
+	}
 }
 
 // Close closes the WebConn.
@@ -273,8 +295,13 @@ func (wc *WebConn) Pump() {
 		defer wg.Done()
 		wc.writePump()
 	}()
+
+	wg.Add(1)
+	go wc.pluginPostedConsumer(&wg)
+
 	wc.readPump()
 	close(wc.endWritePump)
+	close(wc.pluginPosted)
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
@@ -282,7 +309,7 @@ func (wc *WebConn) Pump() {
 	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		wc.App.Srv().Go(func() {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.OnWebSocketDisconnect(wc.ID, wc.UserId)
+				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), wc.UserId)
 				return true
 			}, plugin.OnWebSocketDisconnectID)
 		})
@@ -311,16 +338,14 @@ func (wc *WebConn) readPump() {
 			wc.logSocketErr("websocket.read", err)
 			return
 		}
-		wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
 
-		if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			wc.App.Srv().Go(func() {
-				pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-					hooks.WebSocketMessageHasBeenPosted(wc.ID, wc.UserId, &req)
-					return true
-				}, plugin.WebSocketMessageHasBeenPostedID)
-			})
+		// Plugin messages which actions are prefixed with the plugin
+		// prefix should only be dispatched to the plugins
+		if !strings.HasPrefix(req.Action, websocketMessagePluginPrefix) {
+			wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
 		}
+
+		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, req.Clone()}
 	}
 }
 
