@@ -1725,7 +1725,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 5 filer. För att ladda upp fler filer, posta fler meddelanden."
+    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 10 filer. För att ladda upp fler filer, posta fler meddelanden."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -9177,5 +9177,25 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Misslyckades med att skicka e-postmeddelanden för förnyelse av licensen"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Kontrollen av tomt användarlagring misslyckades."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} svarade i en tråd"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "Medan du var borta så kommenterade {{.SenderName}} i en tråd du följer."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Svara i tråden"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " kommenterade i en tråd du följer."
   }
 ]
