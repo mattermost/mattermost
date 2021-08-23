@@ -148,14 +148,6 @@
     "translation": "此頻道已轉為私人頻道。"
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "預設頻道不能轉換為私人頻道。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "要求轉換的頻道已為私人頻道。"
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "必須使用 createDirectChannel API 服務來建立直接訊息頻道"
   },
@@ -1314,10 +1306,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "RootId 參數的 ChannelId 無效"
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "無效的 ParentId 參數"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3016,10 +3004,6 @@
     "translation": "無法寫入圖片檔案至儲存空間。請檢查連線並重新嘗試。"
   },
   {
-    "id": "cli.license.critical",
-    "translation": "功能需要升級至企業版並加入授權碼。請聯絡系統管理員。"
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "無法取得使用者"
   },
@@ -3716,10 +3700,6 @@
     "translation": "無效的命令 Hook ID"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "無效的上層 ID"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "無效的根 ID"
   },
@@ -4404,20 +4384,12 @@
     "translation": "無效的原始 ID"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "無效的上層 ID"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "無效的屬性"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "無效的根 ID"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "若上層 ID 已設定則根 ID 也必須設定否則無效"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5128,10 +5100,6 @@
     "translation": "無法建立 zip 檔案。"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "該外寄 Webhook 已被刪除，但建立新的 Webhook 時發生錯誤。"
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "關閉使用者索引失敗。"
   },
@@ -5750,10 +5718,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "下載模組時錯誤。"
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "開啟公鑰檔案時發生錯誤"
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
