@@ -357,6 +357,76 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		assert.Greater(t, rchannel.LastPostAt, channel.LastPostAt)
 		assert.Equal(t, int64(3), rchannel.TotalMsgCount)
 	})
+
+	t.Run("Thread participants", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = "jessica hyde" + model.NewId() + "b"
+
+		root, err := ss.Post().Save(&o1)
+		require.NoError(t, err)
+
+		o2 := model.Post{}
+		o2.ChannelId = model.NewId()
+		o2.UserId = model.NewId()
+		o2.RootId = root.Id
+		o2.Message = "zz" + model.NewId() + "b"
+
+		o3 := model.Post{}
+		o3.ChannelId = model.NewId()
+		o3.UserId = model.NewId()
+		o3.RootId = root.Id
+		o3.Message = "zz" + model.NewId() + "b"
+
+		o4 := model.Post{}
+		o4.ChannelId = model.NewId()
+		o4.UserId = o2.UserId
+		o4.RootId = root.Id
+		o4.Message = "zz" + model.NewId() + "b"
+
+		o5 := model.Post{}
+		o5.ChannelId = model.NewId()
+		o5.UserId = o1.UserId
+		o5.RootId = root.Id
+		o5.Message = "zz" + model.NewId() + "b"
+
+		_, err = ss.Post().Save(&o2)
+		require.NoError(t, err)
+		thread, errT := ss.Thread().Get(root.Id)
+		require.NoError(t, errT)
+
+		assert.Equal(t, int64(1), thread.ReplyCount)
+		assert.Equal(t, int(1), len(thread.Participants))
+		assert.Equal(t, model.StringArray{o2.UserId}, thread.Participants)
+
+		_, err = ss.Post().Save(&o3)
+		require.NoError(t, err)
+		thread, errT = ss.Thread().Get(root.Id)
+		require.NoError(t, errT)
+
+		assert.Equal(t, int64(2), thread.ReplyCount)
+		assert.Equal(t, int(2), len(thread.Participants))
+		assert.Equal(t, model.StringArray{o2.UserId, o3.UserId}, thread.Participants)
+
+		_, err = ss.Post().Save(&o4)
+		require.NoError(t, err)
+		thread, errT = ss.Thread().Get(root.Id)
+		require.NoError(t, errT)
+
+		assert.Equal(t, int64(3), thread.ReplyCount)
+		assert.Equal(t, int(2), len(thread.Participants))
+		assert.Equal(t, model.StringArray{o3.UserId, o2.UserId}, thread.Participants)
+
+		_, err = ss.Post().Save(&o5)
+		require.NoError(t, err)
+		thread, errT = ss.Thread().Get(root.Id)
+		require.NoError(t, errT)
+
+		assert.Equal(t, int64(4), thread.ReplyCount)
+		assert.Equal(t, int(3), len(thread.Participants))
+		assert.Equal(t, model.StringArray{o3.UserId, o2.UserId, o1.UserId}, thread.Participants)
+	})
 }
 
 func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
