@@ -148,14 +148,6 @@
     "translation": "此频道已转换到私有频道。"
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "默认频道无法转换成私有频道。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "请求转换的频道已经是私有频道。"
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "必须使用 createDirectChannel API 创建私信频道。"
   },
@@ -1314,10 +1306,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "RootId 参数无效的 ChannelId。"
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "无效的 ParentId 参数。"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3016,10 +3004,6 @@
     "translation": "无法写入图片文件到您的文件储存。请检查您的连接后再尝试。"
   },
   {
-    "id": "cli.license.critical",
-    "translation": "功能需要升级到企业版本并拥有许可证。请联系您的系统管理员。"
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "无法获取用户。"
   },
@@ -3716,10 +3700,6 @@
     "translation": "无效的命令钩子 id。"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "无效的父 id。"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "无效的根 id。"
   },
@@ -4381,7 +4361,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "无效的文件 id。上传只允许最多 5 个文件。请考虑创建新的消息以上传更多文件。"
+    "translation": "无效的文件 id。上传只允许最多 10 个文件。请考虑创建新的消息以上传更多文件。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4404,20 +4384,12 @@
     "translation": "无效的原始 id。"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "无效的父 id。"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "无效的属性。"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "无效的根 id。"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "如果父 ID 已设置则必须设置无效根 ID。"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5284,10 +5256,6 @@
     "translation": "无法上传文件。不正确的频道 ID：{{.channelId}}"
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "打开公钥文件时遇到错误。"
-  },
-  {
     "id": "api.plugin.verify_plugin.app_error",
     "translation": "无法验证插件签名。"
   },
@@ -5430,10 +5398,6 @@
   {
     "id": "bleveengine.search_channels.error",
     "translation": "频道搜索无法完成。"
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "传出的 webhook 已删除但因错误而无法创建新的。"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
@@ -7945,7 +7909,7 @@
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
-    "translation": "无法更新串的跟随状态"
+    "translation": "无法更新主题的关注状态"
   },
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
@@ -9212,5 +9176,21 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "检查用户储存是否为空失败。"
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}}回复了主题"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "您离开时，{{.SenderName}}回复了您关注的主题。"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " 在您关注的主题发布了评论。"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "回复主题"
   }
 ]

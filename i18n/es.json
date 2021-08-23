@@ -148,14 +148,6 @@
     "translation": "Este canal ha sido convertido a un Canal Privado."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Este es el canal predeterminado y no se puede convertir como canal privado."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "El canal que intentas convertir ya es un canal privado."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Debe usar el servicio del api createDirectChannel para crear un canal de mensajes directos."
   },
@@ -1316,10 +1308,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Canal inválido para el parámetro RootId."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parámetro ParentId inválido."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3020,10 +3008,6 @@
     "translation": "No se puede escribir el archivo de imagen en su almacenamiento de archivos. Por favor, compruebe su conexión e inténtelo de nuevo."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Característica requiere una actualización a la Edición Empresarial y la inclusión de una licencia. Por favor, póngase en contacto con su Administrador del Sistema."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "No se puede obtener los usuarios."
   },
@@ -3720,10 +3704,6 @@
     "translation": "Comando con hook id no válido."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Id del padre no es válido."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Id de la raíz no es válido."
   },
@@ -4408,20 +4388,12 @@
     "translation": "Id Original inválido."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id del padre no es válido."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Props invalidos."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Id de la raíz no es válido."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "ID de la raíz no es válido, debe ser asignado si el ID del padre fue asignado."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5088,10 +5060,6 @@
     "translation": "No se puede crear el archivo zip"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "El webhook de salida fue borrado, pero no se pudo crear uno nuevo debido a un error."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Ocurrió un error al cerrar el indice de usuario."
   },
@@ -5710,10 +5678,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Ocurrió un error al descargar el plugin."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Se ha producido un error al abrir el archivo de clave pública."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",

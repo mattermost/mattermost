@@ -148,14 +148,6 @@
     "translation": "このチャンネルは非公開チャンネルに変更されました。"
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "このデフォルトチャンネルは非公開チャンネルに変更できません。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "変更しようとしているチャンネルはすでに非公開チャンネルです。"
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "ダイレクトメッセージチャンネルを作成するにはcreateDirectChannel APIを使用してください。"
   },
@@ -1314,10 +1306,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "RootIdパラメーターのChannelIdが不正です。"
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "ParentIdパラメーターが不正です。"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3016,10 +3004,6 @@
     "translation": "ファイルストレージに画像ファイルを書き込めません。接続を確認し、再度実行してください。"
   },
   {
-    "id": "cli.license.critical",
-    "translation": "この機能はEnterprise Editionへのアップグレードとライセンスキーを要求しています。システム管理者に連絡してください。"
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "ユーザーを取得できません。"
   },
@@ -3716,10 +3700,6 @@
     "translation": "不正なコマンドフックIDです。"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "不正な親IDです。"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "不正なルートIDです。"
   },
@@ -4404,20 +4384,12 @@
     "translation": "不正なオリジナルIDです。"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "不正な親IDです。"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "不正な設定値です。"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "不正なルートIDです。"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "親IDが設定されている場合、無効なルートIDが設定されていなければなりません。"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5128,10 +5100,6 @@
     "translation": "zipファイルを作成できません"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "外向きのウェブフッは削除されましたが、エラーにより新しいウェブフックを作成できませんでした。"
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "ユーザーインデックスを閉じることができませんでした。"
   },
@@ -5750,10 +5718,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "プラグインをダウンロードする際にエラーが発生しました。"
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "公開鍵ファイルを開く際にエラーが発生しました。"
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
