@@ -85,7 +85,7 @@ const (
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
-	HttpService() httpservice.HTTPService
+	HTTPService() httpservice.HTTPService
 	GetPluginsEnvironment() *plugin.Environment
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
@@ -104,7 +104,7 @@ type TelemetryService struct {
 
 type RudderConfig struct {
 	RudderKey    string
-	DataplaneUrl string
+	DataplaneURL string
 }
 
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger) *TelemetryService {
@@ -154,8 +154,8 @@ func (ts *TelemetryService) telemetryEnabled() bool {
 
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 	config := ts.getRudderConfig()
-	if ts.telemetryEnabled() && ((config.DataplaneUrl != "" && config.RudderKey != "") || override) {
-		ts.initRudder(config.DataplaneUrl, config.RudderKey)
+	if ts.telemetryEnabled() && ((config.DataplaneURL != "" && config.RudderKey != "") || override) {
+		ts.initRudder(config.DataplaneURL, config.RudderKey)
 		ts.trackActivity()
 		ts.trackConfig()
 		ts.trackLicense()
@@ -373,8 +373,8 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_custom_emoji":                                     *cfg.ServiceSettings.EnableCustomEmoji,
 		"enable_emoji_picker":                                     *cfg.ServiceSettings.EnableEmojiPicker,
 		"enable_gif_picker":                                       *cfg.ServiceSettings.EnableGifPicker,
-		"gfycat_api_key":                                          isDefault(*cfg.ServiceSettings.GfycatApiKey, model.ServiceSettingsDefaultGfycatApiKey),
-		"gfycat_api_secret":                                       isDefault(*cfg.ServiceSettings.GfycatApiSecret, model.ServiceSettingsDefaultGfycatApiSecret),
+		"gfycat_api_key":                                          isDefault(*cfg.ServiceSettings.GfycatAPIKey, model.ServiceSettingsDefaultGfycatAPIKey),
+		"gfycat_api_secret":                                       isDefault(*cfg.ServiceSettings.GfycatAPISecret, model.ServiceSettingsDefaultGfycatAPISecret),
 		"experimental_enable_authentication_transfer":             *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer,
 		"restrict_custom_emoji_creation":                          *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation,
 		"enable_testing":                                          cfg.ServiceSettings.EnableTesting,
@@ -393,9 +393,9 @@ func (ts *TelemetryService) trackConfig() {
 		"session_length_sso_in_days":                              *cfg.ServiceSettings.SessionLengthSSOInDays,
 		"session_cache_in_minutes":                                *cfg.ServiceSettings.SessionCacheInMinutes,
 		"session_idle_timeout_in_minutes":                         *cfg.ServiceSettings.SessionIdleTimeoutInMinutes,
-		"isdefault_site_url":                                      isDefault(*cfg.ServiceSettings.SiteURL, model.ServiceSettingsDefaultSiteUrl),
-		"isdefault_tls_cert_file":                                 isDefault(*cfg.ServiceSettings.TLSCertFile, model.ServiceSettingsDefaultTlsCertFile),
-		"isdefault_tls_key_file":                                  isDefault(*cfg.ServiceSettings.TLSKeyFile, model.ServiceSettingsDefaultTlsKeyFile),
+		"isdefault_site_url":                                      isDefault(*cfg.ServiceSettings.SiteURL, model.ServiceSettingsDefaultSiteURL),
+		"isdefault_tls_cert_file":                                 isDefault(*cfg.ServiceSettings.TLSCertFile, model.ServiceSettingsDefaultTLSCertFile),
+		"isdefault_tls_key_file":                                  isDefault(*cfg.ServiceSettings.TLSKeyFile, model.ServiceSettingsDefaultTLSKeyFile),
 		"isdefault_read_timeout":                                  isDefault(*cfg.ServiceSettings.ReadTimeout, model.ServiceSettingsDefaultReadTimeout),
 		"isdefault_write_timeout":                                 isDefault(*cfg.ServiceSettings.WriteTimeout, model.ServiceSettingsDefaultWriteTimeout),
 		"isdefault_idle_timeout":                                  isDefault(*cfg.ServiceSettings.IdleTimeout, model.ServiceSettingsDefaultIdleTimeout),
@@ -418,6 +418,7 @@ func (ts *TelemetryService) trackConfig() {
 		"close_unused_direct_messages":                            *cfg.ServiceSettings.CloseUnusedDirectMessages,
 		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
+		"enable_onboarding_flow":                                  *cfg.ServiceSettings.EnableOnboardingFlow,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
 		"collapsed_threads":                                       *cfg.ServiceSettings.CollapsedThreads,
@@ -441,6 +442,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
 		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
+		"enable_permalink_previews":                               *cfg.ServiceSettings.EnablePermalinkPreviews,
 		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 	})
@@ -555,6 +557,7 @@ func (ts *TelemetryService) trackConfig() {
 		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
 		"amazon_s3_trace":         *cfg.FileSettings.AmazonS3Trace,
 		"max_file_size":           *cfg.FileSettings.MaxFileSize,
+		"max_image_resolution":    *cfg.FileSettings.MaxImageResolution,
 		"enable_file_attachments": *cfg.FileSettings.EnableFileAttachments,
 		"enable_mobile_upload":    *cfg.FileSettings.EnableMobileUpload,
 		"enable_mobile_download":  *cfg.FileSettings.EnableMobileDownload,
@@ -707,7 +710,7 @@ func (ts *TelemetryService) trackConfig() {
 		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
 		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
 		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
+		"use_ip_address":                        *cfg.ClusterSettings.UseIPAddress,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
 		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
@@ -752,7 +755,7 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.sendTelemetry(TrackConfigElasticsearch, map[string]interface{}{
-		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionUrl, model.ElasticsearchSettingsDefaultConnectionUrl),
+		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionURL, model.ElasticsearchSettingsDefaultConnectionURL),
 		"isdefault_username":                isDefault(*cfg.ElasticsearchSettings.Username, model.ElasticsearchSettingsDefaultUsername),
 		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ElasticsearchSettingsDefaultPassword),
 		"enable_indexing":                   *cfg.ElasticsearchSettings.EnableIndexing,
@@ -773,7 +776,7 @@ func (ts *TelemetryService) trackConfig() {
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
-	ts.trackPluginConfig(cfg, model.PluginSettingsDefaultMarketplaceUrl)
+	ts.trackPluginConfig(cfg, model.PluginSettingsDefaultMarketplaceURL)
 
 	ts.sendTelemetry(TrackConfigDataRetention, map[string]interface{}{
 		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
@@ -791,8 +794,8 @@ func (ts *TelemetryService) trackConfig() {
 		"default_export_from_timestamp":         *cfg.MessageExportSettings.ExportFromTimestamp,
 		"batch_size":                            *cfg.MessageExportSettings.BatchSize,
 		"global_relay_customer_type":            *cfg.MessageExportSettings.GlobalRelaySettings.CustomerType,
-		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
-		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
+		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SMTPUsername, ""),
+		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SMTPPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
 		"global_relay_smtp_server_timeout":      *cfg.MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout,
 		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
@@ -800,7 +803,7 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.sendTelemetry(TrackConfigDisplay, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
-		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
+		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
 	})
 
 	ts.sendTelemetry(TrackConfigGuestAccounts, map[string]interface{}{
@@ -1225,7 +1228,7 @@ func (ts *TelemetryService) trackChannelModeration() {
 func (ts *TelemetryService) initRudder(endpoint string, rudderKey string) {
 	if ts.rudderClient == nil {
 		config := rudder.Config{}
-		config.Logger = rudder.StdLogger(ts.log.StdLog(mlog.String("source", "rudder")))
+		config.Logger = rudder.StdLogger(ts.log.With(mlog.String("source", "rudder")).StdLogger(mlog.LvlDebug))
 		config.Endpoint = endpoint
 		// For testing
 		if endpoint != RudderDataplaneURL {
@@ -1303,15 +1306,15 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
-		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadURL,
 		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
 		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
 		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
 		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
 		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
-		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PluginSettingsDefaultMarketplaceUrl),
+		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceURL, model.PluginSettingsDefaultMarketplaceURL),
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
-		"chimera_oauth_proxy_url":       *cfg.PluginSettings.ChimeraOAuthProxyUrl,
+		"chimera_oauth_proxy_url":       *cfg.PluginSettings.ChimeraOAuthProxyURL,
 	}
 
 	// knownPluginIDs lists all known plugin IDs in the Marketplace
@@ -1338,6 +1341,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"memes",
 		"skype4business",
 		"zoom",
+		"focalboard",
 	}
 
 	marketplacePlugins, err := ts.getAllMarketplaceplugins(marketplaceURL)
@@ -1381,7 +1385,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
 	marketplaceClient, err := marketplace.NewClient(
 		marketplaceURL,
-		ts.srv.HttpService(),
+		ts.srv.HTTPService(),
 	)
 	if err != nil {
 		return nil, err

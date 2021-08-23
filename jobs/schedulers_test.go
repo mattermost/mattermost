@@ -60,10 +60,10 @@ func TestScheduler(t *testing.T) {
 		ConfigService: &testutils.StaticConfigService{
 			Cfg: &model.Config{
 				// mock config
-				DataRetentionSettings: *&model.DataRetentionSettings{
+				DataRetentionSettings: model.DataRetentionSettings{
 					EnableMessageDeletion: model.NewBool(true),
 				},
-				MessageExportSettings: *&model.MessageExportSettings{
+				MessageExportSettings: model.MessageExportSettings{
 					EnableExport: model.NewBool(true),
 				},
 			},

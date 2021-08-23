@@ -398,9 +398,12 @@ github.com/mattermost/gziphandler
 github.com/mattermost/ldap
 # github.com/mattermost/logr v1.0.13
 ## explicit
-github.com/mattermost/logr
-github.com/mattermost/logr/format
-github.com/mattermost/logr/target
+# github.com/mattermost/logr/v2 v2.0.10
+## explicit
+github.com/mattermost/logr/v2
+github.com/mattermost/logr/v2/config
+github.com/mattermost/logr/v2/formatters
+github.com/mattermost/logr/v2/targets
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 ## explicit
 github.com/mattermost/rsc/gf256
@@ -681,10 +684,6 @@ github.com/vmihailenco/msgpack/v5/msgpcode
 github.com/vmihailenco/tagparser/v2
 github.com/vmihailenco/tagparser/v2/internal
 github.com/vmihailenco/tagparser/v2/internal/parser
-# github.com/wiggin77/cfg v1.0.2
-github.com/wiggin77/cfg
-github.com/wiggin77/cfg/ini
-github.com/wiggin77/cfg/timeconv
 # github.com/wiggin77/merror v1.0.3
 ## explicit
 github.com/wiggin77/merror
@@ -730,15 +729,8 @@ go.opentelemetry.io/otel/metric/unit
 go.uber.org/atomic
 # go.uber.org/multierr v1.7.0
 ## explicit
-go.uber.org/multierr
 # go.uber.org/zap v1.17.0
 ## explicit
-go.uber.org/zap
-go.uber.org/zap/buffer
-go.uber.org/zap/internal/bufferpool
-go.uber.org/zap/internal/color
-go.uber.org/zap/internal/exit
-go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 ## explicit
 golang.org/x/crypto/acme

@@ -31,7 +31,6 @@ const (
 	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	MB               = 1 << 20
 )
 
 type StringInterface map[string]interface{}
@@ -321,7 +320,7 @@ func ToJson(v interface{}) []byte {
 	return b
 }
 
-func GetServerIpAddress(iface string) string {
+func GetServerIPAddress(iface string) string {
 	var addrs []net.Addr
 	if iface == "" {
 		var err error
@@ -488,12 +487,12 @@ func ClearMentionTags(post string) string {
 	return post
 }
 
-func IsValidHttpUrl(rawUrl string) bool {
-	if strings.Index(rawUrl, "http://") != 0 && strings.Index(rawUrl, "https://") != 0 {
+func IsValidHTTPURL(rawURL string) bool {
+	if strings.Index(rawURL, "http://") != 0 && strings.Index(rawURL, "https://") != 0 {
 		return false
 	}
 
-	if u, err := url.ParseRequestURI(rawUrl); err != nil || u.Scheme == "" || u.Host == "" {
+	if u, err := url.ParseRequestURI(rawURL); err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
 

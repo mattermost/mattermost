@@ -138,15 +138,12 @@ type Server struct {
 	statusCache             cache.Cache
 	configListenerId        string
 	licenseListenerId       string
-	logListenerId           string
 	clusterLeaderListenerId string
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
 	configStore             *config.Store
 	postActionCookieSecret  []byte
-
-	advancedLogListenerCleanup func()
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -165,7 +162,7 @@ type Server struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService httpservice.HTTPService
+	httpService httpservice.HTTPService
 
 	ImageProxy *imageproxy.ImageProxy
 
@@ -304,10 +301,10 @@ func NewServer(options ...Option) (*Server, error) {
 		s.tracer = tracer
 	}
 
-	s.HTTPService = httpservice.MakeHTTPService(s)
-	s.pushNotificationClient = s.HTTPService.MakeClient(true)
+	s.httpService = httpservice.MakeHTTPService(s)
+	s.pushNotificationClient = s.httpService.MakeClient(true)
 
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService(), s.Log)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
@@ -389,19 +386,18 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
-		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
-	} else {
-		htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
-		if err2 != nil {
-			return nil, errors.Wrap(err2, "cannot initialize server templates")
-		}
-		s.Go(func() {
-			for err2 := range errorsChan {
-				mlog.Warn("Server templates error", mlog.Err(err2))
-			}
-		})
-		s.htmlTemplateWatcher = htmlTemplateWatcher
+		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
 	}
+	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
+	if err2 != nil {
+		return nil, errors.Wrap(err2, "cannot initialize server templates")
+	}
+	s.Go(func() {
+		for err2 := range errorsChan {
+			mlog.Warn("Server templates error", mlog.Err(err2))
+		}
+	})
+	s.htmlTemplateWatcher = htmlTemplateWatcher
 
 	s.Store, err = s.newStore()
 	if err != nil {
@@ -592,7 +588,7 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
-	s.checkPushNotificationServerUrl()
+	s.checkPushNotificationServerURL()
 
 	s.ReloadConfig()
 
@@ -678,7 +674,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			s.runLicenseExpirationCheckJob()
 			runCheckAdminSupportStatusJob(app, c)
-			runCheckWarnMetricStatusJob(app, c)
 			runDNDStatusExpireJob(app)
 		})
 		s.runJobs()
@@ -789,74 +784,79 @@ func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
 	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
 }
 
-// initLogging initializes and configures the logger. This may be called more than once.
+// initLogging initializes and configures the logger(s). This may be called more than once.
 func (s *Server) initLogging() error {
+	var err error
+	// create the app logger if needed
 	if s.Log == nil {
-		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
-	}
-
-	// Use this app logger as the global logger (eventually remove all instances of global logging).
-	// This is deferred because a copy is made of the logger and it must be fully configured before
-	// the copy is made.
-	defer mlog.InitGlobalLogger(s.Log)
-
-	// Redirect default Go logger to this logger.
-	defer mlog.RedirectStdLog(s.Log)
-
-	if s.NotificationsLog == nil {
-		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
-			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
-	}
-
-	if s.logListenerId != "" {
-		s.RemoveConfigListener(s.logListenerId)
-	}
-	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
-		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
-
-		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
-		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
-	})
-
-	// Configure advanced logging.
-	// Advanced logging is E20 only, however logging must be initialized before the license
-	// file is loaded.  If no valid E20 license exists then advanced logging will be
-	// shutdown once license is loaded/checked.
-	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
-		dsn := *s.Config().LogSettings.AdvancedLoggingConfig
-
-		cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
+		s.Log, err = mlog.NewLogger()
 		if err != nil {
-			return fmt.Errorf("invalid advanced logging config, %w", err)
+			return err
 		}
+	}
 
-		if err := s.Log.ConfigAdvancedLogging(cfg.Get()); err != nil {
-			return fmt.Errorf("error configuring advanced logging, %w", err)
+	// create notification logger if needed
+	if s.NotificationsLog == nil {
+		l, err := mlog.NewLogger()
+		if err != nil {
+			return err
 		}
+		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
+	}
 
-		mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
-
-		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
-			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
-				mlog.Error("Error re-configuring advanced logging", mlog.Err(err))
-			} else {
-				mlog.Info("Re-configured advanced logging")
-			}
-		})
-
-		// In case initLogging is called more than once.
-		if s.advancedLogListenerCleanup != nil {
-			s.advancedLogListenerCleanup()
+	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
+		// if the config is locked then a unit test has already configured and locked the logger; not an error.
+		if !errors.Is(err, mlog.ErrConfigurationLock) {
+			// revert to default logger if the config is invalid
+			mlog.InitGlobalLogger(nil)
+			return err
 		}
+	}
 
-		s.advancedLogListenerCleanup = func() {
-			cfg.RemoveListener(listenerId)
+	// Redirect default Go logger to app logger.
+	s.Log.RedirectStdLog(mlog.LvlStdLog)
+
+	// Use the app logger as the global logger (eventually remove all instances of global logging).
+	mlog.InitGlobalLogger(s.Log)
+
+	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
+	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
+		if !errors.Is(err, mlog.ErrConfigurationLock) {
+			mlog.Error("Error configuring notification logger", mlog.Err(err))
+			return err
 		}
 	}
 	return nil
 }
 
+// configureLogger applies the specified configuration to a logger.
+func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings *model.LogSettings, configStore *config.Store, getPath func(string) string) error {
+	// Advanced logging is E20 only, however logging must be initialized before the license
+	// file is loaded.  If no valid E20 license exists then advanced logging will be
+	// shutdown once license is loaded/checked.
+	var err error
+	dsn := *logSettings.AdvancedLoggingConfig
+	var logConfigSrc config.LogConfigSrc
+	if dsn != "" {
+		logConfigSrc, err = config.NewLogConfigSrc(dsn, configStore)
+		if err != nil {
+			return fmt.Errorf("invalid config source for %s, %w", name, err)
+		}
+		mlog.Info("Loaded configuration for "+name, mlog.String("source", dsn))
+	}
+
+	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
+	if err != nil {
+		return fmt.Errorf("invalid config source for %s, %w", name, err)
+	}
+
+	if err := logger.ConfigureTargets(cfg); err != nil {
+		return fmt.Errorf("invalid config for %s, %w", name, err)
+	}
+	return nil
+}
+
+// removeUnlicensedLogTargets removes any unlicensed log target types.
 func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	if license != nil && *license.Features.AdvancedLogging {
 		// advanced logging enabled via license; no need to remove any targets
@@ -866,8 +866,12 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancelCtx()
 
-	mlog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
-		return ti.Type != "*target.Writer" && ti.Type != "*target.File"
+	s.Log.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
+	})
+
+	s.NotificationsLog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
 	})
 }
 
@@ -941,11 +945,15 @@ func (s *Server) enableLoggingMetrics() {
 		return
 	}
 
-	if err := mlog.EnableMetrics(s.Metrics.GetLoggerMetricsCollector()); err != nil {
-		mlog.Error("Failed to enable advanced logging metrics", mlog.Err(err))
-	} else {
-		mlog.Debug("Advanced logging metrics enabled")
+	s.Log.SetMetricsCollector(s.Metrics.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+
+	// logging config needs to be reloaded when metrics collector is added or changed.
+	if err := s.initLogging(); err != nil {
+		mlog.Error("Error re-configuring logging for metrics")
+		return
 	}
+
+	mlog.Debug("Logging metrics enabled")
 }
 
 const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
@@ -1016,13 +1024,7 @@ func (s *Server) Shutdown() {
 
 	s.WaitForGoroutines()
 
-	if s.advancedLogListenerCleanup != nil {
-		s.advancedLogListenerCleanup()
-		s.advancedLogListenerCleanup = nil
-	}
-
 	s.RemoveConfigListener(s.configListenerId)
-	s.RemoveConfigListener(s.logListenerId)
 	s.stopSearchEngine()
 
 	s.Audit.Shutdown()
@@ -1060,12 +1062,6 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
-	defer timeoutCancel()
-	if err := mlog.Flush(timeoutCtx); err != nil {
-		mlog.Warn("Error flushing logs", mlog.Err(err))
-	}
-
 	s.dndTaskMut.Lock()
 	if s.dndTask != nil {
 		s.dndTask.Cancel()
@@ -1074,10 +1070,15 @@ func (s *Server) Shutdown() {
 
 	mlog.Info("Server stopped")
 
-	// this should just write the "server stopped" record, the rest are already flushed.
-	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
-	defer timeoutCancel2()
-	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
+	// shutdown main and notification loggers which will flush any remaining log records.
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer timeoutCancel()
+	if err = s.NotificationsLog.ShutdownWithTimeout(timeoutCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "Error shutting down notification logger: %v", err)
+	}
+	if err = s.Log.ShutdownWithTimeout(timeoutCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
+	}
 }
 
 func (s *Server) Restart() error {
@@ -1204,7 +1205,7 @@ func (s *Server) Start() error {
 
 		// If we have debugging of CORS turned on then forward messages to logs
 		if debug {
-			corsWrapper.Log = s.Log.StdLog(mlog.String("source", "cors"))
+			corsWrapper.Log = s.Log.With(mlog.String("source", "cors")).StdLogger(mlog.LvlDebug)
 		}
 
 		handler = corsWrapper.Handler(handler)
@@ -1224,10 +1225,7 @@ func (s *Server) Start() error {
 	s.Busy = NewBusy(s.Cluster)
 
 	// Creating a logger for logging errors from http.Server at error level
-	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
-	if err != nil {
-		return err
-	}
+	errStdLog := s.Log.With(mlog.String("source", "httpserver")).StdLogger(mlog.LvlError)
 
 	s.Server = &http.Server{
 		Handler:      handler,
@@ -1239,7 +1237,7 @@ func (s *Server) Start() error {
 
 	addr := *s.Config().ServiceSettings.ListenAddress
 	if addr == "" {
-		if *s.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTls {
+		if *s.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
 			addr = ":https"
 		} else {
 			addr = ":http"
@@ -1272,7 +1270,7 @@ func (s *Server) Start() error {
 				server := &http.Server{
 					Addr:     httpListenAddress,
 					Handler:  m.HTTPHandler(nil),
-					ErrorLog: s.Log.StdLog(mlog.String("source", "le_forwarder_server")),
+					ErrorLog: s.Log.With(mlog.String("source", "le_forwarder_server")).StdLogger(mlog.LvlError),
 				}
 				go server.ListenAndServe()
 			} else {
@@ -1286,7 +1284,7 @@ func (s *Server) Start() error {
 
 					server := &http.Server{
 						Handler:  http.HandlerFunc(handleHTTPRedirect),
-						ErrorLog: s.Log.StdLog(mlog.String("source", "forwarder_server")),
+						ErrorLog: s.Log.With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
 					}
 					server.Serve(redirectListener)
 				}()
@@ -1299,7 +1297,7 @@ func (s *Server) Start() error {
 	s.didFinishListen = make(chan struct{})
 	go func() {
 		var err error
-		if *s.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTls {
+		if *s.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
 
 			tlsConfig := &tls.Config{
 				PreferServerCipherSuites: true,
@@ -1433,7 +1431,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 	return nil
 }
 
-func (s *Server) checkPushNotificationServerUrl() {
+func (s *Server) checkPushNotificationServerURL() {
 	notificationServer := *s.Config().EmailSettings.PushNotificationServer
 	if strings.HasPrefix(notificationServer, "http://") {
 		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
@@ -1493,14 +1491,6 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
-//nolint:golint,unused,deadcode
-func runCheckWarnMetricStatusJob(a *App, c *request.Context) {
-	doCheckWarnMetricStatus(a, c)
-	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
-		doCheckWarnMetricStatus(a, c)
-	}, time.Hour*model.WarnMetricJobInterval)
-}
-
 func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
 	doCheckAdminSupportStatus(a, c)
 	model.CreateRecurringTask("Check Admin Support Status Job", func() {
@@ -1521,154 +1511,14 @@ func doCommandWebhookCleanup(s *Server) {
 }
 
 const (
-	SessionsCleanupBatchSize = 1000
+	sessionsCleanupBatchSize = 1000
 )
 
 func doSessionCleanup(s *Server) {
-	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
-}
-
-//nolint:golint,unused,deadcode
-func doCheckWarnMetricStatus(a *App, c *request.Context) {
-	license := a.Srv().License()
-	if license != nil {
-		mlog.Debug("License is present, skip")
-		return
-	}
-
-	// Get the system fields values from store
-	systemDataList, nErr := a.Srv().Store.System().Get()
-	if nErr != nil {
-		mlog.Error("No system properties obtained", mlog.Err(nErr))
-		return
-	}
-
-	warnMetricStatusFromStore := make(map[string]string)
-
-	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
-			if _, ok := model.WarnMetricsTable[key]; ok {
-				warnMetricStatusFromStore[key] = value
-				if value == model.WarnMetricStatusAck {
-					// If any warn metric has already been acked, we return
-					mlog.Debug("Warn metrics have been acked, skip")
-					return
-				}
-			}
-		}
-	}
-
-	lastWarnMetricRunTimestamp, err := a.Srv().getLastWarnMetricTimestamp()
+	mlog.Debug("Cleaning up session store.")
+	err := s.Store.Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
 	if err != nil {
-		mlog.Debug("Cannot obtain last advisory run timestamp", mlog.Err(err))
-	} else {
-		currentTime := utils.MillisFromTime(time.Now())
-		// If the admin advisory has already been shown in the last 7 days
-		if (currentTime-lastWarnMetricRunTimestamp)/(model.WarnMetricJobWaitTime) < 1 {
-			mlog.Debug("No advisories should be shown during the wait interval time")
-			return
-		}
-	}
-
-	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
-	if err0 != nil {
-		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
-	}
-
-	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(nil)
-	if err1 != nil {
-		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
-	}
-
-	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
-	if err2 != nil {
-		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
-	}
-
-	// If an account is created with a different email domain
-	// Search for an entry that has an email account different from the current domain
-	// Get domain account from site url
-	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
-	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
-	if err3 != nil {
-		mlog.Debug("Error attempting to get number of private channels.", mlog.Err(err3))
-	}
-
-	warnMetrics := []model.WarnMetric{}
-
-	if numberOfActiveUsers < model.WarnMetricNumberOfActiveUsers25 {
-		return
-	} else if teamCount >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfTeams5].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfTeams5] != model.WarnMetricStatusRunonce {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfTeams5])
-	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && warnMetricStatusFromStore[model.SystemWarnMetricMfa] != model.WarnMetricStatusRunonce {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricMfa])
-	} else if isDiffEmailAccount && warnMetricStatusFromStore[model.SystemWarnMetricEmailDomain] != model.WarnMetricStatusRunonce {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricEmailDomain])
-	} else if openChannelCount >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfChannels50].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfChannels50] != model.WarnMetricStatusRunonce {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfChannels50])
-	}
-
-	// If the system did not cross any of the thresholds for the Contextual Advisories
-	if len(warnMetrics) == 0 {
-		if numberOfActiveUsers >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers100].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers200].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfActiveUsers100] != model.WarnMetricStatusRunonce {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers100])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers300].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfActiveUsers200] != model.WarnMetricStatusRunonce {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers200])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers500].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfActiveUsers300] != model.WarnMetricStatusRunonce {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers300])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers500].Limit {
-			var tWarnMetric model.WarnMetric
-
-			if warnMetricStatusFromStore[model.SystemWarnMetricNumberOfActiveUsers500] != model.WarnMetricStatusRunonce {
-				tWarnMetric = model.WarnMetricsTable[model.SystemWarnMetricNumberOfActiveUsers500]
-			}
-
-			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
-			if err4 != nil {
-				mlog.Debug("Error attempting to get number of posts.", mlog.Err(err4))
-			}
-
-			if postsCount > model.WarnMetricsTable[model.SystemWarnMetricNumberOfPosts2m].Limit && warnMetricStatusFromStore[model.SystemWarnMetricNumberOfPosts2m] != model.WarnMetricStatusRunonce {
-				tWarnMetric = model.WarnMetricsTable[model.SystemWarnMetricNumberOfPosts2m]
-			}
-
-			if tWarnMetric != (model.WarnMetric{}) {
-				warnMetrics = append(warnMetrics, tWarnMetric)
-			}
-		}
-	}
-
-	isE0Edition := model.BuildEnterpriseReady == "true" // license == nil was already validated upstream
-
-	for _, warnMetric := range warnMetrics {
-		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if nErr == nil && data != nil && warnMetric.IsBotOnly && data.Value == model.WarnMetricStatusRunonce {
-			mlog.Debug("This metric warning is bot only and ran once")
-			continue
-		}
-
-		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil, isE0Edition)
-		if !warnMetric.IsBotOnly {
-			// Banner and bot metric types - send websocket event every interval
-			message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusReceived, "", "", "", nil)
-			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
-			a.Publish(message)
-
-			// Banner and bot metric types, send the bot message only once
-			if data != nil && data.Value == model.WarnMetricStatusRunonce {
-				continue
-			}
-		}
-
-		if nerr := a.notifyAdminsOfWarnMetricStatus(c, warnMetric.Id, isE0Edition); nerr != nil {
-			mlog.Error("Failed to send notifications to admin users.", mlog.Err(nerr))
-		}
-
-		if warnMetric.IsRunOnce {
-			a.setWarnMetricsStatusForId(warnMetric.Id, model.WarnMetricStatusRunonce)
-		} else {
-			a.setWarnMetricsStatusForId(warnMetric.Id, model.WarnMetricStatusLimitReached)
-		}
+		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
 	}
 }
 
@@ -1916,7 +1766,7 @@ func (s *Server) StartSearchEngine() (string, string) {
 					mlog.Error(err.Error())
 				}
 			})
-		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
+		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionURL != *newConfig.ElasticsearchSettings.ConnectionURL || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
 			s.Go(func() {
 				if *oldConfig.ElasticsearchSettings.EnableIndexing {
 					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
@@ -2061,6 +1911,10 @@ func (s *Server) initJobs() {
 		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
 	}
 
+	if jobsExtractContentInterface != nil {
+		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
+	}
+
 	s.Jobs.InitWorkers()
 	s.Jobs.InitSchedulers()
 }
@@ -2072,8 +1926,8 @@ func (s *Server) TelemetryId() string {
 	return s.telemetryService.TelemetryID
 }
 
-func (s *Server) HttpService() httpservice.HTTPService {
-	return s.HTTPService
+func (s *Server) HTTPService() httpservice.HTTPService {
+	return s.httpService
 }
 
 func (s *Server) SetLog(l *mlog.Logger) {
@@ -2172,7 +2026,7 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 	// Getting notifications.log
 	if *a.Srv().Config().NotificationLogSettings.EnableFile {
 		// notifications.log
-		notificationsLog := utils.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		notificationsLog := config.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
 
 		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
 
@@ -2199,7 +2053,7 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 	// Getting mattermost.log
 	if *a.Srv().Config().LogSettings.EnableFile {
 		// mattermost.log
-		mattermostLog := utils.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		mattermostLog := config.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
 
 		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
 

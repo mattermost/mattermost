@@ -208,12 +208,12 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 	return nil
 }
 
-func validateSidebarCategoryChannels(userId string, channelIds []string, channels *model.ChannelList) []string {
+func validateSidebarCategoryChannels(userId string, channelIds []string, channels model.ChannelList) []string {
 	var filtered []string
 
 	for _, channelId := range channelIds {
 		found := false
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			if channel.Id == channelId {
 				found = true
 				break

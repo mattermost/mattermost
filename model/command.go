@@ -99,7 +99,7 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !IsValidHttpUrl(o.URL) {
+	if !IsValidHTTPURL(o.URL) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.url_http.app_error", nil, "", http.StatusBadRequest)
 	}
 

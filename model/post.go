@@ -62,11 +62,13 @@ const (
 
 	PostPropsAddedUserId       = "addedUserId"
 	PostPropsDeleteBy          = "deleteBy"
-	PostPropsOverrideIconUrl   = "override_icon_url"
+	PostPropsOverrideIconURL   = "override_icon_url"
 	PostPropsOverrideIconEmoji = "override_icon_emoji"
 
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
+
+	PostPropsPreviewedPost = "previewed_post"
 )
 
 type Post struct {
@@ -79,7 +81,6 @@ type Post struct {
 	UserId     string `json:"user_id"`
 	ChannelId  string `json:"channel_id"`
 	RootId     string `json:"root_id"`
-	ParentId   string `json:"parent_id"`
 	OriginalId string `json:"original_id"`
 
 	Message string `json:"message"`
@@ -192,7 +193,6 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.UserId = o.UserId
 	dst.ChannelId = o.ChannelId
 	dst.RootId = o.RootId
-	dst.ParentId = o.ParentId
 	dst.OriginalId = o.OriginalId
 	dst.Message = o.Message
 	dst.MessageSource = o.MessageSource
@@ -298,14 +298,6 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 
 	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if !(IsValidId(o.ParentId) || o.ParentId == "") {
-		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(o.ParentId) == 26 && o.RootId == "" {
-		return NewAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(len(o.OriginalId) == 26 || o.OriginalId == "") {
@@ -605,6 +597,7 @@ func (o *Post) Attachments() []*SlackAttachment {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
+					// Ignoring nil actions
 					i := 0
 					for _, action := range decoded.Actions {
 						if action != nil {
@@ -613,6 +606,16 @@ func (o *Post) Attachments() []*SlackAttachment {
 						}
 					}
 					decoded.Actions = decoded.Actions[:i]
+
+					// Ignoring nil fields
+					i = 0
+					for _, field := range decoded.Fields {
+						if field != nil {
+							decoded.Fields[i] = field
+							i++
+						}
+					}
+					decoded.Fields = decoded.Fields[:i]
 					ret = append(ret, &decoded)
 				}
 			}
@@ -737,4 +740,15 @@ func (o *Post) ToNilIfInvalid() *Post {
 		return nil
 	}
 	return o
+}
+
+func (o *Post) GetPreviewPost() *PreviewPost {
+	for _, embed := range o.Metadata.Embeds {
+		if embed.Type == PostEmbedPermalink {
+			if previewPost, ok := embed.Data.(*PreviewPost); ok {
+				return previewPost
+			}
+		}
+	}
+	return nil
 }

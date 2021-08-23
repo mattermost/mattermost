@@ -60,7 +60,6 @@ func postSliceColumnsWithTypes() []struct {
 		{"UserId", reflect.String},
 		{"ChannelId", reflect.String},
 		{"RootId", reflect.String},
-		{"ParentId", reflect.String},
 		{"OriginalId", reflect.String},
 		{"Message", reflect.String},
 		{"Type", reflect.String},
@@ -84,7 +83,6 @@ func postToSlice(post *model.Post) []interface{} {
 		post.UserId,
 		post.ChannelId,
 		post.RootId,
-		post.ParentId,
 		post.OriginalId,
 		post.Message,
 		post.Type,
@@ -141,14 +139,13 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("RootId").SetMaxSize(26)
-		table.ColMap("ParentId").SetMaxSize(26)
 		table.ColMap("OriginalId").SetMaxSize(26)
 		table.ColMap("Message").SetMaxSize(model.PostMessageMaxBytesV2)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("Filenames").SetMaxSize(model.PostFilenamesMaxRunes)
-		table.ColMap("FileIds").SetMaxSize(300)
+		table.ColMap("FileIds").SetMaxSize(model.PostFileidsMaxRunes)
 		table.ColMap("RemoteId").SetMaxSize(26)
 	}
 
@@ -159,12 +156,12 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
 	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
 
 	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_update_at", "Posts", []string{"ChannelId", "UpdateAt"})
 	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_delete_at_create_at", "Posts", []string{"ChannelId", "DeleteAt", "CreateAt"})
+	s.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"})
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
@@ -658,30 +655,42 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 	return result
 }
 
-func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) error {
-	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return store.NewErrNotFound("Post", postId)
-		}
-
-		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
+func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) error {
+	var err error
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		_, err = s.GetMaster().Exec(`UPDATE Posts
+			SET DeleteAt = $1,
+				UpdateAt = $1,
+				Props = jsonb_set(Props, $2, $3)
+			WHERE Id = $4 OR RootId = $4`, time, jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID), postID)
+	} else {
+		_, err = s.GetMaster().Exec(`UPDATE Posts
+			SET DeleteAt = ?,
+			UpdateAt = ?,
+			Props = JSON_SET(Props, ?, ?)
+			Where Id = ? OR RootId = ?`, time, time, "$."+model.PostPropsDeleteBy, deleteByID, postID, postID)
 	}
 
-	post.AddProp(model.PostPropsDeleteBy, deleteByID)
-
-	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.GetProps())})
 	if err != nil {
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	return s.cleanupThreads(post.Id, post.RootId, false)
+	// TODO: change this to later delete thread directly from postID
+	rootID, err := s.GetReplica().SelectStr("SELECT RootId FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return store.NewErrNotFound("Post", postID)
+		}
+
+		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
+	}
+
+	return s.cleanupThreads(postID, rootID, false)
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
 	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postId})
 	if err != nil && err != sql.ErrNoRows {
 		return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 	}
@@ -2217,7 +2226,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		Join("Users ON p.UserId = Users.Id").
 		Where(sq.And{
 			sq.Gt{"p.Id": afterId},
-			sq.Eq{"p.ParentId": string("")},
+			sq.Eq{"p.RootId": string("")},
 			sq.Eq{"p.DeleteAt": int(0)},
 			sq.Eq{"Channels.DeleteAt": int(0)},
 			sq.Eq{"Users.DeleteAt": int(0)},
@@ -2358,18 +2367,9 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool) err
 		return nil
 	}
 	if rootId != "" {
-		thread, err := s.Thread().Get(rootId)
+		_, err := s.GetMaster().Exec(`UPDATE Threads SET ReplyCount = ReplyCount - 1 WHERE PostId = :Id AND ReplyCount > 0`, map[string]interface{}{"Id": rootId})
 		if err != nil {
-			var nfErr *store.ErrNotFound
-			if !errors.As(err, &nfErr) {
-				return errors.Wrap(err, "failed to get a thread")
-			}
-		}
-		if thread != nil {
-			thread.ReplyCount -= 1
-			if _, err = s.Thread().Update(thread); err != nil {
-				return errors.Wrap(err, "failed to update thread")
-			}
+			return errors.Wrap(err, "failed to update Threads")
 		}
 	}
 	return nil

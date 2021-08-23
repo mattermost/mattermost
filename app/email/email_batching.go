@@ -170,7 +170,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 				continue
 			}
 
-			for _, channelMember := range *channelMembers {
+			for _, channelMember := range channelMembers {
 				if channelMember.LastViewedAt >= batchStartTime {
 					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userID))
 					delete(job.pendingNotifications, userID)

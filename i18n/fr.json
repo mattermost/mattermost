@@ -148,14 +148,6 @@
     "translation": "Ce canal a été converti en canal privé."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Le canal par défaut ne peut pas être converti en un canal privé."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Le canal que vous essayez de convertir est déjà un canal privé."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Vous devez utiliser le service d'API createDirectChannel pour la création d'un canal de messages personnels"
   },
@@ -1316,10 +1308,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "ChannelId invalide pour le paramètre RootId"
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Paramètre ParentId invalide"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3020,10 +3008,6 @@
     "translation": "Impossible d'enregistrer l'image dans le stockage de fichiers. Veuillez vérifier votre connexion et réessayez."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "La fonctionnalité requiert une mise à niveau vers la version entreprise et l'installation d'une clé de licence. Veuillez contacter votre administrateur système."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Impossible de récupérer les utilisateurs."
   },
@@ -3720,10 +3704,6 @@
     "translation": "Id de hook de commande invalide"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Id de parent invalide"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Id de racine invalide"
   },
@@ -4408,20 +4388,12 @@
     "translation": "Id d'origine invalide"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id parent invalide"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Propriétés invalides"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Id racine invalide"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "L'ID racine invalide doit être spécifié si un ID parent est défini"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5132,10 +5104,6 @@
     "translation": "Impossible de créer le fichier eml."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Le webhook sortant est supprimé, mais impossible d'en créer un nouveau en raison d'une erreur."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Failed to close user index."
   },
@@ -5752,10 +5720,6 @@
     "translation": "Une erreur s'est produite lors du téléchargement du plugin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Une erreur s'est produite lors de l'ouverture du fichier contenant la clé publique."
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Impossible d'envoyer l'e-mail de désactivation de compte"
   },
@@ -5876,38 +5840,6 @@
     "translation": "Veuillez m'ajouter aux équipes et canaux dans lesquels vous voulez que j’interagisse. Pour faire ça, utilisez votre navigateur ou l'application de bureau Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Impossible d'envoyer le fichier d'image. Le fichier est trop volumineux."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Impossible d'interpréter le formulaire multipart."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Impossible d'ouvrir le fichier image"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Aucun fichier dans le champ « image » de la requête."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Aucune image transmise dans la requête."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Impossible d'envoyer le fichier d'icône."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Impossible de lire le fichier d'icône."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Impossible de supprimer l'icône."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "La création de bots a été désactivée."
   },
@@ -5950,10 +5882,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "Impossible de supprimer l'image de marque. Image introuvable."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Une erreur s'est produite lors de la suppression définitive du lot de réactions"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6172,10 +6100,6 @@
     "translation": "Impossible de récupérer la liste des utilisateurs du canal dans la période spécifiée."
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Impossible de purger les enregistrements."
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Impossible d'enregistrer l'émoticône."
   },
@@ -6234,10 +6158,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Une erreur s'est produite lors du chargement des rapports de conformité"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Une erreur s'est produite lors du nettoyage du lot des indicateurs."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6524,10 +6444,6 @@
     "translation": "Impossible de récupérer la tâche."
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Une erreur s'est produite lors de la suppression définitive du lot d'informations de fichier."
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Impossible d'enregistrer les informations du fichier."
   },
@@ -6614,10 +6530,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Impossible de récupérer le lot de messages à indexer."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Une erreur s'est produite lors de la suppression définitive du lot de messages."
   },
   {
     "id": "app.post.overwrite.app_error",

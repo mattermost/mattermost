@@ -22,7 +22,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/gitlab"
+	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/store"
+	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
@@ -780,7 +782,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
 		require.Nil(t, err)
-		assert.Len(t, *members, 2)
+		assert.Len(t, members, 2)
 	})
 
 	t.Run("valid guest request", func(t *testing.T) {
@@ -801,8 +803,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("create guest having email domain restrictions", func(t *testing.T) {
@@ -846,8 +848,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
@@ -883,8 +885,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 }
 
@@ -1160,7 +1162,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
-		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1181,7 +1183,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
-		require.Len(t, *channelMembers, 1)
+		require.Len(t, channelMembers, 1)
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -1192,14 +1194,14 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
-		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
 
 		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
-		assert.Len(t, *channelMembers, 3)
+		assert.Len(t, channelMembers, 3)
 	})
 
 	t.Run("Must invalidate channel stats cache when promoting a guest", func(t *testing.T) {
@@ -1323,7 +1325,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
-		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
+		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1344,7 +1346,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
-		require.Len(t, *channelMembers, 3)
+		require.Len(t, channelMembers, 3)
 
 		err = th.App.DemoteUserToGuest(user)
 		require.Nil(t, err)
@@ -1355,14 +1357,14 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
-		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
+		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
 
 		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
-		assert.Len(t, *channelMembers, 3)
+		assert.Len(t, channelMembers, 3)
 	})
 
 	t.Run("Must be removed as team and channel admin", func(t *testing.T) {
@@ -1508,14 +1510,15 @@ func TestPatchUser(t *testing.T) {
 func TestUpdateThreadReadForUser(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
-	})
 
 	t.Run("Ensure thread membership is created and followed", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
+
 		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
 		require.Nil(t, appErr)
 		replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
@@ -1535,6 +1538,34 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, threadMembership)
 		assert.True(t, threadMembership.Following)
+	})
+
+	t.Run("Ensure no panic on error", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+		mockUserStore.On("Get", mock.Anything, "user1").Return(&model.User{Id: "user1"}, nil)
+
+		mockThreadStore := storemocks.ThreadStore{}
+		mockThreadStore.On("MaintainMembership", "user1", "postid", mock.Anything).Return(nil, errors.New("error"))
+
+		var err error
+		th.App.srv.userService, err = users.New(users.ServiceConfig{
+			UserStore:    &mockUserStore,
+			SessionStore: &storemocks.SessionStore{},
+			OAuthStore:   &storemocks.OAuthStore{},
+			ConfigFn:     th.App.srv.Config,
+			LicenseFn:    th.App.srv.License,
+		})
+		require.NoError(t, err)
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Thread").Return(&mockThreadStore)
+
+		_, err = th.App.UpdateThreadReadForUser("user1", "team1", "postid", 100)
+		require.Error(t, err)
 	})
 }
 
