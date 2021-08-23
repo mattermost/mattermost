@@ -148,14 +148,6 @@
     "translation": "Questo canale è stato convertito in un Canale Privato."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Questo canale predefinito non può essere convertito in un canale privato."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Il canale da convertire è già un canale privato."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Bisogna usare il servizio createDirectChannel API per la creazione dei messaggi diretti nel canale."
   },
@@ -1316,10 +1308,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "ChannelId non valido per il parametro RootId."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parametro ParentId non valido."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3020,10 +3008,6 @@
     "translation": "Impossibile scrivere l'immagine nell'archivio file. Controllare la connessione e riprovare."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Questa opzione richiede una licenza Enterprise Edition valida. Per favore contatta il tuo Amministratore di Sistema."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Impossibile recuperare gli utenti."
   },
@@ -3720,10 +3704,6 @@
     "translation": "Id comando hook non valido."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Id genitore non valido."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Id radice non valido."
   },
@@ -4408,20 +4388,12 @@
     "translation": "Id originale non valido."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id genitore non valido."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Proprietà invalide."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Id radice non valido."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Non valido l'ID root deve essere specificato se l'ID padre è presente."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5444,10 +5416,6 @@
     "translation": "La ricerca non è stata completata."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Il webhook in uscita è cancellato ma non è possibile crearne uno nuovo a causa di un errore."
-  },
-  {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "Impossibile creare il file zip"
   },
@@ -5678,10 +5646,6 @@
   {
     "id": "api.ldap_groups.existing_user_name_error",
     "translation": "il nome di questo gruppo esiste già come nome utente"
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Si è verificato un errore durante l'apertura del file di chiave pubblica."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",

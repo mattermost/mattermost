@@ -322,7 +322,7 @@
         "Enable": false,
         "ClusterName": "",
         "OverrideHostname": "",
-        "UseIpAddress": true,
+        "UseIPAddress": true,
         "UseExperimentalGossip": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074,
