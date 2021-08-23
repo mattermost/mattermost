@@ -390,7 +390,7 @@ func (ss *SqlStore) initConnection() {
 	handle := setupConnection("master", dataSource, ss.settings)
 	ss.master = getDBMap(ss.settings, handle)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
-		time.Duration(*ss.settings.QueryTimeout)* time.Second,
+		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
@@ -403,7 +403,7 @@ func (ss *SqlStore) initConnection() {
 			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 			ss.Replicas[i] = getDBMap(ss.settings, handle)
 			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
-				time.Duration(*ss.settings.QueryTimeout)* time.Second,
+				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.ReplicaXs[i].MapperFunc(noOpMapper)
@@ -418,7 +418,7 @@ func (ss *SqlStore) initConnection() {
 			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 			ss.searchReplicas[i] = getDBMap(ss.settings, handle)
 			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
-				time.Duration(*ss.settings.QueryTimeout)* time.Second,
+				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.searchReplicaXs[i].MapperFunc(noOpMapper)

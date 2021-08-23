@@ -60,7 +60,7 @@ func (w *sqlxDBWrapper) Get(dest interface{}, query string, args ...interface{})
 	err := w.DB.GetContext(ctx, dest, query, args...)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), args)
+		printArgs(query, time.Since(then), args)
 	}
 
 	return err
@@ -81,7 +81,7 @@ func (w *sqlxDBWrapper) NamedExec(query string, arg interface{}) (sql.Result, er
 	res, err := w.DB.NamedExecContext(ctx, query, arg)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), arg)
+		printArgs(query, time.Since(then), arg)
 	}
 
 	return res, err
@@ -102,7 +102,7 @@ func (w *sqlxDBWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, e
 	rows, err := w.DB.NamedQueryContext(ctx, query, arg)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), arg)
+		printArgs(query, time.Since(then), arg)
 	}
 
 	return rows, err
@@ -121,7 +121,7 @@ func (w *sqlxDBWrapper) QueryRowX(query string, args ...interface{}) *sqlx.Row {
 	row := w.DB.QueryRowxContext(ctx, query, args...)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), args)
+		printArgs(query, time.Since(then), args)
 	}
 
 	return row
@@ -139,7 +139,7 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...interface{}) (*sqlx.Rows, e
 	rows, err := w.DB.QueryxContext(ctx, query, args)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), args)
+		printArgs(query, time.Since(then), args)
 	}
 	return rows, err
 }
@@ -157,7 +157,7 @@ func (w *sqlxDBWrapper) Select(dest interface{}, query string, args ...interface
 	err := w.DB.SelectContext(ctx, dest, query, args...)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), args)
+		printArgs(query, time.Since(then), args)
 	}
 	return err
 }
@@ -189,7 +189,7 @@ func (w *sqlxTxWrapper) Get(dest interface{}, query string, args ...interface{})
 	err := w.Tx.GetContext(ctx, dest, query, args...)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), args)
+		printArgs(query, time.Since(then), args)
 	}
 	return err
 }
@@ -209,7 +209,7 @@ func (w *sqlxTxWrapper) NamedExec(query string, arg interface{}) (sql.Result, er
 	res, err := w.Tx.NamedExecContext(ctx, query, arg)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), arg)
+		printArgs(query, time.Since(then), arg)
 	}
 	return res, err
 }
@@ -243,7 +243,8 @@ func (w *sqlxTxWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, e
 		}
 	}()
 
-	res := &result{}
+	// staticcheck fails to check that res gets re-assigned later.
+	res := &result{} //nolint:staticcheck
 	select {
 	case res = <-resChan:
 	case <-ctx.Done():
@@ -254,7 +255,7 @@ func (w *sqlxTxWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, e
 	}
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), arg)
+		printArgs(query, time.Since(then), arg)
 	}
 
 	return res.rows, res.err
@@ -273,7 +274,7 @@ func (w *sqlxTxWrapper) QueryRowX(query string, args ...interface{}) *sqlx.Row {
 	row := w.Tx.QueryRowxContext(ctx, query, args...)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), args)
+		printArgs(query, time.Since(then), args)
 	}
 
 	return row
@@ -292,7 +293,7 @@ func (w *sqlxTxWrapper) QueryX(query string, args ...interface{}) (*sqlx.Rows, e
 	rows, err := w.Tx.QueryxContext(ctx, query, args)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), args)
+		printArgs(query, time.Since(then), args)
 	}
 	return rows, err
 }
@@ -310,7 +311,7 @@ func (w *sqlxTxWrapper) Select(dest interface{}, query string, args ...interface
 	err := w.Tx.SelectContext(ctx, dest, query, args...)
 
 	if w.trace {
-		printArgs(query, time.Now().Sub(then), args)
+		printArgs(query, time.Since(then), args)
 	}
 	return err
 }
