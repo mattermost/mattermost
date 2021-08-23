@@ -339,8 +339,8 @@ func (wc *WebConn) readPump() {
 			return
 		}
 
-		// Plugin messages which actions are prefixed with the plugin
-		// prefix should only be dispatched to the plugins
+		// Messages which actions are prefixed with the plugin prefix
+		// should only be dispatched to the plugins
 		if !strings.HasPrefix(req.Action, websocketMessagePluginPrefix) {
 			wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
 		}
