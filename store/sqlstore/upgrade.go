@@ -857,8 +857,6 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
 		}
 
-		rootCountMigration(sqlStore)
-
 		saveSchemaVersion(sqlStore, Version5350)
 	}
 }
@@ -866,97 +864,6 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
 		saveSchemaVersion(sqlStore, Version5360)
-	}
-}
-
-func rootCountMigration(sqlStore *SqlStore) {
-	totalMsgCountRootExists := sqlStore.DoesColumnExist("Channels", "TotalMsgCountRoot")
-	msgCountRootExists := sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot")
-
-	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
-	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
-
-	mentionCountRootCTE := `
-		SELECT ChannelId, COALESCE(SUM(UnreadMentions), 0) AS UnreadMentions, UserId
-		FROM ThreadMemberships
-		LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
-		GROUP BY Threads.ChannelId, ThreadMemberships.UserId
-	`
-	updateMentionCountRootQuery := `
-		UPDATE ChannelMembers INNER JOIN (` + mentionCountRootCTE + `) AS q ON
-			q.ChannelId = ChannelMembers.ChannelId AND
-			q.UserId=ChannelMembers.UserId AND
-			ChannelMembers.MentionCount > 0
-		SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
-	`
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		updateMentionCountRootQuery = `
-			WITH q AS (` + mentionCountRootCTE + `)
-			UPDATE channelmembers
-			SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
-			FROM q
-			WHERE
-				q.ChannelId = ChannelMembers.ChannelId AND
-				q.UserId = ChannelMembers.UserId AND
-				ChannelMembers.MentionCount > 0
-		`
-	}
-	if _, err := sqlStore.GetMaster().ExecNoTimeout(updateMentionCountRootQuery); err != nil {
-		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
-	}
-	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
-	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
-
-	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
-	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
-
-	forceIndex := ""
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
-	}
-	totalMsgCountRootCTE := `
-		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
-		FROM Channels
-		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
-		WHERE Posts.RootId = ''
-		GROUP BY Channels.Id
-	`
-	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
-	updateChannels := `
-		WITH q AS (` + totalMsgCountRootCTE + `)
-		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
-		FROM q where q.channelid=Channels.Id;
-	`
-	updateChannelMembers := `
-		WITH q as (` + channelsCTE + `)
-		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
-		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
-	`
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		updateChannels = `
-			UPDATE Channels
-			INNER Join (` + totalMsgCountRootCTE + `) as q
-			ON q.channelid=Channels.Id
-			SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
-		`
-		updateChannelMembers = `
-			UPDATE ChannelMembers CM
-			INNER JOIN (` + channelsCTE + `) as q
-			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
-			SET MsgCountRoot=TotalMsgCountRoot
-			`
-	}
-
-	if !totalMsgCountRootExists {
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
-			mlog.Error("Error updating Channels table", mlog.Err(err))
-		}
-	}
-	if !msgCountRootExists {
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannelMembers); err != nil {
-			mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
-		}
 	}
 }
 

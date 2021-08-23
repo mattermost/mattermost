@@ -21,8 +21,7 @@ CREATE TABLE IF NOT EXISTS Channels (
     KEY idx_channels_create_at (CreateAt),
     KEY idx_channels_delete_at (DeleteAt),
     KEY idx_channels_displayname (DisplayName),
-    FULLTEXT KEY idx_channels_txt (Name,DisplayName),
-    FULLTEXT KEY idx_channel_search_txt (Name,DisplayName,Purpose)
+    FULLTEXT KEY idx_channels_txt (Name,DisplayName) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @preparedStatement = (SELECT IF(
@@ -132,6 +131,21 @@ DEALLOCATE PREPARE createIndexIfNotExists;
 
 SET @preparedStatement = (SELECT IF(
     (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'Channels'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_channel_search_txt'
+    ) > 0,
+    'SELECT 1',
+    'CREATE FULLTEXT INDEX idx_channel_search_txt ON Channels(Name,DisplayName,Purpose);'
+));
+
+PREPARE createIndexIfNotExists FROM @preparedStatement;
+EXECUTE createIndexIfNotExists;
+DEALLOCATE PREPARE createIndexIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
         WHERE table_name = 'Channels'
         AND table_schema = DATABASE()
@@ -159,18 +173,3 @@ SET @preparedStatement = (SELECT IF(
 PREPARE removeIndexIfExists FROM @preparedStatement;
 EXECUTE removeIndexIfExists;
 DEALLOCATE PREPARE removeIndexIfExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Channels'
-        AND table_schema = DATABASE()
-        AND column_name = 'TotalMsgCountRoot'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE Channels ADD COLUMN TotalMsgCountRoot bigint(20);'
-));
-
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;

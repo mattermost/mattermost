@@ -74,4 +74,3 @@ ALTER TABLE channels ADD COLUMN IF NOT EXISTS shared boolean;
 
 DROP INDEX IF EXISTS idx_channels_name;
 
-ALTER TABLE channels ADD COLUMN IF NOT EXISTS totalmsgcountroot bigint;

@@ -84,33 +84,3 @@ SET @preparedStatement = (SELECT IF(
 PREPARE removeIndexIfExists FROM @preparedStatement;
 EXECUTE removeIndexIfExists;
 DEALLOCATE PREPARE removeIndexIfExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND column_name = 'MentionCountRoot'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE ChannelMembers ADD COLUMN MentionCountRoot bigint(20);'
-));
-
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND column_name = 'MsgCountRoot'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE ChannelMembers ADD COLUMN MsgCountRoot bigint(20);'
-));
-
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;

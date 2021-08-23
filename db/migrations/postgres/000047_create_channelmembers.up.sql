@@ -18,6 +18,3 @@ ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS schemeadmin boolean;
 ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS schemeguest boolean;
 
 DROP INDEX IF EXISTS idx_channelmembers_channel_id;
-
-ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS mentioncountroot bigint;
-ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS msgcountroot bigint;
