@@ -282,7 +282,7 @@ type ChannelMemberHistoryStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 type ThreadStore interface {
-	GetThreadFollowers(threadID string) ([]string, error)
+	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
 
 	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
 	Save(thread *model.Thread) (*model.Thread, error)

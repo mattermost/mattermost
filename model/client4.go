@@ -24,7 +24,7 @@ const (
 	HeaderEtagServer         = "ETag"
 	HeaderEtagClient         = "If-None-Match"
 	HeaderForwarded          = "X-Forwarded-For"
-	HeaderRealIp             = "X-Real-IP"
+	HeaderRealIP             = "X-Real-IP"
 	HeaderForwardedProto     = "X-Forwarded-Proto"
 	HeaderToken              = "token"
 	HeaderCsrfToken          = "X-CSRF-Token"
