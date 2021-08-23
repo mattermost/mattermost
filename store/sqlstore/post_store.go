@@ -2411,11 +2411,21 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 
 	for rootId, posts := range postsByRoot {
 		if thread, found := threadByRoot[rootId]; !found {
+			var data []struct {
+				UserId    string `db:"userid"`
+				RepliedAt int64  `db:"mc"`
+			}
+
 			// calculate participants
-			var participants model.StringArray
-			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId AND DeleteAt=0 ORDER BY CreateAt", map[string]interface{}{"RootId": rootId}); err != nil {
+			if _, err := transaction.Select(&data, "SELECT UserId, MAX(CreateAt) as mc FROM Posts WHERE RootId=:RootId AND DeleteAt=0 GROUP BY UserId ORDER BY mc ASC", map[string]interface{}{"RootId": rootId}); err != nil {
 				return err
 			}
+
+			var participants model.StringArray
+			for _, item := range data {
+				participants = append(participants, item.UserId)
+			}
+
 			// calculate reply count
 			count, err := transaction.SelectInt("SELECT COUNT(Id) FROM Posts WHERE RootId=:RootId And DeleteAt=0", map[string]interface{}{"RootId": rootId})
 			if err != nil {
