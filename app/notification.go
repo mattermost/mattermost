@@ -255,12 +255,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return
 				}
 
+				followersMutex.Lock()
 				// add new followers to existing followers
 				if threadMembership.Following && !followers.Contains(userID) {
-					followersMutex.Lock()
 					followers = append(followers, userID)
-					followersMutex.Unlock()
 				}
+				followersMutex.Unlock()
 
 				membershipsMutex.Lock()
 				participantMemberships[userID] = threadMembership
@@ -285,6 +285,32 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			umc <- nil
 		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
+	}
+
+	// Make sure all mention updates are complete to prevent race conditions.
+	// Probably better to batch these DB updates in the future
+	// MUST be completed before push notifications send
+	for _, umc := range updateMentionChans {
+		if err := <-umc; err != nil {
+			mlog.Warn(
+				"Failed to update mention count",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Err(err),
+			)
+		}
+	}
+
+	// Log the problems that might have occurred while auto following the thread
+	for _, mac := range mentionAutofollowChans {
+		if err := <-mac; err != nil {
+			mlog.Warn(
+				"Failed to update thread autofollow from mention",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Err(err),
+			)
+		}
 	}
 
 	notificationsForCRT := &CRTNotifiers{}
@@ -376,31 +402,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	// Make sure all mention updates are complete to prevent race
-	// Probably better to batch these DB updates in the future
-	// MUST be completed before push notifications send
-	for _, umc := range updateMentionChans {
-		if err := <-umc; err != nil {
-			mlog.Warn(
-				"Failed to update mention count",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-				mlog.Err(err),
-			)
-		}
-	}
-
-	// Log the problems that might have occurred while auto following the thread
-	for _, mac := range mentionAutofollowChans {
-		if err := <-mac; err != nil {
-			mlog.Warn(
-				"Failed to update thread autofollow from mention",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-				mlog.Err(err),
-			)
-		}
-	}
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
