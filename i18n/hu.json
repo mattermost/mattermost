@@ -609,31 +609,31 @@
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Hiba történt az identitás szolgáltató válaszának ellenőrzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) válaszának ellenőrzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Hiba történt az identitás szolgáltató válaszának elemzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) válaszának értelmezése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "Érvénytelen időt kaptunk az identitás szolgáltató válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Érvénytelen időt kaptunk a Személyazonosság szolgáltató (IdP) válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "Érvénytelen aláírást kaptunk az identitás szolgáltató válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Érvénytelen aláírást kaptunk a Személyazonosság szolgáltató (IdP) válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "Üres választ kaptunk az identitás szolgáltatótól."
+    "translation": "Üres választ kaptunk a Személyazonosság szolgáltatótól (IdP)."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "A SAML bejelentkezés sikertelen volt, mert hiba történt az Identitás szolgáltató válaszának visszafejtése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A SAML bejelentkezés sikertelen volt, mert hiba történt a Személyazonosság szolgáltató (IdP) válaszának visszafejtése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "A SAML bejelentkezés sikertelen volt, mivel az identitás szolgáltató válasza nincs titkosítva. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A SAML bejelentkezés sikertelen volt, mivel a Személyazonosság szolgáltató (IdP) válasza nincs titkosítva. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -641,7 +641,7 @@
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "A identitás szolgáltató nyilvános tanúsítvány fájlja nem található. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A Személyazonosság szolgáltató (IdP) nyilvános tanúsítvány fájlja nem található. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -649,11 +649,11 @@
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Hiba történt az identitás szolgáltató iránti kérelem kódolása közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) kérelem kódolása közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "Hiba történt az identitás szolgáltatóhoz intézett kérés kezdeményezése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt a Személyazonosság szolgáltatóhoz (IdP) intézett kérés kezdeményezése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -1545,7 +1545,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Érvénytelen fájl azonosítók. Ne feledje, hogy a feltöltések legfeljebb 5 fájlra korlátozódnak. Kérjük, további fájlokhoz használjon további bejegyzéseket."
+    "translation": "Érvénytelen fájl azonosítók. Ne feledje, hogy a feltöltések legfeljebb 10 fájlra korlátozódnak. Kérjük, további fájlokhoz használjon további bejegyzéseket."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -1989,11 +1989,11 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Az identitás szolgáltató kibocsátó URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
+    "translation": "A Személyazonosság szolgáltató (IdP) kibocsátó URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Hiányzik az identitás szolgáltató nyilvános tanúsítványa. Elfelejtette feltölteni?"
+    "translation": "Hiányzik a Személyazonosság szolgáltató (IdP) nyilvános tanúsítványa. Elfelejtette feltölteni?"
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
@@ -4517,15 +4517,15 @@
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Nem sikerült beolvasni a Személyazonossági szolgáltatótól kapott választ."
+    "translation": "Nem sikerült beolvasni a Személyazonosság szolgáltatótól (IdP) kapott választ."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Hiba történt az Személyazonossági szolgáltatótól kapott válasz beolvasásakor."
+    "translation": "Hiba történt a Személyazonosság szolgáltatótól (IdP) kapott válasz beolvasásakor."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Nem sikerült dekódolni az Személyazonossági szolgáltatótól kapott XML-metaadatokat."
+    "translation": "Nem sikerült dekódolni a Személyazonosság szolgáltatótól (IdP) kapott XML-metaadatokat."
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
@@ -8793,15 +8793,15 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Hiányzó Személyazonossági Szolgáltató SSO szolgáltatások csomópont az XML-ben."
+    "translation": "Hiányzó Személyazonosság szolgáltató (IdP) SSO szolgáltatások csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Hiányzó Személyazonossági Szolgáltató kulcs infó csomópont az XML-ben."
+    "translation": "Hiányzó Személyazonosság szolgáltató (IdP) kulcs infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Hiányzó Személyazonossági Szolgáltató SSO infó csomópont az XML-ben."
+    "translation": "Hiányzó Személyazonosság szolgáltató (IdP) SSO infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -8813,11 +8813,11 @@
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Hiba történt a Személyazonossági Szolgáltatótól kapott metaadat-adatok tanúsítványként történő elemzése során."
+    "translation": "Hiba történt a Személyazonosság szolgáltatótól (IdP) kapott meta-adatok tanúsítványként történő értelmezése során."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Metaadat beszerzése sikertelen a Személyazonossági Szolgáltató URL-ből."
+    "translation": "Metaadat beszerzése sikertelen a Személyazonosság szolgáltató (IdP) URL-ből."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -9181,5 +9181,21 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Nem sikerült leellenőrizni, hogy a felhasználói tár üres-e."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} válaszolt egy üzenetszálra"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "Amíg távol volt, {{.SenderName}} válaszolt egy üzenetszálra amit követ."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Válasz az üzenetszálra"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " megjegyzést írt egy üzenetszálhoz amit követ."
   }
 ]
