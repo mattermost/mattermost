@@ -112,7 +112,7 @@ func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
 	// We calculate the number of ? to set in the query string.
 	argString := strings.Repeat("?, ", len(props)*2)
 	// Strip off the trailing comma.
-	argString = argString[:len(argString)-2]
+	argString = strings.TrimSuffix(strings.TrimSpace(argString), ",")
 
 	return args, argString
 }
