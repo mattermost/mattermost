@@ -198,6 +198,8 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JobTypeFixChannelUnreadsForCRT {
+			// TODO FIX ME
 		}
 	}
 }

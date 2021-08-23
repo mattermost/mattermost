@@ -268,6 +268,15 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
+
+	//GetCRTUnfixedChannelMembershipsAfter gets CRT unfixed channel memberships after the given channelID and userID
+	GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error)
+
+	// IsChannelMemberUnread returns whether the channel is unread
+	IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error)
+
+	// MarkChannelMemberAsCRTFixed marks a channel membership as fixed for CRT issues
+	MarkChannelMemberAsCRTFixed(cm model.ChannelMember) error
 }
 
 type ChannelMemberHistoryStore interface {

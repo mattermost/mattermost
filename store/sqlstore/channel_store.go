@@ -1899,7 +1899,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 
 	if includeTimezones {
 		if s.DriverName() == model.DatabaseDriverMysql {
-			selectStr += `, 
+			selectStr += `,
 				COUNT(DISTINCT
 				(
 					CASE WHEN Timezone->"$.useAutomaticTimezone" = 'true' AND LENGTH(JSON_UNQUOTE(Timezone->"$.automaticTimezone")) > 0
@@ -1909,7 +1909,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 					END
 				)) AS ChannelMemberTimezonesCount`
 		} else if s.DriverName() == model.DatabaseDriverPostgres {
-			selectStr += `, 
+			selectStr += `,
 				COUNT(DISTINCT
 				(
 					CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
@@ -3436,4 +3436,79 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
 	}
 	return &team, nil
+}
+
+func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID string, count int) ([]model.ChannelMember, error) {
+	// we want both channelID and userID, or neither of them specified
+	if (userID == "" || channelID == "") && (channelID != userID) {
+		return nil, fmt.Errorf("channelID=%q userID=%q, got one empty param, both need to be empty or specified", channelID, userID)
+	}
+	getUnfixedCMQuery := `
+			SELECT *
+			FROM ChannelMembers
+			WHERE (ChannelId, UserId) > (:channelId, :userId) AND CRTFixesDone = false
+			ORDER BY ChannelId, UserId
+			LIMIT :count;
+	`
+	if userID == "" && channelID == "" {
+		getUnfixedCMQuery = `
+			SELECT *
+			FROM ChannelMembers
+			CRTFixesDone = false
+			ORDER BY ChannelId, UserId
+			LIMIT :count;
+		`
+	}
+	var cms []model.ChannelMember
+
+	if _, err := s.GetReplica().Select(&cms, getUnfixedCMQuery, map[string]interface{}{"ChannelId": channelID, "UserId": userID, "count": count}); err != nil {
+		return nil, errors.Wrapf(err, "failed to %d ChannelMembers after channelId=%q and userId=%q", count, channelID, userID)
+	}
+	return cms, nil
+}
+
+func (s SqlChannelStore) IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error) {
+	isUnreadQuery := `
+			SELECT
+				(Channels.TotalMsgCount - ChannelMembers.MsgCount) Count
+			FROM
+				Channels, ChannelMembers
+			WHERE
+				Id = ChannelId
+				AND Id = :ChannelId
+				AND UserId = :UserId
+		`
+
+	if withCRT {
+		isUnreadQuery = `
+			SELECT
+				(Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) Count
+			FROM
+				Channels, ChannelMembers
+			WHERE
+				Id = ChannelId
+				AND Id = :ChannelId
+				AND UserId = :UserId
+		`
+
+	}
+
+	count, err := s.GetReplica().SelectInt(isUnreadQuery, map[string]interface{}{"ChannelId": cm.ChannelId, "UserId": cm.UserId})
+	return count > 0, errors.Wrapf(err, "failed to get message count for channelId=%q and userId=%q", cm.ChannelId, cm.UserId)
+}
+
+func (s SqlChannelStore) MarkChannelMemberAsCRTFixed(cm model.ChannelMember) error {
+	updateQuery := `
+		UPDATE
+			ChannelMembers
+		SET
+			CRTFixDone = True
+		WHERE
+			ChannelId = :ChannelId
+			AND
+			UserId = :UserId
+	`
+
+	_, err := s.GetMaster().Exec(updateQuery, map[string]interface{}{"ChannelId": cm.ChannelId, "UserId": cm.UserId})
+	return errors.Wrapf(err, "failed to mark ChannelMember as CRT fixed channelId=%q and userId=%q", cm.ChannelId, cm.UserId)
 }
