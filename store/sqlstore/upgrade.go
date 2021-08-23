@@ -1347,6 +1347,7 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
 	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
 	sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
+	sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
 
 	// saveSchemaVersion(sqlStore, Version610)
 	// }
