@@ -145,7 +145,6 @@ func TestHandleCommandResponsePost(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		UserId:    th.BasicUser.Id,
 		RootId:    "",
-		ParentId:  "",
 	}
 
 	resp := &model.CommandResponse{
@@ -161,7 +160,6 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, args.ChannelId, post.ChannelId)
 	assert.Equal(t, args.RootId, post.RootId)
-	assert.Equal(t, args.ParentId, post.ParentId)
 	assert.Equal(t, args.UserId, post.UserId)
 	assert.Equal(t, resp.Type, post.Type)
 	assert.Equal(t, resp.Props, post.GetProps())
@@ -267,7 +265,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	channel = th.createPrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
-	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	_, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.command.command_post.forbidden.app_error")

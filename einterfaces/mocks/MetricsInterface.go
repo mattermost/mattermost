@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	logr "github.com/mattermost/logr"
+	logr "github.com/mattermost/logr/v2"
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost-server/v6/model"
@@ -92,13 +92,13 @@ func (_m *MetricsInterface) IncrementFilesSearchCounter() {
 	_m.Called()
 }
 
-// IncrementHttpError provides a mock function with given fields:
-func (_m *MetricsInterface) IncrementHttpError() {
+// IncrementHTTPError provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementHTTPError() {
 	_m.Called()
 }
 
-// IncrementHttpRequest provides a mock function with given fields:
-func (_m *MetricsInterface) IncrementHttpRequest() {
+// IncrementHTTPRequest provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementHTTPRequest() {
 	_m.Called()
 }
 
@@ -237,8 +237,8 @@ func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string) {
 	_m.Called(eventType)
 }
 
-// ObserveApiEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, elapsed
-func (_m *MetricsInterface) ObserveApiEndpointDuration(endpoint string, method string, statusCode string, elapsed float64) {
+// ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, elapsed
+func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, elapsed float64) {
 	_m.Called(endpoint, method, statusCode, elapsed)
 }
 
@@ -257,8 +257,8 @@ func (_m *MetricsInterface) ObserveFilesSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
-// ObservePluginApiDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
-func (_m *MetricsInterface) ObservePluginApiDuration(pluginID string, apiName string, success bool, elapsed float64) {
+// ObservePluginAPIDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
+func (_m *MetricsInterface) ObservePluginAPIDuration(pluginID string, apiName string, success bool, elapsed float64) {
 	_m.Called(pluginID, apiName, success, elapsed)
 }
 

@@ -43,6 +43,9 @@ const (
 	FirstNameNotifyProp            = "first_name"
 	AutoResponderActiveNotifyProp  = "auto_responder_active"
 	AutoResponderMessageNotifyProp = "auto_responder_message"
+	DesktopThreadsNotifyProp       = "desktop_threads"
+	PushThreadsNotifyProp          = "push_threads"
+	EmailThreadsNotifyProp         = "email_threads"
 
 	DefaultLocale        = "en"
 	UserAuthServiceEmail = "email"
@@ -449,6 +452,9 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[PushStatusNotifyProp] = StatusAway
 	u.NotifyProps[CommentsNotifyProp] = CommentsNotifyNever
 	u.NotifyProps[FirstNameNotifyProp] = "false"
+	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[EmailThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[PushThreadsNotifyProp] = UserNotifyAll
 }
 
 func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
@@ -852,18 +858,6 @@ func HashPassword(password string) string {
 	}
 
 	return string(hash)
-}
-
-// ComparePassword compares the hash
-// This function is deprecated and will be removed in a future release.
-func ComparePassword(hash string, password string) bool {
-
-	if password == "" || hash == "" {
-		return false
-	}
-
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)

@@ -19,6 +19,7 @@ import (
 	"net/rpc"
 	"os"
 	"reflect"
+	"sync"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
@@ -38,6 +39,7 @@ type hooksRPCClient struct {
 	apiImpl     API
 	driver      Driver
 	implemented [TotalHooksID]bool
+	doneWg      sync.WaitGroup
 }
 
 type hooksRPCServer struct {
@@ -240,15 +242,23 @@ type Z_OnActivateReturns struct {
 
 func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
-	go g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
-		impl:      g.apiImpl,
-		muxBroker: g.muxBroker,
-	})
+	g.doneWg.Add(1)
+	go func() {
+		defer g.doneWg.Done()
+		g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
+			impl:      g.apiImpl,
+			muxBroker: g.muxBroker,
+		})
+	}()
 
 	nextID := g.muxBroker.NextId()
-	go g.muxBroker.AcceptAndServe(nextID, &dbRPCServer{
-		dbImpl: g.driver,
-	})
+	g.doneWg.Add(1)
+	go func() {
+		defer g.doneWg.Done()
+		g.muxBroker.AcceptAndServe(nextID, &dbRPCServer{
+			dbImpl: g.driver,
+		})
+	}()
 
 	_args := &Z_OnActivateArgs{
 		APIMuxId:    muxId,
@@ -284,11 +294,9 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 
 	if mmplugin, ok := s.impl.(interface {
 		SetAPI(api API)
-		SetHelpers(helpers Helpers)
 		SetDriver(driver Driver)
 	}); ok {
 		mmplugin.SetAPI(s.apiRPCClient)
-		mmplugin.SetHelpers(&HelpersImpl{API: s.apiRPCClient})
 		mmplugin.SetDriver(dbClient)
 	}
 

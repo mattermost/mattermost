@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	dbsql "database/sql"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,7 +16,6 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -25,6 +23,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
@@ -33,7 +32,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/db/migrations"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -140,11 +138,18 @@ type SqlStoreStores struct {
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v6/pull/7281
-	rrCounter         int64
-	srCounter         int64
-	master            *gorp.DbMap
-	Replicas          []*gorp.DbMap
-	searchReplicas    []*gorp.DbMap
+	rrCounter int64
+	srCounter int64
+
+	master  *gorp.DbMap
+	masterX *sqlx.DB
+
+	Replicas  []*gorp.DbMap
+	ReplicaXs []*sqlx.DB
+
+	searchReplicas  []*gorp.DbMap
+	searchReplicaXs []*sqlx.DB
+
 	replicaLagHandles []*dbsql.DB
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
@@ -155,20 +160,10 @@ type SqlStore struct {
 	metrics           einterfaces.MetricsInterface
 }
 
-type TraceOnAdapter struct{}
-
 // ColumnInfo holds information about a column.
 type ColumnInfo struct {
 	DataType          string
 	CharMaximumLength int
-}
-
-func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
-	originalString := fmt.Sprintf(format, v...)
-	newString := strings.ReplaceAll(originalString, "\n", " ")
-	newString = strings.ReplaceAll(newString, "\t", " ")
-	newString = strings.ReplaceAll(newString, "\"", "")
-	mlog.Debug(newString)
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -291,7 +286,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	return store
 }
 
-func setupConnection(connType string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
+func setupConnection(connType string, dataSource string, settings *model.SqlSettings) *dbsql.DB {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
@@ -335,9 +330,7 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
-	dbMap := getDBMap(settings, db)
-
-	return dbMap
+	return db
 }
 
 func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
@@ -378,6 +371,8 @@ func (ss *SqlStore) Context() context.Context {
 	return ss.context
 }
 
+func noOpMapper(s string) string { return s }
+
 func (ss *SqlStore) initConnection() {
 	dataSource := *ss.settings.DataSource
 	if ss.DriverName() == model.DatabaseDriverMysql {
@@ -392,19 +387,36 @@ func (ss *SqlStore) initConnection() {
 		}
 	}
 
-	ss.master = setupConnection("master", dataSource, ss.settings)
+	handle := setupConnection("master", dataSource, ss.settings)
+	ss.master = getDBMap(ss.settings, handle)
+	ss.masterX = sqlx.NewDb(handle, ss.DriverName())
+	if ss.DriverName() == model.DatabaseDriverMysql {
+		ss.masterX.MapperFunc(noOpMapper)
+	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		ss.ReplicaXs = make([]*sqlx.DB, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			ss.Replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			ss.Replicas[i] = getDBMap(ss.settings, handle)
+			ss.ReplicaXs[i] = sqlx.NewDb(handle, ss.DriverName())
+			if ss.DriverName() == model.DatabaseDriverMysql {
+				ss.ReplicaXs[i].MapperFunc(noOpMapper)
+			}
 		}
 	}
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
+		ss.searchReplicaXs = make([]*sqlx.DB, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
-			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+			ss.searchReplicas[i] = getDBMap(ss.settings, handle)
+			ss.searchReplicaXs[i] = sqlx.NewDb(handle, ss.DriverName())
+			if ss.DriverName() == model.DatabaseDriverMysql {
+				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
+			}
 		}
 	}
 
@@ -414,8 +426,7 @@ func (ss *SqlStore) initConnection() {
 			if src.DataSource == nil {
 				continue
 			}
-			gorpConn := setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
-			ss.replicaLagHandles[i] = gorpConn.Db
+			ss.replicaLagHandles[i] = setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
 		}
 	}
 }
@@ -459,6 +470,10 @@ func (ss *SqlStore) GetMaster() *gorp.DbMap {
 	return ss.master
 }
 
+func (ss *SqlStore) GetMasterX() *sqlx.DB {
+	return ss.masterX
+}
+
 func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
 	ss.licenseMutex.RLock()
 	license := ss.license
@@ -485,6 +500,18 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
 	return ss.Replicas[rrNum]
+}
+
+func (ss *SqlStore) GetReplicaX() *sqlx.DB {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
+		return ss.GetMasterX()
+	}
+
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
+	return ss.ReplicaXs[rrNum]
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -1481,16 +1508,16 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	if err != nil {
 		return err
 	}
-	conn := setupConnection("migrations", dataSource, ss.settings)
-	defer conn.Db.Close()
+	db := setupConnection("migrations", dataSource, ss.settings)
+	defer db.Close()
 
 	if ss.DriverName() == model.DatabaseDriverMysql {
-		driver, err = mysqlmigrate.WithInstance(conn.Db, &mysqlmigrate.Config{})
+		driver, err = mysqlmigrate.WithInstance(db, &mysqlmigrate.Config{})
 		if err != nil {
 			return err
 		}
 	} else {
-		driver, err = postgres.WithInstance(conn.Db, &postgres.Config{})
+		driver, err = postgres.WithInstance(db, &postgres.Config{})
 		if err != nil {
 			return err
 		}
@@ -1565,91 +1592,6 @@ func resetReadTimeout(dataSource string) (string, error) {
 	}
 	config.ReadTimeout = 0
 	return config.FormatDSN(), nil
-}
-
-type mattermConverter struct{}
-
-func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
-
-	switch t := val.(type) {
-	case model.StringMap:
-		return model.MapToJson(t), nil
-	case map[string]string:
-		return model.MapToJson(model.StringMap(t)), nil
-	case model.StringArray:
-		return model.ArrayToJson(t), nil
-	case model.StringInterface:
-		return model.StringInterfaceToJson(t), nil
-	case map[string]interface{}:
-		return model.StringInterfaceToJson(model.StringInterface(t)), nil
-	case JSONSerializable:
-		return t.ToJson(), nil
-	case *opengraph.OpenGraph:
-		return json.Marshal(t)
-	}
-
-	return val, nil
-}
-
-func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
-	switch target.(type) {
-	case *model.StringMap:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_map"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *map[string]string:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_map"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *model.StringArray:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_array"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *model.StringInterface:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_interface"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *map[string]interface{}:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(i18n.T("store.sql.convert_string_interface"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	}
-
-	return gorp.CustomScanner{}, false
-}
-
-type JSONSerializable interface {
-	ToJson() string
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {

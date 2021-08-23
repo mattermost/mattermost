@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,11 +12,11 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -63,11 +62,8 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	var lines []string
 
 	if *s.Config().LogSettings.EnableFile {
-		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), mlog.DefaultFlushTimeout)
-		defer timeoutCancel()
-		mlog.Flush(timeoutCtx)
-
-		logFile := utils.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
+		s.Log.Flush()
+		logFile := config.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
@@ -176,6 +172,7 @@ func (s *Server) InvalidateAllCachesSkipSend() {
 	s.Store.Post().ClearCaches()
 	s.Store.FileInfo().ClearCaches()
 	s.Store.Webhook().ClearCaches()
+	linkCache.Purge()
 	s.LoadLicense()
 }
 

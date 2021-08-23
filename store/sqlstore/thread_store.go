@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"strconv"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -60,7 +61,7 @@ func (s *SqlThreadStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_update_at", "ThreadMemberships", "LastUpdated")
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_view_at", "ThreadMemberships", "LastViewed")
 	s.CreateIndexIfNotExists("idx_thread_memberships_user_id", "ThreadMemberships", "UserId")
-	s.CreateIndexIfNotExists("idx_threads_channel_id", "Threads", "ChannelId")
+	s.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
 }
 
 func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {
@@ -358,12 +359,24 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	return result, nil
 }
 
-func (s *SqlThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	var users []string
+
+	fetchConditions := sq.And{
+		sq.Eq{"PostId": threadID},
+	}
+
+	if fetchOnlyActive {
+		fetchConditions = sq.And{
+			sq.Eq{"Following": true},
+			fetchConditions,
+		}
+	}
+
 	query, args, _ := s.getQueryBuilder().
 		Select("ThreadMemberships.UserId").
 		From("ThreadMemberships").
-		Where(sq.Eq{"PostId": threadID}).ToSql()
+		Where(fetchConditions).ToSql()
 	_, err := s.GetReplica().Select(&users, query, args...)
 
 	if err != nil {
@@ -658,14 +671,21 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	}
 
 	if opts.UpdateParticipants {
-		thread, getErr := s.get(trx, postId)
-		if getErr != nil {
-			return nil, getErr
-		}
-		if thread != nil && !thread.Participants.Contains(userId) {
-			thread.Participants = append(thread.Participants, userId)
-			if _, err = s.update(trx, thread); err != nil {
-				return nil, err
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			if _, err2 := trx.Exec(`UPDATE Threads
+				SET participants = participants || $1::jsonb
+				WHERE postid=$2
+				AND NOT participants ? $3`, jsonArray([]string{userId}), postId, userId); err2 != nil {
+				return nil, err2
+			}
+		} else {
+			// CONCAT('$[', JSON_LENGTH(Participants), ']') just generates $[n]
+			// which is the positional syntax required for appending.
+			if _, err2 := trx.Exec(`UPDATE Threads
+				SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
+				WHERE PostId=?
+				AND NOT JSON_CONTAINS(Participants, ?)`, userId, postId, strconv.Quote(userId)); err2 != nil {
+				return nil, err2
 			}
 		}
 	}

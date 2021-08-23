@@ -12,6 +12,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -225,8 +226,8 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 		case errors.As(nErr, &nfErr):
 			return nil, model.NewAppError("createUserOrGuest", "api.user.check_user_password.invalid.app_error", nil, "", http.StatusBadRequest)
-		case errors.Is(nErr, users.UserCountError):
-			return nil, model.NewAppError("createUserOrGuest", "app.user.get_total_users_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		case errors.Is(nErr, users.UserStoreIsEmptyError):
+			return nil, model.NewAppError("createUserOrGuest", "app.user.store_is_empty.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		case errors.As(nErr, &invErr):
 			switch invErr.Field {
 			case "email":
@@ -260,7 +261,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
-	if err := a.Srv().Store.Preference().Save(&model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
+	if err := a.Srv().Store.Preference().Save(model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
 		mlog.Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
@@ -715,8 +716,7 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 		return appErr
 	}
 
-	path := "users/" + user.Id + "/profile.png"
-
+	path := getProfileImagePath(user.Id)
 	if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
 		return err
 	}
@@ -753,7 +753,7 @@ func (a *App) SetProfileImage(userID string, imageData *multipart.FileHeader) *m
 }
 
 func (a *App) SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError {
-	if limitErr := checkImageLimits(file); limitErr != nil {
+	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -787,7 +787,11 @@ func (a *App) SetProfileImageFromFile(userID string, file io.Reader) *model.AppE
 	if err != nil {
 		return err
 	}
-	path := "users/" + userID + "/profile.png"
+
+	path := getProfileImagePath(userID)
+	if storedData, err := a.ReadFile(path); err == nil && bytes.Equal(storedData, buf.Bytes()) {
+		return nil
+	}
 
 	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -864,7 +868,7 @@ func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError 
 			return err
 		}
 
-		for _, channel := range *channelsForUser {
+		for _, channel := range channelsForUser {
 			a.invalidateCacheForChannelMembers(channel.Id)
 		}
 	}
@@ -1139,20 +1143,22 @@ func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *
 	return nil
 }
 
-func (a *App) UpdateUserNotifyProps(userID string, props map[string]string, sendNotifications bool) (*model.User, *model.AppError) {
-	user, err := a.GetUser(userID)
+func (a *App) updateUserNotifyProps(userID string, props map[string]string) *model.AppError {
+	err := a.srv.userService.UpdateUserNotifyProps(userID, props)
 	if err != nil {
-		return nil, err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
-	user.NotifyProps = props
+	a.InvalidateCacheForUser(userID)
+	a.onUserProfileChange(userID)
 
-	ruser, err := a.UpdateUser(user, sendNotifications)
-	if err != nil {
-		return nil, err
-	}
-
-	return ruser, nil
+	return nil
 }
 
 func (a *App) UpdateMfa(activate bool, userID, token string) *model.AppError {
@@ -2050,7 +2056,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 			mlog.Warn("Failed to get channel members for user on promote guest to user", mlog.Err(err))
 		}
 
-		for _, member := range *channelMembers {
+		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
@@ -2091,7 +2097,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 			continue
 		}
 
-		for _, member := range *channelMembers {
+		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
@@ -2275,7 +2281,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	}
 	membership, storeErr := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
 	if storeErr != nil {
-		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 	}
 
 	post, err := a.GetSinglePost(threadID)
@@ -2309,4 +2315,8 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	message.Add("channel_id", post.ChannelId)
 	a.Publish(message)
 	return thread, nil
+}
+
+func getProfileImagePath(userID string) string {
+	return filepath.Join("users", userID, "profile.png")
 }

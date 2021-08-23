@@ -5,11 +5,13 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +28,7 @@ import (
 type linkMetadataCache struct {
 	OpenGraph *opengraph.OpenGraph
 	PostImage *model.PostImage
+	Permalink *model.Permalink
 }
 
 const LinkCacheSize = 10000
@@ -84,8 +87,8 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 
 	emojiName = strings.ReplaceAll(emojiName, ":", "")
 
-	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
-		post.AddProp(model.PostPropsOverrideIconUrl, emojiUrl)
+	if emojiURL, err := a.GetEmojiStaticURL(emojiName); err == nil {
+		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
 		mlog.Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
@@ -138,6 +141,41 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	return post
 }
 
+func (a *App) SanitizePostMetadataForUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
+	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
+		return post, nil
+	}
+
+	previewPost := post.GetPreviewPost()
+	if previewPost == nil {
+		return post, nil
+	}
+
+	previewedChannel, err := a.GetChannel(previewPost.Post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if previewedChannel != nil && !a.HasPermissionToReadChannel(userID, previewedChannel) {
+		post = post.Clone()
+		post.Metadata.Embeds[0].Data = nil
+	}
+
+	return post, nil
+}
+
+func (a *App) SanitizePostListMetadataForUser(postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
+	clonedPostList := postList.Clone()
+	for postID, post := range clonedPostList.Posts {
+		sanitizedPost, err := a.SanitizePostMetadataForUser(post, userID)
+		if err != nil {
+			return nil, err
+		}
+		clonedPostList.Posts[postID] = sanitizedPost
+	}
+	return clonedPostList, nil
+}
+
 func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
 	if len(post.FileIds) == 0 {
 		return nil, nil
@@ -171,13 +209,22 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	if firstLink == "" || !*a.Config().ServiceSettings.EnableLinkPreviews {
+	if firstLink == "" {
 		return nil, nil
 	}
 
-	og, image, err := a.getLinkMetadata(firstLink, post.CreateAt, isNewPost)
+	// Permalink previews are not toggled via the ServiceSettings.EnableLinkPreviews config setting.
+	if !*a.Config().ServiceSettings.EnableLinkPreviews && !looksLikeAPermalink(firstLink, *a.Config().ServiceSettings.SiteURL) {
+		return nil, nil
+	}
+
+	og, image, permalink, err := a.getLinkMetadata(firstLink, post.CreateAt, isNewPost)
 	if err != nil {
 		return nil, err
+	}
+
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
+		permalink = nil
 	}
 
 	if og != nil {
@@ -194,6 +241,10 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 			Type: model.PostEmbedImage,
 			URL:  firstLink,
 		}, nil
+	}
+
+	if permalink != nil {
+		return &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalink.PreviewPost}, nil
 	}
 
 	return &model.PostEmbed{
@@ -238,7 +289,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 	}
 
 	for _, imageURL := range imageURLs {
-		if _, image, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
+		if _, image, _, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
 			mlog.Debug("Failed to get dimensions of an image in a post",
 				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Err(err))
 		} else if image != nil {
@@ -283,6 +334,9 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 		}
 
 		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
 			if value, ok := field.Value.(string); ok {
 				names = append(names, getEmojiNamesForString(value)...)
 			}
@@ -361,6 +415,9 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 		images = append(images, imagesInPretext...)
 
 		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
 			if value, ok := field.Value.(string); ok {
 				_, imagesInFieldValue := a.getFirstLinkAndImages(value)
 				images = append(images, imagesInFieldValue...)
@@ -387,74 +444,114 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 	return images
 }
 
-func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool) (*opengraph.OpenGraph, *model.PostImage, error) {
+func looksLikeAPermalink(url, siteURL string) bool {
+	expression := fmt.Sprintf(`^(%s).*(/pl/)[a-z0-9]{26}$`, siteURL)
+	matched, err := regexp.MatchString(expression, strings.TrimSpace(url))
+	if err != nil {
+		mlog.Warn("error matching regex", mlog.Err(err))
+	}
+	return matched
+}
+
+func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
 	timestamp = model.FloorToNearestHour(timestamp)
 
 	// Check cache
-	og, image, ok := getLinkMetadataFromCache(requestURL, timestamp)
+	og, image, permalink, ok := getLinkMetadataFromCache(requestURL, timestamp)
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
+		permalink = nil
+	}
+
 	if ok {
-		return og, image, nil
+		return og, image, permalink, nil
 	}
 
 	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
 	if !isNewPost {
 		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok {
-			cacheLinkMetadata(requestURL, timestamp, og, image)
-
-			return og, image, nil
+			cacheLinkMetadata(requestURL, timestamp, og, image, nil)
+			return og, image, nil, nil
 		}
 	}
 
-	// Make request for a web page or an image
-	request, err := http.NewRequest("GET", requestURL, nil)
-	if err != nil {
-		return nil, nil, err
-	}
+	var err error
 
-	var body io.ReadCloser
-	var contentType string
+	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
+		referencedPostID := requestURL[len(requestURL)-26:]
 
-	if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
-		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
-		body, contentType, err = a.ImageProxy().GetImageDirect(a.ImageProxy().GetUnproxiedImageURL(request.URL.String()))
+		referencedPost, appErr := a.GetSinglePost(referencedPostID)
+		// Ignore 'not found' errors; post could have been deleted via retention policy so we don't want to permanently log a warning.
+		//
+		// TODO: Look into saving a value in the LinkMetadat.Data field to prevent perpetually re-querying for the deleted post.
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			return nil, nil, nil, appErr
+		}
+
+		referencedChannel, appErr := a.GetChannel(referencedPost.ChannelId)
+		if appErr != nil {
+			return nil, nil, nil, appErr
+		}
+
+		referencedTeam, appErr := a.GetTeam(referencedChannel.TeamId)
+		if appErr != nil {
+			return nil, nil, nil, appErr
+		}
+
+		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 	} else {
-		request.Header.Add("Accept", "image/*")
-		request.Header.Add("Accept", "text/html;q=0.8")
 
-		client := a.HTTPService().MakeClient(false)
-		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
-
-		var res *http.Response
-		res, err = client.Do(request)
-
-		if res != nil {
-			body = res.Body
-			contentType = res.Header.Get("Content-Type")
+		var request *http.Request
+		// Make request for a web page or an image
+		request, err = http.NewRequest("GET", requestURL, nil)
+		if err != nil {
+			return nil, nil, nil, err
 		}
-	}
 
-	if body != nil {
-		defer func() {
-			io.Copy(ioutil.Discard, body)
-			body.Close()
-		}()
-	}
+		var body io.ReadCloser
+		var contentType string
 
-	if err == nil {
-		// Parse the data
-		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
+		if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
+			// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
+			body, contentType, err = a.ImageProxy().GetImageDirect(a.ImageProxy().GetUnproxiedImageURL(request.URL.String()))
+		} else {
+			request.Header.Add("Accept", "image/*")
+			request.Header.Add("Accept", "text/html;q=0.8")
+
+			client := a.HTTPService().MakeClient(false)
+			client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+
+			var res *http.Response
+			res, err = client.Do(request)
+
+			if res != nil {
+				body = res.Body
+				contentType = res.Header.Get("Content-Type")
+			}
+		}
+
+		if body != nil {
+			defer func() {
+				io.Copy(ioutil.Discard, body)
+				body.Close()
+			}()
+		}
+
+		if err == nil {
+			// Parse the data
+			og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
+		}
+		og = model.TruncateOpenGraph(og) // remove unwanted length of texts
+
+		a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
 	}
-	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
 	// Write back to cache and database, even if there was an error and the results are nil
-	cacheLinkMetadata(requestURL, timestamp, og, image)
+	cacheLinkMetadata(requestURL, timestamp, og, image, permalink)
 
-	a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
-
-	return og, image, err
+	return og, image, permalink, err
 }
 
 // resolveMetadataURL resolves a given URL relative to the server's site URL.
@@ -472,14 +569,14 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 	return resolved.String()
 }
 
-func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
+func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, bool) {
 	var cached linkMetadataCache
 	err := linkCache.Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
 	if err != nil {
-		return nil, nil, false
+		return nil, nil, nil, false
 	}
 
-	return cached.OpenGraph, cached.PostImage, true
+	return cached.OpenGraph, cached.PostImage, cached.Permalink, true
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
@@ -522,10 +619,11 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 	}
 }
 
-func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage) {
+func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage, permalink *model.Permalink) {
 	metadata := linkMetadataCache{
 		OpenGraph: og,
 		PostImage: image,
+		Permalink: permalink,
 	}
 
 	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LinkCacheDuration)

@@ -10,6 +10,7 @@ var (
 	VerifyUserError           = errors.New("could not update verify email field")
 	UserCountError            = errors.New("could not get the total number of the users.")
 	UserCreationDisabledError = errors.New("user creation is not allowed")
+	UserStoreIsEmptyError     = errors.New("could not check if the user store is empty")
 
 	GetTokenError            = errors.New("could not get token")
 	GetSessionError          = errors.New("could not get session")
