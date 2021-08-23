@@ -91,7 +91,10 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.ReloadConfig()
+	if err := c.App.ReloadConfig(); err != nil {
+		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	auditRec.Success()
 
