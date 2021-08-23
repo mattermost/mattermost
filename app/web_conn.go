@@ -345,7 +345,13 @@ func (wc *WebConn) readPump() {
 			wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
 		}
 
-		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, req.Clone()}
+		clonedReq, err := req.Clone()
+		if err != nil {
+			wc.logSocketErr("websocket.cloneRequest", err)
+			continue
+		}
+
+		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, clonedReq}
 	}
 }
 
