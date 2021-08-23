@@ -4361,7 +4361,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "无效的文件 id。上传只允许最多 5 个文件。请考虑创建新的消息以上传更多文件。"
+    "translation": "无效的文件 id。上传只允许最多 10 个文件。请考虑创建新的消息以上传更多文件。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -7909,7 +7909,7 @@
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
-    "translation": "无法更新串的跟随状态"
+    "translation": "无法更新主题的关注状态"
   },
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
@@ -9176,5 +9176,21 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "检查用户储存是否为空失败。"
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}}回复了主题"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "您离开时，{{.SenderName}}回复了您关注的主题。"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " 在您关注的主题发布了评论。"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "回复主题"
   }
 ]
