@@ -54,7 +54,7 @@ func TestClusterDiscovery(t *testing.T) {
 	o.Hostname = ""
 	o.AutoFillHostname()
 
-	o.AutoFillIpAddress("", "")
+	o.AutoFillIPAddress("", "")
 	o.Hostname = ""
-	o.AutoFillIpAddress("", "")
+	o.AutoFillIPAddress("", "")
 }

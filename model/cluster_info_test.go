@@ -11,11 +11,11 @@ import (
 )
 
 func TestClusterInfosJson(t *testing.T) {
-	cluster := ClusterInfo{IpAddress: NewId(), Hostname: NewId()}
+	cluster := ClusterInfo{IPAddress: NewId(), Hostname: NewId()}
 	clusterInfos := make([]*ClusterInfo, 1)
 	clusterInfos[0] = &cluster
 	json := ClusterInfosToJson(clusterInfos)
 	result := ClusterInfosFromJson(strings.NewReader(json))
 
-	assert.Equal(t, clusterInfos[0].IpAddress, result[0].IpAddress, "Ids do not match")
+	assert.Equal(t, clusterInfos[0].IPAddress, result[0].IPAddress, "Ids do not match")
 }

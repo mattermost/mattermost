@@ -57,6 +57,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SaveMember", func(t *testing.T) { testChannelSaveMember(t, ss) })
 	t.Run("SaveMultipleMembers", func(t *testing.T) { testChannelSaveMultipleMembers(t, ss) })
 	t.Run("UpdateMember", func(t *testing.T) { testChannelUpdateMember(t, ss) })
+	t.Run("UpdateMemberNotifyProps", func(t *testing.T) { testChannelUpdateMemberNotifyProps(t, ss) })
 	t.Run("UpdateMultipleMembers", func(t *testing.T) { testChannelUpdateMultipleMembers(t, ss) })
 	t.Run("RemoveMember", func(t *testing.T) { testChannelRemoveMember(t, ss) })
 	t.Run("RemoveMembers", func(t *testing.T) { testChannelRemoveMembers(t, ss) })
@@ -2953,6 +2954,48 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			})
 		}
 	})
+}
+
+func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.NoError(t, err)
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+
+	team := &model.Team{
+		DisplayName: "Name",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
+
+	team, nErr := ss.Team().Save(team)
+	require.NoError(t, nErr)
+
+	channel := &model.Channel{
+		DisplayName: "DisplayName",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      team.Id,
+	}
+	channel, nErr = ss.Channel().Save(channel, -1)
+	require.NoError(t, nErr)
+	defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+	member := &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      u1.Id,
+		NotifyProps: defaultNotifyProps,
+	}
+	member, nErr = ss.Channel().SaveMember(member)
+	require.NoError(t, nErr)
+
+	props := member.NotifyProps
+	props["hello"] = "world"
+	props[model.DesktopNotifyProp] = model.ChannelNotifyAll
+	member, nErr = ss.Channel().UpdateMemberNotifyProps(member.ChannelId, member.UserId, props)
+	require.NoError(t, nErr)
+	// Verify props.
+	assert.Equal(t, props, member.NotifyProps)
 }
 
 func testChannelRemoveMember(t *testing.T, ss store.Store) {
