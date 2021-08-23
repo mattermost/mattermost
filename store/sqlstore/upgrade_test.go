@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -113,37 +112,4 @@ func TestSaveSchemaVersion(t *testing.T) {
 			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 	})
-}
-func createChannelMemberWithLastViewAt(ss store.Store, channelId, userId string, lastViewAt int64) *model.ChannelMember {
-	m := model.ChannelMember{}
-	m.ChannelId = channelId
-	m.UserId = userId
-	m.LastViewedAt = lastViewAt
-	m.NotifyProps = model.GetDefaultChannelNotifyProps()
-	cm, _ := ss.Channel().SaveMember(&m)
-	return cm
-}
-func createPostWithTimestamp(ss store.Store, channelId, userId, rootId, parentId string, timestamp int64) *model.Post {
-	m := model.Post{}
-	m.CreateAt = timestamp
-	m.ChannelId = channelId
-	m.UserId = userId
-	m.RootId = rootId
-	m.ParentId = parentId
-	m.Message = "zz" + model.NewId() + "b"
-	p, _ := ss.Post().Save(&m)
-	return p
-}
-
-func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastPostAt, msgCount, rootCount int64) (*model.Channel, error) {
-	m := model.Channel{}
-	m.TeamId = teamId
-	m.TotalMsgCount = msgCount
-	m.TotalMsgCountRoot = rootCount
-	m.LastPostAt = lastPostAt
-	m.CreatorId = creatorId
-	m.DisplayName = "Name"
-	m.Name = "zz" + model.NewId() + "b"
-	m.Type = model.CHANNEL_OPEN
-	return ss.Channel().Save(&m, -1)
 }
