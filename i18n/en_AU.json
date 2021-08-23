@@ -1264,10 +1264,6 @@
     "translation": "Invalid root ID."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Invalid parent ID."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Invalid command hook ID."
   },
@@ -1840,20 +1836,12 @@
     "translation": "Invalid type."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Invalid root ID must be set if parent ID set."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Invalid root ID."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Invalid props."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Invalid parent ID."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -3642,10 +3630,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to an error."
   },
   {
     "id": "cli.license.critical",
@@ -5838,10 +5822,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "An error occurred while opening the public key file."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -8231,10 +8211,6 @@
     "translation": "Invalid RootID parameter."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Invalid ParentID parameter."
-  },
-  {
     "id": "api.command_collapse.success",
     "translation": "Image links now collapse by default"
   },
@@ -8869,14 +8845,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",

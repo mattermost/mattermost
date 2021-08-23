@@ -768,10 +768,6 @@
     "translation": "Ogiltigt root-id."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Ogiltigt parent-id."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Ogiltigt command hook id."
   },
@@ -1106,14 +1102,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Kunde inte hämta användare."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Den utgående webhooken är raderad men av någon outgrundlig anledning går det inte att skapa en ny."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Funktionen kräver en uppgradering till Enterpriseversionen och tillhörande licensnyckel. Kontakta din systemadministratör."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
@@ -1708,20 +1696,12 @@
     "translation": "Ogiltig typ."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Ogiltigt root ID. Root ID måste anges om parent ID anges."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Ogiltigt root-id."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Ogiltig props."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Ogiltigt parent-id."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -5912,10 +5892,6 @@
     "translation": "Ogiltig RootId-parameter."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Felaktig ParentId-parameter."
-  },
-  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Ogiltigt ChannelId för parametern RootId."
   },
@@ -5962,10 +5938,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Ett fel inträffade när tillägget skulle laddas ner."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Ett fel uppstod när den publika nyckel-filen skulle öppnas."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -7858,14 +7830,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Måste använda createDirectChannel API tjänst för direktmeddelande skapande av kanaler."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Kanalen är redan konverterad till en privat kanal."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Denna standardkanal kan inte konverteras till en privat kanal."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",

@@ -228,10 +228,6 @@
     "translation": "Érvénytelen gyökér azonosító."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Érvénytelen szülő azonosító."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Érvénytelen parancs hook azonosító."
   },
@@ -1520,20 +1516,12 @@
     "translation": "Érvénytelen típus."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Érvénytelen gyökér azonosító, be kell állítani ha a szülő azonosító be van állítva."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Érvénytelen gyökér azonosító."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Érvénytelen tulajdonságok."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Érvénytelen szülő azonosító."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -3650,14 +3638,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Nem sikerült lekérni a felhasználókat."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "A kimenő webhook törölve lett, de valamilyen hiba miatt nem tud újat létrehozni."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "A funkcióhoz frissíteni kell az Enterprise Edition-re és meg kell adni egy licenckulcsot. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
@@ -7903,14 +7883,6 @@
     "translation": "A közvetlen üzenet küldési csatorna létrehozásához használja a createDirectChannel API szolgáltatást."
   },
   {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Az átalakítani kívánt csatorna már privát."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Ez az alapértelmezett csatorna nem alakítható át privát csatornává."
-  },
-  {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Az Ön licence nem támogatja a csoportokat"
   },
@@ -8085,10 +8057,6 @@
     "translation": "Érvénytelen RootId paraméter."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Érvénytelen ParentId paraméter."
-  },
-  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Érvénytelen ChannelId a RootId paraméternek."
   },
@@ -8135,10 +8103,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Hiba történt a plugin letöltése közben."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Hiba történt a publikus kulcsfájl megnyitása közben."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",

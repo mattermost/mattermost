@@ -148,14 +148,6 @@
     "translation": "Ten kanał został przekonwertowany do kanału prywatnego."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Ten kanał domyślny nie może zostać przekonwertowany do kanału prywatnego."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Kanał, którego żądasz do przekonwertowania jest już kanałem prywatnym."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Do tworzenia kanału wiadomości bezpośrednich należy użyć usługi API createDirectChannel"
   },
@@ -1318,10 +1310,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Nieprawidłowy ChannelId dla parametru RootId"
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Nieprawidłowy parametr ParentId"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3024,10 +3012,6 @@
     "translation": "Nie można zapisać pliku obrazu do magazynu plików. Proszę sprawdź swoje połączenie i spróbuj ponownie."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Funkcja wymaga aktualizacji do wersji Enterprise Edition i dołączenia klucza licencyjnego. Skontaktuj się z Administratorem Systemu."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Nie można pobrać użytkowników."
   },
@@ -3724,10 +3708,6 @@
     "translation": "Nieprawidłowa komenda identyfikatora"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Nieprawidłowe id rodzica"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Nieprawidłowy root id"
   },
@@ -4412,20 +4392,12 @@
     "translation": "Nieprawidłowe id oryginału"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Nieprawidłowe id rodzica"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Nieprawidłowa wartość"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Nieprawidłowy root id"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Nieprawidłowe root ID, musi być ustawione jeśli parent ID jest ustawione"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5136,10 +5108,6 @@
     "translation": "Nie można utworzyć pliku eml."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Failed to close user index."
   },
@@ -5754,10 +5722,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Podczas pobierania wtyczki wystąpił błąd."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Wystąpił błąd podczas otwierania pliku klucza publicznego."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",

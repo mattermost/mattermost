@@ -148,14 +148,6 @@
     "translation": "Dieser Kanal wurde in einen privaten Kanal umgewandelt."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Dieser Standard-Kanal kann nicht in einen privaten Kanal umgewandelt werden."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Der umzuwandelnde Kanal ist bereits ein privater Kanal."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Für die Erstellung eines Direktnachrichtenkanals muss der createDirectChannel-API-Service verwendet werden."
   },
@@ -1316,10 +1308,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Ungültige Kanal-ID für den Root-ID-Parameter."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Ungültiger Parameter für ParentId."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3020,10 +3008,6 @@
     "translation": "Konnte das Bild nicht auf ihrem Server speichern. Bitte überprüfen Sie ihre Verbindung und versuchen es erneut."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Funktion benötigt ein Upgrade auf die Enterprise Edition und das Hinzufügen eines Lizenzschlüssels. Bitte kontaktieren Sie ihren Systemadministrator."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Konnte Benutzer nicht abrufen."
   },
@@ -3720,10 +3704,6 @@
     "translation": "Ungültige Befehls-Hook-ID."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Ungültige Vorgänger-ID."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Ungültige Root-ID."
   },
@@ -4408,20 +4388,12 @@
     "translation": "Ungültige Original-ID."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Ungültige Vorgänger-ID."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Ungültige Eigenschaften."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Ungültige Root-ID."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Ungültige Root-ID, muss gesetzt sein wenn Parent-ID gesetzt ist."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5176,10 +5148,6 @@
     "translation": "Konnte die EML-Datei nicht erstellen"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Der ausgehende Webhook wird gelöscht, aber aufgrund eines Fehlers kann kein neuer Webhook erstellt werden."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Fehler beim Schließen des Benujtzerindex."
   },
@@ -5794,10 +5762,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Es ist ein Fehler beim Herunterladen des Plugins aufgetreten."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Es ist ein Fehler beim Öffnen der öffentlichen Schlüsseldatei aufgetreten."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
