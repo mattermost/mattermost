@@ -798,9 +798,17 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 			}
 		}
 	}
-	users, err := s.User().GetParticipantProfilesByIds(context.Background(), userIds, extended, true)
-	if err != nil {
-		return nil, err
+	var users []*model.User
+	if extended {
+		var err error
+		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		for _, userId := range userIds {
+			users = append(users, &model.User{Id: userId})
+		}
 	}
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount

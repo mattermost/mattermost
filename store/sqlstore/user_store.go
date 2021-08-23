@@ -2040,30 +2040,3 @@ func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
 	}
 	return !hasRows, nil
 }
-
-func (us SqlUserStore) GetParticipantProfilesByIds(ctx context.Context, userIds []string, extended bool, allowFromCache bool) ([]*model.User, error) {
-	var users []*model.User
-
-	if extended {
-		query := us.usersQuery.
-			Where(map[string]interface{}{
-				"u.Id": userIds,
-			})
-
-		queryString, args, err := query.ToSql()
-
-		if err != nil {
-			return nil, errors.Wrap(err, "get_participant_profiles_by_ids_tosql")
-		}
-
-		if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
-			return nil, errors.Wrap(err, "failed to find Users")
-		}
-	} else {
-		for _, userId := range userIds {
-			users = append(users, &model.User{Id: userId})
-		}
-	}
-
-	return users, nil
-}

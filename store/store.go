@@ -426,7 +426,6 @@ type UserStore interface {
 	AutocompleteUsersInChannel(teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
 	IsEmpty(excludeBots bool) (bool, error)
-	GetParticipantProfilesByIds(ctx context.Context, userIds []string, extended bool, allowFromCache bool) ([]*model.User, error)
 }
 
 type BotStore interface {

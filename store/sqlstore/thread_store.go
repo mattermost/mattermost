@@ -315,9 +315,17 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 				}
 			}
 		}
-		users, err := s.User().GetParticipantProfilesByIds(context.Background(), userIds, opts.Extended, true)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+		var users []*model.User
+		if opts.Extended {
+			var err error
+			users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+			}
+		} else {
+			for _, userId := range userIds {
+				users = append(users, &model.User{Id: userId})
+			}
 		}
 
 		for _, thread := range threads {
@@ -427,9 +435,17 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 	thread.LastViewedAt = threadMembership.LastViewed
 	thread.UnreadMentions = threadMembership.UnreadMentions
 
-	users, err := s.User().GetParticipantProfilesByIds(context.Background(), thread.Participants, extended, true)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get thread for user id=%s", threadMembership.UserId)
+	var users []*model.User
+	if extended {
+		var err error
+		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get thread for user id=%s", threadMembership.UserId)
+		}
+	} else {
+		for _, userId := range thread.Participants {
+			users = append(users, &model.User{Id: userId})
+		}
 	}
 
 	var participants []*model.User
