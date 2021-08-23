@@ -263,20 +263,20 @@ func (_m *JobStore) Save(job *model.Job) (*model.Job, error) {
 	return r0, r1
 }
 
-// UpdateOptimistically provides a mock function with given fields: job, currentStatus
-func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
-	ret := _m.Called(job, currentStatus)
+// UpdateOptimistically provides a mock function with given fields: job
+func (_m *JobStore) UpdateOptimistically(job *model.Job) (bool, error) {
+	ret := _m.Called(job)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(*model.Job, string) bool); ok {
-		r0 = rf(job, currentStatus)
+	if rf, ok := ret.Get(0).(func(*model.Job) bool); ok {
+		r0 = rf(job)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Job, string) error); ok {
-		r1 = rf(job, currentStatus)
+	if rf, ok := ret.Get(1).(func(*model.Job) error); ok {
+		r1 = rf(job)
 	} else {
 		r1 = ret.Error(1)
 	}

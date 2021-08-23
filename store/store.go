@@ -665,7 +665,7 @@ type ReactionStore interface {
 
 type JobStore interface {
 	Save(job *model.Job) (*model.Job, error)
-	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
+	UpdateOptimistically(job *model.Job) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
 	Get(id string) (*model.Job, error)

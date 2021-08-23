@@ -4357,7 +4357,7 @@ func (s *OpenTracingLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+func (s *OpenTracingLayerJobStore) UpdateOptimistically(job *model.Job) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.UpdateOptimistically")
 	s.Root.Store.SetContext(newCtx)
@@ -4366,7 +4366,7 @@ func (s *OpenTracingLayerJobStore) UpdateOptimistically(job *model.Job, currentS
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.UpdateOptimistically(job, currentStatus)
+	result, err := s.JobStore.UpdateOptimistically(job)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -3963,10 +3963,10 @@ func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job) (bool, error) {
 	start := timemodule.Now()
 
-	result, err := s.JobStore.UpdateOptimistically(job, currentStatus)
+	result, err := s.JobStore.UpdateOptimistically(job)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

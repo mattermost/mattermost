@@ -461,12 +461,10 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 		"Foo": "Bar",
 	}
 
-	updated, err := ss.Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	updated, err := ss.Job().UpdateOptimistically(job)
 	require.False(t, err != nil && updated)
 
-	time.Sleep(2 * time.Millisecond)
-
-	updated, err = ss.Job().UpdateOptimistically(job, model.JobStatusPending)
+	updated, err = ss.Job().UpdateOptimistically(job)
 	require.NoError(t, err)
 	require.True(t, updated)
 

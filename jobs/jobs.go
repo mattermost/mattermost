@@ -70,7 +70,7 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 	job.Status = model.JobStatusInProgress
 	job.Progress = progress
 
-	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err != nil {
+	if _, err := srv.Store.Job().UpdateOptimistically(job); err != nil {
 		return model.NewAppError("SetJobProgress", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
@@ -118,7 +118,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if jobError.DetailedError != "" {
 		job.Data["error"] += " — " + jobError.DetailedError
 	}
-	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress)
+	updated, err := srv.Store.Job().UpdateOptimistically(job)
 	if err != nil {
 		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -127,7 +127,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	}
 
 	if !updated {
-		updated, err = srv.Store.Job().UpdateOptimistically(job, model.JobStatusCancelRequested)
+		updated, err = srv.Store.Job().UpdateOptimistically(job)
 		if err != nil {
 			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -154,7 +154,7 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
 	job.Status = model.JobStatusInProgress
 	job.LastActivityAt = model.GetMillis()
-	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err != nil {
+	if _, err := srv.Store.Job().UpdateOptimistically(job); err != nil {
 		return model.NewAppError("UpdateInProgressJobData", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
