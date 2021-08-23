@@ -1219,7 +1219,7 @@
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": "(invalid_grant): Ongeldig of verlopen authorisatie code."
+    "translation": "invalid_grant: Ongeldig of verlopen autorisatie code."
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
@@ -3785,7 +3785,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers and hyphen (-)."
+    "translation": "Het aangepaste URL-protocol {{.Scheme}} is ongeldig. Aangepaste URL-schema's moeten beginnen met een letter en alleen letters, cijfers, plus (+), punt (.) en streepje (-) bevatten."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4385,7 +4385,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ongeldige bestands-ID ' s. Houd er rekening mee dat uploads beperkt zijn tot maximaal 5 bestanden. Gebruik extra berichten voor meer bestanden."
+    "translation": "Ongeldige bestands-ID's. Houd er rekening mee dat uploads beperkt zijn tot maximaal 10 bestanden. Gebruik extra berichten voor meer bestanden."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4609,11 +4609,11 @@
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
-    "translation": "Invalid description, must be 255 or less characters"
+    "translation": "Ongeldige beschrijving, moet 255 of minder tekens zijn."
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": "Invalid value for id"
+    "translation": "Ongeldige waarde voor id."
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -9213,5 +9213,13 @@
   {
     "id": "extrac_content.worker.do_job.invalid_input.from",
     "translation": "Ongeldige invoerwaarde 'From'"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Fout bij het controleren of de 'user store' leeg is."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " commentaar gegeven op een draadje dat je volgt."
   }
 ]
