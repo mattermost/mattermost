@@ -13,6 +13,7 @@ import (
 	"unicode"
 
 	"github.com/jmoiron/sqlx"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -52,18 +53,13 @@ func (w *sqlxDBWrapper) Get(dest interface{}, query string, args ...interface{})
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
 	}
 
-	err := w.DB.GetContext(ctx, dest, query, args...)
-
-	if w.trace {
-		printArgs(query, time.Since(then), args)
-	}
-
-	return err
+	return w.DB.GetContext(ctx, dest, query, args...)
 }
 
 func (w *sqlxDBWrapper) NamedExec(query string, arg interface{}) (sql.Result, error) {
@@ -73,18 +69,13 @@ func (w *sqlxDBWrapper) NamedExec(query string, arg interface{}) (sql.Result, er
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), arg)
+		}(time.Now())
 	}
 
-	res, err := w.DB.NamedExecContext(ctx, query, arg)
-
-	if w.trace {
-		printArgs(query, time.Since(then), arg)
-	}
-
-	return res, err
+	return w.DB.NamedExecContext(ctx, query, arg)
 }
 
 func (w *sqlxDBWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, error) {
@@ -94,18 +85,13 @@ func (w *sqlxDBWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, e
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), arg)
+		}(time.Now())
 	}
 
-	rows, err := w.DB.NamedQueryContext(ctx, query, arg)
-
-	if w.trace {
-		printArgs(query, time.Since(then), arg)
-	}
-
-	return rows, err
+	return w.DB.NamedQueryContext(ctx, query, arg)
 }
 
 func (w *sqlxDBWrapper) QueryRowX(query string, args ...interface{}) *sqlx.Row {
@@ -113,18 +99,13 @@ func (w *sqlxDBWrapper) QueryRowX(query string, args ...interface{}) *sqlx.Row {
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
 	}
 
-	row := w.DB.QueryRowxContext(ctx, query, args...)
-
-	if w.trace {
-		printArgs(query, time.Since(then), args)
-	}
-
-	return row
+	return w.DB.QueryRowxContext(ctx, query, args...)
 }
 
 func (w *sqlxDBWrapper) QueryX(query string, args ...interface{}) (*sqlx.Rows, error) {
@@ -132,16 +113,13 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...interface{}) (*sqlx.Rows, e
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
 	}
-	rows, err := w.DB.QueryxContext(ctx, query, args)
 
-	if w.trace {
-		printArgs(query, time.Since(then), args)
-	}
-	return rows, err
+	return w.DB.QueryxContext(ctx, query, args)
 }
 
 func (w *sqlxDBWrapper) Select(dest interface{}, query string, args ...interface{}) error {
@@ -149,17 +127,13 @@ func (w *sqlxDBWrapper) Select(dest interface{}, query string, args ...interface
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
 	}
 
-	err := w.DB.SelectContext(ctx, dest, query, args...)
-
-	if w.trace {
-		printArgs(query, time.Since(then), args)
-	}
-	return err
+	return w.DB.SelectContext(ctx, dest, query, args...)
 }
 
 type sqlxTxWrapper struct {
@@ -181,17 +155,13 @@ func (w *sqlxTxWrapper) Get(dest interface{}, query string, args ...interface{})
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
 	}
 
-	err := w.Tx.GetContext(ctx, dest, query, args...)
-
-	if w.trace {
-		printArgs(query, time.Since(then), args)
-	}
-	return err
+	return w.Tx.GetContext(ctx, dest, query, args...)
 }
 
 func (w *sqlxTxWrapper) NamedExec(query string, arg interface{}) (sql.Result, error) {
@@ -201,17 +171,13 @@ func (w *sqlxTxWrapper) NamedExec(query string, arg interface{}) (sql.Result, er
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), arg)
+		}(time.Now())
 	}
 
-	res, err := w.Tx.NamedExecContext(ctx, query, arg)
-
-	if w.trace {
-		printArgs(query, time.Since(then), arg)
-	}
-	return res, err
+	return w.Tx.NamedExecContext(ctx, query, arg)
 }
 
 func (w *sqlxTxWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, error) {
@@ -221,9 +187,10 @@ func (w *sqlxTxWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, e
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), arg)
+		}(time.Now())
 	}
 
 	// There is no tx.NamedQueryContext support in the sqlx API. (https://github.com/jmoiron/sqlx/issues/447)
@@ -254,10 +221,6 @@ func (w *sqlxTxWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, e
 		}
 	}
 
-	if w.trace {
-		printArgs(query, time.Since(then), arg)
-	}
-
 	return res.rows, res.err
 }
 
@@ -266,18 +229,13 @@ func (w *sqlxTxWrapper) QueryRowX(query string, args ...interface{}) *sqlx.Row {
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
 	}
 
-	row := w.Tx.QueryRowxContext(ctx, query, args...)
-
-	if w.trace {
-		printArgs(query, time.Since(then), args)
-	}
-
-	return row
+	return w.Tx.QueryRowxContext(ctx, query, args...)
 }
 
 func (w *sqlxTxWrapper) QueryX(query string, args ...interface{}) (*sqlx.Rows, error) {
@@ -285,17 +243,13 @@ func (w *sqlxTxWrapper) QueryX(query string, args ...interface{}) (*sqlx.Rows, e
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
 	}
 
-	rows, err := w.Tx.QueryxContext(ctx, query, args)
-
-	if w.trace {
-		printArgs(query, time.Since(then), args)
-	}
-	return rows, err
+	return w.Tx.QueryxContext(ctx, query, args)
 }
 
 func (w *sqlxTxWrapper) Select(dest interface{}, query string, args ...interface{}) error {
@@ -303,17 +257,13 @@ func (w *sqlxTxWrapper) Select(dest interface{}, query string, args ...interface
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
-	var then time.Time
 	if w.trace {
-		then = time.Now()
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
 	}
 
-	err := w.Tx.SelectContext(ctx, dest, query, args...)
-
-	if w.trace {
-		printArgs(query, time.Since(then), args)
-	}
-	return err
+	return w.Tx.SelectContext(ctx, dest, query, args...)
 }
 
 func removeSpace(r rune) rune {
@@ -328,15 +278,10 @@ func removeSpace(r rune) rune {
 
 func printArgs(query string, dur time.Duration, args ...interface{}) {
 	query = strings.Map(removeSpace, query)
-	switch len(args) {
-	case 0:
-		mlog.Debug(query, mlog.Duration("duration", dur))
-	default:
-		fields := make([]mlog.Field, 0, len(args)+1)
-		fields = append(fields, mlog.Duration("duration", dur))
-		for i, arg := range args {
-			fields = append(fields, mlog.Any("arg"+strconv.Itoa(i), arg))
-		}
-		mlog.Debug(query, fields...)
+	fields := make([]mlog.Field, 0, len(args)+1)
+	fields = append(fields, mlog.Duration("duration", dur))
+	for i, arg := range args {
+		fields = append(fields, mlog.Any("arg"+strconv.Itoa(i), arg))
 	}
+	mlog.Debug(query, fields...)
 }
