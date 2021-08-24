@@ -429,6 +429,11 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 	})
+
+	t.Run("Limit number of threads that can be fetched in one request from SQL store", func(t *testing.T) {
+		_, err := ss.Thread().GetThreadsForUser("", "", model.GetUserThreadsOpts{PageSize: 501})
+		require.Error(t, err)
+	})
 }
 
 func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
