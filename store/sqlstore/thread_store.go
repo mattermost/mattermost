@@ -120,9 +120,6 @@ func (s *SqlThreadStore) get(ex gorp.SqlExecutor, id string) (*model.Thread, err
 }
 
 func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
-	if opts.PageSize > 500 {
-		return nil, store.NewErrInvalidInput("Thread", "<GetUserThreadsOpts.PageSize>", opts.PageSize)
-	}
 	type JoinedThread struct {
 		PostId         string
 		ReplyCount     int64
