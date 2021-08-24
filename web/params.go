@@ -255,7 +255,8 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Permanent = val
 	}
 
-	if val, err := strconv.Atoi(query.Get("per_page")); err != nil || val < 0 {
+	// this should be removed when mobile v1.46 is no longer supported
+	if val, err := strconv.Atoi(query.Get("pageSize")); err != nil || val < 0 {
 		params.PerPage = PerPageDefault
 	} else if val > PerPageMaximum {
 		params.PerPage = PerPageMaximum
@@ -263,8 +264,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.PerPage = val
 	}
 
-	// this should be removed when mobile v1.46 is no longer supported
-	if val, err := strconv.Atoi(query.Get("pageSize")); err != nil || val < 0 {
+	if val, err := strconv.Atoi(query.Get("per_page")); err != nil || val < 0 {
 		params.PerPage = PerPageDefault
 	} else if val > PerPageMaximum {
 		params.PerPage = PerPageMaximum
