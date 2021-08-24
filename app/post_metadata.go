@@ -214,6 +214,13 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
+	if _, ok := post.GetProps()["focalboard"]; ok {
+		return &model.PostEmbed{
+			Type: model.PostEmbedFocalboard,
+			Data: post.GetProps()["focalboard"],
+		}, nil
+	}
+
 	if firstLink == "" {
 		return nil, nil
 	}
