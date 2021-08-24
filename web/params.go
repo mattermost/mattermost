@@ -5,6 +5,7 @@ package web
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -255,23 +256,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Permanent = val
 	}
 
-	if val, err := strconv.Atoi(query.Get("per_page")); err != nil || val < 0 {
-		params.PerPage = PerPageDefault
-	} else if val > PerPageMaximum {
-		params.PerPage = PerPageMaximum
-	} else {
-		params.PerPage = val
-	}
-
-	// this should be removed when mobile v1.46 is no longer supported
-	if val, err := strconv.Atoi(query.Get("pageSize")); err != nil || val < 0 {
-		params.PerPage = PerPageDefault
-	} else if val > PerPageMaximum {
-		params.PerPage = PerPageMaximum
-	} else {
-		params.PerPage = val
-	}
-
+	params.PerPage = getPerPageFromQuery(query)
 	if val, err := strconv.Atoi(query.Get("logs_per_page")); err != nil || val < 0 {
 		params.LogsPerPage = LogsPerPageDefault
 	} else if val > LogsPerPageMaximum {
@@ -371,4 +356,23 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	return params
+}
+
+func getPerPageFromQuery(query url.Values) int {
+	val, err := strconv.Atoi(query.Get("per_page"))
+	if err != nil {
+		val, err = strconv.Atoi(query.Get("pageSize"))
+		if err != nil || val < 0 {
+			return PerPageDefault
+		} else if val > PerPageMaximum {
+			return PerPageMaximum
+		}
+		return val
+	}
+	if val < 0 {
+		return PerPageDefault
+	} else if val > PerPageMaximum {
+		return PerPageMaximum
+	}
+	return val
 }
