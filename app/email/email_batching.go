@@ -206,6 +206,32 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 	}
 }
 
+func (es *Service) CountAdditionalBatchEmailSenders(notifications []*batchedNotification) int {
+	if len(notifications) == 0 {
+		return 0
+	}
+	count := 0
+	firstSenderId := notifications[0].post.UserId
+	for i := range notifications {
+		if notifications[i].post.UserId != firstSenderId {
+			count++
+		}
+	}
+	return count
+}
+
+/**
+* If the name is longer than i characters, replace remaining characters with ...
+ */
+func truncateUserNames(name string, i int) string {
+	runes := []rune(name)
+	if len(runes) > i {
+		newString := string(runes[:i])
+		return newString + "..."
+	}
+	return name
+}
+
 func (es *Service) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
 	user, err := es.userService.GetUser(userID)
 	if err != nil {
@@ -219,6 +245,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 	postsData := make([]*postData, 0 /* len */, len(notifications) /* cap */)
 	embeddedFiles := make(map[string]io.Reader)
+	otherSendersCount := es.CountAdditionalBatchEmailSenders(notifications)
 
 	emailNotificationContentsType := model.EmailNotificationContentsFull
 	if license := es.license(); license != nil && *license.Features.EmailNotificationContents {
@@ -256,14 +283,14 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				"Month":    translateFunc(tm.Month().String()),
 				"Day":      tm.Day(),
 				"Year":     tm.Year(),
-				"Timezone": timezone,
+				"TimeZone": timezone,
 			})
 
 			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
 
 			postsData = append(postsData, &postData{
 				SenderPhoto: senderPhoto,
-				SenderName:  sender.GetDisplayName(displayNameFormat),
+				SenderName:  truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
 				Time:        t,
 				ChannelName: channel.DisplayName,
 				Message:     template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
@@ -286,11 +313,28 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		mlog.Warn("Unable to find sender of post for batched email notification")
 	}
 
+	firstSenderDisplayName := firstSender.GetDisplayName(displayNameFormat)
+
+	title := translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications), map[string]interface{}{
+		"SenderName": firstSenderDisplayName,
+	})
+
+	if otherSendersCount == 1 {
+		title = translateFunc("api.email_batching.send_batched_email_notification.title_one_other", map[string]interface{}{
+			"SenderName": firstSenderDisplayName,
+		})
+	}
+
+	if otherSendersCount > 1 {
+		title = translateFunc("api.email_batching.send_batched_email_notification.title_others", map[string]interface{}{
+			"SenderName": firstSenderDisplayName,
+			"Count":      otherSendersCount,
+		})
+	}
+
 	data := es.NewEmailTemplateData(user.Locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications)-1, map[string]interface{}{
-		"SenderName": firstSender.GetDisplayName(displayNameFormat),
-	})
+	data.Props["Title"] = title
 	data.Props["SubTitle"] = translateFunc("api.email_batching.send_batched_email_notification.subTitle")
 	data.Props["Button"] = translateFunc("api.email_batching.send_batched_email_notification.button")
 	data.Props["ButtonURL"] = siteURL
@@ -305,7 +349,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		mlog.Error("Unable to render email", mlog.Err(renderErr))
 	}
 
-	if nErr := es.SendNotificationMail(user.Email, subject, renderedPage); nErr != nil {
+	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }

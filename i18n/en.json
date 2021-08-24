@@ -1608,9 +1608,17 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} sent you new message",
-      "other": "{{ .SenderName }} and {{.Count}} others sent you new messages"
+      "one": "{{ .SenderName }} sent you a new message",
+      "other": "{{ .SenderName }} sent you new messages"
     }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title_one_other",
+    "translation": "{{ .SenderName }} and 1 other sent you new messages"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title_others",
+    "translation": "{{ .SenderName }} and {{.Count}} others sent you new messages"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
