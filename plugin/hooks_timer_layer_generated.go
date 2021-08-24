@@ -168,3 +168,21 @@ func (hooks *hooksTimerLayer) OnPluginClusterEvent(c *Context, ev model.PluginCl
 	hooks.hooksImpl.OnPluginClusterEvent(c, ev)
 	hooks.recordTime(startTime, "OnPluginClusterEvent", true)
 }
+
+func (hooks *hooksTimerLayer) OnWebSocketConnect(webConnID, userID string) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnWebSocketConnect(webConnID, userID)
+	hooks.recordTime(startTime, "OnWebSocketConnect", true)
+}
+
+func (hooks *hooksTimerLayer) OnWebSocketDisconnect(webConnID, userID string) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnWebSocketDisconnect(webConnID, userID)
+	hooks.recordTime(startTime, "OnWebSocketDisconnect", true)
+}
+
+func (hooks *hooksTimerLayer) WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.WebSocketMessageHasBeenPosted(webConnID, userID, req)
+	hooks.recordTime(startTime, "WebSocketMessageHasBeenPosted", true)
+}
