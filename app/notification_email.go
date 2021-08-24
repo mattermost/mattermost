@@ -236,7 +236,10 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	data.Props["NotificationFooterInfoLogin"] = translateFunc("app.notification.footer.infoLogin")
 	data.Props["NotificationFooterInfo"] = translateFunc("app.notification.footer.info")
 
-	if channel.Type == model.ChannelTypeDirect {
+	if a.isCRTEnabledForUser(recipient.Id) && post.RootId != "" {
+		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]interface{}{"SenderName": senderName})
+		data.Props["SubTitle"] = translateFunc("app.notification.body.thread.subTitle", map[string]interface{}{"SenderName": senderName})
+	} else if channel.Type == model.ChannelTypeDirect {
 		// Direct Messages
 		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]interface{}{"SenderName": senderName})

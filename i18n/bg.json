@@ -984,10 +984,6 @@
     "translation": "Невалиден root id."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Невалиден родителски id."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Невалиден hook id на командата."
   },
@@ -1552,20 +1548,12 @@
     "translation": "Невалиден тип."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Невалиден идентификатор на корена, трябва да бъде зададен, ако родителският идентификатор е зададен."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Невалиден id на корена."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Невалидни свойства."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Невалиден родителски id."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -2246,14 +2234,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Не могат да се получат потребители."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Изходящия webhook се изтрива, но не може да създаде нов поради някаква грешка."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Функцията изисква надграждане до Enterprise Edition и включване на лицензен ключ. Моля, свържете се със системния си администратор."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
@@ -4670,10 +4650,6 @@
     "translation": "Невалиден RootId параметър."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Невалиден ParentId параметър."
-  },
-  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Невалиден ChannelId за RootId параметър."
   },
@@ -4720,10 +4696,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "При изтеглянето на приставката възникна грешка."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Възникна грешка при отварянето на файла с публичния ключ."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -7854,14 +7826,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Трябва да използвате услугата на API createDirectChannel за създаването на канал за директни съобщения."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Каналът, който се опитахте да преобразувате е вече частен."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Този канал по подразбиране не може да бъде преобразуван в частен."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
