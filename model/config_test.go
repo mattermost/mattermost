@@ -1472,13 +1472,15 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 	cfg := Config{}
 	cfg.SetDefaults()
 
-	err := cfg.ExportSettings.isValid()
+	err := cfg.ServiceSettings.isValid()
 	require.Nil(t, err)
 
 	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDisabled
+	err = cfg.ServiceSettings.isValid()
 	require.Nil(t, err)
 
 	*cfg.ServiceSettings.ThreadAutoFollow = false
+	err = cfg.ServiceSettings.isValid()
 	require.Nil(t, err)
 
 	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOff
