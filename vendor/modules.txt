@@ -90,77 +90,77 @@ github.com/bits-and-blooms/bitset
 # github.com/blang/semver v3.5.1+incompatible
 ## explicit
 github.com/blang/semver
-# github.com/blevesearch/bleve v1.0.14
+# github.com/blevesearch/bleve/v2 v2.1.0
 ## explicit
-github.com/blevesearch/bleve
-github.com/blevesearch/bleve/analysis
-github.com/blevesearch/bleve/analysis/analyzer/keyword
-github.com/blevesearch/bleve/analysis/analyzer/standard
-github.com/blevesearch/bleve/analysis/datetime/flexible
-github.com/blevesearch/bleve/analysis/datetime/optional
-github.com/blevesearch/bleve/analysis/lang/en
-github.com/blevesearch/bleve/analysis/token/lowercase
-github.com/blevesearch/bleve/analysis/token/porter
-github.com/blevesearch/bleve/analysis/token/stop
-github.com/blevesearch/bleve/analysis/tokenizer/single
-github.com/blevesearch/bleve/analysis/tokenizer/unicode
-github.com/blevesearch/bleve/document
-github.com/blevesearch/bleve/geo
-github.com/blevesearch/bleve/index
-github.com/blevesearch/bleve/index/scorch
-github.com/blevesearch/bleve/index/scorch/mergeplan
-github.com/blevesearch/bleve/index/scorch/segment
-github.com/blevesearch/bleve/index/store
-github.com/blevesearch/bleve/index/store/boltdb
-github.com/blevesearch/bleve/index/store/gtreap
-github.com/blevesearch/bleve/index/upsidedown
-github.com/blevesearch/bleve/mapping
-github.com/blevesearch/bleve/numeric
-github.com/blevesearch/bleve/registry
-github.com/blevesearch/bleve/search
-github.com/blevesearch/bleve/search/collector
-github.com/blevesearch/bleve/search/facet
-github.com/blevesearch/bleve/search/highlight
-github.com/blevesearch/bleve/search/highlight/format/html
-github.com/blevesearch/bleve/search/highlight/fragmenter/simple
-github.com/blevesearch/bleve/search/highlight/highlighter/html
-github.com/blevesearch/bleve/search/highlight/highlighter/simple
-github.com/blevesearch/bleve/search/query
-github.com/blevesearch/bleve/search/scorer
-github.com/blevesearch/bleve/search/searcher
-github.com/blevesearch/bleve/size
+github.com/blevesearch/bleve/v2
+github.com/blevesearch/bleve/v2/analysis
+github.com/blevesearch/bleve/v2/analysis/analyzer/keyword
+github.com/blevesearch/bleve/v2/analysis/analyzer/standard
+github.com/blevesearch/bleve/v2/analysis/datetime/flexible
+github.com/blevesearch/bleve/v2/analysis/datetime/optional
+github.com/blevesearch/bleve/v2/analysis/lang/en
+github.com/blevesearch/bleve/v2/analysis/token/lowercase
+github.com/blevesearch/bleve/v2/analysis/token/porter
+github.com/blevesearch/bleve/v2/analysis/token/stop
+github.com/blevesearch/bleve/v2/analysis/tokenizer/single
+github.com/blevesearch/bleve/v2/analysis/tokenizer/unicode
+github.com/blevesearch/bleve/v2/document
+github.com/blevesearch/bleve/v2/geo
+github.com/blevesearch/bleve/v2/index/scorch
+github.com/blevesearch/bleve/v2/index/scorch/mergeplan
+github.com/blevesearch/bleve/v2/index/upsidedown
+github.com/blevesearch/bleve/v2/index/upsidedown/store/boltdb
+github.com/blevesearch/bleve/v2/index/upsidedown/store/gtreap
+github.com/blevesearch/bleve/v2/mapping
+github.com/blevesearch/bleve/v2/numeric
+github.com/blevesearch/bleve/v2/registry
+github.com/blevesearch/bleve/v2/search
+github.com/blevesearch/bleve/v2/search/collector
+github.com/blevesearch/bleve/v2/search/facet
+github.com/blevesearch/bleve/v2/search/highlight
+github.com/blevesearch/bleve/v2/search/highlight/format/html
+github.com/blevesearch/bleve/v2/search/highlight/fragmenter/simple
+github.com/blevesearch/bleve/v2/search/highlight/highlighter/html
+github.com/blevesearch/bleve/v2/search/highlight/highlighter/simple
+github.com/blevesearch/bleve/v2/search/query
+github.com/blevesearch/bleve/v2/search/scorer
+github.com/blevesearch/bleve/v2/search/searcher
+github.com/blevesearch/bleve/v2/size
+# github.com/blevesearch/bleve_index_api v1.0.1
+github.com/blevesearch/bleve_index_api
 # github.com/blevesearch/go-porterstemmer v1.0.3
 github.com/blevesearch/go-porterstemmer
 # github.com/blevesearch/mmap-go v1.0.2
 github.com/blevesearch/mmap-go
+# github.com/blevesearch/scorch_segment_api/v2 v2.0.1
+github.com/blevesearch/scorch_segment_api/v2
 # github.com/blevesearch/segment v0.9.0
 github.com/blevesearch/segment
 # github.com/blevesearch/snowballstem v0.9.0
 github.com/blevesearch/snowballstem
 github.com/blevesearch/snowballstem/english
-# github.com/blevesearch/zap/v11 v11.0.14
-github.com/blevesearch/zap/v11
-# github.com/blevesearch/zap/v12 v12.0.14
-github.com/blevesearch/zap/v12
-# github.com/blevesearch/zap/v13 v13.0.6
-github.com/blevesearch/zap/v13
-# github.com/blevesearch/zap/v14 v14.0.5
-github.com/blevesearch/zap/v14
-# github.com/blevesearch/zap/v15 v15.0.3
-github.com/blevesearch/zap/v15
+# github.com/blevesearch/upsidedown_store_api v1.0.1
+github.com/blevesearch/upsidedown_store_api
+# github.com/blevesearch/vellum v1.0.5
+github.com/blevesearch/vellum
+github.com/blevesearch/vellum/levenshtein
+github.com/blevesearch/vellum/regexp
+github.com/blevesearch/vellum/utf8
+# github.com/blevesearch/zapx/v11 v11.2.2
+github.com/blevesearch/zapx/v11
+# github.com/blevesearch/zapx/v12 v12.2.2
+github.com/blevesearch/zapx/v12
+# github.com/blevesearch/zapx/v13 v13.2.2
+github.com/blevesearch/zapx/v13
+# github.com/blevesearch/zapx/v14 v14.2.2
+github.com/blevesearch/zapx/v14
+# github.com/blevesearch/zapx/v15 v15.2.2
+github.com/blevesearch/zapx/v15
 # github.com/cespare/xxhash/v2 v2.1.1
 ## explicit
 github.com/cespare/xxhash/v2
 # github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd
 ## explicit
-# github.com/corpix/uarand v0.1.1
-## explicit
-github.com/corpix/uarand
-# github.com/couchbase/vellum v1.0.2
-github.com/couchbase/vellum
-github.com/couchbase/vellum/levenshtein
-github.com/couchbase/vellum/regexp
-github.com/couchbase/vellum/utf8
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -318,9 +318,6 @@ github.com/hashicorp/memberlist
 # github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864
 ## explicit
 github.com/hashicorp/yamux
-# github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
-## explicit
-github.com/icrowley/fake
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
 # github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
@@ -396,8 +393,6 @@ github.com/mattermost/gziphandler
 # github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 ## explicit
 github.com/mattermost/ldap
-# github.com/mattermost/logr v1.0.13
-## explicit
 # github.com/mattermost/logr/v2 v2.0.10
 ## explicit
 github.com/mattermost/logr/v2
@@ -552,7 +547,6 @@ github.com/sean-/seed
 ## explicit
 github.com/segmentio/backo-go
 # github.com/sirupsen/logrus v1.8.1
-## explicit
 github.com/sirupsen/logrus
 # github.com/smartystreets/assertions v1.0.0
 ## explicit
@@ -688,11 +682,7 @@ github.com/vmihailenco/tagparser/v2/internal/parser
 ## explicit
 github.com/wiggin77/merror
 # github.com/wiggin77/srslog v1.0.1
-## explicit
 github.com/wiggin77/srslog
-# github.com/willf/bitset v1.1.11
-## explicit
-github.com/willf/bitset
 # github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 github.com/xi2/xz
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
@@ -727,10 +717,6 @@ go.opentelemetry.io/otel/metric/unit
 # go.uber.org/atomic v1.8.0
 ## explicit
 go.uber.org/atomic
-# go.uber.org/multierr v1.7.0
-## explicit
-# go.uber.org/zap v1.17.0
-## explicit
 # golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 ## explicit
 golang.org/x/crypto/acme
@@ -931,7 +917,6 @@ gopkg.in/ini.v1
 ## explicit
 gopkg.in/mail.v2
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
-## explicit
 gopkg.in/natefinch/lumberjack.v2
 # gopkg.in/olivere/elastic.v6 v6.2.35
 ## explicit
@@ -940,6 +925,7 @@ gopkg.in/olivere/elastic.v6
 ## explicit
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+## explicit
 gopkg.in/yaml.v3
 # willnorris.com/go/gifresize v1.0.0
 willnorris.com/go/gifresize
