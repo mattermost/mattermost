@@ -19,7 +19,7 @@ func (api *API) InitConfigLocal() {
 	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods("PUT")
 	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(localConfigReload)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(migrateConfig)).Methods("POST")
 }
 
@@ -139,19 +139,4 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(c.App.GetSanitizedConfig()); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
-}
-
-func localConfigReload(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localConfigReload", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
-	if err := c.App.ReloadConfig(); err != nil {
-		c.Err = model.NewAppError("localConfigReload", "api.config.reload_config.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	auditRec.Success()
-
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	ReturnStatusOK(w)
 }
