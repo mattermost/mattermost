@@ -124,8 +124,8 @@ func (j *JobOnce) run() {
 				return
 			}
 
-			// If key doesn't exist, the job has been completed already
-			if metadata == nil {
+			// If key doesn't exist, or if the runAt has changed, the original job has been completed already
+			if metadata == nil || !j.runAt.Equal(metadata.RunAt) {
 				j.cancelWhileHoldingMutex()
 				return
 			}

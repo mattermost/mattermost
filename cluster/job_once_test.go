@@ -1,11 +1,13 @@
 package cluster
 
 import (
+	"encoding/json"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -228,6 +230,20 @@ func TestScheduleOnceSequential(t *testing.T) {
 	getVal := func(key string) []byte {
 		data, _ := s.pluginAPI.KVGet(key)
 		return data
+	}
+	setMetadata := func(key string, metadata JobOnceMetadata) error {
+		data, err := json.Marshal(metadata)
+		if err != nil {
+			return err
+		}
+		ok, appErr := s.pluginAPI.KVSetWithOptions(oncePrefix+key, data, model.PluginKVSetOptions{})
+		if !ok {
+			return errors.New("KVSetWithOptions failed")
+		}
+		if appErr != nil {
+			return normalizeAppErr(appErr)
+		}
+		return nil
 	}
 
 	resetScheduler := func() {
@@ -530,5 +546,91 @@ func TestScheduleOnceSequential(t *testing.T) {
 		assert.Equal(t, int32(1), atomic.LoadInt32(count))
 		assert.Empty(t, getVal(oncePrefix+jobKey))
 		assert.Empty(t, s.activeJobs.jobs)
+	})
+
+	t.Run("simulate HA: canceling and setting a job with a different time--old one shouldn't fire", func(t *testing.T) {
+		resetScheduler()
+
+		key := makeKey()
+		jobKeys := make(map[string]*int32)
+		jobKeys[key] = new(int32)
+
+		// control is like the "control group" in an experiment. It will be overwritten,
+		// but with the same runAt. It should fire.
+		control := makeKey()
+		jobKeys[control] = new(int32)
+
+		callback := func(key string) {
+			count, ok := jobKeys[key]
+			if ok {
+				atomic.AddInt32(count, 1)
+			}
+		}
+		err := s.SetCallback(callback)
+		require.NoError(t, err)
+		err = s.Start()
+		require.NoError(t, err)
+
+		originalRunAt := time.Now().Add(100 * time.Millisecond)
+		newRunAt := time.Now().Add(101 * time.Millisecond)
+
+		// store original
+		job, err := newJobOnce(s.pluginAPI, key, originalRunAt, s.storedCallback, s.activeJobs)
+		require.NoError(t, err)
+		err = job.saveMetadata()
+		require.NoError(t, err)
+		assert.NotEmpty(t, getVal(oncePrefix+key))
+
+		// store oringal control
+		job2, err := newJobOnce(s.pluginAPI, control, originalRunAt, s.storedCallback, s.activeJobs)
+		require.NoError(t, err)
+		err = job2.saveMetadata()
+		require.NoError(t, err)
+		assert.NotEmpty(t, getVal(oncePrefix+control))
+
+		// double checking originals are in the db:
+		jobs, err := s.ListScheduledJobs()
+		require.NoError(t, err)
+		require.Len(t, jobs, 2)
+		require.True(t, originalRunAt.Equal(jobs[0].RunAt))
+		require.True(t, originalRunAt.Equal(jobs[1].RunAt))
+
+		// simulate starting the plugin
+		require.NoError(t, err)
+		err = s.scheduleNewJobsFromDB()
+		require.NoError(t, err)
+
+		// Now "cancel" the original and make a new job with the same key but a different time.
+		// However, because we have only one list of synced jobs, we can't make two jobs with the
+		// same key. So we'll simulate this by changing the job metadata in the db. When the original
+		// job fires, it should see that the runAt is different, and it will think it has been canceled.
+		err = setMetadata(key, JobOnceMetadata{
+			Key:   key,
+			RunAt: newRunAt,
+		})
+		require.NoError(t, err)
+
+		// overwrite the control with the same runAt. It should fire.
+		err = setMetadata(control, JobOnceMetadata{
+			Key:   control,
+			RunAt: originalRunAt,
+		})
+		require.NoError(t, err)
+
+		time.Sleep(120*time.Millisecond + scheduleOnceJitter)
+
+		// original job didn't fire the callback:
+		assert.Empty(t, getVal(oncePrefix+key))
+		assert.Empty(t, s.activeJobs.jobs[key])
+		assert.Equal(t, int32(0), *jobKeys[key])
+
+		// control job did fire the callback:
+		assert.Empty(t, getVal(oncePrefix+control))
+		assert.Empty(t, s.activeJobs.jobs[control])
+		assert.Equal(t, int32(1), *jobKeys[control])
+
+		jobs, err = s.ListScheduledJobs()
+		require.NoError(t, err)
+		require.Empty(t, jobs)
 	})
 }
