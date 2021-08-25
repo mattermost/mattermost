@@ -361,18 +361,19 @@ func ParamsFromRequest(r *http.Request) *Params {
 // getPerPageFromQuery returns the PerPage value from the given query.
 // This function should be removed and the support for `pageSize`
 // should be dropped after v1.46 of the mobile app is no longer supported
+// https://mattermost.atlassian.net/browse/MM-38131
 func getPerPageFromQuery(query url.Values) int {
 	val, err := strconv.Atoi(query.Get("per_page"))
 	if err != nil {
 		val, err = strconv.Atoi(query.Get("pageSize"))
-		if err != nil || val < 0 {
-			return PerPageDefault
-		} else if val > PerPageMaximum {
-			return PerPageMaximum
-		}
-		return val
+		// if err != nil || val < 0 {
+		// 	return PerPageDefault
+		// } else if val > PerPageMaximum {
+		// 	return PerPageMaximum
+		// }
+		// return val
 	}
-	if val < 0 {
+	if err != nil || val < 0 {
 		return PerPageDefault
 	} else if val > PerPageMaximum {
 		return PerPageMaximum
