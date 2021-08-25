@@ -7,11 +7,11 @@ import (
 	"context"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type RemoveProvider struct {
@@ -71,36 +71,36 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_remove.channel.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
 	switch channel.Type {
-	case model.CHANNEL_OPEN:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+	case model.ChannelTypeOpen:
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePublicChannelMembers) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
-	case model.CHANNEL_PRIVATE:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+	case model.ChannelTypePrivate:
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePrivateChannelMembers) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	default:
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.direct_group.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.message.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -114,13 +114,13 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 		mlog.Error(nErr.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 	if userProfile.DeleteAt != 0 {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -131,7 +131,7 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 			Text: args.T("api.command_remove.user_not_in_channel", map[string]interface{}{
 				"Username": userProfile.GetDisplayName(nameFormat),
 			}),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -141,12 +141,12 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 			text = args.T("api.command_remove.group_constrained_user_denied")
 		} else {
 			text = args.T(err.Id, map[string]interface{}{
-				"Channel": model.DEFAULT_CHANNEL,
+				"Channel": model.DefaultChannelName,
 			})
 		}
 		return &model.CommandResponse{
 			Text:         text,
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 

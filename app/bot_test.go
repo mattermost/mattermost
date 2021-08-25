@@ -5,17 +5,13 @@ package app
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -87,7 +83,7 @@ func TestCreateBot(t *testing.T) {
 
 		postArray := posts.ToSlice()
 		assert.Len(t, postArray, 1)
-		assert.Equal(t, postArray[0].Type, model.POST_ADD_BOT_TEAMS_CHANNELS)
+		assert.Equal(t, postArray[0].Type, model.PostTypeAddBotTeamsChannels)
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
@@ -595,20 +591,20 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin1",
 		Password: "hello1",
 		Username: "un_sysadmin1",
-		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(sysadmin1.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.App.UpdateUserRoles(sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
 		Nickname: "nn_sysadmin2",
 		Password: "hello1",
 		Username: "un_sysadmin2",
-		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(sysadmin2.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.App.UpdateUserRoles(sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	// create user to be disabled
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -753,168 +749,6 @@ func TestConvertUserToBot(t *testing.T) {
 	})
 }
 
-func TestSetBotIconImage(t *testing.T) {
-	t.Run("invalid bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		path, _ := fileutils.FindDir("tests")
-		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
-		require.NoError(t, fileErr)
-		defer svgFile.Close()
-
-		err := th.App.SetBotIconImage("invalid_bot_id", svgFile)
-		require.NotNil(t, err)
-	})
-
-	t.Run("valid bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		// Set an icon image
-		path, _ := fileutils.FindDir("tests")
-		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
-		require.NoError(t, fileErr)
-		defer svgFile.Close()
-
-		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.NoError(t, fileErr)
-		require.NotNil(t, expectedData)
-
-		bot, err := th.App.ConvertUserToBot(&model.User{
-			Username: "username",
-			Id:       th.BasicUser.Id,
-		})
-		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
-
-		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-		exists, err := th.App.FileExists(fpath)
-		require.Nil(t, err)
-		require.False(t, exists, "icon.svg shouldn't exist for the bot")
-
-		svgFile.Seek(0, 0)
-		err = th.App.SetBotIconImage(bot.UserId, svgFile)
-		require.Nil(t, err)
-
-		exists, err = th.App.FileExists(fpath)
-		require.Nil(t, err)
-		require.True(t, exists, "icon.svg should exist for the bot")
-
-		actualData, err := th.App.ReadFile(fpath)
-		require.Nil(t, err)
-		require.NotNil(t, actualData)
-
-		require.Equal(t, expectedData, actualData)
-	})
-}
-
-func TestGetBotIconImage(t *testing.T) {
-	t.Run("invalid bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		actualData, err := th.App.GetBotIconImage("invalid_bot_id")
-		require.NotNil(t, err)
-		require.Nil(t, actualData)
-	})
-
-	t.Run("valid bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		// Set an icon image
-		path, _ := fileutils.FindDir("tests")
-		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
-		require.NoError(t, fileErr)
-		defer svgFile.Close()
-
-		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.NoError(t, fileErr)
-		require.NotNil(t, expectedData)
-
-		bot, err := th.App.ConvertUserToBot(&model.User{
-			Username: "username",
-			Id:       th.BasicUser.Id,
-		})
-		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
-
-		svgFile.Seek(0, 0)
-		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-		_, err = th.App.WriteFile(svgFile, fpath)
-		require.Nil(t, err)
-
-		actualBytes, err := th.App.GetBotIconImage(bot.UserId)
-		require.Nil(t, err)
-		require.NotNil(t, actualBytes)
-
-		actualData, err := th.App.ReadFile(fpath)
-		require.Nil(t, err)
-		require.NotNil(t, actualData)
-
-		require.Equal(t, expectedData, actualData)
-	})
-}
-
-func TestDeleteBotIconImage(t *testing.T) {
-	t.Run("invalid bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		err := th.App.DeleteBotIconImage("invalid_bot_id")
-		require.NotNil(t, err)
-	})
-
-	t.Run("valid bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		// Set an icon image
-		path, _ := fileutils.FindDir("tests")
-		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
-		require.NoError(t, fileErr)
-		defer svgFile.Close()
-
-		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.NoError(t, fileErr)
-		require.NotNil(t, expectedData)
-
-		bot, err := th.App.ConvertUserToBot(&model.User{
-			Username: "username",
-			Id:       th.BasicUser.Id,
-		})
-		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
-
-		// Set icon
-		svgFile.Seek(0, 0)
-		err = th.App.SetBotIconImage(bot.UserId, svgFile)
-		require.Nil(t, err)
-
-		// Get icon
-		actualData, err := th.App.GetBotIconImage(bot.UserId)
-		require.Nil(t, err)
-		require.NotNil(t, actualData)
-		require.Equal(t, expectedData, actualData)
-
-		// Bot icon should exist
-		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-		exists, err := th.App.FileExists(fpath)
-		require.Nil(t, err)
-		require.True(t, exists, "icon.svg should exist for the bot")
-
-		// Delete icon
-		err = th.App.DeleteBotIconImage(bot.UserId)
-		require.Nil(t, err)
-
-		// Bot icon should not exist
-		exists, err = th.App.FileExists(fpath)
-		require.Nil(t, err)
-		require.False(t, exists, "icon.svg should be deleted for the bot")
-	})
-}
-
 func TestGetSystemBot(t *testing.T) {
 	t.Run("An error should be returned if there are no sysadmins in the instance", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -932,23 +766,23 @@ func TestGetSystemBot(t *testing.T) {
 
 	t.Run("The bot should be created the first time it's retrieved", func(t *testing.T) {
 		// assert no bot with username exists
-		_, err := th.App.GetUserByUsername(model.BOT_SYSTEM_BOT_USERNAME)
+		_, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.NotNil(t, err)
 
 		bot, err := th.App.GetSystemBot()
 		require.Nil(t, err)
-		require.Equal(t, bot.Username, model.BOT_SYSTEM_BOT_USERNAME)
+		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 	})
 
 	t.Run("The bot should be correctly retrieved if it exists already", func(t *testing.T) {
 		// assert that the bot is now present
-		botUser, err := th.App.GetUserByUsername(model.BOT_SYSTEM_BOT_USERNAME)
+		botUser, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.Nil(t, err)
 		require.True(t, botUser.IsBot)
 
 		bot, err := th.App.GetSystemBot()
 		require.Nil(t, err)
-		require.Equal(t, bot.Username, model.BOT_SYSTEM_BOT_USERNAME)
+		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
 }

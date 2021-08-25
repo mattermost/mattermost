@@ -23,8 +23,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const mattermostBuildPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -69,7 +69,7 @@ func (wc *writeCounter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
-func getCurrentVersionTgzUrl() string {
+func getCurrentVersionTgzURL() string {
 	version := model.CurrentVersion
 	if strings.HasPrefix(model.BuildNumber, version+"-rc") {
 		version = model.BuildNumber
@@ -184,24 +184,24 @@ func UpgradeToE0() error {
 		return err
 	}
 
-	filename, err := download(getCurrentVersionTgzUrl(), 1024*1024*300)
+	filename, err := download(getCurrentVersionTgzURL(), 1024*1024*300)
 	if err != nil {
 		if filename != "" {
 			os.Remove(filename)
 		}
 		upgradeError = fmt.Errorf("error downloading the new Mattermost server binary file (percentage: %d)", upgradePercentage)
-		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzUrl()), mlog.Err(err))
+		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzURL()), mlog.Err(err))
 		upgradePercentage = 0
 		return err
 	}
 	defer os.Remove(filename)
-	sigfilename, err := download(getCurrentVersionTgzUrl()+".sig", 1024)
+	sigfilename, err := download(getCurrentVersionTgzURL()+".sig", 1024)
 	if err != nil {
 		if sigfilename != "" {
 			os.Remove(sigfilename)
 		}
 		upgradeError = errors.New("error downloading the signature file of the new server")
-		mlog.Error("Unable to download the signature file of the new Mattermost server", mlog.String("url", getCurrentVersionTgzUrl()+".sig"), mlog.Err(err))
+		mlog.Error("Unable to download the signature file of the new Mattermost server", mlog.String("url", getCurrentVersionTgzURL()+".sig"), mlog.Err(err))
 		upgradePercentage = 0
 		return err
 	}

@@ -17,11 +17,11 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type slackChannel struct {
@@ -31,7 +31,7 @@ type slackChannel struct {
 	Members []string        `json:"members"`
 	Purpose slackChannelSub `json:"purpose"`
 	Topic   slackChannelSub `json:"topic"`
-	Type    string
+	Type    model.ChannelType
 }
 
 type slackChannelSub struct {
@@ -143,16 +143,16 @@ func (si *SlackImporter) SlackImport(fileData multipart.File, fileSize int64, te
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
 		}
 		if file.Name == "channels.json" {
-			publicChannels, _ = slackParseChannels(reader, model.CHANNEL_OPEN)
+			publicChannels, _ = slackParseChannels(reader, model.ChannelTypeOpen)
 			channels = append(channels, publicChannels...)
 		} else if file.Name == "dms.json" {
-			directChannels, _ = slackParseChannels(reader, model.CHANNEL_DIRECT)
+			directChannels, _ = slackParseChannels(reader, model.ChannelTypeDirect)
 			channels = append(channels, directChannels...)
 		} else if file.Name == "groups.json" {
-			privateChannels, _ = slackParseChannels(reader, model.CHANNEL_PRIVATE)
+			privateChannels, _ = slackParseChannels(reader, model.ChannelTypePrivate)
 			channels = append(channels, privateChannels...)
 		} else if file.Name == "mpims.json" {
-			groupChannels, _ = slackParseChannels(reader, model.CHANNEL_GROUP)
+			groupChannels, _ = slackParseChannels(reader, model.ChannelTypeGroup)
 			channels = append(channels, groupChannels...)
 		} else if file.Name == "users.json" {
 			users, _ = slackParseUsers(reader)
@@ -330,7 +330,6 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 			// If post in thread
 			if sPost.ThreadTS != "" && sPost.ThreadTS != sPost.TimeStamp {
 				newPost.RootId = threads[sPost.ThreadTS]
-				newPost.ParentId = threads[sPost.ThreadTS]
 			}
 			postId := si.oldImportPost(&newPost)
 			// If post is thread starter
@@ -378,7 +377,7 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 				ChannelId: channel.Id,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
 				Message:   sPost.Text,
-				Type:      model.POST_SLACK_ATTACHMENT,
+				Type:      model.PostTypeSlackAttachment,
 			}
 
 			postId := si.oldImportIncomingWebhookPost(post, props)
@@ -398,9 +397,9 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 
 			var postType string
 			if sPost.SubType == "channel_join" {
-				postType = model.POST_JOIN_CHANNEL
+				postType = model.PostTypeJoinChannel
 			} else {
-				postType = model.POST_LEAVE_CHANNEL
+				postType = model.PostTypeLeaveChannel
 			}
 
 			newPost := model.Post{
@@ -448,7 +447,7 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 				ChannelId: channel.Id,
 				Message:   sPost.Text,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
-				Type:      model.POST_HEADER_CHANGE,
+				Type:      model.PostTypeHeaderChange,
 			}
 			si.oldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_purpose":
@@ -465,7 +464,7 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 				ChannelId: channel.Id,
 				Message:   sPost.Text,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
-				Type:      model.POST_PURPOSE_CHANGE,
+				Type:      model.PostTypePurposeChange,
 			}
 			si.oldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_name":
@@ -482,7 +481,7 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 				ChannelId: channel.Id,
 				Message:   sPost.Text,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
-				Type:      model.POST_DISPLAYNAME_CHANGE,
+				Type:      model.PostTypeDisplaynameChange,
 			}
 			si.oldImportPost(&newPost)
 		default:
@@ -542,24 +541,24 @@ func (si *SlackImporter) addSlackUsersToChannel(members []string, users map[stri
 }
 
 func slackSanitiseChannelProperties(channel model.Channel) model.Channel {
-	if utf8.RuneCountInString(channel.DisplayName) > model.CHANNEL_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(channel.DisplayName) > model.ChannelDisplayNameMaxRunes {
 		mlog.Warn("Slack Import: Channel display name exceeds the maximum length. It will be truncated when imported.", mlog.String("channel_display_name", channel.DisplayName))
-		channel.DisplayName = truncateRunes(channel.DisplayName, model.CHANNEL_DISPLAY_NAME_MAX_RUNES)
+		channel.DisplayName = truncateRunes(channel.DisplayName, model.ChannelDisplayNameMaxRunes)
 	}
 
-	if len(channel.Name) > model.CHANNEL_NAME_MAX_LENGTH {
+	if len(channel.Name) > model.ChannelNameMaxLength {
 		mlog.Warn("Slack Import: Channel handle exceeds the maximum length. It will be truncated when imported.", mlog.String("channel_display_name", channel.DisplayName))
-		channel.Name = channel.Name[0:model.CHANNEL_NAME_MAX_LENGTH]
+		channel.Name = channel.Name[0:model.ChannelNameMaxLength]
 	}
 
-	if utf8.RuneCountInString(channel.Purpose) > model.CHANNEL_PURPOSE_MAX_RUNES {
+	if utf8.RuneCountInString(channel.Purpose) > model.ChannelPurposeMaxRunes {
 		mlog.Warn("Slack Import: Channel purpose exceeds the maximum length. It will be truncated when imported.", mlog.String("channel_display_name", channel.DisplayName))
-		channel.Purpose = truncateRunes(channel.Purpose, model.CHANNEL_PURPOSE_MAX_RUNES)
+		channel.Purpose = truncateRunes(channel.Purpose, model.ChannelPurposeMaxRunes)
 	}
 
-	if utf8.RuneCountInString(channel.Header) > model.CHANNEL_HEADER_MAX_RUNES {
+	if utf8.RuneCountInString(channel.Header) > model.ChannelHeaderMaxRunes {
 		mlog.Warn("Slack Import: Channel header exceeds the maximum length. It will be truncated when imported.", mlog.String("channel_display_name", channel.DisplayName))
-		channel.Header = truncateRunes(channel.Header, model.CHANNEL_HEADER_MAX_RUNES)
+		channel.Header = truncateRunes(channel.Header, model.ChannelHeaderMaxRunes)
 	}
 
 	return channel
@@ -582,7 +581,7 @@ func (si *SlackImporter) slackAddChannels(teamId string, slackchannels []slackCh
 		}
 
 		// Direct message channels in Slack don't have a name so we set the id as name or else the messages won't get imported.
-		if newChannel.Type == model.CHANNEL_DIRECT {
+		if newChannel.Type == model.ChannelTypeDirect {
 			sChannel.Name = sChannel.Id
 		}
 
@@ -610,7 +609,7 @@ func (si *SlackImporter) slackAddChannels(teamId string, slackchannels []slackCh
 		}
 
 		// Members for direct and group channels are added during the creation of the channel in the oldImportChannel function
-		if sChannel.Type == model.CHANNEL_OPEN || sChannel.Type == model.CHANNEL_PRIVATE {
+		if sChannel.Type == model.ChannelTypeOpen || sChannel.Type == model.ChannelTypePrivate {
 			si.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
 		}
 		importerLog.WriteString(newChannel.DisplayName + "\r\n")
@@ -631,8 +630,8 @@ func (si *SlackImporter) oldImportPost(post *model.Post) string {
 	// Workaround for empty messages, which may be the case if they are webhook posts.
 	firstIteration := true
 	firstPostId := ""
-	if post.ParentId != "" {
-		firstPostId = post.ParentId
+	if post.RootId != "" {
+		firstPostId = post.RootId
 	}
 	maxPostSize := si.actions.MaxPostSize()
 	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0 || firstIteration; messageRuneCount = utf8.RuneCountInString(post.Message) {
@@ -647,7 +646,6 @@ func (si *SlackImporter) oldImportPost(post *model.Post) string {
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 		post.RootId = firstPostId
-		post.ParentId = firstPostId
 
 		_, err := si.store.Post().Save(post)
 		if err != nil {
@@ -683,7 +681,7 @@ func (si *SlackImporter) oldImportPost(post *model.Post) string {
 func (si *SlackImporter) oldImportUser(team *model.Team, user *model.User) *model.User {
 	user.MakeNonNil()
 
-	user.Roles = model.SYSTEM_USER_ROLE_ID
+	user.Roles = model.SystemUserRoleId
 
 	ruser, nErr := si.store.User().Save(user)
 	if nErr != nil {
@@ -704,7 +702,7 @@ func (si *SlackImporter) oldImportUser(team *model.Team, user *model.User) *mode
 
 func (si *SlackImporter) oldImportChannel(channel *model.Channel, sChannel slackChannel, users map[string]*model.User) *model.Channel {
 	switch {
-	case channel.Type == model.CHANNEL_DIRECT:
+	case channel.Type == model.ChannelTypeDirect:
 		if len(sChannel.Members) < 2 {
 			return nil
 		}
@@ -721,7 +719,7 @@ func (si *SlackImporter) oldImportChannel(channel *model.Channel, sChannel slack
 
 		return sc
 	// check if direct channel has less than 8 members and if not import as private channel instead
-	case channel.Type == model.CHANNEL_GROUP && len(sChannel.Members) < 8:
+	case channel.Type == model.ChannelTypeGroup && len(sChannel.Members) < 8:
 		members := make([]string, len(sChannel.Members))
 
 		for i := range sChannel.Members {
@@ -743,8 +741,8 @@ func (si *SlackImporter) oldImportChannel(channel *model.Channel, sChannel slack
 		}
 
 		return sc
-	case channel.Type == model.CHANNEL_GROUP:
-		channel.Type = model.CHANNEL_PRIVATE
+	case channel.Type == model.ChannelTypeGroup:
+		channel.Type = model.ChannelTypePrivate
 		sc, err := si.actions.CreateChannel(channel, false)
 		if err != nil {
 			return nil
@@ -791,7 +789,7 @@ func (si *SlackImporter) oldImportIncomingWebhookPost(post *model.Post, props mo
 	post.AddProp("from_webhook", "true")
 
 	if _, ok := props["override_username"]; !ok {
-		post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
+		post.AddProp("override_username", model.DefaultWebhookUsername)
 	}
 
 	if len(props) > 0 {

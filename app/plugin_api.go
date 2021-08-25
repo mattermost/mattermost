@@ -15,17 +15,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type PluginAPI struct {
 	id       string
 	app      *App
 	ctx      *request.Context
-	logger   *mlog.SugarLogger
+	logger   mlog.Sugar
 	manifest *model.Manifest
 }
 
@@ -35,7 +35,7 @@ func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginA
 		manifest: manifest,
 		ctx:      c,
 		app:      a,
-		logger:   a.Log().With(mlog.String("plugin_id", manifest.Id)).Sugar(),
+		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
 }
 
@@ -183,7 +183,7 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 }
 
 func (api *PluginAPI) GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError) {
-	return api.app.GetTeamsUnreadForUser("", userID)
+	return api.app.GetTeamsUnreadForUser("", userID, false)
 }
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -284,6 +284,19 @@ func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []mode
 	return api.app.DeletePreferences(userID, preferences)
 }
 
+func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	return api.app.CreateUserAccessToken(token)
+}
+
+func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
+	accessToken, err := api.app.GetUserAccessToken(tokenID, false)
+	if err != nil {
+		return err
+	}
+
+	return api.app.RevokeUserAccessToken(accessToken)
+}
+
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(user, true)
 }
@@ -302,13 +315,13 @@ func (api *PluginAPI) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *
 
 func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *model.AppError) {
 	switch status {
-	case model.STATUS_ONLINE:
+	case model.StatusOnline:
 		api.app.SetStatusOnline(userID, true)
-	case model.STATUS_OFFLINE:
+	case model.StatusOffline:
 		api.app.SetStatusOffline(userID, true)
-	case model.STATUS_AWAY:
+	case model.StatusAway:
 		api.app.SetStatusAwayIfNeeded(userID, true)
-	case model.STATUS_DND:
+	case model.StatusDnd:
 		api.app.SetStatusDoNotDisturb(userID)
 	default:
 		return nil, model.NewAppError("UpdateUserStatus", "plugin.api.update_user_status.bad_status", nil, "unrecognized status", http.StatusBadRequest)
@@ -327,13 +340,13 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
-	case model.CHANNEL_SORT_BY_USERNAME:
+	case model.ChannelSortByUsername:
 		return api.app.GetUsersInChannel(&model.UserGetOptions{
 			InChannelId: channelID,
 			Page:        page,
 			PerPage:     perPage,
 		})
-	case model.CHANNEL_SORT_BY_STATUS:
+	case model.ChannelSortByStatus:
 		return api.app.GetUsersInChannelByStatus(&model.UserGetOptions{
 			InChannelId: channelID,
 			Page:        page,
@@ -359,8 +372,8 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 	}
 
 	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
-	if user.AuthService == model.USER_AUTH_SERVICE_LDAP ||
-		(user.AuthService == model.USER_AUTH_SERVICE_SAML && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
+	if user.AuthService == model.UserAuthServiceLdap ||
+		(user.AuthService == model.UserAuthServiceSaml && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
 		return api.app.Ldap().GetUserAttributes(*user.AuthData, attributes)
 	}
 
@@ -384,7 +397,7 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 	if err != nil {
 		return nil, err
 	}
-	return *channels, err
+	return channels, err
 }
 
 func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
@@ -404,7 +417,7 @@ func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDe
 	if err != nil {
 		return nil, err
 	}
-	return *channels, err
+	return channels, err
 }
 
 func (api *PluginAPI) GetChannelStats(channelID string) (*model.ChannelStats, *model.AppError) {
@@ -436,7 +449,7 @@ func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Chann
 	if err != nil {
 		return nil, err
 	}
-	return *channels, err
+	return channels, err
 }
 
 func (api *PluginAPI) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
@@ -530,11 +543,11 @@ func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.Channel
 	return api.app.GetChannelMember(context.Background(), channelID, userID)
 }
 
-func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	return api.app.GetChannelMembersPage(channelID, page, perPage)
 }
 
-func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string) (*model.ChannelMembers, *model.AppError) {
+func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string) (model.ChannelMembers, *model.AppError) {
 	return api.app.GetChannelMembersByIds(channelID, userIDs)
 }
 
@@ -648,8 +661,7 @@ func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppError {
-	_, err := api.app.GetUser(userID)
-	if err != nil {
+	if _, err := api.app.GetUser(userID); err != nil {
 		return err
 	}
 
@@ -767,7 +779,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	if err := api.app.Srv().EmailService.sendNotificationMail(to, subject, htmlBody); err != nil {
+	if err := api.app.Srv().EmailService.SendNotificationMail(to, subject, htmlBody); err != nil {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -927,30 +939,6 @@ func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 	return api.app.PermanentDeleteBot(userID)
 }
 
-func (api *PluginAPI) GetBotIconImage(userID string) ([]byte, *model.AppError) {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return nil, err
-	}
-
-	return api.app.GetBotIconImage(userID)
-}
-
-func (api *PluginAPI) SetBotIconImage(userID string, data []byte) *model.AppError {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return err
-	}
-
-	return api.app.SetBotIconImage(userID, bytes.NewReader(data))
-}
-
-func (api *PluginAPI) DeleteBotIconImage(userID string) *model.AppError {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return err
-	}
-
-	return api.app.DeleteBotIconImage(userID)
-}
-
 func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
 	return api.app.PublishUserTyping(userID, channelID, parentId)
 }
@@ -1089,6 +1077,27 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 	return nil
 }
 
+func (api *PluginAPI) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	return api.app.CreateOAuthApp(app)
+}
+
+func (api *PluginAPI) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
+	return api.app.GetOAuthApp(appID)
+}
+
+func (api *PluginAPI) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	oldApp, err := api.GetOAuthApp(app.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.app.UpdateOAuthApp(oldApp, app)
+}
+
+func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
+	return api.app.DeleteOAuthApp(appID)
+}
+
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
 // the calling plugin.
 func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
@@ -1098,14 +1107,14 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	}
 
 	msg := &model.ClusterMessage{
-		Event:            model.CLUSTER_EVENT_PLUGIN_EVENT,
+		Event:            model.ClusterEventPluginEvent,
 		SendType:         opts.SendType,
 		WaitForAllToSend: false,
 		Props: map[string]string{
 			"PluginID": api.id,
 			"EventID":  ev.Id,
 		},
-		Data: string(ev.Data),
+		Data: ev.Data,
 	}
 
 	// If TargetId is empty we broadcast to all other cluster nodes.
@@ -1141,7 +1150,7 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              api.app.TelemetryId(),
-		Name:                  requester.GetDisplayName(model.SHOW_FULLNAME),
+		Name:                  requester.GetDisplayName(model.ShowFullName),
 		Email:                 requester.Email,
 		SiteName:              *api.app.Config().TeamSettings.SiteName,
 		SiteURL:               *api.app.Config().ServiceSettings.SiteURL,

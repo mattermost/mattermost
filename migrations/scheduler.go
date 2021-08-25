@@ -6,9 +6,9 @@ package migrations
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -29,7 +29,7 @@ func (scheduler *Scheduler) Name() string {
 }
 
 func (scheduler *Scheduler) JobType() string {
-	return model.JOB_TYPE_MIGRATIONS
+	return model.JobTypeMigrations
 }
 
 func (scheduler *Scheduler) Enabled(_ *model.Config) bool {
@@ -95,15 +95,15 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job) (*model.Job, *model.AppError) {
 	var lastDone string
 	if lastJob != nil {
-		lastDone = lastJob.Data[JobDataKeyMigration_LAST_DONE]
+		lastDone = lastJob.Data[JobDataKeyMigrationLastDone]
 	}
 
 	data := map[string]string{
-		JobDataKeyMigration:           migrationKey,
-		JobDataKeyMigration_LAST_DONE: lastDone,
+		JobDataKeyMigration:         migrationKey,
+		JobDataKeyMigrationLastDone: lastDone,
 	}
 
-	job, err := scheduler.srv.Jobs.CreateJob(model.JOB_TYPE_MIGRATIONS, data)
+	job, err := scheduler.srv.Jobs.CreateJob(model.JobTypeMigrations, data)
 	if err != nil {
 		return nil, err
 	}

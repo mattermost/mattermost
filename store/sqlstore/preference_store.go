@@ -6,9 +6,9 @@ package sqlstore
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/pkg/errors"
 )
 
@@ -39,7 +39,7 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	mlog.Debug("Deleting any unused pre-release features")
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
-		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS}).
+		Where(sq.Eq{"Category": model.PreferenceCategoryAdvancedSettings}).
 		Where(sq.Eq{"Value": "false"}).
 		Where(sq.Like{"Name": store.FeatureTogglePrefix + "%"}).ToSql()
 	if err != nil {
@@ -50,7 +50,7 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	}
 }
 
-func (s SqlPreferenceStore) Save(preferences *model.Preferences) error {
+func (s SqlPreferenceStore) Save(preferences model.Preferences) error {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -58,7 +58,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) error {
 	}
 
 	defer finalizeTransaction(transaction)
-	for _, preference := range *preferences {
+	for _, preference := range preferences {
 		preference := preference
 		if upsertErr := s.save(transaction, &preference); upsertErr != nil {
 			return upsertErr
@@ -84,9 +84,9 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		Columns("UserId", "Category", "Name", "Value").
 		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
 
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
 	} else {
 		return store.NewErrNotImplemented("failed to update preference because of missing driver")
@@ -237,7 +237,7 @@ func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err e
 			LIMIT :Limit
 		) AS A
 	)`
-	props := map[string]interface{}{"Limit": limit, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}
+	props := map[string]interface{}{"Limit": limit, "Category": model.PreferenceCategoryFlaggedPost}
 	result, err := s.GetMaster().Exec(query, props)
 	if err != nil {
 		return
@@ -257,7 +257,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 			sq.Select("Preferences.Name").
 				From("Preferences").
 				LeftJoin("Posts ON Preferences.Name = Posts.Id").
-				Where(sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+				Where(sq.Eq{"Preferences.Category": model.PreferenceCategoryFlaggedPost}).
 				Where(sq.Eq{"Posts.Id": nil}).
 				Limit(uint64(limit)),
 			"t").
@@ -266,7 +266,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		return int64(0), errors.Wrap(err, "could not build nested sql query to delete preference")
 	}
 	query, args, err := s.getQueryBuilder().Delete("Preferences").
-		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+		Where(sq.Eq{"Category": model.PreferenceCategoryFlaggedPost}).
 		Where(sq.Expr("name IN ("+nameInQ+")", nameInArgs...)).
 		ToSql()
 

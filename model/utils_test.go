@@ -338,13 +338,13 @@ func TestIsValidAlphaNum(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actual := IsValidAlphaNum(tc.Input)
+		actual := isValidAlphaNum(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }
 
-func TestGetServerIpAddress(t *testing.T) {
-	require.NotEmpty(t, GetServerIpAddress(""), "Should find local ip address")
+func TestGetServerIPAddress(t *testing.T) {
+	require.NotEmpty(t, GetServerIPAddress(""), "Should find local ip address")
 }
 
 func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
@@ -855,7 +855,7 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
-func TestIsValidHttpUrl(t *testing.T) {
+func TestIsValidHTTPURL(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -940,12 +940,12 @@ func TestIsValidHttpUrl(t *testing.T) {
 			}()
 
 			t.Parallel()
-			require.Equal(t, testCase.Expected, IsValidHttpUrl(testCase.Value))
+			require.Equal(t, testCase.Expected, IsValidHTTPURL(testCase.Value))
 		})
 	}
 }
 
-func TestUniqueStrings(t *testing.T) {
+func TestRemoveDuplicateStrings(t *testing.T) {
 	cases := []struct {
 		Input  []string
 		Result []string
@@ -973,7 +973,7 @@ func TestUniqueStrings(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actual := UniqueStrings(tc.Input)
+		actual := RemoveDuplicateStrings(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }

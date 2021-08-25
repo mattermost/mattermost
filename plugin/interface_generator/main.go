@@ -373,8 +373,8 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type apiTimerLayer struct {
@@ -386,7 +386,7 @@ type apiTimerLayer struct {
 func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, success bool) {
 	if api.metrics != nil {
 		elapsedTime := float64(timePkg.Since(startTime)) / float64(timePkg.Second)
-		api.metrics.ObservePluginApiDuration(api.pluginID, name, success, elapsedTime)
+		api.metrics.ObservePluginAPIDuration(api.pluginID, name, success, elapsedTime)
 	}
 }
 
@@ -415,8 +415,8 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type hooksTimerLayer struct {
@@ -563,7 +563,7 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 }
 
 func getPluginPackageDir() string {
-	dirs, err := goList("github.com/mattermost/mattermost-server/v5/plugin")
+	dirs, err := goList("github.com/mattermost/mattermost-server/v6/plugin")
 	if err != nil {
 		panic(err)
 	} else if len(dirs) != 1 {

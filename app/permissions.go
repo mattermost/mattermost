@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const permissionsExportBatchSize = 100
@@ -56,7 +56,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	}
 
 	// Remove the "System" table entry that marks the advanced permissions migration as done.
-	if _, err := a.Srv().Store.System().PermanentDeleteByName(model.ADVANCED_PERMISSIONS_MIGRATION_KEY); err != nil {
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(model.AdvancedPermissionsMigrationKey); err != nil {
 		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

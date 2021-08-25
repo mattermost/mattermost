@@ -148,14 +148,6 @@
     "translation": "Ten kanał został przekonwertowany do kanału prywatnego."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Ten kanał domyślny nie może zostać przekonwertowany do kanału prywatnego."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Kanał, którego żądasz do przekonwertowania jest już kanałem prywatnym."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Do tworzenia kanału wiadomości bezpośrednich należy użyć usługi API createDirectChannel"
   },
@@ -1320,10 +1312,6 @@
     "translation": "Nieprawidłowy ChannelId dla parametru RootId"
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Nieprawidłowy parametr ParentId"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Nieprawidłowy parametr RootId"
   },
@@ -2184,24 +2172,8 @@
     "translation": "Nie udało się wysłać e-maila z dezaktywacją konta"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila z powiadomieniem o zmianie adresu email"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila z powiadomieniem o zmianie nazwy użytkownika"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Nie udało się pomyślnie wysłać emaila z weryfikacją zmiany adresu email"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Nie można wysłać powiadomienia e-mail o zmianie MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila ze zmianą hasła"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2216,16 +2188,8 @@
     "translation": "Nie udało się pomyślnie wysłać emaila ze zmianą hasła"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Nie udało się wysłać maila \"Osobisty token dostępu został dodany\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Nie udało się pomyślnie wysłać emaila weryfikacyjnego"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila powitalnego"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3048,10 +3012,6 @@
     "translation": "Nie można zapisać pliku obrazu do magazynu plików. Proszę sprawdź swoje połączenie i spróbuj ponownie."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Funkcja wymaga aktualizacji do wersji Enterprise Edition i dołączenia klucza licencyjnego. Skontaktuj się z Administratorem Systemu."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Nie można pobrać użytkowników."
   },
@@ -3748,10 +3708,6 @@
     "translation": "Nieprawidłowa komenda identyfikatora"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Nieprawidłowe id rodzica"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Nieprawidłowy root id"
   },
@@ -4436,20 +4392,12 @@
     "translation": "Nieprawidłowe id oryginału"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Nieprawidłowe id rodzica"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Nieprawidłowa wartość"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Nieprawidłowy root id"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Nieprawidłowe root ID, musi być ustawione jeśli parent ID jest ustawione"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5160,10 +5108,6 @@
     "translation": "Nie można utworzyć pliku eml."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Failed to close user index."
   },
@@ -5780,10 +5724,6 @@
     "translation": "Podczas pobierania wtyczki wystąpił błąd."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Wystąpił błąd podczas otwierania pliku klucza publicznego."
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Nie udało się wysłać e-maila z dezaktywacją konta"
   },
@@ -5904,38 +5844,6 @@
     "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub aplikacji Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony. Plik jest zbyt duży."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nie udało się przetworzyć wieloczęściowego formularza"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Nie można otworzyć pliku obrazu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Brak pliku w polu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Pusta tablica w kluczu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Nie można odczytać obrazu ikony"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nie można usunąć obrazu ikony"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Tworzenie botów zostało wyłączone."
   },
@@ -5994,10 +5902,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6212,10 +6116,6 @@
     "translation": "Nie udało się pobrać użytkowników na kanale w określonym przedziale czasowym"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Nie można wyczyścić rekordów"
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Nie można zapisać emoji"
   },
@@ -6274,10 +6174,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas czyszczenia partii flag"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6560,10 +6456,6 @@
     "translation": "Nie można uzyskać zadania"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania informacji o wielu plikach"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Nie można zapisać informacji o pliku"
   },
@@ -6650,10 +6542,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Nie można uzyskać wielu wpisów do indeksowania"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania partii wpisów"
   },
   {
     "id": "app.post.overwrite.app_error",
