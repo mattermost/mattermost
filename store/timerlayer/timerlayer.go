@@ -2046,6 +2046,22 @@ func (s *TimerLayerChannelStore) UpdateMember(member *model.ChannelMember) (*mod
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) UpdateMemberNotifyProps(channelID string, userID string, props map[string]string) (*model.ChannelMember, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.UpdateMemberNotifyProps(channelID, userID, props)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMemberNotifyProps", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
 	start := timemodule.Now()
 
@@ -8135,10 +8151,10 @@ func (s *TimerLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.GetThreadFollowers(threadID)
+	result, err := s.ThreadStore.GetThreadFollowers(threadID, fetchOnlyActive)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

@@ -2212,6 +2212,24 @@ func (s *OpenTracingLayerChannelStore) UpdateMember(member *model.ChannelMember)
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) UpdateMemberNotifyProps(channelID string, userID string, props map[string]string) (*model.ChannelMember, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateMemberNotifyProps")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.UpdateMemberNotifyProps(channelID, userID, props)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateMembersRole")
@@ -9033,7 +9051,7 @@ func (s *OpenTracingLayerThreadStore) GetPosts(threadID string, since int64) ([]
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (s *OpenTracingLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadFollowers")
 	s.Root.Store.SetContext(newCtx)
@@ -9042,7 +9060,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadFollowers(threadID string) ([]str
 	}()
 
 	defer span.Finish()
-	result, err := s.ThreadStore.GetThreadFollowers(threadID)
+	result, err := s.ThreadStore.GetThreadFollowers(threadID, fetchOnlyActive)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
