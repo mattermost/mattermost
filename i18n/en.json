@@ -1503,6 +1503,10 @@
     "translation": "Failed to merge given config."
   },
   {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Failed to reload config."
+  },
+  {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "Site URL cannot be cleared."
   },
