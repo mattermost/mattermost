@@ -2681,4 +2681,47 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		// Then: last post is still marked as unread
 		require.Equal(t, int64(1), thread.UnreadReplies)
 	})
+
+	t.Run("Replies to post created by webhook should not auto-follow webhook creator", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		})
+
+		user := th.BasicUser
+
+		rootPost := &model.Post{
+			UserId:    user.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "a message",
+			Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+		}
+
+		rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false)
+		require.Nil(t, appErr)
+
+		childPost := &model.Post{
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			RootId:    rootPost.Id,
+			Message:   "a reply",
+		}
+		childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false)
+		require.Nil(t, appErr)
+
+		postList := model.PostList{
+			Order: []string{rootPost.Id, childPost.Id},
+			Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
+		}
+		mentions, err := th.App.SendNotifications(childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+		require.NoError(t, err)
+		assert.False(t, utils.StringInSlice(user.Id, mentions))
+
+		membership, err := th.App.GetThreadMembershipForUser(user.Id, rootPost.Id)
+		assert.Error(t, err)
+		assert.Nil(t, membership)
+	})
 }
