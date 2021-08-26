@@ -61,7 +61,7 @@ type UserImportData struct {
 	ShowUnreadSection  *string `json:"show_unread_section,omitempty"`
 	DeleteAt           *int64  `json:"delete_at,omitempty"`
 
-	Teams *[]UserTeamImportData `json:"teams,omitempty"`
+	Teams []UserTeamImportData `json:"teams,omitempty"`
 
 	Theme              *string `json:"theme,omitempty"`
 	UseMilitaryTime    *string `json:"military_time,omitempty"`
@@ -89,10 +89,10 @@ type UserNotifyPropsImportData struct {
 }
 
 type UserTeamImportData struct {
-	Name     *string                  `json:"name"`
-	Roles    *string                  `json:"roles"`
-	Theme    *string                  `json:"theme,omitempty"`
-	Channels *[]UserChannelImportData `json:"channels,omitempty"`
+	Name     *string                 `json:"name"`
+	Roles    *string                 `json:"roles"`
+	Theme    *string                 `json:"theme,omitempty"`
+	Channels []UserChannelImportData `json:"channels,omitempty"`
 }
 
 type UserChannelImportData struct {
@@ -125,9 +125,9 @@ type ReplyImportData struct {
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
 
-	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
-	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
-	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	FlaggedBy   []string               `json:"flagged_by,omitempty"`
+	Reactions   []ReactionImportData   `json:"reactions,omitempty"`
+	Attachments []AttachmentImportData `json:"attachments,omitempty"`
 }
 
 type PostImportData struct {
@@ -139,31 +139,31 @@ type PostImportData struct {
 	Props    *model.StringInterface `json:"props"`
 	CreateAt *int64                 `json:"create_at"`
 
-	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
-	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
-	Replies     *[]ReplyImportData      `json:"replies,omitempty"`
-	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	FlaggedBy   []string               `json:"flagged_by,omitempty"`
+	Reactions   []ReactionImportData   `json:"reactions,omitempty"`
+	Replies     []ReplyImportData      `json:"replies,omitempty"`
+	Attachments []AttachmentImportData `json:"attachments,omitempty"`
 }
 
 type DirectChannelImportData struct {
-	Members     *[]string `json:"members"`
-	FavoritedBy *[]string `json:"favorited_by"`
+	Members     []string `json:"members"`
+	FavoritedBy []string `json:"favorited_by"`
 
 	Header *string `json:"header"`
 }
 
 type DirectPostImportData struct {
-	ChannelMembers *[]string `json:"channel_members"`
-	User           *string   `json:"user"`
+	ChannelMembers []string `json:"channel_members"`
+	User           *string  `json:"user"`
 
 	Message  *string                `json:"message"`
 	Props    *model.StringInterface `json:"props"`
 	CreateAt *int64                 `json:"create_at"`
 
-	FlaggedBy   *[]string               `json:"flagged_by"`
-	Reactions   *[]ReactionImportData   `json:"reactions"`
-	Replies     *[]ReplyImportData      `json:"replies"`
-	Attachments *[]AttachmentImportData `json:"attachments"`
+	FlaggedBy   []string               `json:"flagged_by"`
+	Reactions   []ReactionImportData   `json:"reactions"`
+	Replies     []ReplyImportData      `json:"replies"`
+	Attachments []AttachmentImportData `json:"attachments"`
 }
 
 type SchemeImportData struct {
@@ -180,10 +180,10 @@ type SchemeImportData struct {
 }
 
 type RoleImportData struct {
-	Name        *string   `json:"name"`
-	DisplayName *string   `json:"display_name"`
-	Description *string   `json:"description"`
-	Permissions *[]string `json:"permissions"`
+	Name        *string  `json:"name"`
+	DisplayName *string  `json:"display_name"`
+	Description *string  `json:"description"`
+	Permissions []string `json:"permissions"`
 }
 
 type LineImportWorkerData struct {

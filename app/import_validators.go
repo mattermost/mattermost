@@ -98,7 +98,7 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 	}
 
 	if data.Permissions != nil {
-		for _, permission := range *data.Permissions {
+		for _, permission := range data.Permissions {
 			permissionValidated := false
 			for _, p := range append(model.AllPermissions, model.DeprecatedPermissions...) {
 				if permission == p.Id {
@@ -311,12 +311,12 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 	return nil
 }
 
-func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
+func validateUserTeamsImportData(data []UserTeamImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
 
-	for _, tdata := range *data {
+	for _, tdata := range data {
 		if tdata.Name == nil {
 			return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.team_name_missing.error", nil, "", http.StatusBadRequest)
 		}
@@ -342,12 +342,12 @@ func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
 	return nil
 }
 
-func validateUserChannelsImportData(data *[]UserChannelImportData) *model.AppError {
+func validateUserChannelsImportData(data []UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
 
-	for _, cdata := range *data {
+	for _, cdata := range data {
 		if cdata.Name == nil {
 			return model.NewAppError("BulkImport", "app.import.validate_user_channels_import_data.channel_name_missing.error", nil, "", http.StatusBadRequest)
 		}
@@ -444,14 +444,14 @@ func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 	}
 
 	if data.Reactions != nil {
-		for _, reaction := range *data.Reactions {
+		for _, reaction := range data.Reactions {
 			reaction := reaction
 			validateReactionImportData(&reaction, *data.CreateAt)
 		}
 	}
 
 	if data.Replies != nil {
-		for _, reply := range *data.Replies {
+		for _, reply := range data.Replies {
 			reply := reply
 			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
@@ -469,10 +469,10 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 		return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_required.error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*data.Members) != 2 {
-		if len(*data.Members) < model.ChannelGroupMinUsers {
+	if len(data.Members) != 2 {
+		if len(data.Members) < model.ChannelGroupMinUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest)
-		} else if len(*data.Members) > model.ChannelGroupMaxUsers {
+		} else if len(data.Members) > model.ChannelGroupMaxUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -482,9 +482,9 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 	}
 
 	if data.FavoritedBy != nil {
-		for _, favoriter := range *data.FavoritedBy {
+		for _, favoriter := range data.FavoritedBy {
 			found := false
-			for _, member := range *data.Members {
+			for _, member := range data.Members {
 				if favoriter == member {
 					found = true
 					break
@@ -504,10 +504,10 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_required.error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*data.ChannelMembers) != 2 {
-		if len(*data.ChannelMembers) < model.ChannelGroupMinUsers {
+	if len(data.ChannelMembers) != 2 {
+		if len(data.ChannelMembers) < model.ChannelGroupMinUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_too_few.error", nil, "", http.StatusBadRequest)
-		} else if len(*data.ChannelMembers) > model.ChannelGroupMaxUsers {
+		} else if len(data.ChannelMembers) > model.ChannelGroupMaxUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_too_many.error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -529,9 +529,9 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	}
 
 	if data.FlaggedBy != nil {
-		for _, flagger := range *data.FlaggedBy {
+		for _, flagger := range data.FlaggedBy {
 			found := false
-			for _, member := range *data.ChannelMembers {
+			for _, member := range data.ChannelMembers {
 				if flagger == member {
 					found = true
 					break
@@ -544,14 +544,14 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	}
 
 	if data.Reactions != nil {
-		for _, reaction := range *data.Reactions {
+		for _, reaction := range data.Reactions {
 			reaction := reaction
 			validateReactionImportData(&reaction, *data.CreateAt)
 		}
 	}
 
 	if data.Replies != nil {
-		for _, reply := range *data.Replies {
+		for _, reply := range data.Replies {
 			reply := reply
 			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}

@@ -438,7 +438,7 @@ func TestImportImportRole(t *testing.T) {
 	// Try importing a valid role with all params set.
 	data.DisplayName = ptrStr("display name")
 	data.Description = ptrStr("description")
-	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
+	data.Permissions = []string{"invite_user", "add_user_to_team"}
 
 	err = th.App.importRole(&data, false, false)
 	require.Nil(t, err, "Should have succeeded.")
@@ -449,14 +449,14 @@ func TestImportImportRole(t *testing.T) {
 	assert.Equal(t, *data.Name, role.Name)
 	assert.Equal(t, *data.DisplayName, role.DisplayName)
 	assert.Equal(t, *data.Description, role.Description)
-	assert.Equal(t, *data.Permissions, role.Permissions)
+	assert.Equal(t, data.Permissions, role.Permissions)
 	assert.False(t, role.BuiltIn)
 	assert.False(t, role.SchemeManaged)
 
 	// Try changing all the params and reimporting.
 	data.DisplayName = ptrStr("new display name")
 	data.Description = ptrStr("description")
-	data.Permissions = &[]string{"use_slash_commands"}
+	data.Permissions = []string{"use_slash_commands"}
 
 	err = th.App.importRole(&data, false, true)
 	require.Nil(t, err, "Should have succeeded. %v", err)
@@ -467,7 +467,7 @@ func TestImportImportRole(t *testing.T) {
 	assert.Equal(t, *data.Name, role.Name)
 	assert.Equal(t, *data.DisplayName, role.DisplayName)
 	assert.Equal(t, *data.Description, role.Description)
-	assert.Equal(t, *data.Permissions, role.Permissions)
+	assert.Equal(t, data.Permissions, role.Permissions)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
@@ -486,7 +486,7 @@ func TestImportImportRole(t *testing.T) {
 	assert.Equal(t, *data2.Name, role.Name)
 	assert.Equal(t, *data2.DisplayName, role.DisplayName)
 	assert.Equal(t, *data.Description, role.Description)
-	assert.Equal(t, *data.Permissions, role.Permissions)
+	assert.Equal(t, data.Permissions, role.Permissions)
 	assert.False(t, role.BuiltIn)
 	assert.False(t, role.SchemeManaged)
 }
@@ -904,10 +904,10 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get channel member count")
 
 	// Test with an invalid team & channel membership in dry-run mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Roles: ptrStr("invalid"),
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Roles: ptrStr("invalid"),
 				},
@@ -918,10 +918,10 @@ func TestImportImportUser(t *testing.T) {
 	assert.NotNil(t, appErr)
 
 	// Test with an unknown team name & invalid channel membership in dry-run mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name: ptrStr(model.NewId()),
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Roles: ptrStr("invalid"),
 				},
@@ -932,10 +932,10 @@ func TestImportImportUser(t *testing.T) {
 	assert.NotNil(t, appErr)
 
 	// Test with a valid team & invalid channel membership in dry-run mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name: &teamName,
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Roles: ptrStr("invalid"),
 				},
@@ -946,10 +946,10 @@ func TestImportImportUser(t *testing.T) {
 	assert.NotNil(t, appErr)
 
 	// Test with a valid team & unknown channel name in dry-run mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name: &teamName,
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Name: ptrStr(model.NewId()),
 				},
@@ -960,10 +960,10 @@ func TestImportImportUser(t *testing.T) {
 	assert.Nil(t, appErr)
 
 	// Test with a valid team & valid channel name in dry-run mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name: &teamName,
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Name: &channelName,
 				},
@@ -983,10 +983,10 @@ func TestImportImportUser(t *testing.T) {
 	require.Equal(t, channelMemberCount, cmc, "Number of channel members not as expected")
 
 	// Test with an invalid team & channel membership in apply mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Roles: ptrStr("invalid"),
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Roles: ptrStr("invalid"),
 				},
@@ -997,10 +997,10 @@ func TestImportImportUser(t *testing.T) {
 	assert.NotNil(t, appErr)
 
 	// Test with an unknown team name & invalid channel membership in apply mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name: ptrStr(model.NewId()),
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Roles: ptrStr("invalid"),
 				},
@@ -1011,10 +1011,10 @@ func TestImportImportUser(t *testing.T) {
 	assert.NotNil(t, appErr)
 
 	// Test with a valid team & invalid channel membership in apply mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name: &teamName,
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Roles: ptrStr("invalid"),
 				},
@@ -1034,10 +1034,10 @@ func TestImportImportUser(t *testing.T) {
 	require.Equal(t, channelMemberCount, cmc)
 
 	// Test with a valid team & unknown channel name in apply mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name: &teamName,
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Name: ptrStr(model.NewId()),
 				},
@@ -1065,10 +1065,10 @@ func TestImportImportUser(t *testing.T) {
 	require.Equal(t, "team_user", teamMember.Roles)
 
 	// Test with a valid team & valid channel name in apply mode.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name: &teamName,
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Name: &channelName,
 				},
@@ -1096,12 +1096,12 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, "all", channelMember.NotifyProps[model.MarkUnreadNotifyProp])
 
 	// Test with the properties of the team and channel membership changed.
-	data.Teams = &[]UserTeamImportData{
+	data.Teams = []UserTeamImportData{
 		{
 			Name:  &teamName,
 			Theme: ptrStr(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
 			Roles: ptrStr("team_user team_admin"),
-			Channels: &[]UserChannelImportData{
+			Channels: []UserChannelImportData{
 				{
 					Name:  &channelName,
 					Roles: ptrStr("channel_user channel_admin"),
@@ -1131,7 +1131,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.MarkUnreadNotifyProp])
 
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, team.Id, *(*data.Teams)[0].Theme)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, team.Id, *data.Teams[0].Theme)
 
 	// No more new member objects.
 	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
@@ -1412,11 +1412,11 @@ func TestImportImportUser(t *testing.T) {
 	userData := &UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
-		Teams: &[]UserTeamImportData{
+		Teams: []UserTeamImportData{
 			{
 				Name:  &team.Name,
 				Roles: ptrStr("team_user team_admin"),
-				Channels: &[]UserChannelImportData{
+				Channels: []UserChannelImportData{
 					{
 						Name:  &channel.Name,
 						Roles: ptrStr("channel_admin channel_user"),
@@ -1454,11 +1454,11 @@ func TestImportImportUser(t *testing.T) {
 		Username: &username,
 		DeleteAt: &deleteAt,
 		Email:    ptrStr(model.NewId() + "@example.com"),
-		Teams: &[]UserTeamImportData{
+		Teams: []UserTeamImportData{
 			{
 				Name:  &team.Name,
 				Roles: ptrStr("team_user"),
-				Channels: &[]UserChannelImportData{
+				Channels: []UserChannelImportData{
 					{
 						Name:  &channel.Name,
 						Roles: ptrStr("channel_user"),
@@ -1496,11 +1496,11 @@ func TestImportImportUser(t *testing.T) {
 		Username: &username,
 		DeleteAt: &deleteAt,
 		Email:    ptrStr(model.NewId() + "@example.com"),
-		Teams: &[]UserTeamImportData{
+		Teams: []UserTeamImportData{
 			{
 				Name:  &team.Name,
 				Roles: ptrStr("team_guest"),
-				Channels: &[]UserChannelImportData{
+				Channels: []UserChannelImportData{
 					{
 						Name:  &channel.Name,
 						Roles: ptrStr("channel_guest"),
@@ -1543,7 +1543,7 @@ func TestImportUserTeams(t *testing.T) {
 
 	tt := []struct {
 		name                  string
-		data                  *[]UserTeamImportData
+		data                  []UserTeamImportData
 		expectedError         bool
 		expectedUserTeams     int
 		expectedUserChannels  int
@@ -1553,7 +1553,7 @@ func TestImportUserTeams(t *testing.T) {
 	}{
 		{
 			name: "Not existing team should fail",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name: model.NewString("not-existing-team-name"),
 				},
@@ -1568,7 +1568,7 @@ func TestImportUserTeams(t *testing.T) {
 		},
 		{
 			name: "Should fail if one of the roles doesn't exists",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
 					Roles: model.NewString("not-existing-role"),
@@ -1582,7 +1582,7 @@ func TestImportUserTeams(t *testing.T) {
 		},
 		{
 			name: "Should success to import explicit role",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
 					Roles: &customRole.Name,
@@ -1596,7 +1596,7 @@ func TestImportUserTeams(t *testing.T) {
 		},
 		{
 			name: "Should success to import admin role",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
 					Roles: model.NewString(model.TeamAdminRoleId),
@@ -1610,7 +1610,7 @@ func TestImportUserTeams(t *testing.T) {
 		},
 		{
 			name: "Should success to import with theme",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
 					Theme: &sampleTheme,
@@ -1625,7 +1625,7 @@ func TestImportUserTeams(t *testing.T) {
 		},
 		{
 			name: "Team without channels must add the default channel",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name: &th.BasicTeam.Name,
 				},
@@ -1638,10 +1638,10 @@ func TestImportUserTeams(t *testing.T) {
 		},
 		{
 			name: "Team with default channel must add only the default channel",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name: &th.BasicTeam.Name,
-					Channels: &[]UserChannelImportData{
+					Channels: []UserChannelImportData{
 						{
 							Name: ptrStr(model.DefaultChannelName),
 						},
@@ -1656,10 +1656,10 @@ func TestImportUserTeams(t *testing.T) {
 		},
 		{
 			name: "Team with non default channel must add default channel and the other channel",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name: &th.BasicTeam.Name,
-					Channels: &[]UserChannelImportData{
+					Channels: []UserChannelImportData{
 						{
 							Name: &th.BasicChannel.Name,
 						},
@@ -1674,10 +1674,10 @@ func TestImportUserTeams(t *testing.T) {
 		},
 		{
 			name: "Multiple teams with multiple channels each",
-			data: &[]UserTeamImportData{
+			data: []UserTeamImportData{
 				{
 					Name: &th.BasicTeam.Name,
-					Channels: &[]UserChannelImportData{
+					Channels: []UserChannelImportData{
 						{
 							Name: &th.BasicChannel.Name,
 						},
@@ -1688,7 +1688,7 @@ func TestImportUserTeams(t *testing.T) {
 				},
 				{
 					Name: &team2.Name,
-					Channels: &[]UserChannelImportData{
+					Channels: []UserChannelImportData{
 						{
 							Name: &channel3.Name,
 						},
@@ -1742,7 +1742,7 @@ func TestImportUserTeams(t *testing.T) {
 
 	t.Run("Should fail if the MaxUserPerTeam is reached", func(t *testing.T) {
 		user := th.CreateUser()
-		data := &[]UserTeamImportData{
+		data := []UserTeamImportData{
 			{
 				Name: &th.BasicTeam.Name,
 			},
@@ -1767,7 +1767,7 @@ func TestImportUserChannels(t *testing.T) {
 
 	tt := []struct {
 		name                  string
-		data                  *[]UserChannelImportData
+		data                  []UserChannelImportData
 		expectedError         bool
 		expectedUserChannels  int
 		expectedExplicitRoles string
@@ -1776,7 +1776,7 @@ func TestImportUserChannels(t *testing.T) {
 	}{
 		{
 			name: "Not existing channel should fail",
-			data: &[]UserChannelImportData{
+			data: []UserChannelImportData{
 				{
 					Name: model.NewString("not-existing-channel-name"),
 				},
@@ -1790,7 +1790,7 @@ func TestImportUserChannels(t *testing.T) {
 		},
 		{
 			name: "Should fail if one of the roles doesn't exists",
-			data: &[]UserChannelImportData{
+			data: []UserChannelImportData{
 				{
 					Name:  &th.BasicChannel.Name,
 					Roles: model.NewString("not-existing-role"),
@@ -1803,7 +1803,7 @@ func TestImportUserChannels(t *testing.T) {
 		},
 		{
 			name: "Should success to import explicit role",
-			data: &[]UserChannelImportData{
+			data: []UserChannelImportData{
 				{
 					Name:  &th.BasicChannel.Name,
 					Roles: &customRole.Name,
@@ -1816,7 +1816,7 @@ func TestImportUserChannels(t *testing.T) {
 		},
 		{
 			name: "Should success to import admin role",
-			data: &[]UserChannelImportData{
+			data: []UserChannelImportData{
 				{
 					Name:  &th.BasicChannel.Name,
 					Roles: model.NewString(model.ChannelAdminRoleId),
@@ -1829,7 +1829,7 @@ func TestImportUserChannels(t *testing.T) {
 		},
 		{
 			name: "Should success to import with notifyProps",
-			data: &[]UserChannelImportData{
+			data: []UserChannelImportData{
 				{
 					Name:        &th.BasicChannel.Name,
 					NotifyProps: &sampleNotifyProps,
@@ -1843,7 +1843,7 @@ func TestImportUserChannels(t *testing.T) {
 		},
 		{
 			name: "Should import properly multiple channels",
-			data: &[]UserChannelImportData{
+			data: []UserChannelImportData{
 				{
 					Name: &th.BasicChannel.Name,
 				},
@@ -2218,7 +2218,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				User:     &username,
 				Message:  ptrStr("Message with Favorites"),
 				CreateAt: &flagsTime,
-				FlaggedBy: &[]string{
+				FlaggedBy: []string{
 					username,
 					username2,
 				},
@@ -2257,7 +2257,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				User:     &username,
 				Message:  ptrStr("Message with reaction"),
 				CreateAt: &reactionPostTime,
-				Reactions: &[]ReactionImportData{{
+				Reactions: []ReactionImportData{{
 					User:      &user2.Username,
 					EmojiName: ptrStr("+1"),
 					CreateAt:  &reactionTime,
@@ -2298,7 +2298,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				User:     &username,
 				Message:  ptrStr("Message with reply"),
 				CreateAt: &replyPostTime,
-				Replies: &[]ReplyImportData{{
+				Replies: []ReplyImportData{{
 					User:     &user2.Username,
 					Message:  ptrStr("Message reply"),
 					CreateAt: &replyTime,
@@ -2330,7 +2330,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Len(t, replies, 1, "Unexpected number of posts found.")
 
 	reply := replies[0]
-	replyBool := reply.Message != *(*data.Post.Replies)[0].Message || reply.CreateAt != *(*data.Post.Replies)[0].CreateAt || reply.UserId != user2.Id
+	replyBool := reply.Message != *data.Post.Replies[0].Message || reply.CreateAt != *data.Post.Replies[0].CreateAt || reply.UserId != user2.Id
 	require.False(t, replyBool, "Post properties not as expected")
 
 	require.Equal(t, post.Id, reply.RootId, "Unexpected reply RootId")
@@ -2344,7 +2344,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				User:     &user2.Username,
 				Message:  ptrStr("Message with reply"),
 				CreateAt: &replyPostTime,
-				Replies: &[]ReplyImportData{{
+				Replies: []ReplyImportData{{
 					User:     &username,
 					Message:  ptrStr("Message reply"),
 					CreateAt: &replyTime,
@@ -2368,7 +2368,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				User:     &user2.Username,
 				Message:  ptrStr("Message with reply 2"),
 				CreateAt: &replyPostTime,
-				Replies: &[]ReplyImportData{{
+				Replies: []ReplyImportData{{
 					User:     &username,
 					Message:  ptrStr("Message reply"),
 					CreateAt: &replyTime,
@@ -2392,7 +2392,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				User:     &user2.Username,
 				Message:  ptrStr("Message with reply"),
 				CreateAt: &replyPostTime,
-				Replies: &[]ReplyImportData{{
+				Replies: []ReplyImportData{{
 					User:     &username,
 					Message:  ptrStr("Message reply 2"),
 					CreateAt: &replyTime,
@@ -2765,7 +2765,7 @@ func TestImportImportPost(t *testing.T) {
 					User:     &username,
 					Message:  ptrStr("Message with Favorites"),
 					CreateAt: &flagsTime,
-					FlaggedBy: &[]string{
+					FlaggedBy: []string{
 						username,
 						username2,
 					},
@@ -2805,7 +2805,7 @@ func TestImportImportPost(t *testing.T) {
 					User:     &username,
 					Message:  ptrStr("Message with reaction"),
 					CreateAt: &reactionPostTime,
-					Reactions: &[]ReactionImportData{{
+					Reactions: []ReactionImportData{{
 						User:      &user2.Username,
 						EmojiName: ptrStr("+1"),
 						CreateAt:  &reactionTime,
@@ -2845,7 +2845,7 @@ func TestImportImportPost(t *testing.T) {
 					User:     &username,
 					Message:  ptrStr("Message with reply"),
 					CreateAt: &replyPostTime,
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:     &user2.Username,
 						Message:  ptrStr("Message reply"),
 						CreateAt: &replyTime,
@@ -2877,7 +2877,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
 
 		reply := replies[0]
-		replyBool := reply.Message != *(*data.Post.Replies)[0].Message || reply.CreateAt != *(*data.Post.Replies)[0].CreateAt || reply.UserId != user2.Id
+		replyBool := reply.Message != *data.Post.Replies[0].Message || reply.CreateAt != *data.Post.Replies[0].CreateAt || reply.UserId != user2.Id
 		require.False(t, replyBool, "Post properties not as expected")
 
 		require.Equal(t, post.Id, reply.RootId, "Unexpected reply RootId")
@@ -2892,7 +2892,7 @@ func TestImportImportPost(t *testing.T) {
 					User:     &user2.Username,
 					Message:  ptrStr("Message with reply"),
 					CreateAt: &replyPostTime,
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:     &username,
 						Message:  ptrStr("Message reply"),
 						CreateAt: &replyTime,
@@ -2917,7 +2917,7 @@ func TestImportImportPost(t *testing.T) {
 					User:     &user2.Username,
 					Message:  ptrStr("Message with reply 2"),
 					CreateAt: &replyPostTime,
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:     &username,
 						Message:  ptrStr("Message reply"),
 						CreateAt: &replyTime,
@@ -2942,7 +2942,7 @@ func TestImportImportPost(t *testing.T) {
 					User:     &user2.Username,
 					Message:  ptrStr("Message with reply"),
 					CreateAt: &replyPostTime,
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:     &username,
 						Message:  ptrStr("Message reply 2"),
 						CreateAt: &replyTime,
@@ -2972,7 +2972,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	// Do an invalid channel in dry-run mode.
 	data := DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			model.NewId(),
 		},
 		Header: ptrStr("Channel Header"),
@@ -2985,7 +2985,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid DIRECT channel with a nonexistent member in dry-run mode.
-	data.Members = &[]string{
+	data.Members = []string{
 		model.NewId(),
 		model.NewId(),
 	}
@@ -2997,7 +2997,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid GROUP channel with a nonexistent member in dry-run mode.
-	data.Members = &[]string{
+	data.Members = []string{
 		model.NewId(),
 		model.NewId(),
 		model.NewId(),
@@ -3010,7 +3010,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do an invalid channel in apply mode.
-	data.Members = &[]string{
+	data.Members = []string{
 		model.NewId(),
 	}
 	err = th.App.importDirectChannel(&data, false)
@@ -3021,7 +3021,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid DIRECT channel.
-	data.Members = &[]string{
+	data.Members = []string{
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
@@ -3056,7 +3056,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	// Do a GROUP channel with an extra invalid member.
 	user3 := th.CreateUser()
-	data.Members = &[]string{
+	data.Members = []string{
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 		user3.Username,
@@ -3070,7 +3070,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid GROUP channel.
-	data.Members = &[]string{
+	data.Members = []string{
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 		user3.Username,
@@ -3110,11 +3110,11 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Equal(t, channel.Header, *data.Header)
 
 	// Import a channel with some favorites.
-	data.Members = &[]string{
+	data.Members = []string{
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	data.FavoritedBy = &[]string{
+	data.FavoritedBy = []string{
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
@@ -3133,7 +3133,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Create the DIRECT channel.
 	channelData := DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			th.BasicUser.Username,
 			th.BasicUser2.Username,
 		},
@@ -3158,7 +3158,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3178,7 +3178,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3199,7 +3199,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						model.NewId(),
 					},
@@ -3220,7 +3220,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3251,7 +3251,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3282,7 +3282,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3303,7 +3303,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3324,7 +3324,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3355,11 +3355,11 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					FlaggedBy: &[]string{
+					FlaggedBy: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3390,7 +3390,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Create the GROUP channel.
 	user3 := th.CreateUser()
 	channelData = DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			th.BasicUser.Username,
 			th.BasicUser2.Username,
 			user3.Username,
@@ -3419,7 +3419,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3440,7 +3440,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3462,7 +3462,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3485,7 +3485,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3517,7 +3517,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3549,7 +3549,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3571,7 +3571,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3593,7 +3593,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3625,12 +3625,12 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					FlaggedBy: &[]string{
+					FlaggedBy: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
@@ -3664,7 +3664,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3672,7 +3672,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					User:     ptrStr(th.BasicUser.Username),
 					Message:  ptrStr("Message with reaction"),
 					CreateAt: reactionPostTime,
-					Reactions: &[]ReactionImportData{{
+					Reactions: []ReactionImportData{{
 						User:      ptrStr(th.BasicUser2.Username),
 						EmojiName: ptrStr("+1"),
 						CreateAt:  reactionTime,
@@ -3709,7 +3709,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3717,7 +3717,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					User:     ptrStr(th.BasicUser.Username),
 					Message:  ptrStr("Message with reply"),
 					CreateAt: replyPostTime,
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:     ptrStr(th.BasicUser2.Username),
 						Message:  ptrStr("Message reply"),
 						CreateAt: replyTime,
@@ -3749,7 +3749,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
 
 		reply := replies[0]
-		replyBool := reply.Message != *(*data.DirectPost.Replies)[0].Message || reply.CreateAt != *(*data.DirectPost.Replies)[0].CreateAt || reply.UserId != th.BasicUser2.Id
+		replyBool := reply.Message != *data.DirectPost.Replies[0].Message || reply.CreateAt != *data.DirectPost.Replies[0].CreateAt || reply.UserId != th.BasicUser2.Id
 		require.False(t, replyBool, "Post properties not as expected")
 
 		require.Equal(t, post.Id, reply.RootId, "Unexpected reply RootId")
@@ -3761,7 +3761,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3769,7 +3769,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					User:     ptrStr(th.BasicUser2.Username),
 					Message:  ptrStr("Message with reply"),
 					CreateAt: replyPostTime,
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:     ptrStr(th.BasicUser.Username),
 						Message:  ptrStr("Message reply"),
 						CreateAt: replyTime,
@@ -3791,7 +3791,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3799,7 +3799,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					User:     ptrStr(th.BasicUser2.Username),
 					Message:  ptrStr("Message with reply 2"),
 					CreateAt: replyPostTime,
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:     ptrStr(th.BasicUser.Username),
 						Message:  ptrStr("Message reply"),
 						CreateAt: replyTime,
@@ -3821,7 +3821,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 						user3.Username,
@@ -3829,7 +3829,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					User:     ptrStr(th.BasicUser2.Username),
 					Message:  ptrStr("Message with reply"),
 					CreateAt: replyPostTime,
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:     ptrStr(th.BasicUser.Username),
 						Message:  ptrStr("Message reply 2"),
 						CreateAt: replyTime,
@@ -3986,12 +3986,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 				User:        &username3,
 				Message:     ptrStr("Message with reply"),
 				CreateAt:    &attachmentsPostTime,
-				Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
-				Replies: &[]ReplyImportData{{
+				Attachments: []AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
+				Replies: []ReplyImportData{{
 					User:        &user4.Username,
 					Message:     ptrStr("Message reply"),
 					CreateAt:    &attachmentsReplyTime,
-					Attachments: &[]AttachmentImportData{{Path: &testImage}},
+					Attachments: []AttachmentImportData{{Path: &testImage}},
 				}},
 			},
 		},
@@ -4016,7 +4016,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	})
 
 	t.Run("import existing post with new attachment", func(t *testing.T) {
-		data.Post.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+		data.Post.Attachments = []AttachmentImportData{{Path: &testImage}}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
@@ -4036,18 +4036,18 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		directImportData := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						user3.Username,
 						user2.Username,
 					},
 					User:     &user3.Username,
 					Message:  ptrStr("Message with Replies"),
 					CreateAt: ptrInt64(model.GetMillis()),
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:        &user2.Username,
 						Message:     ptrStr("Message reply with attachment"),
 						CreateAt:    ptrInt64(model.GetMillis()),
-						Attachments: &[]AttachmentImportData{{Path: &testImage}},
+						Attachments: []AttachmentImportData{{Path: &testImage}},
 					}},
 				},
 			},
@@ -4101,14 +4101,14 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	directImportData := LineImportWorkerData{
 		LineImportData{
 			DirectPost: &DirectPostImportData{
-				ChannelMembers: &[]string{
+				ChannelMembers: []string{
 					user1.Username,
 					user2.Username,
 				},
 				User:        &user1.Username,
 				Message:     ptrStr("Direct message"),
 				CreateAt:    ptrInt64(model.GetMillis()),
-				Attachments: &[]AttachmentImportData{{Path: &testImage}},
+				Attachments: []AttachmentImportData{{Path: &testImage}},
 			},
 		},
 		3,
@@ -4138,14 +4138,14 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		directImportDataFake := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						user1.Username,
 						user2.Username,
 					},
 					User:        &user1.Username,
 					Message:     ptrStr("Direct message"),
 					CreateAt:    ptrInt64(model.GetMillis()),
-					Attachments: &[]AttachmentImportData{{Path: &testImageFake}},
+					Attachments: []AttachmentImportData{{Path: &testImageFake}},
 				},
 			},
 			2,
@@ -4163,14 +4163,14 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		directImportData2 := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						user1.Username,
 						user2.Username,
 					},
 					User:        &user1.Username,
 					Message:     ptrStr("Direct message"),
 					CreateAt:    ptrInt64(model.GetMillis()),
-					Attachments: &[]AttachmentImportData{{Path: &testImage2}},
+					Attachments: []AttachmentImportData{{Path: &testImage2}},
 				},
 			},
 			2,
@@ -4265,12 +4265,12 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 				User:        &username3,
 				Message:     ptrStr("Message with reply"),
 				CreateAt:    &attachmentsPostTime,
-				Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
-				Replies: &[]ReplyImportData{{
+				Attachments: []AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
+				Replies: []ReplyImportData{{
 					User:        &user4.Username,
 					Message:     ptrStr("Message reply"),
 					CreateAt:    &attachmentsReplyTime,
-					Attachments: &[]AttachmentImportData{{Path: &testImage, Data: imageData}},
+					Attachments: []AttachmentImportData{{Path: &testImage, Data: imageData}},
 				}},
 			},
 		},
@@ -4295,7 +4295,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	})
 
 	t.Run("import existing post with new attachment", func(t *testing.T) {
-		data.Post.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+		data.Post.Attachments = []AttachmentImportData{{Path: &testImage}}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
@@ -4315,18 +4315,18 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		directImportData := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
+					ChannelMembers: []string{
 						user3.Username,
 						user2.Username,
 					},
 					User:     &user3.Username,
 					Message:  ptrStr("Message with Replies"),
 					CreateAt: ptrInt64(model.GetMillis()),
-					Replies: &[]ReplyImportData{{
+					Replies: []ReplyImportData{{
 						User:        &user2.Username,
 						Message:     ptrStr("Message reply with attachment"),
 						CreateAt:    ptrInt64(model.GetMillis()),
-						Attachments: &[]AttachmentImportData{{Path: &testImage}},
+						Attachments: []AttachmentImportData{{Path: &testImage}},
 					}},
 				},
 			},

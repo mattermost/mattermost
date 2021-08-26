@@ -38,11 +38,11 @@ func stopOnError(err LineImportWorkerError) bool {
 	}
 }
 
-func rewriteAttachmentPaths(files *[]AttachmentImportData, basePath string) {
+func rewriteAttachmentPaths(files []AttachmentImportData, basePath string) {
 	if files == nil {
 		return
 	}
-	for _, f := range *files {
+	for _, f := range files {
 		if f.Path != nil {
 			*f.Path = filepath.Join(basePath, *f.Path)
 		}
@@ -56,12 +56,12 @@ func rewriteFilePaths(line *LineImportData, basePath string) {
 		if line.Type == "direct_post" {
 			rewriteAttachmentPaths(line.DirectPost.Attachments, basePath)
 			if line.DirectPost.Replies != nil {
-				replies = *line.DirectPost.Replies
+				replies = line.DirectPost.Replies
 			}
 		} else {
 			rewriteAttachmentPaths(line.Post.Attachments, basePath)
 			if line.Post.Replies != nil {
-				replies = *line.Post.Replies
+				replies = line.Post.Replies
 			}
 		}
 		for _, reply := range replies {
@@ -170,10 +170,10 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 		}
 
 		if len(attachedFiles) > 0 && line.Post != nil && line.Post.Attachments != nil {
-			for i, attachment := range *line.Post.Attachments {
+			for i, attachment := range line.Post.Attachments {
 				var ok bool
 				path := *attachment.Path
-				if (*line.Post.Attachments)[i].Data, ok = attachedFiles[path]; !ok {
+				if (line.Post.Attachments)[i].Data, ok = attachedFiles[path]; !ok {
 					return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, fmt.Sprintf("attachment '%s' not found in map", path), http.StatusBadRequest), lineNumber
 				}
 			}

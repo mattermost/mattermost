@@ -301,7 +301,7 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(userID string) ([]UserTeamImportData, *model.AppError) {
 	var memberships []UserTeamImportData
 
 	members, err := a.Srv().Store.Team().GetTeamMembersForExport(userID)
@@ -335,10 +335,10 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImpo
 		memberships = append(memberships, *memberData)
 	}
 
-	return &memberships, nil
+	return memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]UserChannelImportData, *model.AppError) {
+func (a *App) buildUserChannelMemberships(userID string, teamID string) ([]UserChannelImportData, *model.AppError) {
 	var memberships []UserChannelImportData
 
 	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userID, teamID)
@@ -353,13 +353,12 @@ func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]User
 	}
 
 	for _, member := range members {
-		memberships = append(memberships, *ImportUserChannelDataFromChannelMemberAndPreferences(member, &preferences))
+		memberships = append(memberships, ImportUserChannelDataFromChannelMemberAndPreferences(member, preferences))
 	}
-	return &memberships, nil
+	return memberships, nil
 }
 
 func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyPropsImportData {
-
 	getProp := func(key string) *string {
 		if v, ok := notifyProps[key]; ok {
 			return &v
@@ -412,8 +411,8 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]Attachme
 				attachments = append(attachments, replyAttachments...)
 			}
 
-			postLine.Post.Replies = &replies
-			postLine.Post.Reactions = &[]ReactionImportData{}
+			postLine.Post.Replies = replies
+			postLine.Post.Reactions = []ReactionImportData{}
 			if post.HasReactions {
 				postLine.Post.Reactions, err = a.BuildPostReactions(post.Id)
 				if err != nil {
@@ -426,7 +425,7 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]Attachme
 				if err != nil {
 					return nil, err
 				}
-				postLine.Post.Attachments = &postAttachments
+				postLine.Post.Attachments = postAttachments
 
 				if withAttachments && len(postAttachments) > 0 {
 					attachments = append(attachments, postAttachments...)
@@ -463,7 +462,7 @@ func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImpo
 			if appErr != nil {
 				return nil, nil, appErr
 			}
-			replyImportObject.Attachments = &attachments
+			replyImportObject.Attachments = attachments
 			if withAttachments && len(postAttachments) > 0 {
 				attachments = append(attachments, postAttachments...)
 			}
@@ -475,7 +474,7 @@ func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImpo
 	return replies, attachments, nil
 }
 
-func (a *App) BuildPostReactions(postID string) (*[]ReactionImportData, *model.AppError) {
+func (a *App) BuildPostReactions(postID string) ([]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []ReactionImportData
 
 	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postID, true)
@@ -496,8 +495,7 @@ func (a *App) BuildPostReactions(postID string) (*[]ReactionImportData, *model.A
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
 
-	return &reactionsOfPost, nil
-
+	return reactionsOfPost, nil
 }
 
 func (a *App) buildPostAttachments(postID string) ([]AttachmentImportData, *model.AppError) {
@@ -676,9 +674,9 @@ func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]At
 			}
 
 			postLine := ImportLineForDirectPost(post)
-			postLine.DirectPost.Replies = &replies
+			postLine.DirectPost.Replies = replies
 			if len(postAttachments) > 0 {
-				postLine.DirectPost.Attachments = &postAttachments
+				postLine.DirectPost.Attachments = postAttachments
 			}
 			if err := a.exportWriteLine(writer, postLine); err != nil {
 				return nil, err

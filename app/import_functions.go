@@ -140,7 +140,7 @@ func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 	}
 
 	if data.Permissions != nil {
-		role.Permissions = *data.Permissions
+		role.Permissions = data.Permissions
 	}
 
 	if isSchemeRole {
@@ -694,13 +694,13 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	return a.importUserTeams(savedUser, data.Teams)
 }
 
-func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *model.AppError {
+func (a *App) importUserTeams(user *model.User, data []UserTeamImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
 
 	teamNames := []string{}
-	for _, tdata := range *data {
+	for _, tdata := range data {
 		teamNames = append(teamNames, *tdata.Name)
 	}
 	allTeams, err := a.getTeamsByNames(teamNames)
@@ -726,7 +726,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	for _, teamMembership := range existingMemberships {
 		existingMembershipsByTeamId[teamMembership.TeamId] = teamMembership
 	}
-	for _, tdata := range *data {
+	for _, tdata := range data {
 		team := allTeams[*tdata.Name]
 
 		// Team-specific theme Preferences.
@@ -780,7 +780,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 
 		if tdata.Channels != nil {
-			channels[team.Id] = append(channels[team.Id], *tdata.Channels...)
+			channels[team.Id] = append(channels[team.Id], tdata.Channels...)
 		}
 		if !user.IsGuest() {
 			channels[team.Id] = append(channels[team.Id], UserChannelImportData{Name: model.NewString(model.DefaultChannelName)})
@@ -845,7 +845,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			}
 		}
 		channelsToImport := channels[team.Id]
-		if err := a.importUserChannels(user, team, &channelsToImport); err != nil {
+		if err := a.importUserChannels(user, team, channelsToImport); err != nil {
 			return err
 		}
 	}
@@ -853,13 +853,13 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	return nil
 }
 
-func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]UserChannelImportData) *model.AppError {
+func (a *App) importUserChannels(user *model.User, team *model.Team, data []UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
 
 	channelNames := []string{}
-	for _, tdata := range *data {
+	for _, tdata := range data {
 		channelNames = append(channelNames, *tdata.Name)
 	}
 	allChannels, err := a.getChannelsByNames(channelNames, team.Id)
@@ -884,7 +884,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 	for _, channelMembership := range existingMemberships {
 		existingMembershipsByChannelId[channelMembership.ChannelId] = channelMembership
 	}
-	for _, cdata := range *data {
+	for _, cdata := range data {
 		channel, ok := allChannels[*cdata.Name]
 		if !ok {
 			return model.NewAppError("BulkImport", "app.import.import_user_channels.channel_not_found.error", nil, "", http.StatusInternalServerError)
@@ -1321,7 +1321,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 	for i, line := range lines {
 		usernames = append(usernames, *line.Post.User)
 		if line.Post.FlaggedBy != nil {
-			usernames = append(usernames, *line.Post.FlaggedBy...)
+			usernames = append(usernames, line.Post.FlaggedBy...)
 		}
 		teamNames[i] = *line.Post.Team
 		postsData[i] = line.Post
@@ -1443,7 +1443,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		if postWithData.postData.FlaggedBy != nil {
 			var preferences model.Preferences
 
-			for _, username := range *postWithData.postData.FlaggedBy {
+			for _, username := range postWithData.postData.FlaggedBy {
 				user := users[username]
 
 				preferences = append(preferences, model.Preference{
@@ -1462,7 +1462,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		}
 
 		if postWithData.postData.Reactions != nil {
-			for _, reaction := range *postWithData.postData.Reactions {
+			for _, reaction := range postWithData.postData.Reactions {
 				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
@@ -1470,8 +1470,8 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			}
 		}
 
-		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
-			err := a.importReplies(c, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id)
+		if postWithData.postData.Replies != nil && len(postWithData.postData.Replies) > 0 {
+			err := a.importReplies(c, postWithData.postData.Replies, postWithData.post, postWithData.team.Id)
 			if err != nil {
 				return postWithData.lineNumber, err
 			}
@@ -1482,12 +1482,12 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImportData, post *model.Post, teamID string) (map[string]bool, *model.AppError) {
+func (a *App) uploadAttachments(c *request.Context, attachments []AttachmentImportData, post *model.Post, teamID string) (map[string]bool, *model.AppError) {
 	if attachments == nil {
 		return nil, nil
 	}
 	fileIDs := make(map[string]bool)
-	for _, attachment := range *attachments {
+	for _, attachment := range attachments {
 		attachment := attachment
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
@@ -1517,11 +1517,11 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	}
 
 	var userIDs []string
-	userMap, err := a.getUsersByUsernames(*data.Members)
+	userMap, err := a.getUsersByUsernames(data.Members)
 	if err != nil {
 		return err
 	}
-	for _, user := range *data.Members {
+	for _, user := range data.Members {
 		userIDs = append(userIDs, userMap[user].Id)
 	}
 
@@ -1553,7 +1553,7 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	}
 
 	if data.FavoritedBy != nil {
-		for _, favoriter := range *data.FavoritedBy {
+		for _, favoriter := range data.FavoritedBy {
 			preferences = append(preferences, model.Preference{
 				UserId:   userMap[favoriter].Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -1606,9 +1606,9 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 	for _, line := range lines {
 		usernames = append(usernames, *line.DirectPost.User)
 		if line.DirectPost.FlaggedBy != nil {
-			usernames = append(usernames, *line.DirectPost.FlaggedBy...)
+			usernames = append(usernames, line.DirectPost.FlaggedBy...)
 		}
-		usernames = append(usernames, *line.DirectPost.ChannelMembers...)
+		usernames = append(usernames, line.DirectPost.ChannelMembers...)
 	}
 
 	users, err := a.getUsersByUsernames(usernames)
@@ -1625,7 +1625,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 	for _, line := range lines {
 		var userIDs []string
 		var err *model.AppError
-		for _, username := range *line.DirectPost.ChannelMembers {
+		for _, username := range line.DirectPost.ChannelMembers {
 			user := users[username]
 			userIDs = append(userIDs, user.Id)
 		}
@@ -1737,7 +1737,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		if postWithData.directPostData.FlaggedBy != nil {
 			var preferences model.Preferences
 
-			for _, username := range *postWithData.directPostData.FlaggedBy {
+			for _, username := range postWithData.directPostData.FlaggedBy {
 				user := users[username]
 
 				preferences = append(preferences, model.Preference{
@@ -1756,7 +1756,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		}
 
 		if postWithData.directPostData.Reactions != nil {
-			for _, reaction := range *postWithData.directPostData.Reactions {
+			for _, reaction := range postWithData.directPostData.Reactions {
 				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
@@ -1765,7 +1765,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		}
 
 		if postWithData.directPostData.Replies != nil {
-			if err := a.importReplies(c, *postWithData.directPostData.Replies, postWithData.post, "noteam"); err != nil {
+			if err := a.importReplies(c, postWithData.directPostData.Replies, postWithData.post, "noteam"); err != nil {
 				return postWithData.lineNumber, err
 			}
 		}

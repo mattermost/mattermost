@@ -871,7 +871,7 @@ func (a *OpenTracingAppLayer) BroadcastStatus(status *model.Status) {
 	a.app.BroadcastStatus(status)
 }
 
-func (a *OpenTracingAppLayer) BuildPostReactions(postID string) (*[]app.ReactionImportData, *model.AppError) {
+func (a *OpenTracingAppLayer) BuildPostReactions(postID string) ([]app.ReactionImportData, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildPostReactions")
 

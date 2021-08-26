@@ -44,7 +44,7 @@ func TestReactionsOfPost(t *testing.T) {
 	reactionsOfPost, err := th.App.BuildPostReactions(post.Id)
 	require.Nil(t, err)
 
-	assert.Equal(t, reactionObject.EmojiName, *(*reactionsOfPost)[0].EmojiName)
+	assert.Equal(t, reactionObject.EmojiName, *reactionsOfPost[0].EmojiName)
 }
 
 func TestExportUserNotifyProps(t *testing.T) {
@@ -99,8 +99,8 @@ func TestExportUserChannels(t *testing.T) {
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
 	exportData, appErr := th.App.buildUserChannelMemberships(user.Id, team.Id)
 	require.Nil(t, appErr)
-	assert.Equal(t, len(*exportData), 3)
-	for _, data := range *exportData {
+	assert.Equal(t, len(exportData), 3)
+	for _, data := range exportData {
 		if *data.Name == channelName {
 			assert.Equal(t, *data.NotifyProps.Desktop, "all")
 			assert.Equal(t, *data.NotifyProps.Mobile, "none")
@@ -593,7 +593,7 @@ func TestBulkExport(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	extractImportFile := func(filePath string) *os.File {
+	extractImportFile := func(filePath string) (*os.File, string) {
 		importFile, err2 := os.Open(filePath)
 		require.NoError(t, err2)
 		defer importFile.Close()
@@ -601,20 +601,23 @@ func TestBulkExport(t *testing.T) {
 		info, err2 := importFile.Stat()
 		require.NoError(t, err2)
 
-		paths, err2 := utils.UnzipToPath(importFile, info.Size(), dir)
+		extractDir, err2 := ioutil.TempDir(dir, "extract")
+		require.NoError(t, err2)
+
+		paths, err2 := utils.UnzipToPath(importFile, info.Size(), extractDir)
 		require.NoError(t, err2)
 		require.NotEmpty(t, paths)
 
-		jsonFile, err2 := os.Open(filepath.Join(dir, "import.jsonl"))
+		jsonFile, err2 := os.Open(filepath.Join(extractDir, "import.jsonl"))
 		require.NoError(t, err2)
 
-		return jsonFile
+		return jsonFile, extractDir
 	}
 
-	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
+	jsonFile, extractDir := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, dir)
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, extractDir)
 	require.Nil(t, appErr)
 
 	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
@@ -632,9 +635,9 @@ func TestBulkExport(t *testing.T) {
 	th = Setup(t)
 	defer th.TearDown()
 
-	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
+	jsonFile, extractDir = extractImportFile(filepath.Join(dir, "export.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ = th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, filepath.Join(dir, "data"))
+	appErr, _ = th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, filepath.Join(extractDir, "data"))
 	require.Nil(t, appErr)
 }

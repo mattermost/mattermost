@@ -279,8 +279,8 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 }
 
 func TestRewriteFilePaths(t *testing.T) {
-	genAttachments := func() *[]AttachmentImportData {
-		return &[]AttachmentImportData{
+	genAttachments := func() []AttachmentImportData {
+		return []AttachmentImportData{
 			{
 				Path: model.NewString("file.jpg"),
 			},
@@ -319,7 +319,7 @@ func TestRewriteFilePaths(t *testing.T) {
 	}
 
 	t.Run("empty path", func(t *testing.T) {
-		expected := &[]AttachmentImportData{
+		expected := []AttachmentImportData{
 			{
 				Path: model.NewString("file.jpg"),
 			},
@@ -334,7 +334,7 @@ func TestRewriteFilePaths(t *testing.T) {
 	})
 
 	t.Run("valid path", func(t *testing.T) {
-		expected := &[]AttachmentImportData{
+		expected := []AttachmentImportData{
 			{
 				Path: model.NewString("/tmp/file.jpg"),
 			},

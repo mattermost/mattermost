@@ -25,32 +25,32 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 		DefaultTeamAdminRole: &RoleImportData{
 			Name:        ptrStr("name"),
 			DisplayName: ptrStr("display name"),
-			Permissions: &[]string{"invite_user"},
+			Permissions: []string{"invite_user"},
 		},
 		DefaultTeamUserRole: &RoleImportData{
 			Name:        ptrStr("name"),
 			DisplayName: ptrStr("display name"),
-			Permissions: &[]string{"invite_user"},
+			Permissions: []string{"invite_user"},
 		},
 		DefaultTeamGuestRole: &RoleImportData{
 			Name:        ptrStr("name"),
 			DisplayName: ptrStr("display name"),
-			Permissions: &[]string{"invite_user"},
+			Permissions: []string{"invite_user"},
 		},
 		DefaultChannelAdminRole: &RoleImportData{
 			Name:        ptrStr("name"),
 			DisplayName: ptrStr("display name"),
-			Permissions: &[]string{"invite_user"},
+			Permissions: []string{"invite_user"},
 		},
 		DefaultChannelUserRole: &RoleImportData{
 			Name:        ptrStr("name"),
 			DisplayName: ptrStr("display name"),
-			Permissions: &[]string{"invite_user"},
+			Permissions: []string{"invite_user"},
 		},
 		DefaultChannelGuestRole: &RoleImportData{
 			Name:        ptrStr("name"),
 			DisplayName: ptrStr("display name"),
-			Permissions: &[]string{"invite_user"},
+			Permissions: []string{"invite_user"},
 		},
 	}
 
@@ -99,7 +99,7 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	data.DefaultTeamAdminRole = &RoleImportData{
 		Name:        ptrStr("name"),
 		DisplayName: ptrStr("display name"),
-		Permissions: &[]string{"invite_user"},
+		Permissions: []string{"invite_user"},
 	}
 
 	data.DefaultTeamUserRole = nil
@@ -109,7 +109,7 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	data.DefaultTeamUserRole = &RoleImportData{
 		Name:        ptrStr("name"),
 		DisplayName: ptrStr("display name"),
-		Permissions: &[]string{"invite_user"},
+		Permissions: []string{"invite_user"},
 	}
 	data.DefaultChannelAdminRole = nil
 	err = validateSchemeImportData(&data)
@@ -118,7 +118,7 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	data.DefaultChannelAdminRole = &RoleImportData{
 		Name:        ptrStr("name"),
 		DisplayName: ptrStr("display name"),
-		Permissions: &[]string{"invite_user"},
+		Permissions: []string{"invite_user"},
 	}
 	data.DefaultChannelUserRole = nil
 	err = validateSchemeImportData(&data)
@@ -127,7 +127,7 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	data.DefaultChannelUserRole = &RoleImportData{
 		Name:        ptrStr("name"),
 		DisplayName: ptrStr("display name"),
-		Permissions: &[]string{"invite_user"},
+		Permissions: []string{"invite_user"},
 	}
 
 	// Test with various invalid roles.
@@ -161,7 +161,7 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	data.DefaultTeamAdminRole = &RoleImportData{
 		Name:        ptrStr("name"),
 		DisplayName: ptrStr("display name"),
-		Permissions: &[]string{"invite_user"},
+		Permissions: []string{"invite_user"},
 	}
 	data.DefaultTeamUserRole = nil
 	err = validateSchemeImportData(&data)
@@ -170,7 +170,7 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	data.DefaultTeamUserRole = &RoleImportData{
 		Name:        ptrStr("name"),
 		DisplayName: ptrStr("display name"),
-		Permissions: &[]string{"invite_user"},
+		Permissions: []string{"invite_user"},
 	}
 	data.DefaultTeamGuestRole = nil
 	err = validateSchemeImportData(&data)
@@ -232,19 +232,19 @@ func TestImportValidateRoleImportData(t *testing.T) {
 	data.DisplayName = ptrStr("display name")
 
 	// Test with various valid/invalid permissions.
-	data.Permissions = &[]string{}
+	data.Permissions = []string{}
 	err = validateRoleImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
-	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
+	data.Permissions = []string{"invite_user", "add_user_to_team"}
 	err = validateRoleImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
-	data.Permissions = &[]string{"invite_user", "add_user_to_team", "derp"}
+	data.Permissions = []string{"invite_user", "add_user_to_team", "derp"}
 	err = validateRoleImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to invalid permission.")
 
-	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
+	data.Permissions = []string{"invite_user", "add_user_to_team"}
 
 	// Test with various valid/invalid descriptions.
 	data.Description = ptrStr(strings.Repeat("1234567890", 1024))
@@ -681,39 +681,39 @@ func TestImportValidateUserTeamsImportData(t *testing.T) {
 			Roles: ptrStr("team_admin team_user"),
 		},
 	}
-	err := validateUserTeamsImportData(&data)
+	err := validateUserTeamsImportData(data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 
 	data[0].Name = ptrStr("teamname")
 
 	// Valid (nil roles)
 	data[0].Roles = nil
-	err = validateUserTeamsImportData(&data)
+	err = validateUserTeamsImportData(data)
 	require.Nil(t, err, "Should have succeeded with empty roles.")
 
 	// Valid (empty roles)
 	data[0].Roles = ptrStr("")
-	err = validateUserTeamsImportData(&data)
+	err = validateUserTeamsImportData(data)
 	require.Nil(t, err, "Should have succeeded with empty roles.")
 
 	// Valid (with roles)
 	data[0].Roles = ptrStr("team_admin team_user")
-	err = validateUserTeamsImportData(&data)
+	err = validateUserTeamsImportData(data)
 	require.Nil(t, err, "Should have succeeded with valid roles.")
 
 	// Valid (with JSON string of theme)
 	data[0].Theme = ptrStr(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`)
-	err = validateUserTeamsImportData(&data)
+	err = validateUserTeamsImportData(data)
 	require.Nil(t, err, "Should have succeeded with valid theme.")
 
 	// Invalid (invalid JSON string of theme)
 	data[0].Theme = ptrStr(`This is the invalid string which cannot be marshalled to JSON object :) + {"#DBBD4E","buttonBg", "#23A1FF", buttonColor`)
-	err = validateUserTeamsImportData(&data)
+	err = validateUserTeamsImportData(data)
 	require.NotNil(t, err, "Should have fail with invalid JSON string of theme.")
 
 	// Invalid (valid JSON but invalid theme description)
 	data[0].Theme = ptrStr(`{"somekey": 25, "json_obj1": {"color": "#DBBD4E","buttonBg": "#23A1FF"}}`)
-	err = validateUserTeamsImportData(&data)
+	err = validateUserTeamsImportData(data)
 	require.NotNil(t, err, "Should have fail with valid JSON which contains invalid string of theme description.")
 
 	data[0].Theme = nil
@@ -727,50 +727,50 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 			Roles: ptrStr("channel_admin channel_user"),
 		},
 	}
-	err := validateUserChannelsImportData(&data)
+	err := validateUserChannelsImportData(data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 	data[0].Name = ptrStr("channelname")
 
 	// Valid (nil roles)
 	data[0].Roles = nil
-	err = validateUserChannelsImportData(&data)
+	err = validateUserChannelsImportData(data)
 	require.Nil(t, err, "Should have succeeded with empty roles.")
 
 	// Valid (empty roles)
 	data[0].Roles = ptrStr("")
-	err = validateUserChannelsImportData(&data)
+	err = validateUserChannelsImportData(data)
 	require.Nil(t, err, "Should have succeeded with empty roles.")
 
 	// Valid (with roles)
 	data[0].Roles = ptrStr("channel_admin channel_user")
-	err = validateUserChannelsImportData(&data)
+	err = validateUserChannelsImportData(data)
 	require.Nil(t, err, "Should have succeeded with valid roles.")
 
 	// Empty notify props.
 	data[0].NotifyProps = &UserChannelNotifyPropsImportData{}
-	err = validateUserChannelsImportData(&data)
+	err = validateUserChannelsImportData(data)
 	require.Nil(t, err, "Should have succeeded with empty notify props.")
 
 	// Invalid desktop notify props.
 	data[0].NotifyProps.Desktop = ptrStr("invalid")
-	err = validateUserChannelsImportData(&data)
+	err = validateUserChannelsImportData(data)
 	require.NotNil(t, err, "Should have failed with invalid desktop notify props.")
 
 	// Invalid mobile notify props.
 	data[0].NotifyProps.Desktop = ptrStr("mention")
 	data[0].NotifyProps.Mobile = ptrStr("invalid")
-	err = validateUserChannelsImportData(&data)
+	err = validateUserChannelsImportData(data)
 	require.NotNil(t, err, "Should have failed with invalid mobile notify props.")
 
 	// Invalid mark_unread notify props.
 	data[0].NotifyProps.Mobile = ptrStr("mention")
 	data[0].NotifyProps.MarkUnread = ptrStr("invalid")
-	err = validateUserChannelsImportData(&data)
+	err = validateUserChannelsImportData(data)
 	require.NotNil(t, err, "Should have failed with invalid mark_unread notify props.")
 
 	// Valid notify props.
 	data[0].NotifyProps.MarkUnread = ptrStr("mention")
-	err = validateUserChannelsImportData(&data)
+	err = validateUserChannelsImportData(data)
 	require.Nil(t, err, "Should have succeeded with valid notify props.")
 }
 
@@ -1007,8 +1007,8 @@ func TestImportValidatePostImportData(t *testing.T) {
 			User:      ptrStr("username"),
 			Message:   ptrStr("message"),
 			CreateAt:  ptrInt64(model.GetMillis()),
-			Reactions: &reactions,
-			Replies:   &replies,
+			Reactions: reactions,
+			Replies:   replies,
 		}
 		err := validatePostImportData(&data, maxPostSize)
 		require.Nil(t, err, "Should have succeeded.")
@@ -1037,7 +1037,7 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with valid number of members for direct message.
 	data := DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			model.NewId(),
 			model.NewId(),
 		},
@@ -1047,7 +1047,7 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with valid number of members for group message.
 	data = DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			model.NewId(),
 			model.NewId(),
 			model.NewId(),
@@ -1058,7 +1058,7 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with all the combinations of optional parameters.
 	data = DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			model.NewId(),
 			model.NewId(),
 		},
@@ -1074,13 +1074,13 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with different combinations of invalid member counts.
 	data = DirectChannelImportData{
-		Members: &[]string{},
+		Members: []string{},
 	}
 	err = validateDirectChannelImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
 
 	data = DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			model.NewId(),
 		},
 	}
@@ -1088,7 +1088,7 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
 
 	data = DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			model.NewId(),
 			model.NewId(),
 			model.NewId(),
@@ -1107,11 +1107,11 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 	member1 := model.NewId()
 	member2 := model.NewId()
 	data = DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			member1,
 			member2,
 		},
-		FavoritedBy: &[]string{
+		FavoritedBy: []string{
 			member1,
 			model.NewId(),
 		},
@@ -1121,11 +1121,11 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with valid FavoritedBy
 	data = DirectChannelImportData{
-		Members: &[]string{
+		Members: []string{
 			member1,
 			member2,
 		},
-		FavoritedBy: &[]string{
+		FavoritedBy: []string{
 			member1,
 			member2,
 		},
@@ -1139,7 +1139,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 	// Test with minimum required valid properties.
 	data := DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 			model.NewId(),
 		},
@@ -1160,7 +1160,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 			model.NewId(),
 		},
@@ -1171,7 +1171,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 			model.NewId(),
 		},
@@ -1182,7 +1182,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 			model.NewId(),
 		},
@@ -1194,7 +1194,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 	// Test with invalid numbers of channel members.
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{},
+		ChannelMembers: []string{},
 		User:           ptrStr("username"),
 		Message:        ptrStr("message"),
 		CreateAt:       ptrInt64(model.GetMillis()),
@@ -1203,7 +1203,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to unsuitable number of members.")
 
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 		},
 		User:     ptrStr("username"),
@@ -1214,7 +1214,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to unsuitable number of members.")
 
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 			model.NewId(),
 			model.NewId(),
@@ -1235,7 +1235,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 	// Test with group message number of members.
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 			model.NewId(),
 			model.NewId(),
@@ -1249,7 +1249,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 	// Test with invalid message.
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 			model.NewId(),
 		},
@@ -1262,7 +1262,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 	// Test with invalid CreateAt
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			model.NewId(),
 			model.NewId(),
 		},
@@ -1277,11 +1277,11 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	member1 := model.NewId()
 	member2 := model.NewId()
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			member1,
 			member2,
 		},
-		FlaggedBy: &[]string{
+		FlaggedBy: []string{
 			member1,
 			model.NewId(),
 		},
@@ -1294,11 +1294,11 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 	// Test with valid FlaggedBy
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			member1,
 			member2,
 		},
-		FlaggedBy: &[]string{
+		FlaggedBy: []string{
 			member1,
 			member2,
 		},
@@ -1323,19 +1323,19 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	}}
 
 	data = DirectPostImportData{
-		ChannelMembers: &[]string{
+		ChannelMembers: []string{
 			member1,
 			member2,
 		},
-		FlaggedBy: &[]string{
+		FlaggedBy: []string{
 			member1,
 			member2,
 		},
 		User:      ptrStr("username"),
 		Message:   ptrStr("message"),
 		CreateAt:  ptrInt64(model.GetMillis()),
-		Reactions: &reactions,
-		Replies:   &replies,
+		Reactions: reactions,
+		Replies:   replies,
 	}
 
 	err = validateDirectPostImportData(&data, maxPostSize)
