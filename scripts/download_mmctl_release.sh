@@ -15,7 +15,7 @@ fi
 
 BIN_PATH=${2:-bin}
 
-RELEASE_TO_DOWNLOAD=v5.39.0
+RELEASE_TO_DOWNLOAD=v5.39.1
 
 echo "Downloading prepackaged binary: https://releases.mattermost.com/mmctl/$RELEASE_TO_DOWNLOAD";
 
