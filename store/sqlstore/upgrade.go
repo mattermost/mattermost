@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5380
+	CurrentSchemaVersion   = Version5390
+	Version5390            = "5.39.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -212,6 +213,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion539(sqlStore)
 
 	return nil
 }
@@ -1505,5 +1507,11 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	}
 	if _, err := sqlStore.GetMaster().ExecNoTimeout("INSERT INTO Systems VALUES ('CRTChannelMembershipCountsMigrationComplete', 'true')"); err != nil {
 		mlog.Error("Error marking migration as done", mlog.Err(err))
+	}
+}
+
+func upgradeDatabaseToVersion539(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5380, Version5390) {
+		saveSchemaVersion(sqlStore, Version5390)
 	}
 }
