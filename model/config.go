@@ -794,7 +794,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableInlineLatex == nil {
-		s.EnableInlineLatex = NewBool(false)
+		s.EnableInlineLatex = NewBool(true)
 	}
 
 	if s.EnableLocalMode == nil {
