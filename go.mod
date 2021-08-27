@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost-server/v6
 
-go 1.15
+go 1.16
 
 require (
 	code.sajari.com/docconv v1.1.1-0.20210427001343-7b3472bc323a
