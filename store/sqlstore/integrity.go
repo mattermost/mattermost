@@ -6,8 +6,8 @@ package sqlstore
 import (
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type relationalCheckConfig struct {
@@ -150,16 +150,6 @@ func checkPostsFileInfoIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	})
 }
 
-func checkPostsPostsParentIdIntegrity(ss *SqlStore) model.IntegrityCheckResult {
-	return checkParentChildIntegrity(ss, relationalCheckConfig{
-		parentName:         "Posts",
-		parentIdAttr:       "ParentId",
-		childName:          "Posts",
-		childIdAttr:        "Id",
-		canParentIdBeEmpty: true,
-	})
-}
-
 func checkPostsPostsRootIdIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Posts",
@@ -215,7 +205,7 @@ func checkTeamsChannelsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 		parentIdAttr: "TeamId",
 		childName:    "Channels",
 		childIdAttr:  "Id",
-		filter:       sq.NotEq{"CT.Type": []string{model.CHANNEL_DIRECT, model.CHANNEL_GROUP}},
+		filter:       sq.NotEq{"CT.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 	})
 	res2 := checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Teams",
@@ -223,7 +213,7 @@ func checkTeamsChannelsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 		childName:          "Channels",
 		childIdAttr:        "Id",
 		canParentIdBeEmpty: true,
-		filter:             sq.Eq{"CT.Type": []string{model.CHANNEL_DIRECT, model.CHANNEL_GROUP}},
+		filter:             sq.Eq{"CT.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 	})
 	data1 := res1.Data.(model.RelationalIntegrityCheckData)
 	data2 := res2.Data.(model.RelationalIntegrityCheckData)
@@ -474,7 +464,6 @@ func checkCommandsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckRes
 
 func checkPostsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkPostsFileInfoIntegrity(ss)
-	results <- checkPostsPostsParentIdIntegrity(ss)
 	results <- checkPostsPostsRootIdIntegrity(ss)
 	results <- checkPostsReactionsIntegrity(ss)
 }

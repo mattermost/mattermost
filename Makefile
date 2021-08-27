@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration migration-prereqs
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration migration-prereqs
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -74,11 +74,11 @@ GOFLAGS ?= $(GOFLAGS:)
 export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildNumber=$(BUILD_NUMBER)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUILD_DATE)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -94,6 +94,9 @@ PLATFORM_FILES="./cmd/mattermost/main.go"
 # Output paths
 DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
+DIST_PATH_LIN=$(DIST_ROOT)/linux/mattermost
+DIST_PATH_OSX=$(DIST_ROOT)/osx/mattermost
+DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Tests
 TESTS=.
@@ -111,13 +114,13 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.9.3
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.16.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.6.7-plugin
+PLUGIN_PACKAGES += focalboard-v0.8.2
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -144,7 +147,7 @@ all: run ## Alias for 'run'.
 include config.mk
 include build/*.mk
 
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
 
 RUN_IN_BACKGROUND ?=
 ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
@@ -300,7 +303,7 @@ plugin-mocks: ## Creates mock files for plugins.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery -dir plugin -name Driver -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
@@ -314,6 +317,10 @@ sharedchannel-mocks: ## Creates mock files for shared channels.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
 	$(GOBIN)/mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
+
+misc-mocks: ## Creates mocks for misc interfaces.
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -418,9 +425,15 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: start-docker ## Add test data to the local instance.
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) config set TeamSettings.MaxUsersPerTeam 100
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 4 -u 60
+test-data: run-server ## Add test data to the local instance.
+	@if ! ./scripts/wait-for-system-start.sh; then \
+		make stop; \
+	fi
+
+	@echo ServiceSettings.EnableLocalMode must be set to true.
+
+	bin/mmctl config set TeamSettings.MaxUsersPerTeam 100 --local
+	bin/mmctl sampledata -u 60 --local
 
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
@@ -446,26 +459,25 @@ run-server: prepackaged-binaries validate-go-version start-docker ## Starts the 
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch 2>&1 | \
-	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost-server/v6/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost-server/v6/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
@@ -495,11 +507,11 @@ ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	wmic process where "Caption='go.exe' and CommandLine like '%go.exe run%'" call terminate
 	wmic process where "Caption='mattermost.exe' and CommandLine like '%go-build%'" call terminate
 else
-	@for PID in $$(ps -ef | grep "[g]o run" | grep "disableconfigwatch" | awk '{ print $$2 }'); do \
+	@for PID in $$(ps -ef | grep "[g]o run" | awk '{ print $$2 }'); do \
 		echo stopping go $$PID; \
 		kill $$PID; \
 	done
-	@for PID in $$(ps -ef | grep "[g]o-build" | grep "disableconfigwatch" | awk '{ print $$2 }'); do \
+	@for PID in $$(ps -ef | grep "[g]o-build" | awk '{ print $$2 }'); do \
 		echo stopping mattermost $$PID; \
 		kill $$PID; \
 	done
@@ -528,7 +540,7 @@ restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver --disableconfigwatch &
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver &
 
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP

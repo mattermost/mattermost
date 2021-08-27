@@ -768,10 +768,6 @@
     "translation": "Ogiltigt root-id."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Ogiltigt parent-id."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Ogiltigt command hook id."
   },
@@ -1092,14 +1088,6 @@
     "translation": "Fel vid base64-avkodningen av trigger ID i den interaktiva dialogen."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Kunde inte hantera importen: kunde inte packa upp filen."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Kunde inte hantera importen: misslyckades med att skapa temporär mapp."
-  },
-  {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "Kunde inte spara exportfil."
   },
@@ -1114,14 +1102,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Kunde inte hämta användare."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Den utgående webhooken är raderad men av någon outgrundlig anledning går det inte att skapa en ny."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Funktionen kräver en uppgradering till Enterpriseversionen och tillhörande licensnyckel. Kontakta din systemadministratör."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
@@ -1716,20 +1696,12 @@
     "translation": "Ogiltig typ."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Ogiltigt root ID. Root ID måste anges om parent ID anges."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Ogiltigt root-id."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Ogiltig props."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Ogiltigt parent-id."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -1753,7 +1725,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 5 filer. För att ladda upp fler filer, posta fler meddelanden."
+    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 10 filer. För att ladda upp fler filer, posta fler meddelanden."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -3312,28 +3284,8 @@
     "translation": "Elasticsearch aggregator worker misslyckades med att skapa indexeringsjobbet"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av reaktioner skulle raderas."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av meddelanden skulle raderas."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Din licens ger inte stöd för datalagring."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av flaggor skulle rensas."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av filinformation skulle raderas."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Misslyckades att rensa posterna."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -4752,16 +4704,8 @@
     "translation": "Du kan inte aktivera ett gästkonto då gästfunktionen ej är aktiverad."
   },
   {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Misslyckades att skicka välkomstmail via e-post"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Lyckades inte skicka e-post verifieringen"
-  },
-  {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Misslyckades att skicka epost för \"Personligt access_token tillagd\""
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -4776,24 +4720,8 @@
     "translation": "Misslyckades att skicka lösenordsåterställning via e-post."
   },
   {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Kunde inte skicka e-postmeddelande för lösenordsbyte"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Kunde inte skicka e-postnotifikatoin för MFA-byte."
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Misslyckades att skicka ändringar via e-post verifieringen"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Misslyckades med att skicka ändring av användarnamnet via e-posten"
-  },
-  {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Misslyckades med att skicka meddelandet med e-poständring"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -5964,10 +5892,6 @@
     "translation": "Ogiltig RootId-parameter."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Felaktig ParentId-parameter."
-  },
-  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Ogiltigt ChannelId för parametern RootId."
   },
@@ -6014,10 +5938,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Ett fel inträffade när tillägget skulle laddas ner."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Ett fel uppstod när den publika nyckel-filen skulle öppnas."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -7912,14 +7832,6 @@
     "translation": "Måste använda createDirectChannel API tjänst för direktmeddelande skapande av kanaler."
   },
   {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Kanalen är redan konverterad till en privat kanal."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Denna standardkanal kan inte konverteras till en privat kanal."
-  },
-  {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Din licens tillåter inte användande av grupper"
   },
@@ -7962,38 +7874,6 @@
   {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Lägg till mig i grupper och kanaler som du vill att jag ska interagera i. För att göra detta, använd webbläsare eller Mattermost skrivbordsapp."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Gick inte att ladda upp ikonbild. Filen är för stor."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Gick inte att tolka multipart-formuläret."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Kunde inte öppna bildfilen."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Inga filer under 'image' i förfrågan."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Tom matris för 'bild' i förfrågan."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Kunde inte ladda upp ikonbilden."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Kan ej läsa filen för ikonbild."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Kunde inte radera ikonbilden."
   },
   {
     "id": "api.bot.create_disabled",
@@ -8404,10 +8284,6 @@
     "translation": "Inga mejl blev skickade"
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Det gick inte att skicka mejl till administratören om uppnådd användarnivå"
-  },
-  {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} vill bjuda in användare till ditt workspace"
   },
@@ -8673,7 +8549,7 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id på säker anslutning att ta bort"
+    "translation": "Id på säker anslutning att ta bort."
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -9036,10 +8912,6 @@
     "translation": "Det gick inte att hämta statusen för det första administratörsbesöket på marknadsplatsen från butiken."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Det gick inte att skicka mejl med information om att testperioden är på väg att ta slut"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Din kostnadsfria testperiod på 14 dagar slutar snart"
   },
@@ -9078,10 +8950,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kunde inte skicka automatisk svar från användaren."
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Misslyckades att skicka mejl om att testperioden avslutas"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -9213,5 +9081,121 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Det går inte att aktivera fler användare eftersom du nått gränsen för ditt Mattermost Cloud-konto."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Det gick inte att kontrollera antalet användare i din Mattermost cloud-instans."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Listan med administratörer är tom."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Listan med administratörer är tom."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "System"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Användarens trådmedlemskap finns inte"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kunde inte få fram användarens trådmedlemskap"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Licensnyckeln för testperioden av Mattermost Enterprise Edition är inte längre giltig. [Kontakta Sales team] (https://mattermost.com/contact-us/) om du vill utöka testperionden."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Kunde inte kontrollera om en testperiod kan startas"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Datagallringsjobbet misslyckades."
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "Misslyckades med att hämta filinformation för innehållsanalys."
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "Felaktigt värde i 'till'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "Felaktigt värde i 'från'"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Det går inte att analysera token för att göra mejlverifieringstoken ogiltiga"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Det går inte att ta bort token för att göra mejlverifieringstoken ogiltiga"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Misslyckades med att generera länken för licensförnyelse"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Den här funktionen kräver en uppgradering till Enterprise Edition."
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Det går inte att hämta tokens efter typ för att göra mejlverifieringstoken ogiltiga"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Din Mattermost-prenumeration ska förnyas"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Logga in på ditt kundkonto för att förnya"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, din prenumeration löper ut om {{.Days}} dagar. Vi hoppas att du uppskattar det flexibla och säkra teamsamarbete som Mattermost möjliggör. Förnya prenumerationen för att ditt team ska kunna fortsätta njuta av funktionerna."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Din licens ska förnyas"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Förnya nu"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Misslyckades med att skicka e-postmeddelanden för förnyelse av licensen"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Kontrollen av tomt användarlagring misslyckades."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} svarade i en tråd"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "Medan du var borta så kommenterade {{.SenderName}} i en tråd du följer."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Svara i tråden"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " kommenterade i en tråd du följer."
   }
 ]

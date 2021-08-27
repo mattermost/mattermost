@@ -4,10 +4,12 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClusterDiscovery(t *testing.T) {
@@ -17,7 +19,9 @@ func TestClusterDiscovery(t *testing.T) {
 		Hostname:    "test_hostname",
 	}
 
-	json := o.ToJson()
+	buf, err := json.Marshal(o)
+	require.NoError(t, err)
+	json := string(buf)
 	result1 := ClusterDiscoveryFromJson(strings.NewReader(json))
 
 	assert.NotNil(t, result1)
@@ -50,7 +54,7 @@ func TestClusterDiscovery(t *testing.T) {
 	o.Hostname = ""
 	o.AutoFillHostname()
 
-	o.AutoFillIpAddress("", "")
+	o.AutoFillIPAddress("", "")
 	o.Hostname = ""
-	o.AutoFillIpAddress("", "")
+	o.AutoFillIPAddress("", "")
 }

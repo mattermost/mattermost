@@ -11,8 +11,6 @@ import (
 	"unicode/utf8"
 )
 
-const TERMS_OF_SERVICE_CACHE_SIZE = 1
-
 type TermsOfService struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
@@ -33,7 +31,7 @@ func (t *TermsOfService) IsValid() *AppError {
 		return InvalidTermsOfServiceError("user_id", t.Id)
 	}
 
-	if utf8.RuneCountInString(t.Text) > POST_MESSAGE_MAX_RUNES_V2 {
+	if utf8.RuneCountInString(t.Text) > PostMessageMaxRunesV2 {
 		return InvalidTermsOfServiceError("text", t.Id)
 	}
 
@@ -57,7 +55,7 @@ func InvalidTermsOfServiceError(fieldName string, termsOfServiceId string) *AppE
 	if termsOfServiceId != "" {
 		details = "terms_of_service_id=" + termsOfServiceId
 	}
-	return NewAppError("TermsOfService.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
+	return NewAppError("TermsOfService.IsValid", id, map[string]interface{}{"MaxLength": PostMessageMaxRunesV2}, details, http.StatusBadRequest)
 }
 
 func (t *TermsOfService) PreSave() {

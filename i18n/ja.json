@@ -148,14 +148,6 @@
     "translation": "このチャンネルは非公開チャンネルに変更されました。"
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "このデフォルトチャンネルは非公開チャンネルに変更できません。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "変更しようとしているチャンネルはすでに非公開チャンネルです。"
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "ダイレクトメッセージチャンネルを作成するにはcreateDirectChannel APIを使用してください。"
   },
@@ -1316,10 +1308,6 @@
     "translation": "RootIdパラメーターのChannelIdが不正です。"
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "ParentIdパラメーターが不正です。"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "RootIdパラメーターが不正です。"
   },
@@ -2176,24 +2164,8 @@
     "translation": "無効化されたアカウントへ電子メールを送信できませんでした"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "電子メールアドレス変更通知の電子メールを送信できませんでした"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "ユーザー名変更通知の電子メールを送信できませんでした"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "電子メールアドレス変更確認の電子メールを送信できませんでした"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "多要素認証変更に関する電子メール通知を送信できません。"
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "パスワード更新の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2208,16 +2180,8 @@
     "translation": "パスワード更新の電子メールを送信できませんでした"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "パーソナルアクセストークン追加の電子メールを送信できませんでした"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "確認の電子メールを送信できませんでした"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "歓迎の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3040,10 +3004,6 @@
     "translation": "ファイルストレージに画像ファイルを書き込めません。接続を確認し、再度実行してください。"
   },
   {
-    "id": "cli.license.critical",
-    "translation": "この機能はEnterprise Editionへのアップグレードとライセンスキーを要求しています。システム管理者に連絡してください。"
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "ユーザーを取得できません。"
   },
@@ -3740,10 +3700,6 @@
     "translation": "不正なコマンドフックIDです。"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "不正な親IDです。"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "不正なルートIDです。"
   },
@@ -4428,20 +4384,12 @@
     "translation": "不正なオリジナルIDです。"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "不正な親IDです。"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "不正な設定値です。"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "不正なルートIDです。"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "親IDが設定されている場合、無効なルートIDが設定されていなければなりません。"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5152,10 +5100,6 @@
     "translation": "zipファイルを作成できません"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "外向きのウェブフッは削除されましたが、エラーにより新しいウェブフックを作成できませんでした。"
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "ユーザーインデックスを閉じることができませんでした。"
   },
@@ -5776,10 +5720,6 @@
     "translation": "プラグインをダウンロードする際にエラーが発生しました。"
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "公開鍵ファイルを開く際にエラーが発生しました。"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "無効化されたライセンスへの電子メールを送信できませんでした。"
   },
@@ -5900,38 +5840,6 @@
     "translation": "ブラウザ、もしくはMattermostデスクトップアプリから、Botをチーム・チャンネルに追加してください。"
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "プロフィール画像をアップロードできません。ファイルが大き過ぎます。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "マルチパートフォームを解析できません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "画像ファイルを開けません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "リクエストの'image'以下にファイルがありません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "リクエストの'image'以下の配列が空です。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "アイコン画像をアップロードできませんでした。"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "アイコン画像ファイルを読み込めませんでした。"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "アイコン画像を削除できませんでした。"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Bot作成は無効化されています。"
   },
@@ -5986,10 +5894,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "チャンネル投稿を削除できませんでした"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "リアクションの一括削除中にエラーが発生しました。"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6284,10 +6188,6 @@
     "translation": "指定日時内のチャンネル内ユーザーを取得できませんでした。"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "記録を破棄できませんでした。"
-  },
-  {
     "id": "app.command.listautocompletecommands.internal_error",
     "translation": "自動補完コマンドのリストを表示できませんでした。"
   },
@@ -6374,10 +6274,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "コンプライアンスリポートを取得する際にエラーが発生しました。"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "複数のフラグをクリーンアップする際にエラーが発生しました。"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6794,10 +6690,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "ジョブを取得できませんでした。"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "複数のファイル情報を完全に削除する際にエラーが発生しました。"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7580,10 +7472,6 @@
     "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
   },
   {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "複数の投稿を完全に削除する際にエラーが発生しました。"
-  },
-  {
     "id": "app.post.search.app_error",
     "translation": "投稿を検索中にエラーが発生しました"
   },
@@ -7790,14 +7678,6 @@
   {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "CollapsedThreads設定は、無効、デフォルトON、デフォルトOFFのいずれかでなければなりません"
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "インポートを処理できませんでした: ファイルをunzipできませんでした。"
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "インポートを処理できませんでした: 一時ディレクトリを作成できませんでした。"
   },
   {
     "id": "import_process.worker.do_job.open_file",
@@ -8358,10 +8238,6 @@
   {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "エクスポート中にファイルをコピーできませんでした。"
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "ユーザー制限通知の電子メールを管理者に送信できませんでした"
   },
   {
     "id": "api.templates.upgrade_request_title",
@@ -9044,14 +8920,6 @@
     "translation": "ユーザーからの自動返信を送信できませんでした。"
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "トライアル終了警告の電子メールを送信できませんでした"
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "トライアル終了の電子メールを送信できませんでした"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Mattermostの14日間のトライアルは、まもなく終了します"
   },
@@ -9208,5 +9076,105 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "データ保持ジョブが失敗しました。"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "ユーザースレッドのメンバーシップが存在しません"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "ユーザースレッドのメンバーシップを取得できませんでした"
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "システム"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "管理者リストが空です。"
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "管理者リストが空です。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "クラウドアカウント数が制限を超えているため、これ以上ユーザーを増やすことはできません。"
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Mattermostクラウドインスタンスのユーザー数を確認できませんでした。"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[セールスチームまでご連絡ください](https://mattermost.com/contact-us/)。"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "トライアルが開始可能か確認できませんでした"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "カスタマーアカウントでログインして更新"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}さん、あなたのサブスクリプションは{{.Days}}日で期限切れになるように設定されています。Mattermostが可能にする柔軟で安全なチームコラボレーションを体験していただければ幸いです。チームがこれらのメリットを引き続き享受できるように、今すぐ更新してください。"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "ライセンスは更新中です"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "更新する"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "ライセンスの確認メールを送信できませんでした"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "ライセンスの更新リンク生成に失敗しました"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "電子メール確認トークンを無効にする際にトークンを解析できませんでした"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "電子メール確認トークンを無効にする際にトークンを削除できませんでした"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "あなたのMattermostのサブスクリプションは更新が必要です"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "電子メール確認トークンを無効にする際にタイプ別のトークンを取得できませんでした"
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "コンテンツ抽出中、ファイル情報を取得できませんでした。"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "不正な入力値 'to'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "不正な入力値 'from'"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "この機能を利用するには、Enterprise Editionへのアップグレードが必要です。"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "ユーザーストアが空であるかどうか確認できませんでした。"
   }
 ]

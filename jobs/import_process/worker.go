@@ -4,21 +4,20 @@
 package import_process
 
 import (
+	"archive/zip"
 	"io"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func init() {
@@ -125,51 +124,45 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 	defer importFile.Close()
 
-	// TODO (MM-30187): improve this process by eliminating the need to unzip the import
-	// file locally and instead do the whole bulk import process in memory by
-	// streaming the import file.
-
-	// create a temporary dir to extract the zipped import file.
-	dir, err := ioutil.TempDir("", "import")
-	if err != nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.tmp_dir", nil, err.Error(), http.StatusInternalServerError)
-		w.setJobError(job, appError)
-		return
-	}
-	defer os.RemoveAll(dir)
-
-	// extract the contents of the zipped file.
-	paths, err := utils.UnzipToPath(importFile.(io.ReaderAt), importFileSize, dir)
-	if err != nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.unzip", nil, err.Error(), http.StatusInternalServerError)
-		w.setJobError(job, appError)
-		return
-	}
-
-	// find JSONL import file.
-	var jsonFilePath string
-	for _, path := range paths {
-		if filepath.Ext(path) == ".jsonl" {
-			jsonFilePath = path
-			break
-		}
-	}
-
-	if jsonFilePath == "" {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_jsonl", nil, "", http.StatusBadRequest)
-		w.setJobError(job, appError)
-		return
-	}
-
-	jsonFile, err := os.Open(jsonFilePath)
+	importZipReader, err := zip.NewReader(importFile.(io.ReaderAt), importFileSize)
 	if err != nil {
 		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
 		w.setJobError(job, appError)
 		return
 	}
 
+	// find JSONL import file.
+	var jsonFile io.ReadCloser
+	for _, f := range importZipReader.File {
+		if filepath.Ext(f.Name) != ".jsonl" {
+			continue
+		}
+		// avoid "zip slip"
+		if strings.Contains(f.Name, "..") {
+			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contains path traversal", http.StatusForbidden)
+			w.setJobError(job, appError)
+			return
+		}
+
+		jsonFile, err = f.Open()
+		if err != nil {
+			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
+			w.setJobError(job, appError)
+			return
+		}
+
+		defer jsonFile.Close()
+		break
+	}
+
+	if jsonFile == nil {
+		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_jsonl", nil, "jsonFile was nil", http.StatusBadRequest)
+		w.setJobError(job, appError)
+		return
+	}
+
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, false, runtime.NumCPU(), filepath.Join(dir, app.ExportDataDir))
+	appErr, lineNumber := w.app.BulkImport(w.appContext, jsonFile, importZipReader, false, runtime.NumCPU())
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)

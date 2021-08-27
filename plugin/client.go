@@ -18,12 +18,12 @@ const (
 func ClientMain(pluginImplementation interface{}) {
 	if impl, ok := pluginImplementation.(interface {
 		SetAPI(api API)
-		SetHelpers(helpers Helpers)
+		SetDriver(driver Driver)
 	}); !ok {
 		panic("Plugin implementation given must embed plugin.MattermostPlugin")
 	} else {
 		impl.SetAPI(nil)
-		impl.SetHelpers(nil)
+		impl.SetDriver(nil)
 	}
 
 	pluginMap := map[string]plugin.Plugin{
@@ -38,8 +38,8 @@ func ClientMain(pluginImplementation interface{}) {
 
 type MattermostPlugin struct {
 	// API exposes the plugin api, and becomes available just prior to the OnActive hook.
-	API     API
-	Helpers Helpers
+	API    API
+	Driver Driver
 }
 
 // SetAPI persists the given API interface to the plugin. It is invoked just prior to the
@@ -48,7 +48,7 @@ func (p *MattermostPlugin) SetAPI(api API) {
 	p.API = api
 }
 
-// SetHelpers does the same thing as SetAPI except for the plugin helpers.
-func (p *MattermostPlugin) SetHelpers(helpers Helpers) {
-	p.Helpers = helpers
+// SetDriver sets the RPC client implementation to talk with the server.
+func (p *MattermostPlugin) SetDriver(driver Driver) {
+	p.Driver = driver
 }

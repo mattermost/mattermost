@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -72,6 +72,27 @@ func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	}
 
 	return r0
+}
+
+// DeleteOrphanedRows provides a mock function with given fields: limit
+func (_m *ReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
+	ret := _m.Called(limit)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int) int64); ok {
+		r0 = rf(limit)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetForPost provides a mock function with given fields: postID, allowFromCache
