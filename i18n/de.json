@@ -9201,5 +9201,9 @@
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
     "translation": "ThreadAutoFollow muss true sein, um Unterhaltungen (CollapsedThreads) zu aktivieren"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Die Konfiguration konnte nicht neu geladen werden."
   }
 ]
