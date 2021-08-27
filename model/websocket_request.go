@@ -28,6 +28,19 @@ func (o *WebSocketRequest) ToJson() string {
 	return string(b)
 }
 
+func (o *WebSocketRequest) Clone() (*WebSocketRequest, error) {
+	buf, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
+	var ret WebSocketRequest
+	err = json.Unmarshal(buf, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
 func WebSocketRequestFromJson(data io.Reader) *WebSocketRequest {
 	var o *WebSocketRequest
 	json.NewDecoder(data).Decode(&o)
