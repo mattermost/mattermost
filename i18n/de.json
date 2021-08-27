@@ -5861,7 +5861,7 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "Ihre Lizenz unterstützt die Moderation eines Kanals nicht"
+    "translation": "Ihre Lizenz unterstützt das Moderieren eines Kanals nicht"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -6161,7 +6161,7 @@
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
-    "translation": "Site URL kann nicht leer sein."
+    "translation": "Site URL kann nicht geleert werden."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -6997,7 +6997,7 @@
   },
   {
     "id": "api.command_remote.invite_password.hint",
-    "translation": "Passwort für die Verschlüsslung der Einladung"
+    "translation": "Passwort um die Einladung zu verschlüsseln"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -7005,7 +7005,7 @@
   },
   {
     "id": "api.command_remote.hint",
-    "translation": "[Aktion]"
+    "translation": "[action]"
   },
   {
     "id": "api.command_remote.cluster_removed",
@@ -7025,7 +7025,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Einladung einer externen Mattermost-Instanz akzeptieren"
+    "translation": "Einladung von einer externen Mattermost-Instanz akzeptieren"
   },
   {
     "id": "api.command_custom_status.name",
@@ -7037,7 +7037,7 @@
   },
   {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": "Fehler beim Zurücksetzen des Status."
+    "translation": "Fehler beim Leeren des Status."
   },
   {
     "id": "api.command_custom_status.app_error",
@@ -7045,15 +7045,15 @@
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "Der eingegebene Text ist zu lang. Die Kanalüberschrift darf nicht mehr als {{.MaxLength}} Zeichen enthalten."
+    "translation": "Der eingegebene Text ist zu lang. Die Kanalüberschrift ist auf {{.MaxLength}} Zeichen beschränkt."
   },
   {
     "id": "api.cloud.request_error",
-    "translation": "Bei der Verarbeitung der Abfrage zum CWS ist ein Fehler aufgetreten."
+    "translation": "Fehler beim Verarbeiten einer Anfrage zum CWS."
   },
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
-    "translation": "Fehler beim Invalidieren des Cache"
+    "translation": "Fehler beim Invalidieren des Caches"
   },
   {
     "id": "import_process.worker.do_job.open_file",
@@ -7077,11 +7077,11 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Keine sichere Verbindung wurde in diesen Kanal eingeladen."
+    "translation": "Keine sicheren Verbindungen wurde in diesen Kanal eingeladen."
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Muss eine gültige sichere Verbindungs-ID für die Einladung verwenden."
+    "translation": "Muss eine gültige sichere Verbindungs-ID zum Einladen angeben."
   },
   {
     "id": "api.command_share.missing_action",
@@ -7109,7 +7109,7 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Teilt den aktuellen Kanal mit einer externen Mattemost Instanz."
+    "translation": "Teilt den aktuellen Kanal mit einer externen Mattermost Instanz."
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -7157,7 +7157,7 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Seiten-URL ist nicht gesetzt. Bitte unter Systemkonsole > Umgebung > Webserver setzen."
+    "translation": "Site-URL ist nicht gesetzt. Bitte unter Systemkonsole > Umgebung > Webserver setzen."
   },
   {
     "id": "api.command_remote.service_not_enabled",
@@ -7213,7 +7213,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Sende die folgende AES 256-bit verschlüsselte Einladung zu einem externen Mattermost Systemadministrator zusammen mit dem Passwort. Diese werden den `{{.Command}}` Slash-Befehl verwenden um die Einladung zu akzeptieren.\n\n```\n{{.Invitation}}\n```\n\n**Sicherstellen, dass die sichere Verbindung die Mattermost Instanz über {{.SiteURL}} erreicht. **"
+    "translation": "Sende die folgende AES 256-bit verschlüsselte Einladung zu einem externen Mattermost Systemadmin zusammen mit dem Passwort. Diese werden den `{{.Command}}` Slash-Befehl verwenden um die Einladung zu akzeptieren.\n\n```\n{{.Invitation}}\n```\n\n**Sicherstellen, dass die sichere Verbindung Ihre Mattermost Instanz über {{.SiteURL}} erreicht. **"
   },
   {
     "id": "api.command_remote.invite_password.help",
@@ -7229,7 +7229,7 @@
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Einladung von einer sicheren Verbindung"
+    "translation": "Einladung von sicherer Verbindung"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -7257,7 +7257,7 @@
   },
   {
     "id": "api.command_custom_status.success",
-    "translation": "Ihr Status ist auf “{{.EmojiName}} {{.StatusMessage}}” gesetzt. Sie können Ihren Status über das Status-Popover im Kopf der Kanalseitenleiste setzen."
+    "translation": "Ihr Status ist auf “{{.EmojiName}} {{.StatusMessage}}” gesetzt. Sie können Ihren Status über das Status-Popover in der Kopfleiste ändern."
   },
   {
     "id": "api.command_custom_status.hint",
@@ -7265,7 +7265,7 @@
   },
   {
     "id": "api.command_custom_status.desc",
-    "translation": "Status setzen oder löschen"
+    "translation": "Status setzen oder leeren"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -7516,7 +7516,7 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Sichere Verbindung | Seiten-URL | Nur Lesen | Einladung akzeptiert | Online | Letzte Sync |"
+    "translation": "| Sichere Verbindung | Site URL | Nur Lesen | Einladung akzeptiert | Online | Letzte Sync |"
   },
   {
     "id": "api.command_share.remote_not_valid",
@@ -7552,7 +7552,7 @@
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
-    "translation": "Fehler das AuthData Feld auf Email zurückzusetzen."
+    "translation": "Zurücksetzen des AuthData Felds auf Email fehlgeschlagen."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
@@ -9184,18 +9184,22 @@
   },
   {
     "id": "app.notification.body.thread.title",
-    "translation": "{{.SenderName}} hat auf ein Thema geantwortet"
+    "translation": "{{.SenderName}} hat auf eine Unterhaltung geantwortet"
   },
   {
     "id": "app.notification.body.thread.subTitle",
-    "translation": "Während Sie weg waren, hat {{.SenderName}} auf ein Thema geantwortet, das Sie beobachten."
+    "translation": "Während Sie weg waren, hat {{.SenderName}} auf eine Unterhaltung geantwortet, die Sie beobachten."
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Auf das Thema antworten"
+    "translation": "Auf die Unterhaltung antworten"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " einen Kommentar zu einem Thema abgegeben, das Sie verfolgen."
+    "translation": " einen Kommentar zu einer Unterhaltung abgegeben, das Sie verfolgen."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow muss true sein, um Unterhaltungen (CollapsedThreads) zu aktivieren"
   }
 ]
