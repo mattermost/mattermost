@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5380
+	CurrentSchemaVersion   = Version600
 	Version600             = "6.0.0"
+	Version5390            = "5.39.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -213,6 +214,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion539(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
 
 	return nil
@@ -1435,6 +1437,12 @@ func upgradeDatabaseToVersion538(sqlStore *SqlStore) {
 	}
 }
 
+func upgradeDatabaseToVersion539(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5380, Version5390) {
+		saveSchemaVersion(sqlStore, Version5390)
+	}
+}
+
 // fixCRTThreadCountsAndUnreads Marks threads as read for users where the last
 // reply time of the thread is earlier than the time the user viewed the channel.
 // Marking a thread means setting the mention count to zero and setting the
@@ -1561,9 +1569,9 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
 	}
 
-	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
-	// 	saveSchemaVersion(sqlStore, Version600)
-	// }
+	if shouldPerformUpgrade(sqlStore, Version5390, Version600) {
+		saveSchemaVersion(sqlStore, Version600)
+	}
 }
 
 func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
