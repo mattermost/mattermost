@@ -355,8 +355,8 @@ func TestSendMail(t *testing.T) {
 			"",
 			"\r\nReply-To:",
 		},
-		
-		"adds message-id header" : {
+
+		"adds message-id header": {
 			mail.Address{},
 			"<abc123@mattermost.com>",
 			"",
@@ -364,7 +364,7 @@ func TestSendMail(t *testing.T) {
 			"\r\nMessage-ID: <abc123@mattermost.com>\r\n",
 			"",
 		},
-		"doesn't add message-id header" : {
+		"doesn't add message-id header": {
 			mail.Address{},
 			"",
 			"",
@@ -372,7 +372,7 @@ func TestSendMail(t *testing.T) {
 			"",
 			"\r\nMessage-ID:",
 		},
-		"adds in-reply-to header" : {
+		"adds in-reply-to header": {
 			mail.Address{},
 			"",
 			"<defg456@mattermost.com>",
@@ -380,15 +380,15 @@ func TestSendMail(t *testing.T) {
 			"\r\nIn-Reply-To: <defg456@mattermost.com>\r\n",
 			"",
 		},
-		"doesn't add in-reply-to header" : {
+		"doesn't add in-reply-to header": {
 			mail.Address{},
 			"",
 			"",
 			"",
 			"",
 			"\r\nIn-Reply-To:",
-		},	
-		"adds references header" : {
+		},
+		"adds references header": {
 			mail.Address{},
 			"",
 			"",
@@ -396,7 +396,7 @@ func TestSendMail(t *testing.T) {
 			"\r\nReferences: <ghi789@mattermost.com>\r\n",
 			"",
 		},
-		"doesn't add references header" : {
+		"doesn't add references header": {
 			mail.Address{},
 			"",
 			"",
