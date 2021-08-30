@@ -359,6 +359,44 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		// TODO: See above.
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
+
+	t.Run("static, development mode enabled", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("System").Return(&mockSystemStore)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = true
+		})
+
+		web := New(th.App, th.Server.Router)
+
+		handler := Handler{
+			App:            web.app,
+			HandleFunc:     handlerForCSPHeader,
+			RequireSession: false,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       true,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Contains(t, response.Header().Get("Content-Security-Policy"), "'unsafe-eval'")
+		assert.Contains(t, response.Header().Get("Content-Security-Policy"), "'unsafe-inline'")
+	})
 }
 
 func TestHandlerServeInvalidToken(t *testing.T) {
