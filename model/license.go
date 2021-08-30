@@ -15,6 +15,11 @@ const (
 	InvalidLicenseError = "api.license.add_license.invalid.app_error"
 	LicenseGracePeriod  = 1000 * 60 * 60 * 24 * 10 //10 days
 	LicenseRenewalLink  = "https://mattermost.com/renew/"
+
+	LicenseShortSkuE10          = "E10"
+	LicenseShortSkuE20          = "E20"
+	LicenseShortSkuProfessional = "professional"
+	LicenseShortSkuEnterprise   = "enterprise"
 )
 
 const (
@@ -289,6 +294,13 @@ func (l *License) IsSanctionedTrial() bool {
 
 	return l.IsTrialLicense() &&
 		(duration >= sanctionedTrialDurationLowerBound.Milliseconds() || duration <= sanctionedTrialDurationUpperBound.Milliseconds())
+}
+
+func (l *License) HasEnterpriseMarketplacePlugins() bool {
+	return *l.Features.EnterprisePlugins ||
+		l.SkuShortName == LicenseShortSkuE20 ||
+		l.SkuShortName == LicenseShortSkuProfessional ||
+		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.

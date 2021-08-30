@@ -148,14 +148,6 @@
     "translation": "Bu kanal özel kanala dönüştürüldü."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Bu varsayılan kanal özel bir kanala dönüştürülemez."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Dönüştürmek istediğiniz kanal zaten özel bir kanal."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Doğrudan ileti kanalı eklemek için createDirectChannel API hizmeti kullanılmalıdır."
   },
@@ -1316,10 +1308,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "RootID parametresi için kanal kodu geçersiz."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "ParentId parametresi geçersiz."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3020,10 +3008,6 @@
     "translation": "Görsel dosyası kullandığınız dosya depolaması üzerine yazılamadı. Lütfen bağlantınızı denetleyip yeniden deneyin."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Bu özellik bir Enterprise Sürümü lisans anahtarı ile birlikte kullanılabilir. Lütfen sistem yöneticiniz ile görüşün."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Kullanıcılar alınamadı."
   },
@@ -3720,10 +3704,6 @@
     "translation": "Komut bağlantı kodu geçersiz."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Üst öge kodu geçersiz."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Kök kodu geçersiz."
   },
@@ -4385,7 +4365,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Dosya kodları geçersiz. Bir iletide en çok 5 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
+    "translation": "Dosya kodları geçersiz. Bir iletide en çok 10 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4408,20 +4388,12 @@
     "translation": "Özgün kod geçersiz."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Üst öge kodu geçersiz."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Özellikler geçersiz."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Kök kodu geçersiz."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Kök kodu geçersiz. Üst öge kodu ayarlanmış ise ayarlanmalıdır."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5280,10 +5252,6 @@
     "translation": "sunucu_sorunu: Emoji oluşturulurken sunucuda bir iç sorun çıktı."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Herkese açık anahtar dosyası açılırken bir sorun çıktı."
-  },
-  {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
     "translation": "@{{.GroupName}} grubunun bu takımda bir üyesi yok"
   },
@@ -5462,10 +5430,6 @@
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
     "translation": "Kullanıcı araması tamamlanamadı."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Giden web bağlantısı silindi ancak bir sorun nedeniyle yenisi eklenemedi."
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
@@ -9217,5 +9181,29 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Kullanıcı mağazasının boş olup olmadığı denetlenemedi."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} bir konuyu yanıtladı"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} izlediğiniz bir konuyu yanıtladı."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Konuyu yanıtla"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " izlediğiniz bir konuya yorum yaptı."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "CollapsedThreads seçeneğini etkinleştirmek için ThreadAutoFollow seçeneği true olmalıdır"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Yapılandırma yeniden yüklenemedi."
   }
 ]

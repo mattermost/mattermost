@@ -3702,6 +3702,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.CollapsedThreads != CollapsedThreadsDisabled && !*s.ThreadAutoFollow {
+		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.autofollow.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.CollapsedThreads != CollapsedThreadsDisabled &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {

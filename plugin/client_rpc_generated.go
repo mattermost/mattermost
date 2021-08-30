@@ -566,6 +566,109 @@ func (s *hooksRPCServer) OnPluginClusterEvent(args *Z_OnPluginClusterEventArgs, 
 	return nil
 }
 
+func init() {
+	hookNameToId["OnWebSocketConnect"] = OnWebSocketConnectID
+}
+
+type Z_OnWebSocketConnectArgs struct {
+	A string
+	B string
+}
+
+type Z_OnWebSocketConnectReturns struct {
+}
+
+func (g *hooksRPCClient) OnWebSocketConnect(webConnID, userID string) {
+	_args := &Z_OnWebSocketConnectArgs{webConnID, userID}
+	_returns := &Z_OnWebSocketConnectReturns{}
+	if g.implemented[OnWebSocketConnectID] {
+		if err := g.client.Call("Plugin.OnWebSocketConnect", _args, _returns); err != nil {
+			g.log.Error("RPC call OnWebSocketConnect to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnWebSocketConnect(args *Z_OnWebSocketConnectArgs, returns *Z_OnWebSocketConnectReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnWebSocketConnect(webConnID, userID string)
+	}); ok {
+		hook.OnWebSocketConnect(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnWebSocketConnect called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnWebSocketDisconnect"] = OnWebSocketDisconnectID
+}
+
+type Z_OnWebSocketDisconnectArgs struct {
+	A string
+	B string
+}
+
+type Z_OnWebSocketDisconnectReturns struct {
+}
+
+func (g *hooksRPCClient) OnWebSocketDisconnect(webConnID, userID string) {
+	_args := &Z_OnWebSocketDisconnectArgs{webConnID, userID}
+	_returns := &Z_OnWebSocketDisconnectReturns{}
+	if g.implemented[OnWebSocketDisconnectID] {
+		if err := g.client.Call("Plugin.OnWebSocketDisconnect", _args, _returns); err != nil {
+			g.log.Error("RPC call OnWebSocketDisconnect to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnWebSocketDisconnect(args *Z_OnWebSocketDisconnectArgs, returns *Z_OnWebSocketDisconnectReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnWebSocketDisconnect(webConnID, userID string)
+	}); ok {
+		hook.OnWebSocketDisconnect(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnWebSocketDisconnect called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["WebSocketMessageHasBeenPosted"] = WebSocketMessageHasBeenPostedID
+}
+
+type Z_WebSocketMessageHasBeenPostedArgs struct {
+	A string
+	B string
+	C *model.WebSocketRequest
+}
+
+type Z_WebSocketMessageHasBeenPostedReturns struct {
+}
+
+func (g *hooksRPCClient) WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest) {
+	_args := &Z_WebSocketMessageHasBeenPostedArgs{webConnID, userID, req}
+	_returns := &Z_WebSocketMessageHasBeenPostedReturns{}
+	if g.implemented[WebSocketMessageHasBeenPostedID] {
+		if err := g.client.Call("Plugin.WebSocketMessageHasBeenPosted", _args, _returns); err != nil {
+			g.log.Error("RPC call WebSocketMessageHasBeenPosted to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) WebSocketMessageHasBeenPosted(args *Z_WebSocketMessageHasBeenPostedArgs, returns *Z_WebSocketMessageHasBeenPostedReturns) error {
+	if hook, ok := s.impl.(interface {
+		WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
+	}); ok {
+		hook.WebSocketMessageHasBeenPosted(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("Hook WebSocketMessageHasBeenPosted called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
