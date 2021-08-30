@@ -15,7 +15,6 @@ import (
 func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
 	props := GenerateLimitedClientConfig(c, telemetryID, license)
 
-	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
 	props["EnableCustomUserStatuses"] = strconv.FormatBool(*c.TeamSettings.EnableCustomUserStatuses)
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
@@ -86,8 +85,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
 	props["EnableGifPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableGifPicker)
-	props["GfycatApiKey"] = *c.ServiceSettings.GfycatApiKey
-	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatApiSecret
+	props["GfycatApiKey"] = *c.ServiceSettings.GfycatAPIKey
+	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatAPISecret
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 
 	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
@@ -139,8 +138,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionFileRetentionDays"] = "0"
 	props["CWSUrl"] = ""
 
-	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
-	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PluginSettingsDefaultMarketplaceUrl)
+	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
+	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
 	props["ExperimentalSharedChannels"] = "false"
 	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
 
@@ -206,7 +205,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		}
 
 		if *license.Features.Cloud {
-			props["CWSUrl"] = *c.CloudSettings.CWSUrl
+			props["CWSUrl"] = *c.CloudSettings.CWSURL
 		}
 
 		if *license.Features.SharedChannels {
@@ -233,6 +232,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
 	props["FileLevel"] = *c.LogSettings.FileLevel
 
+	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
 	props["SiteName"] = *c.TeamSettings.SiteName
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)

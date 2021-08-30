@@ -458,7 +458,7 @@ func TestPatchBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(createdBot.UserId)
 
-		r, err := th.Client.DoApiPut("/bots/"+createdBot.UserId, `{"creator_id":"`+th.BasicUser2.Id+`"}`)
+		r, err := th.Client.DoAPIPut("/bots/"+createdBot.UserId, `{"creator_id":"`+th.BasicUser2.Id+`"}`)
 		require.NoError(t, err)
 		defer func() {
 			_, _ = ioutil.ReadAll(r.Body)

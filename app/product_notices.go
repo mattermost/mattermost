@@ -377,7 +377,7 @@ func (a *App) UpdateProductNotices() *model.AppError {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.parse_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := a.Srv().Store.ProductNotices().ClearOldNotices(&cachedNotices); err != nil {
+	if err := a.Srv().Store.ProductNotices().ClearOldNotices(cachedNotices); err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.clear_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil

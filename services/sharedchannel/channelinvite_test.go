@@ -23,7 +23,7 @@ type mockLogger struct {
 	mlog.LoggerIFace
 }
 
-func (ml *mockLogger) Log(level mlog.LogLevel, s string, flds ...mlog.Field) {}
+func (ml *mockLogger) Log(level mlog.Level, s string, flds ...mlog.Field) {}
 
 func TestOnReceiveChannelInvite(t *testing.T) {
 	t.Run("when msg payload is empty, it does nothing", func(t *testing.T) {

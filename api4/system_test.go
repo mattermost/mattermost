@@ -71,7 +71,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, err := client.DoApiGet("/system/ping", "")
+		resp, err := client.DoAPIGet("/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err := ioutil.ReadAll(resp.Body)
@@ -84,7 +84,7 @@ func TestGetPing(t *testing.T) {
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
 		th.App.ReloadConfig()
 
-		resp, err = client.DoApiGet("/system/ping", "")
+		resp, err = client.DoAPIGet("/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err = ioutil.ReadAll(resp.Body)
@@ -327,9 +327,12 @@ func TestGetLogs(t *testing.T) {
 		mlog.Info(strconv.Itoa(i))
 	}
 
+	err := th.TestLogger.Flush()
+	require.NoError(t, err, "failed to flush log")
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err := c.GetLogs(0, 10)
-		require.NoError(t, err)
+		logs, _, err2 := c.GetLogs(0, 10)
+		require.NoError(t, err2)
 		require.Len(t, logs, 10)
 
 		for i := 10; i < 20; i++ {
@@ -347,8 +350,8 @@ func TestGetLogs(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		_, resp, err := th.Client.GetLogs(0, 10)
-		require.Error(t, err)
+		_, resp, err2 := th.Client.GetLogs(0, 10)
+		require.Error(t, err2)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -750,7 +753,7 @@ func TestPushNotificationAck(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("should return error when the ack body is not passed", func(t *testing.T) {
-		handler := api.ApiHandler(pushNotificationAck)
+		handler := api.APIHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
 		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
@@ -764,7 +767,7 @@ func TestPushNotificationAck(t *testing.T) {
 		privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 		privatePost := th.CreatePostWithClient(th.SystemAdminClient, privateChannel)
 
-		handler := api.ApiHandler(pushNotificationAck)
+		handler := api.APIHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
 		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)

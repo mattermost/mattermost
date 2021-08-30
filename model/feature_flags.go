@@ -43,6 +43,9 @@ type FeatureFlags struct {
 
 	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
 	InviteMembersButton string
+
+	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
+	AddChannelButton string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -52,13 +55,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
-	f.PluginIncidentManagement = "1.16.0"
+	f.PluginIncidentManagement = "1.16.1"
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.TimedDND = false
 	f.PermalinkPreviews = true
 	f.GlobalHeader = false
 	f.InviteMembersButton = "none"
+	f.AddChannelButton = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

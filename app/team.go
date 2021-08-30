@@ -18,9 +18,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -1235,19 +1235,18 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	var channelList *model.ChannelList
-
+	var channelList model.ChannelList
 	var nErr error
 	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true, 0); nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
-			channelList = &model.ChannelList{}
+			channelList = model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	for _, channel := range *channelList {
+	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
 			if nErr = a.Srv().Store.Channel().RemoveMember(channel.Id, user.Id); nErr != nil {
@@ -1739,7 +1738,7 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		for _, c := range *channels {
+		for _, c := range channels {
 			a.PermanentDeleteChannel(c)
 		}
 	}
