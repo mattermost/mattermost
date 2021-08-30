@@ -135,7 +135,6 @@ func TestSendAdminUpgradeRequestEmailOnJoin(t *testing.T) {
 	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
 }
 
-
 func TestSendInviteEmails(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -165,15 +164,15 @@ func TestSendInviteEmails(t *testing.T) {
 		require.Contains(t, resultsEmail.Body.Text, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
 	}
 
-	th.UpdateConfig(func(cfg *model.Config) {
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.EmailSettings.SendEmailNotifications = false
 	})
 	t.Run("SendInviteEmails", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
-		require.NoError(t, err)
+		err := th.App.Srv().EmailService.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
+		require.Nil(t, err)
 
 		verifyMailbox(t)
 	})
@@ -181,7 +180,7 @@ func TestSendInviteEmails(t *testing.T) {
 	t.Run("SendGuestInviteEmails", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendGuestInviteEmails(
+		err := th.App.Srv().EmailService.sendGuestInviteEmails(
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -191,7 +190,7 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			"hello world",
 		)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		verifyMailbox(t)
 	})
