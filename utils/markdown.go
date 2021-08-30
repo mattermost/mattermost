@@ -37,9 +37,10 @@ func StripMarkdown(markdown string) (string, error) {
 
 // MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
 func MarkdownToHTML(markdown string) (string, error) {
-	re := regexp.MustCompile(`<(.*)>.*?|<(.*) />`)
+	// Unescape any blockquote text to be parsed by the markdown parser.
+	re := regexp.MustCompile(`^|\n(&gt;)`)
 	markdownClean := re.ReplaceAllFunc([]byte(markdown), func(s []byte) []byte {
-		out := html.EscapeString(string(s))
+		out := html.UnescapeString(string(s))
 		return []byte(out)
 	})
 

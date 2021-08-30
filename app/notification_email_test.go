@@ -844,8 +844,13 @@ func TestMarkdownConversion(t *testing.T) {
 		},
 		{
 			name: "markdown: blockquote",
-			args: "> This is Mattermost blockquote",
-			want: "<blockquote>\n<p>This is Mattermost blockquote</p>\n</blockquote>",
+			args: "Below is blockquote\n" +
+				"> This is Mattermost blockquote\n" +
+				"> on multiple lines!",
+			want: "<blockquote>\n" +
+				"<p>This is Mattermost blockquote\n" +
+				"on multiple lines!</p>\n" +
+				"</blockquote>",
 		},
 		{
 			name: "markdown: emphasis",
