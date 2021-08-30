@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -1041,20 +1040,21 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 
 func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
 	query := `
-		SELECT 1
-		FROM
-			Posts
-		WHERE
-			UpdateAt >= :Time
-			AND
-			ChannelId = :ChannelId
-			AND
-			UserId = :UserId
-			AND
-			Type = :Type
-		LIMIT 1`
+		SELECT EXISTS (SELECT 1
+				FROM
+					Posts
+				WHERE
+					UpdateAt >= :Time
+					AND
+					ChannelId = :ChannelId
+					AND
+					UserId = :UserId
+					AND
+					Type = :Type
+				LIMIT 1)`
 
-	exist, err := s.GetReplica().SelectInt(query, map[string]interface{}{
+	var exist bool
+	err := s.GetReplica().SelectOne(&exist, query, map[string]interface{}{
 		"ChannelId": options.ChannelId,
 		"Time":      options.Time,
 		"UserId":    userId,
@@ -1063,10 +1063,10 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 
 	if err != nil {
 		return false, errors.Wrapf(err,
-			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
+			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, model.GetTimeForMillis(options.Time))
 	}
 
-	return exist > 0, nil
+	return exist, nil
 }
 
 func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
