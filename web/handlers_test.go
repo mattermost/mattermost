@@ -360,8 +360,8 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
 
-	t.Run("static, development mode enabled", func(t *testing.T) {
-	        th := Setup(t).InitBasic()
+	t.Run("csp unsafe directives", func(t *testing.T) {
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
