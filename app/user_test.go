@@ -21,11 +21,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/users"
 	oauthgitlab "github.com/mattermost/mattermost-server/v5/model/gitlab"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -1516,7 +1516,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		defer th.TearDown()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
-			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 		})
 
 		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
@@ -1558,7 +1558,6 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 			SessionStore: &storemocks.SessionStore{},
 			OAuthStore:   &storemocks.OAuthStore{},
 			ConfigFn:     th.App.srv.Config,
-			LicenseFn:    th.App.srv.License,
 		})
 		require.NoError(t, err)
 		mockStore.On("User").Return(&mockUserStore)
