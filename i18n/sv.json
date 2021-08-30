@@ -9197,5 +9197,13 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " kommenterade i en tråd du följer."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow måste aktiveras för att CollapsedThreads ska vara tillgängligt"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Misslyckades med att ladda om konfigurationen."
   }
 ]
