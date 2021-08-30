@@ -44,7 +44,7 @@ func TestSqlX(t *testing.T) {
 			}
 			arg := struct{ Timeout int }{Timeout: 2}
 			_, err = tx.NamedQuery(query, arg)
-			require.True(t, err == context.DeadlineExceeded)
+			require.Equal(t, context.DeadlineExceeded, err)
 			require.NoError(t, tx.Commit())
 		}
 	})
