@@ -4945,11 +4945,11 @@
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Nem sikerült felhasználót létrehozni a(z) {{.Service}} felhasználói objektumból."
+    "translation": "Nem sikerült felhasználót létrehozni a {{.Service}} felhasználói objektumból."
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Az e-mail címmel már van társítva egy fiók, a(z) {{.Service}} eltérő bejelentkezési módszerrel. Kérjük, jelentkezzen be az {{.Auth}} használatával."
+    "translation": "Az adott e-mail címmel már létezik fiók, de a {{.Service}} -től eltérő bejelentkezési módszerrel. Kérjük, jelentkezzen be a {{.Auth}} használatával."
   },
   {
     "id": "api.user.create_email_token.error",
@@ -5197,7 +5197,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "A(z) {{.TeamDisplayName}} csapatban az Ön felhasználóneve {{.NewUsername}} névre változott."
+    "translation": "A {{.TeamDisplayName}} csapatban az Ön felhasználóneve {{.NewUsername}} névre változott."
   },
   {
     "id": "api.templates.user_access_token_subject",
@@ -5441,7 +5441,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Személyes hozzáférési tokent adtunk a fiókjához a(z) {{.SiteURL}} webhelyen. Ezek felhasználhatók a(z) {{.SiteName}} fiókhoz való hozzáférésére."
+    "translation": "Személyes hozzáférési tokent adtunk a fiókjához a {{ .SiteURL }} rendszerben. Ezek arra használhatóak, hogy a {{.SiteName}} rendszert a fiókjával elérje."
   },
   {
     "id": "api.templates.upgrade_request_title2",
@@ -5481,7 +5481,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Frissítette bejelentkezési módszerét a(z) {{.SiteName}} webhelyen a következőre: {{.Method}}."
+    "translation": "Frissítette bejelentkezési módszerét a {{ .SiteName }} rendszerban a következőre: {{.Method}}."
   },
   {
     "id": "api.templates.reset_subject",
@@ -5721,7 +5721,7 @@
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} meghívta Önt, hogy csatlakozzon a(z) {{.TeamDisplayName}} csapathoz vendégként"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} meghívta Önt, hogy csatlakozzon a {{ .TeamDisplayName }} csapathoz vendégként"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -8590,7 +8590,7 @@
   },
   {
     "id": "api.command_invite.permission.app_error",
-    "translation": "Nincs elegendő jogosultsága, hogy hozzáadja a(z) {{.User}} felhasználót a(z) {{.Channel}} csatornához."
+    "translation": "Nincs elegendő jogosultsága, hogy hozzáadja a {{.User}} felhasználót a {{.Channel}} beszélgetéshez."
   },
   {
     "id": "api.command_invite.name",
@@ -9197,5 +9197,13 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " megjegyzést írt egy üzenetszálhoz amit követ."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "A CollapsedThreads engedélyezéséhez a ThreadAutoFollow beállításnak igaznak kell lennie"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Nem sikerült a beállítások újratöltése."
   }
 ]
