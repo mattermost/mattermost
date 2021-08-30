@@ -258,7 +258,7 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 	return sendMailUsingConfigAdvanced(mail, config)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool,  messageID string, inReplyTo string, references string, ccMail string) error {
+func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string) error {
 	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, messageID, inReplyTo, references, ccMail)
 }
 
@@ -317,11 +317,10 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 	if mail.cc != "" {
 		headers["CC"] = []string{mail.cc}
 	}
-	
+
 	if mail.messageID != "" {
 		headers["Message-ID"] = []string{mail.messageID}
 	}
-
 
 	if mail.inReplyTo != "" {
 		headers["In-Reply-To"] = []string{mail.inReplyTo}
