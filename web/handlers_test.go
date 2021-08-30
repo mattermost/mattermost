@@ -364,27 +364,19 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
+		// unsafe-* CSP directives should not be present by default
+		response, _ := http.Get(apiClient.URL)
+		assert.NotContains(t, response.Header.Get("Content-Security-Policy"), "'unsafe-eval'")
+		assert.NotContains(t, response.Header.Get("Content-Security-Policy"), "'unsafe-inline'")
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableDeveloper = true
 		})
 
-		web := New(th.App, th.Server.Router)
-
-		handler := Handler{
-			App:            web.app,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
-		}
-
-		request := httptest.NewRequest("POST", "/api/v4/test", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Contains(t, response.Header().Get("Content-Security-Policy"), "'unsafe-eval'")
-		assert.Contains(t, response.Header().Get("Content-Security-Policy"), "'unsafe-inline'")
+		// unsafe-* CSP directives should be present when developer mode is enabled
+		response, _ = http.Get(apiClient.URL)
+		assert.Contains(t, response.Header.Get("Content-Security-Policy"), "'unsafe-eval'")
+		assert.Contains(t, response.Header.Get("Content-Security-Policy"), "'unsafe-inline'")
 	})
 }
 
