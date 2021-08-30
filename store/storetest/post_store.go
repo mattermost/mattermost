@@ -3145,6 +3145,8 @@ func testHasAutoResponsePostByUserSince(t *testing.T, ss store.Store) {
 			Message:   "message",
 		})
 		require.NoError(t, err)
+		// We need to sleep because SendAutoResponseIfNecessary
+		// runs in a goroutine.
 		time.Sleep(time.Millisecond)
 
 		post2, err := ss.Post().Save(&model.Post{
