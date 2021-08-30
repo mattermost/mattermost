@@ -174,15 +174,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 
-		// Add unsafe-eval to the content security policy for faster source maps in development mode
 		devCSP := ""
 		if *c.App.Config().ServiceSettings.EnableDeveloper {
+			// Add unsafe-eval to the content security policy for faster source maps in development mode
 			devCSP += " 'unsafe-eval'"
-		}
-
-		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
-		// see https://github.com/reduxjs/redux-devtools/issues/380
-		if *c.App.Config().ServiceSettings.EnableDeveloper {
+			// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+			// see https://github.com/reduxjs/redux-devtools/issues/380
 			devCSP += " 'unsafe-inline'"
 		}
 
