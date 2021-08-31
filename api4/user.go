@@ -2939,7 +2939,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		Since:    0,
 		Before:   "",
 		After:    "",
-		PageSize: 30,
+		PageSize: uint64(c.Params.PerPage),
 		Unread:   false,
 		Extended: false,
 		Deleted:  false,
@@ -2961,15 +2961,6 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if options.Before != "" && options.After != "" {
 		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
 		return
-	}
-	pageSizeString := r.URL.Query().Get("pageSize")
-	if pageSizeString != "" {
-		pageSize, parseError := strconv.ParseUint(pageSizeString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("pageSize")
-			return
-		}
-		options.PageSize = pageSize
 	}
 
 	deletedStr := r.URL.Query().Get("deleted")

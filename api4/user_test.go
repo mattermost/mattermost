@@ -5621,7 +5621,8 @@ func TestGetThreadsForUser(t *testing.T) {
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
-			Deleted: false,
+			Deleted:  false,
+			PageSize: 30,
 		})
 		require.NoError(t, err)
 		require.Len(t, uss.Threads, 30)
