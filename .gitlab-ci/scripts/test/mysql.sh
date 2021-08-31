@@ -1,14 +1,22 @@
 #!/bin/bash
 set -xe
 
-echo $DOCKER_HOST
+if [[ "$GITLAB_CI" == "" ]]; then
+  export CI_PROJECT_DIR=$PWD
+  export CI_REGISTRY=registry.internal.mattermost.com
+  export COMPOSE_PROJECT_NAME="1mysql"
+  export IMAGE_BUILD_SERVER=$CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210810_golang-1.16.7
+  # You need to log in to internal registry to run this script locally
+fi
+
+echo "$DOCKER_HOST"
 docker ps
 DOCKER_NETWORK="${COMPOSE_PROJECT_NAME}"
 DOCKER_COMPOSE_FILE="gitlab-dc.mysql.yml"
 CONTAINER_SERVER="${COMPOSE_PROJECT_NAME}_server_1"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096
-cd ${CI_PROJECT_DIR}/build
+cd "$CI_PROJECT_DIR"/build
 docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
 sleep 5
 cat ../tests/test-data.ldif | docker-compose exec -d -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
@@ -20,7 +28,7 @@ docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env-file="dotenv/test.env" \
   --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true" \
   --env MM_SQLSETTINGS_DRIVERNAME=mysql \
-  -v ${CI_PROJECT_DIR}:/mattermost-server \
+  -v "$CI_PROJECT_DIR":/mattermost-server \
   -w /mattermost-server \
   $IMAGE_BUILD_SERVER \
   bash -c "ulimit -n 8096; make test-server$RACE_MODE BUILD_NUMBER=$CI_COMMIT_REF_NAME-$CI_COMMIT_SHA TESTFLAGS= TESTFLAGSEE=" \
