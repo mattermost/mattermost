@@ -72,7 +72,7 @@ func (a *App) ProcessSlackAttachments(attachments []*model.SlackAttachment) []*m
 		attachment.Title = a.ProcessSlackText(attachment.Title)
 
 		for _, field := range attachment.Fields {
-			if field.Value != nil {
+			if field != nil && field.Value != nil {
 				// Ensure the value is set to a string if it is set
 				field.Value = a.ProcessSlackText(fmt.Sprintf("%v", field.Value))
 			}
