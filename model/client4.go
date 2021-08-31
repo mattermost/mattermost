@@ -6593,7 +6593,7 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 		v.Set("after", options.After)
 	}
 	if options.PageSize != 0 {
-		v.Set("pageSize", fmt.Sprintf("%d", options.PageSize))
+		v.Set("per_page", fmt.Sprintf("%d", options.PageSize))
 	}
 	if options.Extended {
 		v.Set("extended", "true")
