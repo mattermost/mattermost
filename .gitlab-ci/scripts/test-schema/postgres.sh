@@ -23,7 +23,7 @@ timeout 90s bash -c "until docker exec ${COMPOSE_PROJECT_NAME}_postgres_1 pg_isr
 echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
 echo "Importing postgres dump from version 6.0"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres psql -U mmuser -d migrated < "$CI_PROJECT_DIR"/scripts/mattermost-postgresql-6.0.sql
+docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres psql -U mmuser -d migrated < "$CI_PROJECT_DIR"/scripts/mattermost-postgresql-6.0.sql
 docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
@@ -35,8 +35,8 @@ docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
 docker logs -f "${CONTAINER_SERVER}"
 
 echo "Generating dump"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
+docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
 echo "Removing databases created for db comparison"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 echo "Generating diff"

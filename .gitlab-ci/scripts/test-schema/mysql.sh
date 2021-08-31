@@ -24,7 +24,7 @@ docker run --net $DOCKER_NETWORK "$CI_REGISTRY"/mattermost/ci/images/curl:7.59.0
 echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
 echo "Importing mysql dump from version 6.0"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D migrated -uroot -pmostest < "$CI_PROJECT_DIR"/scripts/mattermost-mysql-6.0.sql
+docker-compose -f $DOCKER_COMPOSE_FILE exec -T mysql mysql -D migrated -uroot -pmostest < "$CI_PROJECT_DIR"/scripts/mattermost-mysql-6.0.sql
 docker run -d -it --rm --name "$CONTAINER_SERVER" --net $DOCKER_NETWORK \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
@@ -36,8 +36,8 @@ docker run -d -it --rm --name "$CONTAINER_SERVER" --net $DOCKER_NETWORK \
 docker logs -f $CONTAINER_SERVER
 
 echo "Generating dump"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
+docker-compose -f $DOCKER_COMPOSE_FILE exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
+docker-compose -f $DOCKER_COMPOSE_FILE exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
 echo "Removing databases created for db comparison"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
 
