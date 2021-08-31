@@ -14,8 +14,8 @@ timeout 90s bash -c "until docker exec ${COMPOSE_PROJECT_NAME}_postgres_1 pg_isr
 
 echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
-echo "Importing postgres dump from version 5.0"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres psql -U mmuser -d migrated < ${CI_PROJECT_DIR}/scripts/mattermost-postgresql-5.0.sql
+echo "Importing postgres dump from version 6.0"
+docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres psql -U mmuser -d migrated < ${CI_PROJECT_DIR}/scripts/mattermost-postgresql-6.0.sql
 docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
@@ -25,15 +25,6 @@ docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   $IMAGE_BUILD_SERVER \
   bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
 docker logs -f "${CONTAINER_SERVER}"
-
-echo "Ignoring known mismatch: ChannelMembers.MentionCountRoot"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;" | exec psql -U mmuser -d migrated'
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;" | exec psql -U mmuser -d latest'
-echo "Ignoring known mismatch: ChannelMembers.MsgCountRoot and Channels.TotalMsgCountRoot"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot;" | exec psql -U mmuser -d migrated'
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot;" | exec psql -U mmuser -d latest'
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot;" | exec psql -U mmuser -d migrated'
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot;" | exec psql -U mmuser -d latest'
 
 echo "Generating dump"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
