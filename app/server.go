@@ -36,6 +36,8 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	focalboard "github.com/mattermost/focalboard/server/server"
+
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
@@ -209,6 +211,8 @@ type Server struct {
 
 	dndTaskMut sync.Mutex
 	dndTask    *model.ScheduledTask
+
+	fbServer *focalboard.Server
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -1070,6 +1074,11 @@ func (s *Server) Shutdown() {
 
 	mlog.Info("Server stopped")
 
+	mlog.Debug("Stopping focalboard...")
+	if err2 := s.fbServer.Shutdown(); err2 != nil {
+		mlog.Critical("Error starting focalboard", mlog.Err(err2))
+	}
+
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
@@ -1374,6 +1383,13 @@ func (s *Server) Start() error {
 		if err := s.startLocalModeServer(); err != nil {
 			mlog.Critical(err.Error())
 		}
+	}
+
+	// Starting focalboard
+	s.setupFocalboard()
+	mlog.Debug("Starting focalboard...")
+	if err := s.fbServer.Start(); err != nil {
+		mlog.Critical("Error starting focalboard", mlog.Err(err))
 	}
 
 	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {

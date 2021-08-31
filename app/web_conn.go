@@ -19,7 +19,6 @@ import (
 	"github.com/gorilla/websocket"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -198,15 +197,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
 
-	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		wc.App.Srv().Go(func() {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.OnWebSocketConnect(wc.GetConnectionID(), wc.UserId)
-				return true
-			}, plugin.OnWebSocketConnectID)
-		})
-	}
-
+	wc.App.srv.fbServer.WSAdapter().OnWebSocketConnect(wc.GetConnectionID(), wc.UserId)
 	return wc
 }
 
@@ -214,12 +205,7 @@ func (wc *WebConn) pluginPostedConsumer(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for msg := range wc.pluginPosted {
-		if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.WebSocketMessageHasBeenPosted(msg.connectionID, msg.userID, msg.req)
-				return true
-			}, plugin.WebSocketMessageHasBeenPostedID)
-		}
+		wc.App.srv.fbServer.WSAdapter().WebSocketMessageHasBeenPosted(msg.connectionID, msg.userID, msg.req)
 	}
 }
 
@@ -306,14 +292,7 @@ func (wc *WebConn) Pump() {
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
 
-	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		wc.App.Srv().Go(func() {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), wc.UserId)
-				return true
-			}, plugin.OnWebSocketDisconnectID)
-		})
-	}
+	wc.App.srv.fbServer.WSAdapter().OnWebSocketDisconnect(wc.GetConnectionID(), wc.UserId)
 }
 
 func (wc *WebConn) readPump() {

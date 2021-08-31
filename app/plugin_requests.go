@@ -32,10 +32,19 @@ func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := mux.Vars(r)
-	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
+	pluginID := params["plugin_id"]
+	// do something special.
+	if pluginID == "focalboard" {
+		_, r = s.prepareRequestForPlugin(r)
+		router := s.fbServer.GetRootRouter()
+		router.ServeHTTP(w, r)
+		return
+	}
+
+	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
 	if err != nil {
 		s.Log.Error("Access to route for non-existent plugin",
-			mlog.String("missing_plugin_id", params["plugin_id"]),
+			mlog.String("missing_plugin_id", pluginID),
 			mlog.String("url", r.URL.String()),
 			mlog.Err(err))
 		http.NotFound(w, r)
@@ -115,6 +124,13 @@ func (s *Server) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request
 }
 
 func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
+	context, r := s.prepareRequestForPlugin(r)
+
+	handler(context, w, r)
+}
+
+func (s *Server) prepareRequestForPlugin(r *http.Request) (*plugin.Context, *http.Request) {
+	cookieAuth := false
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
@@ -122,7 +138,6 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
-	cookieAuth := false
 
 	authHeader := r.Header.Get(model.HeaderAuth)
 	if strings.HasPrefix(strings.ToUpper(authHeader), model.HeaderBearer+" ") {
@@ -219,5 +234,5 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	r.URL.RawQuery = newQuery.Encode()
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", params["plugin_id"]))
 
-	handler(context, w, r)
+	return context, r
 }
