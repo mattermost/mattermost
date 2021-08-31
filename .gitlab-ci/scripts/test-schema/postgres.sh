@@ -32,6 +32,7 @@ docker run -d -it --rm --name $CONTAINER_SERVER --net $DOCKER_NETWORK \
   -w /mattermost-server \
   $IMAGE_BUILD_SERVER \
   bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
+mkdir -p logs
 docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs_$COMPOSE_PROJECT_NAME
 docker logs -f $CONTAINER_SERVER
 tar -czvf logs/docker_logs$COMPOSE_PROJECT_NAME.tar.gz logs/docker-compose_logs_$COMPOSE_PROJECT_NAME
