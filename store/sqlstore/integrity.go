@@ -150,16 +150,6 @@ func checkPostsFileInfoIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	})
 }
 
-func checkPostsPostsParentIdIntegrity(ss *SqlStore) model.IntegrityCheckResult {
-	return checkParentChildIntegrity(ss, relationalCheckConfig{
-		parentName:         "Posts",
-		parentIdAttr:       "ParentId",
-		childName:          "Posts",
-		childIdAttr:        "Id",
-		canParentIdBeEmpty: true,
-	})
-}
-
 func checkPostsPostsRootIdIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Posts",
@@ -474,7 +464,6 @@ func checkCommandsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckRes
 
 func checkPostsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkPostsFileInfoIntegrity(ss)
-	results <- checkPostsPostsParentIdIntegrity(ss)
 	results <- checkPostsPostsRootIdIntegrity(ss)
 	results <- checkPostsReactionsIntegrity(ss)
 }

@@ -36,6 +36,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 		require.NoError(t, err, "failed cleaning up test user %s", u.Username)
 	}
 
+	t.Run("IsEmpty", func(t *testing.T) { testIsEmpty(t, ss) })
 	t.Run("Count", func(t *testing.T) { testCount(t, ss) })
 	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, ss, s) })
 	t.Run("AnalyticsActiveCountForPeriod", func(t *testing.T) { testUserStoreAnalyticsActiveCountForPeriod(t, ss, s) })
@@ -214,6 +215,22 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 
 	err = ss.User().UpdateLastPictureUpdate(u1.Id)
 	require.NoError(t, err, "Update should not have failed")
+
+	// Test UpdateNotifyProps
+	u1, err = ss.User().Get(context.Background(), u1.Id)
+	require.NoError(t, err)
+
+	props := u1.NotifyProps
+	props["hello"] = "world"
+
+	err = ss.User().UpdateNotifyProps(u1.Id, props)
+	require.NoError(t, err)
+
+	ss.User().InvalidateProfileCacheForUser(u1.Id)
+
+	uNew, err := ss.User().Get(context.Background(), u1.Id)
+	require.NoError(t, err)
+	assert.Equal(t, props, uNew.NotifyProps)
 }
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
@@ -2747,7 +2764,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	ch1 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(&ch1, -1)
@@ -2756,7 +2773,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	ch2 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	c2, nErr := ss.Channel().Save(&ch2, -1)
@@ -2976,7 +2993,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	ch1 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	c1, nErr := ss.Channel().Save(&ch1, -1)
@@ -2985,7 +3002,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	ch2 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	c2, nErr := ss.Channel().Save(&ch2, -1)
@@ -4169,7 +4186,7 @@ func testUserStoreAnalyticsGetExternalUsers(t *testing.T, ss store.Store) {
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team",
-		Name:        "zz" + model.NewId(),
+		Name:        NewTestId(),
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
@@ -4481,7 +4498,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	// Set up all the objects needed
 	t1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
-		Name:        "zz" + model.NewId(),
+		Name:        NewTestId(),
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
@@ -5710,4 +5727,54 @@ func testGetKnownUsers(t *testing.T, ss store.Store) {
 		assert.Len(t, userIds, 2)
 		assert.ElementsMatch(t, userIds, []string{u2.Id, u3.Id})
 	})
+}
+
+func testIsEmpty(t *testing.T, ss store.Store) {
+	ok, err := ss.User().IsEmpty(false)
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	ok, err = ss.User().IsEmpty(true)
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	u := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+
+	u, err = ss.User().Save(u)
+	require.NoError(t, err)
+
+	ok, err = ss.User().IsEmpty(false)
+	require.NoError(t, err)
+	require.False(t, ok)
+
+	ok, err = ss.User().IsEmpty(true)
+	require.NoError(t, err)
+	require.False(t, ok)
+
+	b := &model.Bot{
+		UserId:   u.Id,
+		OwnerId:  model.NewId(),
+		Username: model.NewId(),
+	}
+
+	_, err = ss.Bot().Save(b)
+	require.NoError(t, err)
+
+	ok, err = ss.User().IsEmpty(false)
+	require.NoError(t, err)
+	require.False(t, ok)
+
+	ok, err = ss.User().IsEmpty(true)
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	err = ss.User().PermanentDelete(u.Id)
+	require.NoError(t, err)
+
+	ok, err = ss.User().IsEmpty(false)
+	require.NoError(t, err)
+	require.True(t, ok)
 }

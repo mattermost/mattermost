@@ -66,7 +66,7 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 		key += utils.GetIPAddress(r, rl.trustedProxyIPHeader)
 	}
 
-	// Note that most of the time the user won't have to set this because the utils.GetIpAddress above tries the
+	// Note that most of the time the user won't have to set this because the utils.GetIPAddress above tries the
 	// most common headers anyway.
 	if rl.header != "" {
 		key += strings.ToLower(r.Header.Get(rl.header))
@@ -86,7 +86,7 @@ func (rl *RateLimiter) RateLimitWriter(key string, w http.ResponseWriter) bool {
 
 	if limited {
 		mlog.Debug("Denied due to throttling settings code=429", mlog.String("key", key))
-		http.Error(w, "limit exceeded", 429)
+		http.Error(w, "limit exceeded", http.StatusTooManyRequests)
 	}
 
 	return limited

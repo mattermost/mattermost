@@ -114,13 +114,13 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.14.3
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.16.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.7.3
+PLUGIN_PACKAGES += focalboard-v0.8.2
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -303,7 +303,6 @@ plugin-mocks: ## Creates mock files for plugins.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery -dir plugin -name Driver -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
@@ -351,8 +350,12 @@ test-compile: ## Compile tests.
 	done
 
 test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh
-	./scripts/psql-migration-test.sh
+	./scripts/mysql-migration-test.sh 6.0
+	./scripts/psql-migration-test.sh 6.0
+
+test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schemas.
+	./scripts/mysql-migration-v5-test.sh 5.0
+	./scripts/psql-migration-v5-test.sh 5.0
 
 gomodtidy:
 	@cp go.mod go.mod.orig
@@ -426,9 +429,15 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: start-docker ## Add test data to the local instance.
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) config set TeamSettings.MaxUsersPerTeam 100
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 4 -u 60
+test-data: run-server ## Add test data to the local instance.
+	@if ! ./scripts/wait-for-system-start.sh; then \
+		make stop; \
+	fi
+
+	@echo ServiceSettings.EnableLocalMode must be set to true.
+
+	bin/mmctl config set TeamSettings.MaxUsersPerTeam 100 --local
+	bin/mmctl sampledata -u 60 --local
 
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
@@ -454,8 +463,7 @@ run-server: prepackaged-binaries validate-go-version start-docker ## Starts the 
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) 2>&1 | \
-	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files

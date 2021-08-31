@@ -25,7 +25,7 @@ type PluginAPI struct {
 	id       string
 	app      *App
 	ctx      *request.Context
-	logger   *mlog.SugarLogger
+	logger   mlog.Sugar
 	manifest *model.Manifest
 }
 
@@ -35,7 +35,7 @@ func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginA
 		manifest: manifest,
 		ctx:      c,
 		app:      a,
-		logger:   a.Log().With(mlog.String("plugin_id", manifest.Id)).Sugar(),
+		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
 }
 
@@ -397,7 +397,7 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 	if err != nil {
 		return nil, err
 	}
-	return *channels, err
+	return channels, err
 }
 
 func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
@@ -417,7 +417,7 @@ func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDe
 	if err != nil {
 		return nil, err
 	}
-	return *channels, err
+	return channels, err
 }
 
 func (api *PluginAPI) GetChannelStats(channelID string) (*model.ChannelStats, *model.AppError) {
@@ -449,7 +449,7 @@ func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Chann
 	if err != nil {
 		return nil, err
 	}
-	return *channels, err
+	return channels, err
 }
 
 func (api *PluginAPI) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
@@ -543,11 +543,11 @@ func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.Channel
 	return api.app.GetChannelMember(context.Background(), channelID, userID)
 }
 
-func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	return api.app.GetChannelMembersPage(channelID, page, perPage)
 }
 
-func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string) (*model.ChannelMembers, *model.AppError) {
+func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string) (model.ChannelMembers, *model.AppError) {
 	return api.app.GetChannelMembersByIds(channelID, userIDs)
 }
 
@@ -661,8 +661,7 @@ func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppError {
-	_, err := api.app.GetUser(userID)
-	if err != nil {
+	if _, err := api.app.GetUser(userID); err != nil {
 		return err
 	}
 
@@ -938,30 +937,6 @@ func (api *PluginAPI) UpdateBotActive(userID string, active bool) (*model.Bot, *
 
 func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 	return api.app.PermanentDeleteBot(userID)
-}
-
-func (api *PluginAPI) GetBotIconImage(userID string) ([]byte, *model.AppError) {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return nil, err
-	}
-
-	return api.app.GetBotIconImage(userID)
-}
-
-func (api *PluginAPI) SetBotIconImage(userID string, data []byte) *model.AppError {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return err
-	}
-
-	return api.app.SetBotIconImage(userID, bytes.NewReader(data))
-}
-
-func (api *PluginAPI) DeleteBotIconImage(userID string) *model.AppError {
-	if _, err := api.app.GetBot(userID, true); err != nil {
-		return err
-	}
-
-	return api.app.DeleteBotIconImage(userID)
 }
 
 func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *model.AppError {

@@ -38,7 +38,6 @@ import (
 )
 
 const (
-	maxImageRes                = int64(6048 * 4032) // 24 megapixels, up to ~196MB as a raw image
 	imageThumbnailWidth        = 120
 	imageThumbnailHeight       = 100
 	imagePreviewWidth          = 1920
@@ -642,6 +641,7 @@ type UploadFileTask struct {
 	teeInput     io.Reader
 	fileinfo     *model.FileInfo
 	maxFileSize  int64
+	maxImageRes  int64
 
 	// Cached image data that (may) get initialized in preprocessImage and
 	// is used in postprocessImage
@@ -702,6 +702,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 		Name:        filepath.Base(name),
 		Input:       input,
 		maxFileSize: *a.Config().FileSettings.MaxFileSize,
+		maxImageRes: *a.Config().FileSettings.MaxImageResolution,
 		imgDecoder:  a.srv.imgDecoder,
 		imgEncoder:  a.srv.imgEncoder,
 	}
@@ -806,7 +807,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	t.fileinfo.Width = w
 	t.fileinfo.Height = h
 
-	if err = checkImageResolutionLimit(w, h); err != nil {
+	if err = checkImageResolutionLimit(w, h, t.maxImageRes); err != nil {
 		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
 	}
 
@@ -973,7 +974,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() {
-		if limitErr := checkImageResolutionLimit(info.Width, info.Height); limitErr != nil {
+		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
 			return nil, data, err
 		}
@@ -1355,6 +1356,12 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 		}
 		if storeErr := a.Srv().Store.FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
 			return errors.Wrap(storeErr, "failed to save the extracted file content")
+		}
+		reloadFileInfo, storeErr := a.Srv().Store.FileInfo().Get(fileInfo.Id)
+		if storeErr != nil {
+			mlog.Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
+		} else {
+			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
 		}
 	}
 	return nil

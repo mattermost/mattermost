@@ -84,7 +84,6 @@ func (*EchoProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 		post := &model.Post{}
 		post.ChannelId = args.ChannelId
 		post.RootId = args.RootId
-		post.ParentId = args.ParentId
 		post.Message = message
 		post.UserId = args.UserId
 

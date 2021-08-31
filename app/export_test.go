@@ -93,7 +93,7 @@ func TestExportUserChannels(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	err := th.App.Srv().Store.Preference().Save(&preferences)
+	err := th.App.Srv().Store.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
