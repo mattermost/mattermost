@@ -11,15 +11,17 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -39,6 +41,14 @@ const (
 	reconnectNotFound = "failure"
 	reconnectLossless = "lossless"
 )
+
+const websocketMessagePluginPrefix = "custom_"
+
+type pluginWSPostedHook struct {
+	connectionID string
+	userID       string
+	req          *model.WebSocketRequest
+}
 
 type WebConnConfig struct {
 	WebSocket    *websocket.Conn
@@ -90,6 +100,7 @@ type WebConn struct {
 	connectionID atomic.Value
 	endWritePump chan struct{}
 	pumpFinished chan struct{}
+	pluginPosted chan pluginWSPostedHook
 }
 
 // CheckConnResult indicates whether a connectionID was present in the hub or not.
@@ -126,7 +137,7 @@ func (a *App) PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal
 		if seqVal == "" {
 			// Sequence_number must be sent with connection id.
 			// A client must be either non-compliant or fully compliant.
-			return nil, errors.New("Sequence number not present in websocket request")
+			return nil, errors.New("sequence number not present in websocket request")
 		}
 		var err error
 		cfg.sequence, err = strconv.Atoi(seqVal)
@@ -179,6 +190,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		active:             cfg.Active,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
+		pluginPosted:       make(chan pluginWSPostedHook, 10),
 	}
 
 	wc.SetSession(&cfg.Session)
@@ -186,7 +198,29 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
 
+	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		wc.App.Srv().Go(func() {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.OnWebSocketConnect(wc.GetConnectionID(), wc.UserId)
+				return true
+			}, plugin.OnWebSocketConnectID)
+		})
+	}
+
 	return wc
+}
+
+func (wc *WebConn) pluginPostedConsumer(wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for msg := range wc.pluginPosted {
+		if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.WebSocketMessageHasBeenPosted(msg.connectionID, msg.userID, msg.req)
+				return true
+			}, plugin.WebSocketMessageHasBeenPostedID)
+		}
+	}
 }
 
 // Close closes the WebConn.
@@ -261,18 +295,32 @@ func (wc *WebConn) Pump() {
 		defer wg.Done()
 		wc.writePump()
 	}()
+
+	wg.Add(1)
+	go wc.pluginPostedConsumer(&wg)
+
 	wc.readPump()
 	close(wc.endWritePump)
+	close(wc.pluginPosted)
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
+
+	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		wc.App.Srv().Go(func() {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), wc.UserId)
+				return true
+			}, plugin.OnWebSocketDisconnectID)
+		})
+	}
 }
 
 func (wc *WebConn) readPump() {
 	defer func() {
 		wc.WebSocket.Close()
 	}()
-	wc.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
+	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
 		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
@@ -290,7 +338,20 @@ func (wc *WebConn) readPump() {
 			wc.logSocketErr("websocket.read", err)
 			return
 		}
-		wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
+
+		// Messages which actions are prefixed with the plugin prefix
+		// should only be dispatched to the plugins
+		if !strings.HasPrefix(req.Action, websocketMessagePluginPrefix) {
+			wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
+		}
+
+		clonedReq, err := req.Clone()
+		if err != nil {
+			wc.logSocketErr("websocket.cloneRequest", err)
+			continue
+		}
+
+		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, clonedReq}
 	}
 }
 
@@ -357,9 +418,9 @@ func (wc *WebConn) writePump() {
 			if len(wc.send) >= sendSlowWarn {
 				// When the pump starts to get slow we'll drop non-critical messages
 				switch msg.EventType() {
-				case model.WEBSOCKET_EVENT_TYPING,
-					model.WEBSOCKET_EVENT_STATUS_CHANGE,
-					model.WEBSOCKET_EVENT_CHANNEL_VIEWED:
+				case model.WebsocketEventTyping,
+					model.WebsocketEventStatusChange,
+					model.WebsocketEventChannelViewed:
 					mlog.Warn(
 						"websocket.slow: dropping message",
 						mlog.String("user_id", wc.UserId),
@@ -582,7 +643,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 }
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
-	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
+	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil)
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
@@ -596,14 +657,14 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	var canSee bool
 
 	switch msg.EventType() {
-	case model.WEBSOCKET_EVENT_USER_UPDATED:
+	case model.WebsocketEventUserUpdated:
 		user, ok := msg.GetData()["user"].(*model.User)
 		if !ok {
 			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
 			return false
 		}
 		userID = user.Id
-	case model.WEBSOCKET_EVENT_NEW_USER:
+	case model.WebsocketEventNewUser:
 		userID = msg.GetData()["user_id"].(string)
 	default:
 		return true
@@ -629,7 +690,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
 	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
+		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 
 		if *hasReadPrivateDataPermission {
 			return false
@@ -639,7 +700,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sensitive data, only send to users with permission to see it
 	if msg.GetBroadcast().ContainsSensitiveData {
 		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
+			hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 		}
 
 		if !*hasReadPrivateDataPermission {
@@ -687,7 +748,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		return wc.isMemberOfTeam(msg.GetBroadcast().TeamId)
 	}
 
-	if wc.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+	if wc.GetSession().Props[model.SessionPropIsGuest] == "true" {
 		return wc.shouldSendEventToGuest(msg)
 	}
 

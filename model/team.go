@@ -14,15 +14,15 @@ import (
 )
 
 const (
-	TEAM_OPEN                       = "O"
-	TEAM_INVITE                     = "I"
-	TEAM_ALLOWED_DOMAINS_MAX_LENGTH = 500
-	TEAM_COMPANY_NAME_MAX_LENGTH    = 64
-	TEAM_DESCRIPTION_MAX_LENGTH     = 255
-	TEAM_DISPLAY_NAME_MAX_RUNES     = 64
-	TEAM_EMAIL_MAX_LENGTH           = 128
-	TEAM_NAME_MAX_LENGTH            = 64
-	TEAM_NAME_MIN_LENGTH            = 2
+	TeamOpen                    = "O"
+	TeamInvite                  = "I"
+	TeamAllowedDomainsMaxLength = 500
+	TeamCompanyNameMaxLength    = 64
+	TeamDescriptionMaxLength    = 255
+	TeamDisplayNameMaxRunes     = 64
+	TeamEmailMaxLength          = 128
+	TeamNameMaxLength           = 64
+	TeamNameMinLength           = 2
 )
 
 type Team struct {
@@ -149,7 +149,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Email) > TEAM_EMAIL_MAX_LENGTH {
+	if len(o.Email) > TeamEmailMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -157,15 +157,15 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > TEAM_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > TeamDisplayNameMaxRunes {
 		return NewAppError("Team.IsValid", "model.team.is_valid.name.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Name) > TEAM_NAME_MAX_LENGTH {
+	if len(o.Name) > TeamNameMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Description) > TEAM_DESCRIPTION_MAX_LENGTH {
+	if len(o.Description) > TeamDescriptionMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -181,15 +181,15 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.characters.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {
+	if !(o.Type == TeamOpen || o.Type == TeamInvite) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.CompanyName) > TEAM_COMPANY_NAME_MAX_LENGTH {
+	if len(o.CompanyName) > TeamCompanyNameMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.company.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.AllowedDomains) > TEAM_ALLOWED_DOMAINS_MAX_LENGTH {
+	if len(o.AllowedDomains) > TeamAllowedDomainsMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.domains.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -235,11 +235,11 @@ func IsReservedTeamName(s string) bool {
 }
 
 func IsValidTeamName(s string) bool {
-	if !IsValidAlphaNum(s) {
+	if !isValidAlphaNum(s) {
 		return false
 	}
 
-	if len(s) < TEAM_NAME_MIN_LENGTH {
+	if len(s) < TeamNameMinLength {
 		return false
 	}
 

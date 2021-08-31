@@ -9,11 +9,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 type AutoPostCreator struct {
@@ -70,10 +70,10 @@ func (cfg *AutoPostCreator) UploadTestFile(c *request.Context) ([]string, error)
 }
 
 func (cfg *AutoPostCreator) CreateRandomPost(c *request.Context) (*model.Post, error) {
-	return cfg.CreateRandomPostNested(c, "", "")
+	return cfg.CreateRandomPostNested(c, "")
 }
 
-func (cfg *AutoPostCreator) CreateRandomPostNested(c *request.Context, parentId, rootId string) (*model.Post, error) {
+func (cfg *AutoPostCreator) CreateRandomPostNested(c *request.Context, rootId string) (*model.Post, error) {
 	var fileIDs []string
 	if cfg.HasImage {
 		var err error
@@ -93,7 +93,6 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(c *request.Context, parentId,
 	post := &model.Post{
 		ChannelId: cfg.channelid,
 		UserId:    cfg.userid,
-		ParentId:  parentId,
 		RootId:    rootId,
 		Message:   postText,
 		FileIds:   fileIDs,

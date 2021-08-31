@@ -15,8 +15,8 @@ docker run --net ${DOCKER_NETWORK} ${CI_REGISTRY}/mattermost/ci/images/curl:7.59
 
 echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
-echo "Importing mysql dump from version 5.0"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D migrated -uroot -pmostest < ${CI_PROJECT_DIR}/scripts/mattermost-mysql-5.0.sql
+echo "Importing mysql dump from version 6.0"
+docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D migrated -uroot -pmostest < ${CI_PROJECT_DIR}/scripts/mattermost-mysql-6.0.sql
 docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
@@ -26,18 +26,6 @@ docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   $IMAGE_BUILD_SERVER \
   bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
 docker logs -f "${CONTAINER_SERVER}"
-
-echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
-echo "Ignoring known MySQL mismatch: ChannelMembers.MentionCountRoot and MsgCountRoot"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot;"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot;"
-echo "Ignoring known MySQL mismatch: Channels.TotalMsgCountRoot"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot;"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot;"
 
 echo "Generating dump"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql

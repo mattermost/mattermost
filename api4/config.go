@@ -4,16 +4,17 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 var writeFilter func(c *Context, structField reflect.StructField) bool
@@ -28,13 +29,13 @@ const (
 )
 
 func (api *API) InitConfig() {
-	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(updateConfig)).Methods("PUT")
-	api.BaseRoutes.ApiRoot.Handle("/config/patch", api.ApiSessionRequired(patchConfig)).Methods("PUT")
-	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiSessionRequired(configReload)).Methods("POST")
-	api.BaseRoutes.ApiRoot.Handle("/config/client", api.ApiHandler(getClientConfig)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/config/environment", api.ApiSessionRequired(getEnvironmentConfig)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/config/migrate", api.ApiSessionRequired(migrateConfig)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(getConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(updateConfig)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APISessionRequired(patchConfig)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APISessionRequired(migrateConfig)).Methods("POST")
 }
 
 func init() {
@@ -69,8 +70,10 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -78,17 +81,20 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_RELOAD_CONFIG) {
-		c.SetPermissionError(model.PERMISSION_RELOAD_CONFIG)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReloadConfig) {
+		c.SetPermissionError(model.PermissionReloadConfig)
 		return
 	}
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+	if !c.AppContext.Session().IsUnrestricted() && *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("configReload", "api.restricted_system_admin", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	c.App.ReloadConfig()
+	if err := c.App.ReloadConfig(); err != nil {
+		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	auditRec.Success()
 
@@ -173,8 +179,11 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -291,8 +300,11 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
-	} else {
-		w.Write([]byte(cfg.ToJson()))
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -307,7 +319,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		// If there are no access tag values and the role has manage_system, no need to continue
 		// checking permissions.
 		if len(tagPermissions) == 0 {
-			if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 				return true
 			}
 		}
@@ -355,7 +367,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		}
 
 		// with manage_system, default to allow, otherwise default not-allow
-		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM)
+		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	}
 }
 
@@ -377,8 +389,8 @@ func migrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("to", to)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 

@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -176,7 +176,7 @@ func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 	return cache.Data, err
 }
 
-// Append tokens to passed baseUrl as query params
+// Append tokens to passed baseURL as query params
 func AppendQueryParamsToURL(baseURL string, params map[string]string) string {
 	u, err := url.Parse(baseURL)
 	if err != nil {

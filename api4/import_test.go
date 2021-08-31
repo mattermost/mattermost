@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestListImports(t *testing.T) {
@@ -38,21 +38,21 @@ func TestListImports(t *testing.T) {
 			us.UserId = model.UploadNoUserID
 		}
 
-		u, resp := c.CreateUpload(us)
-		require.Nil(t, resp.Error)
+		u, _, err := c.CreateUpload(us)
+		require.NoError(t, err)
 		require.NotNil(t, u)
 
-		finfo, resp := c.UploadData(u.Id, file)
-		require.Nil(t, resp.Error)
+		finfo, _, err := c.UploadData(u.Id, file)
+		require.NoError(t, err)
 		require.NotNil(t, finfo)
 
 		return u.Id
 	}
 
 	t.Run("no permissions", func(t *testing.T) {
-		imports, resp := th.Client.ListImports()
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+		imports, _, err := th.Client.ListImports()
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
 		require.Nil(t, imports)
 	})
 
@@ -60,8 +60,8 @@ func TestListImports(t *testing.T) {
 	require.True(t, found)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		imports, resp := c.ListImports()
-		require.Nil(t, resp.Error)
+		imports, _, err := c.ListImports()
+		require.NoError(t, err)
 		require.Empty(t, imports)
 	}, "no imports")
 
@@ -74,8 +74,8 @@ func TestListImports(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		imports, resp := c.ListImports()
-		require.Nil(t, resp.Error)
+		imports, _, err := c.ListImports()
+		require.NoError(t, err)
 		require.NotEmpty(t, imports)
 		require.Len(t, imports, 2)
 		require.Contains(t, imports, id+"_import_test.zip")
@@ -90,13 +90,13 @@ func TestListImports(t *testing.T) {
 
 		importDir := filepath.Join(dataDir, "import_new")
 
-		imports, resp := c.ListImports()
-		require.Nil(t, resp.Error)
+		imports, _, err := c.ListImports()
+		require.NoError(t, err)
 		require.Empty(t, imports)
 
 		id := uploadNewImport(c, t)
-		imports, resp = c.ListImports()
-		require.Nil(t, resp.Error)
+		imports, _, err = c.ListImports()
+		require.NoError(t, err)
 		require.NotEmpty(t, imports)
 		require.Len(t, imports, 1)
 		require.Equal(t, id+"_import_test.zip", imports[0])

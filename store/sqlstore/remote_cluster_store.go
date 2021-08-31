@@ -10,8 +10,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type sqlRemoteClusterStore struct {
@@ -180,7 +180,7 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 
 func (s *sqlRemoteClusterStore) createIndexesIfNotExists() {
 	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 	}
 	s.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)

@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -133,7 +133,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		}
 
 		job, err := messageExportI.StartSynchronizeJob(ctx, startTime)
-		if err != nil || job.Status == model.JOB_STATUS_ERROR || job.Status == model.JOB_STATUS_CANCELED {
+		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: Message export job complete")
@@ -175,7 +175,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 		if warningsCount == 0 {
 			CommandPrettyPrintln("SUCCESS: Your data was exported.")
 		} else {
-			if format == model.COMPLIANCE_EXPORT_TYPE_GLOBALRELAY || format == model.COMPLIANCE_EXPORT_TYPE_GLOBALRELAY_ZIP {
+			if format == model.ComplianceExportTypeGlobalrelay || format == model.ComplianceExportTypeGlobalrelayZip {
 				CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see logs for details.", warningsCount))
 			} else {
 				CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see warning.txt for details.", warningsCount))

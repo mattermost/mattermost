@@ -4,7 +4,7 @@
 package model
 
 import (
-	"strings"
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +20,7 @@ func TestWebSocketEvent(t *testing.T) {
 	}
 	m.Add("user", user)
 	json := m.ToJson()
-	result := WebSocketEventFromJson(strings.NewReader(json))
+	result := WebSocketEventFromJson(bytes.NewReader(json))
 
 	require.True(t, m.IsValid(), "should be valid")
 	require.Equal(t, m.GetBroadcast().TeamId, result.GetBroadcast().TeamId, "Team ids do not match")
@@ -35,26 +35,23 @@ func TestWebSocketEventImmutable(t *testing.T) {
 	if new == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.Event, new.Event)
-	require.Equal(t, new.Event, "new_event")
-	require.Equal(t, new.Event, new.EventType())
+	require.NotEqual(t, m.EventType(), new.EventType())
+	require.Equal(t, new.EventType(), "new_event")
 
 	new = m.SetSequence(45)
 	if new == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.Sequence, new.Sequence)
-	require.Equal(t, new.Sequence, int64(45))
-	require.Equal(t, new.Sequence, new.GetSequence())
+	require.NotEqual(t, m.GetSequence(), new.GetSequence())
+	require.Equal(t, new.GetSequence(), int64(45))
 
 	broadcast := &WebsocketBroadcast{}
 	new = m.SetBroadcast(broadcast)
 	if new == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.Broadcast, new.Broadcast)
-	require.Equal(t, new.Broadcast, broadcast)
-	require.Equal(t, new.Broadcast, new.GetBroadcast())
+	require.NotEqual(t, m.GetBroadcast(), new.GetBroadcast())
+	require.Equal(t, new.GetBroadcast(), broadcast)
 
 	data := map[string]interface{}{
 		"key":  "val",
@@ -65,8 +62,8 @@ func TestWebSocketEventImmutable(t *testing.T) {
 		require.Fail(t, "pointers should not be the same")
 	}
 	require.NotEqual(t, m, new)
-	require.Equal(t, new.Data, data)
-	require.Equal(t, new.Data, new.GetData())
+	require.Equal(t, new.data, data)
+	require.Equal(t, new.data, new.GetData())
 
 	copy := m.Copy()
 	if copy == m {
@@ -76,15 +73,15 @@ func TestWebSocketEventImmutable(t *testing.T) {
 }
 
 func TestWebSocketEventFromJson(t *testing.T) {
-	ev := WebSocketEventFromJson(strings.NewReader("junk"))
+	ev := WebSocketEventFromJson(bytes.NewReader([]byte("junk")))
 	require.Nil(t, ev, "should not have parsed")
-	data := `{"event": "test", "data": {"key": "val"}, "seq": 45, "broadcast": {"user_id": "userid"}}`
-	ev = WebSocketEventFromJson(strings.NewReader(data))
+	data := []byte(`{"event": "test", "data": {"key": "val"}, "seq": 45, "broadcast": {"user_id": "userid"}}`)
+	ev = WebSocketEventFromJson(bytes.NewReader(data))
 	require.NotNil(t, ev, "should have parsed")
-	require.Equal(t, ev.Event, "test")
-	require.Equal(t, ev.Sequence, int64(45))
-	require.Equal(t, ev.Data, map[string]interface{}{"key": "val"})
-	require.Equal(t, ev.Broadcast, &WebsocketBroadcast{UserId: "userid"})
+	require.Equal(t, ev.EventType(), "test")
+	require.Equal(t, ev.GetSequence(), int64(45))
+	require.Equal(t, ev.data, map[string]interface{}{"key": "val"})
+	require.Equal(t, ev.GetBroadcast(), &WebsocketBroadcast{UserId: "userid"})
 }
 
 func TestWebSocketResponse(t *testing.T) {
@@ -92,11 +89,11 @@ func TestWebSocketResponse(t *testing.T) {
 	e := NewWebSocketError(1, &AppError{})
 	m.Add("RootId", NewId())
 	json := m.ToJson()
-	result := WebSocketResponseFromJson(strings.NewReader(json))
+	result := WebSocketResponseFromJson(bytes.NewReader(json))
 	json2 := e.ToJson()
-	WebSocketResponseFromJson(strings.NewReader(json2))
+	WebSocketResponseFromJson(bytes.NewReader(json2))
 
-	badresult := WebSocketResponseFromJson(strings.NewReader("junk"))
+	badresult := WebSocketResponseFromJson(bytes.NewReader([]byte("junk")))
 	require.Nil(t, badresult, "should not have parsed")
 
 	require.True(t, m.IsValid(), "should be valid")
@@ -105,20 +102,20 @@ func TestWebSocketResponse(t *testing.T) {
 }
 
 func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
-	event := NewWebSocketEvent(WEBSOCKET_EVENT_POSTED, "foo", "bar", "baz", nil)
+	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil)
 	event = event.SetSequence(7)
 
 	before := event.ToJson()
 	event.PrecomputeJSON()
 	after := event.ToJson()
 
-	assert.JSONEq(t, before, after)
+	assert.Equal(t, before, after)
 }
 
-var stringSink string
+var stringSink []byte
 
 func BenchmarkWebSocketEvent_ToJson(b *testing.B) {
-	event := NewWebSocketEvent(WEBSOCKET_EVENT_POSTED, "foo", "bar", "baz", nil)
+	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil)
 	for i := 0; i < 100; i++ {
 		event.GetData()[NewId()] = NewId()
 	}

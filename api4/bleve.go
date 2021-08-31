@@ -6,20 +6,20 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitBleve() {
-	api.BaseRoutes.Bleve.Handle("/purge_indexes", api.ApiSessionRequired(purgeBleveIndexes)).Methods("POST")
+	api.BaseRoutes.Bleve.Handle("/purge_indexes", api.APISessionRequired(purgeBleveIndexes)).Methods("POST")
 }
 
 func purgeBleveIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("purgeBleveIndexes", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_PURGE_BLEVE_INDEXES) {
-		c.SetPermissionError(model.PERMISSION_PURGE_BLEVE_INDEXES)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPurgeBleveIndexes) {
+		c.SetPermissionError(model.PermissionPurgeBleveIndexes)
 		return
 	}
 

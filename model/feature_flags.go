@@ -33,26 +33,36 @@ type FeatureFlags struct {
 	PluginApps               string `plugin_id:"com.mattermost.apps"`
 	PluginFocalboard         string `plugin_id:"focalboard"`
 
-	// Control support for custom data retention policies
-	CustomDataRetentionEnabled bool
-
 	// Enable timed dnd support for user status
 	TimedDND bool
+
+	PermalinkPreviews bool
+
+	// Enable the Global Header
+	GlobalHeader bool
+
+	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
+	InviteMembersButton string
+
+	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
+	AddChannelButton string
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
-	f.CollapsedThreads = false
+	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
-
-	f.PluginIncidentManagement = "1.12.0"
+	f.PluginIncidentManagement = "1.16.1"
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.CustomDataRetentionEnabled = false
 	f.TimedDND = false
+	f.PermalinkPreviews = true
+	f.GlobalHeader = false
+	f.InviteMembersButton = "none"
+	f.AddChannelButton = "by_team_name"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

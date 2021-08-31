@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	USER_AUTH_SERVICE_SAML      = "saml"
-	USER_AUTH_SERVICE_SAML_TEXT = "SAML"
-	USER_AUTH_SERVICE_IS_SAML   = "isSaml"
-	USER_AUTH_SERVICE_IS_MOBILE = "isMobile"
-	USER_AUTH_SERVICE_IS_OAUTH  = "isOAuthUser"
+	UserAuthServiceSaml     = "saml"
+	UserAuthServiceSamlText = "SAML"
+	UserAuthServiceIsSaml   = "isSaml"
+	UserAuthServiceIsMobile = "isMobile"
+	UserAuthServiceIsOAuth  = "isOAuthUser"
 )
 
 type SamlAuthRequest struct {
@@ -31,8 +31,8 @@ type SamlCertificateStatus struct {
 }
 
 type SamlMetadataResponse struct {
-	IdpDescriptorUrl     string `json:"idp_descriptor_url"`
-	IdpUrl               string `json:"idp_url"`
+	IdpDescriptorURL     string `json:"idp_descriptor_url"`
+	IdpURL               string `json:"idp_url"`
 	IdpPublicCertificate string `json:"idp_public_certificate"`
 }
 
