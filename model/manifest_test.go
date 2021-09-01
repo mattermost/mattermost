@@ -436,57 +436,6 @@ func TestFindManifest_FolderPermission(t *testing.T) {
 	}
 }
 
-func TestManifestJson(t *testing.T) {
-	manifest := &Manifest{
-		Id: "theid",
-		Server: &ManifestServer{
-			Executable: "theexecutable",
-			Executables: map[string]string{
-				"linux-amd64":   "linux-amd64/path/to/executable",
-				"darwin-amd64":  "darwin-amd64/path/to/executable",
-				"windows-amd64": "windows-amd64/path/to/executable",
-				"linux-arm64":   "linux-arm64/path/to/executable",
-			},
-		},
-		Webapp: &ManifestWebapp{
-			BundlePath: "thebundlepath",
-		},
-		SettingsSchema: &PluginSettingsSchema{
-			Header: "theheadertext",
-			Footer: "thefootertext",
-			Settings: []*PluginSetting{
-				{
-					Key:                "thesetting",
-					DisplayName:        "thedisplayname",
-					Type:               "dropdown",
-					HelpText:           "thehelptext",
-					RegenerateHelpText: "theregeneratehelptext",
-					Placeholder:        "theplaceholder",
-					Options: []*PluginOption{
-						{
-							DisplayName: "theoptiondisplayname",
-							Value:       "thevalue",
-						},
-					},
-					Default: "thedefault",
-				},
-			},
-		},
-	}
-
-	json := manifest.ToJson()
-	newManifest := ManifestFromJson(strings.NewReader(json))
-	assert.Equal(t, newManifest, manifest)
-	assert.Equal(t, newManifest.ToJson(), json)
-	assert.Equal(t, ManifestFromJson(strings.NewReader("junk")), (*Manifest)(nil))
-
-	manifestList := []*Manifest{manifest}
-	json = ManifestListToJson(manifestList)
-	newManifestList := ManifestListFromJson(strings.NewReader(json))
-	assert.Equal(t, newManifestList, manifestList)
-	assert.Equal(t, ManifestListToJson(newManifestList), json)
-}
-
 func TestManifestHasClient(t *testing.T) {
 	manifest := &Manifest{
 		Id: "theid",

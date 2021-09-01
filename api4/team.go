@@ -78,8 +78,8 @@ func (api *API) InitTeam() {
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	team := model.TeamFromJson(r.Body)
-	if team == nil {
+	var team model.Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
 		c.SetInvalidParam("team")
 		return
 	}
@@ -94,7 +94,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rteam, err := c.App.CreateTeamWithUser(c.AppContext, team, c.AppContext.Session().UserId)
+	rteam, err := c.App.CreateTeamWithUser(c.AppContext, &team, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -163,12 +163,12 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team := model.TeamFromJson(r.Body)
-
-	if team == nil {
+	var team model.Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
 		c.SetInvalidParam("team")
 		return
 	}
+
 	team.Email = strings.ToLower(team.Email)
 
 	// The team being updated in the payload must be the same one as indicated in the URL.
@@ -186,7 +186,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedTeam, err := c.App.UpdateTeam(team)
+	updatedTeam, err := c.App.UpdateTeam(&team)
 	if err != nil {
 		c.Err = err
 		return
@@ -207,9 +207,8 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team := model.TeamPatchFromJson(r.Body)
-
-	if team == nil {
+	var team model.TeamPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
 		c.SetInvalidParam("team")
 		return
 	}
@@ -226,7 +225,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("team", oldTeam)
 	}
 
-	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, team)
+	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, &team)
 
 	if err != nil {
 		c.Err = err
@@ -286,7 +285,7 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	privacy, ok := props["privacy"].(string)
 	if !ok {
 		c.SetInvalidParam("privacy")
@@ -421,7 +420,13 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
-	w.Write([]byte(model.TeamListToJson(teams)))
+
+	js, jsonErr := json.Marshal(teams)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTeamsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -445,7 +450,12 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.TeamsUnreadToJson(unreadTeamsList)))
+	js, jsonErr := json.Marshal(unreadTeamsList)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTeamsUnreadForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -514,7 +524,12 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.TeamMembersToJson(members)))
+	js, jsonErr := json.Marshal(members)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTeamMembers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -545,7 +560,12 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.TeamMembersToJson(members)))
+	js, jsonErr := json.Marshal(members)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTeamMembersForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -554,7 +574,7 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -578,7 +598,12 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.TeamMembersToJson(members)))
+	js, jsonErr := json.Marshal(members)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTeamMembersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -588,9 +613,9 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	member := model.TeamMemberFromJson(r.Body)
-	if member == nil {
-		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJson()", http.StatusBadRequest)
+	var member model.TeamMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil {
+		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest)
 		return
 	}
 	if member.TeamId != c.Params.TeamId {
@@ -653,8 +678,8 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	member, err = c.App.AddTeamMember(c.AppContext, member.TeamId, member.UserId)
-
+	var tm *model.TeamMember
+	tm, err = c.App.AddTeamMember(c.AppContext, member.TeamId, member.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -663,7 +688,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(member); err != nil {
+	if err := json.NewEncoder(w).Encode(tm); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -717,7 +742,11 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	members := model.TeamMembersFromJson(r.Body)
+	var members []*model.TeamMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&members); jsonErr != nil {
+		c.SetInvalidParam("members")
+		return
+	}
 
 	if len(members) > MaxAddMembersBatch {
 		c.SetInvalidParam("too many members in batch")
@@ -798,17 +827,23 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var js []byte
+	var jsonErr error
+	if graceful {
+		// in 'graceful' mode we allow a different return value, notifying the client which users were not added
+		js, jsonErr = json.Marshal(membersWithErrors)
+	} else {
+		js, jsonErr = json.Marshal(model.TeamMembersWithErrorToTeamMembers(membersWithErrors))
+	}
+	if jsonErr != nil {
+		c.Err = model.NewAppError("addTeamMembers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
-
-	if graceful {
-		// in 'graceful' mode we allow a different return value, notifying the client which users were not added
-		w.Write([]byte(model.TeamMembersWithErrorToJson(membersWithErrors)))
-	} else {
-		w.Write([]byte(model.TeamMembersToJson(model.TeamMembersWithErrorToTeamMembers(membersWithErrors))))
-	}
-
+	w.Write(js)
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -916,7 +951,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
 	if !model.IsValidUserRoles(newRoles) {
@@ -951,8 +986,8 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	schemeRoles := model.SchemeRolesFromJson(r.Body)
-	if schemeRoles == nil {
+	var schemeRoles model.SchemeRoles
+	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParam("scheme_roles")
 		return
 	}
@@ -1022,20 +1057,24 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
 
-	var resBody []byte
-
+	var js []byte
+	var jsonErr error
 	if c.Params.IncludeTotalCount {
-		resBody = model.TeamsWithCountToJson(teamsWithCount)
+		js, jsonErr = json.Marshal(teamsWithCount)
 	} else {
-		resBody = model.ToJson(teams)
+		js, jsonErr = json.Marshal(teams)
+	}
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getAllTeams", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	w.Write(resBody)
+	w.Write(js)
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.TeamSearchFromJson(r.Body)
-	if props == nil {
+	var props model.TeamSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
 		c.SetInvalidParam("team_search")
 		return
 	}
@@ -1055,19 +1094,19 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPrivateTeams) && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
-		teams, totalCount, err = c.App.SearchAllTeams(props)
+		teams, totalCount, err = c.App.SearchAllTeams(&props)
 	} else if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPrivateTeams) {
 		if props.Page != nil || props.PerPage != nil {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.private_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
-		teams, err = c.App.SearchPrivateTeams(props)
+		teams, err = c.App.SearchPrivateTeams(&props)
 	} else if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
 		if props.Page != nil || props.PerPage != nil {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
-		teams, err = c.App.SearchPublicTeams(props)
+		teams, err = c.App.SearchPublicTeams(&props)
 	} else {
 		teams = []*model.Team{}
 	}
@@ -1082,9 +1121,14 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var payload []byte
 	if props.Page != nil && props.PerPage != nil {
 		twc := map[string]interface{}{"teams": teams, "total_count": totalCount}
-		payload = model.ToJson(twc)
+		payload = model.ToJSON(twc)
 	} else {
-		payload = []byte(model.TeamListToJson(teams))
+		js, jsonErr := json.Marshal(teams)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("searchTeams", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		payload = js
 	}
 
 	w.Write(payload)
@@ -1121,7 +1165,7 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := map[string]bool{"exists": exists}
-	w.Write([]byte(model.MapBoolToJson(resp)))
+	w.Write([]byte(model.MapBoolToJSON(resp)))
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1210,7 +1254,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write([]byte(model.MapToJson(data)))
+	w.Write([]byte(model.MapToJSON(data)))
 }
 
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1231,7 +1275,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailList := model.ArrayFromJson(r.Body)
+	emailList := model.ArrayFromJSON(r.Body)
 
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
@@ -1271,7 +1315,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		scheduledAt := model.GetMillis()
 		jobData := map[string]string{
-			"emailList":   model.ArrayToJson(emailList),
+			"emailList":   model.ArrayToJSON(emailList),
 			"teamID":      c.Params.TeamId,
 			"senderID":    c.AppContext.Session().UserId,
 			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
@@ -1308,7 +1352,12 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// in graceful mode we return both the successful ones and the failed ones
-		w.Write([]byte(model.EmailInviteWithErrorToJson(invitesWithError)))
+		js, jsonErr := json.Marshal(invitesWithError)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("inviteUsersToTeam", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 	} else {
 		err := c.App.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.AppContext.Session().UserId)
 		if err != nil {
@@ -1346,9 +1395,9 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	guestsInvite := model.GuestsInviteFromJson(r.Body)
-	if guestsInvite == nil {
-		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, "", http.StatusBadRequest)
+	var guestsInvite model.GuestsInvite
+	if jsonErr := json.NewDecoder(r.Body).Decode(&guestsInvite); jsonErr != nil {
+		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -1387,7 +1436,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		var err *model.AppError
 
 		if guestsInvite.Emails != nil {
-			invitesWithError, err = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, guestsInvite, c.AppContext.Session().UserId)
+			invitesWithError, err = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		}
 
 		if len(invitesOverLimit) > 0 {
@@ -1404,9 +1453,14 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		// in graceful mode we return both the successful ones and the failed ones
-		w.Write([]byte(model.EmailInviteWithErrorToJson(invitesWithError)))
+		js, jsonErr := json.Marshal(invitesWithError)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("inviteGuestsToChannel", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 	} else {
-		err := c.App.InviteGuestsToChannels(c.Params.TeamId, guestsInvite, c.AppContext.Session().UserId)
+		err := c.App.InviteGuestsToChannels(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		if err != nil {
 			c.Err = err
 			return
@@ -1438,7 +1492,7 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	result["description"] = team.Description
 	result["name"] = team.Name
 	result["id"] = team.Id
-	w.Write([]byte(model.MapToJson(result)))
+	w.Write([]byte(model.MapToJSON(result)))
 }
 
 func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1581,8 +1635,14 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || (!model.IsValidId(*schemeID) && *schemeID != "") {
+	var p model.SchemeIDPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		c.SetInvalidParam("scheme_id")
+		return
+	}
+
+	schemeID := p.SchemeID
+	if p.SchemeID == nil || (!model.IsValidId(*p.SchemeID) && *p.SchemeID != "") {
 		c.SetInvalidParam("scheme_id")
 		return
 	}

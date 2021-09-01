@@ -1970,7 +1970,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Failed to marshal."
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -3721,6 +3721,10 @@
   {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Error reading file from backend"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Failed to unmarshal."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
@@ -5809,6 +5813,10 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Failed to marshal post."
   },
   {
     "id": "app.post.overwrite.app_error",

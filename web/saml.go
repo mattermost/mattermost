@@ -60,7 +60,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
 
 	if len(relayProps) > 0 {
-		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
+		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJSON(relayProps)))
 	}
 
 	data, err := samlInterface.BuildRequest(relayState)
@@ -93,7 +93,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		stateStr = string(b)
-		relayProps = model.MapFromJson(strings.NewReader(stateStr))
+		relayProps = model.MapFromJSON(strings.NewReader(stateStr))
 	}
 
 	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
