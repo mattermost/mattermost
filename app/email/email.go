@@ -460,14 +460,14 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 
 			token := model.NewToken(
 				TokenTypeTeamInvitation,
-				model.MapToJson(map[string]string{"teamId": team.Id, "email": invite}),
+				model.MapToJSON(map[string]string{"teamId": team.Id, "email": invite}),
 			)
 
 			tokenProps := make(map[string]string)
 			tokenProps["email"] = invite
 			tokenProps["display_name"] = team.DisplayName
 			tokenProps["name"] = team.Name
-			tokenData := model.MapToJson(tokenProps)
+			tokenData := model.MapToJSON(tokenProps)
 
 			if err := es.store.Token().Save(token); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
@@ -531,7 +531,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 
 			token := model.NewToken(
 				TokenTypeGuestInvitation,
-				model.MapToJson(map[string]string{
+				model.MapToJSON(map[string]string{
 					"teamId":   team.Id,
 					"channels": strings.Join(channelIDs, " "),
 					"email":    invite,
@@ -543,7 +543,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 			tokenProps["email"] = invite
 			tokenProps["display_name"] = team.DisplayName
 			tokenProps["name"] = team.Name
-			tokenData := model.MapToJson(tokenProps)
+			tokenData := model.MapToJSON(tokenProps)
 
 			if err := es.store.Token().Save(token); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))

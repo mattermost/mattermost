@@ -10,6 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -224,8 +226,9 @@ func (wsc *WebSocketClient) Listen() {
 				return
 			}
 
-			event := WebSocketEventFromJson(bytes.NewReader(buf.Bytes()))
-			if event == nil {
+			event, jsonErr := WebSocketEventFromJSON(bytes.NewReader(buf.Bytes()))
+			if jsonErr != nil {
+				mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 				continue
 			}
 			if event.IsValid() {
