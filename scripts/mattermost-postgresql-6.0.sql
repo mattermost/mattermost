@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 11.7
--- Dumped by pg_dump version 11.10 (Ubuntu 11.10-1.pgdg18.04+1)
+-- Dumped from database version 10.18 (Debian 10.18-1.pgdg90+1)
+-- Dumped by pg_dump version 13.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -17,8 +17,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 SET default_tablespace = '';
-
-SET default_with_oids = false;
 
 --
 -- Name: audits; Type: TABLE; Schema: public; Owner: mmuser
@@ -1618,10 +1616,17 @@ CREATE INDEX idx_channel_search_txt ON public.channels USING gin (to_tsvector('e
 
 
 --
--- Name: idx_channelmembers_user_id; Type: INDEX; Schema: public; Owner: mmuser
+-- Name: idx_channelmembers_channel_id_scheme_guest_user_id; Type: INDEX; Schema: public; Owner: mmuser
 --
 
-CREATE INDEX idx_channelmembers_user_id ON public.channelmembers USING btree (userid);
+CREATE INDEX idx_channelmembers_channel_id_scheme_guest_user_id ON public.channelmembers USING btree (channelid, schemeguest, userid);
+
+
+--
+-- Name: idx_channelmembers_user_id_channel_id_last_viewed_at; Type: INDEX; Schema: public; Owner: mmuser
+--
+
+CREATE INDEX idx_channelmembers_user_id_channel_id_last_viewed_at ON public.channelmembers USING btree (userid, channelid, lastviewedat);
 
 
 --
@@ -1660,10 +1665,17 @@ CREATE INDEX idx_channels_scheme_id ON public.channels USING btree (schemeid);
 
 
 --
--- Name: idx_channels_team_id; Type: INDEX; Schema: public; Owner: mmuser
+-- Name: idx_channels_team_id_display_name; Type: INDEX; Schema: public; Owner: mmuser
 --
 
-CREATE INDEX idx_channels_team_id ON public.channels USING btree (teamid);
+CREATE INDEX idx_channels_team_id_display_name ON public.channels USING btree (teamid, displayname);
+
+
+--
+-- Name: idx_channels_team_id_type; Type: INDEX; Schema: public; Owner: mmuser
+--
+
+CREATE INDEX idx_channels_team_id_type ON public.channels USING btree (teamid, type);
 
 
 --
@@ -1982,10 +1994,10 @@ CREATE INDEX idx_posts_message_txt ON public.posts USING gin (to_tsvector('engli
 
 
 --
--- Name: idx_posts_root_id; Type: INDEX; Schema: public; Owner: mmuser
+-- Name: idx_posts_root_id_delete_at; Type: INDEX; Schema: public; Owner: mmuser
 --
 
-CREATE INDEX idx_posts_root_id ON public.posts USING btree (rootid);
+CREATE INDEX idx_posts_root_id_delete_at ON public.posts USING btree (rootid, deleteat);
 
 
 --
@@ -2136,10 +2148,10 @@ CREATE INDEX idx_sharedchannelusers_remote_id ON public.sharedchannelusers USING
 
 
 --
--- Name: idx_status_status; Type: INDEX; Schema: public; Owner: mmuser
+-- Name: idx_status_status_dndendtime; Type: INDEX; Schema: public; Owner: mmuser
 --
 
-CREATE INDEX idx_status_status ON public.status USING btree (status);
+CREATE INDEX idx_status_status_dndendtime ON public.status USING btree (status, dndendtime);
 
 
 --
@@ -2213,10 +2225,10 @@ CREATE INDEX idx_thread_memberships_user_id ON public.threadmemberships USING bt
 
 
 --
--- Name: idx_threads_channel_id; Type: INDEX; Schema: public; Owner: mmuser
+-- Name: idx_threads_channel_id_last_reply_at; Type: INDEX; Schema: public; Owner: mmuser
 --
 
-CREATE INDEX idx_threads_channel_id ON public.threads USING btree (channelid);
+CREATE INDEX idx_threads_channel_id_last_reply_at ON public.threads USING btree (channelid, lastreplyat);
 
 
 --
@@ -2359,16 +2371,6 @@ ALTER TABLE ONLY public.retentionpolicieschannels
 
 ALTER TABLE ONLY public.retentionpoliciesteams
     ADD CONSTRAINT fk_retentionpoliciesteams_retentionpolicies FOREIGN KEY (policyid) REFERENCES public.retentionpolicies(id) ON DELETE CASCADE;
-
-
---
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: mmuser
---
-
-REVOKE ALL ON SCHEMA public FROM rdsadmin;
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT ALL ON SCHEMA public TO mmuser;
-GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --

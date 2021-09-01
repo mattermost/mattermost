@@ -1,14 +1,18 @@
--- MySQL dump 10.13  Distrib 5.7.35, for Linux (x86_64)
+-- MariaDB dump 10.19  Distrib 10.5.10-MariaDB, for Linux (x86_64)
 --
--- Host: claudiolt-mysql-instance-1.c0gzspkyf2r5.us-east-1.rds.amazonaws.com    Database: mattermost
+-- Host: 127.0.0.1    Database: mattermost_test
 -- ------------------------------------------------------
--- Server version       5.7.12
+-- Server version	5.7.12
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `Audits`
+--
 
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -24,6 +28,11 @@ CREATE TABLE `Audits` (
   KEY `idx_audits_user_id` (`UserId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Bots`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Bots` (
@@ -37,6 +46,11 @@ CREATE TABLE `Bots` (
   PRIMARY KEY (`UserId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ChannelMemberHistory`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ChannelMemberHistory` (
@@ -47,6 +61,11 @@ CREATE TABLE `ChannelMemberHistory` (
   PRIMARY KEY (`ChannelId`,`UserId`,`JoinTime`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ChannelMembers`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ChannelMembers` (
@@ -64,9 +83,15 @@ CREATE TABLE `ChannelMembers` (
   `MentionCountRoot` bigint(20) DEFAULT NULL,
   `MsgCountRoot` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`ChannelId`,`UserId`),
-  KEY `idx_channelmembers_user_id` (`UserId`)
+  KEY `idx_channelmembers_user_id_channel_id_last_viewed_at` (`UserId`,`ChannelId`,`LastViewedAt`),
+  KEY `idx_channelmembers_channel_id_scheme_guest_user_id` (`ChannelId`,`SchemeGuest`,`UserId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Channels`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Channels` (
@@ -90,14 +115,20 @@ CREATE TABLE `Channels` (
   `TotalMsgCountRoot` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Name` (`Name`,`TeamId`),
-  KEY `idx_channels_team_id` (`TeamId`),
   KEY `idx_channels_update_at` (`UpdateAt`),
   KEY `idx_channels_create_at` (`CreateAt`),
   KEY `idx_channels_delete_at` (`DeleteAt`),
   KEY `idx_channels_scheme_id` (`SchemeId`),
+  KEY `idx_channels_team_id_display_name` (`TeamId`,`DisplayName`),
+  KEY `idx_channels_team_id_type` (`TeamId`,`Type`),
   FULLTEXT KEY `idx_channel_search_txt` (`Name`,`DisplayName`,`Purpose`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ClusterDiscovery`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ClusterDiscovery` (
@@ -112,6 +143,11 @@ CREATE TABLE `ClusterDiscovery` (
   PRIMARY KEY (`Id`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `CommandWebhooks`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `CommandWebhooks` (
@@ -126,6 +162,11 @@ CREATE TABLE `CommandWebhooks` (
   KEY `idx_command_webhook_create_at` (`CreateAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Commands`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Commands` (
@@ -154,6 +195,11 @@ CREATE TABLE `Commands` (
   KEY `idx_command_delete_at` (`DeleteAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Compliances`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Compliances` (
@@ -171,6 +217,11 @@ CREATE TABLE `Compliances` (
   PRIMARY KEY (`Id`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Emoji`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Emoji` (
@@ -187,6 +238,11 @@ CREATE TABLE `Emoji` (
   KEY `idx_emoji_delete_at` (`DeleteAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `FileInfo`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `FileInfo` (
@@ -219,6 +275,11 @@ CREATE TABLE `FileInfo` (
   FULLTEXT KEY `idx_fileinfo_content_txt` (`Content`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `GroupChannels`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `GroupChannels` (
@@ -234,6 +295,11 @@ CREATE TABLE `GroupChannels` (
   KEY `idx_groupchannels_schemeadmin` (`SchemeAdmin`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `GroupMembers`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `GroupMembers` (
@@ -245,6 +311,11 @@ CREATE TABLE `GroupMembers` (
   KEY `idx_groupmembers_create_at` (`CreateAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `GroupTeams`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `GroupTeams` (
@@ -260,6 +331,11 @@ CREATE TABLE `GroupTeams` (
   KEY `idx_groupteams_schemeadmin` (`SchemeAdmin`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `IncomingWebhooks`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `IncomingWebhooks` (
@@ -283,6 +359,11 @@ CREATE TABLE `IncomingWebhooks` (
   KEY `idx_incoming_webhook_delete_at` (`DeleteAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Jobs`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Jobs` (
@@ -299,6 +380,11 @@ CREATE TABLE `Jobs` (
   KEY `idx_jobs_type` (`Type`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Licenses`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Licenses` (
@@ -308,6 +394,11 @@ CREATE TABLE `Licenses` (
   PRIMARY KEY (`Id`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `LinkMetadata`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `LinkMetadata` (
@@ -320,6 +411,11 @@ CREATE TABLE `LinkMetadata` (
   KEY `idx_link_metadata_url_timestamp` (`URL`(512),`Timestamp`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `OAuthAccessData`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `OAuthAccessData` (
@@ -336,6 +432,11 @@ CREATE TABLE `OAuthAccessData` (
   KEY `idx_oauthaccessdata_refresh_token` (`RefreshToken`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `OAuthApps`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `OAuthApps` (
@@ -354,6 +455,11 @@ CREATE TABLE `OAuthApps` (
   KEY `idx_oauthapps_creator_id` (`CreatorId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `OAuthAuthData`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `OAuthAuthData` (
@@ -368,6 +474,11 @@ CREATE TABLE `OAuthAuthData` (
   PRIMARY KEY (`Code`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `OutgoingWebhooks`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `OutgoingWebhooks` (
@@ -394,6 +505,11 @@ CREATE TABLE `OutgoingWebhooks` (
   KEY `idx_outgoing_webhook_delete_at` (`DeleteAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PluginKeyValueStore`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `PluginKeyValueStore` (
@@ -404,6 +520,11 @@ CREATE TABLE `PluginKeyValueStore` (
   PRIMARY KEY (`PluginId`,`PKey`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Posts`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Posts` (
@@ -429,15 +550,20 @@ CREATE TABLE `Posts` (
   KEY `idx_posts_update_at` (`UpdateAt`),
   KEY `idx_posts_create_at` (`CreateAt`),
   KEY `idx_posts_delete_at` (`DeleteAt`),
-  KEY `idx_posts_root_id` (`RootId`),
   KEY `idx_posts_user_id` (`UserId`),
   KEY `idx_posts_is_pinned` (`IsPinned`),
   KEY `idx_posts_channel_id_update_at` (`ChannelId`,`UpdateAt`),
   KEY `idx_posts_channel_id_delete_at_create_at` (`ChannelId`,`DeleteAt`,`CreateAt`),
+  KEY `idx_posts_root_id_delete_at` (`RootId`,`DeleteAt`),
   FULLTEXT KEY `idx_posts_message_txt` (`Message`),
   FULLTEXT KEY `idx_posts_hashtags_txt` (`Hashtags`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Preferences`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Preferences` (
@@ -450,6 +576,11 @@ CREATE TABLE `Preferences` (
   KEY `idx_preferences_name` (`Name`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ProductNoticeViewState`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ProductNoticeViewState` (
@@ -462,6 +593,11 @@ CREATE TABLE `ProductNoticeViewState` (
   KEY `idx_notice_views_notice_id` (`NoticeId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PublicChannels`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `PublicChannels` (
@@ -479,6 +615,11 @@ CREATE TABLE `PublicChannels` (
   FULLTEXT KEY `idx_publicchannels_search_txt` (`Name`,`DisplayName`,`Purpose`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Reactions`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Reactions` (
@@ -492,6 +633,11 @@ CREATE TABLE `Reactions` (
   PRIMARY KEY (`PostId`,`UserId`,`EmojiName`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `RemoteClusters`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `RemoteClusters` (
@@ -510,6 +656,11 @@ CREATE TABLE `RemoteClusters` (
   UNIQUE KEY `remote_clusters_site_url_unique` (`RemoteTeamId`,`SiteURL`(168))
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `RetentionPolicies`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `RetentionPolicies` (
@@ -520,6 +671,11 @@ CREATE TABLE `RetentionPolicies` (
   KEY `IDX_RetentionPolicies_DisplayName` (`DisplayName`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `RetentionPoliciesChannels`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `RetentionPoliciesChannels` (
@@ -530,6 +686,11 @@ CREATE TABLE `RetentionPoliciesChannels` (
   CONSTRAINT `FK_RetentionPoliciesChannels_RetentionPolicies` FOREIGN KEY (`PolicyId`) REFERENCES `RetentionPolicies` (`Id`) ON DELETE CASCADE
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `RetentionPoliciesTeams`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `RetentionPoliciesTeams` (
@@ -540,6 +701,11 @@ CREATE TABLE `RetentionPoliciesTeams` (
   CONSTRAINT `FK_RetentionPoliciesTeams_RetentionPolicies` FOREIGN KEY (`PolicyId`) REFERENCES `RetentionPolicies` (`Id`) ON DELETE CASCADE
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Roles`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Roles` (
@@ -557,6 +723,11 @@ CREATE TABLE `Roles` (
   UNIQUE KEY `Name` (`Name`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Schemes`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Schemes` (
@@ -581,6 +752,11 @@ CREATE TABLE `Schemes` (
   KEY `idx_schemes_channel_admin_role` (`DefaultChannelAdminRole`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Sessions`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Sessions` (
@@ -603,6 +779,11 @@ CREATE TABLE `Sessions` (
   KEY `idx_sessions_last_activity_at` (`LastActivityAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `SharedChannelAttachments`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `SharedChannelAttachments` (
@@ -615,6 +796,11 @@ CREATE TABLE `SharedChannelAttachments` (
   UNIQUE KEY `FileId` (`FileId`,`RemoteId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `SharedChannelRemotes`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `SharedChannelRemotes` (
@@ -632,6 +818,11 @@ CREATE TABLE `SharedChannelRemotes` (
   UNIQUE KEY `ChannelId` (`ChannelId`,`RemoteId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `SharedChannelUsers`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `SharedChannelUsers` (
@@ -646,6 +837,11 @@ CREATE TABLE `SharedChannelUsers` (
   KEY `idx_sharedchannelusers_remote_id` (`RemoteId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `SharedChannels`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `SharedChannels` (
@@ -665,6 +861,11 @@ CREATE TABLE `SharedChannels` (
   UNIQUE KEY `ShareName` (`ShareName`,`TeamId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `SidebarCategories`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `SidebarCategories` (
@@ -680,6 +881,11 @@ CREATE TABLE `SidebarCategories` (
   PRIMARY KEY (`Id`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `SidebarChannels`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `SidebarChannels` (
@@ -690,6 +896,11 @@ CREATE TABLE `SidebarChannels` (
   PRIMARY KEY (`ChannelId`,`UserId`,`CategoryId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Status`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Status` (
@@ -700,9 +911,14 @@ CREATE TABLE `Status` (
   `DNDEndTime` bigint(20) DEFAULT NULL,
   `PrevStatus` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`UserId`),
-  KEY `idx_status_status` (`Status`)
+  KEY `idx_status_status_dndendtime` (`Status`,`DNDEndTime`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Systems`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Systems` (
@@ -711,6 +927,11 @@ CREATE TABLE `Systems` (
   PRIMARY KEY (`Name`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `TeamMembers`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `TeamMembers` (
@@ -726,6 +947,11 @@ CREATE TABLE `TeamMembers` (
   KEY `idx_teammembers_delete_at` (`DeleteAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Teams`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Teams` (
@@ -754,6 +980,11 @@ CREATE TABLE `Teams` (
   KEY `idx_teams_scheme_id` (`SchemeId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `TermsOfService`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `TermsOfService` (
@@ -764,6 +995,11 @@ CREATE TABLE `TermsOfService` (
   PRIMARY KEY (`Id`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ThreadMemberships`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ThreadMemberships` (
@@ -779,6 +1015,11 @@ CREATE TABLE `ThreadMemberships` (
   KEY `idx_thread_memberships_user_id` (`UserId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Threads`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Threads` (
@@ -788,9 +1029,14 @@ CREATE TABLE `Threads` (
   `LastReplyAt` bigint(20) DEFAULT NULL,
   `Participants` json DEFAULT NULL,
   PRIMARY KEY (`PostId`),
-  KEY `idx_threads_channel_id` (`ChannelId`)
+  KEY `idx_threads_channel_id_last_reply_at` (`ChannelId`,`LastReplyAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Tokens`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Tokens` (
@@ -801,6 +1047,11 @@ CREATE TABLE `Tokens` (
   PRIMARY KEY (`Token`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `UploadSessions`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `UploadSessions` (
@@ -820,6 +1071,11 @@ CREATE TABLE `UploadSessions` (
   KEY `idx_uploadsessions_create_at` (`CreateAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `UserAccessTokens`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `UserAccessTokens` (
@@ -833,6 +1089,11 @@ CREATE TABLE `UserAccessTokens` (
   KEY `idx_user_access_tokens_user_id` (`UserId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `UserGroups`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `UserGroups` (
@@ -853,6 +1114,11 @@ CREATE TABLE `UserGroups` (
   KEY `idx_usergroups_delete_at` (`DeleteAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `UserTermsOfService`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `UserTermsOfService` (
@@ -862,6 +1128,11 @@ CREATE TABLE `UserTermsOfService` (
   PRIMARY KEY (`UserId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Users`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Users` (
@@ -904,6 +1175,11 @@ CREATE TABLE `Users` (
   FULLTEXT KEY `idx_users_names_no_full_name_txt` (`Username`,`Nickname`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `schema_migrations`
+--
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `schema_migrations` (
@@ -912,3 +1188,11 @@ CREATE TABLE `schema_migrations` (
   PRIMARY KEY (`version`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2021-08-31 11:45:07
