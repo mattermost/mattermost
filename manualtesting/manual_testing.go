@@ -12,14 +12,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/slashcommands"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/slashcommands"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 // TestEnvironment is a helper struct used for tests in manualtesting.
@@ -35,7 +35,7 @@ type TestEnvironment struct {
 
 // Init adds manualtest endpoint to the API.
 func Init(api4 *api4.API) {
-	api4.BaseRoutes.Root.Handle("/manualtest", api4.ApiHandler(manualTest)).Methods("GET")
+	api4.BaseRoutes.Root.Handle("/manualtest", api4.APIHandler(manualTest)).Methods("GET")
 }
 
 func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
@@ -75,7 +75,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			DisplayName: teamDisplayName[0],
 			Name:        "zz" + utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
 			Email:       "success+" + model.NewId() + "simulator.amazonses.com",
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		createdTeam, err := c.App.Srv().Store.Team().Save(team)
@@ -93,7 +93,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
+		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.ChannelTypeOpen, TeamId: createdTeam.Id}
 		if _, err := c.App.CreateChannel(c.AppContext, channel, false); err != nil {
 			c.Err = err
 			return
@@ -107,9 +107,16 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Nickname: username[0],
 			Password: slashcommands.UserPassword}
 
-		user, resp := client.CreateUser(user)
-		if resp.Error != nil {
-			c.Err = resp.Error
+		user, _, err = client.CreateUser(user)
+		if err != nil {
+			var appErr *model.AppError
+			ok = errors.As(err, &appErr)
+			if ok {
+				c.Err = appErr
+			} else {
+				c.Err = model.NewAppError("manualTest", "app.user.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
 			return
 		}
 
@@ -119,15 +126,21 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		userID = user.Id
 
 		// Login as user to generate auth token
-		_, resp = client.LoginById(user.Id, slashcommands.UserPassword)
-		if resp.Error != nil {
-			c.Err = resp.Error
+		_, _, err = client.LoginById(user.Id, slashcommands.UserPassword)
+		if err != nil {
+			var appErr *model.AppError
+			ok = errors.As(err, &appErr)
+			if ok {
+				c.Err = appErr
+			} else {
+				c.Err = model.NewAppError("manualTest", "api.user.login.bot_login_forbidden.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 			return
 		}
 
 		// Respond with an auth token this can be overridden by a specific test as required
 		sessionCookie := &http.Cookie{
-			Name:     model.SESSION_COOKIE_TOKEN,
+			Name:     model.SessionCookieToken,
 			Value:    client.AuthToken,
 			Path:     "/",
 			MaxAge:   *c.App.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24,
@@ -171,11 +184,11 @@ func getChannelID(a app.AppIface, channelname string, teamid string, userid stri
 		return "", false
 	}
 
-	for _, channel := range *channels {
+	for _, channel := range channels {
 		if channel.Name == channelname {
 			return channel.Id, true
 		}
 	}
-	mlog.Debug("Could not find channel", mlog.String("Channel name", channelname), mlog.Int("Possibilities searched", len(*channels)))
+	mlog.Debug("Could not find channel", mlog.String("Channel name", channelname), mlog.Int("Possibilities searched", len(channels)))
 	return "", false
 }

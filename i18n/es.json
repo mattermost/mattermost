@@ -148,14 +148,6 @@
     "translation": "Este canal ha sido convertido a un Canal Privado."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Este es el canal predeterminado y no se puede convertir como canal privado."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "El canal que intentas convertir ya es un canal privado."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Debe usar el servicio del api createDirectChannel para crear un canal de mensajes directos."
   },
@@ -1318,10 +1310,6 @@
     "translation": "Canal inválido para el parámetro RootId."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parámetro ParentId inválido."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Parámetro RootId inválido."
   },
@@ -2180,24 +2168,8 @@
     "translation": "Ocurrió un error al enviar el correo electrónico de desactivación de cuenta"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del correo electrónico"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del nombre de usuario"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Error al enviar la notificación por correo electrónico para verificar el cambio satisfactorio del correo electrónico"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "No se puede enviar la notificación por correo electrónico para el cambio de MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio de contraseña"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2184,8 @@
     "translation": "Error al enviar la notificación por correo del cambio satisfactorio de contraseña"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Error al enviar el correo electrónico de token de acceso personal añadido correctamente"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Error al enviar la notificación por correo electrónico de la verificación del correo electrónico"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Error al enviar la notificación de bienvenida por correo electrónico"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3044,10 +3008,6 @@
     "translation": "No se puede escribir el archivo de imagen en su almacenamiento de archivos. Por favor, compruebe su conexión e inténtelo de nuevo."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Característica requiere una actualización a la Edición Empresarial y la inclusión de una licencia. Por favor, póngase en contacto con su Administrador del Sistema."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "No se puede obtener los usuarios."
   },
@@ -3744,10 +3704,6 @@
     "translation": "Comando con hook id no válido."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Id del padre no es válido."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Id de la raíz no es válido."
   },
@@ -4432,20 +4388,12 @@
     "translation": "Id Original inválido."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id del padre no es válido."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Props invalidos."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Id de la raíz no es válido."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "ID de la raíz no es válido, debe ser asignado si el ID del padre fue asignado."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5112,10 +5060,6 @@
     "translation": "No se puede crear el archivo zip"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "El webhook de salida fue borrado, pero no se pudo crear uno nuevo debido a un error."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Ocurrió un error al cerrar el indice de usuario."
   },
@@ -5736,10 +5680,6 @@
     "translation": "Ocurrió un error al descargar el plugin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Se ha producido un error al abrir el archivo de clave pública."
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Ocurrió un error al enviar el correo electrónico de desactivación de licencia."
   },
@@ -5860,38 +5800,6 @@
     "translation": "Por favor agregame a los equipos y canales en los que quieres que interactúe. Para ello, utiliza el navegador o la Aplicación de Escritorio de Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "No se pudo cargar la imagen del perfil. El archivo es muy grande."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "No se pudo analizar el formulario multipart."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "No se pudo abrir el archivo de imagen."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "No hay un archivo bajo 'image' en la solicitud."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Arreglo vacío bajo 'image' en la solicitud."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "No se pudo cargar el icono."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "No se puede leer el archivo del icono."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "No se puede borrar la imagen del icono."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Creación de Bots ha sido deshabilitado."
   },
@@ -5998,10 +5906,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "Error al eliminar los mensajes del canal"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Encontramos un error al eliminar permanentemente el lote de reacciones."
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6320,10 +6224,6 @@
     "translation": "No se pudo obtener los usuarios del canal en el período de tiempo especificado."
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "No se pudo purgar los registros."
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "No se puede habilitar guardar token de acceso."
   },
@@ -6510,10 +6410,6 @@
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Error al enviar correo electrónico al administrador"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Hemos detectado un error al limpiar los lotes para los mensajes marcados."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6850,10 +6746,6 @@
   {
     "id": "ent.message_export.actiance_export.get_attachment_error",
     "translation": "Fallado para coger lima info para un poste."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Hemos detectado un error al eliminar permanentemente el lote de información archivos."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7458,10 +7350,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "No se puede obtener los mensajes en lote para la indexación."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Hemos detectado un error al eliminar permanentemente el lote de los mensajes."
   },
   {
     "id": "app.post.search.app_error",
@@ -8114,5 +8002,9 @@
   {
     "id": "api.cloud.get_admins_emails.error",
     "translation": "Error obteniendo el email de los administradores del sistema."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "No se ha podido restablecer el campo AuthData a Email."
   }
 ]

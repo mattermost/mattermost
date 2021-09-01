@@ -7,12 +7,12 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/shared/driver"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/app/plugin_api_tests"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/driver"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
 
 type MyPlugin struct {
@@ -29,7 +29,9 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
-	store := sqlstore.New(p.API.GetUnsanitizedConfig().SqlSettings, nil)
+	settings := p.API.GetUnsanitizedConfig().SqlSettings
+	settings.Trace = model.NewBool(false)
+	store := sqlstore.New(settings, nil)
 	store.GetMaster().Db.Close()
 
 	for _, isMaster := range []bool{true, false} {

@@ -1,4 +1,4 @@
-# code.sajari.com/docconv v1.1.1-0.20200701232649-d9ea05fbd50a
+# code.sajari.com/docconv v1.1.1-0.20210427001343-7b3472bc323a
 ## explicit
 code.sajari.com/docconv
 code.sajari.com/docconv/iWork
@@ -183,7 +183,7 @@ github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
 # github.com/dustin/go-humanize v1.0.0
 github.com/dustin/go-humanize
-# github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09 => github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627
+# github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
 ## explicit
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/fatih/color v1.12.0
@@ -382,7 +382,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v1.6.2-0.20210419141818-0904a6a388d3
+# github.com/mattermost/gorp v1.6.2-0.20210714143452-8b50f5209a7f
 ## explicit
 github.com/mattermost/gorp
 # github.com/mattermost/gosaml2 v0.3.3
@@ -398,9 +398,12 @@ github.com/mattermost/gziphandler
 github.com/mattermost/ldap
 # github.com/mattermost/logr v1.0.13
 ## explicit
-github.com/mattermost/logr
-github.com/mattermost/logr/format
-github.com/mattermost/logr/target
+# github.com/mattermost/logr/v2 v2.0.10
+## explicit
+github.com/mattermost/logr/v2
+github.com/mattermost/logr/v2/config
+github.com/mattermost/logr/v2/formatters
+github.com/mattermost/logr/v2/targets
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 ## explicit
 github.com/mattermost/rsc/gf256
@@ -681,10 +684,6 @@ github.com/vmihailenco/msgpack/v5/msgpcode
 github.com/vmihailenco/tagparser/v2
 github.com/vmihailenco/tagparser/v2/internal
 github.com/vmihailenco/tagparser/v2/internal/parser
-# github.com/wiggin77/cfg v1.0.2
-github.com/wiggin77/cfg
-github.com/wiggin77/cfg/ini
-github.com/wiggin77/cfg/timeconv
 # github.com/wiggin77/merror v1.0.3
 ## explicit
 github.com/wiggin77/merror
@@ -730,15 +729,8 @@ go.opentelemetry.io/otel/metric/unit
 go.uber.org/atomic
 # go.uber.org/multierr v1.7.0
 ## explicit
-go.uber.org/multierr
 # go.uber.org/zap v1.17.0
 ## explicit
-go.uber.org/zap
-go.uber.org/zap/buffer
-go.uber.org/zap/internal/bufferpool
-go.uber.org/zap/internal/color
-go.uber.org/zap/internal/exit
-go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 ## explicit
 golang.org/x/crypto/acme
@@ -955,4 +947,3 @@ willnorris.com/go/gifresize
 ## explicit
 willnorris.com/go/imageproxy
 willnorris.com/go/imageproxy/third_party/http
-# github.com/dyatlov/go-opengraph => github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627

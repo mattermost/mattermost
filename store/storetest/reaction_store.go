@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/retrylayer"
 )
 
 func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -391,13 +391,13 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 	}
 
 	sqlResult, err := s.GetMaster().Exec(`
-		UPDATE 
-			Reactions 
-		SET 
-			UpdateAt=:UpdateAt 
-		WHERE 
-			UserId = :UserId AND 
-			PostId = :PostId AND 
+		UPDATE
+			Reactions
+		SET
+			UpdateAt=:UpdateAt
+		WHERE
+			UserId = :UserId AND
+			PostId = :PostId AND
 			EmojiName = :EmojiName`, params,
 	)
 
@@ -527,14 +527,14 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 	olderPost, err := ss.Post().Save(&model.Post{

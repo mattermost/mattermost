@@ -4,24 +4,26 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitWebhookLocal() {
-	api.BaseRoutes.IncomingHooks.Handle("", api.ApiLocal(localCreateIncomingHook)).Methods("POST")
-	api.BaseRoutes.IncomingHooks.Handle("", api.ApiLocal(getIncomingHooks)).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiLocal(getIncomingHook)).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiLocal(updateIncomingHook)).Methods("PUT")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiLocal(deleteIncomingHook)).Methods("DELETE")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APILocal(localCreateIncomingHook)).Methods("POST")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APILocal(getIncomingHooks)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(getIncomingHook)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(updateIncomingHook)).Methods("PUT")
+	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(deleteIncomingHook)).Methods("DELETE")
 
-	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiLocal(localCreateOutgoingHook)).Methods("POST")
-	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiLocal(getOutgoingHooks)).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiLocal(getOutgoingHook)).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiLocal(updateOutgoingHook)).Methods("PUT")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiLocal(deleteOutgoingHook)).Methods("DELETE")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APILocal(localCreateOutgoingHook)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APILocal(getOutgoingHooks)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APILocal(getOutgoingHook)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APILocal(updateOutgoingHook)).Methods("PUT")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APILocal(deleteOutgoingHook)).Methods("DELETE")
 }
 
 func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -63,7 +65,9 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 	c.LogAudit("success")
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(incomingHook.ToJson()))
+	if err := json.NewEncoder(w).Encode(incomingHook); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -103,5 +107,7 @@ func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request)
 	c.LogAudit("success")
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rhook.ToJson()))
+	if err := json.NewEncoder(w).Encode(rhook); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

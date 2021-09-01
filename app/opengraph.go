@@ -11,7 +11,7 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"golang.org/x/net/html/charset"
 
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const MaxOpenGraphResponseSize = 1024 * 1024 * 50
@@ -36,7 +36,7 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
 
-	openGraphDecodeHtmlEntities(og)
+	openGraphDecodeHTMLEntities(og)
 
 	// If image proxy enabled modify open graph data to feed though proxy
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
@@ -119,7 +119,7 @@ func openGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxy
 	return ogdata
 }
 
-func openGraphDecodeHtmlEntities(og *opengraph.OpenGraph) {
+func openGraphDecodeHTMLEntities(og *opengraph.OpenGraph) {
 	og.Title = html.UnescapeString(og.Title)
 	og.Description = html.UnescapeString(og.Description)
 }

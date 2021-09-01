@@ -10,9 +10,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlEmojiStore struct {
@@ -88,7 +88,7 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji,
 
 	query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
 
-	if sort == model.EMOJI_SORT_BY_NAME {
+	if sort == model.EmojiSortByName {
 		query += " ORDER BY Name"
 	}
 

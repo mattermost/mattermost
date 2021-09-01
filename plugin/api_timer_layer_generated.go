@@ -11,8 +11,8 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type apiTimerLayer struct {
@@ -24,7 +24,7 @@ type apiTimerLayer struct {
 func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, success bool) {
 	if api.metrics != nil {
 		elapsedTime := float64(timePkg.Since(startTime)) / float64(timePkg.Second)
-		api.metrics.ObservePluginApiDuration(api.pluginID, name, success, elapsedTime)
+		api.metrics.ObservePluginAPIDuration(api.pluginID, name, success, elapsedTime)
 	}
 }
 
@@ -214,6 +214,20 @@ func (api *apiTimerLayer) DeletePreferencesForUser(userID string, preferences []
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeletePreferencesForUser(userID, preferences)
 	api.recordTime(startTime, "DeletePreferencesForUser", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateUserAccessToken(token)
+	api.recordTime(startTime, "CreateUserAccessToken", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RevokeUserAccessToken(tokenID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RevokeUserAccessToken(tokenID)
+	api.recordTime(startTime, "RevokeUserAccessToken", _returnsA == nil)
 	return _returnsA
 }
 
@@ -560,14 +574,14 @@ func (api *apiTimerLayer) GetChannelMember(channelId, userID string) (*model.Cha
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetChannelMembers(channelId, page, perPage)
 	api.recordTime(startTime, "GetChannelMembers", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetChannelMembersByIds(channelId, userIds)
 	api.recordTime(startTime, "GetChannelMembersByIds", _returnsB == nil)
@@ -1051,27 +1065,6 @@ func (api *apiTimerLayer) PermanentDeleteBot(botUserId string) *model.AppError {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetBotIconImage(botUserId)
-	api.recordTime(startTime, "GetBotIconImage", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) SetBotIconImage(botUserId string, data []byte) *model.AppError {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetBotIconImage(botUserId, data)
-	api.recordTime(startTime, "SetBotIconImage", _returnsA == nil)
-	return _returnsA
-}
-
-func (api *apiTimerLayer) DeleteBotIconImage(botUserId string) *model.AppError {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteBotIconImage(botUserId)
-	api.recordTime(startTime, "DeleteBotIconImage", _returnsA == nil)
-	return _returnsA
-}
-
 func (api *apiTimerLayer) PluginHTTP(request *http.Request) *http.Response {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.PluginHTTP(request)
@@ -1139,6 +1132,34 @@ func (api *apiTimerLayer) DeleteCommand(commandID string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeleteCommand(commandID)
 	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateOAuthApp(app)
+	api.recordTime(startTime, "CreateOAuthApp", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetOAuthApp(appID)
+	api.recordTime(startTime, "GetOAuthApp", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateOAuthApp(app)
+	api.recordTime(startTime, "UpdateOAuthApp", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteOAuthApp(appID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeleteOAuthApp(appID)
+	api.recordTime(startTime, "DeleteOAuthApp", _returnsA == nil)
 	return _returnsA
 }
 
