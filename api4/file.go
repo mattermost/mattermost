@@ -464,6 +464,74 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	return &resp
 }
 
+func isImageFile(fname string) bool {
+	extensions := []string{
+		"jpg",
+		"png",
+		"gif",
+		"webp",
+		"tiff",
+		"psd",
+		"raw",
+		"bmp",
+		"heif",
+		"indd",
+		"jpeg",
+		"svg",
+		"ai",
+		"eps",
+		"pdf",
+	}
+
+	if !strings.Contains(fname, ".") {
+		return false
+	}
+
+	parts := strings.Split(fname, ".")
+	ext := parts[len(parts)-1]
+	ext = strings.ToLower(ext)
+
+	for _, e := range extensions {
+		if ext == e {
+			return true
+		}
+	}
+
+	return false
+}
+
+func cleanDomain(domain string) string {
+	if strings.HasPrefix(domain, "http:/") {
+		if strings.HasPrefix(domain, "http://") {
+			return domain
+		}
+
+		return "http://" + domain[len("http:/"):]
+	}
+
+	if strings.HasPrefix(domain, "https:/") {
+		if strings.HasPrefix(domain, "https://") {
+			return domain
+		}
+
+		return "https://" + domain[len("https:/"):]
+	}
+
+	return domain
+}
+
+func switchProtocol(domain string) string {
+	if strings.HasPrefix(domain, "http://") {
+		return "https://" + domain[len("http://"):]
+	}
+
+	if strings.HasPrefix(domain, "https://") {
+		return "http://" + domain[len("https://"):]
+	}
+
+	return domain
+}
+
 func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireFileId()
 	if c.Err != nil {
@@ -487,13 +555,15 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 	}
 
-	cloudfrontDomain := os.Getenv("FILESTORE_CLOUDFRONT_DOMAIN")
-	if cloudfrontDomain != "" {
-		p := info.Path
+	if !isImageFile(info.Path) {
+		cloudfrontDomain := os.Getenv("FILESTORE_CLOUDFRONT_DOMAIN")
+		if cloudfrontDomain != "" {
+			p := info.Path
 
-		cloudfrontURL := path.Join(cloudfrontDomain, p)
-		http.Redirect(w, r, cloudfrontURL, http.StatusSeeOther)
-		return
+			cloudfrontURL := switchProtocol(cleanDomain(path.Join(cloudfrontDomain, p)))
+			http.Redirect(w, r, cloudfrontURL, http.StatusTemporaryRedirect)
+			return
+		}
 	}
 
 	fileReader, err := c.App.FileReader(info.Path)
@@ -581,7 +651,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	cloudfrontDomain := os.Getenv("FILESTORE_CLOUDFRONT_DOMAIN")
 	if cloudfrontDomain != "" {
 		p := info.Path
-		cloudfrontURL := path.Join(cloudfrontDomain, p)
+		cloudfrontURL := cleanDomain(path.Join(cloudfrontDomain, p))
 		resp["link"] = cloudfrontURL
 	}
 
