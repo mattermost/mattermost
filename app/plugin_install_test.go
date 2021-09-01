@@ -7,6 +7,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -99,8 +100,10 @@ func TestInstallPluginLocally(t *testing.T) {
 			Id:      id,
 			Version: version,
 		}
+		manifestJSON, jsonErr := json.Marshal(manifest)
+		require.NoError(t, jsonErr)
 		reader := makeInMemoryGzipTarFile(t, []testFile{
-			{"plugin.json", manifest.ToJson()},
+			{"plugin.json", string(manifestJSON)},
 		})
 
 		actualManifest, appError := th.App.installPluginLocally(reader, nil, installationStrategy)

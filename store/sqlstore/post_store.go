@@ -85,10 +85,10 @@ func postToSlice(post *model.Post) []interface{} {
 		post.OriginalId,
 		post.Message,
 		post.Type,
-		model.StringInterfaceToJson(post.Props),
+		model.StringInterfaceToJSON(post.Props),
 		post.Hashtags,
-		model.ArrayToJson(post.Filenames),
-		model.ArrayToJson(post.FileIds),
+		model.ArrayToJSON(post.Filenames),
+		model.ArrayToJSON(post.FileIds),
 		post.HasReactions,
 		post.RemoteId,
 	}
