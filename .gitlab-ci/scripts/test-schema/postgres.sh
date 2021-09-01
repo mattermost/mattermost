@@ -14,6 +14,7 @@ docker ps
 DOCKER_NETWORK=$COMPOSE_PROJECT_NAME
 DOCKER_COMPOSE_FILE="gitlab-dc.schemapostgres.yml"
 CONTAINER_SERVER="${COMPOSE_PROJECT_NAME}_server_1"
+CONTAINER_DB="${COMPOSE_PROJECT_NAME}_postgres_1"
 docker network create $DOCKER_NETWORK
 ulimit -n 8096
 cd "$CI_PROJECT_DIR"/build
@@ -21,9 +22,9 @@ docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
 timeout 90s bash -c "until docker exec ${COMPOSE_PROJECT_NAME}_postgres_1 pg_isready ; do sleep 5 ; done"
 
 echo "Creating databases"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+docker exec $CONTAINER_DB sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test;'
 echo "Importing postgres dump from version 6.0"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres psql -U mmuser -d migrated < "$CI_PROJECT_DIR"/scripts/mattermost-postgresql-6.0.sql
+docker exec $CONTAINER_DB psql -U mmuser -d migrated < "$CI_PROJECT_DIR"/scripts/mattermost-postgresql-6.0.sql
 docker run -d -it --rm --name $CONTAINER_SERVER --net $DOCKER_NETWORK \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
@@ -38,13 +39,12 @@ docker logs -f $CONTAINER_SERVER
 tar -czvf logs/docker_logs$COMPOSE_PROJECT_NAME.tar.gz logs/docker-compose_logs_$COMPOSE_PROJECT_NAME
 
 echo "Generating dump"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
-docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
+docker exec $CONTAINER_DB pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+docker exec $CONTAINER_DB pg_dump --schema-only -d latest -U mmuser > latest.sql
 echo "Removing databases created for db comparison"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
+docker exec $CONTAINER_DB sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 echo "Generating diff"
 diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
 
 docker-compose -f $DOCKER_COMPOSE_FILE down
-docker stop
 docker network remove $DOCKER_NETWORK
