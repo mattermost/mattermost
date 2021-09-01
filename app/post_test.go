@@ -2358,7 +2358,8 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 
 	// unfollow thread
 	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
-		Following: false,
+		Following:       false,
+		UpdateFollowing: true,
 	})
 	require.NoError(t, nErr)
 	require.False(t, m.Following)
@@ -2397,4 +2398,55 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	// User is authorized to get post
 	_, err = th.App.GetPostIfAuthorized(post.Id, session1)
 	require.Nil(t, err)
+}
+
+func TestShouldNotRefollowOnOthersReply(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	appErr := th.App.JoinChannel(th.Context, channel, user.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(th.Context, channel, user2.Id)
+	require.Nil(t, appErr)
+	p1, err := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, false, false)
+	require.Nil(t, err)
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user2.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
+	require.Nil(t, err)
+
+	// User2 unfollows thread
+	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user2.Id, p1.Id, store.ThreadMembershipOpts{
+		Following:       false,
+		UpdateFollowing: true,
+	})
+	require.NoError(t, nErr)
+	require.False(t, m.Following)
+
+	// user posts in the thread
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "another reply"}, channel, false, false)
+	require.Nil(t, err)
+
+	// User2 should still not be following the thread because they manually
+	// unfollowed the thread
+	m, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
+	require.Nil(t, err)
+	require.False(t, m.Following)
+
+	// user posts in the thread mentioning user2
+	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "reply with mention @" + user2.Username}, channel, false, false)
+	require.Nil(t, err)
+
+	// User2 should now be following the thread because they were explicitly mentioned
+	m, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
+	require.Nil(t, err)
+	require.True(t, m.Following)
 }
