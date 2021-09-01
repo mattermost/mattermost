@@ -22,7 +22,7 @@ sleep 5
 docker run --net $DOCKER_NETWORK "$CI_REGISTRY"/mattermost/ci/images/curl:7.59.0-1 sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
 
 echo "Creating databases"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
+docker-compose -f $DOCKER_COMPOSE_FILE exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser; "
 echo "Importing mysql dump from version 6.0"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -T mysql mysql -D migrated -uroot -pmostest < "$CI_PROJECT_DIR"/scripts/mattermost-mysql-6.0.sql
 docker run -d -it --rm --name "$CONTAINER_SERVER" --net $DOCKER_NETWORK \

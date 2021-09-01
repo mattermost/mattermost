@@ -21,7 +21,7 @@ docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
 timeout 90s bash -c "until docker exec ${COMPOSE_PROJECT_NAME}_postgres_1 pg_isready ; do sleep 5 ; done"
 
 echo "Creating databases"
-docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test;'
 echo "Importing postgres dump from version 6.0"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -T postgres psql -U mmuser -d migrated < "$CI_PROJECT_DIR"/scripts/mattermost-postgresql-6.0.sql
 docker run -d -it --rm --name $CONTAINER_SERVER --net $DOCKER_NETWORK \
