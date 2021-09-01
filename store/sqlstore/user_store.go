@@ -230,7 +230,7 @@ func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string)
 	if _, err := us.GetMaster().Exec(`UPDATE Users
 		SET NotifyProps = :NotifyProps
 		WHERE Id = :UserId`, map[string]interface{}{
-		"NotifyProps": model.MapToJson(props),
+		"NotifyProps": model.MapToJSON(props),
 		"UserId":      userID}); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
 	}

@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 const (
 	PushStatus         = "status"
 	PushStatusOk       = "OK"
@@ -35,19 +30,4 @@ func NewErrorPushResponse(message string) PushResponse {
 	m[PushStatus] = PushStatusFail
 	m[PushStatusErrorMsg] = message
 	return m
-}
-
-func (pr *PushResponse) ToJson() string {
-	b, _ := json.Marshal(pr)
-	return string(b)
-}
-
-func PushResponseFromJson(data io.Reader) PushResponse {
-	decoder := json.NewDecoder(data)
-
-	var objmap PushResponse
-	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string]string)
-	}
-	return objmap
 }

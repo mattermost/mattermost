@@ -5,9 +5,9 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -100,7 +100,11 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	if !success {
 		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
 	}
-	license := model.LicenseFromJson(strings.NewReader(licenseStr))
+
+	var license model.License
+	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+		return nil, model.NewAppError("addLicense", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 
 	uniqueUserCount, err := s.Store.User().Count(model.UserCountOptions{})
 	if err != nil {
@@ -111,11 +115,11 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]interface{}{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
 	}
 
-	if license != nil && license.IsExpired() {
+	if license.IsExpired() {
 		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
 
-	if ok := s.SetLicense(license); !ok {
+	if ok := s.SetLicense(&license); !ok {
 		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
 
@@ -165,7 +169,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		}
 	}
 
-	return license, nil
+	return &license, nil
 }
 
 func (s *Server) SetLicense(license *model.License) bool {
@@ -196,8 +200,12 @@ func (s *Server) SetLicense(license *model.License) bool {
 
 func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
 	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b); success {
-		license := model.LicenseFromJson(strings.NewReader(licenseStr))
-		s.SetLicense(license)
+		var license model.License
+		if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+			mlog.Warn("Failed to decode license from JSON", mlog.Err(jsonErr))
+			return false
+		}
+		s.SetLicense(&license)
 		return true
 	}
 
@@ -254,12 +262,17 @@ func (s *Server) GetSanitizedClientLicense() map[string]string {
 
 // RequestTrialLicense request a trial license from the mattermost official license server
 func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
-	resp, err := http.Post(RequestTrialURL, "application/json", bytes.NewBuffer([]byte(trialRequest.ToJson())))
+	trialRequestJSON, jsonErr := json.Marshal(trialRequest)
+	if jsonErr != nil {
+		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+
+	resp, err := http.Post(RequestTrialURL, "application/json", bytes.NewBuffer(trialRequestJSON))
 	if err != nil {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer resp.Body.Close()
-	licenseResponse := model.MapFromJson(resp.Body)
+	licenseResponse := model.MapFromJSON(resp.Body)
 
 	if _, ok := licenseResponse["license"]; !ok {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, licenseResponse["message"], http.StatusBadRequest)

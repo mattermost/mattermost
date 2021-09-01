@@ -4,9 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
-
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
@@ -25,12 +22,6 @@ type CommandArgs struct {
 
 	// DO NOT USE Session field is deprecated. MM-26398
 	Session Session `json:"-"`
-}
-
-func CommandArgsFromJson(data io.Reader) *CommandArgs {
-	var o *CommandArgs
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 // AddUserMention adds or overrides an entry in UserMentions with name username
