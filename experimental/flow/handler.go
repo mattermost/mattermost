@@ -35,8 +35,8 @@ func (fh *fh) handleFlow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request := model.PostActionIntegrationRequestFromJson(r.Body)
-	if request == nil {
+	var request model.PostActionIntegrationRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		common.SlackAttachmentError(w, "Error: invalid request")
 		return
 	}
@@ -51,6 +51,7 @@ func (fh *fh) handleFlow(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal([]byte(rawStep), &stepNumber)
 	if err != nil {
 		common.SlackAttachmentError(w, "Error: cannot parse step number")
+		return
 	}
 
 	step := fh.fc.GetFlow().Step(stepNumber)
@@ -83,7 +84,7 @@ func (fh *fh) handleFlow(w http.ResponseWriter, r *http.Request) {
 	response.Update = &post
 
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(response.ToJson())
+	_ = json.NewEncoder(w).Encode(response)
 
 	_ = fh.fc.NextStep(userID, stepNumber, value)
 }

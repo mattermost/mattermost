@@ -1,6 +1,7 @@
 package freetextfetcher
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -40,8 +41,8 @@ func (ftf *freetextFetcher) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request := model.PostActionIntegrationRequestFromJson(r.Body)
-	if request == nil {
+	var request model.PostActionIntegrationRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		common.SlackAttachmentError(w, "Error: invalid request")
 		return
 	}
@@ -83,7 +84,7 @@ func writeConfirmResponse(w http.ResponseWriter, message string) {
 		},
 	}
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(response.ToJson())
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func (ftf *freetextFetcher) handleNew(w http.ResponseWriter, r *http.Request) {
@@ -93,8 +94,8 @@ func (ftf *freetextFetcher) handleNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request := model.PostActionIntegrationRequestFromJson(r.Body)
-	if request == nil {
+	var request model.PostActionIntegrationRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		common.SlackAttachmentError(w, "Error: invalid request")
 		return
 	}
@@ -107,5 +108,5 @@ func (ftf *freetextFetcher) handleNew(w http.ResponseWriter, r *http.Request) {
 
 	response := model.PostActionIntegrationResponse{}
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(response.ToJson())
+	_ = json.NewEncoder(w).Encode(response)
 }
