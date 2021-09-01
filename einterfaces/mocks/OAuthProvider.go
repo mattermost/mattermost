@@ -62,8 +62,8 @@ func (_m *OAuthProvider) GetUserFromIdToken(idToken string) (*model.User, error)
 	return r0, r1
 }
 
-// GetUserFromJson provides a mock function with given fields: data, tokenUser
-func (_m *OAuthProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
+// GetUserFromJSON provides a mock function with given fields: data, tokenUser
+func (_m *OAuthProvider) GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error) {
 	ret := _m.Called(data, tokenUser)
 
 	var r0 *model.User
