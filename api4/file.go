@@ -11,6 +11,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -483,6 +485,14 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	}
+
+	cloudfrontDomain := os.Getenv("FILESTORE_CLOUDFRONT_DOMAIN")
+	if cloudfrontDomain != "" {
+		p := info.Path
+
+		cloudfrontURL := path.Join(cloudfrontDomain, p)
+		http.Redirect(w, r, cloudfrontURL, http.StatusSeeOther)
 		return
 	}
 
@@ -567,6 +577,13 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]string)
 	link := c.App.GeneratePublicLink(c.GetSiteURLHeader(), info)
 	resp["link"] = link
+
+	cloudfrontDomain := os.Getenv("FILESTORE_CLOUDFRONT_DOMAIN")
+	if cloudfrontDomain != "" {
+		p := info.Path
+		cloudfrontURL := path.Join(cloudfrontDomain, p)
+		resp["link"] = cloudfrontURL
+	}
 
 	auditRec.Success()
 	auditRec.AddMeta("link", link)
