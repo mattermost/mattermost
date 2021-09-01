@@ -4,7 +4,9 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -96,7 +98,11 @@ func (a *App) TriggerWebhook(c *request.Context, payload *model.OutgoingWebhookP
 	var body io.Reader
 	var contentType string
 	if hook.ContentType == "application/json" {
-		body = strings.NewReader(payload.ToJSON())
+		js, jsonErr := json.Marshal(payload)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
+		}
+		body = bytes.NewReader(js)
 		contentType = "application/json"
 	} else {
 		body = strings.NewReader(payload.ToFormValues())
@@ -164,7 +170,15 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 
 	defer resp.Body.Close()
 
-	return model.OutgoingWebhookResponseFromJson(io.LimitReader(resp.Body, MaxIntegrationResponseSize))
+	var hookResp model.OutgoingWebhookResponse
+	if jsonErr := json.NewDecoder(io.LimitReader(resp.Body, MaxIntegrationResponseSize)).Decode(&hookResp); jsonErr != nil {
+		if jsonErr == io.EOF {
+			return nil, nil
+		}
+		return nil, model.NewAppError("doOutgoingWebhookRequest", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+
+	return &hookResp, nil
 }
 
 func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
@@ -180,7 +194,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 		}
 	}
 
-	if utf8.RuneCountInString(model.StringInterfaceToJson(base.GetProps())) > model.PostPropsMaxUserRunes {
+	if utf8.RuneCountInString(model.StringInterfaceToJSON(base.GetProps())) > model.PostPropsMaxUserRunes {
 		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 	}
 
@@ -213,7 +227,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			}
 			origAttachments, _ := newProps["attachments"].([]*model.SlackAttachment)
 			newProps["attachments"] = append(origAttachments, &newAttachment)
-			newPropsString := model.StringInterfaceToJson(newProps)
+			newPropsString := model.StringInterfaceToJSON(newProps)
 			runeCount := utf8.RuneCountInString(newPropsString)
 
 			if runeCount <= model.PostPropsMaxUserRunes {
