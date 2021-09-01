@@ -1264,10 +1264,6 @@
     "translation": "Invalid root ID."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Invalid parent ID."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Invalid command hook ID."
   },
@@ -1840,20 +1836,12 @@
     "translation": "Invalid type."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Invalid root ID must be set if parent ID set."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Invalid root ID."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Invalid props."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Invalid parent ID."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -1877,7 +1865,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file IDs. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file IDs. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -3548,14 +3536,6 @@
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "An error occurred while permanently deleting the batch of reactions."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "An error occurred while permanently deleting the batch of posts."
-  },
-  {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "Invalid policy."
   },
@@ -3566,18 +3546,6 @@
   {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your licence does not support Data Retention."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "An error occurred while cleaning up the batch of flags."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "An error occurred while permanently deleting the batch of file infos."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Failed to purge records."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3662,14 +3630,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to an error."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a licence key. Please contact your System Administrator."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
@@ -5860,10 +5820,6 @@
     "translation": "An error occurred while downloading the plugin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "An error occurred while opening the public key file."
-  },
-  {
     "id": "api.outgoing_webhook.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
@@ -6328,20 +6284,8 @@
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
   },
   {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Failed to send welcome email successfully"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Failed to send verification email successfully"
-  },
-  {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send 'Personal access token added' email successfully"
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Failed to send email to user limit notification to admin"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -6356,24 +6300,8 @@
     "translation": "Failed to send password reset email successfully."
   },
   {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Failed to send update password email successfully"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Failed to send username change notification email successfully"
-  },
-  {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Failed to send email change notification email successfully"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -6618,14 +6546,6 @@
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email."
-  },
-  {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Failed to send trial ending warning email"
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Failed to send trial ended email"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -8287,10 +8207,6 @@
     "translation": "Invalid RootID parameter."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Invalid ParentID parameter."
-  },
-  {
     "id": "api.command_collapse.success",
     "translation": "Image links now collapse by default"
   },
@@ -8927,14 +8843,6 @@
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
   {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
-  },
-  {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Your licence does not support groups"
   },
@@ -8977,38 +8885,6 @@
   {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Unable to upload icon image. File is too large."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Could not parse multipart form."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Could not open image file."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "No file under 'image' in request."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Empty array under 'image' in request."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Couldn't upload icon image."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Couldn't delete icon image."
   },
   {
     "id": "api.bot.create_disabled",
@@ -9212,7 +9088,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Unable to make cloud check for at or over the limit."
+    "translation": "Unable to check number of users in your Mattermost cloud instance."
   },
   {
     "id": "app.system.system_bot.bot_displayname",
@@ -9225,5 +9101,109 @@
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "List of admins is empty."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "User thread membership doesn't exist"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Unable to get user thread membership"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "This trial licence key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "An error occurred while checking if a trial can be started"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Data retention job failed."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Your Mattermost subscription is up for renewal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Log in to your Customer Account to renew"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Your licence is up for renewal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Renew now"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Failed to send licence up for renewal emails"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Failed to generate the licence renewal link"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating email verification tokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating email verification tokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating email verification tokens"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "Failed to get file information for content extraction."
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "Invalid input value 'to'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "Invalid input value 'from'"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Failed to check if user store is empty."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} replied to a thread"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Reply to Thread"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " commented on a thread you are following."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Failed to reload config."
   }
 ]

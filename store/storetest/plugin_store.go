@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestPluginStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -1285,7 +1285,6 @@ func testPluginList(t *testing.T, ss store.Store) {
 		pluginId := model.NewId()
 
 		var keys []string
-		var expiredKeys []string
 		now := model.GetMillis()
 		for i := 0; i < 150; i++ {
 			key := model.NewId()
@@ -1311,8 +1310,6 @@ func testPluginList(t *testing.T, ss store.Store) {
 
 			if expireAt == 0 || expireAt > now {
 				keys = append(keys, key)
-			} else {
-				expiredKeys = append(expiredKeys, key)
 			}
 		}
 		sort.Strings(keys)

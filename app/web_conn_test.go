@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 func TestWebConnShouldSendEvent(t *testing.T) {
@@ -25,7 +25,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		{
 			UserId: th.BasicUser.Id,
 			TeamId: th.BasicTeam.Id,
-			Roles:  model.TEAM_USER_ROLE_ID,
+			Roles:  model.TeamUserRoleId,
 		},
 	}})
 	require.Nil(t, err)
@@ -44,7 +44,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		{
 			UserId: th.BasicUser2.Id,
 			TeamId: th.BasicTeam.Id,
-			Roles:  model.TEAM_ADMIN_ROLE_ID,
+			Roles:  model.TeamAdminRoleId,
 		},
 	}})
 	require.Nil(t, err)
@@ -96,11 +96,11 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		assert.Equal(t, c.AdminExpected, adminUserWc.shouldSendEvent(event), c.Description)
 	}
 
-	event2 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, th.BasicTeam.Id, "", "", nil)
+	event2 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, th.BasicTeam.Id, "", "", nil)
 	assert.True(t, basicUserWc.shouldSendEvent(event2))
 	assert.True(t, basicUser2Wc.shouldSendEvent(event2))
 
-	event3 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "wrongId", "", "", nil)
+	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil)
 	assert.False(t, basicUserWc.shouldSendEvent(event3))
 }
 
@@ -254,10 +254,13 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 			i := seqNum
 			for err == nil {
 				_, buf, err = conn.ReadMessage()
-				ev := model.WebSocketEventFromJson(bytes.NewReader(buf))
-				require.LessOrEqual(t, int(i), limit)
-				assert.Equal(t, i, ev.Sequence)
-				i++
+				if err != nil && len(buf) > 0 {
+					ev, jsonErr := model.WebSocketEventFromJSON(bytes.NewReader(buf))
+					require.NoError(t, jsonErr)
+					require.LessOrEqual(t, int(i), limit)
+					assert.Equal(t, i, ev.GetSequence())
+					i++
+				}
 			}
 			if _, ok := err.(*websocket.CloseError); !ok {
 				require.NoError(t, err)

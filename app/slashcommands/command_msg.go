@@ -7,12 +7,12 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type msgProvider struct {
@@ -55,20 +55,20 @@ func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.Comman
 	userProfile, nErr := a.Srv().Store.User().GetByUsername(targetUsername)
 	if nErr != nil {
 		mlog.Error(nErr.Error())
-		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	if userProfile.Id == args.UserId {
-		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	canSee, err := a.UserCanSeeOtherUser(args.UserId, userProfile.Id)
 	if err != nil {
 		mlog.Error(err.Error())
-		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 	if !canSee {
-		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	// Find the channel based on this user
@@ -78,19 +78,19 @@ func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.Comman
 	if channel, channelErr := a.Srv().Store.Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(channelErr, &nfErr) {
-			if !a.HasPermissionTo(args.UserId, model.PERMISSION_CREATE_DIRECT_CHANNEL) {
-				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			if !a.HasPermissionTo(args.UserId, model.PermissionCreateDirectChannel) {
+				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 			}
 
 			var directChannel *model.Channel
 			if directChannel, err = a.GetOrCreateDirectChannel(c, args.UserId, userProfile.Id); err != nil {
 				mlog.Error(err.Error())
-				return &model.CommandResponse{Text: args.T(err.Id), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+				return &model.CommandResponse{Text: args.T(err.Id), ResponseType: model.CommandResponseTypeEphemeral}
 			}
 			targetChannelId = directChannel.Id
 		} else {
 			mlog.Error(channelErr.Error())
-			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	} else {
 		targetChannelId = channel.Id
@@ -102,14 +102,14 @@ func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.Comman
 		post.ChannelId = targetChannelId
 		post.UserId = args.UserId
 		if _, err = a.CreatePostMissingChannel(c, post, true); err != nil {
-			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	}
 
 	team, err := a.GetTeam(args.TeamId)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + channelName, Text: "", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + channelName, Text: "", ResponseType: model.CommandResponseTypeEphemeral}
 }

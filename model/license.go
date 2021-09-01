@@ -5,15 +5,35 @@ package model
 
 import (
 	"encoding/json"
-	"io"
+	"fmt"
 	"net/http"
+	"time"
 )
 
 const (
-	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
-	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
-	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
-	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
+	ExpiredLicenseError = "api.license.add_license.expired.app_error"
+	InvalidLicenseError = "api.license.add_license.invalid.app_error"
+	LicenseGracePeriod  = 1000 * 60 * 60 * 24 * 10 //10 days
+	LicenseRenewalLink  = "https://mattermost.com/renew/"
+
+	LicenseShortSkuE10          = "E10"
+	LicenseShortSkuE20          = "E20"
+	LicenseShortSkuProfessional = "professional"
+	LicenseShortSkuEnterprise   = "enterprise"
+)
+
+const (
+	LicenseUpForRenewalEmailSent = "LicenseUpForRenewalEmailSent"
+)
+
+var (
+	trialDuration      = 30*(time.Hour*24) + (time.Hour * 8)                                            // 720 hours (30 days) + 8 hours is trial license duration
+	adminTrialDuration = 30*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 720 hours (30 days) + 23 hours, 59 mins and 59 seconds
+
+	// a sanctioned trial's duration is either more than the upper bound,
+	// or less than the lower bound
+	sanctionedTrialDurationLowerBound = 31*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 744 hours (31 days) + 23 hours, 59 mins and 59 seconds
+	sanctionedTrialDurationUpperBound = 29*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 696 hours (29 days) + 23 hours, 59 mins and 59 seconds
 )
 
 type LicenseRecord struct {
@@ -50,11 +70,6 @@ type TrialLicenseRequest struct {
 	Users                 int    `json:"users"`
 	TermsAccepted         bool   `json:"terms_accepted"`
 	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
-}
-
-func (tlr *TrialLicenseRequest) ToJson() string {
-	b, _ := json.Marshal(tlr)
-	return string(b)
 }
 
 type Features struct {
@@ -251,16 +266,41 @@ func (l *License) IsExpired() bool {
 
 func (l *License) IsPastGracePeriod() bool {
 	timeDiff := GetMillis() - l.ExpiresAt
-	return timeDiff > LICENSE_GRACE_PERIOD
+	return timeDiff > LicenseGracePeriod
+}
+
+func (l *License) IsWithinExpirationPeriod() bool {
+	days := l.DaysToExpiration()
+	return days <= 60 && days >= 58
+}
+
+func (l *License) DaysToExpiration() int {
+	dif := l.ExpiresAt - GetMillis()
+	d, _ := time.ParseDuration(fmt.Sprint(dif) + "ms")
+	days := d.Hours() / 24
+	return int(days)
 }
 
 func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
-func (l *License) ToJson() string {
-	b, _ := json.Marshal(l)
-	return string(b)
+func (l *License) IsTrialLicense() bool {
+	return l.IsTrial || (l.ExpiresAt-l.StartsAt) == trialDuration.Milliseconds() || (l.ExpiresAt-l.StartsAt) == adminTrialDuration.Milliseconds()
+}
+
+func (l *License) IsSanctionedTrial() bool {
+	duration := l.ExpiresAt - l.StartsAt
+
+	return l.IsTrialLicense() &&
+		(duration >= sanctionedTrialDurationLowerBound.Milliseconds() || duration <= sanctionedTrialDurationUpperBound.Milliseconds())
+}
+
+func (l *License) HasEnterpriseMarketplacePlugins() bool {
+	return *l.Features.EnterprisePlugins ||
+		l.SkuShortName == LicenseShortSkuE20 ||
+		l.SkuShortName == LicenseShortSkuProfessional ||
+		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.
@@ -280,12 +320,6 @@ func NewTestLicense(features ...string) *License {
 	json.Unmarshal(featureJson, &ret.Features)
 
 	return ret
-}
-
-func LicenseFromJson(data io.Reader) *License {
-	var o *License
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (lr *LicenseRecord) IsValid() *AppError {

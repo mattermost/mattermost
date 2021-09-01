@@ -6,9 +6,9 @@ package app
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
 // WithMaster adds the context value that master DB should be selected for this request.
@@ -20,7 +20,7 @@ func pluginContext(c *request.Context) *plugin.Context {
 	context := &plugin.Context{
 		RequestId:      c.RequestId(),
 		SessionId:      c.Session().Id,
-		IpAddress:      c.IpAddress(),
+		IPAddress:      c.IPAddress(),
 		AcceptLanguage: c.AcceptLanguage(),
 		UserAgent:      c.UserAgent(),
 	}

@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/cache"
 )
 
 const OpenGraphMetadataCacheSize = 10000
@@ -18,7 +18,7 @@ var openGraphDataCache = cache.NewLRU(cache.LRUOptions{
 })
 
 func (api *API) InitOpenGraph() {
-	api.BaseRoutes.OpenGraph.Handle("", api.ApiSessionRequired(getOpenGraphMetadata)).Methods("POST")
+	api.BaseRoutes.OpenGraph.Handle("", api.APISessionRequired(getOpenGraphMetadata)).Methods("POST")
 
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
 	api.app.AddConfigListener(func(before, after *model.Config) {
@@ -37,7 +37,7 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 
 	url := ""
 	ok := false

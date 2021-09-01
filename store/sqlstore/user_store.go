@@ -16,9 +16,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -26,10 +26,10 @@ const (
 )
 
 var (
-	UserSearchTypeNames_NO_FULL_NAME = []string{"Username", "Nickname"}
-	UserSearchTypeNames              = []string{"Username", "FirstName", "LastName", "Nickname"}
-	UserSearchTypeAll_NO_FULL_NAME   = []string{"Username", "Nickname", "Email"}
-	UserSearchTypeAll                = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
+	UserSearchTypeNamesNoFullName = []string{"Username", "Nickname"}
+	UserSearchTypeNames           = []string{"Username", "FirstName", "LastName", "Nickname"}
+	UserSearchTypeAllNoFullName   = []string{"Username", "Nickname", "Email"}
+	UserSearchTypeAll             = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
 )
 
 type SqlUserStore struct {
@@ -69,13 +69,13 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("FirstName").SetMaxSize(64)
 		table.ColMap("LastName").SetMaxSize(64)
 		table.ColMap("Roles").SetMaxSize(256)
-		table.ColMap("Props").SetMaxSize(4000)
-		table.ColMap("NotifyProps").SetMaxSize(2000)
+		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
+		table.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
 		table.ColMap("RemoteId").SetMaxSize(26)
 		table.ColMap("Position").SetMaxSize(128)
-		table.ColMap("Timezone").SetMaxSize(256)
+		table.ColMap("Timezone").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return us
@@ -86,7 +86,7 @@ func (us SqlUserStore) createIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
-	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if us.DriverName() == model.DatabaseDriverPostgres {
 		us.CreateIndexIfNotExists("idx_users_email_lower_textpattern", "Users", "lower(Email) text_pattern_ops")
 		us.CreateIndexIfNotExists("idx_users_username_lower_textpattern", "Users", "lower(Username) text_pattern_ops")
 		us.CreateIndexIfNotExists("idx_users_nickname_lower_textpattern", "Users", "lower(Nickname) text_pattern_ops")
@@ -95,9 +95,9 @@ func (us SqlUserStore) createIndexesIfNotExists() {
 	}
 
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(UserSearchTypeAll, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(UserSearchTypeAll_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(UserSearchTypeAllNoFullName, ", "))
 	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(UserSearchTypeNames, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(UserSearchTypeNames_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(UserSearchTypeNamesNoFullName, ", "))
 }
 
 func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
@@ -224,6 +224,18 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	user.Sanitize(map[string]bool{})
 	oldUser.Sanitize(map[string]bool{})
 	return &model.UserUpdate{New: user, Old: oldUser}, nil
+}
+
+func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	if _, err := us.GetMaster().Exec(`UPDATE Users
+		SET NotifyProps = :NotifyProps
+		WHERE Id = :UserId`, map[string]interface{}{
+		"NotifyProps": model.MapToJSON(props),
+		"UserId":      userID}); err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
+	}
+
+	return nil
 }
 
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) error {
@@ -464,7 +476,7 @@ func (us SqlUserStore) GetEtagForAllProfiles() string {
 }
 
 func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
 	query := us.usersQuery.
 		OrderBy("u.Username ASC").
 		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
@@ -519,10 +531,10 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 		for _, role := range systemRoles {
 			queryRole := wildcardSearchTerm(role)
 			switch role {
-			case model.SYSTEM_USER_ROLE_ID:
+			case model.SystemUserRoleId:
 				// If querying for a `system_user` ensure that the user is only a system_user.
 				sqOr = append(sqOr, sq.Eq{"u.Roles": role})
-			case model.SYSTEM_GUEST_ROLE_ID, model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_MANAGER_ROLE_ID, model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID, model.SYSTEM_MANAGER_ROLE_ID:
+			case model.SystemGuestRoleId, model.SystemAdminRoleId, model.SystemUserManagerRoleId, model.SystemReadOnlyAdminRoleId, model.SystemManagerRoleId:
 				// If querying for any other roles search using a wildcard.
 				if isPostgreSQL {
 					sqOr = append(sqOr, sq.ILike{"u.Roles": queryRole})
@@ -537,19 +549,19 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 	if len(channelRoles) > 0 && channelRoles[0] != "" {
 		for _, channelRole := range channelRoles {
 			switch channelRole {
-			case model.CHANNEL_ADMIN_ROLE_ID:
+			case model.ChannelAdminRoleId:
 				if isPostgreSQL {
-					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SystemAdminRoleId)}})
 				} else {
-					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SystemAdminRoleId)}})
 				}
-			case model.CHANNEL_USER_ROLE_ID:
+			case model.ChannelUserRoleId:
 				if isPostgreSQL {
-					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SystemAdminRoleId)}})
 				} else {
-					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SystemAdminRoleId)}})
 				}
-			case model.CHANNEL_GUEST_ROLE_ID:
+			case model.ChannelGuestRoleId:
 				sqOr = append(sqOr, sq.Eq{"cm.SchemeGuest": true})
 			}
 		}
@@ -558,19 +570,19 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 	if len(teamRoles) > 0 && teamRoles[0] != "" {
 		for _, teamRole := range teamRoles {
 			switch teamRole {
-			case model.TEAM_ADMIN_ROLE_ID:
+			case model.TeamAdminRoleId:
 				if isPostgreSQL {
-					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SystemAdminRoleId)}})
 				} else {
-					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SystemAdminRoleId)}})
 				}
-			case model.TEAM_USER_ROLE_ID:
+			case model.TeamUserRoleId:
 				if isPostgreSQL {
-					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SystemAdminRoleId)}})
 				} else {
-					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SystemAdminRoleId)}})
 				}
-			case model.TEAM_GUEST_ROLE_ID:
+			case model.TeamGuestRoleId:
 				sqOr = append(sqOr, sq.Eq{"tm.SchemeGuest": true})
 			}
 		}
@@ -639,7 +651,7 @@ func (us SqlUserStore) GetEtagForProfiles(teamId string) string {
 }
 
 func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, error) {
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
 	query := us.usersQuery.
 		Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
 		Where("tm.TeamId = ?", options.InTeamId).
@@ -830,7 +842,7 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 }
 
 func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, error) {
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
 	query := us.usersQuery.
 		Where(`(
 			SELECT
@@ -1018,7 +1030,7 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
 		From("Users u").
 		Join("ChannelMembers cm ON u.Id = cm.UserId").
 		Join("Channels c ON cm.ChannelId = c.Id").
-		Where(sq.Eq{"c.Type": model.CHANNEL_GROUP, "cm.ChannelId": channelIds}).
+		Where(sq.Eq{"c.Type": model.ChannelTypeGroup, "cm.ChannelId": channelIds}).
 		Where(isMemberQuery).
 		Where(sq.NotEq{"u.Id": userId}).
 		OrderBy("u.Username ASC")
@@ -1220,7 +1232,7 @@ func (us SqlUserStore) PermanentDelete(userId string) error {
 }
 
 func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
 	query := us.getQueryBuilder().Select("COUNT(DISTINCT u.Id)").From("Users AS u")
 
 	if !options.IncludeDeleted {
@@ -1465,17 +1477,17 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 		if options.AllowFullNames {
 			searchType = UserSearchTypeAll
 		} else {
-			searchType = UserSearchTypeAll_NO_FULL_NAME
+			searchType = UserSearchTypeAllNoFullName
 		}
 	} else {
 		if options.AllowFullNames {
 			searchType = UserSearchTypeNames
 		} else {
-			searchType = UserSearchTypeNames_NO_FULL_NAME
+			searchType = UserSearchTypeNamesNoFullName
 		}
 	}
 
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
 	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
@@ -1899,9 +1911,9 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 
 	newRoles := []string{}
 	for _, role := range roles {
-		if role == model.SYSTEM_USER_ROLE_ID {
-			newRoles = append(newRoles, model.SYSTEM_GUEST_ROLE_ID)
-		} else if role != model.SYSTEM_ADMIN_ROLE_ID {
+		if role == model.SystemUserRoleId {
+			newRoles = append(newRoles, model.SystemGuestRoleId)
+		} else if role != model.SystemAdminRoleId {
 			newRoles = append(newRoles, role)
 		}
 	}
@@ -2001,4 +2013,30 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 	}
 
 	return userIds, nil
+}
+
+// IsEmpty returns whether or not the Users table is empty.
+func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
+	var hasRows bool
+
+	builder := us.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("Users")
+
+	if excludeBots {
+		builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+	}
+
+	builder = builder.Suffix(")")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrapf(err, "users_is_empty_to_sql")
+	}
+
+	if err = us.GetReplica().SelectOne(&hasRows, query, args...); err != nil {
+		return false, errors.Wrap(err, "failed to check if table is empty")
+	}
+	return !hasRows, nil
 }

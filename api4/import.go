@@ -7,16 +7,16 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitImport() {
-	api.BaseRoutes.Imports.Handle("", api.ApiSessionRequired(listImports)).Methods("GET")
+	api.BaseRoutes.Imports.Handle("", api.APISessionRequired(listImports)).Methods("GET")
 }
 
 func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 

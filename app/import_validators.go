@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func validateSchemeImportData(data *SchemeImportData) *model.AppError {
@@ -20,11 +20,11 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 	}
 
 	switch *data.Scope {
-	case model.SCHEME_SCOPE_TEAM:
+	case model.SchemeScopeTeam:
 		if data.DefaultTeamAdminRole == nil || data.DefaultTeamUserRole == nil || data.DefaultChannelAdminRole == nil || data.DefaultChannelUserRole == nil {
 			return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.wrong_roles_for_scope.error", nil, "", http.StatusBadRequest)
 		}
-	case model.SCHEME_SCOPE_CHANNEL:
+	case model.SchemeScopeChannel:
 		if data.DefaultTeamAdminRole != nil || data.DefaultTeamUserRole != nil || data.DefaultChannelAdminRole == nil || data.DefaultChannelUserRole == nil {
 			return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.wrong_roles_for_scope.error", nil, "", http.StatusBadRequest)
 		}
@@ -36,11 +36,11 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.DisplayName == nil || *data.DisplayName == "" || len(*data.DisplayName) > model.SCHEME_DISPLAY_NAME_MAX_LENGTH {
+	if data.DisplayName == nil || *data.DisplayName == "" || len(*data.DisplayName) > model.SchemeDisplayNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.display_name_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Description != nil && len(*data.Description) > model.SCHEME_DESCRIPTION_MAX_LENGTH {
+	if data.Description != nil && len(*data.Description) > model.SchemeDescriptionMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.description_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -89,11 +89,11 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.DisplayName == nil || *data.DisplayName == "" || len(*data.DisplayName) > model.ROLE_DISPLAY_NAME_MAX_LENGTH {
+	if data.DisplayName == nil || *data.DisplayName == "" || len(*data.DisplayName) > model.RoleDisplayNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.display_name_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Description != nil && len(*data.Description) > model.ROLE_DESCRIPTION_MAX_LENGTH {
+	if data.Description != nil && len(*data.Description) > model.RoleDescriptionMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.description_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -120,7 +120,7 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 
 	if data.Name == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_missing.error", nil, "", http.StatusBadRequest)
-	} else if len(*data.Name) > model.TEAM_NAME_MAX_LENGTH {
+	} else if len(*data.Name) > model.TeamNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_length.error", nil, "", http.StatusBadRequest)
 	} else if model.IsReservedTeamName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_reserved.error", nil, "", http.StatusBadRequest)
@@ -130,17 +130,17 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 
 	if data.DisplayName == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.display_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.TEAM_DISPLAY_NAME_MAX_RUNES {
+	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.TeamDisplayNameMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.display_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Type == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.type_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.Type != model.TEAM_OPEN && *data.Type != model.TEAM_INVITE {
+	} else if *data.Type != model.TeamOpen && *data.Type != model.TeamInvite {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.type_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Description != nil && len(*data.Description) > model.TEAM_DESCRIPTION_MAX_LENGTH {
+	if data.Description != nil && len(*data.Description) > model.TeamDescriptionMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.description_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -159,7 +159,7 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 
 	if data.Name == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_missing.error", nil, "", http.StatusBadRequest)
-	} else if len(*data.Name) > model.CHANNEL_NAME_MAX_LENGTH {
+	} else if len(*data.Name) > model.ChannelNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_length.error", nil, "", http.StatusBadRequest)
 	} else if !model.IsValidChannelIdentifier(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "", http.StatusBadRequest)
@@ -167,21 +167,21 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 
 	if data.DisplayName == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.display_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.CHANNEL_DISPLAY_NAME_MAX_RUNES {
+	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.ChannelDisplayNameMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.display_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Type == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.type_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.Type != model.CHANNEL_OPEN && *data.Type != model.CHANNEL_PRIVATE {
+	} else if *data.Type != model.ChannelTypeOpen && *data.Type != model.ChannelTypePrivate {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.type_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.CHANNEL_HEADER_MAX_RUNES {
+	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.ChannelHeaderMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.header_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Purpose != nil && utf8.RuneCountInString(*data.Purpose) > model.CHANNEL_PURPOSE_MAX_RUNES {
+	if data.Purpose != nil && utf8.RuneCountInString(*data.Purpose) > model.ChannelPurposeMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.purpose_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -207,7 +207,7 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Email == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.email_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.Email == "" || len(*data.Email) > model.USER_EMAIL_MAX_LENGTH {
+	} else if *data.Email == "" || len(*data.Email) > model.UserEmailMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.email_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -215,7 +215,7 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_password.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.AuthData != nil && len(*data.AuthData) > model.USER_AUTH_DATA_MAX_LENGTH {
+	if data.AuthData != nil && len(*data.AuthData) > model.UserAuthDataMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -234,23 +234,23 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.password_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Password != nil && len(*data.Password) > model.USER_PASSWORD_MAX_LENGTH {
+	if data.Password != nil && len(*data.Password) > model.UserPasswordMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.password_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Nickname != nil && utf8.RuneCountInString(*data.Nickname) > model.USER_NICKNAME_MAX_RUNES {
+	if data.Nickname != nil && utf8.RuneCountInString(*data.Nickname) > model.UserNicknameMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.nickname_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.FirstName != nil && utf8.RuneCountInString(*data.FirstName) > model.USER_FIRST_NAME_MAX_RUNES {
+	if data.FirstName != nil && utf8.RuneCountInString(*data.FirstName) > model.UserFirstNameMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.first_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.LastName != nil && utf8.RuneCountInString(*data.LastName) > model.USER_LAST_NAME_MAX_RUNES {
+	if data.LastName != nil && utf8.RuneCountInString(*data.LastName) > model.UserLastNameMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.last_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Position != nil && utf8.RuneCountInString(*data.Position) > model.USER_POSITION_MAX_RUNES {
+	if data.Position != nil && utf8.RuneCountInString(*data.Position) > model.UserPositionMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.position_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -259,48 +259,48 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 	}
 
 	if data.NotifyProps != nil {
-		if data.NotifyProps.Desktop != nil && !model.IsValidUserNotifyLevel(*data.NotifyProps.Desktop) {
+		if data.NotifyProps.Desktop != nil && !isValidUserNotifyLevel(*data.NotifyProps.Desktop) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.DesktopSound != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.DesktopSound) {
+		if data.NotifyProps.DesktopSound != nil && !isValidTrueOrFalseString(*data.NotifyProps.DesktopSound) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.Email != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.Email) {
+		if data.NotifyProps.Email != nil && !isValidTrueOrFalseString(*data.NotifyProps.Email) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_email_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.Mobile != nil && !model.IsValidUserNotifyLevel(*data.NotifyProps.Mobile) {
+		if data.NotifyProps.Mobile != nil && !isValidUserNotifyLevel(*data.NotifyProps.Mobile) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_mobile_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.MobilePushStatus != nil && !model.IsValidPushStatusNotifyLevel(*data.NotifyProps.MobilePushStatus) {
+		if data.NotifyProps.MobilePushStatus != nil && !isValidPushStatusNotifyLevel(*data.NotifyProps.MobilePushStatus) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.ChannelTrigger != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.ChannelTrigger) {
+		if data.NotifyProps.ChannelTrigger != nil && !isValidTrueOrFalseString(*data.NotifyProps.ChannelTrigger) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
-		if data.NotifyProps.CommentsTrigger != nil && !model.IsValidCommentsNotifyLevel(*data.NotifyProps.CommentsTrigger) {
+		if data.NotifyProps.CommentsTrigger != nil && !isValidCommentsNotifyLevel(*data.NotifyProps.CommentsTrigger) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if data.UseMarkdownPreview != nil && !model.IsValidTrueOrFalseString(*data.UseMarkdownPreview) {
+	if data.UseMarkdownPreview != nil && !isValidTrueOrFalseString(*data.UseMarkdownPreview) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.UseFormatting != nil && !model.IsValidTrueOrFalseString(*data.UseFormatting) {
+	if data.UseFormatting != nil && !isValidTrueOrFalseString(*data.UseFormatting) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_formatting.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.ShowUnreadSection != nil && !model.IsValidTrueOrFalseString(*data.ShowUnreadSection) {
+	if data.ShowUnreadSection != nil && !isValidTrueOrFalseString(*data.ShowUnreadSection) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_show_unread_section.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.EmailInterval != nil && !model.IsValidEmailBatchingInterval(*data.EmailInterval) {
+	if data.EmailInterval != nil && !isValidEmailBatchingInterval(*data.EmailInterval) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_email_interval.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -381,7 +381,7 @@ func validateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 
 	if data.EmojiName == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.EmojiName) > model.EMOJI_NAME_MAX_LENGTH {
+	} else if utf8.RuneCountInString(*data.EmojiName) > model.EmojiNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -457,7 +457,7 @@ func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 		}
 	}
 
-	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJson(*data.Props)) > model.POST_PROPS_MAX_RUNES {
+	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -470,14 +470,14 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 	}
 
 	if len(*data.Members) != 2 {
-		if len(*data.Members) < model.CHANNEL_GROUP_MIN_USERS {
+		if len(*data.Members) < model.ChannelGroupMinUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest)
-		} else if len(*data.Members) > model.CHANNEL_GROUP_MAX_USERS {
+		} else if len(*data.Members) > model.ChannelGroupMaxUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.CHANNEL_HEADER_MAX_RUNES {
+	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.ChannelHeaderMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.header_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -505,9 +505,9 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	}
 
 	if len(*data.ChannelMembers) != 2 {
-		if len(*data.ChannelMembers) < model.CHANNEL_GROUP_MIN_USERS {
+		if len(*data.ChannelMembers) < model.ChannelGroupMinUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_too_few.error", nil, "", http.StatusBadRequest)
-		} else if len(*data.ChannelMembers) > model.CHANNEL_GROUP_MAX_USERS {
+		} else if len(*data.ChannelMembers) > model.ChannelGroupMaxUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_too_many.error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -578,4 +578,32 @@ func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 	}
 
 	return nil
+}
+
+func isValidTrueOrFalseString(value string) bool {
+	return value == "true" || value == "false"
+}
+
+func isValidUserNotifyLevel(notifyLevel string) bool {
+	return notifyLevel == model.ChannelNotifyAll ||
+		notifyLevel == model.ChannelNotifyMention ||
+		notifyLevel == model.ChannelNotifyNone
+}
+
+func isValidPushStatusNotifyLevel(notifyLevel string) bool {
+	return notifyLevel == model.StatusOnline ||
+		notifyLevel == model.StatusAway ||
+		notifyLevel == model.StatusOffline
+}
+
+func isValidCommentsNotifyLevel(notifyLevel string) bool {
+	return notifyLevel == model.CommentsNotifyAny ||
+		notifyLevel == model.CommentsNotifyRoot ||
+		notifyLevel == model.CommentsNotifyNever
+}
+
+func isValidEmailBatchingInterval(emailInterval string) bool {
+	return emailInterval == model.PreferenceEmailIntervalImmediately ||
+		emailInterval == model.PreferenceEmailIntervalFifteen ||
+		emailInterval == model.PreferenceEmailIntervalHour
 }
