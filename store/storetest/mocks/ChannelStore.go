@@ -60,13 +60,13 @@ func (_m *ChannelStore) AnalyticsTypeCount(teamID string, channelType model.Chan
 	return r0, r1
 }
 
-// AutocompleteInTeam provides a mock function with given fields: teamID, term, includeDeleted
-func (_m *ChannelStore) AutocompleteInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error) {
-	ret := _m.Called(teamID, term, includeDeleted)
+// AutocompleteInTeam provides a mock function with given fields: teamID, userID, term, includeDeleted
+func (_m *ChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
+	ret := _m.Called(teamID, userID, term, includeDeleted)
 
 	var r0 model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, string, bool) model.ChannelList); ok {
-		r0 = rf(teamID, term, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) model.ChannelList); ok {
+		r0 = rf(teamID, userID, term, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelList)
@@ -74,8 +74,8 @@ func (_m *ChannelStore) AutocompleteInTeam(teamID string, term string, includeDe
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
-		r1 = rf(teamID, term, includeDeleted)
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
+		r1 = rf(teamID, userID, term, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -324,6 +324,29 @@ func (_m *ChannelStore) GetAll(teamID string) ([]*model.Channel, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllChannelMembersById provides a mock function with given fields: id
+func (_m *ChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+	ret := _m.Called(id)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -713,6 +736,29 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeID string, offset int, limit i
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(schemeID, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetChannelsByUser provides a mock function with given fields: userID, includeDeleted, lastDeleteAt
+func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
+	ret := _m.Called(userID, includeDeleted, lastDeleteAt)
+
+	var r0 model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, bool, int) model.ChannelList); ok {
+		r0 = rf(userID, includeDeleted, lastDeleteAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool, int) error); ok {
+		r1 = rf(userID, includeDeleted, lastDeleteAt)
 	} else {
 		r1 = ret.Error(1)
 	}
