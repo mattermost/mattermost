@@ -9197,5 +9197,13 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " commented on a thread you are following."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Failed to reload config."
   }
 ]

@@ -13,7 +13,7 @@ import (
 
 // check if there is any auto_response type post in channel by the user in a calender day
 func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (bool, error) {
-	y, m, d := time.Unix(int64(model.GetTimeForMillis(createdAt).Second()), 0).Date()
+	y, m, d := model.GetTimeForMillis(createdAt).Date()
 	since := model.GetMillisForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC))
 	return a.Srv().Store.Post().HasAutoResponsePostByUserSince(
 		model.GetPostsSinceOptions{ChannelId: channelId, Time: since},

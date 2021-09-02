@@ -145,11 +145,18 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
-	w.Write([]byte(model.UserListToJson(profiles)))
+
+	js, jsonErr := json.Marshal(profiles)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("localGetUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -177,7 +184,13 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UserListToJson(users)))
+	js, jsonErr := json.Marshal(users)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("localGetUsersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -335,5 +348,10 @@ func localGetUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(model.UploadSessionsToJson(uss)))
+	js, jsonErr := json.Marshal(uss)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("localGetUploadsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }

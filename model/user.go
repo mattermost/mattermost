@@ -7,8 +7,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"sort"
@@ -533,22 +531,6 @@ func (u *User) Patch(patch *UserPatch) {
 	}
 }
 
-// ToJson convert a User to a json string
-func (u *User) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func (u *UserPatch) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func (u *UserAuth) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
 // Generate a valid strong etag so the browser can cache the results
 func (u *User) Etag(showFullName, showEmail bool) string {
 	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail, u.BotLastIconUpdate)
@@ -623,9 +605,14 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.NotifyProps[key] = value
 }
 
-func (u *User) SetCustomStatus(cs *CustomStatus) {
+func (u *User) SetCustomStatus(cs *CustomStatus) error {
 	u.MakeNonNil()
-	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
+	statusJSON, jsonErr := json.Marshal(cs)
+	if jsonErr != nil {
+		return jsonErr
+	}
+	u.Props[UserPropsKeyCustomStatus] = string(statusJSON)
+	return nil
 }
 
 func (u *User) ClearCustomStatus() {
@@ -809,47 +796,6 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 	}
 }
 
-// UserFromJson will decode the input and return a User
-func UserFromJson(data io.Reader) *User {
-	var user *User
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserPatchFromJson(data io.Reader) *UserPatch {
-	var user *UserPatch
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserAuthFromJson(data io.Reader) *UserAuth {
-	var user *UserAuth
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserMapToJson(u map[string]*User) string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func UserMapFromJson(data io.Reader) map[string]*User {
-	var users map[string]*User
-	json.NewDecoder(data).Decode(&users)
-	return users
-}
-
-func UserListToJson(u []*User) string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func UserListFromJson(data io.Reader) []*User {
-	var users []*User
-	json.NewDecoder(data).Decode(&users)
-	return users
-}
-
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
 func HashPassword(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -962,11 +908,4 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
-}
-
-func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
-	uwg := &UsersWithGroupsAndCount{}
-	bodyBytes, _ := ioutil.ReadAll(data)
-	json.Unmarshal(bodyBytes, uwg)
-	return uwg
 }

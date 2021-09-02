@@ -350,8 +350,12 @@ test-compile: ## Compile tests.
 	done
 
 test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh
-	./scripts/psql-migration-test.sh
+	./scripts/mysql-migration-test.sh 6.0
+	./scripts/psql-migration-test.sh 6.0
+
+test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schemas.
+	./scripts/mysql-migration-v5-test.sh 5.0
+	./scripts/psql-migration-v5-test.sh 5.0
 
 gomodtidy:
 	@cp go.mod go.mod.orig

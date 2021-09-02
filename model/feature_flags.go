@@ -62,7 +62,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.GlobalHeader = false
 	f.InviteMembersButton = "none"
-	f.AddChannelButton = "none"
+	f.AddChannelButton = "by_team_name"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
