@@ -67,14 +67,14 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 		return false, ""
 	}
 
+	// remove null terminator
+	for len(decoded) > 0 && decoded[len(decoded)-1] == byte(0) {
+		decoded = decoded[:len(decoded)-1]
+	}
+
 	if len(decoded) <= 256 {
 		mlog.Error("Signed license not long enough")
 		return false, ""
-	}
-
-	// remove null terminator
-	for decoded[len(decoded)-1] == byte(0) {
-		decoded = decoded[:len(decoded)-1]
 	}
 
 	plaintext := decoded[:len(decoded)-256]
