@@ -29,9 +29,9 @@ const (
 	PreferenceNameUseMilitaryTime         = "use_military_time"
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
 
-	PreferenceCategoryTheme            = "theme"
-	PreferenceCategoryThemeDark        = "theme_dark"
-	PreferenceCategoryDisableThemeSync = "disable_theme_sync"
+	PreferenceCategoryTheme           = "theme"
+	PreferenceCategoryThemeDark       = "theme_dark"
+	PreferenceCategoryEnableThemeSync = "enable_theme_sync"
 	// the name for theme props is the team id
 
 	PreferenceCategoryAuthorizedOAuthApp = "oauth_app"

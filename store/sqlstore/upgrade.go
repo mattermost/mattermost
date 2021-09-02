@@ -1352,12 +1352,12 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 
 	disableThemeSync := `
 		INSERT INTO preferences (userid, category, name, value)
-		SELECT userid, '` + model.PreferenceCategoryDisableThemeSync + `', name, 'true'
+		SELECT userid, '` + model.PreferenceCategoryEnableThemeSync + `', name, 'false'
 		FROM preferences
 		WHERE category = 'theme'
 		`
 	if _, err := sqlStore.GetMaster().ExecNoTimeout(disableThemeSync); err != nil {
-		mlog.Error("Error inserting "+model.PreferenceCategoryDisableThemeSync+" preferences", mlog.Err(err))
+		mlog.Error("Error inserting "+model.PreferenceCategoryEnableThemeSync+" preferences", mlog.Err(err))
 	}
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
