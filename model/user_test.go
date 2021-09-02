@@ -43,14 +43,6 @@ func TestUserDeepCopy(t *testing.T) {
 	assert.Equal(t, id, copyUser.Id)
 }
 
-func TestUserJson(t *testing.T) {
-	user := User{Id: NewId(), Username: NewId()}
-	json := user.ToJson()
-	ruser := UserFromJson(strings.NewReader(json))
-
-	assert.Equal(t, user.Id, ruser.Id, "Ids do not match")
-}
-
 func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreSave()

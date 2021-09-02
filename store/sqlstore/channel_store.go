@@ -108,7 +108,7 @@ func channelMemberToSlice(member *model.ChannelMember) []interface{} {
 	resultSlice = append(resultSlice, member.MsgCountRoot)
 	resultSlice = append(resultSlice, member.MentionCount)
 	resultSlice = append(resultSlice, member.MentionCountRoot)
-	resultSlice = append(resultSlice, model.MapToJson(member.NotifyProps))
+	resultSlice = append(resultSlice, model.MapToJSON(member.NotifyProps))
 	resultSlice = append(resultSlice, member.LastUpdateAt)
 	resultSlice = append(resultSlice, member.SchemeUser)
 	resultSlice = append(resultSlice, member.SchemeAdmin)
@@ -1642,7 +1642,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		_, err = tx.Exec(`UPDATE channelmembers
 			SET notifyprops = notifyprops || $1::jsonb
-			WHERE userid=$2 AND channelid=$3`, model.MapToJson(props), userID, channelID)
+			WHERE userid=$2 AND channelid=$3`, model.MapToJSON(props), userID, channelID)
 	} else {
 		// It's difficult to construct a SQL query for MySQL
 		// to handle a case of empty map. So we just ignore it.
