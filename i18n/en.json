@@ -7027,6 +7027,10 @@
     "translation": "Elasticsearch search is not enabled on this server"
   },
   {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Failed to get all channel members"
+  },
+  {
     "id": "ent.elasticsearch.index_channel.error",
     "translation": "Failed to index the channel"
   },

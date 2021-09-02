@@ -995,6 +995,75 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
+func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
+	query := s.getQueryBuilder().
+		Select("Channels.*").
+		From("Channels, ChannelMembers").
+		Where(
+			sq.And{
+				sq.Expr("Id = ChannelId"),
+				sq.Eq{"UserId": userId},
+			},
+		).
+		OrderBy("DisplayName")
+
+	if includeDeleted {
+		if lastDeleteAt != 0 {
+			// We filter by non-archived, and archived >= a timestamp.
+			query = query.Where(sq.Or{
+				sq.Eq{"DeleteAt": 0},
+				sq.GtOrEq{"DeleteAt": lastDeleteAt},
+			})
+		}
+		// If lastDeleteAt is not set, we include everything. That means no filter is needed.
+	} else {
+		// Don't include archived channels.
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	var channels model.ChannelList
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getchannels_tosql")
+	}
+
+	_, err = s.GetReplica().Select(&channels, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get channels with UserId=%s", userId)
+	}
+
+	if len(channels) == 0 {
+		return nil, store.NewErrNotFound("Channel", "userId="+userId)
+	}
+
+	return channels, nil
+}
+
+func (s SqlChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+	perPage := 500
+	page := 0
+
+	var res []string
+	for {
+		channelMembers, err := s.GetMembers(id, page*perPage, perPage)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, member := range channelMembers {
+			res = append(res, member.UserId)
+		}
+
+		if len(channelMembers) < perPage {
+			break
+		}
+
+		page++
+	}
+
+	return res, nil
+}
+
 func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
 	query := s.getAllChannelsQuery(opts, false)
 
@@ -2462,48 +2531,35 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(teamId, userId string, 
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
-	deleteFilter := "AND Channels.DeleteAt = 0"
+func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error) {
+	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
 		deleteFilter = ""
 	}
 
-	queryFormat := `
-		SELECT
-			Channels.*
-		FROM
-			Channels
-		JOIN
-			PublicChannels c ON (c.Id = Channels.Id)
-		WHERE
-			Channels.TeamId = :TeamId
-			` + deleteFilter + `
-			%v
-		LIMIT ` + strconv.Itoa(model.ChannelSearchDefaultLimit)
-
-	var channels model.ChannelList
-
-	if likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose"); likeClause == "" {
-		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-		}
-	} else {
-		// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
-		// query you would get using an OR of the LIKE and full-text clauses.
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-		likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
-		fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
-		query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
-
-		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-		}
-	}
-
-	sort.Slice(channels, func(a, b int) bool {
-		return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
+	return s.performSearch(`
+	SELECT
+		*
+	FROM
+		Channels c
+	WHERE
+		c.TeamId = :TeamId
+		`+deleteFilter+`
+		SEARCH_CLAUSE
+		AND (
+			c.Type != 'P'
+			OR (
+				c.Type = 'P'
+				AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
+			)
+		)
+	ORDER BY c.DisplayName
+	LIMIT :Limit
+	`, term, map[string]interface{}{
+		"TeamId": teamID,
+		"UserId": userID,
+		"Limit":  model.ChannelSearchDefaultLimit,
 	})
-	return channels, nil
 }
 
 func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (model.ChannelList, error) {
@@ -3363,8 +3419,6 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, l
 		 FROM
 			 Channels
 		 WHERE
-			 Type = 'O'
-		 AND
 			 CreateAt >= :StartTime
 		 AND
 			 CreateAt < :EndTime

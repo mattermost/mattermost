@@ -608,11 +608,11 @@ func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 
 }
 
-func (s *RetryLayerChannelStore) AutocompleteInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error) {
+func (s *RetryLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.AutocompleteInTeam(teamID, term, includeDeleted)
+		result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -859,6 +859,26 @@ func (s *RetryLayerChannelStore) GetAll(teamID string) ([]*model.Channel, error)
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetAll(teamID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetAllChannelMembersById(id)
 		if err == nil {
 			return result, nil
 		}
@@ -1199,6 +1219,26 @@ func (s *RetryLayerChannelStore) GetChannelsByScheme(schemeID string, offset int
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetChannelsByScheme(schemeID, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt)
 		if err == nil {
 			return result, nil
 		}
