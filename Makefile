@@ -350,8 +350,12 @@ test-compile: ## Compile tests.
 	done
 
 test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh
-	./scripts/psql-migration-test.sh
+	./scripts/mysql-migration-test.sh 6.0
+	./scripts/psql-migration-test.sh 6.0
+
+test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schemas.
+	./scripts/mysql-migration-v5-test.sh 5.0
+	./scripts/psql-migration-v5-test.sh 5.0
 
 gomodtidy:
 	@cp go.mod go.mod.orig
@@ -614,10 +618,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	$(GO) mod tidy
 
 vet: ## Run mattermost go vet specific checks
-	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
-		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
-		exit 1; \
-	fi;
+	$(GO) install github.com/mattermost/mattermost-govet/v2@new
 	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \

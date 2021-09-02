@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 )
@@ -67,11 +66,6 @@ type ChannelMemberForExport struct {
 	ChannelMember
 	ChannelName string
 	Username    string
-}
-
-func (o *ChannelMember) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func (o *ChannelMember) IsValid() *AppError {

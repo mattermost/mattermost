@@ -9185,5 +9185,25 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " commentaar gegeven op een draadje dat je volgt."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow moet waar zijn om CollapsedThreads in te schakelen"
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} antwoordde op een draadje"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Reageer op draadje"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Fout bij het herladen van de configuratie."
   }
 ]
