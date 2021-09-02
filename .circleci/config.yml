@@ -179,9 +179,7 @@ jobs:
           at: ~/mattermost/
       - run:
           command: |
-            echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
-            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
             export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
