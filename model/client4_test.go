@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -48,7 +49,10 @@ func TestClient4CreatePost(t *testing.T) {
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		attachments := PostFromJson(r.Body).Attachments()
+		var post Post
+		err := json.NewDecoder(r.Body).Decode(&post)
+		assert.NoError(t, err)
+		attachments := post.Attachments()
 		assert.Equal(t, []*SlackAttachment{
 			{
 				Actions: []*PostAction{
@@ -64,6 +68,8 @@ func TestClient4CreatePost(t *testing.T) {
 				},
 			},
 		}, attachments)
+		err = json.NewEncoder(w).Encode(&post)
+		assert.NoError(t, err)
 	}))
 
 	client := NewAPIv4Client(server.URL)
@@ -85,6 +91,10 @@ func TestClient4SetToken(t *testing.T) {
 		}
 
 		assert.Equal(t, expected, strings.TrimSpace(token[1]))
+
+		var user User
+		err := json.NewEncoder(w).Encode(&user)
+		assert.NoError(t, err)
 	}))
 
 	client := NewAPIv4Client(server.URL)

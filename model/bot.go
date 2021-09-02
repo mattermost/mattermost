@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -114,12 +113,6 @@ func (b *Bot) Etag() string {
 	return Etag(b.UserId, b.UpdateAt)
 }
 
-// ToJson serializes the bot to json.
-func (b *Bot) ToJson() []byte {
-	data, _ := json.Marshal(b)
-	return data
-}
-
 // Patch modifies an existing bot with optional fields from the given patch.
 // TODO 6.0: consider returning a boolean to indicate whether or not the patch
 // applied any changes.
@@ -154,16 +147,6 @@ func (b *Bot) WouldPatch(patch *BotPatch) bool {
 	return false
 }
 
-// ToJson serializes the bot patch to json.
-func (b *BotPatch) ToJson() []byte {
-	data, err := json.Marshal(b)
-	if err != nil {
-		return nil
-	}
-
-	return data
-}
-
 // UserFromBot returns a user model describing the bot fields stored in the User store.
 func UserFromBot(b *Bot) *User {
 	return &User{
@@ -183,12 +166,6 @@ func BotFromUser(u *User) *Bot {
 		Username:    u.Username,
 		DisplayName: u.GetDisplayName(ShowUsername),
 	}
-}
-
-// ToJson serializes a list of bots to json.
-func (l *BotList) ToJson() []byte {
-	b, _ := json.Marshal(l)
-	return b
 }
 
 // Etag computes the etag for a list of bots.

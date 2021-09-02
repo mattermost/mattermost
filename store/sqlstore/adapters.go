@@ -66,7 +66,7 @@ func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 }
 
 type JSONSerializable interface {
-	ToJson() string
+	ToJSON() string
 }
 
 type mattermConverter struct{}
@@ -74,18 +74,20 @@ type mattermConverter struct{}
 func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 	switch t := val.(type) {
 	case model.StringMap:
-		return model.MapToJson(t), nil
+		return model.MapToJSON(t), nil
 	case map[string]string:
-		return model.MapToJson(model.StringMap(t)), nil
+		return model.MapToJSON(model.StringMap(t)), nil
 	case model.StringArray:
-		return model.ArrayToJson(t), nil
+		return model.ArrayToJSON(t), nil
 	case model.StringInterface:
-		return model.StringInterfaceToJson(t), nil
+		return model.StringInterfaceToJSON(t), nil
 	case map[string]interface{}:
-		return model.StringInterfaceToJson(model.StringInterface(t)), nil
+		return model.StringInterfaceToJSON(model.StringInterface(t)), nil
 	case JSONSerializable:
-		return t.ToJson(), nil
+		return t.ToJSON(), nil
 	case *opengraph.OpenGraph:
+		return json.Marshal(t)
+	case *model.PostImage:
 		return json.Marshal(t)
 	}
 

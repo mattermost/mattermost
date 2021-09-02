@@ -29,7 +29,13 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	w.Write(categories.ToJson())
+	categoriesJSON, jsonErr := json.Marshal(categories)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getCategoriesForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(categoriesJSON)
 }
 
 func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -64,8 +70,15 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	categoryJSON, jsonErr := json.Marshal(category)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("createCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	auditRec.Success()
-	w.Write(category.ToJson())
+
+	w.Write(categoryJSON)
 }
 
 func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -85,7 +98,7 @@ func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Write([]byte(model.ArrayToJson(order)))
+	w.Write([]byte(model.ArrayToJSON(order)))
 }
 
 func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -102,7 +115,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryOrder := model.ArrayFromJson(r.Body)
+	categoryOrder := model.ArrayFromJSON(r.Body)
 
 	for _, categoryId := range categoryOrder {
 		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
@@ -118,7 +131,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	auditRec.Success()
-	w.Write([]byte(model.ArrayToJson(categoryOrder)))
+	w.Write([]byte(model.ArrayToJSON(categoryOrder)))
 }
 
 func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -138,7 +151,13 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Write(categories.ToJson())
+	categoriesJSON, jsonErr := json.Marshal(categories)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(categoriesJSON)
 }
 
 func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -180,8 +199,14 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	categoriesJSON, jsonErr := json.Marshal(categories)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("updateCategoriesForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	auditRec.Success()
-	w.Write(model.SidebarCategoriesWithChannelsToJson(categories))
+	w.Write(categoriesJSON)
 }
 
 func validateSidebarCategory(c *Context, teamId, userId string, category *model.SidebarCategoryWithChannels) *model.AppError {
@@ -264,8 +289,14 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	categoryJSON, jsonErr := json.Marshal(categories[0])
+	if jsonErr != nil {
+		c.Err = model.NewAppError("updateCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	auditRec.Success()
-	w.Write(categories[0].ToJson())
+	w.Write(categoryJSON)
 }
 
 func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
