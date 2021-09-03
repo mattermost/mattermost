@@ -130,7 +130,7 @@ ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 else
 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH_OSX)/bin # from cross-compiled bin dir
 endif
-	tar xf $(DIST_PATH)/darwin_amd64.tar -C $(DIST_PATH_OSX)/bin
+	tar xf $(DIST_PATH)/bin/darwin_amd64.tar -C $(DIST_PATH_OSX)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="osx-amd64"; \
@@ -199,7 +199,7 @@ else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH_LIN)/bin # from cross-compiled bin dir
 endif
 	#Download MMCTL for Linux
-	tar xf $(DIST_PATH)/linux_amd64.tar -C $(DIST_PATH_LIN)/bin
+	tar xf $(DIST_PATH)/bin/linux_amd64.tar -C $(DIST_PATH_LIN)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="linux-amd64"; \
