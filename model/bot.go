@@ -88,7 +88,6 @@ func (b *Bot) IsValidCreate() *AppError {
 
 // IsValid validates the bot and returns an error if it isn't configured correctly.
 func (b *Bot) IsValid() *AppError {
-
 	if !IsValidId(b.UserId) {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
