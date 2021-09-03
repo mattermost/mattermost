@@ -1338,10 +1338,11 @@ func TestConfigToJSONFiltered(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
 
-	jsonCfgFiltered := c.ToJsonFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	jsonCfgFiltered, err := c.ToJSONFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	require.NoError(t, err)
 
 	unmarshaledCfg := make(map[string]json.RawMessage)
-	err := json.Unmarshal([]byte(jsonCfgFiltered), &unmarshaledCfg)
+	err = json.Unmarshal(jsonCfgFiltered, &unmarshaledCfg)
 	require.NoError(t, err)
 
 	_, ok := unmarshaledCfg["SqlSettings"]

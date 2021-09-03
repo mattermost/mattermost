@@ -38,6 +38,9 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
+	// Enable the Global Header
+	GlobalHeader bool
+
 	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
 	InviteMembersButton string
 
@@ -57,6 +60,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginFocalboard = ""
 	f.TimedDND = false
 	f.PermalinkPreviews = true
+	f.GlobalHeader = false
 	f.InviteMembersButton = "none"
 	f.AddChannelButton = "by_team_name"
 }

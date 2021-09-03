@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -88,7 +89,11 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		defer res.Body.Close()
 
-		bulletins := model.SecurityBulletinsFromJson(res.Body)
+		var bulletins model.SecurityBulletins
+		if jsonErr := json.NewDecoder(res.Body).Decode(&bulletins); jsonErr != nil {
+			mlog.Error("Failed to decode JSON", mlog.Err(jsonErr))
+			return
+		}
 
 		for _, bulletin := range bulletins {
 			if bulletin.AppliesToVersion == model.CurrentVersion {

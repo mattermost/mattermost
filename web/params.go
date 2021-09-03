@@ -366,12 +366,6 @@ func getPerPageFromQuery(query url.Values) int {
 	val, err := strconv.Atoi(query.Get("per_page"))
 	if err != nil {
 		val, err = strconv.Atoi(query.Get("pageSize"))
-		// if err != nil || val < 0 {
-		// 	return PerPageDefault
-		// } else if val > PerPageMaximum {
-		// 	return PerPageMaximum
-		// }
-		// return val
 	}
 	if err != nil || val < 0 {
 		return PerPageDefault

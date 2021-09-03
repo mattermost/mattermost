@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"sort"
 )
 
@@ -74,14 +73,11 @@ func (o *PostList) StripActionIntegrations() {
 	}
 }
 
-func (o *PostList) ToJson() string {
+func (o *PostList) ToJSON() (string, error) {
 	copy := *o
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(&copy)
-	if err != nil {
-		return ""
-	}
-	return string(b)
+	return string(b), err
 }
 
 func (o *PostList) MakeNonNil() {
@@ -178,10 +174,4 @@ func (o *PostList) IsChannelId(channelId string) bool {
 	}
 
 	return true
-}
-
-func PostListFromJson(data io.Reader) *PostList {
-	var o *PostList
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

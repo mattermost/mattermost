@@ -6,6 +6,7 @@ package api4
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -77,10 +78,14 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	defer closeBody(resp)
 
 	if resp.StatusCode >= 300 {
-		return nil, model.BuildResponse(resp), model.AppErrorFromJson(resp.Body)
+		return nil, model.BuildResponse(resp), model.AppErrorFromJSON(resp.Body)
 	}
 
-	return model.FileUploadResponseFromJson(resp.Body), model.BuildResponse(resp), nil
+	var res model.FileUploadResponse
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&res); jsonErr != nil {
+		return nil, nil, model.NewAppError("doUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &res, model.BuildResponse(resp), nil
 }
 
 func testUploadFilesPost(

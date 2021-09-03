@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"regexp"
 )
 
@@ -72,27 +71,6 @@ type SidebarChannel struct {
 
 type SidebarChannels []*SidebarChannel
 type SidebarCategoriesWithChannels []*SidebarCategoryWithChannels
-
-func (o SidebarCategoryWithChannels) ToJson() []byte {
-	b, _ := json.Marshal(o)
-	return b
-}
-
-func SidebarCategoriesWithChannelsToJson(o []*SidebarCategoryWithChannels) []byte {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return []byte("[]")
-	}
-	return b
-}
-
-func (o OrderedSidebarCategories) ToJson() []byte {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return []byte("[]")
-	}
-	return b
-}
 
 var categoryIdPattern = regexp.MustCompile("(favorites|channels|direct_messages)_[a-z0-9]{26}_[a-z0-9]{26}")
 

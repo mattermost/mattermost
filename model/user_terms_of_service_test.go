@@ -4,10 +4,8 @@
 package model
 
 import (
-	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,17 +21,4 @@ func TestUserTermsOfServiceIsValid(t *testing.T) {
 
 	s.CreateAt = GetMillis()
 	require.Nil(t, s.IsValid(), "should be valid")
-}
-
-func TestUserTermsOfServiceJson(t *testing.T) {
-	o := UserTermsOfService{
-		UserId:           NewId(),
-		TermsOfServiceId: NewId(),
-		CreateAt:         GetMillis(),
-	}
-	j := o.ToJson()
-	ro := UserTermsOfServiceFromJson(strings.NewReader(j))
-
-	assert.NotNil(t, ro)
-	assert.Equal(t, o, *ro)
 }
