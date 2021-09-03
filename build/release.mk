@@ -130,7 +130,7 @@ ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 else
 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH_OSX)/bin # from cross-compiled bin dir
 endif
-	tar xf $(DIST_PATH)/bin/darwin_amd64.tar -C $(DIST_PATH_OSX)/bin
+	tar xf ../mmctl/build/darwin_amd64.tar -C $(DIST_PATH_OSX)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="osx-amd64"; \
@@ -164,7 +164,7 @@ ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH_WIN)/bin # from cross-compiled bin dir
 endif
-	unzip -o $(DIST_PATH)/bin/windows_amd64.zip -d $(DIST_PATH_WIN)/bin
+	unzip -o ../mmctl/build/windows_amd64.zip -d $(DIST_PATH_WIN)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="windows-amd64"; \
@@ -198,8 +198,7 @@ ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH_LIN)/bin # from cross-compiled bin dir
 endif
-	#Download MMCTL for Linux
-	tar xf $(DIST_PATH)/bin/linux_amd64.tar -C $(DIST_PATH_LIN)/bin
+	tar xf ../mmctl/build/linux_amd64.tar -C $(DIST_PATH_LIN)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="linux-amd64"; \
