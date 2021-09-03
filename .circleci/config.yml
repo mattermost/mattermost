@@ -29,10 +29,14 @@ jobs:
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
-          trap 'export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD^); echo "previous $WEBAPP_GIT_COMMIT"; curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz; mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1;' ERR
-          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
-          mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
-          trap - ERR
+          FILE_DIST=dist.tar.gz
+          until curl --max-time 5 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz; do echo waiting for webapp build; sleep 110; done;
+          if [ ! -f $FILE_DIST ]; then
+            npm ci && make build
+          else
+            mkdir dist && tar -xvf $FILE_DIST -C dist --strip-components=1
+          fi
+          cd -
       - persist_to_workspace:
           root: ~/mattermost
           paths:
