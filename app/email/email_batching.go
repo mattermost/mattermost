@@ -230,7 +230,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 	if *es.config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled {
 		threadsEnabled = *es.config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
 		// check if a participant has overridden collapsed threads settings
-		if preference, err := es.store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); err == nil {
+		if preference, errCrt := es.store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); errCrt == nil {
 			threadsEnabled = preference.Value == "on"
 		}
 	}
