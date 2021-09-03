@@ -33,6 +33,13 @@ jobs:
           curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
           mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
           trap - ERR
+          cd -
+
+          cd mattermost-server/bin
+          wget https://releases.mattermost.com/mmctl/$CIRCLE_BRANCH/darwin_amd64.tar || wget https://releases.mattermost.com/mmctl/master/darwin_amd64.tar
+          wget https://releases.mattermost.com/mmctl/$CIRCLE_BRANCH/linux_amd64.tar || wget https://releases.mattermost.com/mmctl/master/linux_amd64.tar
+          wget https://releases.mattermost.com/mmctl/$CIRCLE_BRANCH/windows_amd64.zip || wget https://releases.mattermost.com/mmctl/master/windows_amd64.zip
+          cd -
       - persist_to_workspace:
           root: ~/mattermost
           paths:
