@@ -118,6 +118,9 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	var app model.OAuthApp
 	if err := as.GetReplicaX().Get(&app, `SELECT * FROM OAuthApps WHERE Id=?`, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("OAuthApp", id)
+		}
 		return nil, errors.Wrapf(err, "failed to get OAuthApp with id=%s", id)
 	}
 	if app.Id == "" {
@@ -276,6 +279,9 @@ func (as SqlOAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 	var authData model.AuthData
 	err := as.GetReplicaX().Get(&authData, `SELECT * FROM OAuthAuthData WHERE Code=?`, code)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code))
+		}
 		return nil, errors.Wrapf(err, "failed to get AuthData with code=%s", code)
 	}
 	if authData.Code == "" {
