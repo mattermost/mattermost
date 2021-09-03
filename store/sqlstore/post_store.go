@@ -2445,3 +2445,16 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 	}
 	return nil
 }
+
+// GetUniquePostTypesSince returns the unique post types in a channel after the given timestamp
+func (s *SqlPostStore) GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error) {
+	query, args, err := s.getQueryBuilder().Select("DISTINCT Type").From("Posts").Where(sq.GtOrEq{"CreateAt": timestamp}).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	var types []string
+	if _, err := s.GetReplica().Select(&types, query, args...); err != nil {
+		return nil, err
+	}
+	return types, nil
+}

@@ -536,6 +536,29 @@ func (_m *ChannelStore) GetByNames(team_id string, names []string, allowFromCach
 	return r0, r1
 }
 
+// GetCRTUnfixedChannelMembershipsAfter provides a mock function with given fields: channelID, userID, count
+func (_m *ChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error) {
+	ret := _m.Called(channelID, userID, count)
+
+	var r0 []model.ChannelMember
+	if rf, ok := ret.Get(0).(func(string, string, int) []model.ChannelMember); ok {
+		r0 = rf(channelID, userID, count)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.ChannelMember)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int) error); ok {
+		r1 = rf(channelID, userID, count)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelCounts provides a mock function with given fields: teamID, userID
 func (_m *ChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	ret := _m.Called(teamID, userID)
@@ -1373,6 +1396,27 @@ func (_m *ChannelStore) InvalidatePinnedPostCount(channelID string) {
 	_m.Called(channelID)
 }
 
+// IsChannelMemberUnread provides a mock function with given fields: cm, withCRT
+func (_m *ChannelStore) IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error) {
+	ret := _m.Called(cm, withCRT)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(model.ChannelMember, bool) bool); ok {
+		r0 = rf(cm, withCRT)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.ChannelMember, bool) error); ok {
+		r1 = rf(cm, withCRT)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // IsUserInChannelUseCache provides a mock function with given fields: userID, channelID
 func (_m *ChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
 	ret := _m.Called(userID, channelID)
@@ -1382,6 +1426,20 @@ func (_m *ChannelStore) IsUserInChannelUseCache(userID string, channelID string)
 		r0 = rf(userID, channelID)
 	} else {
 		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// MarkChannelMembersAsCRTFixed provides a mock function with given fields: cms
+func (_m *ChannelStore) MarkChannelMembersAsCRTFixed(cms []model.ChannelMember) error {
+	ret := _m.Called(cms)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]model.ChannelMember) error); ok {
+		r0 = rf(cms)
+	} else {
+		r0 = ret.Error(0)
 	}
 
 	return r0

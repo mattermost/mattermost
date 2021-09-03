@@ -276,7 +276,7 @@ type ChannelStore interface {
 	IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error)
 
 	// MarkChannelMemberAsCRTFixed marks a channel membership as fixed for CRT issues
-	MarkChannelMemberAsCRTFixed(cm model.ChannelMember) error
+	MarkChannelMembersAsCRTFixed(cms []model.ChannelMember) error
 }
 
 type ChannelMemberHistoryStore interface {
@@ -360,6 +360,9 @@ type PostStore interface {
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
+
+	// GetUniquePostTypesSince returns the unique post types in a channel after the given timestamp
+	GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error)
 }
 
 type UserStore interface {

@@ -3497,18 +3497,19 @@ func (s SqlChannelStore) IsChannelMemberUnread(cm model.ChannelMember, withCRT b
 	return count > 0, errors.Wrapf(err, "failed to get message count for channelId=%q and userId=%q", cm.ChannelId, cm.UserId)
 }
 
-func (s SqlChannelStore) MarkChannelMemberAsCRTFixed(cm model.ChannelMember) error {
-	updateQuery := `
-		UPDATE
-			ChannelMembers
-		SET
-			CRTFixDone = True
-		WHERE
-			ChannelId = :ChannelId
-			AND
-			UserId = :UserId
-	`
+func (s SqlChannelStore) MarkChannelMembersAsCRTFixed(cms []model.ChannelMember) error {
 
-	_, err := s.GetMaster().Exec(updateQuery, map[string]interface{}{"ChannelId": cm.ChannelId, "UserId": cm.UserId})
-	return errors.Wrapf(err, "failed to mark ChannelMember as CRT fixed channelId=%q and userId=%q", cm.ChannelId, cm.UserId)
+	where := sq.Or{}
+	for _, cm := range cms {
+		where = append(where, sq.Eq{"ChannelId": cm.ChannelId, "UserId": cm.UserId})
+	}
+	query := s.getQueryBuilder().Update("ChannelMembers").Set("CRTFixDone", true).Where(where)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.GetMaster().Exec(queryString, args...)
+	return errors.Wrap(err, "failed to mark ChannelMembers as CRT fixed")
 }

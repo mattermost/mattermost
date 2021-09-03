@@ -9,5 +9,5 @@ import (
 
 type FixCRTChannelUnreadsJobInterface interface {
 	MakeWorker() model.Worker
-	// MakeScheduler() model.Scheduler // TODO Schedule job creation if job not already running and if migration not yet done
+	MakeScheduler() model.Scheduler
 }

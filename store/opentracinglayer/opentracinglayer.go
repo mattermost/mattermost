@@ -979,6 +979,24 @@ func (s *OpenTracingLayerChannelStore) GetByNames(team_id string, names []string
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetCRTUnfixedChannelMembershipsAfter")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetCRTUnfixedChannelMembershipsAfter(channelID, userID, count)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelCounts")
@@ -1713,6 +1731,24 @@ func (s *OpenTracingLayerChannelStore) InvalidatePinnedPostCount(channelID strin
 
 }
 
+func (s *OpenTracingLayerChannelStore) IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.IsChannelMemberUnread")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.IsChannelMemberUnread(cm, withCRT)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.IsUserInChannelUseCache")
@@ -1724,6 +1760,24 @@ func (s *OpenTracingLayerChannelStore) IsUserInChannelUseCache(userID string, ch
 	defer span.Finish()
 	result := s.ChannelStore.IsUserInChannelUseCache(userID, channelID)
 	return result
+}
+
+func (s *OpenTracingLayerChannelStore) MarkChannelMembersAsCRTFixed(cms []model.ChannelMember) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MarkChannelMembersAsCRTFixed")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ChannelStore.MarkChannelMembersAsCRTFixed(cms)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
@@ -5512,6 +5566,24 @@ func (s *OpenTracingLayerPostStore) GetSingle(id string, inclDeleted bool) (*mod
 
 	defer span.Finish()
 	result, err := s.PostStore.GetSingle(id, inclDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPostStore) GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetUniquePostTypesSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.GetUniquePostTypesSince(channelId, timestamp)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

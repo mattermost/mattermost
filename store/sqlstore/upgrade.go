@@ -1311,6 +1311,7 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "CRTFixesDone", "tinyint(1)", "boolean", "0")
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
 }
