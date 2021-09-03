@@ -7,17 +7,17 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitSystemLocal() {
-	api.BaseRoutes.System.Handle("/ping", api.ApiLocal(getSystemPing)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiLocal(getLogs)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiLocal(setServerBusy)).Methods("POST")
-	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiLocal(getServerBusyExpires)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiLocal(clearServerBusy)).Methods("DELETE")
-	api.BaseRoutes.ApiRoot.Handle("/integrity", api.ApiLocal(localCheckIntegrity)).Methods("POST")
+	api.BaseRoutes.System.Handle("/ping", api.APILocal(getSystemPing)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APILocal(getLogs)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(setServerBusy)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(getServerBusyExpires)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(clearServerBusy)).Methods("DELETE")
+	api.BaseRoutes.APIRoot.Handle("/integrity", api.APILocal(localCheckIntegrity)).Methods("POST")
 }
 
 func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {

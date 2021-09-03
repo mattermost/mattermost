@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -357,7 +357,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
-				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+				SortBy:         model.FileinfoSortByCreated,
 			},
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
@@ -367,7 +367,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				UserIds:        []string{userId1},
-				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+				SortBy:         model.FileinfoSortByCreated,
 				SortDescending: true,
 			},
 			ExpectedFileIds: []string{file1_3.Id, file1_2.Id, file1_1.Id},
@@ -378,7 +378,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			PerPage: 3,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
-				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+				SortBy:         model.FileinfoSortByCreated,
 				SortDescending: true,
 			},
 			ExpectedFileIds: []string{file1_2.Id, file1_1.Id},
@@ -610,14 +610,14 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	c1, _ = ss.Channel().Save(c1, -1)
 
 	c2 := &model.Channel{}
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
-	c2.Type = model.CHANNEL_OPEN
+	c2.Type = model.ChannelTypeOpen
 	c2, _ = ss.Channel().Save(c2, -1)
 
 	o1 := &model.Post{}
@@ -658,7 +658,6 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	o3 := &model.Post{}
 	o3.ChannelId = c1.Id
 	o3.UserId = model.NewId()
-	o3.ParentId = o1.Id
 	o3.RootId = o1.Id
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3, err = ss.Post().Save(o3)

@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 // WebSocketRequest represents a request made to the server through a websocket.
@@ -26,6 +26,19 @@ type WebSocketRequest struct {
 func (o *WebSocketRequest) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func (o *WebSocketRequest) Clone() (*WebSocketRequest, error) {
+	buf, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
+	var ret WebSocketRequest
+	err = json.Unmarshal(buf, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }
 
 func WebSocketRequestFromJson(data io.Reader) *WebSocketRequest {

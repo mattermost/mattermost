@@ -9,7 +9,7 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods
@@ -185,6 +185,16 @@ type API interface {
 	// @tag Preference
 	// Minimum server version: 5.26
 	DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError
+
+	// CreateUserAccessToken creates a new access token.
+	// @tag User
+	// Minimum server version: 5.38
+	CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
+
+	// RevokeUserAccessToken revokes an existing access token.
+	// @tag User
+	// Minimum server version: 5.38
+	RevokeUserAccessToken(tokenID string) *model.AppError
 
 	// GetTeamIcon gets the team icon.
 	//
@@ -453,19 +463,19 @@ type API interface {
 	// CreateChannelSidebarCategory creates a new sidebar category for a set of channels.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
 
 	// GetChannelSidebarCategories returns sidebar categories.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 
 	// UpdateChannelSidebarCategories updates the channel sidebar categories.
 	//
 	// @tag ChannelSidebar
-	// Minimum server version: 5.37
+	// Minimum server version: 5.38
 	UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 
 	// SearchUsers returns a list of users based on some search criteria.
@@ -515,14 +525,14 @@ type API interface {
 	// @tag Channel
 	// @tag User
 	// Minimum server version: 5.6
-	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+	GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError)
 
 	// GetChannelMembersByIds gets a channel membership for a particular User
 	//
 	// @tag Channel
 	// @tag User
 	// Minimum server version: 5.6
-	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+	GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError)
 
 	// GetChannelMembersForUser returns all channel memberships on a team for a user.
 	//
@@ -985,25 +995,6 @@ type API interface {
 	// Minimum server version: 5.10
 	PermanentDeleteBot(botUserId string) *model.AppError
 
-	// GetBotIconImage gets LHS bot icon image.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	GetBotIconImage(botUserId string) ([]byte, *model.AppError)
-
-	// SetBotIconImage sets LHS bot icon image.
-	// Icon image must be SVG format, all other formats are rejected.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	SetBotIconImage(botUserId string, data []byte) *model.AppError
-
-	// DeleteBotIconImage deletes LHS bot icon image.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	DeleteBotIconImage(botUserId string) *model.AppError
-
 	// PluginHTTP allows inter-plugin requests to plugin APIs.
 	//
 	// Minimum server version: 5.18
@@ -1074,6 +1065,30 @@ type API interface {
 	// @tag SlashCommand
 	// Minimum server version: 5.28
 	DeleteCommand(commandID string) error
+
+	// CreateOAuthApp creates a new OAuth App.
+	//
+	// @tag OAuth
+	// Minimum server version: 5.38
+	CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+
+	// GetOAuthApp gets an existing OAuth App by id.
+	//
+	// @tag OAuth
+	// Minimum server version: 5.38
+	GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError)
+
+	// UpdateOAuthApp updates an existing OAuth App.
+	//
+	// @tag OAuth
+	// Minimum server version: 5.38
+	UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+
+	// DeleteOAuthApp deletes an existing OAuth App by id.
+	//
+	// @tag OAuth
+	// Minimum server version: 5.38
+	DeleteOAuthApp(appID string) *model.AppError
 
 	// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
 	// the calling plugin that are present in the cluster.

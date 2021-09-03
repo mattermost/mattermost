@@ -12,13 +12,8 @@ type ClusterInfo struct {
 	Id         string `json:"id"`
 	Version    string `json:"version"`
 	ConfigHash string `json:"config_hash"`
-	IpAddress  string `json:"ipaddress"`
+	IPAddress  string `json:"ipaddress"`
 	Hostname   string `json:"hostname"`
-}
-
-func (ci *ClusterInfo) ToJson() string {
-	b, _ := json.Marshal(ci)
-	return string(b)
 }
 
 func ClusterInfoFromJson(data io.Reader) *ClusterInfo {

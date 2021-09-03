@@ -15,17 +15,17 @@ import (
 // https://github.com/mattermost/mattermost-plugin-starter-template/issues/115
 func TestClient4TrimTrailingSlash(t *testing.T) {
 	slashes := []int{0, 1, 5}
-	baseUrl := "https://foo.com:1234"
+	baseURL := "https://foo.com:1234"
 
 	for _, s := range slashes {
-		testUrl := baseUrl + strings.Repeat("/", s)
-		client := NewAPIv4Client(testUrl)
-		assert.Equal(t, baseUrl, client.Url)
-		assert.Equal(t, baseUrl+API_URL_SUFFIX, client.ApiUrl)
+		testURL := baseURL + strings.Repeat("/", s)
+		client := NewAPIv4Client(testURL)
+		assert.Equal(t, baseURL, client.URL)
+		assert.Equal(t, baseURL+APIURLSuffix, client.APIURL)
 	}
 }
 
-// https://github.com/mattermost/mattermost-server/v5/issues/8205
+// https://github.com/mattermost/mattermost-server/v6/issues/8205
 func TestClient4CreatePost(t *testing.T) {
 	post := &Post{
 		Props: map[string]interface{}{
@@ -67,7 +67,8 @@ func TestClient4CreatePost(t *testing.T) {
 	}))
 
 	client := NewAPIv4Client(server.URL)
-	_, resp := client.CreatePost(post)
+	_, resp, err := client.CreatePost(post)
+	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
@@ -75,12 +76,12 @@ func TestClient4SetToken(t *testing.T) {
 	expected := NewId()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get(HEADER_AUTH)
+		authHeader := r.Header.Get(HeaderAuth)
 
-		token := strings.Split(authHeader, HEADER_BEARER)
+		token := strings.Split(authHeader, HeaderBearer)
 
 		if len(token) < 2 {
-			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HEADER_BEARER, expected)
+			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HeaderBearer, expected)
 		}
 
 		assert.Equal(t, expected, strings.TrimSpace(token[1]))
@@ -89,28 +90,7 @@ func TestClient4SetToken(t *testing.T) {
 	client := NewAPIv4Client(server.URL)
 	client.SetToken(expected)
 
-	_, resp := client.GetMe("")
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-}
-
-func TestClient4MockSession(t *testing.T) {
-	expected := NewId()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get(HEADER_AUTH)
-
-		token := strings.Split(authHeader, HEADER_BEARER)
-
-		if len(token) < 2 {
-			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HEADER_BEARER, expected)
-		}
-
-		assert.Equal(t, expected, strings.TrimSpace(token[1]))
-	}))
-
-	client := NewAPIv4Client(server.URL)
-	client.MockSession(expected)
-
-	_, resp := client.GetMe("")
+	_, resp, err := client.GetMe("")
+	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

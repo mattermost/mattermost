@@ -9,11 +9,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 type MockScheduler struct {
@@ -29,7 +29,7 @@ func (scheduler *MockScheduler) Name() string {
 }
 
 func (scheduler *MockScheduler) JobType() string {
-	return model.JOB_TYPE_DATA_RETENTION
+	return model.JobTypeDataRetention
 }
 
 func (scheduler *MockScheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
@@ -48,8 +48,8 @@ func TestScheduler(t *testing.T) {
 	job := &model.Job{
 		Id:       model.NewId(),
 		CreateAt: model.GetMillis(),
-		Status:   model.JOB_STATUS_PENDING,
-		Type:     model.JOB_TYPE_MESSAGE_EXPORT,
+		Status:   model.JobStatusPending,
+		Type:     model.JobTypeMessageExport,
 	}
 	// mock job store doesn't return a previously successful job, forcing fallback to config
 	mockStore.JobStore.On("GetNewestJobByStatusesAndType", mock.AnythingOfType("[]string"), mock.AnythingOfType("string")).Return(job, nil)
@@ -60,10 +60,10 @@ func TestScheduler(t *testing.T) {
 		ConfigService: &testutils.StaticConfigService{
 			Cfg: &model.Config{
 				// mock config
-				DataRetentionSettings: *&model.DataRetentionSettings{
+				DataRetentionSettings: model.DataRetentionSettings{
 					EnableMessageDeletion: model.NewBool(true),
 				},
-				MessageExportSettings: *&model.MessageExportSettings{
+				MessageExportSettings: model.MessageExportSettings{
 					EnableExport: model.NewBool(true),
 				},
 			},

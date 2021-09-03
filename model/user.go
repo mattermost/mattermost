@@ -18,46 +18,49 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/services/timezones"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
-	ME                                 = "me"
-	USER_NOTIFY_ALL                    = "all"
-	USER_NOTIFY_HERE                   = "here"
-	USER_NOTIFY_MENTION                = "mention"
-	USER_NOTIFY_NONE                   = "none"
-	DESKTOP_NOTIFY_PROP                = "desktop"
-	DESKTOP_SOUND_NOTIFY_PROP          = "desktop_sound"
-	MARK_UNREAD_NOTIFY_PROP            = "mark_unread"
-	PUSH_NOTIFY_PROP                   = "push"
-	PUSH_STATUS_NOTIFY_PROP            = "push_status"
-	EMAIL_NOTIFY_PROP                  = "email"
-	CHANNEL_MENTIONS_NOTIFY_PROP       = "channel"
-	COMMENTS_NOTIFY_PROP               = "comments"
-	MENTION_KEYS_NOTIFY_PROP           = "mention_keys"
-	COMMENTS_NOTIFY_NEVER              = "never"
-	COMMENTS_NOTIFY_ROOT               = "root"
-	COMMENTS_NOTIFY_ANY                = "any"
-	FIRST_NAME_NOTIFY_PROP             = "first_name"
-	AUTO_RESPONDER_ACTIVE_NOTIFY_PROP  = "auto_responder_active"
-	AUTO_RESPONDER_MESSAGE_NOTIFY_PROP = "auto_responder_message"
+	Me                             = "me"
+	UserNotifyAll                  = "all"
+	UserNotifyHere                 = "here"
+	UserNotifyMention              = "mention"
+	UserNotifyNone                 = "none"
+	DesktopNotifyProp              = "desktop"
+	DesktopSoundNotifyProp         = "desktop_sound"
+	MarkUnreadNotifyProp           = "mark_unread"
+	PushNotifyProp                 = "push"
+	PushStatusNotifyProp           = "push_status"
+	EmailNotifyProp                = "email"
+	ChannelMentionsNotifyProp      = "channel"
+	CommentsNotifyProp             = "comments"
+	MentionKeysNotifyProp          = "mention_keys"
+	CommentsNotifyNever            = "never"
+	CommentsNotifyRoot             = "root"
+	CommentsNotifyAny              = "any"
+	FirstNameNotifyProp            = "first_name"
+	AutoResponderActiveNotifyProp  = "auto_responder_active"
+	AutoResponderMessageNotifyProp = "auto_responder_message"
+	DesktopThreadsNotifyProp       = "desktop_threads"
+	PushThreadsNotifyProp          = "push_threads"
+	EmailThreadsNotifyProp         = "email_threads"
 
-	DEFAULT_LOCALE          = "en"
-	USER_AUTH_SERVICE_EMAIL = "email"
+	DefaultLocale        = "en"
+	UserAuthServiceEmail = "email"
 
-	USER_EMAIL_MAX_LENGTH     = 128
-	USER_NICKNAME_MAX_RUNES   = 64
-	USER_POSITION_MAX_RUNES   = 128
-	USER_FIRST_NAME_MAX_RUNES = 64
-	USER_LAST_NAME_MAX_RUNES  = 64
-	USER_AUTH_DATA_MAX_LENGTH = 128
-	USER_NAME_MAX_LENGTH      = 64
-	USER_NAME_MIN_LENGTH      = 1
-	USER_PASSWORD_MAX_LENGTH  = 72
-	USER_LOCALE_MAX_LENGTH    = 5
-	USER_TIMEZONE_MAX_RUNES   = 256
+	UserEmailMaxLength    = 128
+	UserNicknameMaxRunes  = 64
+	UserPositionMaxRunes  = 128
+	UserFirstNameMaxRunes = 64
+	UserLastNameMaxRunes  = 64
+	UserAuthDataMaxLength = 128
+	UserNameMaxLength     = 64
+	UserNameMinLength     = 1
+	UserPasswordMaxLength = 72
+	UserLocaleMaxLength   = 5
+	UserTimezoneMaxRunes  = 256
 )
 
 //msgp:tuple User
@@ -282,27 +285,27 @@ func (u *User) IsValid() *AppError {
 		}
 	}
 
-	if len(u.Email) > USER_EMAIL_MAX_LENGTH || u.Email == "" || !IsValidEmail(u.Email) {
+	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
 		return InvalidUserError("email", u.Id)
 	}
 
-	if utf8.RuneCountInString(u.Nickname) > USER_NICKNAME_MAX_RUNES {
+	if utf8.RuneCountInString(u.Nickname) > UserNicknameMaxRunes {
 		return InvalidUserError("nickname", u.Id)
 	}
 
-	if utf8.RuneCountInString(u.Position) > USER_POSITION_MAX_RUNES {
+	if utf8.RuneCountInString(u.Position) > UserPositionMaxRunes {
 		return InvalidUserError("position", u.Id)
 	}
 
-	if utf8.RuneCountInString(u.FirstName) > USER_FIRST_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(u.FirstName) > UserFirstNameMaxRunes {
 		return InvalidUserError("first_name", u.Id)
 	}
 
-	if utf8.RuneCountInString(u.LastName) > USER_LAST_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(u.LastName) > UserLastNameMaxRunes {
 		return InvalidUserError("last_name", u.Id)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > USER_AUTH_DATA_MAX_LENGTH {
+	if u.AuthData != nil && len(*u.AuthData) > UserAuthDataMaxLength {
 		return InvalidUserError("auth_data", u.Id)
 	}
 
@@ -314,7 +317,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("auth_data_pwd", u.Id)
 	}
 
-	if len(u.Password) > USER_PASSWORD_MAX_LENGTH {
+	if len(u.Password) > UserPasswordMaxLength {
 		return InvalidUserError("password_limit", u.Id)
 	}
 
@@ -325,7 +328,7 @@ func (u *User) IsValid() *AppError {
 	if len(u.Timezone) > 0 {
 		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
 			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if utf8.RuneCount(tzJSON) > USER_TIMEZONE_MAX_RUNES {
+		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
 			return InvalidUserError("timezone_limit", u.Id)
 		}
 	}
@@ -382,7 +385,7 @@ func (u *User) PreSave() {
 	u.MfaActive = false
 
 	if u.Locale == "" {
-		u.Locale = DEFAULT_LOCALE
+		u.Locale = DefaultLocale
 	}
 
 	if u.Props == nil {
@@ -425,30 +428,33 @@ func (u *User) PreUpdate() {
 
 	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
-	} else if _, ok := u.NotifyProps[MENTION_KEYS_NOTIFY_PROP]; ok {
+	} else if _, ok := u.NotifyProps[MentionKeysNotifyProp]; ok {
 		// Remove any blank mention keys
-		splitKeys := strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
+		splitKeys := strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",")
 		goodKeys := []string{}
 		for _, key := range splitKeys {
 			if key != "" {
 				goodKeys = append(goodKeys, strings.ToLower(key))
 			}
 		}
-		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = strings.Join(goodKeys, ",")
+		u.NotifyProps[MentionKeysNotifyProp] = strings.Join(goodKeys, ",")
 	}
 }
 
 func (u *User) SetDefaultNotifications() {
 	u.NotifyProps = make(map[string]string)
-	u.NotifyProps[EMAIL_NOTIFY_PROP] = "true"
-	u.NotifyProps[PUSH_NOTIFY_PROP] = USER_NOTIFY_MENTION
-	u.NotifyProps[DESKTOP_NOTIFY_PROP] = USER_NOTIFY_MENTION
-	u.NotifyProps[DESKTOP_SOUND_NOTIFY_PROP] = "true"
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
-	u.NotifyProps[CHANNEL_MENTIONS_NOTIFY_PROP] = "true"
-	u.NotifyProps[PUSH_STATUS_NOTIFY_PROP] = STATUS_AWAY
-	u.NotifyProps[COMMENTS_NOTIFY_PROP] = COMMENTS_NOTIFY_NEVER
-	u.NotifyProps[FIRST_NAME_NOTIFY_PROP] = "false"
+	u.NotifyProps[EmailNotifyProp] = "true"
+	u.NotifyProps[PushNotifyProp] = UserNotifyMention
+	u.NotifyProps[DesktopNotifyProp] = UserNotifyMention
+	u.NotifyProps[DesktopSoundNotifyProp] = "true"
+	u.NotifyProps[MentionKeysNotifyProp] = ""
+	u.NotifyProps[ChannelMentionsNotifyProp] = "true"
+	u.NotifyProps[PushStatusNotifyProp] = StatusAway
+	u.NotifyProps[CommentsNotifyProp] = CommentsNotifyNever
+	u.NotifyProps[FirstNameNotifyProp] = "false"
+	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[EmailThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[PushThreadsNotifyProp] = UserNotifyAll
 }
 
 func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
@@ -459,16 +465,16 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 		}
 	}
 
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
+	u.NotifyProps[MentionKeysNotifyProp] = ""
 	if len(nonUsernameKeys) > 0 {
-		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
+		u.NotifyProps[MentionKeysNotifyProp] += "," + strings.Join(nonUsernameKeys, ",")
 	}
 }
 
 func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
+	for _, key := range strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {
@@ -642,13 +648,13 @@ func (u *User) GetFullName() string {
 func (u *User) getDisplayName(baseName, nameFormat string) string {
 	displayName := baseName
 
-	if nameFormat == SHOW_NICKNAME_FULLNAME {
+	if nameFormat == ShowNicknameFullName {
 		if u.Nickname != "" {
 			displayName = u.Nickname
 		} else if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
-	} else if nameFormat == SHOW_FULLNAME {
+	} else if nameFormat == ShowFullName {
 		if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
@@ -698,11 +704,11 @@ func IsValidUserRoles(userRoles string) bool {
 // Make sure you acually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsGuest() bool {
-	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
+	return IsInRole(u.Roles, SystemGuestRoleId)
 }
 
 func (u *User) IsSystemAdmin() bool {
-	return IsInRole(u.Roles, SYSTEM_ADMIN_ROLE_ID)
+	return IsInRole(u.Roles, SystemAdminRoleId)
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions
@@ -726,22 +732,22 @@ func IsInRole(userRoles string, inRole string) bool {
 }
 
 func (u *User) IsSSOUser() bool {
-	return u.AuthService != "" && u.AuthService != USER_AUTH_SERVICE_EMAIL
+	return u.AuthService != "" && u.AuthService != UserAuthServiceEmail
 }
 
 func (u *User) IsOAuthUser() bool {
-	return u.AuthService == SERVICE_GITLAB ||
-		u.AuthService == SERVICE_GOOGLE ||
-		u.AuthService == SERVICE_OFFICE365 ||
-		u.AuthService == SERVICE_OPENID
+	return u.AuthService == ServiceGitlab ||
+		u.AuthService == ServiceGoogle ||
+		u.AuthService == ServiceOffice365 ||
+		u.AuthService == ServiceOpenid
 }
 
 func (u *User) IsLDAPUser() bool {
-	return u.AuthService == USER_AUTH_SERVICE_LDAP
+	return u.AuthService == UserAuthServiceLdap
 }
 
 func (u *User) IsSAMLUser() bool {
-	return u.AuthService == USER_AUTH_SERVICE_SAML
+	return u.AuthService == UserAuthServiceSaml
 }
 
 func (u *User) GetPreferredTimezone() string {
@@ -854,18 +860,6 @@ func HashPassword(password string) string {
 	return string(hash)
 }
 
-// ComparePassword compares the hash
-// This function is deprecated and will be removed in a future release.
-func ComparePassword(hash string, password string) bool {
-
-	if password == "" || hash == "" {
-		return false
-	}
-
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
 
@@ -877,7 +871,7 @@ var restrictedUsernames = map[string]struct{}{
 }
 
 func IsValidUsername(s string) bool {
-	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
+	if len(s) < UserNameMinLength || len(s) > UserNameMaxLength {
 		return false
 	}
 
@@ -890,7 +884,7 @@ func IsValidUsername(s string) bool {
 }
 
 func IsValidUsernameAllowRemote(s string) bool {
-	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
+	if len(s) < UserNameMinLength || len(s) > UserNameMaxLength {
 		return false
 	}
 
@@ -931,33 +925,9 @@ func CleanUsername(username string) string {
 	return s
 }
 
-func IsValidUserNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == CHANNEL_NOTIFY_ALL ||
-		notifyLevel == CHANNEL_NOTIFY_MENTION ||
-		notifyLevel == CHANNEL_NOTIFY_NONE
-}
-
-func IsValidPushStatusNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == STATUS_ONLINE ||
-		notifyLevel == STATUS_AWAY ||
-		notifyLevel == STATUS_OFFLINE
-}
-
-func IsValidCommentsNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == COMMENTS_NOTIFY_ANY ||
-		notifyLevel == COMMENTS_NOTIFY_ROOT ||
-		notifyLevel == COMMENTS_NOTIFY_NEVER
-}
-
-func IsValidEmailBatchingInterval(emailInterval string) bool {
-	return emailInterval == PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY ||
-		emailInterval == PREFERENCE_EMAIL_INTERVAL_FIFTEEN ||
-		emailInterval == PREFERENCE_EMAIL_INTERVAL_HOUR
-}
-
 func IsValidLocale(locale string) bool {
 	if locale != "" {
-		if len(locale) > USER_LOCALE_MAX_LENGTH {
+		if len(locale) > UserLocaleMaxLength {
 			return false
 		} else if _, err := language.Parse(locale); err != nil {
 			return false
