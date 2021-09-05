@@ -2213,7 +2213,7 @@
   },
   {
     "id": "api.user.update_password.menu",
-    "translation": "en utilisant le menu paramètres"
+    "translation": "l'utilisation du menu paramètres"
   },
   {
     "id": "api.user.update_password.oauth.app_error",
