@@ -1350,6 +1350,11 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 	}
 
+	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultBoardAdminRole", "text", "VARCHAR(64)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultBoardEditorRole", "text", "VARCHAR(64)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultBoardCommenterRole", "text", "VARCHAR(64)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultBoardViewerRole", "text", "VARCHAR(64)")
+
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
 }

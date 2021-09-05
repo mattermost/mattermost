@@ -41,6 +41,11 @@ func init() {
 		ChannelGuestRoleId,
 		ChannelUserRoleId,
 		ChannelAdminRoleId,
+
+		BoardViewerRoleId,
+		BoardCommenterRoleId,
+		BoardEditorRoleId,
+		BoardAdminRoleId,
 	}, NewSystemRoleIDs...)
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
@@ -361,6 +366,11 @@ const (
 	ChannelGuestRoleId = "channel_guest"
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
+
+	BoardViewerRoleId    = "board_viewer"
+	BoardCommenterRoleId = "board_commenter"
+	BoardEditorRoleId    = "board_editor"
+	BoardAdminRoleId     = "board_admin"
 
 	RoleNameMaxLength        = 64
 	RoleDisplayNameMaxLength = 128
@@ -742,6 +752,9 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionJoinPublicChannels.Id,
 			PermissionReadPublicChannel.Id,
 			PermissionViewTeam.Id,
+			PermissionFocalboardTeamAddView.Id,
+			PermissionFocalboardTeamEditView.Id,
+			PermissionFocalboardTeamDeleteView.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -789,6 +802,71 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManageOutgoingWebhooks.Id,
 			PermissionConvertPublicChannelToPrivate.Id,
 			PermissionConvertPrivateChannelToPublic.Id,
+			PermissionFocalboardTeamCreateBoard.Id,
+			PermissionFocalboardTeamAddView.Id,
+			PermissionFocalboardTeamEditView.Id,
+			PermissionFocalboardTeamDeleteView.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[BoardViewerRoleId] = &Role{
+		Name:        "board_viewer",
+		DisplayName: "authentication.roles.board_viewer.name",
+		Description: "authentication.roles.board_viewer.description",
+		Permissions: []string{
+			PermissionFocalboardBoardView.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[BoardCommenterRoleId] = &Role{
+		Name:        "board_commenter",
+		DisplayName: "authentication.roles.board_commenter.name",
+		Description: "authentication.roles.board_commenter.description",
+		Permissions: []string{
+			PermissionFocalboardBoardComment.Id,
+			PermissionFocalboardBoardEditComment.Id,
+			PermissionFocalboardBoardView.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[BoardEditorRoleId] = &Role{
+		Name:        "board_editor",
+		DisplayName: "authentication.roles.board_editor.name",
+		Description: "authentication.roles.board_editor.description",
+		Permissions: []string{
+			PermissionFocalboardBoardAddCard.Id,
+			PermissionFocalboardBoardEditCard.Id,
+			PermissionFocalboardBoardDeleteCard.Id,
+			PermissionFocalboardBoardComment.Id,
+			PermissionFocalboardBoardEditComment.Id,
+			PermissionFocalboardBoardView.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[BoardAdminRoleId] = &Role{
+		Name:        "board_admin",
+		DisplayName: "authentication.roles.board_admin.name",
+		Description: "authentication.roles.board_admin.description",
+		Permissions: []string{
+			PermissionFocalboardBoardEditPermissionRules.Id,
+			PermissionFocalboardBoardEditBoard.Id,
+			PermissionFocalboardBoardDeleteBoard.Id,
+			PermissionFocalboardBoardShareBoard.Id,
+			PermissionFocalboardBoardAddCard.Id,
+			PermissionFocalboardBoardEditCard.Id,
+			PermissionFocalboardBoardDeleteCard.Id,
+			PermissionFocalboardBoardComment.Id,
+			PermissionFocalboardBoardEditComment.Id,
+			PermissionFocalboardBoardEditOtherComments.Id,
+			PermissionFocalboardBoardView.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

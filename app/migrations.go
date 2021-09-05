@@ -15,6 +15,7 @@ import (
 
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
 const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
+const BoardRolesCreationMigrationKey = "BoardRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 
@@ -257,6 +258,58 @@ func (s *Server) doGuestRolesCreationMigration() {
 	}
 }
 
+func (a *App) DoBoardRolesCreationMigration() {
+	a.Srv().doBoardRolesCreationMigration()
+}
+
+func (s *Server) doBoardRolesCreationMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(BoardRolesCreationMigrationKey); err == nil {
+		return
+	}
+
+	roles := model.MakeDefaultRoles()
+
+	allSucceeded := true
+	if _, err := s.Store.Role().GetByName(context.Background(), model.BoardAdminRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.BoardAdminRoleId]); err != nil {
+			mlog.Critical("Failed to create new board admin role to database.", mlog.Err(err))
+			allSucceeded = false
+		}
+	}
+	if _, err := s.Store.Role().GetByName(context.Background(), model.BoardEditorRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.BoardEditorRoleId]); err != nil {
+			mlog.Critical("Failed to create new board editor role to database.", mlog.Err(err))
+			allSucceeded = false
+		}
+	}
+	if _, err := s.Store.Role().GetByName(context.Background(), model.BoardCommenterRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.BoardCommenterRoleId]); err != nil {
+			mlog.Critical("Failed to create new board commenter role to database.", mlog.Err(err))
+			allSucceeded = false
+		}
+	}
+	if _, err := s.Store.Role().GetByName(context.Background(), model.BoardViewerRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.BoardViewerRoleId]); err != nil {
+			mlog.Critical("Failed to create new board viwer role to database.", mlog.Err(err))
+			allSucceeded = false
+		}
+	}
+
+	if !allSucceeded {
+		return
+	}
+
+	system := model.System{
+		Name:  BoardRolesCreationMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark board roles creation migration as completed.", mlog.Err(err))
+	}
+}
+
 func (a *App) DoSystemConsoleRolesCreationMigration() {
 	a.Srv().doSystemConsoleRolesCreationMigration()
 }
@@ -339,4 +392,5 @@ func (s *Server) doAppMigrations() {
 		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
 	}
 	s.doContentExtractionConfigDefaultTrueMigration()
+	s.doBoardRolesCreationMigration()
 }

@@ -7,6 +7,7 @@ const (
 	PermissionScopeSystem  = "system_scope"
 	PermissionScopeTeam    = "team_scope"
 	PermissionScopeChannel = "channel_scope"
+	PermissionScopeBoard   = "board_scope"
 )
 
 type Permission struct {
@@ -330,6 +331,22 @@ var PermissionSysconsoleWriteExperimentalFeatureFlags *Permission
 
 var PermissionSysconsoleReadExperimentalBleve *Permission
 var PermissionSysconsoleWriteExperimentalBleve *Permission
+
+var PermissionFocalboardBoardEditPermissionRules *Permission
+var PermissionFocalboardTeamCreateBoard *Permission
+var PermissionFocalboardTeamAddView *Permission
+var PermissionFocalboardTeamEditView *Permission
+var PermissionFocalboardTeamDeleteView *Permission
+var PermissionFocalboardBoardEditBoard *Permission
+var PermissionFocalboardBoardDeleteBoard *Permission
+var PermissionFocalboardBoardShareBoard *Permission
+var PermissionFocalboardBoardAddCard *Permission
+var PermissionFocalboardBoardEditCard *Permission
+var PermissionFocalboardBoardDeleteCard *Permission
+var PermissionFocalboardBoardComment *Permission
+var PermissionFocalboardBoardEditComment *Permission
+var PermissionFocalboardBoardEditOtherComments *Permission
+var PermissionFocalboardBoardView *Permission
 
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
@@ -1895,6 +1912,112 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	// Focalboard
+	PermissionFocalboardTeamCreateBoard = &Permission{
+		"focalboard_team_create_board",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+
+	PermissionFocalboardTeamAddView = &Permission{
+		"focalboard_team_add_view",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+
+	PermissionFocalboardTeamEditView = &Permission{
+		"focalboard_team_edit_view",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+
+	PermissionFocalboardTeamDeleteView = &Permission{
+		"focalboard_team_delete_view",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+
+	PermissionFocalboardBoardEditPermissionRules = &Permission{
+		"focalboard_board_edit_permission_rules",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardEditBoard = &Permission{
+		"focalboard_board_edit_board",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardDeleteBoard = &Permission{
+		"focalboard_board_delete_board",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardShareBoard = &Permission{
+		"focalboard_board_share_board",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardAddCard = &Permission{
+		"focalboard_board_add_card",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardEditCard = &Permission{
+		"focalboard_board_edit_card",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardDeleteCard = &Permission{
+		"focalboard_board_delete_card",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardComment = &Permission{
+		"focalboard_board_comment",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardEditComment = &Permission{
+		"focalboard_board_edit_comment",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardEditOtherComments = &Permission{
+		"focalboard_board_edit_other_comments",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
+	PermissionFocalboardBoardView = &Permission{
+		"focalboard_board_view",
+		"",
+		"",
+		PermissionScopeBoard,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2108,6 +2231,10 @@ func initializePermissions() {
 		PermissionViewTeam,
 		PermissionViewMembers,
 		PermissionInviteGuest,
+		PermissionFocalboardTeamCreateBoard,
+		PermissionFocalboardTeamAddView,
+		PermissionFocalboardTeamEditView,
+		PermissionFocalboardTeamDeleteView,
 	}
 
 	ChannelScopedPermissions := []*Permission{
@@ -2139,6 +2266,20 @@ func initializePermissions() {
 		PermissionUseGroupMentions,
 	}
 
+	BoardScopedPermissions := []*Permission{
+		PermissionFocalboardBoardEditPermissionRules,
+		PermissionFocalboardBoardEditBoard,
+		PermissionFocalboardBoardDeleteBoard,
+		PermissionFocalboardBoardShareBoard,
+		PermissionFocalboardBoardAddCard,
+		PermissionFocalboardBoardEditCard,
+		PermissionFocalboardBoardDeleteCard,
+		PermissionFocalboardBoardComment,
+		PermissionFocalboardBoardEditComment,
+		PermissionFocalboardBoardEditOtherComments,
+		PermissionFocalboardBoardView,
+	}
+
 	DeprecatedPermissions = []*Permission{
 		PermissionPermanentDeleteUser,
 		PermissionManageWebhooks,
@@ -2167,6 +2308,7 @@ func initializePermissions() {
 	AllPermissions = append(AllPermissions, SystemScopedPermissionsMinusSysconsole...)
 	AllPermissions = append(AllPermissions, TeamScopedPermissions...)
 	AllPermissions = append(AllPermissions, ChannelScopedPermissions...)
+	AllPermissions = append(AllPermissions, BoardScopedPermissions...)
 	AllPermissions = append(AllPermissions, SysconsoleReadPermissions...)
 	AllPermissions = append(AllPermissions, SysconsoleWritePermissions...)
 
