@@ -40,6 +40,7 @@ jobs:
               curl --max-time 30 -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/hello/mattermost-webapp.tar.gz
               sleep 5
           done
+          ls -al
           if [ -f $FILE_DIST ]; then
             mkdir dist && tar -xvf $FILE_DIST -C dist --strip-components=1
           else
