@@ -31,8 +31,8 @@ jobs:
 
           FILE_DIST=dist.tar.gz
           curl --version
-          # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0
-          until curl --retry 75 --retry-delay 5 --retry-max-time 375 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz; do echo waiting for webapp build; done;
+          # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0; `retry` will not work, since it only retries on transient errors, 403 is not one of them.
+          until curl --max-time 375 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/hello/mattermost-webapp.tar.gz; do echo waiting for webapp build; sleep 5; done;
           if [ -f $FILE_DIST ]; then
             mkdir dist && tar -xvf $FILE_DIST -C dist --strip-components=1
           else
