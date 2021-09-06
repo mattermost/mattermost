@@ -691,14 +691,6 @@ func NewServer(options ...Option) (*Server, error) {
 			s.ShutDownPlugins()
 		}
 	})
-	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
-		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
-			runDNDStatusExpireJob(app)
-		}
-		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
-			stopDNDStatusExpireJob(app)
-		}
-	})
 
 	return s, nil
 }
@@ -2242,9 +2234,6 @@ func cancelDNDStatusExpirationRecurringTask(a *App) {
 }
 
 func runDNDStatusExpireJob(a *App) {
-	if !a.Config().FeatureFlags.TimedDND {
-		return
-	}
 	if a.IsLeader() {
 		createDNDStatusExpirationRecurringTask(a)
 	}
@@ -2256,10 +2245,4 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
-}
-
-func stopDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
-		cancelDNDStatusExpirationRecurringTask(a)
-	}
 }

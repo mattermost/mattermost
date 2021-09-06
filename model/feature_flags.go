@@ -33,9 +33,6 @@ type FeatureFlags struct {
 	PluginApps       string `plugin_id:"com.mattermost.apps"`
 	PluginFocalboard string `plugin_id:"focalboard"`
 
-	// Enable timed dnd support for user status
-	TimedDND bool
-
 	PermalinkPreviews bool
 
 	// Enable the Global Header
@@ -60,7 +57,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.TimedDND = false
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
