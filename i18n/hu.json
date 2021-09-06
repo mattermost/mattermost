@@ -2961,7 +2961,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -2969,7 +2969,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verzió 60+"
+    "translation": "Verzió 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -2977,7 +2977,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 61+"
+    "translation": "Verzió 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7036,7 +7036,7 @@
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Visszavonja a biztonságos kapcsolat meghívását erről a megosztott csatornáról"
+    "translation": "Visszavonja a biztonságos kapcsolat meghívását erről a megosztott beszélgetésről"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -7072,7 +7072,7 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Meg kell adnia egy érvényes biztonságos kapcsolatot a meghívás visszavonásához"
+    "translation": "Meg kell adnia egy érvényes biztonságos kapcsolat azonosítót a meghívás visszavonásához"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
@@ -7096,7 +7096,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Erre a csatornára nem hívtak meg biztonságos kapcsolatokat."
+    "translation": "Erre a beszélgetésre nem hívtak meg biztonságos kapcsolatokat."
   },
   {
     "id": "api.command_share.name",
@@ -7192,7 +7192,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "A `{{.ChannelId}}` csatorna azonosító állapota"
+    "translation": "A `{{.ChannelId}}` beszélgetés állapota"
   },
   {
     "id": "api.command_share.channel_status.help",
@@ -7208,7 +7208,7 @@
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Nem lehet meghívni a biztonságos kapcsolatot máshonnan származó megosztott csatornára."
+    "translation": "Nem lehet meghívni biztonságos kapcsolatot egy máshonnan eredő megosztott beszélgetésre."
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -7264,7 +7264,7 @@
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "Az üzenetet el kell látni /eltávolítás, vagy /kick paranccsal."
+    "translation": "A /remove vagy /kick parancsokhoz üzenetet kell megadni."
   },
   {
     "id": "api.command_remove.hint",
@@ -7352,7 +7352,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Mattermost rendszergazdának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n```\n{{.Invitation}}\n```\n\n**Győződjön meg róla, hogy a biztonságos kapcsolat a** {{.SiteURL}} **cím segítségével érheti el az Ön Mattermost példányát.**"
+    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Mattermost rendszer rendszergazdának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n```\n{{.Invitation}}\n```\n\n**Győződjön meg róla, hogy a biztonságos kapcsolat a** {{.SiteURL}} **cím segítségével érheti el az Ön Mattermost példányát.**"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -8230,7 +8230,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "értelmezési hiba"
+    "translation": "Adatkonverzió nem sikerült."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -8250,7 +8250,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "A licenc igényléséhez el kell fogadnia a Mattermost szoftverértékelési megállapodását és az adatvédelmi irányelveit."
+    "translation": "A licenc igényléséhez el kell fogadnia a Mattermost szoftver használati megállapodását és az adatvédelmi irányelveit."
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -8970,8 +8970,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} új üzenetet küldött neked",
-      "other": "{{ .SenderName }} és {{.Count}} mások új üzeneteket kültek neked"
+      "one": "{{ .SenderName }} új üzenetet küldött Önnek",
+      "other": "{{ .SenderName }} és {{.Count}} másvalaki új üzenetet kültek Önnek"
     }
   },
   {
@@ -9112,7 +9112,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Ez a próba időszak kulcs a Mattermost Enterprise kiadáshoz lejárt és már nem érvényes. Ha szeretné meghosszabbítani a próbaidőszakot, kérjük [vegye fel a kapcsolatot értékesítési csapatunkkal](https://mattermost.com/contact-us/)."
+    "translation": "Ez a teszt kulcs a Mattermost Enterprise kiadáshoz lejárt és már nem érvényes. Ha szeretné meghosszabbítani a próba időszakot, kérjük [vegye fel a kapcsolatot értékesítési csapatunkkal](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9205,5 +9205,13 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Nem sikerült a beállítások újratöltése."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "A bejegyzés adatkonverziója nem sikerült."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Adatkonverzió nem sikerült."
   }
 ]
