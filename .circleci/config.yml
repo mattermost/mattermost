@@ -19,6 +19,7 @@ jobs:
     docker:
       - image: mattermost/mattermost-build-webapp:20210524_node-16
     resource_class: xlarge
+    # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0; `retry` will not work, since it only retries on transient errors, 403 is not one of them.
     steps:
       - checkout
       - run: |
@@ -30,11 +31,22 @@ jobs:
           echo "$WEBAPP_GIT_COMMIT"
 
           FILE_DIST=dist.tar.gz
-          until curl --max-time 5 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz; do echo waiting for webapp build; sleep 110; done;
-          if [ ! -f $FILE_DIST ]; then
-            npm ci && make build
-          else
+          curl --version
+
+          runtime="2 minute"
+          endtime=$(date -ud "$runtime" +%s)
+          while [[ $(date -u +%s) -le $endtime ]]; do
+              if curl --max-time 30 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz; then
+                break
+              fi
+              echo "Waiting for webapp git commit $WEBAPP_GIT_COMMIT with sleep 5: `date +%H:%M:%S`"
+              sleep 5
+          done
+          ls -al
+          if tar -tzf $FILE_DIST >/dev/null; then
             mkdir dist && tar -xvf $FILE_DIST -C dist --strip-components=1
+          else
+            npm ci && make build
           fi
           cd -
       - persist_to_workspace:
