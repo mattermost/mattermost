@@ -19,6 +19,7 @@ jobs:
     docker:
       - image: mattermost/mattermost-build-webapp:20210524_node-16
     resource_class: xlarge
+    # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0; `retry` will not work, since it only retries on transient errors, 403 is not one of them.
     steps:
       - checkout
       - run: |
@@ -31,7 +32,6 @@ jobs:
 
           FILE_DIST=dist.tar.gz
           curl --version
-          # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0; `retry` will not work, since it only retries on transient errors, 403 is not one of them.
 
           runtime="1 minute"
           endtime=$(date -ud "$runtime" +%s)
