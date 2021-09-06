@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Anordnungsfehler"
+    "translation": "Fehler beim Marshalling."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -4837,7 +4837,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4845,7 +4845,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4853,7 +4853,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9205,5 +9205,13 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Die Konfiguration konnte nicht neu geladen werden."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Fehler die Nachricht zu marshallen."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Fehler beim Unmarshalling."
   }
 ]

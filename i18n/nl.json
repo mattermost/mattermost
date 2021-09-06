@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "schikkingsfout"
+    "translation": "Fout bij marshal"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -4817,7 +4817,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4825,7 +4825,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 60+"
+    "translation": "Versie 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4833,7 +4833,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 61+"
+    "translation": "Versie 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9205,5 +9205,13 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Fout bij het herladen van de configuratie."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Fout bij marshallen van bericht."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Fout bij unmarshaling."
   }
 ]

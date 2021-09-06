@@ -7653,15 +7653,15 @@
   },
   {
     "id": "app.user.update_threads_read_for_user.app_error",
-    "translation": "Не удалось пометить все пользовательские треды как прочтённые"
+    "translation": "Не удалось пометить все пользовательские обсуждения как прочтённые"
   },
   {
     "id": "app.user.update_thread_read_for_user.app_error",
-    "translation": "Не удалось обновить статус прочтения для треда"
+    "translation": "Не удалось обновить статус прочтения для обсуждения"
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
-    "translation": "Невозможно обновить состояние отслеживания для треда"
+    "translation": "Невозможно обновить состояние отслеживания для обсуждения"
   },
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
@@ -7737,11 +7737,11 @@
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
-    "translation": "Тред пользователя не существует или не отслеживается"
+    "translation": "Обсуждение пользователя не существует или не отслеживается"
   },
   {
     "id": "app.user.get_threads_for_user.app_error",
-    "translation": "Не удалось получить треды пользователя"
+    "translation": "Не удалось получить обсуждения пользователя"
   },
   {
     "id": "app.user.get_recently_active_users.app_error",
@@ -7925,7 +7925,7 @@
   },
   {
     "id": "app.channel.autofollow.app_error",
-    "translation": "Не удалось обновить членство в треде для указанного пользователя"
+    "translation": "Не удалось обновить участие в обсуждении для указанного пользователя"
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -8974,5 +8974,17 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Между этими пользователями невозможно создать прямой канал, потому что у них нет общей команды."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} ответил в обсуждении"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "Пока Вас не было, {{.SenderName}} ответил в обсуждении, на которое Вы подписаны."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " дополнил обсуждение, на которое Вы подписаны."
   }
 ]
