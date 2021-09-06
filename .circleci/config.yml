@@ -30,7 +30,7 @@ jobs:
           echo "$WEBAPP_GIT_COMMIT"
 
           FILE_DIST=dist.tar.gz
-          until curl --max-time 5 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz; do echo waiting for webapp build; sleep 110; done;
+          until curl --max-time 30 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz; do echo waiting for webapp build; sleep 5; done;
           if [ ! -f $FILE_DIST ]; then
             npm ci && make build
           else
