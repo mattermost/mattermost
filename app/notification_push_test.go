@@ -1145,7 +1145,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
 	})
 
-	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1")
+	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
 	require.Nil(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
@@ -1333,7 +1333,7 @@ func TestAllPushNotifications(t *testing.T) {
 		case 2:
 			go func(sessID, userID string) {
 				defer wg.Done()
-				th.App.clearPushNotification(sessID, userID, th.BasicChannel.Id)
+				th.App.clearPushNotification(sessID, userID, th.BasicChannel.Id, "")
 			}(data.session.Id, data.user.Id)
 		}
 	}
@@ -1386,7 +1386,7 @@ func TestPushNotificationRace(t *testing.T) {
 
 		// Now we start sending messages after the PN hub is shut down.
 		// We test all 3 notification types.
-		app.clearPushNotification("currentSessionId", "userId", "channelId")
+		app.clearPushNotification("currentSessionId", "userId", "channelId", "")
 
 		app.UpdateMobileAppBadge("userId")
 
@@ -1555,7 +1555,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 			case 2:
 				go func(sessID, userID string) {
 					defer wg.Done()
-					th.App.clearPushNotification(sessID, userID, ch.Id)
+					th.App.clearPushNotification(sessID, userID, ch.Id, "")
 				}(data.session.Id, data.user.Id)
 			}
 		}

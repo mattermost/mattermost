@@ -2269,7 +2269,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	return nil
 }
 
-func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return nil, err
@@ -2305,6 +2305,11 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	thread, err := a.GetThreadForUser(teamID, membership, false)
 	if err != nil {
 		return nil, err
+	}
+
+	// Clear if user has read the messages
+	if thread.UnreadReplies == 0 && a.isCRTEnabledForUser(userID) {
+		a.clearPushNotification(currentSessionId, userID, post.ChannelId, threadID)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil)

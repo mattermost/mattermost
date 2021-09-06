@@ -2863,7 +2863,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		}
 	}
 	for _, channelID := range channelsToClearPushNotifications {
-		a.clearPushNotification(currentSessionId, userID, channelID)
+		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
 	if !collapsedThreadsSupported || !a.isCRTEnabledForUser(userID) {

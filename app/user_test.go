@@ -1527,7 +1527,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Zero(t, threads.Total)
 
-		_, appErr = th.App.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
+		_, appErr = th.App.UpdateThreadReadForUser("currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
 		require.Nil(t, appErr)
 
 		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
@@ -1564,7 +1564,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Thread").Return(&mockThreadStore)
 
-		_, err = th.App.UpdateThreadReadForUser("user1", "team1", "postid", 100)
+		_, err = th.App.UpdateThreadReadForUser("currentSessionId", "user1", "team1", "postid", 100)
 		require.Error(t, err)
 	})
 }
