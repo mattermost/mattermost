@@ -31,7 +31,8 @@ jobs:
 
           FILE_DIST=dist.tar.gz
           curl --version
-          curl --retry 75 --retry-delay 5 --retry-max-time 375 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
+          # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0
+          until curl --retry 75 --retry-delay 5 --retry-max-time 375 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz; do echo waiting for webapp build; done;
           if [ -f $FILE_DIST ]; then
             mkdir dist && tar -xvf $FILE_DIST -C dist --strip-components=1
           else
