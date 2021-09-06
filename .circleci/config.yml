@@ -41,7 +41,7 @@ jobs:
               sleep 5
           done
           ls -al
-          if [ -f $FILE_DIST ]; then
+          if tar -tzf $FILE_DIST >/dev/null; then
             mkdir dist && tar -xvf $FILE_DIST -C dist --strip-components=1
           else
             npm ci && make build
