@@ -65,7 +65,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -81,7 +81,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5949,7 +5949,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Failed to marshal."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -9205,5 +9205,13 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Failed to reload config."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Failed to marshal post."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Failed to unmarshal."
   }
 ]
