@@ -37,8 +37,7 @@ jobs:
           endtime=$(date -ud "$runtime" +%s)
           while [[ $(date -u +%s) -le $endtime ]]; do
               echo "Waiting for webapp git commit $WEBAPP_GIT_COMMIT with sleep 5: `date +%H:%M:%S`"
-              curl --max-time 30 -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/hello/mattermost-webapp.tar.gz
-              if [[ "$?" == 0 ]]; then
+              if curl --max-time 30 -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/hello/mattermost-webapp.tar.gz; then
                 break
               fi
               sleep 5
