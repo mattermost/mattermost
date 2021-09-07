@@ -33,6 +33,9 @@ type GetUserThreadsOpts struct {
 	// PageSize specifies the size of the returned chunk of results. Default = 30
 	PageSize uint64
 
+	// Page specifies the page of the returned chunk of results. Default = 0
+	Page uint64
+
 	// Extended will enrich the response with participant details. Default = false
 	Extended bool
 

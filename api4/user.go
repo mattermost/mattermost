@@ -3004,6 +3004,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		Since:    0,
 		Before:   "",
 		After:    "",
+		Page:     uint64(c.Params.Page),
 		PageSize: uint64(c.Params.PerPage),
 		Unread:   false,
 		Extended: false,

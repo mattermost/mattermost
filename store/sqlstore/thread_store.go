@@ -158,6 +158,11 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		pageSize = opts.PageSize
 	}
 
+	page := uint64(0)
+	if opts.Page != 0 {
+		page = opts.Page
+	}
+
 	totalUnreadThreadsChan := make(chan store.StoreResult, 1)
 	totalCountChan := make(chan store.StoreResult, 1)
 	totalUnreadMentionsChan := make(chan store.StoreResult, 1)
@@ -265,7 +270,8 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 				LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
 				Where(newFetchConditions).
 				OrderBy("Threads.LastReplyAt " + order).
-				Limit(pageSize).ToSql()
+				Limit(pageSize).
+				Offset(pageSize * page).ToSql()
 
 			_, err := s.GetReplica().Select(&threads, query, args...)
 			threadsChan <- store.StoreResult{Data: threads, NErr: err}
