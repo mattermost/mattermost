@@ -10,3 +10,9 @@ linters:
     - godox
     - wsl
     - funlen
+    - gochecknoinits
+    - gomnd
+    - nlreturn
+    - goerr113
+    - exhaustive
+    - nestif

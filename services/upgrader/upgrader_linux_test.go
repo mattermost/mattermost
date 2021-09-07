@@ -10,8 +10,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCanIUpgradeToE0(t *testing.T) {
@@ -34,7 +35,7 @@ func TestCanIUpgradeToE0(t *testing.T) {
 	})
 }
 
-func TestGetCurrentVersionTgzUrl(t *testing.T) {
+func TestGetCurrentVersionTgzURL(t *testing.T) {
 	t.Run("get release version in regular version", func(t *testing.T) {
 		currentVersion := model.CurrentVersion
 		buildNumber := model.CurrentVersion
@@ -44,7 +45,7 @@ func TestGetCurrentVersionTgzUrl(t *testing.T) {
 			model.CurrentVersion = currentVersion
 			model.BuildNumber = buildNumber
 		}()
-		require.Equal(t, "https://releases.mattermost.com/5.22.0/mattermost-5.22.0-linux-amd64.tar.gz", getCurrentVersionTgzUrl())
+		require.Equal(t, "https://releases.mattermost.com/5.22.0/mattermost-5.22.0-linux-amd64.tar.gz", getCurrentVersionTgzURL())
 	})
 
 	t.Run("get release version in dev version", func(t *testing.T) {
@@ -56,7 +57,7 @@ func TestGetCurrentVersionTgzUrl(t *testing.T) {
 			model.CurrentVersion = currentVersion
 			model.BuildNumber = buildNumber
 		}()
-		require.Equal(t, "https://releases.mattermost.com/5.22.0/mattermost-5.22.0-linux-amd64.tar.gz", getCurrentVersionTgzUrl())
+		require.Equal(t, "https://releases.mattermost.com/5.22.0/mattermost-5.22.0-linux-amd64.tar.gz", getCurrentVersionTgzURL())
 	})
 
 	t.Run("get release version in rc version", func(t *testing.T) {
@@ -68,19 +69,19 @@ func TestGetCurrentVersionTgzUrl(t *testing.T) {
 			model.CurrentVersion = currentVersion
 			model.BuildNumber = buildNumber
 		}()
-		require.Equal(t, "https://releases.mattermost.com/5.22.0-rc2/mattermost-5.22.0-rc2-linux-amd64.tar.gz", getCurrentVersionTgzUrl())
+		require.Equal(t, "https://releases.mattermost.com/5.22.0-rc2/mattermost-5.22.0-rc2-linux-amd64.tar.gz", getCurrentVersionTgzURL())
 	})
 }
 
 func TestExtractBinary(t *testing.T) {
 	t.Run("extract from empty file", func(t *testing.T) {
 		tmpMockTarGz, err := ioutil.TempFile("", "mock_tgz")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer os.Remove(tmpMockTarGz.Name())
 		tmpMockTarGz.Close()
 
 		tmpMockExecutable, err := ioutil.TempFile("", "mock_exe")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer os.Remove(tmpMockExecutable.Name())
 		tmpMockExecutable.Close()
 
@@ -89,7 +90,7 @@ func TestExtractBinary(t *testing.T) {
 
 	t.Run("extract from empty tar.gz file", func(t *testing.T) {
 		tmpMockTarGz, err := ioutil.TempFile("", "mock_tgz")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer os.Remove(tmpMockTarGz.Name())
 		gz := gzip.NewWriter(tmpMockTarGz)
 		tw := tar.NewWriter(gz)
@@ -98,7 +99,7 @@ func TestExtractBinary(t *testing.T) {
 		tmpMockTarGz.Close()
 
 		tmpMockExecutable, err := ioutil.TempFile("", "mock_exe")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer os.Remove(tmpMockExecutable.Name())
 		tmpMockExecutable.Close()
 
@@ -107,7 +108,7 @@ func TestExtractBinary(t *testing.T) {
 
 	t.Run("extract from tar.gz without mattermost/bin/mattermost file", func(t *testing.T) {
 		tmpMockTarGz, err := ioutil.TempFile("", "mock_tgz")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer os.Remove(tmpMockTarGz.Name())
 		gz := gzip.NewWriter(tmpMockTarGz)
 		tw := tar.NewWriter(gz)
@@ -123,7 +124,7 @@ func TestExtractBinary(t *testing.T) {
 		tmpMockTarGz.Close()
 
 		tmpMockExecutable, err := ioutil.TempFile("", "mock_exe")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer os.Remove(tmpMockExecutable.Name())
 		tmpMockExecutable.Close()
 
@@ -132,7 +133,7 @@ func TestExtractBinary(t *testing.T) {
 
 	t.Run("extract from tar.gz with mattermost/bin/mattermost file", func(t *testing.T) {
 		tmpMockTarGz, err := ioutil.TempFile("", "mock_tgz")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer os.Remove(tmpMockTarGz.Name())
 		gz := gzip.NewWriter(tmpMockTarGz)
 		tw := tar.NewWriter(gz)
@@ -148,7 +149,7 @@ func TestExtractBinary(t *testing.T) {
 		tmpMockTarGz.Close()
 
 		tmpMockExecutable, err := ioutil.TempFile("", "mock_exe")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer os.Remove(tmpMockExecutable.Name())
 		tmpMockExecutable.Close()
 

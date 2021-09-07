@@ -148,14 +148,6 @@
     "translation": "Канал перетворений в приватний."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Цей стандартний канал не може бути конвертований в приватний."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Канал, що потрібно конвертувати, вже приватний."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Потрібно використовувати createDirectChannel з API для створення каналу особистих повідомлень"
   },
@@ -538,14 +530,6 @@
   {
     "id": "api.command_dnd.desc",
     "translation": "Режим \"Не турбувати\" відключає настільні і мобільні push-повідомлення."
-  },
-  {
-    "id": "api.command_dnd.disabled",
-    "translation": "Режим \"Не турбувати\" відключений."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Помилка отримання стану користувача."
   },
   {
     "id": "api.command_dnd.name",
@@ -996,34 +980,6 @@
     "translation": "Поштові об'єднання відключені системним адміністратором"
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}} "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Особисте повідомлення від"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Перейти до запису"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Групове повідомлення від"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Повідомлення від"
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "У вас є {{.Count}} нові сповіщення.",
-      "many": "",
-      "one": "Ви отримали нове повідомлення.У вас є {{.Count}} нові сповіщення."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
@@ -1096,14 +1052,6 @@
     "translation": "Вкладення файлів на цьому сервері вимкнено."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Не вдається перевірити, чи існує файл."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Не вдається перевірити, чи існує файл."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Загальнодоступний зв'язок не вважається дійсним"
   },
@@ -1124,44 +1072,12 @@
     "translation": "Не вдається отримати інформацію для файлу. Файл повинен бути прикріплений до публікації, який може бути прочитаний поточним користувачем. "
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Не вдається скопіювати файл у S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Неможливо видалити файл із S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Не вдається перемістити файл локально."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Не вибрано файл драйвера."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Виникла помилка з локального сховища серверів "
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Виникла помилка з локального сховища серверів "
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Виникла помилка з локального сховища серверів "
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Виникла помилка з локального сховища серверів S3"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Не маєте прав на запис на зазначену локальну конфігурацію чи іншу помилку."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Помилка перевірки існування бакета."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1198,18 +1114,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Виникла помилка запису в S3"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Виникла помилка при створенні каталогу для нового файлу"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Виникла помилка запису на локальний сервер зберігання"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1406,10 +1310,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Недійсний параметр ChannelId для параметра RootId"
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Недійсний параметр ParentId"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -1808,10 +1708,6 @@
     "translation": "Не вдалося розібрати піктограму команди"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не вдається розкрити метадані піктограми команди"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Не вдається кодувати піктограму команди"
   },
@@ -1936,14 +1832,6 @@
     "translation": "Приєднатися до команди"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost дозволяє обмінюватися повідомленнями та файлами з комп'ютера або телефона з можливістю моментального пошуку та архівування. Після того, як ви приєднаєтесь до команди {{.TeamDisplayName}}, ви зможете отримати доступ до цих функцій будь-коли через Веб-сайт:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Команда {{.SenderStatus}} [[{{.SenderName}}]] запрошує вас приєднатися до [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Вас запросили"
   },
@@ -1990,14 +1878,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Скинути мій пароль "
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Щоб змінити пароль, натисніть кнопку \"Скидання пароля\" нижче."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Якщо ви не хочете скинути пароль, проігноруйте цей електронний лист, і ваш пароль залишиться незмінним. Скидання пароля закінчується через 24 години."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2076,14 +1956,6 @@
     "translation": "Будь-ласка, підтвердьте свою електронну адресу, натиснувши нижче."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Ви можете увійти з:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost дозволяє вам обмінюватися повідомленнями та файлами з комп'ютера або телефону з миттєвим пошуком та архівацією."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Ви приєдналися {{ .ServerURL }}"
   },
@@ -2152,10 +2024,6 @@
     "translation": "Не вдалося розібрати аутентичні дані з об'єкта користувача {{.Service}}"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO через OAuth 2.0 недоступний на цьому сервері"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Failed to create token data for email verification"
   },
@@ -2166,10 +2034,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Не вдалося створити користувача з об'єкта користувача {{.Service}}"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO через OAuth 2.0 недоступний на цьому сервері"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2214,10 +2078,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Автентифікація передача не налаштовується або недоступна на цьому сервері."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Непідтримуваний постачальник послуг OAuth"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2312,24 +2172,8 @@
     "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Не вдалося надіслати електронне повідомлення про зміну електронної пошти успішно"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Не вдалося успішно відправити повідомлення про зміну імені користувача "
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Не вдалося успішно надіслати лист підтвердження змін електронною поштою"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Неможливо відправити email повідомлення для зміни MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Не вдалося успішно надіслати пару електронних листів оновлення"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2344,16 +2188,8 @@
     "translation": "Не вдалося відправити лист про оновлення пароля"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Не вдалося успішно надіслати \"Доданий токен особистого доступу\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Не вдалося успішно надіслати електронний лист для підтвердження"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Не вдалося успішно надіслати вітальний лист"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2398,10 +2234,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Не вдається декодувати зображення профілю"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Не вдалося зберегти зображення профілю. Файл не є дійсним зображенням."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3044,62 +2876,6 @@
     "translation": "Пропущено назву команди в «Участь користувачів в команді»"
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "У вас є нове особисте повідомлення. "
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "У вас є нове особисте повідомлення від {{.SenderName}} "
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "У вас є нове особисте повідомлення. "
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "У вас є нове особисте повідомлення від {{.SenderName}} "
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Ви отримали нове повідомлення."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Ви отримали нове сповіщення від {{.SenderName}} "
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}} "
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Канал: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}  "
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}} "
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Канал: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Нове особисте повідомлення від {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}} "
   },
@@ -3224,10 +3000,6 @@
     "translation": "Неможливо декодувати дані зображення."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Неможливо отримати метадані зображення."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Неможливо перетворити дані зображення у формат PNG. Будь ласка спробуйте ще раз."
   },
@@ -3238,14 +3010,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Не вдається записати файл зображення у файловий накопичувач. Перевірте ваше з'єднання та повторіть спробу."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Неможливо прочитати файл зображення. Переконайтеся, що розмір зображення менше 2 МБ, і спробуйте ще раз."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Функція вимагає оновлення Enterprise Edition та включення ліцензійного ключа. Будь ласка, зв'яжіться зі своїм системним адміністратором."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3688,32 +3452,12 @@
     "translation": "Бюлетень безпеки Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Помилка спроби автентифікації токену MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Невірний MFA токен"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Неможливо оновити активний статус MFA для користувача"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Неможливо оновити активний статус MFA для користувача"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Помилка очищення MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Помилка при створенні QR-коду"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Помилка збереження MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -3962,10 +3706,6 @@
   {
     "id": "model.command_hook.id.app_error",
     "translation": "Недійсний ідентифікатор командного крюка"
-  },
-  {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Недійсний батьківський ідентифікатор"
   },
   {
     "id": "model.command_hook.root_id.app_error",
@@ -4300,11 +4040,11 @@
     "translation": "Оновлення статусу набору тексту користувачем не може бути частіше, ніж раз у 1000 мілісекунд."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Неправильне значення для файлу сертифіката TLS - використовуйте LetsEncrypt або встановіть шлях до існуючого файлу сертифіката"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Неправильне значення для файлу ключів TLS - будь-ласка, використовуйте LetsEncrypt або встановіть шлях до існуючого ключа"
   },
   {
@@ -4376,20 +4116,12 @@
     "translation": "invalid create at property for group"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "invalid description property for group"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "invalid display name property for group"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
   },
   {
     "id": "model.group.name.app_error",
@@ -4422,10 +4154,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "invalid syncable id for group syncable"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4664,20 +4392,12 @@
     "translation": "Некоректний оригінальний ідентифікатор"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Недійсний батьківський ідентифікатор"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Неправильні властивості"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Недійсний ідентифікатор кореня"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Необхідно встановити неправильний кореневий ідентифікатор, якщо встановлено батьківський"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4916,14 +4636,6 @@
     "translation": "Missing TO address."
   },
   {
-    "id": "store.insert_error",
-    "translation": "insert error"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "select error"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Неможливо перетворити StringArray в * string"
   },
@@ -4942,10 +4654,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Не вдається знайти канал"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Сталася помилка під час пошуку каналу"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4976,22 +4684,6 @@
     "translation": "Не вдається отримати команду"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Команда з таким ім'ям вже існує"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Пошук на цьому сервері вимкнено. Будь ласка, зв'яжіться зі своїм системним адміністратором."
   },
@@ -5004,80 +4696,8 @@
     "translation": "Не вдалося знайти дійсний обліковий запис з відповідними обліковими даними. Ця команда може вимагати запрошення від власника команди для приєднання."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Цей e-mail вже зареєстрований, виберіть інший."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "update error"
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Виявлено каталог  помилок із сховища файлів локального сервера."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Знайдено каталог помилок зі списку S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Виникла помилка з локального сховища серверів "
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Виникла помилка при видаленні каталогу з S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Сталася помилка під час читання з локального серверного сховища."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Виникла помилка видалення файлу з S3."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Не вдалося встановити HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Не вдалося відкрити з'єднання."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Не вдалося відкрити TLS з'єднання."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Не вдалося авторизуватися на SMTP сервері"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Не вдалося надіслати вкладення електронною поштою"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Не вдалося закрити з'єднання з SMTP сервером"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Помилка встановлення \"Від адреси\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Не вдалося записати поштове повідомлення"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Не вдалося додати дані поштового повідомлення"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Помилка встановлення \"Для адреси\""
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -5246,14 +4866,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Get the latest Chrome browser"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "failed to build query."
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -5496,10 +5108,6 @@
     "translation": "Неможливо створити файл eml."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Failed to close user index."
   },
@@ -5554,10 +5162,6 @@
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
     "translation": "Працівник індексації Elasticsearch не зміг розібрати час закінчення"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Найстаріший запис не може бути завантажений з бази даних."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6001,19 +5605,15 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{.SiteName}}] {{.SenderName}} запросив вас приєднатися до команди {{.TeamDisplayName}}"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -6118,10 +5718,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Під час видалення додатка OAuth2 сталася помилка"
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -6244,48 +5840,16 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий. "
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Неможливо обробити форму з декількох частин"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Не вдається відкрити файл зображення"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\"."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Порожній масив 'image' в запиті"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
-  },
-  {
     "id": "api.bot.create_disabled",
-    "translation": "Bot creation has been disabled."
+    "translation": "Створення ботів вимкнено."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "Відсутній тип вмісту."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "Недійсний тип вмісту."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
@@ -6318,10 +5882,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "Unable to delete brand image, not found."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6540,10 +6100,6 @@
     "translation": "Не вдалося отримати користувачів у каналі протягом певного періоду часу"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Не вдалося очистити записи"
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Не вдається зберегти смайли"
   },
@@ -6602,10 +6158,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6744,10 +6296,6 @@
     "translation": "Неможливо отримати роль"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Неможливо отримати всі канали"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Неможливо отримати роль"
   },
@@ -6856,10 +6404,6 @@
     "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Ми виявили помилку при підключенні до сервера"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Не знайдена кінцева точка API кластера."
   },
@@ -6894,10 +6438,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Не вдається отримати схему"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -6976,10 +6516,6 @@
     "translation": "Не вдалося оновити заголовок прямого каналу"
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Неможливо створити бакет."
-  },
-  {
     "id": "api.server.warn_metric.start_trial",
     "translation": "Request trial"
   },
@@ -6990,10 +6526,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Не вдалося отримати партію повідомлень для індексації"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7122,14 +6654,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Неможливо розмістити публікацію на видаленому каналі."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Виникла помилка запису в S3"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bot does not exist."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -7280,10 +6804,6 @@
     "translation": "Не вдалося отримати всі команди"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Не вдалося отримати всі команди"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Не вдалося отримати всі команди"
   },
@@ -7304,19 +6824,103 @@
     "translation": "Неможливо підрахувати команди"
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Неможливо підрахувати команди"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Неможливо підрахувати команди"
-  },
-  {
     "id": "api.user.login_cws.license.error",
     "translation": "Bot login is forbidden."
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
     "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+    "translation": "Загальна кількість активних користувачів: {{.NoRegisteredUsers}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_footer",
+    "translation": "Якщо у вас є додаткові питання, будь ласка, зв'яжіться з support@mattermost.com"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_email_header",
+    "translation": "Електронна адреса: {{.Email}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+    "translation": "Діагностичний ідентифікатор: {{.DiagnosticId}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+    "translation": "Контакт: {{.Contact}}"
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Не вдалося проаналізувати тіло запиту."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Неможливо перенести SAML."
+  },
+  {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "Кількість запитаних користувачів невірна."
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Оновити"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+    "translation": "Масштабування за допомогою Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+    "translation": "Масштабування за допомогою Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Масштабування за допомогою Mattermost"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
+    "translation": "Не вдалося надіслати електронний лист із підтвердженням адміністратору"
+  },
+  {
+    "id": "api.context.get_user.app_error",
+    "translation": "Не вдається отримати користувача із сеансу UserID."
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "URL-адресу веб-сайту не можна очистити."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Не вдалося об’єднати дану конфігурацію."
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Не вдалося перенести сховище конфігурацій."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Не вдалося об’єднати дану конфігурацію."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Помилка обробки запиту до CWS."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Ваша ліцензія не підтримує хмарні запити."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Внутрішня помилка під час запиту хмарного API."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP недоступний."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Помилка синтаксісу багато-форматного запиту"
   }
 ]

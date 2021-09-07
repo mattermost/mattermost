@@ -7,20 +7,20 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlProductNoticesStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlProductNoticesStore(sqlSupplier *SqlSupplier) store.ProductNoticesStore {
-	s := SqlProductNoticesStore{sqlSupplier}
+func newSqlProductNoticesStore(sqlStore *SqlStore) store.ProductNoticesStore {
+	s := SqlProductNoticesStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.ProductNoticeViewState{}, "ProductNoticeViewState").SetKeys(false, "UserId", "NoticeId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("NoticeId").SetMaxSize(26)
@@ -31,11 +31,7 @@ func newSqlProductNoticesStore(sqlSupplier *SqlSupplier) store.ProductNoticesSto
 
 func (s SqlProductNoticesStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_notice_views_timestamp", "ProductNoticeViewState", "Timestamp")
-	s.CreateIndexIfNotExists("idx_notice_views_user_id", "ProductNoticeViewState", "UserId")
 	s.CreateIndexIfNotExists("idx_notice_views_notice_id", "ProductNoticeViewState", "NoticeId")
-
-	s.CreateCompositeIndexIfNotExists("idx_notice_views_user_notice", "ProductNoticeViewState", []string{"UserId", "NoticeId"})
-
 }
 
 func (s SqlProductNoticesStore) Clear(notices []string) error {
@@ -46,9 +42,9 @@ func (s SqlProductNoticesStore) Clear(notices []string) error {
 	return nil
 }
 
-func (s SqlProductNoticesStore) ClearOldNotices(currentNotices *model.ProductNotices) error {
+func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNotices) error {
 	var notices []string
-	for _, currentNotice := range *currentNotices {
+	for _, currentNotice := range currentNotices {
 		notices = append(notices, currentNotice.ID)
 	}
 	sql, args, _ := s.getQueryBuilder().Delete("ProductNoticeViewState").Where(sq.NotEq{"NoticeId": notices}).ToSql()

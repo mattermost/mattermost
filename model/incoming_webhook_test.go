@@ -10,66 +10,58 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIncomingWebhookJson(t *testing.T) {
-	o := IncomingWebhook{Id: NewId()}
-	json := o.ToJson()
-	ro := IncomingWebhookFromJson(strings.NewReader(json))
-
-	require.Equal(t, o.Id, ro.Id)
-}
-
 func TestIncomingWebhookIsValid(t *testing.T) {
 	o := IncomingWebhook{}
 
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Id = NewId()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.CreateAt = GetMillis()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.UpdateAt = GetMillis()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.UserId = "123"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.UserId = NewId()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.ChannelId = "123"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.ChannelId = NewId()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.TeamId = "123"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.TeamId = NewId()
 	require.Nil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 65)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 64)
 	require.Nil(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 501)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 500)
 	require.Nil(t, o.IsValid())
 
 	o.Username = strings.Repeat("1", 65)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Username = strings.Repeat("1", 64)
 	require.Nil(t, o.IsValid())
 
 	o.IconURL = strings.Repeat("1", 1025)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.IconURL = strings.Repeat("1", 1024)
 	require.Nil(t, o.IsValid())
@@ -85,7 +77,7 @@ func TestIncomingWebhookPreUpdate(t *testing.T) {
 	o.PreUpdate()
 }
 
-func TestIncomingWebhookRequestFromJson(t *testing.T) {
+func TestIncomingWebhookRequestFromJSON(t *testing.T) {
 	texts := []string{
 		`this is a test`,
 		`this is a test
@@ -139,7 +131,7 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 
 		// try to create an IncomingWebhookRequest from the payload
 		data := strings.NewReader(payload)
-		iwr, _ := IncomingWebhookRequestFromJson(data)
+		iwr, _ := IncomingWebhookRequestFromJSON(data)
 
 		// After it has been decoded, the JSON string won't contain the escape char anymore
 		expected := strings.Replace(text, `\"`, `"`, -1)
@@ -153,7 +145,7 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 
 func TestIncomingWebhookNullArrayItems(t *testing.T) {
 	payload := `{"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}, null]}, null]}`
-	iwr, _ := IncomingWebhookRequestFromJson(strings.NewReader(payload))
+	iwr, _ := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
 	require.NotNil(t, iwr)
 	require.Len(t, iwr.Attachments, 1)
 	require.Len(t, iwr.Attachments[0].Fields, 1)

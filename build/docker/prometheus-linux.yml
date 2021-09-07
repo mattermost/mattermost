@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 60s
+
+scrape_configs:
+  - job_name: 'mattermost'
+    static_configs:
+      - targets: ['172.17.0.1:8067']

@@ -5,26 +5,27 @@ package slashcommands
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
-	"testing"
-
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 )
 
 type TestHelper struct {
 	App          *app.App
+	Context      *request.Context
 	Server       *app.Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -34,6 +35,7 @@ type TestHelper struct {
 
 	SystemAdminUser   *model.User
 	LogBuffer         *bytes.Buffer
+	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
 
 	tempWorkspace string
@@ -47,14 +49,15 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	memoryStore := config.NewTestMemoryStore()
 
-	config := memoryStore.Get()
+	memoryConfig := memoryStore.Get()
 	if configSet != nil {
-		configSet(config)
+		configSet(memoryConfig)
 	}
-	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
-	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	*config.LogSettings.EnableSentry = false // disable error reporting during tests
-	memoryStore.Set(config)
+	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
+	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
+	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	memoryStore.Set(memoryConfig)
 
 	buffer := &bytes.Buffer{}
 
@@ -62,12 +65,24 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	options = append(options, app.ConfigStore(memoryStore))
 	if includeCacheLayer {
 		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
-			return localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+			if err2 != nil {
+				panic(err2)
+			}
+			return lcl
 		}))
 	} else {
 		options = append(options, app.StoreOverride(dbStore))
 	}
-	options = append(options, app.SetLogger(mlog.NewTestingLogger(tb, buffer)))
+
+	testLogger, _ := mlog.NewLogger()
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+		panic("failed to configure test logger: " + errCfg.Error())
+	}
+	// lock logger config so server init cannot override it during testing.
+	testLogger.LockConfiguration()
+	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -76,8 +91,10 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s)),
+		Context:           &request.Context{},
 		Server:            s,
 		LogBuffer:         buffer,
+		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 	}
 
@@ -109,6 +126,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.Srv().Jobs.InitWorkers()
+		th.App.Srv().Jobs.InitSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
@@ -116,8 +135,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
-
-	th.App.InitServer()
 
 	return th
 }
@@ -140,67 +157,63 @@ var userCache struct {
 	BasicUser2      *model.User
 }
 
-func (me *TestHelper) initBasic() *TestHelper {
+func (th *TestHelper) initBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
-		me.SystemAdminUser = me.createUser()
-		me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-		me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
-		userCache.SystemAdminUser = me.SystemAdminUser.DeepCopy()
+		th.SystemAdminUser = th.createUser()
+		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
+		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
-		me.BasicUser = me.createUser()
-		me.BasicUser, _ = me.App.GetUser(me.BasicUser.Id)
-		userCache.BasicUser = me.BasicUser.DeepCopy()
+		th.BasicUser = th.createUser()
+		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
+		userCache.BasicUser = th.BasicUser.DeepCopy()
 
-		me.BasicUser2 = me.createUser()
-		me.BasicUser2, _ = me.App.GetUser(me.BasicUser2.Id)
-		userCache.BasicUser2 = me.BasicUser2.DeepCopy()
+		th.BasicUser2 = th.createUser()
+		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
+		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
 	})
 	// restore cached users
-	me.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	me.BasicUser = userCache.BasicUser.DeepCopy()
-	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.BasicUser, me.BasicUser2)
+	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
+	th.BasicUser = userCache.BasicUser.DeepCopy()
+	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.BasicUser, th.BasicUser2)
 
-	me.BasicTeam = me.createTeam()
+	th.BasicTeam = th.createTeam()
 
-	me.linkUserToTeam(me.BasicUser, me.BasicTeam)
-	me.linkUserToTeam(me.BasicUser2, me.BasicTeam)
-	me.BasicChannel = me.CreateChannel(me.BasicTeam)
-	me.BasicPost = me.createPost(me.BasicChannel)
-	return me
+	th.linkUserToTeam(th.BasicUser, th.BasicTeam)
+	th.linkUserToTeam(th.BasicUser2, th.BasicTeam)
+	th.BasicChannel = th.CreateChannel(th.BasicTeam)
+	th.BasicPost = th.createPost(th.BasicChannel)
+	return th
 }
 
-func (me *TestHelper) createTeam() *model.Team {
+func (th *TestHelper) createTeam() *model.Team {
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
-	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if team, err = me.App.CreateTeam(team); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
+
 	return team
 }
 
-func (me *TestHelper) createUser() *model.User {
-	return me.createUserOrGuest(false)
+func (th *TestHelper) createUser() *model.User {
+	return th.createUserOrGuest(false)
 }
 
-func (me *TestHelper) createGuest() *model.User {
-	return me.createUserOrGuest(true)
+func (th *TestHelper) createGuest() *model.User {
+	return th.createUserOrGuest(true)
 }
 
-func (me *TestHelper) createUserOrGuest(guest bool) *model.User {
+func (th *TestHelper) createUserOrGuest(guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -211,36 +224,36 @@ func (me *TestHelper) createUserOrGuest(guest bool) *model.User {
 		EmailVerified: true,
 	}
 
-	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if guest {
-		if user, err = me.App.CreateGuest(user); err != nil {
-			mlog.Error(err.Error())
-
-			time.Sleep(time.Second)
+		if user, err = th.App.CreateGuest(th.Context, user); err != nil {
 			panic(err)
 		}
 	} else {
-		if user, err = me.App.CreateUser(user); err != nil {
-			mlog.Error(err.Error())
-
-			time.Sleep(time.Second)
+		if user, err = th.App.CreateUser(th.Context, user); err != nil {
 			panic(err)
 		}
 	}
-	utils.EnableDebugLogForTest()
 	return user
 }
 
-func (me *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return me.createChannel(team, model.CHANNEL_OPEN)
+type ChannelOption func(*model.Channel)
+
+func WithShared(v bool) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.Shared = model.NewBool(v)
+	}
 }
 
-func (me *TestHelper) createPrivateChannel(team *model.Team) *model.Channel {
-	return me.createChannel(team, model.CHANNEL_PRIVATE)
+func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(team, model.ChannelTypeOpen, options...)
 }
 
-func (me *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createPrivateChannel(team *model.Team) *model.Channel {
+	return th.createChannel(team, model.ChannelTypePrivate)
+}
+
+func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -248,22 +261,38 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 		Name:        "name_" + id,
 		Type:        channelType,
 		TeamId:      team.Id,
-		CreatorId:   me.BasicUser.Id,
+		CreatorId:   th.BasicUser.Id,
 	}
 
-	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if channel, err = me.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
+	for _, option := range options {
+		option(channel)
+	}
 
-		time.Sleep(time.Second)
+	var err *model.AppError
+	if channel, err = th.App.CreateChannel(th.Context, channel, true); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
+
+	if channel.IsShared() {
+		id := model.NewId()
+		_, err := th.App.SaveSharedChannel(&model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             false,
+			ReadOnly:         false,
+			ShareName:        "shared-" + id,
+			ShareDisplayName: "shared-" + id,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         model.NewId(),
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
 	return channel
 }
 
-func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType, userId string) *model.Channel {
+func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType model.ChannelType, userID string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -271,105 +300,70 @@ func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 		Name:        "name_" + id,
 		Type:        channelType,
 		TeamId:      team.Id,
-		CreatorId:   userId,
+		CreatorId:   userID,
 	}
 
-	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if channel, err = me.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if channel, err = th.App.CreateChannel(th.Context, channel, true); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return channel
 }
 
-func (me *TestHelper) createDmChannel(user *model.User) *model.Channel {
-	utils.DisableDebugLogForTest()
+func (th *TestHelper) createDmChannel(user *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = me.App.GetOrCreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return channel
 }
 
-func (me *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
-	utils.DisableDebugLogForTest()
+func (th *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = me.App.CreateGroupChannel([]string{me.BasicUser.Id, user1.Id, user2.Id}, me.BasicUser.Id); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if channel, err = th.App.CreateGroupChannel([]string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return channel
 }
 
-func (me *TestHelper) createPost(channel *model.Channel) *model.Post {
+func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
-		UserId:    me.BasicUser.Id,
+		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   "message_" + id,
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = me.App.CreatePost(post, channel, false, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
 	}
-	utils.EnableDebugLogForTest()
 	return post
 }
 
-func (me *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
-
-	err := me.App.JoinUserToTeam(team, user, "")
+func (th *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
+	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
-func (me *TestHelper) addUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	utils.DisableDebugLogForTest()
-
-	member, err := me.App.AddUserToChannel(user, channel)
+func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
+	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
-
-	utils.EnableDebugLogForTest()
-
 	return member
 }
 
-func (me *TestHelper) shutdownApp() {
+func (th *TestHelper) shutdownApp() {
 	done := make(chan bool)
 	go func() {
-		me.Server.Shutdown()
+		th.Server.Shutdown()
 		close(done)
 	}()
 
@@ -382,23 +376,20 @@ func (me *TestHelper) shutdownApp() {
 	}
 }
 
-func (me *TestHelper) tearDown() {
-	if me.IncludeCacheLayer {
+func (th *TestHelper) tearDown() {
+	if th.IncludeCacheLayer {
 		// Clean all the caches
-		me.App.Srv().InvalidateAllCaches()
+		th.App.Srv().InvalidateAllCaches()
 	}
-	me.shutdownApp()
-	if me.tempWorkspace != "" {
-		os.RemoveAll(me.tempWorkspace)
+	th.shutdownApp()
+	if th.tempWorkspace != "" {
+		os.RemoveAll(th.tempWorkspace)
 	}
 }
 
-func (me *TestHelper) removePermissionFromRole(permission string, roleName string) {
-	utils.DisableDebugLogForTest()
-
-	role, err1 := me.App.GetRoleByName(roleName)
+func (th *TestHelper) removePermissionFromRole(permission string, roleName string) {
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err1)
 	}
 
@@ -410,44 +401,33 @@ func (me *TestHelper) removePermissionFromRole(permission string, roleName strin
 	}
 
 	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
-		utils.EnableDebugLogForTest()
 		return
 	}
 
 	role.Permissions = newPermissions
 
-	_, err2 := me.App.UpdateRole(role)
+	_, err2 := th.App.UpdateRole(role)
 	if err2 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err2)
 	}
-
-	utils.EnableDebugLogForTest()
 }
 
-func (me *TestHelper) addPermissionToRole(permission string, roleName string) {
-	utils.DisableDebugLogForTest()
-
-	role, err1 := me.App.GetRoleByName(roleName)
+func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err1)
 	}
 
 	for _, existingPermission := range role.Permissions {
 		if existingPermission == permission {
-			utils.EnableDebugLogForTest()
 			return
 		}
 	}
 
 	role.Permissions = append(role.Permissions, permission)
 
-	_, err2 := me.App.UpdateRole(role)
+	_, err2 := th.App.UpdateRole(role)
 	if err2 != nil {
-		utils.EnableDebugLogForTest()
 		panic(err2)
 	}
-
-	utils.EnableDebugLogForTest()
 }

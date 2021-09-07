@@ -4,13 +4,15 @@
 package plugin
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestAvaliablePlugins(t *testing.T) {
@@ -37,7 +39,9 @@ func TestAvaliablePlugins(t *testing.T) {
 		defer os.RemoveAll(filepath.Join(dir, "plugin1"))
 
 		path := filepath.Join(dir, "plugin1", "plugin.json")
-		err = ioutil.WriteFile(path, []byte(bundle1.Manifest.ToJson()), 0644)
+		manifestJSON, jsonErr := json.Marshal(bundle1.Manifest)
+		require.NoError(t, jsonErr)
+		err = ioutil.WriteFile(path, manifestJSON, 0644)
 		require.NoError(t, err)
 
 		bundles, err := env.Available()

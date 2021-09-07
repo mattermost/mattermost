@@ -28,6 +28,10 @@ type ColumnMap struct {
 	// Not used elsewhere
 	Unique bool
 
+	// If not nil, " default 'value'" is added to the create table statements.
+	// Not used elsewhere
+	DefaultConstraint *string
+
 	// Query used for getting generated id after insert
 	GeneratedIdQuery string
 
@@ -36,6 +40,9 @@ type ColumnMap struct {
 	MaxSize int
 
 	DefaultValue string
+
+	// The column data type. If set it overrides the one converted from the Go type.
+	DataType string
 
 	fieldName  string
 	gotype     reflect.Type
@@ -79,5 +86,18 @@ func (c *ColumnMap) SetNotNull(nn bool) *ColumnMap {
 // to alter the generated type for "create table" statements
 func (c *ColumnMap) SetMaxSize(size int) *ColumnMap {
 	c.MaxSize = size
+	return c
+}
+
+// SetDataType allows to specify a custom data type for the column.
+func (c *ColumnMap) SetDataType(dataType string) *ColumnMap {
+	c.DataType = dataType
+	return c
+}
+
+// SetDefaultConstraint adds " default 'value'" to the create table statements for this
+// column, if value is not nil. Not used elsewhere
+func (c *ColumnMap) SetDefaultConstraint(value *string) *ColumnMap {
+	c.DefaultConstraint = value
 	return c
 }

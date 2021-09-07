@@ -101,6 +101,9 @@ type SubConn interface {
 	// a new connection will be created.
 	//
 	// This will trigger a state transition for the SubConn.
+	//
+	// Deprecated: This method is now part of the ClientConn interface and will
+	// eventually be removed from here.
 	UpdateAddresses([]resolver.Address)
 	// Connect starts the connecting for this SubConn.
 	Connect()
@@ -143,6 +146,13 @@ type ClientConn interface {
 	// RemoveSubConn removes the SubConn from ClientConn.
 	// The SubConn will be shutdown.
 	RemoveSubConn(SubConn)
+	// UpdateAddresses updates the addresses used in the passed in SubConn.
+	// gRPC checks if the currently connected address is still in the new list.
+	// If so, the connection will be kept. Else, the connection will be
+	// gracefully closed, and a new connection will be created.
+	//
+	// This will trigger a state transition for the SubConn.
+	UpdateAddresses(SubConn, []resolver.Address)
 
 	// UpdateState notifies gRPC that the balancer's internal state has
 	// changed.
@@ -174,6 +184,10 @@ type BuildOptions struct {
 	Dialer func(context.Context, string) (net.Conn, error)
 	// ChannelzParentID is the entity parent's channelz unique identification number.
 	ChannelzParentID int64
+	// CustomUserAgent is the custom user agent set on the parent ClientConn.
+	// The balancer should set the same custom user agent if it creates a
+	// ClientConn.
+	CustomUserAgent string
 	// Target contains the parsed address info of the dial target. It is the same resolver.Target as
 	// passed to the resolver.
 	// See the documentation for the resolver.Target type for details about what it contains.

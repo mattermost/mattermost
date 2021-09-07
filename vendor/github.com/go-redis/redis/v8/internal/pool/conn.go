@@ -58,45 +58,41 @@ func (cn *Conn) Write(b []byte) (int, error) {
 }
 
 func (cn *Conn) RemoteAddr() net.Addr {
-	return cn.netConn.RemoteAddr()
+	if cn.netConn != nil {
+		return cn.netConn.RemoteAddr()
+	}
+	return nil
 }
 
 func (cn *Conn) WithReader(ctx context.Context, timeout time.Duration, fn func(rd *proto.Reader) error) error {
-	return internal.WithSpan(ctx, "with_reader", func(ctx context.Context) error {
-		if err := cn.netConn.SetReadDeadline(cn.deadline(ctx, timeout)); err != nil {
-			return internal.RecordError(ctx, err)
-		}
-		if err := fn(cn.rd); err != nil {
-			return internal.RecordError(ctx, err)
-		}
-		return nil
-	})
+	if err := cn.netConn.SetReadDeadline(cn.deadline(ctx, timeout)); err != nil {
+		return err
+	}
+	return fn(cn.rd)
 }
 
 func (cn *Conn) WithWriter(
 	ctx context.Context, timeout time.Duration, fn func(wr *proto.Writer) error,
 ) error {
-	return internal.WithSpan(ctx, "with_writer", func(ctx context.Context) error {
-		if err := cn.netConn.SetWriteDeadline(cn.deadline(ctx, timeout)); err != nil {
-			return internal.RecordError(ctx, err)
-		}
+	if err := cn.netConn.SetWriteDeadline(cn.deadline(ctx, timeout)); err != nil {
+		return err
+	}
 
-		if cn.bw.Buffered() > 0 {
-			cn.bw.Reset(cn.netConn)
-		}
+	if cn.bw.Buffered() > 0 {
+		cn.bw.Reset(cn.netConn)
+	}
 
-		if err := fn(cn.wr); err != nil {
-			return internal.RecordError(ctx, err)
-		}
+	if err := fn(cn.wr); err != nil {
+		return err
+	}
 
-		if err := cn.bw.Flush(); err != nil {
-			return internal.RecordError(ctx, err)
-		}
+	if err := cn.bw.Flush(); err != nil {
+		return err
+	}
 
-		internal.WritesCounter.Add(ctx, 1)
+	internal.WritesCounter.Add(ctx, 1)
 
-		return nil
-	})
+	return nil
 }
 
 func (cn *Conn) Close() error {

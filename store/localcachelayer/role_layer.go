@@ -4,11 +4,13 @@
 package localcachelayer
 
 import (
+	"bytes"
+	"context"
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type LocalCacheRoleStore struct {
@@ -17,36 +19,36 @@ type LocalCacheRoleStore struct {
 }
 
 func (s *LocalCacheRoleStore) handleClusterInvalidateRole(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.roleCache.Purge()
 	} else {
-		s.rootStore.roleCache.Remove(msg.Data)
+		s.rootStore.roleCache.Remove(string(msg.Data))
 	}
 }
 
 func (s *LocalCacheRoleStore) handleClusterInvalidateRolePermissions(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.rolePermissionsCache.Purge()
 	} else {
-		s.rootStore.rolePermissionsCache.Remove(msg.Data)
+		s.rootStore.rolePermissionsCache.Remove(string(msg.Data))
 	}
 }
 
 func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
-	if len(role.Name) != 0 {
+	if role.Name != "" {
 		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name)
 		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
 	}
 	return s.RoleStore.Save(role)
 }
 
-func (s LocalCacheRoleStore) GetByName(name string) (*model.Role, error) {
+func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var role *model.Role
 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
 		return role, nil
 	}
 
-	role, err := s.RoleStore.GetByName(name)
+	role, err := s.RoleStore.GetByName(ctx, name)
 	if err != nil {
 		return nil, err
 	}

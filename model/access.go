@@ -4,15 +4,13 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
 const (
-	ACCESS_TOKEN_GRANT_TYPE  = "authorization_code"
-	ACCESS_TOKEN_TYPE        = "bearer"
-	REFRESH_TOKEN_GRANT_TYPE = "refresh_token"
+	AccessTokenGrantType  = "authorization_code"
+	AccessTokenType       = "bearer"
+	RefreshTokenGrantType = "refresh_token"
 )
 
 type AccessData struct {
@@ -31,17 +29,17 @@ type AccessResponse struct {
 	ExpiresIn    int32  `json:"expires_in"`
 	Scope        string `json:"scope"`
 	RefreshToken string `json:"refresh_token"`
+	IdToken      string `json:"id_token"`
 }
 
 // IsValid validates the AccessData and returns an error if it isn't configured
 // correctly.
 func (ad *AccessData) IsValid() *AppError {
-
-	if len(ad.ClientId) == 0 || len(ad.ClientId) > 26 {
+	if ad.ClientId == "" || len(ad.ClientId) > 26 {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.UserId) == 0 || len(ad.UserId) > 26 {
+	if ad.UserId == "" || len(ad.UserId) > 26 {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -53,7 +51,7 @@ func (ad *AccessData) IsValid() *AppError {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.refresh_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.RedirectUri) == 0 || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
+	if ad.RedirectUri == "" || len(ad.RedirectUri) > 256 || !IsValidHTTPURL(ad.RedirectUri) {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -71,26 +69,4 @@ func (ad *AccessData) IsExpired() bool {
 	}
 
 	return false
-}
-
-func (ad *AccessData) ToJson() string {
-	b, _ := json.Marshal(ad)
-	return string(b)
-}
-
-func AccessDataFromJson(data io.Reader) *AccessData {
-	var ad *AccessData
-	json.NewDecoder(data).Decode(&ad)
-	return ad
-}
-
-func (ar *AccessResponse) ToJson() string {
-	b, _ := json.Marshal(ar)
-	return string(b)
-}
-
-func AccessResponseFromJson(data io.Reader) *AccessResponse {
-	var ar *AccessResponse
-	json.NewDecoder(data).Decode(&ar)
-	return ar
 }

@@ -4,20 +4,20 @@
 package main
 
 import (
-	"bytes"
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-
 	"github.com/gorilla/websocket"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 type Plugin struct {
 	plugin.MattermostPlugin
 }
 
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -32,9 +32,17 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		if err != nil {
 			break
 		}
-		req := model.WebSocketRequestFromJson(bytes.NewReader(msg))
+		var req model.WebSocketRequest
+		err = json.Unmarshal(msg, &req)
+		if err != nil {
+			break
+		}
 		resp := model.NewWebSocketResponse("OK", req.Seq, map[string]interface{}{"action": req.Action, "value": req.Data["value"]})
-		if err = ws.WriteMessage(mt, []byte(resp.ToJson())); err != nil {
+		respJSON, err := resp.ToJSON()
+		if err != nil {
+			break
+		}
+		if err = ws.WriteMessage(mt, respJSON); err != nil {
 			break
 		}
 	}

@@ -4,10 +4,13 @@
 package searchlayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"context"
+	"sync/atomic"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SearchStore struct {
@@ -17,25 +20,31 @@ type SearchStore struct {
 	team         *SearchTeamStore
 	channel      *SearchChannelStore
 	post         *SearchPostStore
-	config       *model.Config
+	fileInfo     *SearchFileInfoStore
+	configValue  atomic.Value
 }
 
 func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cfg *model.Config) *SearchStore {
 	searchStore := &SearchStore{
 		Store:        baseStore,
 		searchEngine: searchEngine,
-		config:       cfg,
 	}
+	searchStore.configValue.Store(cfg)
 	searchStore.channel = &SearchChannelStore{ChannelStore: baseStore.Channel(), rootStore: searchStore}
 	searchStore.post = &SearchPostStore{PostStore: baseStore.Post(), rootStore: searchStore}
 	searchStore.team = &SearchTeamStore{TeamStore: baseStore.Team(), rootStore: searchStore}
 	searchStore.user = &SearchUserStore{UserStore: baseStore.User(), rootStore: searchStore}
+	searchStore.fileInfo = &SearchFileInfoStore{FileInfoStore: baseStore.FileInfo(), rootStore: searchStore}
 
 	return searchStore
 }
 
 func (s *SearchStore) UpdateConfig(cfg *model.Config) {
-	s.config = cfg
+	s.configValue.Store(cfg)
+}
+
+func (s *SearchStore) getConfig() *model.Config {
+	return s.configValue.Load().(*model.Config)
 }
 
 func (s *SearchStore) Channel() store.ChannelStore {
@@ -44,6 +53,10 @@ func (s *SearchStore) Channel() store.ChannelStore {
 
 func (s *SearchStore) Post() store.PostStore {
 	return s.post
+}
+
+func (s *SearchStore) FileInfo() store.FileInfoStore {
+	return s.fileInfo
 }
 
 func (s *SearchStore) Team() store.TeamStore {
@@ -55,7 +68,7 @@ func (s *SearchStore) User() store.UserStore {
 }
 
 func (s *SearchStore) indexUserFromID(userId string) {
-	user, err := s.User().Get(userId)
+	user, err := s.User().Get(context.Background(), userId)
 	if err != nil {
 		return
 	}

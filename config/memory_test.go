@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config_test
+package config
 
 import (
 	"os"
@@ -9,8 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v5/config"
 )
 
 func setupConfigMemory(t *testing.T) {
@@ -21,7 +19,7 @@ func setupConfigMemory(t *testing.T) {
 func TestMemoryGetFile(t *testing.T) {
 	setupConfigMemory(t)
 
-	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+	ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{
 		InitialConfig: minimalConfig,
 		InitialFiles: map[string][]byte{
 			"empty-file": {},
@@ -57,7 +55,7 @@ func TestMemoryGetFile(t *testing.T) {
 func TestMemorySetFile(t *testing.T) {
 	setupConfigMemory(t)
 
-	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+	ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{
 		InitialConfig: minimalConfig,
 	})
 	require.NoError(t, err)
@@ -89,7 +87,7 @@ func TestMemoryHasFile(t *testing.T) {
 	t.Run("has non-existent", func(t *testing.T) {
 		setupConfigMemory(t)
 
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+		ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{
 			InitialConfig: minimalConfig,
 		})
 		require.NoError(t, err)
@@ -103,7 +101,7 @@ func TestMemoryHasFile(t *testing.T) {
 	t.Run("has existing", func(t *testing.T) {
 		setupConfigMemory(t)
 
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+		ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{
 			InitialConfig: minimalConfig,
 		})
 		require.NoError(t, err)
@@ -120,7 +118,7 @@ func TestMemoryHasFile(t *testing.T) {
 	t.Run("has manually created file", func(t *testing.T) {
 		setupConfigMemory(t)
 
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+		ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{
 			InitialConfig: minimalConfig,
 			InitialFiles: map[string][]byte{
 				"manual": []byte("manual file"),
@@ -139,7 +137,7 @@ func TestMemoryRemoveFile(t *testing.T) {
 	t.Run("remove non-existent", func(t *testing.T) {
 		setupConfigMemory(t)
 
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+		ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{
 			InitialConfig: minimalConfig,
 		})
 		require.NoError(t, err)
@@ -152,7 +150,7 @@ func TestMemoryRemoveFile(t *testing.T) {
 	t.Run("remove existing", func(t *testing.T) {
 		setupConfigMemory(t)
 
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+		ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{
 			InitialConfig: minimalConfig,
 		})
 		require.NoError(t, err)
@@ -175,7 +173,7 @@ func TestMemoryRemoveFile(t *testing.T) {
 	t.Run("remove manually created file", func(t *testing.T) {
 		setupConfigMemory(t)
 
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+		ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{
 			InitialConfig: minimalConfig,
 			InitialFiles: map[string][]byte{
 				"manual": []byte("manual file"),
@@ -199,7 +197,7 @@ func TestMemoryRemoveFile(t *testing.T) {
 func TestMemoryStoreString(t *testing.T) {
 	setupConfigMemory(t)
 
-	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: emptyConfig})
+	ms, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{InitialConfig: emptyConfig})
 	require.NoError(t, err)
 	defer ms.Close()
 

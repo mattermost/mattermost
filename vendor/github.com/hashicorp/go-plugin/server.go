@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -260,9 +259,6 @@ func Serve(opts *ServeConfig) {
 	// start with default version in the handshake config
 	protoVersion, protoType, pluginSet := protocolVersion(opts)
 
-	// Logging goes to the original stderr
-	log.SetOutput(os.Stderr)
-
 	logger := opts.Logger
 	if logger == nil {
 		// internal logger to os.Stderr
@@ -419,10 +415,11 @@ func Serve(opts *ServeConfig) {
 		// quite ready if they connect immediately but the client should
 		// retry a few times.
 		ch <- &ReattachConfig{
-			Protocol: protoType,
-			Addr:     listener.Addr(),
-			Pid:      os.Getpid(),
-			Test:     true,
+			Protocol:        protoType,
+			ProtocolVersion: protoVersion,
+			Addr:            listener.Addr(),
+			Pid:             os.Getpid(),
+			Test:            true,
 		}
 	}
 

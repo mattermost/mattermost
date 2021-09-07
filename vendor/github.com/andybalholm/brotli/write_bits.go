@@ -1,5 +1,7 @@
 package brotli
 
+import "encoding/binary"
+
 /* Copyright 2010 Google Inc. All Rights Reserved.
 
    Distributed under MIT license.
@@ -24,21 +26,15 @@ package brotli
    For n bits, we take the last 5 bits, OR that with high bits in BYTE-0,
    and locate the rest in BYTE+1, BYTE+2, etc. */
 func writeBits(n_bits uint, bits uint64, pos *uint, array []byte) {
-	var array_pos []byte = array[*pos>>3:]
-	var bits_reserved_in_first_byte uint = (*pos & 7)
-	/* implicit & 0xFF is assumed for uint8_t arithmetics */
-
-	var bits_left_to_write uint
-	bits <<= bits_reserved_in_first_byte
-	array_pos[0] |= byte(bits)
-	array_pos = array_pos[1:]
-	for bits_left_to_write = n_bits + bits_reserved_in_first_byte; bits_left_to_write >= 9; bits_left_to_write -= 8 {
-		bits >>= 8
-		array_pos[0] = byte(bits)
-		array_pos = array_pos[1:]
-	}
-
-	array_pos[0] = 0
+	/* This branch of the code can write up to 56 bits at a time,
+	   7 bits are lost by being perhaps already in *p and at least
+	   1 bit is needed to initialize the bit-stream ahead (i.e. if 7
+	   bits are in *p and we write 57 bits, then the next write will
+	   access a byte that was never initialized). */
+	p := array[*pos>>3:]
+	v := uint64(p[0])
+	v |= bits << (*pos & 7)
+	binary.LittleEndian.PutUint64(p, v)
 	*pos += n_bits
 }
 

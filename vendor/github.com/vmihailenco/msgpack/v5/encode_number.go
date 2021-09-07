@@ -4,12 +4,12 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/vmihailenco/msgpack/v5/codes"
+	"github.com/vmihailenco/msgpack/v5/msgpcode"
 )
 
 // EncodeUint8 encodes an uint8 in 2 bytes preserving type of the number.
 func (e *Encoder) EncodeUint8(n uint8) error {
-	return e.write1(codes.Uint8, n)
+	return e.write1(msgpcode.Uint8, n)
 }
 
 func (e *Encoder) encodeUint8Cond(n uint8) error {
@@ -21,7 +21,7 @@ func (e *Encoder) encodeUint8Cond(n uint8) error {
 
 // EncodeUint16 encodes an uint16 in 3 bytes preserving type of the number.
 func (e *Encoder) EncodeUint16(n uint16) error {
-	return e.write2(codes.Uint16, n)
+	return e.write2(msgpcode.Uint16, n)
 }
 
 func (e *Encoder) encodeUint16Cond(n uint16) error {
@@ -33,7 +33,7 @@ func (e *Encoder) encodeUint16Cond(n uint16) error {
 
 // EncodeUint32 encodes an uint16 in 5 bytes preserving type of the number.
 func (e *Encoder) EncodeUint32(n uint32) error {
-	return e.write4(codes.Uint32, n)
+	return e.write4(msgpcode.Uint32, n)
 }
 
 func (e *Encoder) encodeUint32Cond(n uint32) error {
@@ -45,7 +45,7 @@ func (e *Encoder) encodeUint32Cond(n uint32) error {
 
 // EncodeUint64 encodes an uint16 in 9 bytes preserving type of the number.
 func (e *Encoder) EncodeUint64(n uint64) error {
-	return e.write8(codes.Uint64, n)
+	return e.write8(msgpcode.Uint64, n)
 }
 
 func (e *Encoder) encodeUint64Cond(n uint64) error {
@@ -57,7 +57,7 @@ func (e *Encoder) encodeUint64Cond(n uint64) error {
 
 // EncodeInt8 encodes an int8 in 2 bytes preserving type of the number.
 func (e *Encoder) EncodeInt8(n int8) error {
-	return e.write1(codes.Int8, uint8(n))
+	return e.write1(msgpcode.Int8, uint8(n))
 }
 
 func (e *Encoder) encodeInt8Cond(n int8) error {
@@ -69,7 +69,7 @@ func (e *Encoder) encodeInt8Cond(n int8) error {
 
 // EncodeInt16 encodes an int16 in 3 bytes preserving type of the number.
 func (e *Encoder) EncodeInt16(n int16) error {
-	return e.write2(codes.Int16, uint16(n))
+	return e.write2(msgpcode.Int16, uint16(n))
 }
 
 func (e *Encoder) encodeInt16Cond(n int16) error {
@@ -81,7 +81,7 @@ func (e *Encoder) encodeInt16Cond(n int16) error {
 
 // EncodeInt32 encodes an int32 in 5 bytes preserving type of the number.
 func (e *Encoder) EncodeInt32(n int32) error {
-	return e.write4(codes.Int32, uint32(n))
+	return e.write4(msgpcode.Int32, uint32(n))
 }
 
 func (e *Encoder) encodeInt32Cond(n int32) error {
@@ -93,7 +93,7 @@ func (e *Encoder) encodeInt32Cond(n int32) error {
 
 // EncodeInt64 encodes an int64 in 9 bytes preserving type of the number.
 func (e *Encoder) EncodeInt64(n int64) error {
-	return e.write8(codes.Int64, uint64(n))
+	return e.write8(msgpcode.Int64, uint64(n))
 }
 
 func (e *Encoder) encodeInt64Cond(n int64) error {
@@ -127,7 +127,7 @@ func (e *Encoder) EncodeInt(n int64) error {
 	if n >= 0 {
 		return e.EncodeUint(uint64(n))
 	}
-	if n >= int64(int8(codes.NegFixedNumLow)) {
+	if n >= int64(int8(msgpcode.NegFixedNumLow)) {
 		return e.w.WriteByte(byte(n))
 	}
 	if n >= math.MinInt8 {
@@ -148,7 +148,7 @@ func (e *Encoder) EncodeFloat32(n float32) error {
 			return e.EncodeInt(int64(n))
 		}
 	}
-	return e.write4(codes.Float, math.Float32bits(n))
+	return e.write4(msgpcode.Float, math.Float32bits(n))
 }
 
 func (e *Encoder) EncodeFloat64(n float64) error {
@@ -161,27 +161,27 @@ func (e *Encoder) EncodeFloat64(n float64) error {
 			return e.EncodeInt(int64(n))
 		}
 	}
-	return e.write8(codes.Double, math.Float64bits(n))
+	return e.write8(msgpcode.Double, math.Float64bits(n))
 }
 
-func (e *Encoder) write1(code codes.Code, n uint8) error {
+func (e *Encoder) write1(code byte, n uint8) error {
 	e.buf = e.buf[:2]
-	e.buf[0] = byte(code)
+	e.buf[0] = code
 	e.buf[1] = n
 	return e.write(e.buf)
 }
 
-func (e *Encoder) write2(code codes.Code, n uint16) error {
+func (e *Encoder) write2(code byte, n uint16) error {
 	e.buf = e.buf[:3]
-	e.buf[0] = byte(code)
+	e.buf[0] = code
 	e.buf[1] = byte(n >> 8)
 	e.buf[2] = byte(n)
 	return e.write(e.buf)
 }
 
-func (e *Encoder) write4(code codes.Code, n uint32) error {
+func (e *Encoder) write4(code byte, n uint32) error {
 	e.buf = e.buf[:5]
-	e.buf[0] = byte(code)
+	e.buf[0] = code
 	e.buf[1] = byte(n >> 24)
 	e.buf[2] = byte(n >> 16)
 	e.buf[3] = byte(n >> 8)
@@ -189,9 +189,9 @@ func (e *Encoder) write4(code codes.Code, n uint32) error {
 	return e.write(e.buf)
 }
 
-func (e *Encoder) write8(code codes.Code, n uint64) error {
+func (e *Encoder) write8(code byte, n uint64) error {
 	e.buf = e.buf[:9]
-	e.buf[0] = byte(code)
+	e.buf[0] = code
 	e.buf[1] = byte(n >> 56)
 	e.buf[2] = byte(n >> 48)
 	e.buf[3] = byte(n >> 40)
@@ -201,6 +201,14 @@ func (e *Encoder) write8(code codes.Code, n uint64) error {
 	e.buf[7] = byte(n >> 8)
 	e.buf[8] = byte(n)
 	return e.write(e.buf)
+}
+
+func encodeUintValue(e *Encoder, v reflect.Value) error {
+	return e.EncodeUint(v.Uint())
+}
+
+func encodeIntValue(e *Encoder, v reflect.Value) error {
+	return e.EncodeInt(v.Int())
 }
 
 func encodeUint8CondValue(e *Encoder, v reflect.Value) error {

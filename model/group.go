@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 )
@@ -139,7 +137,7 @@ func (group *Group) IsValidForCreate() *AppError {
 		return NewAppError("Group.IsValidForCreate", "model.group.source.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(group.RemoteId) > GroupRemoteIDMaxLength || (len(group.RemoteId) == 0 && group.requiresRemoteId()) {
+	if len(group.RemoteId) > GroupRemoteIDMaxLength || (group.RemoteId == "" && group.requiresRemoteId()) {
 		return NewAppError("Group.IsValidForCreate", "model.group.remote_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -171,11 +169,6 @@ func (group *Group) IsValidForUpdate() *AppError {
 	return nil
 }
 
-func (group *Group) ToJson() string {
-	b, _ := json.Marshal(group)
-	return string(b)
-}
-
 var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 func (group *Group) IsValidName() *AppError {
@@ -194,28 +187,4 @@ func (group *Group) IsValidName() *AppError {
 		}
 	}
 	return nil
-}
-
-func GroupFromJson(data io.Reader) *Group {
-	var group *Group
-	json.NewDecoder(data).Decode(&group)
-	return group
-}
-
-func GroupsFromJson(data io.Reader) []*Group {
-	var groups []*Group
-	json.NewDecoder(data).Decode(&groups)
-	return groups
-}
-
-func GroupPatchFromJson(data io.Reader) *GroupPatch {
-	var groupPatch *GroupPatch
-	json.NewDecoder(data).Decode(&groupPatch)
-	return groupPatch
-}
-
-func GroupStatsFromJson(data io.Reader) *GroupStats {
-	var groupStats *GroupStats
-	json.NewDecoder(data).Decode(&groupStats)
-	return groupStats
 }

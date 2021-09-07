@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
-	"math/rand"
 	"net"
 	"strings"
 	"sync"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/go-redis/redis/v8/internal"
 	"github.com/go-redis/redis/v8/internal/pool"
+	"github.com/go-redis/redis/v8/internal/rand"
 )
 
 //------------------------------------------------------------------------------
@@ -35,6 +35,10 @@ type FailoverOptions struct {
 
 	// Route all commands to slave read-only nodes.
 	SlaveOnly bool
+
+	// Use slaves disconnected with master when cannot get connected slaves
+	// Now, this option only works in RandomSlaveAddr function.
+	UseDisconnectedSlaves bool
 
 	// Following options are copied from Options struct.
 
@@ -167,6 +171,10 @@ func NewFailoverClient(failoverOpt *FailoverOptions) *Client {
 	sentinelAddrs := make([]string, len(failoverOpt.SentinelAddrs))
 	copy(sentinelAddrs, failoverOpt.SentinelAddrs)
 
+	rand.Shuffle(len(sentinelAddrs), func(i, j int) {
+		sentinelAddrs[i], sentinelAddrs[j] = sentinelAddrs[j], sentinelAddrs[i]
+	})
+
 	failover := &sentinelFailover{
 		opt:           failoverOpt,
 		sentinelAddrs: sentinelAddrs,
@@ -177,11 +185,14 @@ func NewFailoverClient(failoverOpt *FailoverOptions) *Client {
 	opt.init()
 
 	connPool := newConnPool(opt)
+
+	failover.mu.Lock()
 	failover.onFailover = func(ctx context.Context, addr string) {
 		_ = connPool.Filter(func(cn *pool.Conn) bool {
 			return cn.RemoteAddr().String() != addr
 		})
 	}
+	failover.mu.Unlock()
 
 	c := Client{
 		baseClient: newBaseClient(opt, connPool),
@@ -208,14 +219,21 @@ func masterSlaveDialer(
 				failover.trySwitchMaster(ctx, addr)
 			}
 		}
-
 		if err != nil {
 			return nil, err
 		}
 		if failover.opt.Dialer != nil {
 			return failover.opt.Dialer(ctx, network, addr)
 		}
-		return net.DialTimeout("tcp", addr, failover.opt.DialTimeout)
+
+		netDialer := &net.Dialer{
+			Timeout:   failover.opt.DialTimeout,
+			KeepAlive: 5 * time.Minute,
+		}
+		if failover.opt.TLSConfig == nil {
+			return netDialer.DialContext(ctx, network, addr)
+		}
+		return tls.DialWithDialer(netDialer, network, addr, failover.opt.TLSConfig)
 	}
 }
 
@@ -224,6 +242,7 @@ func masterSlaveDialer(
 // SentinelClient is a client for a Redis Sentinel.
 type SentinelClient struct {
 	*baseClient
+	hooks
 	ctx context.Context
 }
 
@@ -253,7 +272,7 @@ func (c *SentinelClient) WithContext(ctx context.Context) *SentinelClient {
 }
 
 func (c *SentinelClient) Process(ctx context.Context, cmd Cmder) error {
-	return c.baseClient.process(ctx, cmd)
+	return c.hooks.process(ctx, cmd, c.baseClient.process)
 }
 
 func (c *SentinelClient) pubSub() *PubSub {
@@ -429,10 +448,22 @@ func (c *sentinelFailover) closeSentinel() error {
 }
 
 func (c *sentinelFailover) RandomSlaveAddr(ctx context.Context) (string, error) {
-	addresses, err := c.slaveAddrs(ctx)
+	if c.opt == nil {
+		return "", errors.New("opt is nil")
+	}
+
+	addresses, err := c.slaveAddrs(ctx, false)
 	if err != nil {
 		return "", err
 	}
+
+	if len(addresses) == 0 && c.opt.UseDisconnectedSlaves {
+		addresses, err = c.slaveAddrs(ctx, true)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	if len(addresses) == 0 {
 		return c.MasterAddr(ctx)
 	}
@@ -481,10 +512,10 @@ func (c *sentinelFailover) MasterAddr(ctx context.Context) (string, error) {
 		return addr, nil
 	}
 
-	return "", errors.New("redis: all sentinels are unreachable")
+	return "", errors.New("redis: all sentinels specified in configuration are unreachable")
 }
 
-func (c *sentinelFailover) slaveAddrs(ctx context.Context) ([]string, error) {
+func (c *sentinelFailover) slaveAddrs(ctx context.Context, useDisconnected bool) ([]string, error) {
 	c.mu.RLock()
 	sentinel := c.sentinel
 	c.mu.RUnlock()
@@ -507,6 +538,8 @@ func (c *sentinelFailover) slaveAddrs(ctx context.Context) ([]string, error) {
 		_ = c.closeSentinel()
 	}
 
+	var sentinelReachable bool
+
 	for i, sentinelAddr := range c.sentinelAddrs {
 		sentinel := NewSentinelClient(c.opt.sentinelOptions(sentinelAddr))
 
@@ -517,16 +550,22 @@ func (c *sentinelFailover) slaveAddrs(ctx context.Context) ([]string, error) {
 			_ = sentinel.Close()
 			continue
 		}
-
+		sentinelReachable = true
+		addrs := parseSlaveAddrs(slaves, useDisconnected)
+		if len(addrs) == 0 {
+			continue
+		}
 		// Push working sentinel to the top.
 		c.sentinelAddrs[0], c.sentinelAddrs[i] = c.sentinelAddrs[i], c.sentinelAddrs[0]
 		c.setSentinel(ctx, sentinel)
 
-		addrs := parseSlaveAddrs(slaves)
 		return addrs, nil
 	}
 
-	return []string{}, errors.New("redis: all sentinels are unreachable")
+	if sentinelReachable {
+		return []string{}, nil
+	}
+	return []string{}, errors.New("redis: all sentinels specified in configuration are unreachable")
 }
 
 func (c *sentinelFailover) getMasterAddr(ctx context.Context, sentinel *SentinelClient) string {
@@ -546,12 +585,11 @@ func (c *sentinelFailover) getSlaveAddrs(ctx context.Context, sentinel *Sentinel
 			c.opt.MasterName, err)
 		return []string{}
 	}
-	return parseSlaveAddrs(addrs)
+	return parseSlaveAddrs(addrs, false)
 }
 
-func parseSlaveAddrs(addrs []interface{}) []string {
+func parseSlaveAddrs(addrs []interface{}, keepDisconnected bool) []string {
 	nodes := make([]string, 0, len(addrs))
-
 	for _, node := range addrs {
 		ip := ""
 		port := ""
@@ -573,8 +611,12 @@ func parseSlaveAddrs(addrs []interface{}) []string {
 
 		for _, flag := range flags {
 			switch flag {
-			case "s_down", "o_down", "disconnected":
+			case "s_down", "o_down":
 				isDown = true
+			case "disconnected":
+				if !keepDisconnected {
+					isDown = true
+				}
 			}
 		}
 
@@ -588,7 +630,7 @@ func parseSlaveAddrs(addrs []interface{}) []string {
 
 func (c *sentinelFailover) trySwitchMaster(ctx context.Context, addr string) {
 	c.mu.RLock()
-	currentAddr := c._masterAddr
+	currentAddr := c._masterAddr //nolint:ifshort
 	c.mu.RUnlock()
 
 	if addr == currentAddr {
@@ -629,15 +671,22 @@ func (c *sentinelFailover) discoverSentinels(ctx context.Context) {
 	}
 	for _, sentinel := range sentinels {
 		vals := sentinel.([]interface{})
+		var ip, port string
 		for i := 0; i < len(vals); i += 2 {
 			key := vals[i].(string)
-			if key == "name" {
-				sentinelAddr := vals[i+1].(string)
-				if !contains(c.sentinelAddrs, sentinelAddr) {
-					internal.Logger.Printf(ctx, "sentinel: discovered new sentinel=%q for master=%q",
-						sentinelAddr, c.opt.MasterName)
-					c.sentinelAddrs = append(c.sentinelAddrs, sentinelAddr)
-				}
+			switch key {
+			case "ip":
+				ip = vals[i+1].(string)
+			case "port":
+				port = vals[i+1].(string)
+			}
+		}
+		if ip != "" && port != "" {
+			sentinelAddr := net.JoinHostPort(ip, port)
+			if !contains(c.sentinelAddrs, sentinelAddr) {
+				internal.Logger.Printf(ctx, "sentinel: discovered new sentinel=%q for master=%q",
+					sentinelAddr, c.opt.MasterName)
+				c.sentinelAddrs = append(c.sentinelAddrs, sentinelAddr)
 			}
 		}
 	}
@@ -645,6 +694,7 @@ func (c *sentinelFailover) discoverSentinels(ctx context.Context) {
 
 func (c *sentinelFailover) listen(pubsub *PubSub) {
 	ctx := context.TODO()
+
 	if c.onUpdate != nil {
 		c.onUpdate(ctx)
 	}
@@ -700,7 +750,7 @@ func NewFailoverClusterClient(failoverOpt *FailoverOptions) *ClusterClient {
 			Addr: masterAddr,
 		}}
 
-		slaveAddrs, err := failover.slaveAddrs(ctx)
+		slaveAddrs, err := failover.slaveAddrs(ctx, false)
 		if err != nil {
 			return nil, err
 		}
@@ -722,9 +772,12 @@ func NewFailoverClusterClient(failoverOpt *FailoverOptions) *ClusterClient {
 	}
 
 	c := NewClusterClient(opt)
+
+	failover.mu.Lock()
 	failover.onUpdate = func(ctx context.Context) {
 		c.ReloadState(ctx)
 	}
+	failover.mu.Unlock()
 
 	return c
 }

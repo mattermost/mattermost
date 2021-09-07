@@ -6,26 +6,26 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlTermsOfServiceStore struct {
-	*SqlSupplier
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
-func newSqlTermsOfServiceStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
-	s := SqlTermsOfServiceStore{sqlSupplier, metrics}
+func newSqlTermsOfServiceStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
+	s := SqlTermsOfServiceStore{sqlStore, metrics}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.TermsOfService{}, "TermsOfService").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Text").SetMaxSize(model.POST_MESSAGE_MAX_BYTES_V2)
+		table.ColMap("Text").SetMaxSize(model.PostMessageMaxBytesV2)
 	}
 
 	return s
@@ -35,7 +35,7 @@ func (s SqlTermsOfServiceStore) createIndexesIfNotExists() {
 }
 
 func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
-	if len(termsOfService.Id) > 0 {
+	if termsOfService.Id != "" {
 		return nil, store.NewErrInvalidInput("TermsOfService", "Id", termsOfService.Id)
 	}
 
@@ -55,8 +55,18 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	var termsOfService *model.TermsOfService
 
-	err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM TermsOfService ORDER BY CreateAt DESC LIMIT 1")
+	query := s.getQueryBuilder().
+		Select("*").
+		From("TermsOfService").
+		OrderBy("CreateAt DESC").
+		Limit(uint64(1))
+
+	queryString, args, err := query.ToSql()
 	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get latest TOS")
+	}
+
+	if err := s.GetReplica().SelectOne(&termsOfService, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "CreateAt=latest")
 		}

@@ -9,7 +9,6 @@ package opentracing
 import (
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 )
 
 type {{.Name}} struct {
@@ -19,14 +18,6 @@ type {{.Name}} struct {
 
 	log              *mlog.Logger
 	notificationsLog *mlog.Logger
-
-	t              i18n.TranslateFunc
-	session        model.Session
-	requestId      string
-	ipAddress      string
-	path           string
-	userAgent      string
-	acceptLanguage string
 
 	accountMigration einterfaces.AccountMigrationInterface
 	cluster          einterfaces.ClusterInterface
@@ -43,7 +34,6 @@ type {{.Name}} struct {
 	imageProxy  *imageproxy.ImageProxy
 	timezones   *timezones.Timezones
 
-	context context.Context
 	ctx context.Context
 }
 
@@ -85,15 +75,6 @@ func NewOpenTracingAppLayer(childApp app.AppIface, ctx context.Context) *{{.Name
 	newApp.srv = childApp.Srv()
 	newApp.log = childApp.Log()
 	newApp.notificationsLog = childApp.NotificationsLog()
-	newApp.t = childApp.GetT()
-	if childApp.Session() != nil {
-		newApp.session = *childApp.Session()
-	}
-	newApp.requestId = childApp.RequestId()
-	newApp.ipAddress = childApp.IpAddress()
-	newApp.path = childApp.Path()
-	newApp.userAgent = childApp.UserAgent()
-	newApp.acceptLanguage = childApp.AcceptLanguage()
 	newApp.accountMigration = childApp.AccountMigration()
 	newApp.cluster = childApp.Cluster()
 	newApp.compliance = childApp.Compliance()
@@ -107,7 +88,6 @@ func NewOpenTracingAppLayer(childApp app.AppIface, ctx context.Context) *{{.Name
 	newApp.httpService = childApp.HTTPService()
 	newApp.imageProxy = childApp.ImageProxy()
 	newApp.timezones = childApp.Timezones()
-	newApp.context = childApp.Context()
 
 	return &newApp
 }
@@ -121,27 +101,6 @@ func (a *{{.Name}}) Log() *mlog.Logger {
 }
 func (a *{{.Name}}) NotificationsLog() *mlog.Logger {
 	return a.notificationsLog
-}
-func (a *{{.Name}}) T(translationID string, args ...interface{}) string {
-	return a.t(translationID, args...)
-}
-func (a *{{.Name}}) Session() *model.Session {
-	return &a.session
-}
-func (a *{{.Name}}) RequestId() string {
-	return a.requestId
-}
-func (a *{{.Name}}) IpAddress() string {
-	return a.ipAddress
-}
-func (a *{{.Name}}) Path() string {
-	return a.path
-}
-func (a *{{.Name}}) UserAgent() string {
-	return a.userAgent
-}
-func (a *{{.Name}}) AcceptLanguage() string {
-	return a.acceptLanguage
 }
 func (a *{{.Name}}) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.accountMigration
@@ -179,36 +138,6 @@ func (a *{{.Name}}) ImageProxy() *imageproxy.ImageProxy {
 func (a *{{.Name}}) Timezones() *timezones.Timezones {
 	return a.timezones
 }
-func (a *{{.Name}}) Context() context.Context {
-	return a.context
-}
-func (a *{{.Name}}) SetSession(sess *model.Session) {
-	a.session = *sess
-}
-func (a *{{.Name}}) SetT(t i18n.TranslateFunc){
-	a.t = t
-}
-func (a *{{.Name}}) SetRequestId(str string){
-	a.requestId = str
-}
-func (a *{{.Name}}) SetIpAddress(str string){
-	a.ipAddress = str
-}
-func (a *{{.Name}}) SetUserAgent(str string){
-	a.userAgent = str
-}
-func (a *{{.Name}}) SetAcceptLanguage(str string)	{
-	a.acceptLanguage = str
-}
-func (a *{{.Name}}) SetPath(str string){
-	a.path = str
-}
-func (a *{{.Name}}) SetContext(c context.Context){
-	a.context = c
-}
 func (a *{{.Name}}) SetServer(srv *app.Server) {
-	a.srv = srv
-}
-func (a *{{.Name}}) GetT() i18n.TranslateFunc {
-	return a.t
+       a.srv = srv
 }

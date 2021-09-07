@@ -10,6 +10,7 @@ import (
 	"github.com/go-redis/redis/v8/internal/proto"
 )
 
+// ErrClosed performs any operation on the closed client will return this error.
 var ErrClosed = pool.ErrClosed
 
 type Error interface {
@@ -52,6 +53,9 @@ func shouldRetry(err error, retryTimeout bool) bool {
 	if strings.HasPrefix(s, "CLUSTERDOWN ") {
 		return true
 	}
+	if strings.HasPrefix(s, "TRYAGAIN ") {
+		return true
+	}
 
 	return false
 }
@@ -62,8 +66,11 @@ func isRedisError(err error) bool {
 }
 
 func isBadConn(err error, allowTimeout bool) bool {
-	if err == nil {
+	switch err {
+	case nil:
 		return false
+	case context.Canceled, context.DeadlineExceeded:
+		return true
 	}
 
 	if isRedisError(err) {

@@ -8,20 +8,20 @@ import (
 	"fmt"
 
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlOAuthStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlOAuthStore(sqlSupplier *SqlSupplier) store.OAuthStore {
-	as := &SqlOAuthStore{sqlSupplier}
+func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
+	as := &SqlOAuthStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.OAuthApp{}, "OAuthApps").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("CreatorId").SetMaxSize(26)
@@ -55,14 +55,12 @@ func newSqlOAuthStore(sqlSupplier *SqlSupplier) store.OAuthStore {
 
 func (as SqlOAuthStore) createIndexesIfNotExists() {
 	as.CreateIndexIfNotExists("idx_oauthapps_creator_id", "OAuthApps", "CreatorId")
-	as.CreateIndexIfNotExists("idx_oauthaccessdata_client_id", "OAuthAccessData", "ClientId")
 	as.CreateIndexIfNotExists("idx_oauthaccessdata_user_id", "OAuthAccessData", "UserId")
 	as.CreateIndexIfNotExists("idx_oauthaccessdata_refresh_token", "OAuthAccessData", "RefreshToken")
-	as.CreateIndexIfNotExists("idx_oauthauthdata_client_id", "OAuthAuthData", "Code")
 }
 
 func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
-	if len(app.Id) > 0 {
+	if app.Id != "" {
 		return nil, store.NewErrInvalidInput("OAuthApp", "Id", app.Id)
 	}
 
@@ -298,9 +296,9 @@ func (as SqlOAuthStore) deleteApp(transaction *gorp.Transaction, clientId string
 func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *gorp.Transaction, clientId string) error {
 
 	query := ""
-	if as.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if as.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = :Id"
-	} else if as.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if as.DriverName() == model.DatabaseDriverMysql {
 		query = "DELETE s.* FROM Sessions s INNER JOIN OAuthAccessData o ON o.Token = s.Token WHERE o.ClientId = :Id"
 	}
 
@@ -325,7 +323,7 @@ func (as SqlOAuthStore) deleteAppExtras(transaction *gorp.Transaction, clientId 
 			Preferences
 		WHERE
 			Category = :Category
-			AND Name = :Name`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, "Name": clientId}); err != nil {
+			AND Name = :Name`, map[string]interface{}{"Category": model.PreferenceCategoryAuthorizedOAuthApp, "Name": clientId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Preferences with name=%s", clientId)
 	}
 

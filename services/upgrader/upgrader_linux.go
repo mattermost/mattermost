@@ -23,8 +23,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const mattermostBuildPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -69,7 +69,7 @@ func (wc *writeCounter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
-func getCurrentVersionTgzUrl() string {
+func getCurrentVersionTgzURL() string {
 	version := model.CurrentVersion
 	if strings.HasPrefix(model.BuildNumber, version+"-rc") {
 		version = model.BuildNumber
@@ -81,25 +81,25 @@ func getCurrentVersionTgzUrl() string {
 func verifySignature(filename string, sigfilename string, publicKey string) error {
 	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader([]byte(publicKey)))
 	if err != nil {
-		mlog.Error("Unable to load the public key to verify the file signature", mlog.Err(err))
+		mlog.Debug("Unable to load the public key to verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 
 	mattermost_tar, err := os.Open(filename)
 	if err != nil {
-		mlog.Error("Unable to open the Mattermost .tar file to verify the file signature", mlog.Err(err))
+		mlog.Debug("Unable to open the Mattermost .tar file to verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 
 	signature, err := os.Open(sigfilename)
 	if err != nil {
-		mlog.Error("Unable to open the Mattermost .sig file verify the file signature", mlog.Err(err))
+		mlog.Debug("Unable to open the Mattermost .sig file verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 
 	_, err = openpgp.CheckDetachedSignature(keyring, mattermost_tar, signature)
 	if err != nil {
-		mlog.Error("Unable to verify the Mattermost file signature", mlog.Err(err))
+		mlog.Debug("Unable to verify the Mattermost file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 	return nil
@@ -157,8 +157,7 @@ func canIUpgrade() error {
 
 func CanIUpgradeToE0() error {
 	if err := canIUpgrade(); err != nil {
-		mlog.Error("Unable to upgrade from TE to E0", mlog.Err(err))
-		return err
+		return errors.Wrap(err, "unable to upgrade from TE to E0")
 	}
 	if model.BuildEnterpriseReady == "true" {
 		mlog.Warn("Unable to upgrade from TE to E0. The server is already running E0.")
@@ -185,24 +184,24 @@ func UpgradeToE0() error {
 		return err
 	}
 
-	filename, err := download(getCurrentVersionTgzUrl(), 1024*1024*300)
+	filename, err := download(getCurrentVersionTgzURL(), 1024*1024*300)
 	if err != nil {
 		if filename != "" {
 			os.Remove(filename)
 		}
 		upgradeError = fmt.Errorf("error downloading the new Mattermost server binary file (percentage: %d)", upgradePercentage)
-		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzUrl()), mlog.Err(err))
+		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzURL()), mlog.Err(err))
 		upgradePercentage = 0
 		return err
 	}
 	defer os.Remove(filename)
-	sigfilename, err := download(getCurrentVersionTgzUrl()+".sig", 1024)
+	sigfilename, err := download(getCurrentVersionTgzURL()+".sig", 1024)
 	if err != nil {
 		if sigfilename != "" {
 			os.Remove(sigfilename)
 		}
 		upgradeError = errors.New("error downloading the signature file of the new server")
-		mlog.Error("Unable to download the signature file of the new Mattermost server", mlog.String("url", getCurrentVersionTgzUrl()+".sig"), mlog.Err(err))
+		mlog.Error("Unable to download the signature file of the new Mattermost server", mlog.String("url", getCurrentVersionTgzURL()+".sig"), mlog.Err(err))
 		upgradePercentage = 0
 		return err
 	}
@@ -252,12 +251,14 @@ func download(url string, limit int64) (string, error) {
 func getFilePermissionsOrDefault(filename string, def os.FileMode) os.FileMode {
 	file, err := os.Open(filename)
 	if err != nil {
-		mlog.Error("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
+		mlog.Warn("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
 		return def
 	}
+	defer file.Close()
+
 	fileStats, err := file.Stat()
 	if err != nil {
-		mlog.Error("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
+		mlog.Warn("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
 		return def
 	}
 	return fileStats.Mode()

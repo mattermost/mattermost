@@ -4,9 +4,9 @@
 package main
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/app/plugin_api_tests"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 type MyPlugin struct {
@@ -21,14 +21,14 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-	channelMembers, err := p.API.GetChannelMembersForUser(p.configuration.BasicTeamId, p.configuration.BasicUserId, 0, 10)
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
+	channelMembers, err := p.API.GetChannelMembersForUser(p.configuration.BasicTeamID, p.configuration.BasicUserID, 0, 10)
 
 	if err != nil {
 		return nil, err.Error() + "failed to get channel members"
 	} else if len(channelMembers) != 3 {
 		return nil, "Invalid number of channel members"
-	} else if channelMembers[0].UserId != p.configuration.BasicUserId {
+	} else if channelMembers[0].UserId != p.configuration.BasicUserID {
 		return nil, "Invalid user id returned"
 	}
 

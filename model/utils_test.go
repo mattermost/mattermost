@@ -5,7 +5,6 @@ package model
 
 import (
 	"bytes"
-	"encoding/base32"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -32,13 +31,6 @@ func TestRandomString(t *testing.T) {
 	}
 }
 
-func TestRandomBase32String(t *testing.T) {
-	for i := 0; i < 1000; i++ {
-		str := NewRandomBase32String(i)
-		require.Len(t, str, base32.StdEncoding.EncodedLen(i))
-	}
-}
-
 func TestGetMillisForTime(t *testing.T) {
 	thisTimeMillis := int64(1471219200000)
 	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
@@ -46,6 +38,14 @@ func TestGetMillisForTime(t *testing.T) {
 	result := GetMillisForTime(thisTime)
 
 	require.Equalf(t, thisTimeMillis, result, "millis are not the same: %d and %d", thisTimeMillis, result)
+}
+
+func TestGetTimeForMillis(t *testing.T) {
+	thisTimeMillis := int64(1471219200000)
+	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := GetTimeForMillis(thisTimeMillis)
+	require.True(t, thisTime.Equal(result))
 }
 
 func TestPadDateStringZeros(t *testing.T) {
@@ -73,15 +73,15 @@ func TestPadDateStringZeros(t *testing.T) {
 
 func TestAppError(t *testing.T) {
 	err := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
-	json := err.ToJson()
-	rerr := AppErrorFromJson(strings.NewReader(json))
+	json := err.ToJSON()
+	rerr := AppErrorFromJSON(strings.NewReader(json))
 	require.Equal(t, err.Message, rerr.Message)
 
 	t.Log(err.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {
-	rerr := AppErrorFromJson(strings.NewReader("<html><body>This is a broken test</body></html>"))
+	rerr := AppErrorFromJSON(strings.NewReader("<html><body>This is a broken test</body></html>"))
 	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
 }
 
@@ -100,13 +100,13 @@ func TestMapJson(t *testing.T) {
 
 	m := make(map[string]string)
 	m["id"] = "test_id"
-	json := MapToJson(m)
+	json := MapToJSON(m)
 
-	rm := MapFromJson(strings.NewReader(json))
+	rm := MapFromJSON(strings.NewReader(json))
 
 	require.Equal(t, rm["id"], "test_id", "map should be valid")
 
-	rm2 := MapFromJson(strings.NewReader(""))
+	rm2 := MapFromJSON(strings.NewReader(""))
 	require.LessOrEqual(t, len(rm2), 0, "make should be ivalid")
 }
 
@@ -338,13 +338,13 @@ func TestIsValidAlphaNum(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actual := IsValidAlphaNum(tc.Input)
+		actual := isValidAlphaNum(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }
 
-func TestGetServerIpAddress(t *testing.T) {
-	require.NotEmpty(t, GetServerIpAddress(""), "Should find local ip address")
+func TestGetServerIPAddress(t *testing.T) {
+	require.NotEmpty(t, GetServerIPAddress(""), "Should find local ip address")
 }
 
 func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
@@ -472,6 +472,84 @@ func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
 
 	for _, tc := range casesWithoutFormat {
 		actual := IsValidAlphaNumHyphenUnderscore(tc.Input, false)
+		require.Equalf(t, actual, tc.Result, "case: '%v'\tshould returned: %#v", tc.Input, tc.Result)
+	}
+}
+
+func TestIsValidAlphaNumHyphenUnderscorePlus(t *testing.T) {
+	cases := []struct {
+		Input  string
+		Result bool
+	}{
+		{
+			Input:  "test",
+			Result: true,
+		},
+		{
+			Input:  "test+name",
+			Result: true,
+		},
+		{
+			Input:  "test+-name",
+			Result: true,
+		},
+		{
+			Input:  "test_+name",
+			Result: true,
+		},
+		{
+			Input:  "test++name",
+			Result: true,
+		},
+		{
+			Input:  "test_-name",
+			Result: true,
+		},
+		{
+			Input:  "-",
+			Result: true,
+		},
+		{
+			Input:  "_",
+			Result: true,
+		},
+		{
+			Input:  "+",
+			Result: true,
+		},
+		{
+			Input:  "test+",
+			Result: true,
+		},
+		{
+			Input:  "test++",
+			Result: true,
+		},
+		{
+			Input:  "test--",
+			Result: true,
+		},
+		{
+			Input:  "test__",
+			Result: true,
+		},
+		{
+			Input:  ".",
+			Result: false,
+		},
+
+		{
+			Input:  "test,",
+			Result: false,
+		},
+		{
+			Input:  "test:name",
+			Result: false,
+		},
+	}
+
+	for _, tc := range cases {
+		actual := IsValidAlphaNumHyphenUnderscorePlus(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: '%v'\tshould returned: %#v", tc.Input, tc.Result)
 	}
 }
@@ -777,7 +855,7 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
-func TestIsValidHttpUrl(t *testing.T) {
+func TestIsValidHTTPURL(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -862,7 +940,40 @@ func TestIsValidHttpUrl(t *testing.T) {
 			}()
 
 			t.Parallel()
-			require.Equal(t, testCase.Expected, IsValidHttpUrl(testCase.Value))
+			require.Equal(t, testCase.Expected, IsValidHTTPURL(testCase.Value))
 		})
+	}
+}
+
+func TestRemoveDuplicateStrings(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Result []string
+	}{
+		{
+			Input:  []string{"1", "2", "3", "3", "3"},
+			Result: []string{"1", "2", "3"},
+		},
+		{
+			Input:  []string{"1", "2", "3", "4", "5"},
+			Result: []string{"1", "2", "3", "4", "5"},
+		},
+		{
+			Input:  []string{"1", "1", "1", "3", "3"},
+			Result: []string{"1", "3"},
+		},
+		{
+			Input:  []string{"1", "1", "1", "1", "1"},
+			Result: []string{"1"},
+		},
+		{
+			Input:  []string{},
+			Result: []string{},
+		},
+	}
+
+	for _, tc := range cases {
+		actual := RemoveDuplicateStrings(tc.Input)
+		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }

@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/aws/aws-sdk-go/service/marketplacemetering"
+	"github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/aws/aws-sdk-go/service/marketplacemetering"
-	"github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 type mockMarketplaceMeteringClient struct {
@@ -42,7 +42,7 @@ func String(i string) *string {
 func TestAwsMeterUsage(t *testing.T) {
 	startTime := time.Now()
 	endTime := time.Now()
-	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
+	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 
 	userStoreMock := mocks.UserStore{}
 	userStoreMock.On("AnalyticsActiveCountForPeriod", model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), mock.AnythingOfType("model.UserCountOptions")).Return(int64(2), nil)
@@ -52,7 +52,7 @@ func TestAwsMeterUsage(t *testing.T) {
 
 	reports := make([]*AWSMeterReport, 1)
 	reports[0] = &AWSMeterReport{
-		Dimension: model.AWS_METERING_DIMENSION_USAGE_HRS,
+		Dimension: model.AwsMeteringDimensionUsageHrs,
 		Value:     2,
 		Timestamp: startTime,
 	}
@@ -82,7 +82,7 @@ func TestAwsMeterUsage(t *testing.T) {
 		assert.Equal(t, reports[0].Timestamp, resultReports[0].Timestamp)
 
 		err := awsmeter.ReportUserCategoryUsage(resultReports)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Error in AWS service call", func(t *testing.T) {
@@ -91,7 +91,7 @@ func TestAwsMeterUsage(t *testing.T) {
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 1, len(resultReports))
 		err := awsmeter.ReportUserCategoryUsage(resultReports)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Invalid dimension", func(t *testing.T) {
@@ -101,14 +101,14 @@ func TestAwsMeterUsage(t *testing.T) {
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 0, len(resultReports))
 		err := awsmeter.ReportUserCategoryUsage(resultReports)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }
 
 func TestAwsMeterUsageWithDBError(t *testing.T) {
 	startTime := time.Now()
 	endTime := time.Now()
-	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
+	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 
 	userStoreMock := mocks.UserStore{}
 	userStoreMock.On("AnalyticsActiveCountForPeriod", model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), mock.AnythingOfType("model.UserCountOptions")).Return(int64(0), errors.New("error"))
@@ -118,7 +118,7 @@ func TestAwsMeterUsageWithDBError(t *testing.T) {
 
 	reports := make([]*AWSMeterReport, 1)
 	reports[0] = &AWSMeterReport{
-		Dimension: model.AWS_METERING_DIMENSION_USAGE_HRS,
+		Dimension: model.AwsMeteringDimensionUsageHrs,
 		Value:     2,
 		Timestamp: startTime,
 	}
@@ -144,6 +144,6 @@ func TestAwsMeterUsageWithDBError(t *testing.T) {
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 0, len(resultReports))
 		err := awsmeter.ReportUserCategoryUsage(resultReports)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }

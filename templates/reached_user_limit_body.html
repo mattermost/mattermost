@@ -1,5 +1,6 @@
 {{define "reached_user_limit_body"}}
-
+<html>
+<body>
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
     style="margin-top: 20px; line-height: 1.7; color: #555;font-family: Arial; font-style: normal; font-weight: bold;">
     <tr>
@@ -35,7 +36,7 @@
                                                     {{ .Props.Info1 }}</p>
                                                 <p style="margin: 31px 0 31px">
                                                     <a href="{{.Props.SiteURL}}/admin_console/billing/subscription" target="_blank"
-                                                        style="font-weight: normal; border-radius: 4px; background: #166DE0; color: #fff;outline: none; min-width: 200px; padding: 11px 24px 11px 24px; font-size: 14px; font-family: Arial; cursor: pointer; -webkit-appearance: none;text-decoration: none; margin-top: 16px;">{{ .Props.Button }}</a>
+                                                        style="font-weight: normal; border-radius: 4px; background: #1C58D9; color: #fff;outline: none; min-width: 200px; padding: 11px 24px 11px 24px; font-size: 14px; font-family: Arial; cursor: pointer; -webkit-appearance: none;text-decoration: none; margin-top: 16px;">{{ .Props.Button }}</a>
                                                 </p>
                                                 <p style="font-weight: normal; line-height: 20px; color: #3D3C40; margin-bottom: 24px; font-size: 14px; font-family: Arial">
                                                     {{ .Props.Info2 }}</p>
@@ -85,5 +86,6 @@
         </td>
     </tr>
 </table>
-
+</body>
+</html>
 {{end}}

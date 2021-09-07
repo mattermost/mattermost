@@ -10,10 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestPluginHealthCheck(t *testing.T) {
@@ -35,7 +36,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -47,24 +48,20 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		}
 	`, backend)
 
-	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
-	require.Nil(t, err)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func testPluginHealthCheckPanic(t *testing.T) {
@@ -77,8 +74,8 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/model"
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -94,29 +91,25 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		}
 	`, backend)
 
-	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 
-	supervisor, err := newSupervisor(bundle, nil, log, nil)
-	require.Nil(t, err)
+	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	supervisor.hooks.MessageWillBePosted(&Context{}, &model.Post{})
 
 	err = supervisor.PerformHealthCheck()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestShouldDeactivatePlugin(t *testing.T) {
@@ -129,8 +122,8 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Failures are recent enough to restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10*2))
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10*2))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)
@@ -138,8 +131,8 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Failures are too spaced out to warrant a restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*2))
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*1))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow*2))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow*1))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)
@@ -147,7 +140,7 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Not enough failures are present to warrant a restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)

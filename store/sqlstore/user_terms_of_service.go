@@ -6,20 +6,20 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlUserTermsOfServiceStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlUserTermsOfServiceStore(sqlSupplier *SqlSupplier) store.UserTermsOfServiceStore {
-	s := SqlUserTermsOfServiceStore{sqlSupplier}
+func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceStore {
+	s := SqlUserTermsOfServiceStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.UserTermsOfService{}, "UserTermsOfService").SetKeys(false, "UserId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("TermsOfServiceId").SetMaxSize(26)
@@ -29,7 +29,6 @@ func newSqlUserTermsOfServiceStore(sqlSupplier *SqlSupplier) store.UserTermsOfSe
 }
 
 func (s SqlUserTermsOfServiceStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_terms_of_service_user_id", "UserTermsOfService", "UserId")
 }
 
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {

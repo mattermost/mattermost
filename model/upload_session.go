@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -17,6 +15,9 @@ const (
 	UploadTypeAttachment UploadType = "attachment"
 	UploadTypeImport     UploadType = "import"
 )
+
+// UploadNoUserID is a "fake" user id used by the API layer when in local mode.
+const UploadNoUserID = "nouser"
 
 // UploadSession contains information used to keep track of a file upload.
 type UploadSession struct {
@@ -29,7 +30,7 @@ type UploadSession struct {
 	// The id of the user performing the upload.
 	UserId string `json:"user_id"`
 	// The id of the channel to upload to.
-	ChannelId string `json:"channel_id"`
+	ChannelId string `json:"channel_id,omitempty"`
 	// The name of the file to upload.
 	Filename string `json:"filename"`
 	// The path where the file is stored.
@@ -39,39 +40,10 @@ type UploadSession struct {
 	// The amount of received data in bytes. If equal to FileSize it means the
 	// upload has finished.
 	FileOffset int64 `json:"file_offset"`
-}
-
-// ToJson serializes the UploadSession into JSON and returns it as string.
-func (us *UploadSession) ToJson() string {
-	b, _ := json.Marshal(us)
-	return string(b)
-}
-
-// UploadSessionsToJson serializes a list of UploadSession into JSON and
-// returns it as string.
-func UploadSessionsToJson(uss []*UploadSession) string {
-	b, _ := json.Marshal(uss)
-	return string(b)
-}
-
-// UploadSessionsFromJson deserializes a list of UploadSession from JSON data.
-func UploadSessionsFromJson(data io.Reader) []*UploadSession {
-	decoder := json.NewDecoder(data)
-	var uss []*UploadSession
-	if err := decoder.Decode(&uss); err != nil {
-		return nil
-	}
-	return uss
-}
-
-// UploadSessionFromJson deserializes the UploadSession from JSON data.
-func UploadSessionFromJson(data io.Reader) *UploadSession {
-	decoder := json.NewDecoder(data)
-	var us UploadSession
-	if err := decoder.Decode(&us); err != nil {
-		return nil
-	}
-	return &us
+	// Id of remote cluster if uploading for shared channel
+	RemoteId string `json:"remote_id"`
+	// Requested file id if uploading for shared channel
+	ReqFileId string `json:"req_file_id"`
 }
 
 // PreSave is a utility function used to fill required information.
@@ -109,7 +81,7 @@ func (us *UploadSession) IsValid() *AppError {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.type.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if !IsValidId(us.UserId) {
+	if !IsValidId(us.UserId) && us.UserId != UploadNoUserID {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.user_id.app_error", nil, "id="+us.Id, http.StatusBadRequest)
 	}
 

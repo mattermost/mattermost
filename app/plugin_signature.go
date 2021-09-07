@@ -10,22 +10,31 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 // GetPluginPublicKeyFiles returns all public keys listed in the config.
 func (a *App) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
-	return a.Config().PluginSettings.SignaturePublicKeyFiles, nil
+	return a.Srv().getPluginPublicKeyFiles()
+}
+
+func (s *Server) getPluginPublicKeyFiles() ([]string, *model.AppError) {
+	return s.Config().PluginSettings.SignaturePublicKeyFiles, nil
 }
 
 // GetPublicKey will return the actual public key saved in the `name` file.
 func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
-	data, err := a.Srv().configStore.GetFile(name)
+	return a.Srv().getPublicKey(name)
+}
+
+func (s *Server) getPublicKey(name string) ([]byte, *model.AppError) {
+	data, err := s.configStore.GetFile(name)
 	if err != nil {
 		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -34,7 +43,7 @@ func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
 
 // AddPublicKey will add plugin public key to the config. Overwrites the previous file
 func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
-	if model.IsSamlFile(&a.Config().SamlSettings, name) {
+	if isSamlFile(&a.Config().SamlSettings, name) {
 		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
 	}
 	data, err := ioutil.ReadAll(key)
@@ -57,7 +66,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 
 // DeletePublicKey will delete plugin public key from the config.
 func (a *App) DeletePublicKey(name string) *model.AppError {
-	if model.IsSamlFile(&a.Config().SamlSettings, name) {
+	if isSamlFile(&a.Config().SamlSettings, name) {
 		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
 	}
 	filename := filepath.Base(name)
@@ -74,17 +83,21 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
+	return a.Srv().verifyPlugin(plugin, signature)
+}
+
+func (s *Server) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
 		return nil
 	}
-	publicKeys, appErr := a.GetPluginPublicKeyFiles()
+	publicKeys, appErr := s.getPluginPublicKeyFiles()
 	if appErr != nil {
 		return appErr
 	}
 	for _, pk := range publicKeys {
-		pkBytes, appErr := a.GetPublicKey(pk)
+		pkBytes, appErr := s.getPublicKey(pk)
 		if appErr != nil {
-			mlog.Error("Unable to get public key for ", mlog.String("filename", pk))
+			mlog.Warn("Unable to get public key for ", mlog.String("filename", pk))
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
@@ -130,4 +143,9 @@ func decodeIfArmored(reader io.Reader) (io.Reader, error) {
 		return bytes.NewReader(readBytes), nil
 	}
 	return block.Body, nil
+}
+
+// isSamlFile checks if filename is a SAML file.
+func isSamlFile(saml *model.SamlSettings, filename string) bool {
+	return filename == *saml.PublicCertificateFile || filename == *saml.PrivateKeyFile || filename == *saml.IdpCertificateFile
 }

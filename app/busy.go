@@ -4,16 +4,18 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
-	TIMESTAMP_FORMAT = "Mon Jan 2 15:04:05 -0700 MST 2006"
+	TimestampFormat = "Mon Jan 2 15:04:05 -0700 MST 2006"
 )
 
 // Busy represents the busy state of the server. A server marked busy
@@ -55,7 +57,7 @@ func (b *Busy) Set(dur time.Duration) {
 	b.setWithoutNotify(dur)
 
 	if b.cluster != nil {
-		sbs := &model.ServerBusyState{Busy: true, Expires: b.expires.Unix(), Expires_ts: b.expires.UTC().Format(TIMESTAMP_FORMAT)}
+		sbs := &model.ServerBusyState{Busy: true, Expires: b.expires.Unix(), ExpiresTS: b.expires.UTC().Format(TimestampFormat)}
 		b.notifyServerBusyChange(sbs)
 	}
 }
@@ -65,7 +67,11 @@ func (b *Busy) setWithoutNotify(dur time.Duration) {
 	b.clearWithoutNotify()
 	atomic.StoreInt32(&b.busy, 1)
 	b.expires = time.Now().Add(dur)
-	b.timer = time.AfterFunc(dur, b.clearWithoutNotify)
+	b.timer = time.AfterFunc(dur, func() {
+		b.mux.Lock()
+		b.clearWithoutNotify()
+		b.mux.Unlock()
+	})
 }
 
 // ClearBusy marks the server as not busy and notifies cluster nodes.
@@ -76,7 +82,7 @@ func (b *Busy) Clear() {
 	b.clearWithoutNotify()
 
 	if b.cluster != nil {
-		sbs := &model.ServerBusyState{Busy: false, Expires: time.Time{}.Unix(), Expires_ts: ""}
+		sbs := &model.ServerBusyState{Busy: false, Expires: time.Time{}.Unix(), ExpiresTS: ""}
 		b.notifyServerBusyChange(sbs)
 	}
 }
@@ -105,11 +111,12 @@ func (b *Busy) notifyServerBusyChange(sbs *model.ServerBusyState) {
 	if b.cluster == nil {
 		return
 	}
+	buf, _ := json.Marshal(sbs)
 	msg := &model.ClusterMessage{
-		Event:            model.CLUSTER_EVENT_BUSY_STATE_CHANGED,
-		SendType:         model.CLUSTER_SEND_RELIABLE,
+		Event:            model.ClusterEventBusyStateChanged,
+		SendType:         model.ClusterSendReliable,
 		WaitForAllToSend: true,
-		Data:             sbs.ToJson(),
+		Data:             buf,
 	}
 	b.cluster.SendClusterMessage(msg)
 }
@@ -130,14 +137,19 @@ func (b *Busy) ClusterEventChanged(sbs *model.ServerBusyState) {
 	}
 }
 
-func (b *Busy) ToJson() string {
+func (b *Busy) ToJSON() ([]byte, error) {
 	b.mux.RLock()
 	defer b.mux.RUnlock()
 
 	sbs := &model.ServerBusyState{
-		Busy:       atomic.LoadInt32(&b.busy) != 0,
-		Expires:    b.expires.Unix(),
-		Expires_ts: b.expires.UTC().Format(TIMESTAMP_FORMAT),
+		Busy:      atomic.LoadInt32(&b.busy) != 0,
+		Expires:   b.expires.Unix(),
+		ExpiresTS: b.expires.UTC().Format(TimestampFormat),
 	}
-	return sbs.ToJson()
+	sbsJSON, jsonErr := json.Marshal(sbs)
+	if jsonErr != nil {
+		return []byte{}, fmt.Errorf("failed to encode server busy state to JSON: %w", jsonErr)
+	}
+
+	return sbsJSON, nil
 }

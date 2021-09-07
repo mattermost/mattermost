@@ -10,11 +10,12 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func makeTestAtmosCamoProxy() *ImageProxy {
@@ -26,7 +27,7 @@ func makeTestAtmosCamoProxy() *ImageProxy {
 			},
 			ImageProxySettings: model.ImageProxySettings{
 				Enable:                  model.NewBool(true),
-				ImageProxyType:          model.NewString(model.IMAGE_PROXY_TYPE_ATMOS_CAMO),
+				ImageProxyType:          model.NewString(model.ImageProxyTypeAtmosCamo),
 				RemoteImageProxyURL:     model.NewString("http://images.example.com"),
 				RemoteImageProxyOptions: model.NewString("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"),
 			},
@@ -79,7 +80,7 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 
 	body, contentType, err := backend.GetImageDirect("https://example.com/image.png")
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "image/png", contentType)
 
 	require.NotNil(t, body)

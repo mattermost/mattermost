@@ -4,16 +4,14 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
 const (
-	AUTHCODE_EXPIRE_TIME   = 60 * 10 // 10 minutes
-	AUTHCODE_RESPONSE_TYPE = "code"
-	IMPLICIT_RESPONSE_TYPE = "token"
-	DEFAULT_SCOPE          = "user"
+	AuthCodeExpireTime   = 60 * 10 // 10 minutes
+	AuthCodeResponseType = "code"
+	ImplicitResponseType = "token"
+	DefaultScope         = "user"
 )
 
 type AuthData struct {
@@ -30,7 +28,7 @@ type AuthData struct {
 type AuthorizeRequest struct {
 	ResponseType string `json:"response_type"`
 	ClientId     string `json:"client_id"`
-	RedirectUri  string `json:"redirect_uri"`
+	RedirectURI  string `json:"redirect_uri"`
 	Scope        string `json:"scope"`
 	State        string `json:"state"`
 }
@@ -47,7 +45,7 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.Code) == 0 || len(ad.Code) > 128 {
+	if ad.Code == "" || len(ad.Code) > 128 {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.auth_code.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
@@ -59,7 +57,7 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.create_at.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
-	if len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
+	if len(ad.RedirectUri) > 256 || !IsValidHTTPURL(ad.RedirectUri) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
@@ -82,11 +80,11 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ar.ResponseType) == 0 {
+	if ar.ResponseType == "" {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.response_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ar.RedirectUri) == 0 || len(ar.RedirectUri) > 256 || !IsValidHttpUrl(ar.RedirectUri) {
+	if ar.RedirectURI == "" || len(ar.RedirectURI) > 256 || !IsValidHTTPURL(ar.RedirectURI) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 
@@ -103,38 +101,16 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 
 func (ad *AuthData) PreSave() {
 	if ad.ExpiresIn == 0 {
-		ad.ExpiresIn = AUTHCODE_EXPIRE_TIME
+		ad.ExpiresIn = AuthCodeExpireTime
 	}
 
 	if ad.CreateAt == 0 {
 		ad.CreateAt = GetMillis()
 	}
 
-	if len(ad.Scope) == 0 {
-		ad.Scope = DEFAULT_SCOPE
+	if ad.Scope == "" {
+		ad.Scope = DefaultScope
 	}
-}
-
-func (ad *AuthData) ToJson() string {
-	b, _ := json.Marshal(ad)
-	return string(b)
-}
-
-func AuthDataFromJson(data io.Reader) *AuthData {
-	var ad *AuthData
-	json.NewDecoder(data).Decode(&ad)
-	return ad
-}
-
-func (ar *AuthorizeRequest) ToJson() string {
-	b, _ := json.Marshal(ar)
-	return string(b)
-}
-
-func AuthorizeRequestFromJson(data io.Reader) *AuthorizeRequest {
-	var ar *AuthorizeRequest
-	json.NewDecoder(data).Decode(&ar)
-	return ar
 }
 
 func (ad *AuthData) IsExpired() bool {

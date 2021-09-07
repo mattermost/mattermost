@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type GitLabProvider struct {
@@ -27,7 +27,7 @@ type GitLabUser struct {
 
 func init() {
 	provider := &GitLabProvider{}
-	einterfaces.RegisterOauthProvider(model.USER_AUTH_SERVICE_GITLAB, provider)
+	einterfaces.RegisterOAuthProvider(model.UserAuthServiceGitlab, provider)
 }
 
 func userFromGitLabUser(glu *GitLabUser) *model.User {
@@ -51,12 +51,12 @@ func userFromGitLabUser(glu *GitLabUser) *model.User {
 	user.Email = strings.ToLower(user.Email)
 	userId := glu.getAuthData()
 	user.AuthData = &userId
-	user.AuthService = model.USER_AUTH_SERVICE_GITLAB
+	user.AuthService = model.UserAuthServiceGitlab
 
 	return user
 }
 
-func gitLabUserFromJson(data io.Reader) (*GitLabUser, error) {
+func gitLabUserFromJSON(data io.Reader) (*GitLabUser, error) {
 	decoder := json.NewDecoder(data)
 	var glu GitLabUser
 	err := decoder.Decode(&glu)
@@ -64,15 +64,6 @@ func gitLabUserFromJson(data io.Reader) (*GitLabUser, error) {
 		return nil, err
 	}
 	return &glu, nil
-}
-
-func (glu *GitLabUser) ToJson() string {
-	b, err := json.Marshal(glu)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
 }
 
 func (glu *GitLabUser) IsValid() error {
@@ -91,8 +82,8 @@ func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
 
-func (m *GitLabProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
-	glu, err := gitLabUserFromJson(data)
+func (m *GitLabProvider) GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error) {
+	glu, err := gitLabUserFromJSON(data)
 	if err != nil {
 		return nil, err
 	}
@@ -101,4 +92,16 @@ func (m *GitLabProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
 	}
 
 	return userFromGitLabUser(glu), nil
+}
+
+func (m *GitLabProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}
+
+func (m *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error) {
+	return nil, nil
+}
+
+func (m *GitLabProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+	return dbUser.AuthData == oauthUser.AuthData
 }

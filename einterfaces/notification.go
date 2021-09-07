@@ -4,10 +4,10 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type NotificationInterface interface {
-	GetNotificationMessage(ack *model.PushNotificationAck, userId string) (*model.PushNotification, *model.AppError)
+	GetNotificationMessage(ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError)
 	CheckLicense() *model.AppError
 }

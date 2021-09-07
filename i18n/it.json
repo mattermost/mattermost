@@ -148,14 +148,6 @@
     "translation": "Questo canale è stato convertito in un Canale Privato."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Questo canale predefinito non può essere convertito in un canale privato."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Il canale da convertire è già un canale privato."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Bisogna usare il servizio createDirectChannel API per la creazione dei messaggi diretti nel canale."
   },
@@ -538,14 +530,6 @@
   {
     "id": "api.command_dnd.desc",
     "translation": "Non disturbare disattiva le notifiche desktop e mobile."
-  },
-  {
-    "id": "api.command_dnd.disabled",
-    "translation": "Non Disturbare non è attivo."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Impossibile recuperare lo stato dell'utente."
   },
   {
     "id": "api.command_dnd.name",
@@ -995,33 +979,6 @@
     "translation": "La spedizione di email programmata è stata disabilitata dall aministratore di sistema."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Messaggio Diretto da "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Vai alla pubblicazione"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Messaggio di Gruppo da "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notifica da "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Hai una nuova notifica.",
-      "other": "Hai {{.Count}} nuove notifiche."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Nuova notifica per {{.Day}} {{.Month}} {{.Year}}",
@@ -1093,14 +1050,6 @@
     "translation": "Gli allegati sono stati disabilitati su questo server."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Impossibile controllare se il file esiste."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Impossibile controllare se il file esiste."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Il collegamento pubblico sembra non essere valido."
   },
@@ -1121,44 +1070,12 @@
     "translation": "Impossibile trovare un collegamento pubblico per il file. Il file deve essere allegato ad una pubblicazione che l'utente attuale può leggere."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Impossibile copiare il file in S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Impossibile eliminare file da S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Impossibile muovere il file localmente."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Nessun dispositivo selezionato."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Si è verificato un errore leggendo dall'archivio locale del server."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Si è verificato un errore leggendo dall'archivio S3."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Si è verificato un errore nell'apertura della cartella nell'archivio locale del server."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Si è verificato un errore nell'apertura dell'archivio S3."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Permessi insufficienti per scrivere nel percorso specificato, oppure si è verificato un errore nel controllo."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Errore durante il controllo dell'esistenza del bucket."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1195,18 +1112,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Impossibile caricare il file {{.Filename}}. Il numero di bytes {{.Length}} supera la lunghezza massima consentita di {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Si è incontrato un errore scrivendo su S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Si è incontrato un errore creando la cartella per il nuovo file."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Si è verificato un errore scrivendo sulllo storage locale del server."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1403,10 +1308,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "ChannelId non valido per il parametro RootId."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parametro ParentId non valido."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -1803,10 +1704,6 @@
     "translation": "Impossibile decodificare l'icona del gruppo."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Impossibile decodificare i metadati dell'icona del gruppo."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Impossibile codificare l'icona del gruppo."
   },
@@ -1931,14 +1828,6 @@
     "translation": "Entra nel gruppo"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost permette di condividere messaggi e file da PC o telefono, con ricerche e archiviazione. Dopo essere entrato in [[{{.TeamDisplayName}}]], potrai iscriverti al tuo nuovo team e accedere a queste funzioni dall'indirizzo web:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Il gruppo {{.SenderStatus}} [[{{.SenderName}}]], ti ha invitato ad unirti a [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Sei stato invitato"
   },
@@ -1985,14 +1874,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Reimposta password"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Per modificare la password, cliccare \"Reset Password\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Se non intendi modificare la tua password ignora questa email e la password rimarrà invariata. Il link per il reset della password scade tra 24 ore."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2071,14 +1952,6 @@
     "translation": "Per favore verifica la tua email cliccando qui sotto."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Si può accedere da:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost ti permette di condividere messaggi e file dal PC o telefono, con ricerche istantanee e archiviazione."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Ti sei iscritto/a a {{ .ServerURL }}"
   },
@@ -2147,10 +2020,6 @@
     "translation": "Impossibile parsare gli auth data dall'oggetto {{.Service}}."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO tramite OAuth 2.0 non è disponibile su questo server."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Errore nel creare i dati per l'email di verifica"
   },
@@ -2161,10 +2030,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Impossibile creare l'utente dall'oggetto {{.Service}}."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO tramite OAuth 2.0 non è disponibile su questo server."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2209,10 +2074,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Autenticazione sul Trasferimento non configurata o non disponibile su questo server."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "OAuth Service Provider non supportato."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2307,24 +2168,8 @@
     "translation": "Impossibile inviare la notifica di disattivazione account"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Invio notifica email di cambio email avvenuto con successo fallita"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Invio notifica email di cambio username avvenuto con successo, fallita"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Invio email di verifica per il cambio email fallita"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Impossibile inviare l'email di notifica del cambio MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Invio email per la verifica dell'update della password fallito"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2339,16 +2184,8 @@
     "translation": "Invio email per la verifica dell'update della password fallito"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Impossibile inviare l'email di notifica per la creazione del token di accesso"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Invio email di verifica fallita"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Invio email di benvenuto fallito"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2393,10 +2230,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Impossibile caricare l'immagine di profilo."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossibile salvare l'immagine profilo. Il file non sembra essere un'immagine valida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3039,62 +2872,6 @@
     "translation": "Nome gruppo mancante nelle iscrizioni al gruppo dell'utente."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Hai un nuovo messaggio diretto."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Hai un nuovo messaggio diretto da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Hai un nuovo messaggio di gruppo."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Hai un nuovo messaggio di gruppo da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Hai una nuova notifica."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Hai una nuova notifica da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}/{{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canale: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canale: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nuovo messaggio diretto da @{{.SenderDisplayName}} il {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3219,10 +2996,6 @@
     "translation": "Impossibile decodificare i dati dell'immagine."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Impossibile trovare i metadati dell'immagine."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Impossibile convertire l'immagine in PNG. Riprovare."
   },
@@ -3233,14 +3006,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Impossibile scrivere l'immagine nell'archivio file. Controllare la connessione e riprovare."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Impossibile leggere il file immagine. Assicurarsi che l'immagine sia più piccola di 2 MB e riprovare."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Questa opzione richiede una licenza Enterprise Edition valida. Per favore contatta il tuo Amministratore di Sistema."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3683,32 +3448,12 @@
     "translation": "Bollettino di Sicurezza di Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Errore cercando di autenticare il token MFA."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Token MFA invalido."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Impossibile aggiornare lo stato MFA attivo per l'utente."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Impossibile aggiornare lo stato MFA attivo per l'utente."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Errore nella pulizia del segreto MFA."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Errore durante la generazione del QR code."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Errore nel salvataggio del segreto MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -3957,10 +3702,6 @@
   {
     "id": "model.command_hook.id.app_error",
     "translation": "Id comando hook non valido."
-  },
-  {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Id genitore non valido."
   },
   {
     "id": "model.command_hook.root_id.app_error",
@@ -4295,11 +4036,11 @@
     "translation": "Il periodo di tempo tra gli aggiornamenti scrittura utente non dovrebbe essere settato a meno di 1000 millisecondi."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "File certificato TLS non valido - Utilizza LetsEncrypt oppure imposta un percorso di un file di certificato esistente."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "File chiave TLV non valido - Utilizza LetsEncrypt oppure imposta un percorso di un file di chiave esistente."
   },
   {
@@ -4371,20 +4112,12 @@
     "translation": "proprietà create at non valida per il gruppo."
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "proprietà delete at non valida per il gruppo."
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "proprietà description non valida per il gruppo."
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "proprietà display name non valida per il gruppo."
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "proprietà id non valida per il gruppo."
   },
   {
     "id": "model.group.name.app_error",
@@ -4417,10 +4150,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "proprietà syncable id non valida per il gruppo syncable."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "proprietà type non valida per il gruppo syncable."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4659,20 +4388,12 @@
     "translation": "Id originale non valido."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id genitore non valido."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Proprietà invalide."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Id radice non valido."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Non valido l'ID root deve essere specificato se l'ID padre è presente."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4911,14 +4632,6 @@
     "translation": "Manca l'indirizzo del destinatario."
   },
   {
-    "id": "store.insert_error",
-    "translation": "errore inserimento"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "errore selezione"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Impossibile convertire StringArray a *string"
   },
@@ -4937,10 +4650,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Non è stato possibile trovare il canale."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Riscontrato un errore nella ricerca del canale."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4971,22 +4680,6 @@
     "translation": "Impossibile ottenere il comando."
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "il gruppo syncable è già stato cancellato"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "nessun gruppo corrispondente trovato"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Un gruppo con quel nome esiste già"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "il membro del gruppo esiste già"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "La ricerca è stata disabilitata per questo server. Per piacere contatta il tuo Amministratore di Sistema."
   },
@@ -4999,80 +4692,8 @@
     "translation": "Non è stato possibile trovare un account con le credenziali fornite. Potrebbe essere necessario disporre di un invito da parte del proprietario del gruppo per l'accesso."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Questo indirizzo email è già in uso. Sceglierne un altro."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "errore aggiornamento"
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistema"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Si è verificato un errore elencando la cartella dal server locale."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Si è verificato un errore elencando la cartella da S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Si è verificato un errore cancellando la cartella dal server locale."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Si è verificato un errore cancellando la cartella da S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Si è verificato un errore cancellando il file dal server locale."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Si è verificato un errore cancellando il file da S3."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Impossibile impostare HELO."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Apertura di una connesione fallita."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Apertura di una connesione TLS fallita."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Impossibile autenticarsi sul server SMTP."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Impossibile aggiungere l'allegato all'email"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Impossibile chiudere la connessione al server SMTP."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Errore durante l'impostazione del campo \"Indirizzo Mittente\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Impossibile scrivere il messaggio email."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Impossibile aggiungere informazioni al messaggio email."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Errore durante l'impostazione del campo \"Indirizzo Destinatario\"."
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -5311,10 +4932,6 @@
     "translation": "Impossibile indicizzare gli utenti in batch."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Il post più vecchio non può essere recuperato dal database."
-  },
-  {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
     "translation": "Il lavoro di indicizzazione di Bleve non è riuscito a calcolare l'ora d'inizio."
   },
@@ -5547,14 +5164,6 @@
     "translation": "La creazione di bot è stata disabilitata."
   },
   {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Impossibile leggere il file dell'icona."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Errore durante l'analisi del multipart-form."
-  },
-  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Per favore aggiungimi alle squadre e ai canali con cui vuoi che interagisca. Per farlo utilizza il browser oppure l'app desktop di Mattermost."
   },
@@ -5661,10 +5270,6 @@
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
     "translation": "La paginazione non è implementata per la ricerca nelle sole squadre pubbliche."
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ti ha invitato ad unirti alla squadra [[{{.TeamDisplayName}}]] come ospite."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -5811,10 +5416,6 @@
     "translation": "La ricerca non è stata completata."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Il webhook in uscita è cancellato ma non è possibile crearne uno nuovo a causa di un errore."
-  },
-  {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "Impossibile creare il file zip"
   },
@@ -5915,10 +5516,6 @@
     "translation": "Errore cancellazione indici Bleve: il motore non è attivo"
   },
   {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Impossibile cancellare i membri del gruppo con UserID \"{{.UserId}}\"."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Ottieni l'ultima versione del browser Chrome"
   },
@@ -5969,30 +5566,6 @@
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
     "translation": "Tipo contenuto non valido."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Impossibile eliminare l'icona."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Impossibile caricare l'icona."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Lista vuota per il campo 'image' nella richiesta."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nessun file nel campo 'immagine' nella richiesta."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Impossibile aprire il file immagine."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Impossibile caricare il file. Il file è troppo grande."
   },
   {
     "id": "api.channel.add_members.error",
@@ -6073,10 +5646,6 @@
   {
     "id": "api.ldap_groups.existing_user_name_error",
     "translation": "il nome di questo gruppo esiste già come nome utente"
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Si è verificato un errore durante l'apertura del file di chiave pubblica."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -6275,10 +5844,6 @@
     "translation": "Non ci sono canali eliminati."
   },
   {
-    "id": "store.sql_group.app_error",
-    "translation": "errore nella costruzione della query."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
     "translation": "Ottieni l'ultima versione del browser Firefox"
   },
@@ -6433,10 +5998,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "Impossibile spostare i canali di gruppo o di messaggi diretti"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Si è verificato un errore durante la cancellazione delle reazioni"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6647,10 +6208,6 @@
     "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Impossibile cancellare i record"
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "Impossibile attivare il token di accesso."
   },
@@ -6807,10 +6364,6 @@
     "translation": "Non è stato possibile recuperare i rapporti di compliance."
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Si è verificato un errore pulendo i flag"
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Errore riscontrato nell'aggiornamento delle preferenze."
   },
@@ -6943,10 +6496,6 @@
     "translation": "Impossibile recuperare il ruolo"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossibile recuperare tutti i ruoli"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Impossibile recuperare il ruolo"
   },
@@ -6961,10 +6510,6 @@
   {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json è falso. Modificare il valore in \"vero\" per poter scaricare i risultati di questo lavoro."
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Più di una riga è stata modificata."
   },
   {
     "id": "store.sql_command.update.missing.app_error",
@@ -7131,10 +6676,6 @@
     "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "E' stato riscontrato un errore durante la connessione al server."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API non trovate."
   },
@@ -7169,10 +6710,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Impossibile ottenere il lavoro"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Si è verificato un errore durante la cancellazione delle informazioni sui file"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7233,10 +6770,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Si è verifcato un errore durante la cancellazione delle pubblicazioni"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7365,14 +6898,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Impossibile inviare ad un canale eliminato."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Si è verificato un errore scrivendo su S3."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Il bot non esiste"
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -7527,10 +7052,6 @@
     "translation": "Non è stato possibile recuperare tutte le squadre"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Non è stato possibile recuperare tutte le squadre private"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Non è stato possibile recuperare tutte le squadre private"
   },
@@ -7549,14 +7070,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Impossibile contare le squadre"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Impossibile contare le squadre pubbliche"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Impossibile contare le squadre private"
   },
   {
     "id": "api.user.login_cws.license.error",
@@ -7625,9 +7138,5 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Impossibile recuperare i membri del canale"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Impossibile creare il bucket."
   }
 ]

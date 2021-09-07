@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
+// Copyright (c) 2015-2021 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
 // resty source code and usage is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ package resty
 import (
 	"context"
 	"crypto/tls"
+	"net"
 	"net/http/httptrace"
 	"time"
 )
@@ -54,10 +55,17 @@ type TraceInfo struct {
 	// ConnIdleTime is a duration how long the connection was previously
 	// idle, if IsConnWasIdle is true.
 	ConnIdleTime time.Duration
+
+	// RequestAttempt is to represent the request attempt made during a Resty
+	// request execution flow, including retry count.
+	RequestAttempt int
+
+	// RemoteAddr returns the remote network address.
+	RemoteAddr net.Addr
 }
 
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-// CientTrace struct and its methods
+// ClientTrace struct and its methods
 //_______________________________________________________________________
 
 // tracer struct maps the `httptrace.ClientTrace` hooks into Fields

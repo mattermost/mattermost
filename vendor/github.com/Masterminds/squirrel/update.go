@@ -86,7 +86,11 @@ func (d *updateData) ToSql() (sqlStr string, args []interface{}, err error) {
 			if err != nil {
 				return "", nil, err
 			}
-			valSql = vsql
+			if _, ok := vs.(SelectBuilder); ok {
+				valSql = fmt.Sprintf("(%s)", vsql)
+			} else {
+				valSql = vsql
+			}
 			args = append(args, vargs...)
 		} else {
 			valSql = "?"

@@ -20,6 +20,9 @@ $global['$github.com/oov/psd$'] = {
             for (var j = 0, ln = lens[i]; j < ln;) {
                 if (buf[ofs] <= 0x7f) {
                     var l = buf[ofs++] + 1;
+                    if (dest.length < d+l || ln-j-1 < l) {
+                        return false;
+                    }
                     for (var k = 0; k < l; ++k) {
                         dest[d++] = buf[ofs++];
                     }
@@ -30,7 +33,11 @@ $global['$github.com/oov/psd$'] = {
                     ofs++;
                     continue;
                 }
-                for (var k = 0, l = 256 - buf[ofs++] + 1, c = buf[ofs++]; k < l; ++k) {
+                var l = 256 - buf[ofs++] + 1;
+                if (dest.length < d+l || j+1 >= ln) {
+                    return false;
+                }
+                for (var k = 0, c = buf[ofs++]; k < l; ++k) {
                     dest[d++] = c;
                 }
                 j += 2;

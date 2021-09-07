@@ -85,8 +85,9 @@ func NewTag(key string, value interface{}) Tag {
 func (s *Span) SetOperationName(operationName string) opentracing.Span {
 	s.Lock()
 	s.operationName = operationName
+	ctx := s.context
 	s.Unlock()
-	if !s.isSamplingFinalized() {
+	if !ctx.isSamplingFinalized() {
 		decision := s.tracer.sampler.OnSetOperationName(s, operationName)
 		s.applySamplingDecision(decision, true)
 	}
@@ -100,15 +101,25 @@ func (s *Span) SetTag(key string, value interface{}) opentracing.Span {
 }
 
 func (s *Span) setTagInternal(key string, value interface{}, lock bool) opentracing.Span {
+	var ctx SpanContext
+	var operationName string
+	if lock {
+		ctx = s.SpanContext()
+		operationName = s.OperationName()
+	} else {
+		ctx = s.context
+		operationName = s.operationName
+	}
+
 	s.observer.OnSetTag(key, value)
-	if key == string(ext.SamplingPriority) && !setSamplingPriority(s, value) {
+	if key == string(ext.SamplingPriority) && !setSamplingPriority(ctx.samplingState, operationName, s.tracer, value) {
 		return s
 	}
-	if !s.isSamplingFinalized() {
+	if !ctx.isSamplingFinalized() {
 		decision := s.tracer.sampler.OnSetTag(s, key, value)
 		s.applySamplingDecision(decision, lock)
 	}
-	if s.isWriteable() {
+	if ctx.isWriteable() {
 		if lock {
 			s.Lock()
 			defer s.Unlock()
@@ -303,7 +314,14 @@ func (s *Span) fixLogsIfDropped() {
 	s.numDroppedLogs = 0
 }
 
-// SetBaggageItem implements SetBaggageItem() of opentracing.SpanContext
+// SetBaggageItem implements SetBaggageItem() of opentracing.SpanContext.
+// The call is proxied via tracer.baggageSetter to allow policies to be applied
+// before allowing to set/replace baggage keys.
+// The setter eventually stores a new SpanContext with extended baggage:
+//
+//     span.context = span.context.WithBaggageItem(key, value)
+//
+//  See SpanContext.WithBaggageItem() for explanation why it's done this way.
 func (s *Span) SetBaggageItem(key, value string) opentracing.Span {
 	s.Lock()
 	defer s.Unlock()
@@ -333,12 +351,13 @@ func (s *Span) FinishWithOptions(options opentracing.FinishOptions) {
 	s.observer.OnFinish(options)
 	s.Lock()
 	s.duration = options.FinishTime.Sub(s.startTime)
+	ctx := s.context
 	s.Unlock()
-	if !s.isSamplingFinalized() {
+	if !ctx.isSamplingFinalized() {
 		decision := s.tracer.sampler.OnFinishSpan(s)
 		s.applySamplingDecision(decision, true)
 	}
-	if s.context.IsSampled() {
+	if ctx.IsSampled() {
 		s.Lock()
 		s.fixLogsIfDropped()
 		if len(options.LogRecords) > 0 || len(options.BulkLogData) > 0 {
@@ -419,11 +438,18 @@ func (s *Span) serviceName() string {
 }
 
 func (s *Span) applySamplingDecision(decision SamplingDecision, lock bool) {
+	var ctx SpanContext
+	if lock {
+		ctx = s.SpanContext()
+	} else {
+		ctx = s.context
+	}
+
 	if !decision.Retryable {
-		s.context.samplingState.setFinal()
+		ctx.samplingState.setFinal()
 	}
 	if decision.Sample {
-		s.context.samplingState.setSampled()
+		ctx.samplingState.setSampled()
 		if len(decision.Tags) > 0 {
 			if lock {
 				s.Lock()
@@ -436,44 +462,34 @@ func (s *Span) applySamplingDecision(decision SamplingDecision, lock bool) {
 	}
 }
 
-// Span can be written to if it is sampled or the sampling decision has not been finalized.
-func (s *Span) isWriteable() bool {
-	state := s.context.samplingState
-	return !state.isFinal() || state.isSampled()
-}
-
-func (s *Span) isSamplingFinalized() bool {
-	return s.context.samplingState.isFinal()
-}
-
 // setSamplingPriority returns true if the flag was updated successfully, false otherwise.
 // The behavior of setSamplingPriority is surprising
 // If noDebugFlagOnForcedSampling is set
-//     setSamplingPriority(span, 1) always sets only flagSampled
+//     setSamplingPriority(..., 1) always sets only flagSampled
 // If noDebugFlagOnForcedSampling is unset, and isDebugAllowed passes
-//     setSamplingPriority(span, 1) sets both flagSampled and flagDebug
+//     setSamplingPriority(..., 1) sets both flagSampled and flagDebug
 // However,
-//     setSamplingPriority(span, 0) always only resets flagSampled
+//     setSamplingPriority(..., 0) always only resets flagSampled
 //
-// This means that doing a setSamplingPriority(span, 1) followed by setSamplingPriority(span, 0) can
+// This means that doing a setSamplingPriority(..., 1) followed by setSamplingPriority(..., 0) can
 // leave flagDebug set
-func setSamplingPriority(s *Span, value interface{}) bool {
+func setSamplingPriority(state *samplingState, operationName string, tracer *Tracer, value interface{}) bool {
 	val, ok := value.(uint16)
 	if !ok {
 		return false
 	}
 	if val == 0 {
-		s.context.samplingState.unsetSampled()
-		s.context.samplingState.setFinal()
+		state.unsetSampled()
+		state.setFinal()
 		return true
 	}
-	if s.tracer.options.noDebugFlagOnForcedSampling {
-		s.context.samplingState.setSampled()
-		s.context.samplingState.setFinal()
+	if tracer.options.noDebugFlagOnForcedSampling {
+		state.setSampled()
+		state.setFinal()
 		return true
-	} else if s.tracer.isDebugAllowed(s.operationName) {
-		s.context.samplingState.setDebugAndSampled()
-		s.context.samplingState.setFinal()
+	} else if tracer.isDebugAllowed(operationName) {
+		state.setDebugAndSampled()
+		state.setFinal()
 		return true
 	}
 	return false

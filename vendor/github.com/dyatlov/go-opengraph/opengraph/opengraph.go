@@ -119,9 +119,6 @@ func (og *OpenGraph) ProcessHTML(buffer io.Reader) error {
 			return z.Err()
 		case html.StartTagToken, html.SelfClosingTagToken, html.EndTagToken:
 			name, hasAttr := z.TagName()
-			if atom.Lookup(name) == atom.Body {
-				return nil // OpenGraph is only in head, so we don't need body
-			}
 			if atom.Lookup(name) != atom.Meta || !hasAttr {
 				continue
 			}

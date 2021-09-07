@@ -7,21 +7,22 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlTokenStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlTokenStore(sqlSupplier *SqlSupplier) store.TokenStore {
-	s := &SqlTokenStore{sqlSupplier}
+func newSqlTokenStore(sqlStore *SqlStore) store.TokenStore {
+	s := &SqlTokenStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Token{}, "Tokens").SetKeys(false, "Token")
 		table.ColMap("Token").SetMaxSize(64)
 		table.ColMap("Type").SetMaxSize(64)
@@ -68,10 +69,23 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 
 func (s SqlTokenStore) Cleanup() {
 	mlog.Debug("Cleaning up token store.")
-	deltime := model.GetMillis() - model.MAX_TOKEN_EXIPRY_TIME
+	deltime := model.GetMillis() - model.MaxTokenExipryTime
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE CreateAt < :DelTime", map[string]interface{}{"DelTime": deltime}); err != nil {
 		mlog.Error("Unable to cleanup token store.")
 	}
+}
+
+func (s SqlTokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {
+	tokens := []*model.Token{}
+	query, args, err := s.getQueryBuilder().Select("*").From("Tokens").Where(sq.Eq{"Type": tokenType}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get all tokens by type")
+	}
+
+	if _, err := s.GetReplica().Select(&tokens, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to get all tokens of Type=%s", tokenType)
+	}
+	return tokens, nil
 }
 
 func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) error {

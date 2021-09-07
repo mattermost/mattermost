@@ -4,29 +4,37 @@
 package api4
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitSaml() {
-	api.BaseRoutes.SAML.Handle("/metadata", api.ApiHandler(getSamlMetadata)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata)).Methods("GET")
 
-	api.BaseRoutes.SAML.Handle("/certificate/public", api.ApiSessionRequired(addSamlPublicCertificate)).Methods("POST")
-	api.BaseRoutes.SAML.Handle("/certificate/private", api.ApiSessionRequired(addSamlPrivateCertificate)).Methods("POST")
-	api.BaseRoutes.SAML.Handle("/certificate/idp", api.ApiSessionRequired(addSamlIdpCertificate)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(addSamlPublicCertificate)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(addSamlPrivateCertificate)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(addSamlIdpCertificate)).Methods("POST")
 
-	api.BaseRoutes.SAML.Handle("/certificate/public", api.ApiSessionRequired(removeSamlPublicCertificate)).Methods("DELETE")
-	api.BaseRoutes.SAML.Handle("/certificate/private", api.ApiSessionRequired(removeSamlPrivateCertificate)).Methods("DELETE")
-	api.BaseRoutes.SAML.Handle("/certificate/idp", api.ApiSessionRequired(removeSamlIdpCertificate)).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(removeSamlPublicCertificate)).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(removeSamlPrivateCertificate)).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(removeSamlIdpCertificate)).Methods("DELETE")
 
-	api.BaseRoutes.SAML.Handle("/certificate/status", api.ApiSessionRequired(getSamlCertificateStatus)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/certificate/status", api.APISessionRequired(getSamlCertificateStatus)).Methods("GET")
 
-	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.ApiHandler(getSamlMetadataFromIdp)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.APIHandler(getSamlMetadataFromIdp)).Methods("POST")
+
+	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APISessionRequired(resetAuthDataToEmail)).Methods("POST")
+}
+
+func (api *API) InitSamlLocal() {
+	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APILocal(resetAuthDataToEmail)).Methods("POST")
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -62,8 +70,8 @@ func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart
 }
 
 func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddSamlPublicCert) {
+		c.SetPermissionError(model.PermissionAddSamlPublicCert)
 		return
 	}
 
@@ -86,8 +94,8 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddSamlPrivateCert) {
+		c.SetPermissionError(model.PermissionAddSamlPrivateCert)
 		return
 	}
 
@@ -110,8 +118,8 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddSamlIdpCert) {
+		c.SetPermissionError(model.PermissionAddSamlIdpCert)
 		return
 	}
 
@@ -163,8 +171,8 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveSamlPublicCert) {
+		c.SetPermissionError(model.PermissionRemoveSamlPublicCert)
 		return
 	}
 
@@ -181,8 +189,8 @@ func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveSamlPrivateCert) {
+		c.SetPermissionError(model.PermissionRemoveSamlPrivateCert)
 		return
 	}
 
@@ -199,8 +207,8 @@ func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 }
 
 func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveSamlIdpCert) {
+		c.SetPermissionError(model.PermissionRemoveSamlIdpCert)
 		return
 	}
 
@@ -217,22 +225,24 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getSamlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetSamlCertStatus) {
+		c.SetPermissionError(model.PermissionGetSamlCertStatus)
 		return
 	}
 
 	status := c.App.GetSamlCertificateStatus()
-	w.Write([]byte(status.ToJson()))
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetSamlMetadataFromIdp) {
+		c.SetPermissionError(model.PermissionGetSamlMetadataFromIdp)
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	url := props["saml_metadata_url"]
 	if url == "" {
 		c.SetInvalidParam("saml_metadata_url")
@@ -245,5 +255,32 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(metadata.ToJson()))
+	if err := json.NewEncoder(w).Encode(metadata); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+	type ResetAuthDataParams struct {
+		IncludeDeleted   bool     `json:"include_deleted"`
+		DryRun           bool     `json:"dry_run"`
+		SpecifiedUserIDs []string `json:"user_ids"`
+	}
+	var params *ResetAuthDataParams
+	jsonErr := json.NewDecoder(r.Body).Decode(&params)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("resetAuthDataToEmail", "model.utils.decode_json.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+	numAffected, appErr := c.App.ResetSamlAuthDataToEmail(params.IncludeDeleted, params.DryRun, params.SpecifiedUserIDs)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	b, _ := json.Marshal(map[string]interface{}{"num_affected": numAffected})
+	w.Write(b)
 }

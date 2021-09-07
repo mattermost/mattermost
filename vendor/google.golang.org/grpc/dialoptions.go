@@ -66,12 +66,7 @@ type dialOptions struct {
 	minConnectTimeout           func() time.Duration
 	defaultServiceConfig        *ServiceConfig // defaultServiceConfig is parsed from defaultServiceConfigRawJSON.
 	defaultServiceConfigRawJSON *string
-	// This is used by ccResolverWrapper to backoff between successive calls to
-	// resolver.ResolveNow(). The user will have no need to configure this, but
-	// we need to be able to configure this in tests.
-	resolveNowBackoff func(int) time.Duration
-	resolvers         []resolver.Builder
-	withProxy         bool
+	resolvers                   []resolver.Builder
 }
 
 // DialOption configures how we set up the connection.
@@ -82,7 +77,10 @@ type DialOption interface {
 // EmptyDialOption does not alter the dial configuration. It can be embedded in
 // another structure to build custom dial options.
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This type is EXPERIMENTAL and may be changed or removed in a
+// later release.
 type EmptyDialOption struct{}
 
 func (EmptyDialOption) apply(*dialOptions) {}
@@ -238,7 +236,10 @@ func WithServiceConfig(c <-chan ServiceConfig) DialOption {
 // using the backoff.DefaultConfig as a base, in cases where you want to
 // override only a subset of the backoff configuration.
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithConnectParams(p ConnectParams) DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.bs = internalbackoff.Exponential{Config: p.Backoff}
@@ -290,7 +291,10 @@ func WithBlock() DialOption {
 // the context.DeadlineExceeded error.
 // Implies WithBlock()
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithReturnConnectionError() DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.block = true
@@ -310,10 +314,13 @@ func WithInsecure() DialOption {
 // WithNoProxy returns a DialOption which disables the use of proxies for this
 // ClientConn. This is ignored if WithDialer or WithContextDialer are used.
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithNoProxy() DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
-		o.withProxy = false
+		o.copts.UseProxy = false
 	})
 }
 
@@ -338,7 +345,10 @@ func WithPerRPCCredentials(creds credentials.PerRPCCredentials) DialOption {
 // the ClientConn.WithCreds. This should not be used together with
 // WithTransportCredentials.
 //
-// This API is experimental.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithCredentialsBundle(b credentials.Bundle) DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.copts.CredsBundle = b
@@ -403,7 +413,10 @@ func WithStatsHandler(h stats.Handler) DialOption {
 // FailOnNonTempDialError only affects the initial dial, and does not do
 // anything useful unless you are also using WithBlock().
 //
-// This is an EXPERIMENTAL API.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func FailOnNonTempDialError(f bool) DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.copts.FailOnNonTempDialError = f
@@ -481,7 +494,10 @@ func WithAuthority(a string) DialOption {
 // current ClientConn's parent. This function is used in nested channel creation
 // (e.g. grpclb dial).
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithChannelzParentID(id int64) DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.channelzParentID = id
@@ -507,7 +523,10 @@ func WithDisableServiceConfig() DialOption {
 // 2. Resolver does not return a service config or if the resolver returns an
 //    invalid service config.
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithDefaultServiceConfig(s string) DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.defaultServiceConfigRawJSON = &s
@@ -523,7 +542,10 @@ func WithDefaultServiceConfig(s string) DialOption {
 // default in the future.  Until then, it may be enabled by setting the
 // environment variable "GRPC_GO_RETRY" to "on".
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithDisableRetry() DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.disableRetry = true
@@ -541,7 +563,10 @@ func WithMaxHeaderListSize(s uint32) DialOption {
 // WithDisableHealthCheck disables the LB channel health checking for all
 // SubConns of this ClientConn.
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithDisableHealthCheck() DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.disableHealthCheck = true
@@ -565,9 +590,8 @@ func defaultDialOptions() dialOptions {
 		copts: transport.ConnectOptions{
 			WriteBufferSize: defaultWriteBufSize,
 			ReadBufferSize:  defaultReadBufSize,
+			UseProxy:        true,
 		},
-		resolveNowBackoff: internalbackoff.DefaultExponential.Backoff,
-		withProxy:         true,
 	}
 }
 
@@ -582,22 +606,15 @@ func withMinConnectDeadline(f func() time.Duration) DialOption {
 	})
 }
 
-// withResolveNowBackoff specifies the function that clientconn uses to backoff
-// between successive calls to resolver.ResolveNow().
-//
-// For testing purpose only.
-func withResolveNowBackoff(f func(int) time.Duration) DialOption {
-	return newFuncDialOption(func(o *dialOptions) {
-		o.resolveNowBackoff = f
-	})
-}
-
 // WithResolvers allows a list of resolver implementations to be registered
 // locally with the ClientConn without needing to be globally registered via
 // resolver.Register.  They will be matched against the scheme used for the
 // current Dial only, and will take precedence over the global registry.
 //
-// This API is EXPERIMENTAL.
+// Experimental
+//
+// Notice: This API is EXPERIMENTAL and may be changed or removed in a
+// later release.
 func WithResolvers(rs ...resolver.Builder) DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.resolvers = append(o.resolvers, rs...)

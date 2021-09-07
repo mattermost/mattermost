@@ -22,7 +22,7 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 			WriteBufferSize: 1024,
 		}
 		conn, err := upgrader.Upgrade(w, req, nil)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		var buf []byte
 		for {
 			_, buf, err = conn.ReadMessage()
@@ -46,7 +46,7 @@ func TestWebSocketRace(t *testing.T) {
 
 	url := strings.Replace(s.URL, "http://", "ws://", 1)
 	cli, err := NewWebSocketClient4(url, "authToken")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	cli.Listen()
 
@@ -110,7 +110,7 @@ func TestWebSocketClose(t *testing.T) {
 
 	t.Run("SuddenClose", func(t *testing.T) {
 		cli, err := NewWebSocketClient4(url, "authToken")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		cli.Listen()
 
@@ -132,7 +132,7 @@ func TestWebSocketClose(t *testing.T) {
 
 	t.Run("ExplicitClose", func(t *testing.T) {
 		cli, err := NewWebSocketClient4(url, "authToken")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		cli.Listen()
 

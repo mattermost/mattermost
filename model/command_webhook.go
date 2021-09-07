@@ -14,12 +14,11 @@ type CommandWebhook struct {
 	UserId    string
 	ChannelId string
 	RootId    string
-	ParentId  string
 	UseCount  int
 }
 
 const (
-	COMMAND_WEBHOOK_LIFETIME = 1000 * 60 * 30
+	CommandWebhookLifetime = 1000 * 60 * 30
 )
 
 func (o *CommandWebhook) PreSave() {
@@ -53,12 +52,8 @@ func (o *CommandWebhook) IsValid() *AppError {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.RootId) != 0 && !IsValidId(o.RootId) {
+	if o.RootId != "" && !IsValidId(o.RootId) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.root_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(o.ParentId) != 0 && !IsValidId(o.ParentId) {
-		return NewAppError("CommandWebhook.IsValid", "model.command_hook.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestCommandStore(t *testing.T, ss store.Store) {
@@ -28,35 +28,35 @@ func TestCommandStore(t *testing.T, ss store.Store) {
 func testCommandStoreSave(t *testing.T, ss store.Store) {
 	o1 := model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
 	_, nErr := ss.Command().Save(&o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, err := ss.Command().Save(&o1)
-	require.NotNil(t, err, "shouldn't be able to update from save")
+	require.Error(t, err, "shouldn't be able to update from save")
 }
 
 func testCommandStoreGet(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
 	o1, nErr := ss.Command().Save(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	r1, nErr := ss.Command().Get(o1.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
 	_, err := ss.Command().Get("123")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -64,55 +64,55 @@ func testCommandStoreGet(t *testing.T, ss store.Store) {
 func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
 	o1, nErr := ss.Command().Save(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	r1, nErr := ss.Command().GetByTeam(o1.TeamId)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.NotEmpty(t, r1, "no command returned")
 	require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned command")
 
 	result, nErr := ss.Command().GetByTeam("123")
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Empty(t, result, "no commands should have returned")
 }
 
 func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger1"
 
 	o2 := &model.Command{}
 	o2.CreatorId = model.NewId()
-	o2.Method = model.COMMAND_METHOD_POST
+	o2.Method = model.CommandMethodPost
 	o2.TeamId = model.NewId()
 	o2.URL = "http://nowhere.com/"
 	o2.Trigger = "trigger1"
 
 	o1, nErr := ss.Command().Save(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, nErr = ss.Command().Save(o2)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	var r1 *model.Command
 	r1, nErr = ss.Command().GetByTrigger(o1.TeamId, o1.Trigger)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Equal(t, r1.Id, o1.Id, "invalid returned command")
 
 	nErr = ss.Command().Delete(o1.Id, model.GetMillis())
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -120,23 +120,23 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 func testCommandStoreDelete(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
 	o1, nErr := ss.Command().Save(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	r1, nErr := ss.Command().Get(o1.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
 	nErr = ss.Command().Delete(o1.Id, model.GetMillis())
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, err := ss.Command().Get(o1.Id)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -144,23 +144,23 @@ func testCommandStoreDelete(t *testing.T, ss store.Store) {
 func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
 	o1, nErr := ss.Command().Save(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	r1, nErr := ss.Command().Get(o1.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
 	nErr = ss.Command().PermanentDeleteByTeam(o1.TeamId)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, err := ss.Command().Get(o1.Id)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -168,23 +168,23 @@ func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
 	o1, nErr := ss.Command().Save(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	r1, nErr := ss.Command().Get(o1.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
 	nErr = ss.Command().PermanentDeleteByUser(o1.CreatorId)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, err := ss.Command().Get(o1.Id)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -192,41 +192,41 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
 	o1, nErr := ss.Command().Save(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	o1.Token = model.NewId()
 
 	_, nErr = ss.Command().Update(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	o1.URL = "junk"
 
 	_, err := ss.Command().Update(o1)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func testCommandCount(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
 	o1, nErr := ss.Command().Save(o1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	r1, nErr := ss.Command().AnalyticsCommandCount("")
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.NotZero(t, r1, "should be at least 1 command")
 
 	r2, nErr := ss.Command().AnalyticsCommandCount(o1.TeamId)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Equal(t, r2, int64(1), "should be 1 command")
 }

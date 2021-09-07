@@ -33,14 +33,8 @@ func hashBytesAtOffset5(v uint64, offset int, shift uint) uint32 {
 }
 
 func isMatch5(p1 []byte, p2 []byte) bool {
-	var i int
-	for i = 0; i < 5; i++ {
-		if p1[i] != p2[i] {
-			return false
-		}
-	}
-
-	return true
+	return binary.LittleEndian.Uint32(p1) == binary.LittleEndian.Uint32(p2) &&
+		p1[4] == p2[4]
 }
 
 /* Builds a literal prefix code into "depths" and "bits" based on the statistics

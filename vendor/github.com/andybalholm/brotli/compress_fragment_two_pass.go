@@ -30,14 +30,13 @@ func hashBytesAtOffset(v uint64, offset uint, shift uint, length uint) uint32 {
 }
 
 func isMatch1(p1 []byte, p2 []byte, length uint) bool {
-	var i uint
-	for i = 0; i < length && i < 6; i++ {
-		if p1[i] != p2[i] {
-			return false
-		}
+	if binary.LittleEndian.Uint32(p1) != binary.LittleEndian.Uint32(p2) {
+		return false
 	}
-
-	return true
+	if length == 4 {
+		return true
+	}
+	return p1[4] == p2[4] && p1[5] == p2[5]
 }
 
 /* Builds a command and distance prefix code (each 64 symbols) into "depth" and

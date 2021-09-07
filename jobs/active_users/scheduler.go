@@ -6,8 +6,8 @@ package active_users
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -27,7 +27,7 @@ func (scheduler *Scheduler) Name() string {
 }
 
 func (scheduler *Scheduler) JobType() string {
-	return model.JOB_TYPE_ACTIVE_USERS
+	return model.JobTypeActiveUsers
 }
 
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
@@ -43,9 +43,9 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	data := map[string]string{}
 
-	if job, err := scheduler.App.Srv().Jobs.CreateJob(model.JOB_TYPE_ACTIVE_USERS, data); err != nil {
+	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JobTypeActiveUsers, data)
+	if err != nil {
 		return nil, err
-	} else {
-		return job, nil
 	}
+	return job, nil
 }

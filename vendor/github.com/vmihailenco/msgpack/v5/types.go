@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/vmihailenco/tagparser"
+	"github.com/vmihailenco/tagparser/v2"
 )
 
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
@@ -27,6 +27,11 @@ var (
 	binaryUnmarshalerType = reflect.TypeOf((*encoding.BinaryUnmarshaler)(nil)).Elem()
 )
 
+var (
+	textMarshalerType   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+	textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+)
+
 type (
 	encoderFunc func(*Encoder, reflect.Value) error
 	decoderFunc func(*Decoder, reflect.Value) error
@@ -39,7 +44,7 @@ var (
 
 // Register registers encoder and decoder functions for a value.
 // This is low level API and in most cases you should prefer implementing
-// Marshaler/CustomEncoder and Unmarshaler/CustomDecoder interfaces.
+// CustomEncoder/CustomDecoder or Marshaler/Unmarshaler interfaces.
 func Register(value interface{}, enc encoderFunc, dec decoderFunc) {
 	typ := reflect.TypeOf(value)
 	if enc != nil {
@@ -66,7 +71,7 @@ type structCacheKey struct {
 }
 
 func newStructCache() *structCache {
-	return &structCache{}
+	return new(structCache)
 }
 
 func (m *structCache) Fields(typ reflect.Type, tag string) *fields {
@@ -92,12 +97,12 @@ type field struct {
 	decoder   decoderFunc
 }
 
-func (f *field) Omit(strct reflect.Value) bool {
+func (f *field) Omit(strct reflect.Value, forced bool) bool {
 	v, ok := fieldByIndex(strct, f.index)
 	if !ok {
 		return true
 	}
-	return f.omitEmpty && isEmptyValue(v)
+	return (f.omitEmpty || forced) && isEmptyValue(v)
 }
 
 func (f *field) EncodeValue(e *Encoder, strct reflect.Value) error {
@@ -147,15 +152,15 @@ func (fs *fields) warnIfFieldExists(name string) {
 	}
 }
 
-func (fs *fields) OmitEmpty(strct reflect.Value) []*field {
-	if !fs.hasOmitEmpty {
+func (fs *fields) OmitEmpty(strct reflect.Value, forced bool) []*field {
+	if !fs.hasOmitEmpty && !forced {
 		return fs.List
 	}
 
 	fields := make([]*field, 0, len(fs.List))
 
 	for _, f := range fs.List {
-		if !f.Omit(strct) {
+		if !f.Omit(strct, forced) {
 			fields = append(fields, f)
 		}
 	}
@@ -181,9 +186,7 @@ func getFields(typ reflect.Type, fallbackTag string) *fields {
 		}
 
 		if f.Name == "_msgpack" {
-			if tag.HasOption("asArray") {
-				fs.AsArray = true
-			}
+			fs.AsArray = tag.HasOption("as_array") || tag.HasOption("asArray")
 			if tag.HasOption("omitempty") {
 				omitEmpty = true
 			}
@@ -202,11 +205,11 @@ func getFields(typ reflect.Type, fallbackTag string) *fields {
 		if tag.HasOption("intern") {
 			switch f.Type.Kind() {
 			case reflect.Interface:
-				field.encoder = encodeInternInterfaceValue
-				field.decoder = decodeInternInterfaceValue
+				field.encoder = encodeInternedInterfaceValue
+				field.decoder = decodeInternedInterfaceValue
 			case reflect.String:
-				field.encoder = encodeInternStringValue
-				field.decoder = decodeInternStringValue
+				field.encoder = encodeInternedStringValue
+				field.decoder = decodeInternedStringValue
 			default:
 				err := fmt.Errorf("msgpack: intern strings are not supported on %s", f.Type)
 				panic(err)
@@ -310,8 +313,26 @@ func shouldInline(fs *fields, typ reflect.Type, f *field, tag string) bool {
 	return true
 }
 
+type isZeroer interface {
+	IsZero() bool
+}
+
 func isEmptyValue(v reflect.Value) bool {
-	switch v.Kind() {
+	kind := v.Kind()
+
+	for kind == reflect.Interface {
+		if v.IsNil() {
+			return true
+		}
+		v = v.Elem()
+		kind = v.Kind()
+	}
+
+	if z, ok := v.Interface().(isZeroer); ok {
+		return nilable(kind) && v.IsNil() || z.IsZero()
+	}
+
+	switch kind {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return v.Len() == 0
 	case reflect.Bool:
@@ -322,10 +343,11 @@ func isEmptyValue(v reflect.Value) bool {
 		return v.Uint() == 0
 	case reflect.Float32, reflect.Float64:
 		return v.Float() == 0
-	case reflect.Interface, reflect.Ptr:
+	case reflect.Ptr:
 		return v.IsNil()
+	default:
+		return false
 	}
-	return false
 }
 
 func fieldByIndex(v reflect.Value, index []int) (_ reflect.Value, ok bool) {

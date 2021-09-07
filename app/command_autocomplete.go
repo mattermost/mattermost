@@ -4,14 +4,16 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // AutocompleteDynamicArgProvider dynamically provides auto-completion args for built-in commands.
@@ -20,7 +22,7 @@ type AutocompleteDynamicArgProvider interface {
 }
 
 // GetSuggestions returns suggestions for user input.
-func (a *App) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
+func (a *App) GetSuggestions(c *request.Context, commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
 	sort.Slice(commands, func(i, j int) bool {
 		return strings.Compare(strings.ToLower(commands[i].Trigger), strings.ToLower(commands[j].Trigger)) < 0
 	})
@@ -34,7 +36,7 @@ func (a *App) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.C
 	}
 
 	userInput := commandArgs.Command
-	suggestions := a.getSuggestions(commandArgs, autocompleteData, "", userInput, roleID)
+	suggestions := a.getSuggestions(c, commandArgs, autocompleteData, "", userInput, roleID)
 	for i, suggestion := range suggestions {
 		for _, command := range commands {
 			if strings.HasPrefix(suggestion.Complete, command.Trigger) {
@@ -47,13 +49,13 @@ func (a *App) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.C
 	return suggestions
 }
 
-func (a *App) getSuggestions(commandArgs *model.CommandArgs, commands []*model.AutocompleteData, inputParsed, inputToBeParsed, roleID string) []model.AutocompleteSuggestion {
+func (a *App) getSuggestions(c *request.Context, commandArgs *model.CommandArgs, commands []*model.AutocompleteData, inputParsed, inputToBeParsed, roleID string) []model.AutocompleteSuggestion {
 	suggestions := []model.AutocompleteSuggestion{}
 	index := strings.Index(inputToBeParsed, " ")
 
 	if index == -1 { // no space in input
 		for _, command := range commands {
-			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
+			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SystemAdminRoleId || roleID == "") {
 				s := model.AutocompleteSuggestion{
 					Complete:    inputParsed + command.Trigger,
 					Suggestion:  command.Trigger,
@@ -70,7 +72,7 @@ func (a *App) getSuggestions(commandArgs *model.CommandArgs, commands []*model.A
 		if command.Trigger != strings.ToLower(inputToBeParsed[:index]) {
 			continue
 		}
-		if roleID != "" && roleID != model.SYSTEM_ADMIN_ROLE_ID && roleID != command.RoleID {
+		if roleID != "" && roleID != model.SystemAdminRoleId && roleID != command.RoleID {
 			continue
 		}
 		toBeParsed := inputToBeParsed[index+1:]
@@ -78,12 +80,12 @@ func (a *App) getSuggestions(commandArgs *model.CommandArgs, commands []*model.A
 
 		if len(command.Arguments) == 0 {
 			// Seek recursively in subcommands
-			subSuggestions := a.getSuggestions(commandArgs, command.SubCommands, parsed, toBeParsed, roleID)
+			subSuggestions := a.getSuggestions(c, commandArgs, command.SubCommands, parsed, toBeParsed, roleID)
 			suggestions = append(suggestions, subSuggestions...)
 			continue
 		}
 
-		found, _, _, suggestion := a.parseArguments(commandArgs, command.Arguments, parsed, toBeParsed)
+		found, _, _, suggestion := a.parseArguments(c, commandArgs, command.Arguments, parsed, toBeParsed)
 		if found {
 			suggestions = append(suggestions, suggestion...)
 		}
@@ -92,27 +94,27 @@ func (a *App) getSuggestions(commandArgs *model.CommandArgs, commands []*model.A
 	return suggestions
 }
 
-func (a *App) parseArguments(commandArgs *model.CommandArgs, args []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) parseArguments(c *request.Context, commandArgs *model.CommandArgs, args []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	if len(args) == 0 {
 		return false, parsed, toBeParsed, suggestions
 	}
 
 	if args[0].Required {
-		found, changedParsed, changedToBeParsed, suggestion := a.parseArgument(commandArgs, args, parsed, toBeParsed)
+		found, changedParsed, changedToBeParsed, suggestion := a.parseArgument(c, commandArgs, args, parsed, toBeParsed)
 		if found {
 			suggestions = append(suggestions, suggestion...)
 			return true, changedParsed, changedToBeParsed, suggestions
 		}
-		return a.parseArguments(commandArgs, args[1:], changedParsed, changedToBeParsed)
+		return a.parseArguments(c, commandArgs, args[1:], changedParsed, changedToBeParsed)
 	}
 
 	// Handling optional arguments. Optional argument can be inputted or not,
 	// so we have to pase both cases recursively and output combined suggestions.
-	foundWithOptional, changedParsedWithOptional, changedToBeParsedWithOptional, suggestionsWithOptional := a.parseArgument(commandArgs, args, parsed, toBeParsed)
+	foundWithOptional, changedParsedWithOptional, changedToBeParsedWithOptional, suggestionsWithOptional := a.parseArgument(c, commandArgs, args, parsed, toBeParsed)
 	if foundWithOptional {
 		suggestions = append(suggestions, suggestionsWithOptional...)
 	} else {
-		foundWithOptionalRest, changedParsedWithOptionalRest, changedToBeParsedWithOptionalRest, suggestionsWithOptionalRest := a.parseArguments(commandArgs, args[1:], changedParsedWithOptional, changedToBeParsedWithOptional)
+		foundWithOptionalRest, changedParsedWithOptionalRest, changedToBeParsedWithOptionalRest, suggestionsWithOptionalRest := a.parseArguments(c, commandArgs, args[1:], changedParsedWithOptional, changedToBeParsedWithOptional)
 		if foundWithOptionalRest {
 			suggestions = append(suggestions, suggestionsWithOptionalRest...)
 		}
@@ -121,7 +123,7 @@ func (a *App) parseArguments(commandArgs *model.CommandArgs, args []*model.Autoc
 		changedToBeParsedWithOptional = changedToBeParsedWithOptionalRest
 	}
 
-	foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestionsWithoutOptional := a.parseArguments(commandArgs, args[1:], parsed, toBeParsed)
+	foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestionsWithoutOptional := a.parseArguments(c, commandArgs, args[1:], parsed, toBeParsed)
 	if foundWithoutOptional {
 		suggestions = append(suggestions, suggestionsWithoutOptional...)
 	}
@@ -140,7 +142,7 @@ func (a *App) parseArguments(commandArgs *model.CommandArgs, args []*model.Autoc
 	return foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestions
 }
 
-func (a *App) parseArgument(commandArgs *model.CommandArgs, argList []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) parseArgument(c *request.Context, commandArgs *model.CommandArgs, argList []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	arg := argList[0]
 	if arg.Name != "" { //Parse the --name first
 		found, changedParsed, changedToBeParsed, suggestion := parseNamedArgument(arg, parsed, toBeParsed)
@@ -176,7 +178,7 @@ func (a *App) parseArgument(commandArgs *model.CommandArgs, argList []*model.Aut
 		parsed = changedParsed
 		toBeParsed = changedToBeParsed
 	} else if arg.Type == model.AutocompleteArgTypeDynamicList {
-		found, changedParsed, changedToBeParsed, dynamicListSuggestions := a.getDynamicListArgument(commandArgs, arg, parsed, toBeParsed)
+		found, changedParsed, changedToBeParsed, dynamicListSuggestions := a.getDynamicListArgument(c, commandArgs, arg, parsed, toBeParsed)
 		if found {
 			suggestions = append(suggestions, dynamicListSuggestions...)
 			return true, changedParsed, changedToBeParsed, suggestions
@@ -247,7 +249,7 @@ func parseStaticListArgument(arg *model.AutocompleteArg, parsed, toBeParsed stri
 	return parseListItems(a.PossibleArguments, parsed, toBeParsed)
 }
 
-func (a *App) getDynamicListArgument(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
 
 	if strings.HasPrefix(dynamicArg.FetchURL, "builtin:") {
@@ -265,10 +267,10 @@ func (a *App) getDynamicListArgument(commandArgs *model.CommandArgs, arg *model.
 
 	// Encode the information normally provided to a plugin slash command handler into the request parameters
 	// Encode PluginContext:
-	pluginContext := a.PluginContext()
+	pluginContext := pluginContext(c)
 	params.Add("request_id", pluginContext.RequestId)
 	params.Add("session_id", pluginContext.SessionId)
-	params.Add("ip_address", pluginContext.IpAddress)
+	params.Add("ip_address", pluginContext.IPAddress)
 	params.Add("accept_language", pluginContext.AcceptLanguage)
 	params.Add("user_agent", pluginContext.UserAgent)
 
@@ -276,18 +278,20 @@ func (a *App) getDynamicListArgument(commandArgs *model.CommandArgs, arg *model.
 	params.Add("channel_id", commandArgs.ChannelId)
 	params.Add("team_id", commandArgs.TeamId)
 	params.Add("root_id", commandArgs.RootId)
-	params.Add("parent_id", commandArgs.ParentId)
 	params.Add("user_id", commandArgs.UserId)
 	params.Add("site_url", commandArgs.SiteURL)
 
-	resp, err := a.doPluginRequest("GET", dynamicArg.FetchURL, params, nil)
+	resp, err := a.doPluginRequest(c, "GET", dynamicArg.FetchURL, params, nil)
 
 	if err != nil {
 		a.Log().Error("Can't fetch dynamic list arguments for", mlog.String("url", dynamicArg.FetchURL), mlog.Err(err))
 		return false, parsed, toBeParsed, []model.AutocompleteSuggestion{}
 	}
 
-	listItems := model.AutocompleteStaticListItemsFromJSON(resp.Body)
+	var listItems []model.AutocompleteListItem
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&listItems); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
 
 	return parseListItems(listItems, parsed, toBeParsed)
 }
@@ -317,18 +321,18 @@ func (a *App) getBuiltinDynamicListArgument(commandArgs *model.CommandArgs, arg 
 	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
 	arr := strings.Split(dynamicArg.FetchURL, ":")
 	if len(arr) < 2 {
-		return nil, errors.New("Dynamic list URL missing built-in command name")
+		return nil, errors.New("dynamic list URL missing built-in command name")
 	}
 	cmdName := arr[1]
 
 	provider := GetCommandProvider(cmdName)
 	if provider == nil {
-		return nil, fmt.Errorf("No command provider for %s", cmdName)
+		return nil, fmt.Errorf("no command provider for %s", cmdName)
 	}
 
 	dp, ok := provider.(AutocompleteDynamicArgProvider)
 	if !ok {
-		return nil, fmt.Errorf("Auto-completion not available for built-in command %s", cmdName)
+		return nil, fmt.Errorf("auto-completion not available for built-in command %s", cmdName)
 	}
 
 	return dp.GetAutoCompleteListItems(a, commandArgs, arg, parsed, toBeParsed)

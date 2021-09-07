@@ -4,14 +4,15 @@
 package searchlayer
 
 import (
-	"errors"
-	"net/http"
+	"context"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SearchUserStore struct {
@@ -36,9 +37,9 @@ func (s *SearchUserStore) deleteUserIndex(user *model.User) {
 func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
-			listOfAllowedChannels, err := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
-			if err != nil {
-				mlog.Error("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+			listOfAllowedChannels, nErr := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+			if nErr != nil {
+				mlog.Warn("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 
@@ -50,13 +51,13 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 
 			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, sanitizedTerm, options)
 			if err != nil {
-				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				mlog.Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 
-			users, nErr := s.UserStore.GetProfileByIds(usersIds, nil, false)
+			users, nErr := s.UserStore.GetProfileByIds(context.Background(), usersIds, nil, false)
 			if nErr != nil {
-				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				mlog.Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 
@@ -89,9 +90,9 @@ func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
 }
 
 func (s *SearchUserStore) PermanentDelete(userId string) error {
-	user, userErr := s.UserStore.Get(userId)
+	user, userErr := s.UserStore.Get(context.Background(), userId)
 	if userErr != nil {
-		mlog.Error("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
+		mlog.Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}
 	err := s.UserStore.PermanentDelete(userId)
 	if err == nil && userErr == nil {
@@ -100,7 +101,7 @@ func (s *SearchUserStore) PermanentDelete(userId string) error {
 	return err
 }
 
-func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	var err *model.AppError
 	uchanIds := []string{}
 	nuchanIds := []string{}
@@ -116,15 +117,15 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		users, err := s.UserStore.GetProfileByIds(uchanIds, nil, false)
-		uchan <- store.StoreResult{Data: users, NErr: err}
+		users, nErr := s.UserStore.GetProfileByIds(context.Background(), uchanIds, nil, false)
+		uchan <- store.StoreResult{Data: users, NErr: nErr}
 		close(uchan)
 	}()
 
 	nuchan := make(chan store.StoreResult, 1)
 	go func() {
-		users, err := s.UserStore.GetProfileByIds(nuchanIds, nil, false)
-		nuchan <- store.StoreResult{Data: users, NErr: err}
+		users, nErr := s.UserStore.GetProfileByIds(context.Background(), nuchanIds, nil, false)
+		nuchan <- store.StoreResult{Data: users, NErr: nErr}
 		close(nuchan)
 	}()
 
@@ -132,14 +133,14 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 
 	result := <-uchan
 	if result.NErr != nil {
-		return nil, model.NewAppError("autocompleteUsersInChannelByEngine", "app.user.get_profiles.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
 	inUsers := result.Data.([]*model.User)
 	autocomplete.InChannel = inUsers
 
 	result = <-nuchan
 	if result.NErr != nil {
-		return nil, model.NewAppError("autocompleteUsersInChannelByEngine", "app.user.get_profiles.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
 	outUsers := result.Data.([]*model.User)
 	autocomplete.OutOfChannel = outUsers
@@ -158,7 +159,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 //		- If we receive channels restrictions we get:
 //			- If we don't have team id, we get those restricted channels (guest accounts and quick search)
 //			- If we have a team id then we only return those restricted channels that belongs to that team
-func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, *model.AppError) {
+func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, error) {
 	var listOfAllowedChannels []string
 	if viewRestrictions == nil && teamId == "" {
 		// nil return without error means all channels are allowed
@@ -168,15 +169,9 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 	if teamId != "" && (viewRestrictions == nil || strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId)) {
 		channels, err := s.rootStore.Channel().GetTeamChannels(teamId)
 		if err != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
-				return nil, model.NewAppError("getListOfAllowedChannelsForTeam", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
-			default:
-				return nil, model.NewAppError("getListOfAllowedChannelsForTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, errors.Wrap(err, "failed to get team channels")
 		}
-		for _, channel := range *channels {
+		for _, channel := range channels {
 			listOfAllowedChannels = append(listOfAllowedChannels, channel.Id)
 		}
 		return listOfAllowedChannels, nil
@@ -185,7 +180,7 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 	if len(viewRestrictions.Channels) > 0 {
 		channels, err := s.rootStore.Channel().GetChannelsByIds(viewRestrictions.Channels, false)
 		if err != nil {
-			return nil, model.NewAppError("getListOfAllowedChannelsForTeam", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "failed to get channels by ids")
 		}
 		for _, c := range channels {
 			if teamId == "" || (teamId != "" && c.TeamId == teamId) {
@@ -201,22 +196,22 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsAutocompletionEnabled() {
-			listOfAllowedChannels, err := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
-			if err != nil {
-				mlog.Error("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+			listOfAllowedChannels, nErr := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+			if nErr != nil {
+				mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 			if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
 				return &model.UserAutocompleteInChannel{}, nil
 			}
 			options.ListOfAllowedChannels = listOfAllowedChannels
-			autocomplete, err := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
-			if err != nil {
-				mlog.Error("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+			autocomplete, nErr := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
+			if nErr != nil {
+				mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
-			return autocomplete, err
+			return autocomplete, nil
 		}
 	}
 

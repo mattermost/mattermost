@@ -7,17 +7,18 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 type nilReadSeeker struct {
@@ -99,8 +100,10 @@ func TestInstallPluginLocally(t *testing.T) {
 			Id:      id,
 			Version: version,
 		}
+		manifestJSON, jsonErr := json.Marshal(manifest)
+		require.NoError(t, jsonErr)
 		reader := makeInMemoryGzipTarFile(t, []testFile{
-			{"plugin.json", manifest.ToJson()},
+			{"plugin.json", string(manifestJSON)},
 		})
 
 		actualManifest, appError := th.App.installPluginLocally(reader, nil, installationStrategy)
@@ -128,7 +131,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		pluginsEnvironment := th.App.GetPluginsEnvironment()
 		require.NotNil(t, pluginsEnvironment)
 		bundleInfos, err := pluginsEnvironment.Available()
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		for _, bundleInfo := range bundleInfos {
 			err := th.App.removePluginLocally(bundleInfo.Manifest.Id)
@@ -140,7 +143,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		pluginsEnvironment := th.App.GetPluginsEnvironment()
 		require.NotNil(t, pluginsEnvironment)
 		bundleInfos, err := pluginsEnvironment.Available()
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		sort.Sort(byBundleInfoId(bundleInfos))
 
@@ -281,7 +284,7 @@ func TestInstallPluginAlreadyActive(t *testing.T) {
 	pluginsEnvironment := th.App.GetPluginsEnvironment()
 	require.NotNil(t, pluginsEnvironment)
 	bundleInfos, err := pluginsEnvironment.Available()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotEmpty(t, bundleInfos)
 	for _, bundleInfo := range bundleInfos {
 		if bundleInfo.Manifest.Id == actualManifest.Id {

@@ -120,7 +120,6 @@ func Dial(network, addr string) (*Conn, error) {
 		return nil, NewError(ErrorNetwork, err)
 	}
 	conn := NewConn(c, false)
-	conn.Start()
 	return conn, nil
 }
 
@@ -132,7 +131,6 @@ func DialTLS(network, addr string, config *tls.Config) (*Conn, error) {
 		return nil, NewError(ErrorNetwork, err)
 	}
 	conn := NewConn(c, true)
-	conn.Start()
 	return conn, nil
 }
 

@@ -7,18 +7,18 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type sqlClusterDiscoveryStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlClusterDiscoveryStore(sqlSupplier *SqlSupplier) store.ClusterDiscoveryStore {
-	s := &sqlClusterDiscoveryStore{sqlSupplier}
+func newSqlClusterDiscoveryStore(sqlStore *SqlStore) store.ClusterDiscoveryStore {
+	s := &sqlClusterDiscoveryStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.ClusterDiscovery{}, "ClusterDiscovery").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(64)
@@ -92,7 +92,7 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 		From("ClusterDiscovery").
 		Where(sq.Eq{"Type": ClusterDiscoveryType}).
 		Where(sq.Eq{"ClusterName": clusterName}).
-		Where(sq.Gt{"LastPingAt": model.GetMillis() - model.CDS_OFFLINE_AFTER_MILLIS})
+		Where(sq.Gt{"LastPingAt": model.GetMillis() - model.CDSOfflineAfterMillis})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -128,7 +128,7 @@ func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterD
 func (s sqlClusterDiscoveryStore) Cleanup() error {
 	query := s.getQueryBuilder().
 		Delete("ClusterDiscovery").
-		Where(sq.Lt{"LastPingAt": model.GetMillis() - model.CDS_OFFLINE_AFTER_MILLIS})
+		Where(sq.Lt{"LastPingAt": model.GetMillis() - model.CDSOfflineAfterMillis})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

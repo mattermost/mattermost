@@ -6,26 +6,26 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlCommandStore struct {
-	*SqlSupplier
+	*SqlStore
 
 	commandsQuery sq.SelectBuilder
 }
 
-func newSqlCommandStore(sqlSupplier *SqlSupplier) store.CommandStore {
-	s := &SqlCommandStore{SqlSupplier: sqlSupplier}
+func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
+	s := &SqlCommandStore{SqlStore: sqlStore}
 
 	s.commandsQuery = s.getQueryBuilder().
 		Select("*").
 		From("Commands")
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		tableo := db.AddTableWithName(model.Command{}, "Commands").SetKeys(false, "Id")
 		tableo.ColMap("Id").SetMaxSize(26)
 		tableo.ColMap("Token").SetMaxSize(26)
@@ -54,7 +54,7 @@ func (s SqlCommandStore) createIndexesIfNotExists() {
 }
 
 func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
-	if len(command.Id) > 0 {
+	if command.Id != "" {
 		return nil, store.NewErrInvalidInput("Command", "CommandId", command.Id)
 	}
 
@@ -193,7 +193,7 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 		From("Commands").
 		Where(sq.Eq{"DeleteAt": 0})
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query = query.Where(sq.Eq{"TeamId": teamId})
 	}
 

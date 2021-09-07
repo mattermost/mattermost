@@ -10,12 +10,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func init() {
-	hookNameToId["OnDeactivate"] = OnDeactivateId
+	hookNameToId["OnDeactivate"] = OnDeactivateID
 }
 
 type Z_OnDeactivateArgs struct {
@@ -28,7 +28,7 @@ type Z_OnDeactivateReturns struct {
 func (g *hooksRPCClient) OnDeactivate() error {
 	_args := &Z_OnDeactivateArgs{}
 	_returns := &Z_OnDeactivateReturns{}
-	if g.implemented[OnDeactivateId] {
+	if g.implemented[OnDeactivateID] {
 		if err := g.client.Call("Plugin.OnDeactivate", _args, _returns); err != nil {
 			g.log.Error("RPC call OnDeactivate to plugin failed.", mlog.Err(err))
 		}
@@ -49,7 +49,7 @@ func (s *hooksRPCServer) OnDeactivate(args *Z_OnDeactivateArgs, returns *Z_OnDea
 }
 
 func init() {
-	hookNameToId["OnConfigurationChange"] = OnConfigurationChangeId
+	hookNameToId["OnConfigurationChange"] = OnConfigurationChangeID
 }
 
 type Z_OnConfigurationChangeArgs struct {
@@ -62,7 +62,7 @@ type Z_OnConfigurationChangeReturns struct {
 func (g *hooksRPCClient) OnConfigurationChange() error {
 	_args := &Z_OnConfigurationChangeArgs{}
 	_returns := &Z_OnConfigurationChangeReturns{}
-	if g.implemented[OnConfigurationChangeId] {
+	if g.implemented[OnConfigurationChangeID] {
 		if err := g.client.Call("Plugin.OnConfigurationChange", _args, _returns); err != nil {
 			g.log.Error("RPC call OnConfigurationChange to plugin failed.", mlog.Err(err))
 		}
@@ -83,7 +83,7 @@ func (s *hooksRPCServer) OnConfigurationChange(args *Z_OnConfigurationChangeArgs
 }
 
 func init() {
-	hookNameToId["ExecuteCommand"] = ExecuteCommandId
+	hookNameToId["ExecuteCommand"] = ExecuteCommandID
 }
 
 type Z_ExecuteCommandArgs struct {
@@ -99,7 +99,7 @@ type Z_ExecuteCommandReturns struct {
 func (g *hooksRPCClient) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	_args := &Z_ExecuteCommandArgs{c, args}
 	_returns := &Z_ExecuteCommandReturns{}
-	if g.implemented[ExecuteCommandId] {
+	if g.implemented[ExecuteCommandID] {
 		if err := g.client.Call("Plugin.ExecuteCommand", _args, _returns); err != nil {
 			g.log.Error("RPC call ExecuteCommand to plugin failed.", mlog.Err(err))
 		}
@@ -119,7 +119,7 @@ func (s *hooksRPCServer) ExecuteCommand(args *Z_ExecuteCommandArgs, returns *Z_E
 }
 
 func init() {
-	hookNameToId["UserHasBeenCreated"] = UserHasBeenCreatedId
+	hookNameToId["UserHasBeenCreated"] = UserHasBeenCreatedID
 }
 
 type Z_UserHasBeenCreatedArgs struct {
@@ -133,7 +133,7 @@ type Z_UserHasBeenCreatedReturns struct {
 func (g *hooksRPCClient) UserHasBeenCreated(c *Context, user *model.User) {
 	_args := &Z_UserHasBeenCreatedArgs{c, user}
 	_returns := &Z_UserHasBeenCreatedReturns{}
-	if g.implemented[UserHasBeenCreatedId] {
+	if g.implemented[UserHasBeenCreatedID] {
 		if err := g.client.Call("Plugin.UserHasBeenCreated", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasBeenCreated to plugin failed.", mlog.Err(err))
 		}
@@ -153,7 +153,7 @@ func (s *hooksRPCServer) UserHasBeenCreated(args *Z_UserHasBeenCreatedArgs, retu
 }
 
 func init() {
-	hookNameToId["UserWillLogIn"] = UserWillLogInId
+	hookNameToId["UserWillLogIn"] = UserWillLogInID
 }
 
 type Z_UserWillLogInArgs struct {
@@ -168,7 +168,7 @@ type Z_UserWillLogInReturns struct {
 func (g *hooksRPCClient) UserWillLogIn(c *Context, user *model.User) string {
 	_args := &Z_UserWillLogInArgs{c, user}
 	_returns := &Z_UserWillLogInReturns{}
-	if g.implemented[UserWillLogInId] {
+	if g.implemented[UserWillLogInID] {
 		if err := g.client.Call("Plugin.UserWillLogIn", _args, _returns); err != nil {
 			g.log.Error("RPC call UserWillLogIn to plugin failed.", mlog.Err(err))
 		}
@@ -188,7 +188,7 @@ func (s *hooksRPCServer) UserWillLogIn(args *Z_UserWillLogInArgs, returns *Z_Use
 }
 
 func init() {
-	hookNameToId["UserHasLoggedIn"] = UserHasLoggedInId
+	hookNameToId["UserHasLoggedIn"] = UserHasLoggedInID
 }
 
 type Z_UserHasLoggedInArgs struct {
@@ -202,7 +202,7 @@ type Z_UserHasLoggedInReturns struct {
 func (g *hooksRPCClient) UserHasLoggedIn(c *Context, user *model.User) {
 	_args := &Z_UserHasLoggedInArgs{c, user}
 	_returns := &Z_UserHasLoggedInReturns{}
-	if g.implemented[UserHasLoggedInId] {
+	if g.implemented[UserHasLoggedInID] {
 		if err := g.client.Call("Plugin.UserHasLoggedIn", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasLoggedIn to plugin failed.", mlog.Err(err))
 		}
@@ -222,7 +222,7 @@ func (s *hooksRPCServer) UserHasLoggedIn(args *Z_UserHasLoggedInArgs, returns *Z
 }
 
 func init() {
-	hookNameToId["MessageHasBeenPosted"] = MessageHasBeenPostedId
+	hookNameToId["MessageHasBeenPosted"] = MessageHasBeenPostedID
 }
 
 type Z_MessageHasBeenPostedArgs struct {
@@ -236,7 +236,7 @@ type Z_MessageHasBeenPostedReturns struct {
 func (g *hooksRPCClient) MessageHasBeenPosted(c *Context, post *model.Post) {
 	_args := &Z_MessageHasBeenPostedArgs{c, post}
 	_returns := &Z_MessageHasBeenPostedReturns{}
-	if g.implemented[MessageHasBeenPostedId] {
+	if g.implemented[MessageHasBeenPostedID] {
 		if err := g.client.Call("Plugin.MessageHasBeenPosted", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageHasBeenPosted to plugin failed.", mlog.Err(err))
 		}
@@ -256,7 +256,7 @@ func (s *hooksRPCServer) MessageHasBeenPosted(args *Z_MessageHasBeenPostedArgs, 
 }
 
 func init() {
-	hookNameToId["MessageHasBeenUpdated"] = MessageHasBeenUpdatedId
+	hookNameToId["MessageHasBeenUpdated"] = MessageHasBeenUpdatedID
 }
 
 type Z_MessageHasBeenUpdatedArgs struct {
@@ -271,7 +271,7 @@ type Z_MessageHasBeenUpdatedReturns struct {
 func (g *hooksRPCClient) MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post) {
 	_args := &Z_MessageHasBeenUpdatedArgs{c, newPost, oldPost}
 	_returns := &Z_MessageHasBeenUpdatedReturns{}
-	if g.implemented[MessageHasBeenUpdatedId] {
+	if g.implemented[MessageHasBeenUpdatedID] {
 		if err := g.client.Call("Plugin.MessageHasBeenUpdated", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageHasBeenUpdated to plugin failed.", mlog.Err(err))
 		}
@@ -291,7 +291,7 @@ func (s *hooksRPCServer) MessageHasBeenUpdated(args *Z_MessageHasBeenUpdatedArgs
 }
 
 func init() {
-	hookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedId
+	hookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedID
 }
 
 type Z_ChannelHasBeenCreatedArgs struct {
@@ -305,7 +305,7 @@ type Z_ChannelHasBeenCreatedReturns struct {
 func (g *hooksRPCClient) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
 	_args := &Z_ChannelHasBeenCreatedArgs{c, channel}
 	_returns := &Z_ChannelHasBeenCreatedReturns{}
-	if g.implemented[ChannelHasBeenCreatedId] {
+	if g.implemented[ChannelHasBeenCreatedID] {
 		if err := g.client.Call("Plugin.ChannelHasBeenCreated", _args, _returns); err != nil {
 			g.log.Error("RPC call ChannelHasBeenCreated to plugin failed.", mlog.Err(err))
 		}
@@ -325,7 +325,7 @@ func (s *hooksRPCServer) ChannelHasBeenCreated(args *Z_ChannelHasBeenCreatedArgs
 }
 
 func init() {
-	hookNameToId["UserHasJoinedChannel"] = UserHasJoinedChannelId
+	hookNameToId["UserHasJoinedChannel"] = UserHasJoinedChannelID
 }
 
 type Z_UserHasJoinedChannelArgs struct {
@@ -340,7 +340,7 @@ type Z_UserHasJoinedChannelReturns struct {
 func (g *hooksRPCClient) UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
 	_args := &Z_UserHasJoinedChannelArgs{c, channelMember, actor}
 	_returns := &Z_UserHasJoinedChannelReturns{}
-	if g.implemented[UserHasJoinedChannelId] {
+	if g.implemented[UserHasJoinedChannelID] {
 		if err := g.client.Call("Plugin.UserHasJoinedChannel", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasJoinedChannel to plugin failed.", mlog.Err(err))
 		}
@@ -360,7 +360,7 @@ func (s *hooksRPCServer) UserHasJoinedChannel(args *Z_UserHasJoinedChannelArgs, 
 }
 
 func init() {
-	hookNameToId["UserHasLeftChannel"] = UserHasLeftChannelId
+	hookNameToId["UserHasLeftChannel"] = UserHasLeftChannelID
 }
 
 type Z_UserHasLeftChannelArgs struct {
@@ -375,7 +375,7 @@ type Z_UserHasLeftChannelReturns struct {
 func (g *hooksRPCClient) UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
 	_args := &Z_UserHasLeftChannelArgs{c, channelMember, actor}
 	_returns := &Z_UserHasLeftChannelReturns{}
-	if g.implemented[UserHasLeftChannelId] {
+	if g.implemented[UserHasLeftChannelID] {
 		if err := g.client.Call("Plugin.UserHasLeftChannel", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasLeftChannel to plugin failed.", mlog.Err(err))
 		}
@@ -395,7 +395,7 @@ func (s *hooksRPCServer) UserHasLeftChannel(args *Z_UserHasLeftChannelArgs, retu
 }
 
 func init() {
-	hookNameToId["UserHasJoinedTeam"] = UserHasJoinedTeamId
+	hookNameToId["UserHasJoinedTeam"] = UserHasJoinedTeamID
 }
 
 type Z_UserHasJoinedTeamArgs struct {
@@ -410,7 +410,7 @@ type Z_UserHasJoinedTeamReturns struct {
 func (g *hooksRPCClient) UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
 	_args := &Z_UserHasJoinedTeamArgs{c, teamMember, actor}
 	_returns := &Z_UserHasJoinedTeamReturns{}
-	if g.implemented[UserHasJoinedTeamId] {
+	if g.implemented[UserHasJoinedTeamID] {
 		if err := g.client.Call("Plugin.UserHasJoinedTeam", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasJoinedTeam to plugin failed.", mlog.Err(err))
 		}
@@ -430,7 +430,7 @@ func (s *hooksRPCServer) UserHasJoinedTeam(args *Z_UserHasJoinedTeamArgs, return
 }
 
 func init() {
-	hookNameToId["UserHasLeftTeam"] = UserHasLeftTeamId
+	hookNameToId["UserHasLeftTeam"] = UserHasLeftTeamID
 }
 
 type Z_UserHasLeftTeamArgs struct {
@@ -445,7 +445,7 @@ type Z_UserHasLeftTeamReturns struct {
 func (g *hooksRPCClient) UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
 	_args := &Z_UserHasLeftTeamArgs{c, teamMember, actor}
 	_returns := &Z_UserHasLeftTeamReturns{}
-	if g.implemented[UserHasLeftTeamId] {
+	if g.implemented[UserHasLeftTeamID] {
 		if err := g.client.Call("Plugin.UserHasLeftTeam", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasLeftTeam to plugin failed.", mlog.Err(err))
 		}
@@ -465,7 +465,7 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 }
 
 func init() {
-	hookNameToId["ReactionHasBeenAdded"] = ReactionHasBeenAddedId
+	hookNameToId["ReactionHasBeenAdded"] = ReactionHasBeenAddedID
 }
 
 type Z_ReactionHasBeenAddedArgs struct {
@@ -479,7 +479,7 @@ type Z_ReactionHasBeenAddedReturns struct {
 func (g *hooksRPCClient) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
 	_args := &Z_ReactionHasBeenAddedArgs{c, reaction}
 	_returns := &Z_ReactionHasBeenAddedReturns{}
-	if g.implemented[ReactionHasBeenAddedId] {
+	if g.implemented[ReactionHasBeenAddedID] {
 		if err := g.client.Call("Plugin.ReactionHasBeenAdded", _args, _returns); err != nil {
 			g.log.Error("RPC call ReactionHasBeenAdded to plugin failed.", mlog.Err(err))
 		}
@@ -499,7 +499,7 @@ func (s *hooksRPCServer) ReactionHasBeenAdded(args *Z_ReactionHasBeenAddedArgs, 
 }
 
 func init() {
-	hookNameToId["ReactionHasBeenRemoved"] = ReactionHasBeenRemovedId
+	hookNameToId["ReactionHasBeenRemoved"] = ReactionHasBeenRemovedID
 }
 
 type Z_ReactionHasBeenRemovedArgs struct {
@@ -513,7 +513,7 @@ type Z_ReactionHasBeenRemovedReturns struct {
 func (g *hooksRPCClient) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
 	_args := &Z_ReactionHasBeenRemovedArgs{c, reaction}
 	_returns := &Z_ReactionHasBeenRemovedReturns{}
-	if g.implemented[ReactionHasBeenRemovedId] {
+	if g.implemented[ReactionHasBeenRemovedID] {
 		if err := g.client.Call("Plugin.ReactionHasBeenRemoved", _args, _returns); err != nil {
 			g.log.Error("RPC call ReactionHasBeenRemoved to plugin failed.", mlog.Err(err))
 		}
@@ -528,6 +528,143 @@ func (s *hooksRPCServer) ReactionHasBeenRemoved(args *Z_ReactionHasBeenRemovedAr
 		hook.ReactionHasBeenRemoved(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("Hook ReactionHasBeenRemoved called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnPluginClusterEvent"] = OnPluginClusterEventID
+}
+
+type Z_OnPluginClusterEventArgs struct {
+	A *Context
+	B model.PluginClusterEvent
+}
+
+type Z_OnPluginClusterEventReturns struct {
+}
+
+func (g *hooksRPCClient) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
+	_args := &Z_OnPluginClusterEventArgs{c, ev}
+	_returns := &Z_OnPluginClusterEventReturns{}
+	if g.implemented[OnPluginClusterEventID] {
+		if err := g.client.Call("Plugin.OnPluginClusterEvent", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginClusterEvent to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnPluginClusterEvent(args *Z_OnPluginClusterEventArgs, returns *Z_OnPluginClusterEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
+	}); ok {
+		hook.OnPluginClusterEvent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnPluginClusterEvent called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnWebSocketConnect"] = OnWebSocketConnectID
+}
+
+type Z_OnWebSocketConnectArgs struct {
+	A string
+	B string
+}
+
+type Z_OnWebSocketConnectReturns struct {
+}
+
+func (g *hooksRPCClient) OnWebSocketConnect(webConnID, userID string) {
+	_args := &Z_OnWebSocketConnectArgs{webConnID, userID}
+	_returns := &Z_OnWebSocketConnectReturns{}
+	if g.implemented[OnWebSocketConnectID] {
+		if err := g.client.Call("Plugin.OnWebSocketConnect", _args, _returns); err != nil {
+			g.log.Error("RPC call OnWebSocketConnect to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnWebSocketConnect(args *Z_OnWebSocketConnectArgs, returns *Z_OnWebSocketConnectReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnWebSocketConnect(webConnID, userID string)
+	}); ok {
+		hook.OnWebSocketConnect(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnWebSocketConnect called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnWebSocketDisconnect"] = OnWebSocketDisconnectID
+}
+
+type Z_OnWebSocketDisconnectArgs struct {
+	A string
+	B string
+}
+
+type Z_OnWebSocketDisconnectReturns struct {
+}
+
+func (g *hooksRPCClient) OnWebSocketDisconnect(webConnID, userID string) {
+	_args := &Z_OnWebSocketDisconnectArgs{webConnID, userID}
+	_returns := &Z_OnWebSocketDisconnectReturns{}
+	if g.implemented[OnWebSocketDisconnectID] {
+		if err := g.client.Call("Plugin.OnWebSocketDisconnect", _args, _returns); err != nil {
+			g.log.Error("RPC call OnWebSocketDisconnect to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnWebSocketDisconnect(args *Z_OnWebSocketDisconnectArgs, returns *Z_OnWebSocketDisconnectReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnWebSocketDisconnect(webConnID, userID string)
+	}); ok {
+		hook.OnWebSocketDisconnect(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnWebSocketDisconnect called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["WebSocketMessageHasBeenPosted"] = WebSocketMessageHasBeenPostedID
+}
+
+type Z_WebSocketMessageHasBeenPostedArgs struct {
+	A string
+	B string
+	C *model.WebSocketRequest
+}
+
+type Z_WebSocketMessageHasBeenPostedReturns struct {
+}
+
+func (g *hooksRPCClient) WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest) {
+	_args := &Z_WebSocketMessageHasBeenPostedArgs{webConnID, userID, req}
+	_returns := &Z_WebSocketMessageHasBeenPostedReturns{}
+	if g.implemented[WebSocketMessageHasBeenPostedID] {
+		if err := g.client.Call("Plugin.WebSocketMessageHasBeenPosted", _args, _returns); err != nil {
+			g.log.Error("RPC call WebSocketMessageHasBeenPosted to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) WebSocketMessageHasBeenPosted(args *Z_WebSocketMessageHasBeenPostedArgs, returns *Z_WebSocketMessageHasBeenPostedReturns) error {
+	if hook, ok := s.impl.(interface {
+		WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
+	}); ok {
+		hook.WebSocketMessageHasBeenPosted(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("Hook WebSocketMessageHasBeenPosted called but not implemented."))
 	}
 	return nil
 }
@@ -570,8 +707,8 @@ type Z_UnregisterCommandReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) UnregisterCommand(teamId, trigger string) error {
-	_args := &Z_UnregisterCommandArgs{teamId, trigger}
+func (g *apiRPCClient) UnregisterCommand(teamID, trigger string) error {
+	_args := &Z_UnregisterCommandArgs{teamID, trigger}
 	_returns := &Z_UnregisterCommandReturns{}
 	if err := g.client.Call("Plugin.UnregisterCommand", _args, _returns); err != nil {
 		log.Printf("RPC call to UnregisterCommand API failed: %s", err.Error())
@@ -581,7 +718,7 @@ func (g *apiRPCClient) UnregisterCommand(teamId, trigger string) error {
 
 func (s *apiRPCServer) UnregisterCommand(args *Z_UnregisterCommandArgs, returns *Z_UnregisterCommandReturns) error {
 	if hook, ok := s.impl.(interface {
-		UnregisterCommand(teamId, trigger string) error
+		UnregisterCommand(teamID, trigger string) error
 	}); ok {
 		returns.A = hook.UnregisterCommand(args.A, args.B)
 		returns.A = encodableError(returns.A)
@@ -630,8 +767,8 @@ type Z_GetSessionReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetSession(sessionId string) (*model.Session, *model.AppError) {
-	_args := &Z_GetSessionArgs{sessionId}
+func (g *apiRPCClient) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	_args := &Z_GetSessionArgs{sessionID}
 	_returns := &Z_GetSessionReturns{}
 	if err := g.client.Call("Plugin.GetSession", _args, _returns); err != nil {
 		log.Printf("RPC call to GetSession API failed: %s", err.Error())
@@ -641,7 +778,7 @@ func (g *apiRPCClient) GetSession(sessionId string) (*model.Session, *model.AppE
 
 func (s *apiRPCServer) GetSession(args *Z_GetSessionArgs, returns *Z_GetSessionReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetSession(sessionId string) (*model.Session, *model.AppError)
+		GetSession(sessionID string) (*model.Session, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetSession(args.A)
 	} else {
@@ -989,8 +1126,8 @@ type Z_DeleteUserReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteUser(userId string) *model.AppError {
-	_args := &Z_DeleteUserArgs{userId}
+func (g *apiRPCClient) DeleteUser(userID string) *model.AppError {
+	_args := &Z_DeleteUserArgs{userID}
 	_returns := &Z_DeleteUserReturns{}
 	if err := g.client.Call("Plugin.DeleteUser", _args, _returns); err != nil {
 		log.Printf("RPC call to DeleteUser API failed: %s", err.Error())
@@ -1000,7 +1137,7 @@ func (g *apiRPCClient) DeleteUser(userId string) *model.AppError {
 
 func (s *apiRPCServer) DeleteUser(args *Z_DeleteUserArgs, returns *Z_DeleteUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteUser(userId string) *model.AppError
+		DeleteUser(userID string) *model.AppError
 	}); ok {
 		returns.A = hook.DeleteUser(args.A)
 	} else {
@@ -1047,8 +1184,8 @@ type Z_GetUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUser(userId string) (*model.User, *model.AppError) {
-	_args := &Z_GetUserArgs{userId}
+func (g *apiRPCClient) GetUser(userID string) (*model.User, *model.AppError) {
+	_args := &Z_GetUserArgs{userID}
 	_returns := &Z_GetUserReturns{}
 	if err := g.client.Call("Plugin.GetUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetUser API failed: %s", err.Error())
@@ -1058,7 +1195,7 @@ func (g *apiRPCClient) GetUser(userId string) (*model.User, *model.AppError) {
 
 func (s *apiRPCServer) GetUser(args *Z_GetUserArgs, returns *Z_GetUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUser(userId string) (*model.User, *model.AppError)
+		GetUser(userID string) (*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUser(args.A)
 	} else {
@@ -1165,8 +1302,8 @@ type Z_GetUsersInTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
-	_args := &Z_GetUsersInTeamArgs{teamId, page, perPage}
+func (g *apiRPCClient) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersInTeamArgs{teamID, page, perPage}
 	_returns := &Z_GetUsersInTeamReturns{}
 	if err := g.client.Call("Plugin.GetUsersInTeam", _args, _returns); err != nil {
 		log.Printf("RPC call to GetUsersInTeam API failed: %s", err.Error())
@@ -1176,7 +1313,7 @@ func (g *apiRPCClient) GetUsersInTeam(teamId string, page int, perPage int) ([]*
 
 func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_GetUsersInTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
+		GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUsersInTeam(args.A, args.B, args.C)
 	} else {
@@ -1194,8 +1331,8 @@ type Z_GetPreferencesForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
-	_args := &Z_GetPreferencesForUserArgs{userId}
+func (g *apiRPCClient) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
+	_args := &Z_GetPreferencesForUserArgs{userID}
 	_returns := &Z_GetPreferencesForUserReturns{}
 	if err := g.client.Call("Plugin.GetPreferencesForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetPreferencesForUser API failed: %s", err.Error())
@@ -1205,7 +1342,7 @@ func (g *apiRPCClient) GetPreferencesForUser(userId string) ([]model.Preference,
 
 func (s *apiRPCServer) GetPreferencesForUser(args *Z_GetPreferencesForUserArgs, returns *Z_GetPreferencesForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError)
+		GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPreferencesForUser(args.A)
 	} else {
@@ -1223,8 +1360,8 @@ type Z_UpdatePreferencesForUserReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
-	_args := &Z_UpdatePreferencesForUserArgs{userId, preferences}
+func (g *apiRPCClient) UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
+	_args := &Z_UpdatePreferencesForUserArgs{userID, preferences}
 	_returns := &Z_UpdatePreferencesForUserReturns{}
 	if err := g.client.Call("Plugin.UpdatePreferencesForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdatePreferencesForUser API failed: %s", err.Error())
@@ -1234,7 +1371,7 @@ func (g *apiRPCClient) UpdatePreferencesForUser(userId string, preferences []mod
 
 func (s *apiRPCServer) UpdatePreferencesForUser(args *Z_UpdatePreferencesForUserArgs, returns *Z_UpdatePreferencesForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
+		UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError
 	}); ok {
 		returns.A = hook.UpdatePreferencesForUser(args.A, args.B)
 	} else {
@@ -1252,8 +1389,8 @@ type Z_DeletePreferencesForUserReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
-	_args := &Z_DeletePreferencesForUserArgs{userId, preferences}
+func (g *apiRPCClient) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
+	_args := &Z_DeletePreferencesForUserArgs{userID, preferences}
 	_returns := &Z_DeletePreferencesForUserReturns{}
 	if err := g.client.Call("Plugin.DeletePreferencesForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to DeletePreferencesForUser API failed: %s", err.Error())
@@ -1263,11 +1400,68 @@ func (g *apiRPCClient) DeletePreferencesForUser(userId string, preferences []mod
 
 func (s *apiRPCServer) DeletePreferencesForUser(args *Z_DeletePreferencesForUserArgs, returns *Z_DeletePreferencesForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
+		DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError
 	}); ok {
 		returns.A = hook.DeletePreferencesForUser(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API DeletePreferencesForUser called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CreateUserAccessTokenArgs struct {
+	A *model.UserAccessToken
+}
+
+type Z_CreateUserAccessTokenReturns struct {
+	A *model.UserAccessToken
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	_args := &Z_CreateUserAccessTokenArgs{token}
+	_returns := &Z_CreateUserAccessTokenReturns{}
+	if err := g.client.Call("Plugin.CreateUserAccessToken", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateUserAccessToken API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateUserAccessToken(args *Z_CreateUserAccessTokenArgs, returns *Z_CreateUserAccessTokenReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateUserAccessToken(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API CreateUserAccessToken called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RevokeUserAccessTokenArgs struct {
+	A string
+}
+
+type Z_RevokeUserAccessTokenReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RevokeUserAccessToken(tokenID string) *model.AppError {
+	_args := &Z_RevokeUserAccessTokenArgs{tokenID}
+	_returns := &Z_RevokeUserAccessTokenReturns{}
+	if err := g.client.Call("Plugin.RevokeUserAccessToken", _args, _returns); err != nil {
+		log.Printf("RPC call to RevokeUserAccessToken API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RevokeUserAccessToken(args *Z_RevokeUserAccessTokenArgs, returns *Z_RevokeUserAccessTokenReturns) error {
+	if hook, ok := s.impl.(interface {
+		RevokeUserAccessToken(tokenID string) *model.AppError
+	}); ok {
+		returns.A = hook.RevokeUserAccessToken(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RevokeUserAccessToken called but not implemented."))
 	}
 	return nil
 }
@@ -1281,8 +1475,8 @@ type Z_GetTeamIconReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
-	_args := &Z_GetTeamIconArgs{teamId}
+func (g *apiRPCClient) GetTeamIcon(teamID string) ([]byte, *model.AppError) {
+	_args := &Z_GetTeamIconArgs{teamID}
 	_returns := &Z_GetTeamIconReturns{}
 	if err := g.client.Call("Plugin.GetTeamIcon", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeamIcon API failed: %s", err.Error())
@@ -1292,7 +1486,7 @@ func (g *apiRPCClient) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
 
 func (s *apiRPCServer) GetTeamIcon(args *Z_GetTeamIconArgs, returns *Z_GetTeamIconReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeamIcon(teamId string) ([]byte, *model.AppError)
+		GetTeamIcon(teamID string) ([]byte, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeamIcon(args.A)
 	} else {
@@ -1310,8 +1504,8 @@ type Z_SetTeamIconReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SetTeamIcon(teamId string, data []byte) *model.AppError {
-	_args := &Z_SetTeamIconArgs{teamId, data}
+func (g *apiRPCClient) SetTeamIcon(teamID string, data []byte) *model.AppError {
+	_args := &Z_SetTeamIconArgs{teamID, data}
 	_returns := &Z_SetTeamIconReturns{}
 	if err := g.client.Call("Plugin.SetTeamIcon", _args, _returns); err != nil {
 		log.Printf("RPC call to SetTeamIcon API failed: %s", err.Error())
@@ -1321,7 +1515,7 @@ func (g *apiRPCClient) SetTeamIcon(teamId string, data []byte) *model.AppError {
 
 func (s *apiRPCServer) SetTeamIcon(args *Z_SetTeamIconArgs, returns *Z_SetTeamIconReturns) error {
 	if hook, ok := s.impl.(interface {
-		SetTeamIcon(teamId string, data []byte) *model.AppError
+		SetTeamIcon(teamID string, data []byte) *model.AppError
 	}); ok {
 		returns.A = hook.SetTeamIcon(args.A, args.B)
 	} else {
@@ -1338,8 +1532,8 @@ type Z_RemoveTeamIconReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) RemoveTeamIcon(teamId string) *model.AppError {
-	_args := &Z_RemoveTeamIconArgs{teamId}
+func (g *apiRPCClient) RemoveTeamIcon(teamID string) *model.AppError {
+	_args := &Z_RemoveTeamIconArgs{teamID}
 	_returns := &Z_RemoveTeamIconReturns{}
 	if err := g.client.Call("Plugin.RemoveTeamIcon", _args, _returns); err != nil {
 		log.Printf("RPC call to RemoveTeamIcon API failed: %s", err.Error())
@@ -1349,7 +1543,7 @@ func (g *apiRPCClient) RemoveTeamIcon(teamId string) *model.AppError {
 
 func (s *apiRPCServer) RemoveTeamIcon(args *Z_RemoveTeamIconArgs, returns *Z_RemoveTeamIconReturns) error {
 	if hook, ok := s.impl.(interface {
-		RemoveTeamIcon(teamId string) *model.AppError
+		RemoveTeamIcon(teamID string) *model.AppError
 	}); ok {
 		returns.A = hook.RemoveTeamIcon(args.A)
 	} else {
@@ -1396,8 +1590,8 @@ type Z_GetUserStatusReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUserStatus(userId string) (*model.Status, *model.AppError) {
-	_args := &Z_GetUserStatusArgs{userId}
+func (g *apiRPCClient) GetUserStatus(userID string) (*model.Status, *model.AppError) {
+	_args := &Z_GetUserStatusArgs{userID}
 	_returns := &Z_GetUserStatusReturns{}
 	if err := g.client.Call("Plugin.GetUserStatus", _args, _returns); err != nil {
 		log.Printf("RPC call to GetUserStatus API failed: %s", err.Error())
@@ -1407,7 +1601,7 @@ func (g *apiRPCClient) GetUserStatus(userId string) (*model.Status, *model.AppEr
 
 func (s *apiRPCServer) GetUserStatus(args *Z_GetUserStatusArgs, returns *Z_GetUserStatusReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUserStatus(userId string) (*model.Status, *model.AppError)
+		GetUserStatus(userID string) (*model.Status, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUserStatus(args.A)
 	} else {
@@ -1455,8 +1649,8 @@ type Z_UpdateUserStatusReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserStatus(userId, status string) (*model.Status, *model.AppError) {
-	_args := &Z_UpdateUserStatusArgs{userId, status}
+func (g *apiRPCClient) UpdateUserStatus(userID, status string) (*model.Status, *model.AppError) {
+	_args := &Z_UpdateUserStatusArgs{userID, status}
 	_returns := &Z_UpdateUserStatusReturns{}
 	if err := g.client.Call("Plugin.UpdateUserStatus", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateUserStatus API failed: %s", err.Error())
@@ -1466,11 +1660,41 @@ func (g *apiRPCClient) UpdateUserStatus(userId, status string) (*model.Status, *
 
 func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z_UpdateUserStatusReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
+		UpdateUserStatus(userID, status string) (*model.Status, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateUserStatus(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateUserStatus called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetUserStatusTimedDNDArgs struct {
+	A string
+	B int64
+}
+
+type Z_SetUserStatusTimedDNDReturns struct {
+	A *model.Status
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
+	_args := &Z_SetUserStatusTimedDNDArgs{userId, endtime}
+	_returns := &Z_SetUserStatusTimedDNDReturns{}
+	if err := g.client.Call("Plugin.SetUserStatusTimedDND", _args, _returns); err != nil {
+		log.Printf("RPC call to SetUserStatusTimedDND API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SetUserStatusTimedDND(args *Z_SetUserStatusTimedDNDArgs, returns *Z_SetUserStatusTimedDNDReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SetUserStatusTimedDND(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetUserStatusTimedDND called but not implemented."))
 	}
 	return nil
 }
@@ -1484,8 +1708,8 @@ type Z_UpdateUserActiveReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserActive(userId string, active bool) *model.AppError {
-	_args := &Z_UpdateUserActiveArgs{userId, active}
+func (g *apiRPCClient) UpdateUserActive(userID string, active bool) *model.AppError {
+	_args := &Z_UpdateUserActiveArgs{userID, active}
 	_returns := &Z_UpdateUserActiveReturns{}
 	if err := g.client.Call("Plugin.UpdateUserActive", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateUserActive API failed: %s", err.Error())
@@ -1495,7 +1719,7 @@ func (g *apiRPCClient) UpdateUserActive(userId string, active bool) *model.AppEr
 
 func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z_UpdateUserActiveReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateUserActive(userId string, active bool) *model.AppError
+		UpdateUserActive(userID string, active bool) *model.AppError
 	}); ok {
 		returns.A = hook.UpdateUserActive(args.A, args.B)
 	} else {
@@ -1516,8 +1740,8 @@ type Z_GetUsersInChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
-	_args := &Z_GetUsersInChannelArgs{channelId, sortBy, page, perPage}
+func (g *apiRPCClient) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersInChannelArgs{channelID, sortBy, page, perPage}
 	_returns := &Z_GetUsersInChannelReturns{}
 	if err := g.client.Call("Plugin.GetUsersInChannel", _args, _returns); err != nil {
 		log.Printf("RPC call to GetUsersInChannel API failed: %s", err.Error())
@@ -1527,7 +1751,7 @@ func (g *apiRPCClient) GetUsersInChannel(channelId, sortBy string, page, perPage
 
 func (s *apiRPCServer) GetUsersInChannel(args *Z_GetUsersInChannelArgs, returns *Z_GetUsersInChannelReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
+		GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUsersInChannel(args.A, args.B, args.C, args.D)
 	} else {
@@ -1546,8 +1770,8 @@ type Z_GetLDAPUserAttributesReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
-	_args := &Z_GetLDAPUserAttributesArgs{userId, attributes}
+func (g *apiRPCClient) GetLDAPUserAttributes(userID string, attributes []string) (map[string]string, *model.AppError) {
+	_args := &Z_GetLDAPUserAttributesArgs{userID, attributes}
 	_returns := &Z_GetLDAPUserAttributesReturns{}
 	if err := g.client.Call("Plugin.GetLDAPUserAttributes", _args, _returns); err != nil {
 		log.Printf("RPC call to GetLDAPUserAttributes API failed: %s", err.Error())
@@ -1557,7 +1781,7 @@ func (g *apiRPCClient) GetLDAPUserAttributes(userId string, attributes []string)
 
 func (s *apiRPCServer) GetLDAPUserAttributes(args *Z_GetLDAPUserAttributesArgs, returns *Z_GetLDAPUserAttributesReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError)
+		GetLDAPUserAttributes(userID string, attributes []string) (map[string]string, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetLDAPUserAttributes(args.A, args.B)
 	} else {
@@ -1603,8 +1827,8 @@ type Z_DeleteTeamReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteTeam(teamId string) *model.AppError {
-	_args := &Z_DeleteTeamArgs{teamId}
+func (g *apiRPCClient) DeleteTeam(teamID string) *model.AppError {
+	_args := &Z_DeleteTeamArgs{teamID}
 	_returns := &Z_DeleteTeamReturns{}
 	if err := g.client.Call("Plugin.DeleteTeam", _args, _returns); err != nil {
 		log.Printf("RPC call to DeleteTeam API failed: %s", err.Error())
@@ -1614,7 +1838,7 @@ func (g *apiRPCClient) DeleteTeam(teamId string) *model.AppError {
 
 func (s *apiRPCServer) DeleteTeam(args *Z_DeleteTeamArgs, returns *Z_DeleteTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteTeam(teamId string) *model.AppError
+		DeleteTeam(teamID string) *model.AppError
 	}); ok {
 		returns.A = hook.DeleteTeam(args.A)
 	} else {
@@ -1660,8 +1884,8 @@ type Z_GetTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeam(teamId string) (*model.Team, *model.AppError) {
-	_args := &Z_GetTeamArgs{teamId}
+func (g *apiRPCClient) GetTeam(teamID string) (*model.Team, *model.AppError) {
+	_args := &Z_GetTeamArgs{teamID}
 	_returns := &Z_GetTeamReturns{}
 	if err := g.client.Call("Plugin.GetTeam", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeam API failed: %s", err.Error())
@@ -1671,7 +1895,7 @@ func (g *apiRPCClient) GetTeam(teamId string) (*model.Team, *model.AppError) {
 
 func (s *apiRPCServer) GetTeam(args *Z_GetTeamArgs, returns *Z_GetTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeam(teamId string) (*model.Team, *model.AppError)
+		GetTeam(teamID string) (*model.Team, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeam(args.A)
 	} else {
@@ -1718,8 +1942,8 @@ type Z_GetTeamsUnreadForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
-	_args := &Z_GetTeamsUnreadForUserArgs{userId}
+func (g *apiRPCClient) GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError) {
+	_args := &Z_GetTeamsUnreadForUserArgs{userID}
 	_returns := &Z_GetTeamsUnreadForUserReturns{}
 	if err := g.client.Call("Plugin.GetTeamsUnreadForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeamsUnreadForUser API failed: %s", err.Error())
@@ -1729,7 +1953,7 @@ func (g *apiRPCClient) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread
 
 func (s *apiRPCServer) GetTeamsUnreadForUser(args *Z_GetTeamsUnreadForUserArgs, returns *Z_GetTeamsUnreadForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError)
+		GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeamsUnreadForUser(args.A)
 	} else {
@@ -1805,8 +2029,8 @@ type Z_GetTeamsForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
-	_args := &Z_GetTeamsForUserArgs{userId}
+func (g *apiRPCClient) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
+	_args := &Z_GetTeamsForUserArgs{userID}
 	_returns := &Z_GetTeamsForUserReturns{}
 	if err := g.client.Call("Plugin.GetTeamsForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeamsForUser API failed: %s", err.Error())
@@ -1816,7 +2040,7 @@ func (g *apiRPCClient) GetTeamsForUser(userId string) ([]*model.Team, *model.App
 
 func (s *apiRPCServer) GetTeamsForUser(args *Z_GetTeamsForUserArgs, returns *Z_GetTeamsForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
+		GetTeamsForUser(userID string) ([]*model.Team, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeamsForUser(args.A)
 	} else {
@@ -1835,8 +2059,8 @@ type Z_CreateTeamMemberReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
-	_args := &Z_CreateTeamMemberArgs{teamId, userId}
+func (g *apiRPCClient) CreateTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
+	_args := &Z_CreateTeamMemberArgs{teamID, userID}
 	_returns := &Z_CreateTeamMemberReturns{}
 	if err := g.client.Call("Plugin.CreateTeamMember", _args, _returns); err != nil {
 		log.Printf("RPC call to CreateTeamMember API failed: %s", err.Error())
@@ -1846,7 +2070,7 @@ func (g *apiRPCClient) CreateTeamMember(teamId, userId string) (*model.TeamMembe
 
 func (s *apiRPCServer) CreateTeamMember(args *Z_CreateTeamMemberArgs, returns *Z_CreateTeamMemberReturns) error {
 	if hook, ok := s.impl.(interface {
-		CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
+		CreateTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreateTeamMember(args.A, args.B)
 	} else {
@@ -1866,8 +2090,8 @@ type Z_CreateTeamMembersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
-	_args := &Z_CreateTeamMembersArgs{teamId, userIds, requestorId}
+func (g *apiRPCClient) CreateTeamMembers(teamID string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
+	_args := &Z_CreateTeamMembersArgs{teamID, userIds, requestorId}
 	_returns := &Z_CreateTeamMembersReturns{}
 	if err := g.client.Call("Plugin.CreateTeamMembers", _args, _returns); err != nil {
 		log.Printf("RPC call to CreateTeamMembers API failed: %s", err.Error())
@@ -1877,7 +2101,7 @@ func (g *apiRPCClient) CreateTeamMembers(teamId string, userIds []string, reques
 
 func (s *apiRPCServer) CreateTeamMembers(args *Z_CreateTeamMembersArgs, returns *Z_CreateTeamMembersReturns) error {
 	if hook, ok := s.impl.(interface {
-		CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError)
+		CreateTeamMembers(teamID string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreateTeamMembers(args.A, args.B, args.C)
 	} else {
@@ -1897,8 +2121,8 @@ type Z_CreateTeamMembersGracefullyReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
-	_args := &Z_CreateTeamMembersGracefullyArgs{teamId, userIds, requestorId}
+func (g *apiRPCClient) CreateTeamMembersGracefully(teamID string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
+	_args := &Z_CreateTeamMembersGracefullyArgs{teamID, userIds, requestorId}
 	_returns := &Z_CreateTeamMembersGracefullyReturns{}
 	if err := g.client.Call("Plugin.CreateTeamMembersGracefully", _args, _returns); err != nil {
 		log.Printf("RPC call to CreateTeamMembersGracefully API failed: %s", err.Error())
@@ -1908,7 +2132,7 @@ func (g *apiRPCClient) CreateTeamMembersGracefully(teamId string, userIds []stri
 
 func (s *apiRPCServer) CreateTeamMembersGracefully(args *Z_CreateTeamMembersGracefullyArgs, returns *Z_CreateTeamMembersGracefullyReturns) error {
 	if hook, ok := s.impl.(interface {
-		CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError)
+		CreateTeamMembersGracefully(teamID string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreateTeamMembersGracefully(args.A, args.B, args.C)
 	} else {
@@ -1927,8 +2151,8 @@ type Z_DeleteTeamMemberReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteTeamMember(teamId, userId, requestorId string) *model.AppError {
-	_args := &Z_DeleteTeamMemberArgs{teamId, userId, requestorId}
+func (g *apiRPCClient) DeleteTeamMember(teamID, userID, requestorId string) *model.AppError {
+	_args := &Z_DeleteTeamMemberArgs{teamID, userID, requestorId}
 	_returns := &Z_DeleteTeamMemberReturns{}
 	if err := g.client.Call("Plugin.DeleteTeamMember", _args, _returns); err != nil {
 		log.Printf("RPC call to DeleteTeamMember API failed: %s", err.Error())
@@ -1938,7 +2162,7 @@ func (g *apiRPCClient) DeleteTeamMember(teamId, userId, requestorId string) *mod
 
 func (s *apiRPCServer) DeleteTeamMember(args *Z_DeleteTeamMemberArgs, returns *Z_DeleteTeamMemberReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteTeamMember(teamId, userId, requestorId string) *model.AppError
+		DeleteTeamMember(teamID, userID, requestorId string) *model.AppError
 	}); ok {
 		returns.A = hook.DeleteTeamMember(args.A, args.B, args.C)
 	} else {
@@ -1958,8 +2182,8 @@ type Z_GetTeamMembersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
-	_args := &Z_GetTeamMembersArgs{teamId, page, perPage}
+func (g *apiRPCClient) GetTeamMembers(teamID string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+	_args := &Z_GetTeamMembersArgs{teamID, page, perPage}
 	_returns := &Z_GetTeamMembersReturns{}
 	if err := g.client.Call("Plugin.GetTeamMembers", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeamMembers API failed: %s", err.Error())
@@ -1969,7 +2193,7 @@ func (g *apiRPCClient) GetTeamMembers(teamId string, page, perPage int) ([]*mode
 
 func (s *apiRPCServer) GetTeamMembers(args *Z_GetTeamMembersArgs, returns *Z_GetTeamMembersReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
+		GetTeamMembers(teamID string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeamMembers(args.A, args.B, args.C)
 	} else {
@@ -1988,8 +2212,8 @@ type Z_GetTeamMemberReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
-	_args := &Z_GetTeamMemberArgs{teamId, userId}
+func (g *apiRPCClient) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
+	_args := &Z_GetTeamMemberArgs{teamID, userID}
 	_returns := &Z_GetTeamMemberReturns{}
 	if err := g.client.Call("Plugin.GetTeamMember", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeamMember API failed: %s", err.Error())
@@ -1999,7 +2223,7 @@ func (g *apiRPCClient) GetTeamMember(teamId, userId string) (*model.TeamMember, 
 
 func (s *apiRPCServer) GetTeamMember(args *Z_GetTeamMemberArgs, returns *Z_GetTeamMemberReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
+		GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeamMember(args.A, args.B)
 	} else {
@@ -2019,8 +2243,8 @@ type Z_GetTeamMembersForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
-	_args := &Z_GetTeamMembersForUserArgs{userId, page, perPage}
+func (g *apiRPCClient) GetTeamMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	_args := &Z_GetTeamMembersForUserArgs{userID, page, perPage}
 	_returns := &Z_GetTeamMembersForUserReturns{}
 	if err := g.client.Call("Plugin.GetTeamMembersForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeamMembersForUser API failed: %s", err.Error())
@@ -2030,7 +2254,7 @@ func (g *apiRPCClient) GetTeamMembersForUser(userId string, page int, perPage in
 
 func (s *apiRPCServer) GetTeamMembersForUser(args *Z_GetTeamMembersForUserArgs, returns *Z_GetTeamMembersForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError)
+		GetTeamMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeamMembersForUser(args.A, args.B, args.C)
 	} else {
@@ -2050,8 +2274,8 @@ type Z_UpdateTeamMemberRolesReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
-	_args := &Z_UpdateTeamMemberRolesArgs{teamId, userId, newRoles}
+func (g *apiRPCClient) UpdateTeamMemberRoles(teamID, userID, newRoles string) (*model.TeamMember, *model.AppError) {
+	_args := &Z_UpdateTeamMemberRolesArgs{teamID, userID, newRoles}
 	_returns := &Z_UpdateTeamMemberRolesReturns{}
 	if err := g.client.Call("Plugin.UpdateTeamMemberRoles", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateTeamMemberRoles API failed: %s", err.Error())
@@ -2061,7 +2285,7 @@ func (g *apiRPCClient) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*
 
 func (s *apiRPCServer) UpdateTeamMemberRoles(args *Z_UpdateTeamMemberRolesArgs, returns *Z_UpdateTeamMemberRolesReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError)
+		UpdateTeamMemberRoles(teamID, userID, newRoles string) (*model.TeamMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateTeamMemberRoles(args.A, args.B, args.C)
 	} else {
@@ -2138,8 +2362,8 @@ type Z_GetPublicChannelsForTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
-	_args := &Z_GetPublicChannelsForTeamArgs{teamId, page, perPage}
+func (g *apiRPCClient) GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError) {
+	_args := &Z_GetPublicChannelsForTeamArgs{teamID, page, perPage}
 	_returns := &Z_GetPublicChannelsForTeamReturns{}
 	if err := g.client.Call("Plugin.GetPublicChannelsForTeam", _args, _returns); err != nil {
 		log.Printf("RPC call to GetPublicChannelsForTeam API failed: %s", err.Error())
@@ -2149,7 +2373,7 @@ func (g *apiRPCClient) GetPublicChannelsForTeam(teamId string, page, perPage int
 
 func (s *apiRPCServer) GetPublicChannelsForTeam(args *Z_GetPublicChannelsForTeamArgs, returns *Z_GetPublicChannelsForTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError)
+		GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPublicChannelsForTeam(args.A, args.B, args.C)
 	} else {
@@ -2198,8 +2422,8 @@ type Z_GetChannelByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
-	_args := &Z_GetChannelByNameArgs{teamId, name, includeDeleted}
+func (g *apiRPCClient) GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelByNameArgs{teamID, name, includeDeleted}
 	_returns := &Z_GetChannelByNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByName", _args, _returns); err != nil {
 		log.Printf("RPC call to GetChannelByName API failed: %s", err.Error())
@@ -2209,7 +2433,7 @@ func (g *apiRPCClient) GetChannelByName(teamId, name string, includeDeleted bool
 
 func (s *apiRPCServer) GetChannelByName(args *Z_GetChannelByNameArgs, returns *Z_GetChannelByNameReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError)
+		GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelByName(args.A, args.B, args.C)
 	} else {
@@ -2260,8 +2484,8 @@ type Z_GetChannelsForTeamForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
-	_args := &Z_GetChannelsForTeamForUserArgs{teamId, userId, includeDeleted}
+func (g *apiRPCClient) GetChannelsForTeamForUser(teamID, userID string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelsForTeamForUserArgs{teamID, userID, includeDeleted}
 	_returns := &Z_GetChannelsForTeamForUserReturns{}
 	if err := g.client.Call("Plugin.GetChannelsForTeamForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetChannelsForTeamForUser API failed: %s", err.Error())
@@ -2271,7 +2495,7 @@ func (g *apiRPCClient) GetChannelsForTeamForUser(teamId, userId string, includeD
 
 func (s *apiRPCServer) GetChannelsForTeamForUser(args *Z_GetChannelsForTeamForUserArgs, returns *Z_GetChannelsForTeamForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError)
+		GetChannelsForTeamForUser(teamID, userID string, includeDeleted bool) ([]*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelsForTeamForUser(args.A, args.B, args.C)
 	} else {
@@ -2407,8 +2631,8 @@ type Z_SearchChannelsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
-	_args := &Z_SearchChannelsArgs{teamId, term}
+func (g *apiRPCClient) SearchChannels(teamID string, term string) ([]*model.Channel, *model.AppError) {
+	_args := &Z_SearchChannelsArgs{teamID, term}
 	_returns := &Z_SearchChannelsReturns{}
 	if err := g.client.Call("Plugin.SearchChannels", _args, _returns); err != nil {
 		log.Printf("RPC call to SearchChannels API failed: %s", err.Error())
@@ -2418,11 +2642,103 @@ func (g *apiRPCClient) SearchChannels(teamId string, term string) ([]*model.Chan
 
 func (s *apiRPCServer) SearchChannels(args *Z_SearchChannelsArgs, returns *Z_SearchChannelsReturns) error {
 	if hook, ok := s.impl.(interface {
-		SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError)
+		SearchChannels(teamID string, term string) ([]*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.SearchChannels(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API SearchChannels called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CreateChannelSidebarCategoryArgs struct {
+	A string
+	B string
+	C *model.SidebarCategoryWithChannels
+}
+
+type Z_CreateChannelSidebarCategoryReturns struct {
+	A *model.SidebarCategoryWithChannels
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	_args := &Z_CreateChannelSidebarCategoryArgs{userID, teamID, newCategory}
+	_returns := &Z_CreateChannelSidebarCategoryReturns{}
+	if err := g.client.Call("Plugin.CreateChannelSidebarCategory", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateChannelSidebarCategory API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateChannelSidebarCategory(args *Z_CreateChannelSidebarCategoryArgs, returns *Z_CreateChannelSidebarCategoryReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateChannelSidebarCategory(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API CreateChannelSidebarCategory called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetChannelSidebarCategoriesArgs struct {
+	A string
+	B string
+}
+
+type Z_GetChannelSidebarCategoriesReturns struct {
+	A *model.OrderedSidebarCategories
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	_args := &Z_GetChannelSidebarCategoriesArgs{userID, teamID}
+	_returns := &Z_GetChannelSidebarCategoriesReturns{}
+	if err := g.client.Call("Plugin.GetChannelSidebarCategories", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelSidebarCategories API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelSidebarCategories(args *Z_GetChannelSidebarCategoriesArgs, returns *Z_GetChannelSidebarCategoriesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelSidebarCategories(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelSidebarCategories called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdateChannelSidebarCategoriesArgs struct {
+	A string
+	B string
+	C []*model.SidebarCategoryWithChannels
+}
+
+type Z_UpdateChannelSidebarCategoriesReturns struct {
+	A []*model.SidebarCategoryWithChannels
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	_args := &Z_UpdateChannelSidebarCategoriesArgs{userID, teamID, categories}
+	_returns := &Z_UpdateChannelSidebarCategoriesReturns{}
+	if err := g.client.Call("Plugin.UpdateChannelSidebarCategories", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateChannelSidebarCategories API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateChannelSidebarCategories(args *Z_UpdateChannelSidebarCategoriesArgs, returns *Z_UpdateChannelSidebarCategoriesReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateChannelSidebarCategories(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateChannelSidebarCategories called but not implemented."))
 	}
 	return nil
 }
@@ -2466,8 +2782,8 @@ type Z_SearchPostsInTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
-	_args := &Z_SearchPostsInTeamArgs{teamId, paramsList}
+func (g *apiRPCClient) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
+	_args := &Z_SearchPostsInTeamArgs{teamID, paramsList}
 	_returns := &Z_SearchPostsInTeamReturns{}
 	if err := g.client.Call("Plugin.SearchPostsInTeam", _args, _returns); err != nil {
 		log.Printf("RPC call to SearchPostsInTeam API failed: %s", err.Error())
@@ -2477,7 +2793,7 @@ func (g *apiRPCClient) SearchPostsInTeam(teamId string, paramsList []*model.Sear
 
 func (s *apiRPCServer) SearchPostsInTeam(args *Z_SearchPostsInTeamArgs, returns *Z_SearchPostsInTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
+		SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.SearchPostsInTeam(args.A, args.B)
 	} else {
@@ -2497,8 +2813,8 @@ type Z_SearchPostsInTeamForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
-	_args := &Z_SearchPostsInTeamForUserArgs{teamId, userId, searchParams}
+func (g *apiRPCClient) SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+	_args := &Z_SearchPostsInTeamForUserArgs{teamID, userID, searchParams}
 	_returns := &Z_SearchPostsInTeamForUserReturns{}
 	if err := g.client.Call("Plugin.SearchPostsInTeamForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to SearchPostsInTeamForUser API failed: %s", err.Error())
@@ -2508,7 +2824,7 @@ func (g *apiRPCClient) SearchPostsInTeamForUser(teamId string, userId string, se
 
 func (s *apiRPCServer) SearchPostsInTeamForUser(args *Z_SearchPostsInTeamForUserArgs, returns *Z_SearchPostsInTeamForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError)
+		SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.SearchPostsInTeamForUser(args.A, args.B, args.C)
 	} else {
@@ -2527,8 +2843,8 @@ type Z_AddChannelMemberReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
-	_args := &Z_AddChannelMemberArgs{channelId, userId}
+func (g *apiRPCClient) AddChannelMember(channelId, userID string) (*model.ChannelMember, *model.AppError) {
+	_args := &Z_AddChannelMemberArgs{channelId, userID}
 	_returns := &Z_AddChannelMemberReturns{}
 	if err := g.client.Call("Plugin.AddChannelMember", _args, _returns); err != nil {
 		log.Printf("RPC call to AddChannelMember API failed: %s", err.Error())
@@ -2538,7 +2854,7 @@ func (g *apiRPCClient) AddChannelMember(channelId, userId string) (*model.Channe
 
 func (s *apiRPCServer) AddChannelMember(args *Z_AddChannelMemberArgs, returns *Z_AddChannelMemberReturns) error {
 	if hook, ok := s.impl.(interface {
-		AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
+		AddChannelMember(channelId, userID string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.AddChannelMember(args.A, args.B)
 	} else {
@@ -2558,8 +2874,8 @@ type Z_AddUserToChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError) {
-	_args := &Z_AddUserToChannelArgs{channelId, userId, asUserId}
+func (g *apiRPCClient) AddUserToChannel(channelId, userID, asUserId string) (*model.ChannelMember, *model.AppError) {
+	_args := &Z_AddUserToChannelArgs{channelId, userID, asUserId}
 	_returns := &Z_AddUserToChannelReturns{}
 	if err := g.client.Call("Plugin.AddUserToChannel", _args, _returns); err != nil {
 		log.Printf("RPC call to AddUserToChannel API failed: %s", err.Error())
@@ -2569,7 +2885,7 @@ func (g *apiRPCClient) AddUserToChannel(channelId, userId, asUserId string) (*mo
 
 func (s *apiRPCServer) AddUserToChannel(args *Z_AddUserToChannelArgs, returns *Z_AddUserToChannelReturns) error {
 	if hook, ok := s.impl.(interface {
-		AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError)
+		AddUserToChannel(channelId, userID, asUserId string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.AddUserToChannel(args.A, args.B, args.C)
 	} else {
@@ -2588,8 +2904,8 @@ type Z_GetChannelMemberReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
-	_args := &Z_GetChannelMemberArgs{channelId, userId}
+func (g *apiRPCClient) GetChannelMember(channelId, userID string) (*model.ChannelMember, *model.AppError) {
+	_args := &Z_GetChannelMemberArgs{channelId, userID}
 	_returns := &Z_GetChannelMemberReturns{}
 	if err := g.client.Call("Plugin.GetChannelMember", _args, _returns); err != nil {
 		log.Printf("RPC call to GetChannelMember API failed: %s", err.Error())
@@ -2599,7 +2915,7 @@ func (g *apiRPCClient) GetChannelMember(channelId, userId string) (*model.Channe
 
 func (s *apiRPCServer) GetChannelMember(args *Z_GetChannelMemberArgs, returns *Z_GetChannelMemberReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
+		GetChannelMember(channelId, userID string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMember(args.A, args.B)
 	} else {
@@ -2615,11 +2931,11 @@ type Z_GetChannelMembersArgs struct {
 }
 
 type Z_GetChannelMembersReturns struct {
-	A *model.ChannelMembers
+	A model.ChannelMembers
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (g *apiRPCClient) GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	_args := &Z_GetChannelMembersArgs{channelId, page, perPage}
 	_returns := &Z_GetChannelMembersReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembers", _args, _returns); err != nil {
@@ -2630,7 +2946,7 @@ func (g *apiRPCClient) GetChannelMembers(channelId string, page, perPage int) (*
 
 func (s *apiRPCServer) GetChannelMembers(args *Z_GetChannelMembersArgs, returns *Z_GetChannelMembersReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+		GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembers(args.A, args.B, args.C)
 	} else {
@@ -2645,11 +2961,11 @@ type Z_GetChannelMembersByIdsArgs struct {
 }
 
 type Z_GetChannelMembersByIdsReturns struct {
-	A *model.ChannelMembers
+	A model.ChannelMembers
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError) {
 	_args := &Z_GetChannelMembersByIdsArgs{channelId, userIds}
 	_returns := &Z_GetChannelMembersByIdsReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembersByIds", _args, _returns); err != nil {
@@ -2660,7 +2976,7 @@ func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string
 
 func (s *apiRPCServer) GetChannelMembersByIds(args *Z_GetChannelMembersByIdsArgs, returns *Z_GetChannelMembersByIdsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+		GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembersByIds(args.A, args.B)
 	} else {
@@ -2681,8 +2997,8 @@ type Z_GetChannelMembersForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	_args := &Z_GetChannelMembersForUserArgs{teamId, userId, page, perPage}
+func (g *apiRPCClient) GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	_args := &Z_GetChannelMembersForUserArgs{teamID, userID, page, perPage}
 	_returns := &Z_GetChannelMembersForUserReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembersForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetChannelMembersForUser API failed: %s", err.Error())
@@ -2692,7 +3008,7 @@ func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, per
 
 func (s *apiRPCServer) GetChannelMembersForUser(args *Z_GetChannelMembersForUserArgs, returns *Z_GetChannelMembersForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
+		GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembersForUser(args.A, args.B, args.C, args.D)
 	} else {
@@ -2712,8 +3028,8 @@ type Z_UpdateChannelMemberRolesReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
-	_args := &Z_UpdateChannelMemberRolesArgs{channelId, userId, newRoles}
+func (g *apiRPCClient) UpdateChannelMemberRoles(channelId, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
+	_args := &Z_UpdateChannelMemberRolesArgs{channelId, userID, newRoles}
 	_returns := &Z_UpdateChannelMemberRolesReturns{}
 	if err := g.client.Call("Plugin.UpdateChannelMemberRoles", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateChannelMemberRoles API failed: %s", err.Error())
@@ -2723,7 +3039,7 @@ func (g *apiRPCClient) UpdateChannelMemberRoles(channelId, userId, newRoles stri
 
 func (s *apiRPCServer) UpdateChannelMemberRoles(args *Z_UpdateChannelMemberRolesArgs, returns *Z_UpdateChannelMemberRolesReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
+		UpdateChannelMemberRoles(channelId, userID, newRoles string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannelMemberRoles(args.A, args.B, args.C)
 	} else {
@@ -2743,8 +3059,8 @@ type Z_UpdateChannelMemberNotificationsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
-	_args := &Z_UpdateChannelMemberNotificationsArgs{channelId, userId, notifications}
+func (g *apiRPCClient) UpdateChannelMemberNotifications(channelId, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+	_args := &Z_UpdateChannelMemberNotificationsArgs{channelId, userID, notifications}
 	_returns := &Z_UpdateChannelMemberNotificationsReturns{}
 	if err := g.client.Call("Plugin.UpdateChannelMemberNotifications", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateChannelMemberNotifications API failed: %s", err.Error())
@@ -2754,7 +3070,7 @@ func (g *apiRPCClient) UpdateChannelMemberNotifications(channelId, userId string
 
 func (s *apiRPCServer) UpdateChannelMemberNotifications(args *Z_UpdateChannelMemberNotificationsArgs, returns *Z_UpdateChannelMemberNotificationsReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
+		UpdateChannelMemberNotifications(channelId, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannelMemberNotifications(args.A, args.B, args.C)
 	} else {
@@ -2821,6 +3137,66 @@ func (s *apiRPCServer) GetGroupByName(args *Z_GetGroupByNameArgs, returns *Z_Get
 	return nil
 }
 
+type Z_GetGroupMemberUsersArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetGroupMemberUsersReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
+	_args := &Z_GetGroupMemberUsersArgs{groupID, page, perPage}
+	_returns := &Z_GetGroupMemberUsersReturns{}
+	if err := g.client.Call("Plugin.GetGroupMemberUsers", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroupMemberUsers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroupMemberUsers(args *Z_GetGroupMemberUsersArgs, returns *Z_GetGroupMemberUsersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroupMemberUsers(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroupMemberUsers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetGroupsBySourceArgs struct {
+	A model.GroupSource
+}
+
+type Z_GetGroupsBySourceReturns struct {
+	A []*model.Group
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	_args := &Z_GetGroupsBySourceArgs{groupSource}
+	_returns := &Z_GetGroupsBySourceReturns{}
+	if err := g.client.Call("Plugin.GetGroupsBySource", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroupsBySource API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroupsBySource(args *Z_GetGroupsBySourceArgs, returns *Z_GetGroupsBySourceReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroupsBySource(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroupsBySource called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetGroupsForUserArgs struct {
 	A string
 }
@@ -2830,8 +3206,8 @@ type Z_GetGroupsForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
-	_args := &Z_GetGroupsForUserArgs{userId}
+func (g *apiRPCClient) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
+	_args := &Z_GetGroupsForUserArgs{userID}
 	_returns := &Z_GetGroupsForUserReturns{}
 	if err := g.client.Call("Plugin.GetGroupsForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetGroupsForUser API failed: %s", err.Error())
@@ -2841,7 +3217,7 @@ func (g *apiRPCClient) GetGroupsForUser(userId string) ([]*model.Group, *model.A
 
 func (s *apiRPCServer) GetGroupsForUser(args *Z_GetGroupsForUserArgs, returns *Z_GetGroupsForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetGroupsForUser(userId string) ([]*model.Group, *model.AppError)
+		GetGroupsForUser(userID string) ([]*model.Group, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetGroupsForUser(args.A)
 	} else {
@@ -2859,8 +3235,8 @@ type Z_DeleteChannelMemberReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteChannelMember(channelId, userId string) *model.AppError {
-	_args := &Z_DeleteChannelMemberArgs{channelId, userId}
+func (g *apiRPCClient) DeleteChannelMember(channelId, userID string) *model.AppError {
+	_args := &Z_DeleteChannelMemberArgs{channelId, userID}
 	_returns := &Z_DeleteChannelMemberReturns{}
 	if err := g.client.Call("Plugin.DeleteChannelMember", _args, _returns); err != nil {
 		log.Printf("RPC call to DeleteChannelMember API failed: %s", err.Error())
@@ -2870,7 +3246,7 @@ func (g *apiRPCClient) DeleteChannelMember(channelId, userId string) *model.AppE
 
 func (s *apiRPCServer) DeleteChannelMember(args *Z_DeleteChannelMemberArgs, returns *Z_DeleteChannelMemberReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteChannelMember(channelId, userId string) *model.AppError
+		DeleteChannelMember(channelId, userID string) *model.AppError
 	}); ok {
 		returns.A = hook.DeleteChannelMember(args.A, args.B)
 	} else {
@@ -3003,8 +3379,8 @@ type Z_SendEphemeralPostReturns struct {
 	A *model.Post
 }
 
-func (g *apiRPCClient) SendEphemeralPost(userId string, post *model.Post) *model.Post {
-	_args := &Z_SendEphemeralPostArgs{userId, post}
+func (g *apiRPCClient) SendEphemeralPost(userID string, post *model.Post) *model.Post {
+	_args := &Z_SendEphemeralPostArgs{userID, post}
 	_returns := &Z_SendEphemeralPostReturns{}
 	if err := g.client.Call("Plugin.SendEphemeralPost", _args, _returns); err != nil {
 		log.Printf("RPC call to SendEphemeralPost API failed: %s", err.Error())
@@ -3014,7 +3390,7 @@ func (g *apiRPCClient) SendEphemeralPost(userId string, post *model.Post) *model
 
 func (s *apiRPCServer) SendEphemeralPost(args *Z_SendEphemeralPostArgs, returns *Z_SendEphemeralPostReturns) error {
 	if hook, ok := s.impl.(interface {
-		SendEphemeralPost(userId string, post *model.Post) *model.Post
+		SendEphemeralPost(userID string, post *model.Post) *model.Post
 	}); ok {
 		returns.A = hook.SendEphemeralPost(args.A, args.B)
 	} else {
@@ -3032,8 +3408,8 @@ type Z_UpdateEphemeralPostReturns struct {
 	A *model.Post
 }
 
-func (g *apiRPCClient) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
-	_args := &Z_UpdateEphemeralPostArgs{userId, post}
+func (g *apiRPCClient) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
+	_args := &Z_UpdateEphemeralPostArgs{userID, post}
 	_returns := &Z_UpdateEphemeralPostReturns{}
 	if err := g.client.Call("Plugin.UpdateEphemeralPost", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateEphemeralPost API failed: %s", err.Error())
@@ -3043,7 +3419,7 @@ func (g *apiRPCClient) UpdateEphemeralPost(userId string, post *model.Post) *mod
 
 func (s *apiRPCServer) UpdateEphemeralPost(args *Z_UpdateEphemeralPostArgs, returns *Z_UpdateEphemeralPostReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateEphemeralPost(userId string, post *model.Post) *model.Post
+		UpdateEphemeralPost(userID string, post *model.Post) *model.Post
 	}); ok {
 		returns.A = hook.UpdateEphemeralPost(args.A, args.B)
 	} else {
@@ -3060,8 +3436,8 @@ type Z_DeleteEphemeralPostArgs struct {
 type Z_DeleteEphemeralPostReturns struct {
 }
 
-func (g *apiRPCClient) DeleteEphemeralPost(userId, postId string) {
-	_args := &Z_DeleteEphemeralPostArgs{userId, postId}
+func (g *apiRPCClient) DeleteEphemeralPost(userID, postId string) {
+	_args := &Z_DeleteEphemeralPostArgs{userID, postId}
 	_returns := &Z_DeleteEphemeralPostReturns{}
 	if err := g.client.Call("Plugin.DeleteEphemeralPost", _args, _returns); err != nil {
 		log.Printf("RPC call to DeleteEphemeralPost API failed: %s", err.Error())
@@ -3071,7 +3447,7 @@ func (g *apiRPCClient) DeleteEphemeralPost(userId, postId string) {
 
 func (s *apiRPCServer) DeleteEphemeralPost(args *Z_DeleteEphemeralPostArgs, returns *Z_DeleteEphemeralPostReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteEphemeralPost(userId, postId string)
+		DeleteEphemeralPost(userID, postId string)
 	}); ok {
 		hook.DeleteEphemeralPost(args.A, args.B)
 	} else {
@@ -3300,8 +3676,8 @@ type Z_GetTeamStatsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
-	_args := &Z_GetTeamStatsArgs{teamId}
+func (g *apiRPCClient) GetTeamStats(teamID string) (*model.TeamStats, *model.AppError) {
+	_args := &Z_GetTeamStatsArgs{teamID}
 	_returns := &Z_GetTeamStatsReturns{}
 	if err := g.client.Call("Plugin.GetTeamStats", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeamStats API failed: %s", err.Error())
@@ -3311,7 +3687,7 @@ func (g *apiRPCClient) GetTeamStats(teamId string) (*model.TeamStats, *model.App
 
 func (s *apiRPCServer) GetTeamStats(args *Z_GetTeamStatsArgs, returns *Z_GetTeamStatsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeamStats(teamId string) (*model.TeamStats, *model.AppError)
+		GetTeamStats(teamID string) (*model.TeamStats, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeamStats(args.A)
 	} else {
@@ -3358,8 +3734,8 @@ type Z_GetProfileImageReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetProfileImage(userId string) ([]byte, *model.AppError) {
-	_args := &Z_GetProfileImageArgs{userId}
+func (g *apiRPCClient) GetProfileImage(userID string) ([]byte, *model.AppError) {
+	_args := &Z_GetProfileImageArgs{userID}
 	_returns := &Z_GetProfileImageReturns{}
 	if err := g.client.Call("Plugin.GetProfileImage", _args, _returns); err != nil {
 		log.Printf("RPC call to GetProfileImage API failed: %s", err.Error())
@@ -3369,7 +3745,7 @@ func (g *apiRPCClient) GetProfileImage(userId string) ([]byte, *model.AppError) 
 
 func (s *apiRPCServer) GetProfileImage(args *Z_GetProfileImageArgs, returns *Z_GetProfileImageReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetProfileImage(userId string) ([]byte, *model.AppError)
+		GetProfileImage(userID string) ([]byte, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetProfileImage(args.A)
 	} else {
@@ -3387,8 +3763,8 @@ type Z_SetProfileImageReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SetProfileImage(userId string, data []byte) *model.AppError {
-	_args := &Z_SetProfileImageArgs{userId, data}
+func (g *apiRPCClient) SetProfileImage(userID string, data []byte) *model.AppError {
+	_args := &Z_SetProfileImageArgs{userID, data}
 	_returns := &Z_SetProfileImageReturns{}
 	if err := g.client.Call("Plugin.SetProfileImage", _args, _returns); err != nil {
 		log.Printf("RPC call to SetProfileImage API failed: %s", err.Error())
@@ -3398,7 +3774,7 @@ func (g *apiRPCClient) SetProfileImage(userId string, data []byte) *model.AppErr
 
 func (s *apiRPCServer) SetProfileImage(args *Z_SetProfileImageArgs, returns *Z_SetProfileImageReturns) error {
 	if hook, ok := s.impl.(interface {
-		SetProfileImage(userId string, data []byte) *model.AppError
+		SetProfileImage(userID string, data []byte) *model.AppError
 	}); ok {
 		returns.A = hook.SetProfileImage(args.A, args.B)
 	} else {
@@ -3506,8 +3882,8 @@ type Z_CopyFileInfosReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
-	_args := &Z_CopyFileInfosArgs{userId, fileIds}
+func (g *apiRPCClient) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
+	_args := &Z_CopyFileInfosArgs{userID, fileIds}
 	_returns := &Z_CopyFileInfosReturns{}
 	if err := g.client.Call("Plugin.CopyFileInfos", _args, _returns); err != nil {
 		log.Printf("RPC call to CopyFileInfos API failed: %s", err.Error())
@@ -3517,7 +3893,7 @@ func (g *apiRPCClient) CopyFileInfos(userId string, fileIds []string) ([]string,
 
 func (s *apiRPCServer) CopyFileInfos(args *Z_CopyFileInfosArgs, returns *Z_CopyFileInfosReturns) error {
 	if hook, ok := s.impl.(interface {
-		CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError)
+		CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CopyFileInfos(args.A, args.B)
 	} else {
@@ -4206,8 +4582,8 @@ type Z_HasPermissionToReturns struct {
 	A bool
 }
 
-func (g *apiRPCClient) HasPermissionTo(userId string, permission *model.Permission) bool {
-	_args := &Z_HasPermissionToArgs{userId, permission}
+func (g *apiRPCClient) HasPermissionTo(userID string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToArgs{userID, permission}
 	_returns := &Z_HasPermissionToReturns{}
 	if err := g.client.Call("Plugin.HasPermissionTo", _args, _returns); err != nil {
 		log.Printf("RPC call to HasPermissionTo API failed: %s", err.Error())
@@ -4217,7 +4593,7 @@ func (g *apiRPCClient) HasPermissionTo(userId string, permission *model.Permissi
 
 func (s *apiRPCServer) HasPermissionTo(args *Z_HasPermissionToArgs, returns *Z_HasPermissionToReturns) error {
 	if hook, ok := s.impl.(interface {
-		HasPermissionTo(userId string, permission *model.Permission) bool
+		HasPermissionTo(userID string, permission *model.Permission) bool
 	}); ok {
 		returns.A = hook.HasPermissionTo(args.A, args.B)
 	} else {
@@ -4236,8 +4612,8 @@ type Z_HasPermissionToTeamReturns struct {
 	A bool
 }
 
-func (g *apiRPCClient) HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool {
-	_args := &Z_HasPermissionToTeamArgs{userId, teamId, permission}
+func (g *apiRPCClient) HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToTeamArgs{userID, teamID, permission}
 	_returns := &Z_HasPermissionToTeamReturns{}
 	if err := g.client.Call("Plugin.HasPermissionToTeam", _args, _returns); err != nil {
 		log.Printf("RPC call to HasPermissionToTeam API failed: %s", err.Error())
@@ -4247,7 +4623,7 @@ func (g *apiRPCClient) HasPermissionToTeam(userId, teamId string, permission *mo
 
 func (s *apiRPCServer) HasPermissionToTeam(args *Z_HasPermissionToTeamArgs, returns *Z_HasPermissionToTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool
+		HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
 	}); ok {
 		returns.A = hook.HasPermissionToTeam(args.A, args.B, args.C)
 	} else {
@@ -4266,8 +4642,8 @@ type Z_HasPermissionToChannelReturns struct {
 	A bool
 }
 
-func (g *apiRPCClient) HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool {
-	_args := &Z_HasPermissionToChannelArgs{userId, channelId, permission}
+func (g *apiRPCClient) HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToChannelArgs{userID, channelId, permission}
 	_returns := &Z_HasPermissionToChannelReturns{}
 	if err := g.client.Call("Plugin.HasPermissionToChannel", _args, _returns); err != nil {
 		log.Printf("RPC call to HasPermissionToChannel API failed: %s", err.Error())
@@ -4277,7 +4653,7 @@ func (g *apiRPCClient) HasPermissionToChannel(userId, channelId string, permissi
 
 func (s *apiRPCServer) HasPermissionToChannel(args *Z_HasPermissionToChannelArgs, returns *Z_HasPermissionToChannelReturns) error {
 	if hook, ok := s.impl.(interface {
-		HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool
+		HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool
 	}); ok {
 		returns.A = hook.HasPermissionToChannel(args.A, args.B, args.C)
 	} else {
@@ -4492,92 +4868,6 @@ func (s *apiRPCServer) PermanentDeleteBot(args *Z_PermanentDeleteBotArgs, return
 	return nil
 }
 
-type Z_GetBotIconImageArgs struct {
-	A string
-}
-
-type Z_GetBotIconImageReturns struct {
-	A []byte
-	B *model.AppError
-}
-
-func (g *apiRPCClient) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
-	_args := &Z_GetBotIconImageArgs{botUserId}
-	_returns := &Z_GetBotIconImageReturns{}
-	if err := g.client.Call("Plugin.GetBotIconImage", _args, _returns); err != nil {
-		log.Printf("RPC call to GetBotIconImage API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) GetBotIconImage(args *Z_GetBotIconImageArgs, returns *Z_GetBotIconImageReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetBotIconImage(botUserId string) ([]byte, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.GetBotIconImage(args.A)
-	} else {
-		return encodableError(fmt.Errorf("API GetBotIconImage called but not implemented."))
-	}
-	return nil
-}
-
-type Z_SetBotIconImageArgs struct {
-	A string
-	B []byte
-}
-
-type Z_SetBotIconImageReturns struct {
-	A *model.AppError
-}
-
-func (g *apiRPCClient) SetBotIconImage(botUserId string, data []byte) *model.AppError {
-	_args := &Z_SetBotIconImageArgs{botUserId, data}
-	_returns := &Z_SetBotIconImageReturns{}
-	if err := g.client.Call("Plugin.SetBotIconImage", _args, _returns); err != nil {
-		log.Printf("RPC call to SetBotIconImage API failed: %s", err.Error())
-	}
-	return _returns.A
-}
-
-func (s *apiRPCServer) SetBotIconImage(args *Z_SetBotIconImageArgs, returns *Z_SetBotIconImageReturns) error {
-	if hook, ok := s.impl.(interface {
-		SetBotIconImage(botUserId string, data []byte) *model.AppError
-	}); ok {
-		returns.A = hook.SetBotIconImage(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API SetBotIconImage called but not implemented."))
-	}
-	return nil
-}
-
-type Z_DeleteBotIconImageArgs struct {
-	A string
-}
-
-type Z_DeleteBotIconImageReturns struct {
-	A *model.AppError
-}
-
-func (g *apiRPCClient) DeleteBotIconImage(botUserId string) *model.AppError {
-	_args := &Z_DeleteBotIconImageArgs{botUserId}
-	_returns := &Z_DeleteBotIconImageReturns{}
-	if err := g.client.Call("Plugin.DeleteBotIconImage", _args, _returns); err != nil {
-		log.Printf("RPC call to DeleteBotIconImage API failed: %s", err.Error())
-	}
-	return _returns.A
-}
-
-func (s *apiRPCServer) DeleteBotIconImage(args *Z_DeleteBotIconImageArgs, returns *Z_DeleteBotIconImageReturns) error {
-	if hook, ok := s.impl.(interface {
-		DeleteBotIconImage(botUserId string) *model.AppError
-	}); ok {
-		returns.A = hook.DeleteBotIconImage(args.A)
-	} else {
-		return encodableError(fmt.Errorf("API DeleteBotIconImage called but not implemented."))
-	}
-	return nil
-}
-
 type Z_PublishUserTypingArgs struct {
 	A string
 	B string
@@ -4588,8 +4878,8 @@ type Z_PublishUserTypingReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
-	_args := &Z_PublishUserTypingArgs{userId, channelId, parentId}
+func (g *apiRPCClient) PublishUserTyping(userID, channelId, parentId string) *model.AppError {
+	_args := &Z_PublishUserTypingArgs{userID, channelId, parentId}
 	_returns := &Z_PublishUserTypingReturns{}
 	if err := g.client.Call("Plugin.PublishUserTyping", _args, _returns); err != nil {
 		log.Printf("RPC call to PublishUserTyping API failed: %s", err.Error())
@@ -4599,7 +4889,7 @@ func (g *apiRPCClient) PublishUserTyping(userId, channelId, parentId string) *mo
 
 func (s *apiRPCServer) PublishUserTyping(args *Z_PublishUserTypingArgs, returns *Z_PublishUserTypingReturns) error {
 	if hook, ok := s.impl.(interface {
-		PublishUserTyping(userId, channelId, parentId string) *model.AppError
+		PublishUserTyping(userID, channelId, parentId string) *model.AppError
 	}); ok {
 		returns.A = hook.PublishUserTyping(args.A, args.B, args.C)
 	} else {
@@ -4843,6 +5133,182 @@ func (s *apiRPCServer) DeleteCommand(args *Z_DeleteCommandArgs, returns *Z_Delet
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteCommand called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CreateOAuthAppArgs struct {
+	A *model.OAuthApp
+}
+
+type Z_CreateOAuthAppReturns struct {
+	A *model.OAuthApp
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	_args := &Z_CreateOAuthAppArgs{app}
+	_returns := &Z_CreateOAuthAppReturns{}
+	if err := g.client.Call("Plugin.CreateOAuthApp", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateOAuthApp API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateOAuthApp(args *Z_CreateOAuthAppArgs, returns *Z_CreateOAuthAppReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateOAuthApp(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API CreateOAuthApp called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetOAuthAppArgs struct {
+	A string
+}
+
+type Z_GetOAuthAppReturns struct {
+	A *model.OAuthApp
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
+	_args := &Z_GetOAuthAppArgs{appID}
+	_returns := &Z_GetOAuthAppReturns{}
+	if err := g.client.Call("Plugin.GetOAuthApp", _args, _returns); err != nil {
+		log.Printf("RPC call to GetOAuthApp API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetOAuthApp(args *Z_GetOAuthAppArgs, returns *Z_GetOAuthAppReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetOAuthApp(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetOAuthApp called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdateOAuthAppArgs struct {
+	A *model.OAuthApp
+}
+
+type Z_UpdateOAuthAppReturns struct {
+	A *model.OAuthApp
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	_args := &Z_UpdateOAuthAppArgs{app}
+	_returns := &Z_UpdateOAuthAppReturns{}
+	if err := g.client.Call("Plugin.UpdateOAuthApp", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateOAuthApp API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateOAuthApp(args *Z_UpdateOAuthAppArgs, returns *Z_UpdateOAuthAppReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateOAuthApp(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateOAuthApp called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeleteOAuthAppArgs struct {
+	A string
+}
+
+type Z_DeleteOAuthAppReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) DeleteOAuthApp(appID string) *model.AppError {
+	_args := &Z_DeleteOAuthAppArgs{appID}
+	_returns := &Z_DeleteOAuthAppReturns{}
+	if err := g.client.Call("Plugin.DeleteOAuthApp", _args, _returns); err != nil {
+		log.Printf("RPC call to DeleteOAuthApp API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeleteOAuthApp(args *Z_DeleteOAuthAppArgs, returns *Z_DeleteOAuthAppReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeleteOAuthApp(appID string) *model.AppError
+	}); ok {
+		returns.A = hook.DeleteOAuthApp(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API DeleteOAuthApp called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PublishPluginClusterEventArgs struct {
+	A model.PluginClusterEvent
+	B model.PluginClusterEventSendOptions
+}
+
+type Z_PublishPluginClusterEventReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
+	_args := &Z_PublishPluginClusterEventArgs{ev, opts}
+	_returns := &Z_PublishPluginClusterEventReturns{}
+	if err := g.client.Call("Plugin.PublishPluginClusterEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to PublishPluginClusterEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEventArgs, returns *Z_PublishPluginClusterEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
+	}); ok {
+		returns.A = hook.PublishPluginClusterEvent(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API PublishPluginClusterEvent called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RequestTrialLicenseArgs struct {
+	A string
+	B int
+	C bool
+	D bool
+}
+
+type Z_RequestTrialLicenseReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	_args := &Z_RequestTrialLicenseArgs{requesterID, users, termsAccepted, receiveEmailsAccepted}
+	_returns := &Z_RequestTrialLicenseReturns{}
+	if err := g.client.Call("Plugin.RequestTrialLicense", _args, _returns); err != nil {
+		log.Printf("RPC call to RequestTrialLicense API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RequestTrialLicense(args *Z_RequestTrialLicenseArgs, returns *Z_RequestTrialLicenseReturns) error {
+	if hook, ok := s.impl.(interface {
+		RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+	}); ok {
+		returns.A = hook.RequestTrialLicense(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API RequestTrialLicense called but not implemented."))
 	}
 	return nil
 }

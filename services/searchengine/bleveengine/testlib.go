@@ -6,12 +6,12 @@ package bleveengine
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func createPost(userId string, channelId string, message string) *model.Post {
+func createPost(userId string, channelId string) *model.Post {
 	post := &model.Post{
-		Message:       message,
+		Message:       model.NewRandomString(15),
 		ChannelId:     channelId,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        userId,
