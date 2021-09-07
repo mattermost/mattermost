@@ -5,18 +5,20 @@ package web
 
 import (
 	b64 "encoding/base64"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (w *Web) InitSaml() {
-	w.MainRouter.Handle("/login/sso/saml", w.ApiHandler(loginWithSaml)).Methods("GET")
-	w.MainRouter.Handle("/login/sso/saml", w.ApiHandlerTrustRequester(completeSaml)).Methods("POST")
+	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods("GET")
+	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods("POST")
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -33,36 +35,41 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
-	isMobile := action == model.OAUTH_ACTION_MOBILE
-	redirectTo := r.URL.Query().Get("redirect_to")
+	isMobile := action == model.OAuthActionMobile
+	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 	relayProps := map[string]string{}
 	relayState := ""
 
-	if len(action) != 0 {
+	if action != "" {
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
-		if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
+		if action == model.OAuthActionEmailToSSO {
 			relayProps["email"] = r.URL.Query().Get("email")
 		}
 	}
 
-	if len(redirectTo) != 0 {
-		relayProps["redirect_to"] = redirectTo
+	if redirectURL != "" {
+		if isMobile && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectURL) {
+			invalidSchemeErr := model.NewAppError("loginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
+			utils.RenderMobileError(c.App.Config(), w, invalidSchemeErr, redirectURL)
+			return
+		}
+		relayProps["redirect_to"] = redirectURL
 	}
 
-	relayProps[model.USER_AUTH_SERVICE_IS_MOBILE] = strconv.FormatBool(isMobile)
+	relayProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
 
 	if len(relayProps) > 0 {
-		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
+		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJSON(relayProps)))
 	}
 
-	if data, err := samlInterface.BuildRequest(relayState); err != nil {
+	data, err := samlInterface.BuildRequest(relayState)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-		http.Redirect(w, r, data.URL, http.StatusFound)
 	}
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	http.Redirect(w, r, data.URL, http.StatusFound)
 }
 
 func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -78,15 +85,15 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayState := r.FormValue("RelayState")
 
 	relayProps := make(map[string]string)
-	if len(relayState) > 0 {
+	if relayState != "" {
 		stateStr := ""
-		if b, err := b64.StdEncoding.DecodeString(relayState); err != nil {
+		b, err := b64.StdEncoding.DecodeString(relayState)
+		if err != nil {
 			c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error(), http.StatusFound)
 			return
-		} else {
-			stateStr = string(b)
 		}
-		relayProps = model.MapFromJson(strings.NewReader(stateStr))
+		stateStr = string(b)
+		relayProps = model.MapFromJSON(strings.NewReader(stateStr))
 	}
 
 	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
@@ -96,38 +103,48 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := relayProps["action"]
 	auditRec.AddMeta("action", action)
 
-	user, err := samlInterface.DoLogin(encodedXML, relayProps)
-	if err != nil {
-		c.LogAudit("fail")
-		if action == model.OAUTH_ACTION_MOBILE {
-			err.Translate(c.App.T)
-			w.Write([]byte(err.ToJson()))
+	isMobile := action == model.OAuthActionMobile
+	redirectURL := ""
+	hasRedirectURL := false
+	if val, ok := relayProps["redirect_to"]; ok {
+		redirectURL = val
+		hasRedirectURL = val != ""
+	}
+
+	handleError := func(err *model.AppError) {
+		if isMobile && hasRedirectURL {
+			err.Translate(c.AppContext.T)
+			utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
 		} else {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
+	}
+
+	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
+	if err != nil {
+		c.LogAudit("fail")
+		mlog.Error(err.Error())
+		handleError(err)
 		return
 	}
 
 	if err = c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
-		c.Err = err
-		c.Err.StatusCode = http.StatusFound
+		mlog.Error(err.Error())
+		handleError(err)
 		return
 	}
 
 	switch action {
-	case model.OAUTH_ACTION_SIGNUP:
-		teamId := relayProps["team_id"]
-		if len(teamId) > 0 {
-			c.App.Srv().Go(func() {
-				if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
-					mlog.Error(err.Error())
-				} else {
-					c.App.AddDirectChannels(teamId, user)
-				}
-			})
+	case model.OAuthActionSignup:
+		if teamId := relayProps["team_id"]; teamId != "" {
+			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
+				c.LogErrorByCode(err)
+				break
+			}
+			c.App.AddDirectChannels(teamId, user)
 		}
-	case model.OAUTH_ACTION_EMAIL_TO_SSO:
+	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(user.Id); err != nil {
 			c.Err = err
 			return
@@ -137,8 +154,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 		c.App.Srv().Go(func() {
-			if err = c.App.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
-				mlog.Error(err.Error())
+			if err := c.App.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(model.UserAuthServiceSaml)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
+				c.LogErrorByCode(model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError))
 			}
 		})
 	}
@@ -146,30 +163,38 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	isMobile, parseErr := strconv.ParseBool(relayProps[model.USER_AUTH_SERVICE_IS_MOBILE])
-	if parseErr != nil {
-		mlog.Error("Error parsing boolean property from relay props", mlog.Err(parseErr))
-	}
-	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
+	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
 	if err != nil {
-		c.Err = err
+		mlog.Error(err.Error())
+		handleError(err)
 		return
 	}
 
 	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
 
-	c.App.AttachSessionCookies(w, r)
+	c.App.AttachSessionCookies(c.AppContext, w, r)
 
-	if val, ok := relayProps["redirect_to"]; ok {
-		http.Redirect(w, r, c.GetSiteURLHeader()+val, http.StatusFound)
+	if hasRedirectURL {
+		if isMobile {
+			// Mobile clients with redirect url support
+			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+				model.SessionCookieToken: c.AppContext.Session().Token,
+				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
+			})
+			utils.RenderMobileAuthComplete(w, redirectURL)
+		} else {
+			redirectURL = c.GetSiteURLHeader() + redirectURL
+			http.Redirect(w, r, redirectURL, http.StatusFound)
+		}
 		return
 	}
 
 	switch action {
-	case model.OAUTH_ACTION_MOBILE:
+	// Mobile clients with web view implementation
+	case model.OAuthActionMobile:
 		ReturnStatusOK(w)
-	case model.OAUTH_ACTION_EMAIL_TO_SSO:
+	case model.OAuthActionEmailToSSO:
 		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=signin_change", http.StatusFound)
 	default:
 		http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)

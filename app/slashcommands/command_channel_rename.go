@@ -4,32 +4,32 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type RenameProvider struct {
 }
 
 const (
-	CMD_RENAME = "rename"
+	CmdRename = "rename"
 )
 
 func init() {
 	app.RegisterCommandProvider(&RenameProvider{})
 }
 
-func (me *RenameProvider) GetTrigger() string {
-	return CMD_RENAME
+func (*RenameProvider) GetTrigger() string {
+	return CmdRename
 }
 
-func (me *RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
-	renameAutocompleteData := model.NewAutocompleteData(CMD_RENAME, T("api.command_channel_rename.hint"), T("api.command_channel_rename.desc"))
+func (*RenameProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
+	renameAutocompleteData := model.NewAutocompleteData(CmdRename, T("api.command_channel_rename.hint"), T("api.command_channel_rename.desc"))
 	renameAutocompleteData.AddTextArgument(T("api.command_channel_rename.hint"), "[text]", "")
 	return &model.Command{
-		Trigger:          CMD_RENAME,
+		Trigger:          CmdRename,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_channel_rename.desc"),
 		AutoCompleteHint: T("api.command_channel_rename.hint"),
@@ -38,52 +38,52 @@ func (me *RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (me *RenameProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*RenameProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_rename.channel.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
 	switch channel.Type {
-	case model.CHANNEL_OPEN:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+	case model.ChannelTypeOpen:
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
-	case model.CHANNEL_PRIVATE:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+	case model.ChannelTypePrivate:
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	default:
-		return &model.CommandResponse{Text: args.T("api.command_channel_rename.direct_group.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.direct_group.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_rename.message.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
-	} else if len(message) > model.CHANNEL_NAME_MAX_LENGTH {
+	} else if len(message) > model.ChannelNameMaxLength {
 		return &model.CommandResponse{
 			Text: args.T("api.command_channel_rename.too_long.app_error", map[string]interface{}{
-				"Length": model.CHANNEL_NAME_MAX_LENGTH,
+				"Length": model.ChannelNameMaxLength,
 			}),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
-	} else if len(message) < model.CHANNEL_NAME_MIN_LENGTH {
+	} else if len(message) < model.ChannelNameMinLength {
 		return &model.CommandResponse{
 			Text: args.T("api.command_channel_rename.too_short.app_error", map[string]interface{}{
-				"Length": model.CHANNEL_NAME_MIN_LENGTH,
+				"Length": model.ChannelNameMinLength,
 			}),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -92,11 +92,11 @@ func (me *RenameProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 	}
 	*patch.DisplayName = message
 
-	_, err = a.PatchChannel(channel, patch, args.UserId)
+	_, err = a.PatchChannel(c, channel, patch, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_rename.update_channel.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 

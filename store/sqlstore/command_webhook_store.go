@@ -7,19 +7,18 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlCommandWebhookStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlCommandWebhookStore(sqlStore SqlStore) store.CommandWebhookStore {
+func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
 	s := &SqlCommandWebhookStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -29,7 +28,6 @@ func newSqlCommandWebhookStore(sqlStore SqlStore) store.CommandWebhookStore {
 		tablec.ColMap("UserId").SetMaxSize(26)
 		tablec.ColMap("ChannelId").SetMaxSize(26)
 		tablec.ColMap("RootId").SetMaxSize(26)
-		tablec.ColMap("ParentId").SetMaxSize(26)
 	}
 
 	return s
@@ -40,7 +38,7 @@ func (s SqlCommandWebhookStore) createIndexesIfNotExists() {
 }
 
 func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
-	if len(webhook.Id) > 0 {
+	if webhook.Id != "" {
 		return nil, store.NewErrInvalidInput("CommandWebhook", "id", webhook.Id)
 	}
 
@@ -59,7 +57,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	var webhook model.CommandWebhook
 
-	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+	exptime := model.GetMillis() - model.CommandWebhookLifetime
 
 	query := s.getQueryBuilder().
 		Select("*").
@@ -105,7 +103,7 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 
 func (s SqlCommandWebhookStore) Cleanup() {
 	mlog.Debug("Cleaning up command webhook store.")
-	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+	exptime := model.GetMillis() - model.CommandWebhookLifetime
 
 	query := s.getQueryBuilder().
 		Delete("CommandWebhooks").

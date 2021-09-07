@@ -8,8 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestNotifySessionsExpired(t *testing.T) {
@@ -43,20 +44,20 @@ func TestNotifySessionsExpired(t *testing.T) {
 		})
 
 		data := []struct {
-			deviceId  string
+			deviceID  string
 			expiresAt int64
 			notified  bool
 		}{
-			{deviceId: "android:11111", expiresAt: model.GetMillis() + 100000, notified: false},
-			{deviceId: "android:22222", expiresAt: model.GetMillis() - 1000, notified: false},
-			{deviceId: "android:33333", expiresAt: model.GetMillis() - 2000, notified: false},
-			{deviceId: "android:44444", expiresAt: model.GetMillis() - 3000, notified: true},
+			{deviceID: "android:11111", expiresAt: model.GetMillis() + 100000, notified: false},
+			{deviceID: "android:22222", expiresAt: model.GetMillis() - 1000, notified: false},
+			{deviceID: "android:33333", expiresAt: model.GetMillis() - 2000, notified: false},
+			{deviceID: "android:44444", expiresAt: model.GetMillis() - 3000, notified: true},
 		}
 
 		for _, d := range data {
 			_, err := th.App.CreateSession(&model.Session{
 				UserId:        th.BasicUser.Id,
-				DeviceId:      d.deviceId,
+				DeviceId:      d.deviceID,
 				ExpiresAt:     d.expiresAt,
 				ExpiredNotify: d.notified,
 			})
@@ -69,11 +70,11 @@ func TestNotifySessionsExpired(t *testing.T) {
 		require.Equal(t, 2, handler.numReqs())
 
 		expected := []string{"22222", "33333"}
-		require.Equal(t, model.PUSH_TYPE_SESSION, handler.notifications()[0].Type)
+		require.Equal(t, model.PushTypeSession, handler.notifications()[0].Type)
 		require.Contains(t, expected, handler.notifications()[0].DeviceId)
 		require.Contains(t, handler.notifications()[0].Message, "Session Expired")
 
-		require.Equal(t, model.PUSH_TYPE_SESSION, handler.notifications()[1].Type)
+		require.Equal(t, model.PushTypeSession, handler.notifications()[1].Type)
 		require.Contains(t, expected, handler.notifications()[1].DeviceId)
 		require.Contains(t, handler.notifications()[1].Message, "Session Expired")
 	})

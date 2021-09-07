@@ -5,20 +5,19 @@ package model
 
 import (
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
-	"io"
 	"sort"
 	"strconv"
 )
 
 type ChannelCounts struct {
 	Counts      map[string]int64 `json:"counts"`
+	CountsRoot  map[string]int64 `json:"counts_root"`
 	UpdateTimes map[string]int64 `json:"update_times"`
 }
 
 func (o *ChannelCounts) Etag() string {
-
+	// we don't include CountsRoot in ETag calculation, since it's a deriviative
 	ids := []string{}
 	for id := range o.Counts {
 		ids = append(ids, id)
@@ -40,15 +39,4 @@ func (o *ChannelCounts) Etag() string {
 	}
 
 	return Etag(md5Counts, update)
-}
-
-func (o *ChannelCounts) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func ChannelCountsFromJson(data io.Reader) *ChannelCounts {
-	var o *ChannelCounts
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

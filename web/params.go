@@ -5,21 +5,23 @@ package web
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/v5/model"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
-	PAGE_DEFAULT          = 0
-	PER_PAGE_DEFAULT      = 60
-	PER_PAGE_MAXIMUM      = 200
-	LOGS_PER_PAGE_DEFAULT = 10000
-	LOGS_PER_PAGE_MAXIMUM = 10000
-	LIMIT_DEFAULT         = 60
-	LIMIT_MAXIMUM         = 200
+	PageDefault        = 0
+	PerPageDefault     = 60
+	PerPageMaximum     = 200
+	LogsPerPageDefault = 10000
+	LogsPerPageMaximum = 10000
+	LimitDefault       = 60
+	LimitMaximum       = 200
 )
 
 type Params struct {
@@ -27,8 +29,11 @@ type Params struct {
 	TeamId                    string
 	InviteId                  string
 	TokenId                   string
+	ThreadId                  string
+	Timestamp                 int64
 	ChannelId                 string
 	PostId                    string
+	PolicyId                  string
 	FileId                    string
 	Filename                  string
 	UploadId                  string
@@ -80,6 +85,11 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
+	ExportName                string
+	ExcludePolicyConstrained  bool
+
+	// Cloud
+	InvoiceId string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -108,6 +118,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.TokenId = val
 	}
 
+	if val, ok := props["thread_id"]; ok {
+		params.ThreadId = val
+	}
+
 	if val, ok := props["channel_id"]; ok {
 		params.ChannelId = val
 	} else {
@@ -116,6 +130,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["post_id"]; ok {
 		params.PostId = val
+	}
+
+	if val, ok := props["policy_id"]; ok {
+		params.PolicyId = val
 	}
 
 	if val, ok := props["file_id"]; ok {
@@ -216,46 +234,49 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.RemoteId = val
 	}
 
+	if val, ok := props["invoice_id"]; ok {
+		params.InvoiceId = val
+	}
+
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
-		params.Page = PAGE_DEFAULT
+		params.Page = PageDefault
 	} else {
 		params.Page = val
+	}
+
+	if val, err := strconv.ParseInt(props["timestamp"], 10, 64); err != nil || val < 0 {
+		params.Timestamp = 0
+	} else {
+		params.Timestamp = val
 	}
 
 	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {
 		params.Permanent = val
 	}
 
-	if val, err := strconv.Atoi(query.Get("per_page")); err != nil || val < 0 {
-		params.PerPage = PER_PAGE_DEFAULT
-	} else if val > PER_PAGE_MAXIMUM {
-		params.PerPage = PER_PAGE_MAXIMUM
-	} else {
-		params.PerPage = val
-	}
-
+	params.PerPage = getPerPageFromQuery(query)
 	if val, err := strconv.Atoi(query.Get("logs_per_page")); err != nil || val < 0 {
-		params.LogsPerPage = LOGS_PER_PAGE_DEFAULT
-	} else if val > LOGS_PER_PAGE_MAXIMUM {
-		params.LogsPerPage = LOGS_PER_PAGE_MAXIMUM
+		params.LogsPerPage = LogsPerPageDefault
+	} else if val > LogsPerPageMaximum {
+		params.LogsPerPage = LogsPerPageMaximum
 	} else {
 		params.LogsPerPage = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("limit_after")); err != nil || val < 0 {
-		params.LimitAfter = LIMIT_DEFAULT
-	} else if val > LIMIT_MAXIMUM {
-		params.LimitAfter = LIMIT_MAXIMUM
+		params.LimitAfter = LimitDefault
+	} else if val > LimitMaximum {
+		params.LimitAfter = LimitMaximum
 	} else {
 		params.LimitAfter = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("limit_before")); err != nil || val < 0 {
-		params.LimitBefore = LIMIT_DEFAULT
-	} else if val > LIMIT_MAXIMUM {
-		params.LimitBefore = LIMIT_MAXIMUM
+		params.LimitBefore = LimitDefault
+	} else if val > LimitMaximum {
+		params.LimitBefore = LimitMaximum
 	} else {
 		params.LimitBefore = val
 	}
@@ -326,5 +347,30 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.WarnMetricId = val
 	}
 
+	if val, ok := props["export_name"]; ok {
+		params.ExportName = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("exclude_policy_constrained")); err == nil {
+		params.ExcludePolicyConstrained = val
+	}
+
 	return params
+}
+
+// getPerPageFromQuery returns the PerPage value from the given query.
+// This function should be removed and the support for `pageSize`
+// should be dropped after v1.46 of the mobile app is no longer supported
+// https://mattermost.atlassian.net/browse/MM-38131
+func getPerPageFromQuery(query url.Values) int {
+	val, err := strconv.Atoi(query.Get("per_page"))
+	if err != nil {
+		val, err = strconv.Atoi(query.Get("pageSize"))
+	}
+	if err != nil || val < 0 {
+		return PerPageDefault
+	} else if val > PerPageMaximum {
+		return PerPageMaximum
+	}
+	return val
 }

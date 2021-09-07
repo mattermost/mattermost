@@ -4,11 +4,14 @@
 package slashcommands
 
 import (
+	"encoding/json"
 	"strconv"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type ExpandProvider struct {
@@ -18,8 +21,8 @@ type CollapseProvider struct {
 }
 
 const (
-	CMD_EXPAND   = "expand"
-	CMD_COLLAPSE = "collapse"
+	CmdExpand   = "expand"
+	CmdCollapse = "collapse"
 )
 
 func init() {
@@ -27,54 +30,59 @@ func init() {
 	app.RegisterCommandProvider(&CollapseProvider{})
 }
 
-func (me *ExpandProvider) GetTrigger() string {
-	return CMD_EXPAND
+func (*ExpandProvider) GetTrigger() string {
+	return CmdExpand
 }
 
-func (me *CollapseProvider) GetTrigger() string {
-	return CMD_COLLAPSE
+func (*CollapseProvider) GetTrigger() string {
+	return CmdCollapse
 }
 
-func (me *ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*ExpandProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_EXPAND,
+		Trigger:          CmdExpand,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_expand.desc"),
 		DisplayName:      T("api.command_expand.name"),
 	}
 }
 
-func (me *CollapseProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CollapseProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_COLLAPSE,
+		Trigger:          CmdCollapse,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_collapse.desc"),
 		DisplayName:      T("api.command_collapse.name"),
 	}
 }
 
-func (me *ExpandProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ExpandProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(a, args, false)
 }
 
-func (me *CollapseProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CollapseProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(a, args, true)
 }
 
 func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool) *model.CommandResponse {
 	pref := model.Preference{
 		UserId:   args.UserId,
-		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-		Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameCollapseSetting,
 		Value:    strconv.FormatBool(isCollapse),
 	}
 
-	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
+		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	socketMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", args.UserId, nil)
-	socketMessage.Add("preference", pref.ToJson())
+	socketMessage := model.NewWebSocketEvent(model.WebsocketEventPreferenceChanged, "", "", args.UserId, nil)
+
+	prefJSON, jsonErr := json.Marshal(pref)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
+	}
+	socketMessage.Add("preference", string(prefJSON))
 	a.Publish(socketMessage)
 
 	var rmsg string
@@ -84,5 +92,5 @@ func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool)
 	} else {
 		rmsg = args.T("api.command_expand.success")
 	}
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: rmsg}
 }

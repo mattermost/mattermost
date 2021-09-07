@@ -4,12 +4,15 @@
 package testlib
 
 import (
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"sync"
+
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type FakeClusterInterface struct {
 	clusterMessageHandler einterfaces.ClusterMessageHandler
+	mut                   sync.RWMutex
 	messages              []*model.ClusterMessage
 }
 
@@ -17,7 +20,7 @@ func (c *FakeClusterInterface) StartInterNodeCommunication() {}
 
 func (c *FakeClusterInterface) StopInterNodeCommunication() {}
 
-func (c *FakeClusterInterface) RegisterClusterMessageHandler(event string, crm einterfaces.ClusterMessageHandler) {
+func (c *FakeClusterInterface) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 	c.clusterMessageHandler = crm
 }
 
@@ -34,7 +37,16 @@ func (c *FakeClusterInterface) GetMyClusterInfo() *model.ClusterInfo { return ni
 func (c *FakeClusterInterface) GetClusterInfos() []*model.ClusterInfo { return nil }
 
 func (c *FakeClusterInterface) SendClusterMessage(message *model.ClusterMessage) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	c.messages = append(c.messages, message)
+}
+
+func (c *FakeClusterInterface) SendClusterMessageToNode(nodeID string, message *model.ClusterMessage) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.messages = append(c.messages, message)
+	return nil
 }
 
 func (c *FakeClusterInterface) NotifyMsg(buf []byte) {}
@@ -54,7 +66,7 @@ func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newCo
 func (c *FakeClusterInterface) SendClearRoleCacheMessage() {
 	if c.clusterMessageHandler != nil {
 		c.clusterMessageHandler(&model.ClusterMessage{
-			Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
+			Event: model.ClusterEventInvalidateCacheForRoles,
 		})
 	}
 }
@@ -64,9 +76,26 @@ func (c *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model
 }
 
 func (c *FakeClusterInterface) GetMessages() []*model.ClusterMessage {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
 	return c.messages
 }
 
+func (c *FakeClusterInterface) SelectMessages(filterCond func(message *model.ClusterMessage) bool) []*model.ClusterMessage {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	filteredMessages := []*model.ClusterMessage{}
+	for _, msg := range c.messages {
+		if filterCond(msg) {
+			filteredMessages = append(filteredMessages, msg)
+		}
+	}
+	return filteredMessages
+}
+
 func (c *FakeClusterInterface) ClearMessages() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	c.messages = nil
 }

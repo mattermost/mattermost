@@ -6,8 +6,9 @@ package app
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestSaveStatus(t *testing.T) {
@@ -17,10 +18,10 @@ func TestSaveStatus(t *testing.T) {
 	user := th.BasicUser
 
 	for _, statusString := range []string{
-		model.STATUS_ONLINE,
-		model.STATUS_AWAY,
-		model.STATUS_DND,
-		model.STATUS_OFFLINE,
+		model.StatusOnline,
+		model.StatusAway,
+		model.StatusDnd,
+		model.StatusOffline,
 	} {
 		t.Run(statusString, func(t *testing.T) {
 			status := &model.Status{

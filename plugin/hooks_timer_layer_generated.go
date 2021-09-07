@@ -11,8 +11,8 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type hooksTimerLayer struct {
@@ -149,4 +149,40 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 	_returnsA, _returnsB := hooks.hooksImpl.FileWillBeUploaded(c, info, file, output)
 	hooks.recordTime(startTime, "FileWillBeUploaded", true)
 	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ReactionHasBeenAdded(c, reaction)
+	hooks.recordTime(startTime, "ReactionHasBeenAdded", true)
+}
+
+func (hooks *hooksTimerLayer) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ReactionHasBeenRemoved(c, reaction)
+	hooks.recordTime(startTime, "ReactionHasBeenRemoved", true)
+}
+
+func (hooks *hooksTimerLayer) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnPluginClusterEvent(c, ev)
+	hooks.recordTime(startTime, "OnPluginClusterEvent", true)
+}
+
+func (hooks *hooksTimerLayer) OnWebSocketConnect(webConnID, userID string) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnWebSocketConnect(webConnID, userID)
+	hooks.recordTime(startTime, "OnWebSocketConnect", true)
+}
+
+func (hooks *hooksTimerLayer) OnWebSocketDisconnect(webConnID, userID string) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnWebSocketDisconnect(webConnID, userID)
+	hooks.recordTime(startTime, "OnWebSocketDisconnect", true)
+}
+
+func (hooks *hooksTimerLayer) WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.WebSocketMessageHasBeenPosted(webConnID, userID, req)
+	hooks.recordTime(startTime, "WebSocketMessageHasBeenPosted", true)
 }

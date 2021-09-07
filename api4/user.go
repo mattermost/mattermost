@@ -13,89 +13,97 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (api *API) InitUser() {
-	api.BaseRoutes.Users.Handle("", api.ApiHandler(createUser)).Methods("POST")
-	api.BaseRoutes.Users.Handle("", api.ApiSessionRequired(getUsers)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/ids", api.ApiSessionRequired(getUsersByIds)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/usernames", api.ApiSessionRequired(getUsersByNames)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/known", api.ApiSessionRequired(getKnownUsers)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/stats/filtered", api.ApiSessionRequired(getFilteredUsersStats)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
+	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods("POST")
+	api.BaseRoutes.Users.Handle("", api.APISessionRequired(getUsers)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/ids", api.APISessionRequired(getUsersByIds)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/known", api.APISessionRequired(getKnownUsers)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/autocomplete", api.APISessionRequired(autocompleteUsers)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats", api.APISessionRequired(getTotalUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats/filtered", api.APISessionRequired(getFilteredUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/group_channels", api.APISessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
-	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/image/default", api.ApiSessionRequiredTrustRequester(getDefaultProfileImage)).Methods("GET")
-	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequiredTrustRequester(getProfileImage)).Methods("GET")
-	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequired(setProfileImage)).Methods("POST")
-	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequired(setDefaultProfileImage)).Methods("DELETE")
-	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(updateUser)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/patch", api.ApiSessionRequired(patchUser)).Methods("PUT")
-	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(deleteUser)).Methods("DELETE")
-	api.BaseRoutes.User.Handle("/roles", api.ApiSessionRequired(updateUserRoles)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/active", api.ApiSessionRequired(updateUserActive)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/password", api.ApiSessionRequired(updatePassword)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/promote", api.ApiSessionRequired(promoteGuestToUser)).Methods("POST")
-	api.BaseRoutes.User.Handle("/demote", api.ApiSessionRequired(demoteUserToGuest)).Methods("POST")
-	api.BaseRoutes.User.Handle("/convert_to_bot", api.ApiSessionRequired(convertUserToBot)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/password/reset", api.ApiHandler(resetPassword)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
-	api.BaseRoutes.User.Handle("/email/verify/member", api.ApiSessionRequired(verifyUserEmailWithoutToken)).Methods("POST")
-	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(saveUserTermsOfService)).Methods("POST")
-	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(getUserTermsOfService)).Methods("GET")
+	api.BaseRoutes.User.Handle("", api.APISessionRequired(getUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/image/default", api.APISessionRequiredTrustRequester(getDefaultProfileImage)).Methods("GET")
+	api.BaseRoutes.User.Handle("/image", api.APISessionRequiredTrustRequester(getProfileImage)).Methods("GET")
+	api.BaseRoutes.User.Handle("/image", api.APISessionRequired(setProfileImage)).Methods("POST")
+	api.BaseRoutes.User.Handle("/image", api.APISessionRequired(setDefaultProfileImage)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("", api.APISessionRequired(updateUser)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/patch", api.APISessionRequired(patchUser)).Methods("PUT")
+	api.BaseRoutes.User.Handle("", api.APISessionRequired(deleteUser)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/roles", api.APISessionRequired(updateUserRoles)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/active", api.APISessionRequired(updateUserActive)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/password", api.APISessionRequired(updatePassword)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/promote", api.APISessionRequired(promoteGuestToUser)).Methods("POST")
+	api.BaseRoutes.User.Handle("/demote", api.APISessionRequired(demoteUserToGuest)).Methods("POST")
+	api.BaseRoutes.User.Handle("/convert_to_bot", api.APISessionRequired(convertUserToBot)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/password/reset", api.APIHandler(resetPassword)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/password/reset/send", api.APIHandler(sendPasswordReset)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/email/verify", api.APIHandler(verifyUserEmail)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/email/verify/send", api.APIHandler(sendVerificationEmail)).Methods("POST")
+	api.BaseRoutes.User.Handle("/email/verify/member", api.APISessionRequired(verifyUserEmailWithoutToken)).Methods("POST")
+	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(saveUserTermsOfService)).Methods("POST")
+	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(getUserTermsOfService)).Methods("GET")
 
-	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/auth", api.APISessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
-	api.BaseRoutes.Users.Handle("/mfa", api.ApiHandler(checkUserMfa)).Methods("POST")
-	api.BaseRoutes.User.Handle("/mfa", api.ApiSessionRequiredMfa(updateUserMfa)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/mfa/generate", api.ApiSessionRequiredMfa(generateMfaSecret)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/mfa", api.APIHandler(checkUserMfa)).Methods("POST")
+	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
-	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/login/cws", api.ApiHandlerTrustRequester(loginCWS)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods("POST")
 
-	api.BaseRoutes.UserByUsername.Handle("", api.ApiSessionRequired(getUserByUsername)).Methods("GET")
-	api.BaseRoutes.UserByEmail.Handle("", api.ApiSessionRequired(getUserByEmail)).Methods("GET")
+	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods("GET")
+	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequired(getUserByEmail)).Methods("GET")
 
-	api.BaseRoutes.User.Handle("/sessions", api.ApiSessionRequired(getSessions)).Methods("GET")
-	api.BaseRoutes.User.Handle("/sessions/revoke", api.ApiSessionRequired(revokeSession)).Methods("POST")
-	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.ApiSessionRequired(revokeAllSessionsForUser)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.ApiSessionRequired(revokeAllSessionsAllUsers)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/sessions/device", api.ApiSessionRequired(attachDeviceId)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/audits", api.ApiSessionRequired(getUserAudits)).Methods("GET")
+	api.BaseRoutes.User.Handle("/sessions", api.APISessionRequired(getSessions)).Methods("GET")
+	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession)).Methods("POST")
+	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(attachDeviceId)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits)).Methods("GET")
 
-	api.BaseRoutes.User.Handle("/tokens", api.ApiSessionRequired(createUserAccessToken)).Methods("POST")
-	api.BaseRoutes.User.Handle("/tokens", api.ApiSessionRequired(getUserAccessTokensForUser)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/tokens", api.ApiSessionRequired(getUserAccessTokens)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/tokens/search", api.ApiSessionRequired(searchUserAccessTokens)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getUserAccessToken)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
+	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken)).Methods("POST")
+	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(getUserAccessTokensForUser)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/tokens", api.APISessionRequired(getUserAccessTokens)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/tokens/search", api.APISessionRequired(searchUserAccessTokens)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.APISessionRequired(getUserAccessToken)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APISessionRequired(revokeUserAccessToken)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/disable", api.APISessionRequired(disableUserAccessToken)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/enable", api.APISessionRequired(enableUserAccessToken)).Methods("POST")
 
-	api.BaseRoutes.User.Handle("/typing", api.ApiSessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
+	api.BaseRoutes.User.Handle("/typing", api.APISessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
 
-	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.ApiSessionRequired(migrateAuthToLDAP)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiSessionRequired(migrateAuthToSaml)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.APISessionRequired(migrateAuthToLDAP)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.APISessionRequired(migrateAuthToSaml)).Methods("POST")
 
-	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
+
+	api.BaseRoutes.UserThreads.Handle("", api.APISessionRequired(getThreadsForUser)).Methods("GET")
+	api.BaseRoutes.UserThreads.Handle("/read", api.APISessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
+
+	api.BaseRoutes.UserThread.Handle("", api.APISessionRequired(getThreadForUser)).Methods("GET")
+	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(followThreadByUser)).Methods("PUT")
+	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(unfollowThreadByUser)).Methods("DELETE")
+	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.APISessionRequired(updateReadStateThreadByUser)).Methods("PUT")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	user := model.UserFromJson(r.Body)
-	if user == nil {
+	var user model.User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -115,7 +123,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var ruser *model.User
 	var err *model.AppError
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
 		if nErr != nil {
 			var status int
@@ -130,7 +138,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		auditRec.AddMeta("token_type", token.Type)
 
-		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
+		if token.Type == app.TokenTypeGuestInvitation {
 			if c.App.Srv().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
@@ -140,14 +148,14 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		ruser, err = c.App.CreateUserWithToken(user, token)
-	} else if len(inviteId) > 0 {
-		ruser, err = c.App.CreateUserWithInviteId(user, inviteId, redirect)
+		ruser, err = c.App.CreateUserWithToken(c.AppContext, &user, token)
+	} else if inviteId != "" {
+		ruser, err = c.App.CreateUserWithInviteId(c.AppContext, &user, inviteId, redirect)
 	} else if c.IsSystemAdmin() {
-		ruser, err = c.App.CreateUserAsAdmin(user, redirect)
+		ruser, err = c.App.CreateUserAsAdmin(c.AppContext, &user, redirect)
 		auditRec.AddMeta("admin", true)
 	} else {
-		ruser, err = c.App.CreateUserFromSignup(user, redirect)
+		ruser, err = c.App.CreateUserFromSignup(c.AppContext, &user, redirect)
 	}
 
 	if err != nil {
@@ -155,11 +163,22 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// New user created, check cloud limits and send emails if needed
+	// Soft fail on error since user is already created
+	if ruser != nil {
+		err = c.App.CheckAndSendUserLimitWarningEmails(c.AppContext)
+		if err != nil {
+			c.LogErrorByCode(err)
+		}
+	}
+
 	auditRec.Success()
 	auditRec.AddMeta("user", ruser) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(ruser.ToJson()))
+	if err := json.NewEncoder(w).Encode(ruser); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -168,14 +187,14 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session().UserId, c.Params.UserId)
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, c.Params.UserId)
 	if err != nil {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
 
 	if !canSee {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
 
@@ -185,7 +204,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.IsSystemAdmin() || c.App.Session().UserId == user.Id {
+	if c.IsSystemAdmin() || c.AppContext.Session().UserId == user.Id {
 		userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 		if err != nil && err.StatusCode != http.StatusNotFound {
 			c.Err = err
@@ -204,14 +223,16 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session().UserId == user.Id {
+	if c.AppContext.Session().UserId == user.Id {
 		user.Sanitize(map[string]bool{})
 	} else {
 		c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	}
-	c.App.UpdateLastActivityAtIfNeeded(*c.App.Session())
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(user.ToJson()))
+	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -222,31 +243,31 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.App.GetUserByUsername(c.Params.Username)
 	if err != nil {
-		restrictions, err2 := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
+		restrictions, err2 := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 		if err2 != nil {
 			c.Err = err2
 			return
 		}
 		if restrictions != nil {
-			c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+			c.SetPermissionError(model.PermissionViewMembers)
 			return
 		}
 		c.Err = err
 		return
 	}
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session().UserId, user.Id)
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, user.Id)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if !canSee {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
 
-	if c.IsSystemAdmin() || c.App.Session().UserId == user.Id {
+	if c.IsSystemAdmin() || c.AppContext.Session().UserId == user.Id {
 		userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 		if err != nil && err.StatusCode != http.StatusNotFound {
 			c.Err = err
@@ -265,13 +286,15 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session().UserId == user.Id {
+	if c.AppContext.Session().UserId == user.Id {
 		user.Sanitize(map[string]bool{})
 	} else {
 		c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	}
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(user.ToJson()))
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -282,33 +305,33 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sanitizeOptions := c.App.GetSanitizeOptions(c.IsSystemAdmin())
 	if !sanitizeOptions["email"] {
-		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.App.Session().UserId, http.StatusForbidden)
+		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
 		return
 	}
 
 	user, err := c.App.GetUserByEmail(c.Params.Email)
 	if err != nil {
-		restrictions, err2 := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
+		restrictions, err2 := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 		if err2 != nil {
 			c.Err = err2
 			return
 		}
 		if restrictions != nil {
-			c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+			c.SetPermissionError(model.PermissionViewMembers)
 			return
 		}
 		c.Err = err
 		return
 	}
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session().UserId, user.Id)
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, user.Id)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if !canSee {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
 
@@ -319,8 +342,10 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(user.ToJson()))
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -329,14 +354,14 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session().UserId, c.Params.UserId)
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if !canSee {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
 
@@ -352,7 +377,7 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(img)
 }
@@ -363,14 +388,14 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session().UserId, c.Params.UserId)
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if !canSee {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
 
@@ -392,10 +417,10 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if readFailed {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 5*60)) // 5 mins
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 5*60)) // 5 mins
 	} else {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
+		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
 	w.Header().Set("Content-Type", "image/png")
@@ -410,12 +435,12 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	if len(*c.App.Config().FileSettings.DriverName) == 0 {
+	if *c.App.Config().FileSettings.DriverName == "" {
 		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -448,8 +473,19 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("filename", imageArray[0].Filename)
 	}
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		auditRec.AddMeta("user", user)
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.SetInvalidURLParam("user_id")
+		return
+	}
+	auditRec.AddMeta("user", user)
+
+	if (user.IsLDAPUser() || (user.IsSAMLUser() && *c.App.Config().SamlSettings.EnableSyncWithLdap)) &&
+		*c.App.Config().LdapSettings.PictureAttribute != "" {
+		c.Err = model.NewAppError(
+			"uploadProfileImage", "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+			nil, "", http.StatusConflict)
+		return
 	}
 
 	imageData := imageArray[0]
@@ -470,12 +506,12 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	if len(*c.App.Config().FileSettings.DriverName) == 0 {
+	if *c.App.Config().FileSettings.DriverName == "" {
 		c.Err = model.NewAppError("setDefaultProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -506,7 +542,7 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -518,7 +554,9 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(stats.ToJson()))
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -543,7 +581,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	channelRoles := []string{}
-	if channelRolesString != "" && len(channelID) != 0 {
+	if channelRolesString != "" && channelID != "" {
 		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
 		if !rolesValid {
 			c.SetInvalidParam("channelRoles")
@@ -551,7 +589,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	teamRoles := []string{}
-	if teamRolesString != "" && len(teamID) != 0 {
+	if teamRolesString != "" && teamID != "" {
 		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
 		if !rolesValid {
 			c.SetInvalidParam("teamRoles")
@@ -569,8 +607,8 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		TeamRoles:          teamRoles,
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
 		return
 	}
 
@@ -580,18 +618,20 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(stats.ToJson()))
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	channelIds := model.ArrayFromJson(r.Body)
+	channelIds := model.ArrayFromJSON(r.Body)
 
 	if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
 
-	usersByChannelId, err := c.App.GetUsersByGroupChannelIds(channelIds, c.IsSystemAdmin())
+	usersByChannelId, err := c.App.GetUsersByGroupChannelIds(c.AppContext, channelIds, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -617,24 +657,24 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelRolesString := r.URL.Query().Get("channel_roles")
 	teamRolesString := r.URL.Query().Get("team_roles")
 
-	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
-		c.SetInvalidUrlParam("team_id")
+	if notInChannelId != "" && inTeamId == "" {
+		c.SetInvalidURLParam("team_id")
 		return
 	}
 
 	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" {
-		c.SetInvalidUrlParam("sort")
+		c.SetInvalidURLParam("sort")
 		return
 	}
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
 	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "") {
-		c.SetInvalidUrlParam("sort")
+		c.SetInvalidURLParam("sort")
 		return
 	}
 	if sort == "status" && inChannelId == "" {
-		c.SetInvalidUrlParam("sort")
+		c.SetInvalidURLParam("sort")
 		return
 	}
 
@@ -644,7 +684,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	activeBool, _ := strconv.ParseBool(active)
 
 	if inactiveBool && activeBool {
-		c.SetInvalidUrlParam("inactive")
+		c.SetInvalidURLParam("inactive")
 	}
 
 	roles := []string{}
@@ -657,7 +697,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	channelRoles := []string{}
-	if channelRolesString != "" && len(inChannelId) != 0 {
+	if channelRolesString != "" && inChannelId != "" {
 		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
 		if !rolesValid {
 			c.SetInvalidParam("channelRoles")
@@ -665,7 +705,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	teamRoles := []string{}
-	if teamRolesString != "" && len(inTeamId) != 0 {
+	if teamRolesString != "" && inTeamId != "" {
 		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
 		if !rolesValid {
 			c.SetInvalidParam("teamRoles")
@@ -673,7 +713,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -704,22 +744,22 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_USERS_WITHOUT_TEAM) {
-			c.SetPermissionError(model.PERMISSION_LIST_USERS_WITHOUT_TEAM)
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListUsersWithoutTeam) {
+			c.SetPermissionError(model.PermissionListUsersWithoutTeam)
 			return
 		}
 
 		profiles, err = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
-	} else if len(notInChannelId) > 0 {
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), notInChannelId, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	} else if notInChannelId != "" {
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), notInChannelId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 
 		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
-	} else if len(notInTeamId) > 0 {
-		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), notInTeamId, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+	} else if notInTeamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), notInTeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
 
@@ -729,9 +769,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
-	} else if len(inTeamId) > 0 {
-		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), inTeamId, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+	} else if inTeamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
 
@@ -746,9 +786,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
-	} else if len(inChannelId) > 0 {
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), inChannelId, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	} else if inChannelId != "" {
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), inChannelId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 		if sort == "status" {
@@ -756,14 +796,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
-	} else if len(inGroupId) > 0 {
+	} else if inGroupId != "" {
 		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 			c.Err = model.NewAppError("Api4.getUsersInGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 			return
 		}
 
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
-			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 			return
 		}
 
@@ -773,7 +813,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session().UserId, userGetOptions)
+		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.AppContext.Session().UserId, userGetOptions)
 		if err != nil {
 			c.Err = err
 			return
@@ -786,15 +826,22 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(etag) > 0 {
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	if etag != "" {
+		w.Header().Set(model.HeaderEtagServer, etag)
 	}
-	c.App.UpdateLastActivityAtIfNeeded(*c.App.Session())
-	w.Write([]byte(model.UserListToJson(profiles)))
+	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+
+	js, jsonErr := json.Marshal(profiles)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -807,7 +854,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		IsAdmin: c.IsSystemAdmin(),
 	}
 
-	if len(sinceString) > 0 {
+	if sinceString != "" {
 		since, parseError := strconv.ParseInt(sinceString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("since")
@@ -816,7 +863,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.Since = since
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -829,18 +876,24 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UserListToJson(users)))
+	js, jsonErr := json.Marshal(users)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUsersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	usernames := model.ArrayFromJson(r.Body)
+	usernames := model.ArrayFromJSON(r.Body)
 
 	if len(usernames) == 0 {
 		c.SetInvalidParam("usernames")
 		return
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -852,11 +905,17 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UserListToJson(users)))
+	js, jsonErr := json.Marshal(users)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUsersByNames", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds, err := c.App.GetKnownUsers(c.App.Session().UserId)
+	userIds, err := c.App.GetKnownUsers(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -868,13 +927,17 @@ func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.UserSearchFromJson(r.Body)
-	if props == nil {
+	var props model.UserSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
 		c.SetInvalidParam("")
 		return
 	}
 
-	if len(props.Term) == 0 {
+	if props.Limit == 0 {
+		props.Limit = model.UserSearchDefaultLimit
+	}
+
+	if props.Term == "" {
 		c.SetInvalidParam("term")
 		return
 	}
@@ -890,33 +953,33 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
 	}
 
-	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.App.Session(), props.InChannelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
-	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.App.Session(), props.NotInChannelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), props.NotInChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
-	if props.TeamId != "" && !c.App.SessionHasPermissionToTeam(*c.App.Session(), props.TeamId, model.PERMISSION_VIEW_TEAM) {
-		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+	if props.TeamId != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
 
-	if props.NotInTeamId != "" && !c.App.SessionHasPermissionToTeam(*c.App.Session(), props.NotInTeamId, model.PERMISSION_VIEW_TEAM) {
-		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+	if props.NotInTeamId != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.NotInTeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
 
-	if props.Limit <= 0 || props.Limit > model.USER_SEARCH_MAX_LIMIT {
+	if props.Limit <= 0 || props.Limit > model.UserSearchMaxLimit {
 		c.SetInvalidParam("limit")
 		return
 	}
@@ -932,7 +995,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		TeamRoles:        props.TeamRoles,
 	}
 
-	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		options.AllowEmails = true
 		options.AllowFullNames = true
 	} else {
@@ -940,19 +1003,25 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
-	options, err := c.App.RestrictUsersSearchByPermissions(c.App.Session().UserId, options)
+	options, err := c.App.RestrictUsersSearchByPermissions(c.AppContext.Session().UserId, options)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	profiles, err := c.App.SearchUsers(props, options)
+	profiles, err := c.App.SearchUsers(&props, options)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(model.UserListToJson(profiles)))
+	js, jsonErr := json.Marshal(profiles)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -962,9 +1031,9 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	limitStr := r.URL.Query().Get("limit")
 	limit, _ := strconv.Atoi(limitStr)
 	if limitStr == "" {
-		limit = model.USER_SEARCH_DEFAULT_LIMIT
-	} else if limit > model.USER_SEARCH_MAX_LIMIT {
-		limit = model.USER_SEARCH_MAX_LIMIT
+		limit = model.UserSearchDefaultLimit
+	} else if limit > model.UserSearchMaxLimit {
+		limit = model.UserSearchMaxLimit
 	}
 
 	options := &model.UserSearchOptions{
@@ -974,22 +1043,22 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		Limit:       limit,
 	}
 
-	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		options.AllowFullNames = true
 	} else {
 		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
-	if len(channelId) > 0 {
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channelId, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if channelId != "" {
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 	}
 
-	if len(teamId) > 0 {
-		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamId, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+	if teamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
 	}
@@ -997,17 +1066,17 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var autocomplete model.UserAutocomplete
 
 	var err *model.AppError
-	options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session().UserId, options)
+	options, err = c.App.RestrictUsersSearchByPermissions(c.AppContext.Session().UserId, options)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if len(channelId) > 0 {
+	if channelId != "" {
 		// We're using the channelId to search for users inside that channel and the team
 		// to get the not in channel list. Also we want to include the DM and GM users for
 		// that team which could only be obtained having the team id.
-		if len(teamId) == 0 {
+		if teamId == "" {
 			c.Err = model.NewAppError("autocompleteUser",
 				"api.user.autocomplete_users.missing_team_id.app_error",
 				nil,
@@ -1024,7 +1093,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
-	} else if len(teamId) > 0 {
+	} else if teamId != "" {
 		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
 		if err != nil {
 			c.Err = err
@@ -1041,7 +1110,9 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result
 	}
 
-	w.Write([]byte((autocomplete.ToJson())))
+	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1050,8 +1121,8 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := model.UserFromJson(r.Body)
-	if user == nil {
+	var user model.User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -1066,13 +1137,13 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	// Cannot update a system admin unless user making request is a systemadmin also.
-	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), user.Id) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), user.Id) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -1083,16 +1154,25 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", ouser)
 
-	if c.App.Session().IsOAuth {
+	if c.AppContext.Session().IsOAuth {
 		if ouser.Email != user.Email {
-			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+			c.SetPermissionError(model.PermissionEditOtherUsers)
 			c.Err.DetailedError += ", attempted email update by oauth app"
 			return
 		}
 	}
 
+	// Check that the fields being updated are not set by the login provider
+	conflictField := c.App.CheckProviderAttributes(ouser, user.ToPatch())
+	if conflictField != "" {
+		c.Err = model.NewAppError(
+			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+		return
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
-	if user.Email != "" && ouser.Email != user.Email && c.App.Session().UserId == c.Params.UserId {
+	if user.Email != "" && ouser.Email != user.Email && c.AppContext.Session().UserId == c.Params.UserId {
 		err = c.App.DoubleCheckPassword(ouser, user.Password)
 		if err != nil {
 			c.SetInvalidParam("password")
@@ -1100,7 +1180,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.UpdateUserAsUser(user, c.IsSystemAdmin())
+	ruser, err := c.App.UpdateUserAsUser(&user, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1110,7 +1190,9 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("update", ruser)
 	c.LogAudit("")
 
-	w.Write([]byte(ruser.ToJson()))
+	if err := json.NewEncoder(w).Encode(ruser); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1119,8 +1201,8 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch := model.UserPatchFromJson(r.Body)
-	if patch == nil {
+	var patch model.UserPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -1128,8 +1210,8 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -1141,21 +1223,29 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", ouser)
 
 	// Cannot update a system admin unless user making request is a systemadmin also
-	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
-	if c.App.Session().IsOAuth && patch.Email != nil {
+	if c.AppContext.Session().IsOAuth && patch.Email != nil {
 		if ouser.Email != *patch.Email {
-			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+			c.SetPermissionError(model.PermissionEditOtherUsers)
 			c.Err.DetailedError += ", attempted email update by oauth app"
 			return
 		}
 	}
 
+	conflictField := c.App.CheckProviderAttributes(ouser, &patch)
+	if conflictField != "" {
+		c.Err = model.NewAppError(
+			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+		return
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
-	if patch.Email != nil && ouser.Email != *patch.Email && c.App.Session().UserId == c.Params.UserId {
+	if patch.Email != nil && ouser.Email != *patch.Email && c.AppContext.Session().UserId == c.Params.UserId {
 		if patch.Password == nil {
 			c.SetInvalidParam("password")
 			return
@@ -1167,7 +1257,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.PatchUser(c.Params.UserId, patch, c.IsSystemAdmin())
+	ruser, err := c.App.PatchUser(c.Params.UserId, &patch, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1179,7 +1269,9 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("patch", ruser)
 	c.LogAudit("")
 
-	w.Write([]byte(ruser.ToJson()))
+	if err := json.NewEncoder(w).Encode(ruser); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1193,13 +1285,13 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), userId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
 	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
-	if c.Params.UserId == c.App.Session().UserId && !*c.App.Config().TeamSettings.EnableUserDeactivation && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if c.Params.UserId == c.AppContext.Session().UserId && !*c.App.Config().TeamSettings.EnableUserDeactivation && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.Err = model.NewAppError("deleteUser", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
 	}
@@ -1212,19 +1304,19 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	// Cannot update a system admin unless user making request is a systemadmin also
-	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
 	if c.Params.Permanent {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
-			err = c.App.PermanentDeleteUser(user)
+			err = c.App.PermanentDeleteUser(c.AppContext, user)
 		} else {
 			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		}
 	} else {
-		_, err = c.App.UpdateActive(user, false)
+		_, err = c.App.UpdateActive(c.AppContext, user, false)
 	}
 	if err != nil {
 		c.Err = err
@@ -1241,7 +1333,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
 	if !model.IsValidUserRoles(newRoles) {
@@ -1265,8 +1357,8 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("roles", newRoles)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_ROLES) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_ROLES)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageRoles) {
+		c.SetPermissionError(model.PermissionManageRoles)
 		return
 	}
 
@@ -1289,7 +1381,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 
 	active, ok := props["active"].(bool)
 	if !ok {
@@ -1302,9 +1394,9 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("active", active)
 
 	// true when you're trying to de-activate yourself
-	isSelfDeactive := !active && c.Params.UserId == c.App.Session().UserId
+	isSelfDeactive := !active && c.Params.UserId == c.AppContext.Session().UserId
 
-	if !isSelfDeactive && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS) {
+	if !isSelfDeactive && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers) {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.permissions.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
 		return
 	}
@@ -1322,8 +1414,8 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -1332,7 +1424,19 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = c.App.UpdateActive(user, active); err != nil {
+	// if non cloud instances, isOverLimit is false and no error
+	isAtLimit, err := c.App.CheckCloudAccountAtLimit()
+	if err != nil {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_limit_check_error", nil, "userId="+c.Params.UserId, http.StatusInternalServerError)
+		return
+	}
+
+	if active && isAtLimit {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_or_over_limit_check_overcapacity", nil, "userId="+c.Params.UserId, http.StatusBadRequest)
+		return
+	}
+
+	if _, err = c.App.UpdateActive(c.AppContext, user, active); err != nil {
 		c.Err = err
 	}
 
@@ -1341,17 +1445,30 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if isSelfDeactive {
 		c.App.Srv().Go(func() {
-			if err = c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
-				mlog.Error(err.Error())
+			if err := c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
+				c.LogErrorByCode(model.NewAppError("SendDeactivateEmail", "api.user.send_deactivate_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError))
 			}
 		})
 	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil)
+	c.App.Publish(message)
+
+	// If activating, run cloud check for limit overages
+	if active {
+		emailErr := c.App.CheckAndSendUserLimitWarningEmails(c.AppContext)
+		if emailErr != nil {
+			c.Err = emailErr
+			return
+		}
+	}
+
 	ReturnStatusOK(w)
 }
 
 func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -1363,9 +1480,14 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateUserAuth", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	userAuth := model.UserAuthFromJson(r.Body)
-	if userAuth == nil {
+	var userAuth model.UserAuth
+	if jsonErr := json.NewDecoder(r.Body).Decode(&userAuth); jsonErr != nil {
 		c.SetInvalidParam("user")
+		return
+	}
+
+	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
+		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -1373,7 +1495,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	user, err := c.App.UpdateUserAuth(c.Params.UserId, userAuth)
+	user, err := c.App.UpdateUserAuth(c.Params.UserId, &userAuth)
 	if err != nil {
 		c.Err = err
 		return
@@ -1383,7 +1505,9 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("auth_service", user.AuthService)
 	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
 
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // Deprecated: checkUserMfa is deprecated and should not be used anymore, starting with version 6.0 it will be disabled.
@@ -1395,10 +1519,10 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	loginId := props["login_id"]
-	if len(loginId) == 0 {
+	if loginId == "" {
 		c.SetInvalidParam("login_id")
 		return
 	}
@@ -1407,7 +1531,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp["mfa_required"] = false
 
 	if !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
-		w.Write([]byte(model.StringInterfaceToJson(resp)))
+		w.Write([]byte(model.StringInterfaceToJSON(resp)))
 		return
 	}
 
@@ -1417,7 +1541,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		resp["mfa_required"] = user.MfaActive
 	}
 
-	w.Write([]byte(model.StringInterfaceToJson(resp)))
+	w.Write([]byte(model.StringInterfaceToJSON(resp)))
 }
 
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1429,14 +1553,14 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateUserMfa", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if c.App.Session().IsOAuth {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		c.Err.DetailedError += ", attempted access by oauth app"
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -1444,7 +1568,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	activate, ok := props["activate"].(bool)
 	if !ok {
 		c.SetInvalidParam("activate")
@@ -1454,7 +1578,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	code := ""
 	if activate {
 		code, ok = props["code"].(string)
-		if !ok || len(code) == 0 {
+		if !ok || code == "" {
 			c.SetInvalidParam("code")
 			return
 		}
@@ -1480,14 +1604,14 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session().IsOAuth {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		c.Err.DetailedError += ", attempted access by oauth app"
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -1500,7 +1624,9 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
-	w.Write([]byte(secret.ToJson()))
+	if err := json.NewEncoder(w).Encode(secret); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1509,7 +1635,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	newPassword := props["new_password"]
 
 	auditRec := c.MakeAuditRecord("updatePassword", audit.Fail)
@@ -1521,9 +1647,9 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 
 		if user.IsSystemAdmin() {
-			canUpdatePassword = c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM)
+			canUpdatePassword = c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 		} else {
-			canUpdatePassword = c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS)
+			canUpdatePassword = c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers)
 		}
 	}
 
@@ -1534,22 +1660,22 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	if props["already_hashed"] == "true" {
 		if canUpdatePassword {
 			err = c.App.UpdateHashedPasswordByUserId(c.Params.UserId, newPassword)
-		} else if c.Params.UserId == c.App.Session().UserId {
+		} else if c.Params.UserId == c.AppContext.Session().UserId {
 			err = model.NewAppError("updatePassword", "api.user.update_password.user_and_hashed.app_error", nil, "", http.StatusUnauthorized)
 		} else {
 			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
 		}
 	} else {
-		if c.Params.UserId == c.App.Session().UserId {
+		if c.Params.UserId == c.AppContext.Session().UserId {
 			currentPassword := props["current_password"]
-			if len(currentPassword) <= 0 {
+			if currentPassword == "" {
 				c.SetInvalidParam("current_password")
 				return
 			}
 
 			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
 		} else if canUpdatePassword {
-			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.AppContext.T("api.user.reset_password.method"))
 		} else {
 			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
 		}
@@ -1568,10 +1694,10 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	token := props["token"]
-	if len(token) != model.TOKEN_SIZE {
+	if len(token) != model.TokenSize {
 		c.SetInvalidParam("token")
 		return
 	}
@@ -1596,11 +1722,11 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	email := props["email"]
 	email = strings.ToLower(email)
-	if len(email) == 0 {
+	if email == "" {
 		c.SetInvalidParam("email")
 		return
 	}
@@ -1662,11 +1788,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		enableUsername := *config.EmailSettings.EnableSignInWithUsername
 		enableEmail := *config.EmailSettings.EnableSignInWithEmail
 		samlEnabled := *config.SamlSettings.Enable
-		gitlabEnabled := *config.GetSSOService("gitlab").Enable
-		googleEnabled := *config.GetSSOService("google").Enable
+		gitlabEnabled := *config.GitLabSettings.Enable
+		openidEnabled := *config.OpenIdSettings.Enable
+		googleEnabled := *config.GoogleSettings.Enable
 		office365Enabled := *config.Office365Settings.Enable
 
-		if samlEnabled || gitlabEnabled || googleEnabled || office365Enabled {
+		if samlEnabled || gitlabEnabled || googleEnabled || office365Enabled || openidEnabled {
 			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_sso", nil, "", http.StatusUnauthorized)
 			return
 		}
@@ -1684,7 +1811,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, "", http.StatusUnauthorized)
 	}()
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
@@ -1693,19 +1820,19 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
-		if license := c.App.Srv().License(); license == nil || !*license.Features.SAML {
+		if license := c.App.Srv().License(); license == nil || !*license.Features.FutureFeatures {
 			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 		certPem, certSubject, certEmail := c.App.CheckForClientSideCert(r)
 		mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
 
-		if len(certPem) == 0 || len(certEmail) == 0 {
+		if certPem == "" || certEmail == "" {
 			c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 
-		if *c.App.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
+		if *c.App.Config().ExperimentalSettings.ClientSideCertCheck == model.ClientSideCertCheckPrimaryAuth {
 			loginId = certEmail
 			password = "certificate"
 		}
@@ -1718,7 +1845,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, "", ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
@@ -1739,7 +1866,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	err = c.App.DoLogin(w, r, user, deviceId, false, false, false)
+	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -1747,8 +1874,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "success")
 
-	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
-		c.App.AttachSessionCookies(w, r)
+	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
+		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
@@ -1765,7 +1892,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	user.Sanitize(map[string]bool{})
 
 	auditRec.Success()
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1790,23 +1919,23 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("login", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("login_id", loginID)
-	user, err := c.App.AuthenticateUserForLogin("", loginID, "", "", token, false)
+	user, err := c.App.AuthenticateUserForLogin(c.AppContext, "", loginID, "", "", token, false)
 	if err != nil {
 		c.LogAuditWithUserId("", "failure - login_id="+loginID)
-		mlog.Error("CWS authentication error", mlog.Err(err))
+		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 		return
 	}
 	auditRec.AddMeta("user", user)
 	c.LogAuditWithUserId(user.Id, "authenticated")
-	err = c.App.DoLogin(w, r, user, "", false, false, false)
+	err = c.App.DoLogin(c.AppContext, w, r, user, "", false, false, false)
 	if err != nil {
-		mlog.Error("CWS login error", mlog.Err(err))
+		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 		return
 	}
 	c.LogAuditWithUserId(user.Id, "success")
-	c.App.AttachSessionCookies(w, r)
+	c.App.AttachSessionCookies(c.AppContext, w, r)
 	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 }
 
@@ -1820,8 +1949,8 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	c.RemoveSessionCookie(w, r)
-	if c.App.Session().Id != "" {
-		if err := c.App.RevokeSessionById(c.App.Session().Id); err != nil {
+	if c.AppContext.Session().Id != "" {
+		if err := c.App.RevokeSessionById(c.AppContext.Session().Id); err != nil {
 			c.Err = err
 			return
 		}
@@ -1837,8 +1966,8 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -1852,7 +1981,12 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		session.Sanitize()
 	}
 
-	w.Write([]byte(model.SessionsToJson(sessions)))
+	js, jsonErr := json.Marshal(sessions)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getSessions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1864,12 +1998,12 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("revokeSession", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	sessionId := props["session_id"]
 	if sessionId == "" {
 		c.SetInvalidParam("session_id")
@@ -1884,7 +2018,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("session", session)
 
 	if session.UserId != c.Params.UserId {
-		c.SetInvalidUrlParam("user_id")
+		c.SetInvalidURLParam("user_id")
 		return
 	}
 
@@ -1909,8 +2043,8 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", c.Params.UserId)
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -1926,8 +2060,8 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -1946,10 +2080,10 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	deviceId := props["device_id"]
-	if len(deviceId) == 0 {
+	if deviceId == "" {
 		c.SetInvalidParam("device_id")
 		return
 	}
@@ -1959,13 +2093,13 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("device_id", deviceId)
 
 	// A special case where we logout of all other sessions with the same device id
-	if err := c.App.RevokeSessionsForDeviceId(c.App.Session().UserId, deviceId, c.App.Session().Id); err != nil {
+	if err := c.App.RevokeSessionsForDeviceId(c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
 		c.Err = err
 		return
 	}
 
-	c.App.ClearSessionCacheForUser(c.App.Session().UserId)
-	c.App.SetSessionExpireInDays(c.App.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
+	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
+	c.App.SetSessionExpireInDays(c.AppContext.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
@@ -1978,8 +2112,8 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
-		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    c.App.Session().Token,
+		Name:     model.SessionCookieToken,
+		Value:    c.AppContext.Session().Token,
 		Path:     subpath,
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
@@ -1990,7 +2124,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, sessionCookie)
 
-	if err := c.App.AttachDeviceId(c.App.Session().Id, deviceId, c.App.Session().ExpiresAt); err != nil {
+	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, c.AppContext.Session().ExpiresAt); err != nil {
 		c.Err = err
 		return
 	}
@@ -2014,8 +2148,8 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -2029,14 +2163,16 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
-	w.Write([]byte(audits.ToJson()))
+	if err := json.NewEncoder(w).Encode(audits); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	token := props["token"]
-	if len(token) != model.TOKEN_SIZE {
+	if len(token) != model.TokenSize {
 		c.SetInvalidParam("token")
 		return
 	}
@@ -2056,11 +2192,11 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	email := props["email"]
 	email = strings.ToLower(email)
-	if len(email) == 0 {
+	if email == "" {
 		c.SetInvalidParam("email")
 		return
 	}
@@ -2080,7 +2216,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err = c.App.SendEmailVerification(user, user.Email, redirect); err != nil {
 		// Don't want to leak whether the email is valid or not
-		mlog.Error(err.Error())
+		c.LogErrorByCode(err)
 		ReturnStatusOK(w)
 		return
 	}
@@ -2090,8 +2226,8 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
-	switchRequest := model.SwitchRequestFromJson(r.Body)
-	if switchRequest == nil {
+	var switchRequest model.SwitchRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&switchRequest); jsonErr != nil {
 		c.SetInvalidParam("switch_request")
 		return
 	}
@@ -2113,7 +2249,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		link, err = c.App.SwitchOAuthToEmail(switchRequest.Email, switchRequest.NewPassword, c.App.Session().UserId)
+		link, err = c.App.SwitchOAuthToEmail(switchRequest.Email, switchRequest.NewPassword, c.AppContext.Session().UserId)
 	} else if switchRequest.EmailToLdap() {
 		link, err = c.App.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
 	} else if switchRequest.LdapToEmail() {
@@ -2131,7 +2267,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
+	w.Write([]byte(model.MapToJSON(map[string]string{"follow_link": link})))
 }
 
 func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2147,14 +2283,14 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	if c.App.Session().IsOAuth {
-		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
 		c.Err.DetailedError += ", attempted access by oauth app"
 		return
 	}
 
-	accessToken := model.UserAccessTokenFromJson(r.Body)
-	if accessToken == nil {
+	var accessToken model.UserAccessToken
+	if jsonErr := json.NewDecoder(r.Body).Decode(&accessToken); jsonErr != nil {
 		c.SetInvalidParam("user_access_token")
 		return
 	}
@@ -2166,44 +2302,47 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
-		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateUserAccessToken) {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUserOrBot(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
 	accessToken.UserId = c.Params.UserId
 	accessToken.Token = ""
 
-	accessToken, err := c.App.CreateUserAccessToken(accessToken)
+	token, err := c.App.CreateUserAccessToken(&accessToken)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("token_id", accessToken.Id)
-	c.LogAudit("success - token_id=" + accessToken.Id)
+	auditRec.AddMeta("token_id", token.Id)
+	c.LogAudit("success - token_id=" + token.Id)
 
-	w.Write([]byte(accessToken.ToJson()))
+	if err := json.NewEncoder(w).Encode(token); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
-	props := model.UserAccessTokenSearchFromJson(r.Body)
-	if props == nil {
+
+	var props model.UserAccessTokenSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
 		c.SetInvalidParam("user_access_token_search")
 		return
 	}
 
-	if len(props.Term) == 0 {
+	if props.Term == "" {
 		c.SetInvalidParam("term")
 		return
 	}
@@ -2214,12 +2353,18 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(model.UserAccessTokenListToJson(accessTokens)))
+	js, jsonErr := json.Marshal(accessTokens)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -2229,7 +2374,13 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UserAccessTokenListToJson(accessTokens)))
+	js, jsonErr := json.Marshal(accessTokens)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2238,13 +2389,13 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_USER_ACCESS_TOKEN) {
-		c.SetPermissionError(model.PERMISSION_READ_USER_ACCESS_TOKEN)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadUserAccessToken) {
+		c.SetPermissionError(model.PermissionReadUserAccessToken)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUserOrBot(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -2254,7 +2405,13 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write([]byte(model.UserAccessTokenListToJson(accessTokens)))
+	js, jsonErr := json.Marshal(accessTokens)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2263,8 +2420,8 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_USER_ACCESS_TOKEN) {
-		c.SetPermissionError(model.PERMISSION_READ_USER_ACCESS_TOKEN)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadUserAccessToken) {
+		c.SetPermissionError(model.PermissionReadUserAccessToken)
 		return
 	}
 
@@ -2274,16 +2431,18 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUserOrBot(*c.App.Session(), accessToken.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), accessToken.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	w.Write([]byte(accessToken.ToJson()))
+	if err := json.NewEncoder(w).Encode(accessToken); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	tokenId := props["token_id"]
 	if tokenId == "" {
@@ -2295,8 +2454,8 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("token_id", tokenId)
 	c.LogAudit("")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
-		c.SetPermissionError(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
+		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
 		return
 	}
 
@@ -2310,8 +2469,8 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	if !c.App.SessionHasPermissionToUserOrBot(*c.App.Session(), accessToken.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), accessToken.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -2327,7 +2486,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	tokenId := props["token_id"]
 
 	if tokenId == "" {
@@ -2340,8 +2499,8 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.LogAudit("")
 
 	// No separate permission for this action for now
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
-		c.SetPermissionError(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
+		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
 		return
 	}
 
@@ -2355,8 +2514,8 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		auditRec.AddMeta("user", user)
 	}
 
-	if !c.App.SessionHasPermissionToUserOrBot(*c.App.Session(), accessToken.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), accessToken.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -2372,7 +2531,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	tokenId := props["token_id"]
 	if tokenId == "" {
@@ -2385,8 +2544,8 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	// No separate permission for this action for now
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
-		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateUserAccessToken) {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
 		return
 	}
 
@@ -2400,8 +2559,8 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	if !c.App.SessionHasPermissionToUserOrBot(*c.App.Session(), accessToken.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), accessToken.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -2417,11 +2576,19 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 
-	userId := c.App.Session().UserId
-	termsOfServiceId := props["termsOfServiceId"].(string)
-	accepted := props["accepted"].(bool)
+	userId := c.AppContext.Session().UserId
+	termsOfServiceId, ok := props["termsOfServiceId"].(string)
+	if !ok {
+		c.SetInvalidParam("termsOfServiceId")
+		return
+	}
+	accepted, ok := props["accepted"].(bool)
+	if !ok {
+		c.SetInvalidParam("accepted")
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("saveUserTermsOfService", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -2449,13 +2616,15 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	userId := c.App.Session().UserId
+	userId := c.AppContext.Session().UserId
 	result, err := c.App.GetUserTermsOfService(userId)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	w.Write([]byte(result.ToJson()))
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2467,8 +2636,8 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("promoteGuestToUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_PROMOTE_GUEST) {
-		c.SetPermissionError(model.PERMISSION_PROMOTE_GUEST)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPromoteGuest) {
+		c.SetPermissionError(model.PermissionPromoteGuest)
 		return
 	}
 
@@ -2484,7 +2653,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.PromoteGuestToUser(user, c.App.Session().UserId); err != nil {
+	if err := c.App.PromoteGuestToUser(c.AppContext, user, c.AppContext.Session().UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -2512,8 +2681,8 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("demoteUserToGuest", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DEMOTE_TO_GUEST) {
-		c.SetPermissionError(model.PERMISSION_DEMOTE_TO_GUEST)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDemoteToGuest) {
+		c.SetPermissionError(model.PermissionDemoteToGuest)
 		return
 	}
 
@@ -2523,8 +2692,8 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -2550,19 +2719,19 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	typingRequest := model.TypingRequestFromJson(r.Body)
-	if typingRequest == nil {
+	var typingRequest model.TypingRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&typingRequest); jsonErr != nil {
 		c.SetInvalidParam("typing_request")
 		return
 	}
 
-	if c.Params.UserId != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if c.Params.UserId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
-	if !c.App.HasPermissionToChannel(c.Params.UserId, typingRequest.ChannelId, model.PERMISSION_CREATE_POST) {
-		c.SetPermissionError(model.PERMISSION_CREATE_POST)
+	if !c.App.HasPermissionToChannel(c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost) {
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 
@@ -2590,8 +2759,8 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", user.Id)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -2603,7 +2772,9 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 	c.LogAudit("user verified")
 
-	w.Write([]byte(user.ToJson()))
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2622,8 +2793,8 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user", user)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -2633,10 +2804,17 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.Success()
 	auditRec.AddMeta("convertedTo", bot)
 
-	w.Write(bot.ToJson())
+	js, jsonErr := json.Marshal(bot)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("convertUserToBot", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+
+	w.Write(js)
 }
 
 func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2645,7 +2823,7 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.Params.UserId != c.App.Session().UserId {
+	if c.Params.UserId != c.AppContext.Session().UserId {
 		c.Err = model.NewAppError("getUploadsForUser", "api.user.get_uploads_for_user.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -2656,17 +2834,22 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UploadSessionsToJson(uss)))
+	js, jsonErr := json.Marshal(uss)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUploadsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
 		return
 	}
-	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "saml" && from != "google" && from != "office365") {
+	if from == "" || (from != "email" && from != "gitlab" && from != "saml" && from != "google" && from != "office365") {
 		c.SetInvalidParam("from")
 		return
 	}
@@ -2689,8 +2872,8 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("match_field", matchField)
 	auditRec.AddMeta("force", force)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -2719,13 +2902,13 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
 		return
 	}
-	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "ldap" && from != "google" && from != "office365") {
+	if from == "" || (from != "email" && from != "gitlab" && from != "ldap" && from != "google" && from != "office365") {
 		c.SetInvalidParam("from")
 		return
 	}
@@ -2740,7 +2923,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("matches")
 		return
 	}
-	usersMap := model.MapFromJson(strings.NewReader(model.StringInterfaceToJson(matches)))
+	usersMap := model.MapFromJSON(strings.NewReader(model.StringInterfaceToJSON(matches)))
 
 	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -2748,8 +2931,8 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("matches", matches)
 	auditRec.AddMeta("auto", auto)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -2775,4 +2958,202 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId().RequireThreadId()
+	if c.Err != nil {
+		return
+	}
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+	extendedStr := r.URL.Query().Get("extended")
+	extended, _ := strconv.ParseBool(extendedStr)
+
+	threadMembership, err := c.App.GetThreadMembershipForUser(c.Params.UserId, c.Params.ThreadId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	thread, err := c.App.GetThreadForUser(c.Params.TeamId, threadMembership, extended)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(thread); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	options := model.GetUserThreadsOpts{
+		Since:    0,
+		Before:   "",
+		After:    "",
+		PageSize: uint64(c.Params.PerPage),
+		Unread:   false,
+		Extended: false,
+		Deleted:  false,
+	}
+
+	sinceString := r.URL.Query().Get("since")
+	if sinceString != "" {
+		since, parseError := strconv.ParseUint(sinceString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("since")
+			return
+		}
+		options.Since = since
+	}
+
+	options.Before = r.URL.Query().Get("before")
+	options.After = r.URL.Query().Get("after")
+	// parameters are mutually exclusive
+	if options.Before != "" && options.After != "" {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	deletedStr := r.URL.Query().Get("deleted")
+	unreadStr := r.URL.Query().Get("unread")
+	extendedStr := r.URL.Query().Get("extended")
+
+	options.Deleted, _ = strconv.ParseBool(deletedStr)
+	options.Unread, _ = strconv.ParseBool(unreadStr)
+	options.Extended, _ = strconv.ParseBool(extendedStr)
+
+	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(threads); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId().RequireTimestamp().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateReadStateThreadByUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddMeta("timestamp", c.Params.Timestamp)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	thread, err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(thread); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	auditRec.Success()
+}
+
+func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("unfollowThreadByUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+
+	auditRec.Success()
+}
+
+func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("followThreadByUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, true)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+	auditRec.Success()
+}
+
+func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateReadStateAllThreadsByUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+	auditRec.Success()
 }

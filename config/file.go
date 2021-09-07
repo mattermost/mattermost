@@ -4,18 +4,16 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 var (
@@ -26,38 +24,21 @@ var (
 // FileStore is a config store backed by a file such as config/config.json.
 //
 // It also uses the folder containing the configuration file for storing other configuration files.
+// Not to be used directly. Only to be used as a backing store for config.Store
 type FileStore struct {
-	commonStore
-
-	path    string
-	watch   bool
-	watcher *watcher
+	path string
 }
 
 // NewFileStore creates a new instance of a config store backed by the given file path.
-//
-// If watch is true, any external changes to the file will force a reload.
-func NewFileStore(path string, watch bool) (fs *FileStore, err error) {
+func NewFileStore(path string) (fs *FileStore, err error) {
 	resolvedPath, err := resolveConfigFilePath(path)
 	if err != nil {
 		return nil, err
 	}
 
-	fs = &FileStore{
-		path:  resolvedPath,
-		watch: watch,
-	}
-	if err = fs.Load(); err != nil {
-		return nil, errors.Wrap(err, "failed to load")
-	}
-
-	if fs.watch {
-		if err = fs.startWatcher(); err != nil {
-			mlog.Error("failed to start config watcher", mlog.String("path", path), mlog.Err(err))
-		}
-	}
-
-	return fs, nil
+	return &FileStore{
+		path: resolvedPath,
+	}, nil
 }
 
 // resolveConfigFilePath attempts to resolve the given configuration file path to an absolute path.
@@ -104,20 +85,16 @@ func (fs *FileStore) resolveFilePath(name string) string {
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
-func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return fs.commonStore.set(newCfg, true, func(cfg *model.Config) error {
-		if *fs.config.ClusterSettings.Enable && *fs.config.ClusterSettings.ReadOnlyConfig {
-			return ErrReadOnlyConfiguration
-		}
+func (fs *FileStore) Set(newCfg *model.Config) error {
+	if *newCfg.ClusterSettings.Enable && *newCfg.ClusterSettings.ReadOnlyConfig {
+		return ErrReadOnlyConfiguration
+	}
 
-		return fs.commonStore.validate(cfg)
-	}, fs.persist)
+	return fs.persist(newCfg)
 }
 
 // persist writes the configuration to the configured file.
 func (fs *FileStore) persist(cfg *model.Config) error {
-	fs.stopWatcher()
-
 	b, err := marshalConfig(cfg)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize")
@@ -128,45 +105,26 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to write file")
 	}
 
-	if fs.watch {
-		if err = fs.startWatcher(); err != nil {
-			mlog.Error("failed to start config watcher", mlog.String("path", fs.path), mlog.Err(err))
-		}
-	}
-
 	return nil
 }
 
 // Load updates the current configuration from the backing store.
-func (fs *FileStore) Load() (err error) {
-	var needsSave bool
-	var f io.ReadCloser
-
-	f, err = os.Open(fs.path)
+func (fs *FileStore) Load() ([]byte, error) {
+	f, err := os.Open(fs.path)
 	if os.IsNotExist(err) {
-		needsSave = true
-		defaultCfg := &model.Config{}
-		defaultCfg.SetDefaults()
-
-		var defaultCfgBytes []byte
-		defaultCfgBytes, err = marshalConfig(defaultCfg)
-		if err != nil {
-			return errors.Wrap(err, "failed to serialize default config")
-		}
-
-		f = ioutil.NopCloser(bytes.NewReader(defaultCfgBytes))
+		return nil, nil
 
 	} else if err != nil {
-		return errors.Wrapf(err, "failed to open %s for reading", fs.path)
+		return nil, errors.Wrapf(err, "failed to open %s for reading", fs.path)
 	}
-	defer func() {
-		closeErr := f.Close()
-		if err == nil && closeErr != nil {
-			err = errors.Wrap(closeErr, "failed to close")
-		}
-	}()
+	defer f.Close()
 
-	return fs.commonStore.load(f, needsSave, fs.commonStore.validate, fs.persist)
+	fileBytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileBytes, nil
 }
 
 // GetFile fetches the contents of a previously persisted configuration file.
@@ -237,38 +195,6 @@ func (fs *FileStore) RemoveFile(name string) error {
 	return nil
 }
 
-// startWatcher starts a watcher to monitor for external config file changes.
-func (fs *FileStore) startWatcher() error {
-	if fs.watcher != nil {
-		return nil
-	}
-
-	watcher, err := newWatcher(fs.path, func() {
-		if err := fs.Load(); err != nil {
-			mlog.Error("failed to reload file on change", mlog.String("path", fs.path), mlog.Err(err))
-		}
-	})
-	if err != nil {
-		return err
-	}
-
-	fs.watcher = watcher
-
-	return nil
-}
-
-// stopWatcher stops any previously started watcher.
-func (fs *FileStore) stopWatcher() {
-	if fs.watcher == nil {
-		return
-	}
-
-	if err := fs.watcher.Close(); err != nil {
-		mlog.Error("failed to close watcher", mlog.Err(err))
-	}
-	fs.watcher = nil
-}
-
 // String returns the path to the file backing the config.
 func (fs *FileStore) String() string {
 	return "file://" + fs.path
@@ -276,10 +202,5 @@ func (fs *FileStore) String() string {
 
 // Close cleans up resources associated with the store.
 func (fs *FileStore) Close() error {
-	fs.configLock.Lock()
-	defer fs.configLock.Unlock()
-
-	fs.stopWatcher()
-
 	return nil
 }

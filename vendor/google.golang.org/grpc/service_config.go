@@ -41,29 +41,7 @@ const maxInt = int(^uint(0) >> 1)
 // Deprecated: Users should not use this struct. Service config should be received
 // through name resolver, as specified here
 // https://github.com/grpc/grpc/blob/master/doc/service_config.md
-type MethodConfig struct {
-	// WaitForReady indicates whether RPCs sent to this method should wait until
-	// the connection is ready by default (!failfast). The value specified via the
-	// gRPC client API will override the value set here.
-	WaitForReady *bool
-	// Timeout is the default timeout for RPCs sent to this method. The actual
-	// deadline used will be the minimum of the value specified here and the value
-	// set by the application via the gRPC client API.  If either one is not set,
-	// then the other will be used.  If neither is set, then the RPC has no deadline.
-	Timeout *time.Duration
-	// MaxReqSize is the maximum allowed payload size for an individual request in a
-	// stream (client->server) in bytes. The size which is measured is the serialized
-	// payload after per-message compression (but before stream compression) in bytes.
-	// The actual value used is the minimum of the value specified here and the value set
-	// by the application via the gRPC client API. If either one is not set, then the other
-	// will be used.  If neither is set, then the built-in default is used.
-	MaxReqSize *int
-	// MaxRespSize is the maximum allowed payload size for an individual response in a
-	// stream (server->client) in bytes.
-	MaxRespSize *int
-	// RetryPolicy configures retry options for the method.
-	retryPolicy *retryPolicy
-}
+type MethodConfig = internalserviceconfig.MethodConfig
 
 type lbConfig struct {
 	name string
@@ -125,34 +103,6 @@ type ServiceConfig struct {
 type healthCheckConfig struct {
 	// serviceName is the service name to use in the health-checking request.
 	ServiceName string
-}
-
-// retryPolicy defines the go-native version of the retry policy defined by the
-// service config here:
-// https://github.com/grpc/proposal/blob/master/A6-client-retries.md#integration-with-service-config
-type retryPolicy struct {
-	// MaxAttempts is the maximum number of attempts, including the original RPC.
-	//
-	// This field is required and must be two or greater.
-	maxAttempts int
-
-	// Exponential backoff parameters. The initial retry attempt will occur at
-	// random(0, initialBackoff). In general, the nth attempt will occur at
-	// random(0,
-	//   min(initialBackoff*backoffMultiplier**(n-1), maxBackoff)).
-	//
-	// These fields are required and must be greater than zero.
-	initialBackoff    time.Duration
-	maxBackoff        time.Duration
-	backoffMultiplier float64
-
-	// The set of status codes which may be retried.
-	//
-	// Status codes are specified as strings, e.g., "UNAVAILABLE".
-	//
-	// This field is required and must be non-empty.
-	// Note: a set is used to store this for easy lookup.
-	retryableStatusCodes map[codes.Code]bool
 }
 
 type jsonRetryPolicy struct {
@@ -313,7 +263,7 @@ func parseServiceConfig(js string) *serviceconfig.ParseResult {
 			WaitForReady: m.WaitForReady,
 			Timeout:      d,
 		}
-		if mc.retryPolicy, err = convertRetryPolicy(m.RetryPolicy); err != nil {
+		if mc.RetryPolicy, err = convertRetryPolicy(m.RetryPolicy); err != nil {
 			logger.Warningf("grpc: parseServiceConfig error unmarshaling %s due to %v", js, err)
 			return &serviceconfig.ParseResult{Err: err}
 		}
@@ -359,7 +309,7 @@ func parseServiceConfig(js string) *serviceconfig.ParseResult {
 	return &serviceconfig.ParseResult{Config: &sc}
 }
 
-func convertRetryPolicy(jrp *jsonRetryPolicy) (p *retryPolicy, err error) {
+func convertRetryPolicy(jrp *jsonRetryPolicy) (p *internalserviceconfig.RetryPolicy, err error) {
 	if jrp == nil {
 		return nil, nil
 	}
@@ -381,19 +331,19 @@ func convertRetryPolicy(jrp *jsonRetryPolicy) (p *retryPolicy, err error) {
 		return nil, nil
 	}
 
-	rp := &retryPolicy{
-		maxAttempts:          jrp.MaxAttempts,
-		initialBackoff:       *ib,
-		maxBackoff:           *mb,
-		backoffMultiplier:    jrp.BackoffMultiplier,
-		retryableStatusCodes: make(map[codes.Code]bool),
+	rp := &internalserviceconfig.RetryPolicy{
+		MaxAttempts:          jrp.MaxAttempts,
+		InitialBackoff:       *ib,
+		MaxBackoff:           *mb,
+		BackoffMultiplier:    jrp.BackoffMultiplier,
+		RetryableStatusCodes: make(map[codes.Code]bool),
 	}
-	if rp.maxAttempts > 5 {
+	if rp.MaxAttempts > 5 {
 		// TODO(retry): Make the max maxAttempts configurable.
-		rp.maxAttempts = 5
+		rp.MaxAttempts = 5
 	}
 	for _, code := range jrp.RetryableStatusCodes {
-		rp.retryableStatusCodes[code] = true
+		rp.RetryableStatusCodes[code] = true
 	}
 	return rp, nil
 }

@@ -41,7 +41,16 @@ func readImageResource(r io.Reader) (resMap map[int]ImageResource, read int, err
 			return nil, read, err
 		}
 		read += l
-		if string(b[:4]) != "8BIM" {
+
+		// http://fileformats.archiveteam.org/wiki/Photoshop_Image_Resources
+		// This document says:
+		// Each block usually begins with the ASCII characters "8BIM",
+		// a signature that appears in several Photoshop formats.
+		// Other block signatures that have been observed are
+		// "MeSa" (apparently associated with ImageReady),
+		// "PHUT" (apparently associated with PhotoDeluxe), "AgHg", and "DCSR".
+		sig := string(b[:4])
+		if sig != "8BIM" && sig != "MeSa" && sig != "PHUT" && sig != "AgHg" && sig != "DCSR" {
 			return nil, read, errors.New("psd: invalid image resource signature")
 		}
 

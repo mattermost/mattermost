@@ -6,37 +6,31 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitElasticsearch() {
-	api.BaseRoutes.Elasticsearch.Handle("/test", api.ApiSessionRequired(testElasticsearch)).Methods("POST")
-	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.ApiSessionRequired(purgeElasticsearchIndexes)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/test", api.APISessionRequired(testElasticsearch)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.APISessionRequired(purgeElasticsearchIndexes)).Methods("POST")
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
+	// PERMISSION_TEST_ELASTICSEARCH is an ancillary permission of PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH,
+	// which should prevent read-only managers from password sniffing
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestElasticsearch) {
+		c.SetPermissionError(model.PermissionTestElasticsearch)
 		return
 	}
 
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("testElasticsearch", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
-	}
-
-	// no sniffing for ports or passwords
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) {
-		if (*cfg.ElasticsearchSettings.ConnectionUrl != *c.App.Config().ElasticsearchSettings.ConnectionUrl) || (*cfg.ElasticsearchSettings.Password != model.FAKE_SETTING) {
-			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT)
-			return
-		}
 	}
 
 	if err := c.App.TestElasticsearch(cfg); err != nil {
@@ -51,8 +45,8 @@ func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord("purgeElasticsearchIndexes", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPurgeElasticsearchIndexes) {
+		c.SetPermissionError(model.PermissionPurgeElasticsearchIndexes)
 		return
 	}
 

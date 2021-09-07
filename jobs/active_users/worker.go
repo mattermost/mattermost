@@ -4,11 +4,13 @@
 package active_users
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"net/http"
+
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -25,7 +27,8 @@ type Worker struct {
 }
 
 func init() {
-	app.RegisterJobsActiveUsersInterface(func(a *app.App) tjobs.ActiveUsersJobInterface {
+	app.RegisterJobsActiveUsersInterface(func(s *app.Server) tjobs.ActiveUsersJobInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ActiveUsersJobInterfaceImpl{a}
 	})
 }
@@ -91,7 +94,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 	if err != nil {
 		mlog.Error("Worker: Failed to get active user count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-		worker.setJobError(job, err)
+		worker.setJobError(job, model.NewAppError("DoJob", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError))
 		return
 	}
 

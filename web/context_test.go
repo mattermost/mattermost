@@ -4,14 +4,17 @@
 package web
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestRequireHookId(t *testing.T) {
@@ -27,9 +30,25 @@ func TestRequireHookId(t *testing.T) {
 		c.Params = &Params{HookId: "abc"}
 		c.RequireHookId()
 
-		require.Error(t, c.Err, "Should have set Error in context")
+		require.NotNil(t, c.Err, "Should have set Error in context")
 		require.Equal(t, http.StatusBadRequest, c.Err.StatusCode, "Should have set status as 400")
 	})
+}
+
+func TestCloudKeyRequired(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	c := &Context{
+		App:        th.App,
+		AppContext: &request.Context{},
+	}
+
+	c.CloudKeyRequired()
+
+	assert.Equal(t, c.Err.Id, "api.context.session_expired.app_error")
 }
 
 func TestMfaRequired(t *testing.T) {
@@ -39,7 +58,7 @@ func TestMfaRequired(t *testing.T) {
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("Get", "userid").Return(nil, model.NewAppError("Userstore.Get", "storeerror", nil, "store error", http.StatusInternalServerError))
+	mockUserStore.On("Get", context.Background(), "userid").Return(nil, model.NewAppError("Userstore.Get", "storeerror", nil, "store error", http.StatusInternalServerError))
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
@@ -52,15 +71,18 @@ func TestMfaRequired(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 
-	th.App.SetSession(&model.Session{Id: "abc", UserId: "userid"})
+	th.Context.SetSession(&model.Session{Id: "abc", UserId: "userid"})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AnnouncementSettings.UserNoticesEnabled = false
+		*cfg.AnnouncementSettings.AdminNoticesEnabled = false
 		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
 		*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
 	})
 
 	c := &Context{
-		App: th.App,
+		App:        th.App,
+		AppContext: th.Context,
 	}
 
 	c.MfaRequired()

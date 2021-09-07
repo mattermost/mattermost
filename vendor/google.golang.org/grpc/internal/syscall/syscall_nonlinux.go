@@ -50,7 +50,7 @@ func GetCPUTime() int64 {
 type Rusage struct{}
 
 // GetRusage is a no-op function under non-linux or appengine environment.
-func GetRusage() (rusage *Rusage) {
+func GetRusage() *Rusage {
 	log()
 	return nil
 }

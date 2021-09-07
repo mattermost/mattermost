@@ -6,19 +6,18 @@ package sqlstore
 import (
 	"database/sql"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
-	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlUploadSessionStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlUploadSessionStore(sqlStore SqlStore) store.UploadSessionStore {
+func newSqlUploadSessionStore(sqlStore *SqlStore) store.UploadSessionStore {
 	s := &SqlUploadSessionStore{
 		SqlStore: sqlStore,
 	}
@@ -30,6 +29,8 @@ func newSqlUploadSessionStore(sqlStore SqlStore) store.UploadSessionStore {
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("Filename").SetMaxSize(256)
 		table.ColMap("Path").SetMaxSize(512)
+		table.ColMap("RemoteId").SetMaxSize(26)
+		table.ColMap("ReqFileId").SetMaxSize(26)
 	}
 	return s
 }
@@ -93,9 +94,6 @@ func (us SqlUploadSessionStore) Get(id string) (*model.UploadSession, error) {
 }
 
 func (us SqlUploadSessionStore) GetForUser(userId string) ([]*model.UploadSession, error) {
-	if !model.IsValidId(userId) {
-		return nil, errors.New("SqlUploadSessionStore.GetForUser: userId is not valid")
-	}
 	query := us.getQueryBuilder().
 		Select("*").
 		From("UploadSessions").

@@ -4,20 +4,21 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlRoleStore struct {
-	SqlStore
+	*SqlStore
 }
 
 type Role struct {
@@ -82,7 +83,7 @@ func (role Role) ToModel() *model.Role {
 	}
 }
 
-func newSqlRoleStore(sqlStore SqlStore) store.RoleStore {
+func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
 	s := &SqlRoleStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -91,7 +92,7 @@ func newSqlRoleStore(sqlStore SqlStore) store.RoleStore {
 		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
 		table.ColMap("DisplayName").SetMaxSize(128)
 		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("Permissions").SetMaxSize(4096)
+		table.ColMap("Permissions")
 	}
 	return s
 }
@@ -102,7 +103,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
 	}
 
-	if len(role.Id) == 0 {
+	if role.Id == "" {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			return nil, errors.Wrap(err, "begin_transaction")
@@ -175,10 +176,9 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 	return roles, nil
 }
 
-func (s *SqlRoleStore) GetByName(name string) (*model.Role, error) {
+func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var dbRole Role
-
-	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+	if err := s.DBFromContext(ctx).SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", fmt.Sprintf("name=%s", name))
 		}
@@ -325,9 +325,9 @@ func (s *SqlRoleStore) channelHigherScopedPermissionsQuery(roleNames []string) s
 	return fmt.Sprintf(
 		sqlTmpl,
 		strings.Join(roleNames, "', '"),
-		model.CHANNEL_GUEST_ROLE_ID,
-		model.CHANNEL_USER_ROLE_ID,
-		model.CHANNEL_ADMIN_ROLE_ID,
+		model.ChannelGuestRoleId,
+		model.ChannelUserRoleId,
+		model.ChannelAdminRoleId,
 	)
 }
 
@@ -342,9 +342,9 @@ func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[s
 	roleNameHigherScopedPermissions := map[string]*model.RolePermissions{}
 
 	for _, rp := range rolesPermissions {
-		roleNameHigherScopedPermissions[rp.GuestRoleName] = &model.RolePermissions{RoleID: model.CHANNEL_GUEST_ROLE_ID, Permissions: strings.Split(rp.HigherScopedGuestPermissions, " ")}
-		roleNameHigherScopedPermissions[rp.UserRoleName] = &model.RolePermissions{RoleID: model.CHANNEL_USER_ROLE_ID, Permissions: strings.Split(rp.HigherScopedUserPermissions, " ")}
-		roleNameHigherScopedPermissions[rp.AdminRoleName] = &model.RolePermissions{RoleID: model.CHANNEL_ADMIN_ROLE_ID, Permissions: strings.Split(rp.HigherScopedAdminPermissions, " ")}
+		roleNameHigherScopedPermissions[rp.GuestRoleName] = &model.RolePermissions{RoleID: model.ChannelGuestRoleId, Permissions: strings.Split(rp.HigherScopedGuestPermissions, " ")}
+		roleNameHigherScopedPermissions[rp.UserRoleName] = &model.RolePermissions{RoleID: model.ChannelUserRoleId, Permissions: strings.Split(rp.HigherScopedUserPermissions, " ")}
+		roleNameHigherScopedPermissions[rp.AdminRoleName] = &model.RolePermissions{RoleID: model.ChannelAdminRoleId, Permissions: strings.Split(rp.HigherScopedAdminPermissions, " ")}
 	}
 
 	return roleNameHigherScopedPermissions, nil
@@ -355,7 +355,7 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 		Select("Roles.*").
 		From("Schemes").
 		Join("Roles ON Schemes.DefaultChannelGuestRole = Roles.Name OR Schemes.DefaultChannelUserRole = Roles.Name OR Schemes.DefaultChannelAdminRole = Roles.Name").
-		Where(sq.Eq{"Schemes.Scope": model.SCHEME_SCOPE_CHANNEL}).
+		Where(sq.Eq{"Schemes.Scope": model.SchemeScopeChannel}).
 		Where(sq.Eq{"Roles.DeleteAt": 0}).
 		Where(sq.Eq{"Schemes.DeleteAt": 0})
 
@@ -387,7 +387,7 @@ func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role
 		Join("Channels ON Channels.TeamId = Teams.Id").
 		Join("Schemes AS ChannelSchemes ON Channels.SchemeId = ChannelSchemes.Id").
 		Join("Roles AS ChannelSchemeRoles ON (ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelGuestRole OR ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelUserRole OR ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelAdminRole)").
-		Where(sq.Eq{"HigherScopedSchemes.Scope": model.SCHEME_SCOPE_TEAM}).
+		Where(sq.Eq{"HigherScopedSchemes.Scope": model.SchemeScopeTeam}).
 		Where(sq.Eq{"HigherScopedRoles.Name": roleName}).
 		Where(sq.Eq{"HigherScopedRoles.DeleteAt": 0}).
 		Where(sq.Eq{"HigherScopedSchemes.DeleteAt": 0}).

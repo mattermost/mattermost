@@ -164,14 +164,11 @@ func init() {
 		"^":  constraintCaret,
 	}
 
-	ops := make([]string, 0, len(constraintOps))
-	for k := range constraintOps {
-		ops = append(ops, regexp.QuoteMeta(k))
-	}
+	ops := `=||!=|>|<|>=|=>|<=|=<|~|~>|\^`
 
 	constraintRegex = regexp.MustCompile(fmt.Sprintf(
 		`^\s*(%s)\s*(%s)\s*$`,
-		strings.Join(ops, "|"),
+		ops,
 		cvRegex))
 
 	constraintRangeRegex = regexp.MustCompile(fmt.Sprintf(
@@ -180,12 +177,12 @@ func init() {
 
 	findConstraintRegex = regexp.MustCompile(fmt.Sprintf(
 		`(%s)\s*(%s)`,
-		strings.Join(ops, "|"),
+		ops,
 		cvRegex))
 
 	validConstraintRegex = regexp.MustCompile(fmt.Sprintf(
 		`^(\s*(%s)\s*(%s)\s*\,?)+$`,
-		strings.Join(ops, "|"),
+		ops,
 		cvRegex))
 }
 

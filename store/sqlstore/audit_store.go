@@ -7,15 +7,15 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlAuditStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlAuditStore(sqlStore SqlStore) store.AuditStore {
+func newSqlAuditStore(sqlStore *SqlStore) store.AuditStore {
 	s := &SqlAuditStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -57,7 +57,7 @@ func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, 
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
-	if len(userId) != 0 {
+	if userId != "" {
 		query = query.Where(sq.Eq{"UserId": userId})
 	}
 

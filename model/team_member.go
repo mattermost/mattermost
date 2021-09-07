@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -15,6 +13,9 @@ const (
 	USERNAME = "Username"
 )
 
+//msgp:tuple TeamMember
+// This struct's serializer methods are auto-generated. If a new field is added/removed,
+// please run make gen-serialized.
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`
@@ -26,28 +27,37 @@ type TeamMember struct {
 	ExplicitRoles string `json:"explicit_roles"`
 }
 
+//msgp:ignore TeamUnread
 type TeamUnread struct {
-	TeamId       string `json:"team_id"`
-	MsgCount     int64  `json:"msg_count"`
-	MentionCount int64  `json:"mention_count"`
+	TeamId             string `json:"team_id"`
+	MsgCount           int64  `json:"msg_count"`
+	MentionCount       int64  `json:"mention_count"`
+	MentionCountRoot   int64  `json:"mention_count_root"`
+	MsgCountRoot       int64  `json:"msg_count_root"`
+	ThreadCount        int64  `json:"thread_count"`
+	ThreadMentionCount int64  `json:"thread_mention_count"`
 }
 
+//msgp:ignore TeamMemberForExport
 type TeamMemberForExport struct {
 	TeamMember
 	TeamName string
 }
 
+//msgp:ignore TeamMemberWithError
 type TeamMemberWithError struct {
 	UserId string      `json:"user_id"`
 	Member *TeamMember `json:"member"`
 	Error  *AppError   `json:"error"`
 }
 
+//msgp:ignore EmailInviteWithError
 type EmailInviteWithError struct {
 	Email string    `json:"email"`
 	Error *AppError `json:"error"`
 }
 
+//msgp:ignore TeamMembersGetOptions
 type TeamMembersGetOptions struct {
 	// Sort the team members. Accepts "Username", but defaults to "Id".
 	Sort string
@@ -59,34 +69,6 @@ type TeamMembersGetOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 }
 
-func (o *TeamMember) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *TeamUnread) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func TeamMemberFromJson(data io.Reader) *TeamMember {
-	var o *TeamMember
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamUnreadFromJson(data io.Reader) *TeamUnread {
-	var o *TeamUnread
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func EmailInviteWithErrorFromJson(data io.Reader) []*EmailInviteWithError {
-	var o []*EmailInviteWithError
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
 	var ret []string
 	for _, o := range o {
@@ -95,14 +77,6 @@ func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
 		}
 	}
 	return ret
-}
-
-func EmailInviteWithErrorToJson(o []*EmailInviteWithError) string {
-	if b, err := json.Marshal(o); err != nil {
-		return "[]"
-	} else {
-		return string(b)
-	}
 }
 
 func EmailInviteWithErrorToString(o *EmailInviteWithError) string {
@@ -119,50 +93,8 @@ func TeamMembersWithErrorToTeamMembers(o []*TeamMemberWithError) []*TeamMember {
 	return ret
 }
 
-func TeamMembersWithErrorToJson(o []*TeamMemberWithError) string {
-	if b, err := json.Marshal(o); err != nil {
-		return "[]"
-	} else {
-		return string(b)
-	}
-}
-
 func TeamMemberWithErrorToString(o *TeamMemberWithError) string {
 	return fmt.Sprintf("%s:%s", o.UserId, o.Error.Error())
-}
-
-func TeamMembersWithErrorFromJson(data io.Reader) []*TeamMemberWithError {
-	var o []*TeamMemberWithError
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamMembersToJson(o []*TeamMember) string {
-	if b, err := json.Marshal(o); err != nil {
-		return "[]"
-	} else {
-		return string(b)
-	}
-}
-
-func TeamMembersFromJson(data io.Reader) []*TeamMember {
-	var o []*TeamMember
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamsUnreadToJson(o []*TeamUnread) string {
-	if b, err := json.Marshal(o); err != nil {
-		return "[]"
-	} else {
-		return string(b)
-	}
-}
-
-func TeamsUnreadFromJson(data io.Reader) []*TeamUnread {
-	var o []*TeamUnread
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (o *TeamMember) IsValid() *AppError {

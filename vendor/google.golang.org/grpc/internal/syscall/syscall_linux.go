@@ -43,26 +43,24 @@ func GetCPUTime() int64 {
 	return ts.Nano()
 }
 
-// Rusage is an alias for syscall.Rusage under linux non-appengine environment.
-type Rusage syscall.Rusage
+// Rusage is an alias for syscall.Rusage under linux environment.
+type Rusage = syscall.Rusage
 
 // GetRusage returns the resource usage of current process.
-func GetRusage() (rusage *Rusage) {
-	rusage = new(Rusage)
-	syscall.Getrusage(syscall.RUSAGE_SELF, (*syscall.Rusage)(rusage))
-	return
+func GetRusage() *Rusage {
+	rusage := new(Rusage)
+	syscall.Getrusage(syscall.RUSAGE_SELF, rusage)
+	return rusage
 }
 
 // CPUTimeDiff returns the differences of user CPU time and system CPU time used
 // between two Rusage structs.
 func CPUTimeDiff(first *Rusage, latest *Rusage) (float64, float64) {
-	f := (*syscall.Rusage)(first)
-	l := (*syscall.Rusage)(latest)
 	var (
-		utimeDiffs  = l.Utime.Sec - f.Utime.Sec
-		utimeDiffus = l.Utime.Usec - f.Utime.Usec
-		stimeDiffs  = l.Stime.Sec - f.Stime.Sec
-		stimeDiffus = l.Stime.Usec - f.Stime.Usec
+		utimeDiffs  = latest.Utime.Sec - first.Utime.Sec
+		utimeDiffus = latest.Utime.Usec - first.Utime.Usec
+		stimeDiffs  = latest.Stime.Sec - first.Stime.Sec
+		stimeDiffus = latest.Stime.Usec - first.Stime.Usec
 	)
 
 	uTimeElapsed := float64(utimeDiffs) + float64(utimeDiffus)*1.0e-6

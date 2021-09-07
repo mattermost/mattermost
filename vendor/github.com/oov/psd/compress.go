@@ -20,6 +20,10 @@ const (
 	CompressionMethodZIPWithPrediction    = CompressionMethod(3)
 )
 
+var (
+	errBrokenPackBits = errors.New("psd: compressed image data seems broken")
+)
+
 // Decode decodes the compressed image data from r.
 //
 // You can pass 0 to sizeHint if unknown, but in this case may read more data than necessary from r.
@@ -28,7 +32,13 @@ func (cm CompressionMethod) Decode(dest []byte, r io.Reader, sizeHint int64, rec
 	case CompressionMethodRaw:
 		return io.ReadFull(r, dest)
 	case CompressionMethodRLE:
-		return decodePackBits(dest, r, rect.Dx(), rect.Dy()*channels, large)
+		var width int
+		if depth == 1 {
+			width = (rect.Dx()+7)>>3
+		} else {
+			width = rect.Dx()
+		}
+		return decodePackBits(dest, r, width, rect.Dy()*channels, large)
 	case CompressionMethodZIPWithoutPrediction:
 		return decodeZLIB(dest, r, sizeHint)
 	case CompressionMethodZIPWithPrediction:

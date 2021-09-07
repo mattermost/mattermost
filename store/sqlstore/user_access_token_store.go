@@ -7,18 +7,18 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlUserAccessTokenStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
+func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 	s := &SqlUserAccessTokenStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -33,7 +33,6 @@ func newSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
 }
 
 func (s SqlUserAccessTokenStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_access_tokens_token", "UserAccessTokens", "Token")
 	s.CreateIndexIfNotExists("idx_user_access_tokens_user_id", "UserAccessTokens", "UserId")
 }
 
@@ -72,9 +71,9 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) error {
 func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *gorp.Transaction, tokenId string) error {
 
 	query := ""
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = :Id"
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if s.DriverName() == model.DatabaseDriverMysql {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.Id = :Id"
 	}
 
@@ -113,9 +112,9 @@ func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) error {
 
 func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *gorp.Transaction, userId string) error {
 	query := ""
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.UserId = :UserId"
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if s.DriverName() == model.DatabaseDriverMysql {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.UserId = :UserId"
 	}
 
@@ -225,9 +224,9 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) error {
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *gorp.Transaction, tokenId string) error {
 	query := ""
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = :Id"
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if s.DriverName() == model.DatabaseDriverMysql {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.Id = :Id"
 	}
 

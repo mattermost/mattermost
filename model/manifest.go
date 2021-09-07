@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -147,7 +146,7 @@ type Manifest struct {
 	Id string `json:"id" yaml:"id"`
 
 	// The name to be displayed for the plugin.
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	Name string `json:"name" yaml:"name"`
 
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
@@ -176,9 +175,6 @@ type Manifest struct {
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
-	// Backend is a deprecated flag for defining the server-side portion of your plugin. Going forward, use Server instead.
-	Backend *ManifestServer `json:"backend,omitempty" yaml:"backend,omitempty"`
-
 	// If your plugin extends the web app, you'll need to define webapp.
 	Webapp *ManifestWebapp `json:"webapp,omitempty" yaml:"webapp,omitempty"`
 
@@ -191,14 +187,14 @@ type Manifest struct {
 
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//
-	// Use the plugin helpers CheckRequiredServerConfiguration method to enforce this.
+	// Use the pluginapi.Configuration.CheckRequiredServerConfiguration method to enforce this.
 	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
 type ManifestServer struct {
-	// Executables are the paths to your executable binaries, specifying multiple entry points
-	// for different platforms when bundled together in a single plugin.
-	Executables *ManifestExecutables `json:"executables,omitempty" yaml:"executables,omitempty"`
+	// Executables are the paths to your executable binaries, specifying multiple entry
+	// points for different platforms when bundled together in a single plugin.
+	Executables map[string]string `json:"executables,omitempty" yaml:"executables,omitempty"`
 
 	// Executable is the path to your executable binary. This should be relative to the root
 	// of your bundle and the location of the manifest file.
@@ -210,6 +206,7 @@ type ManifestServer struct {
 	Executable string `json:"executable" yaml:"executable"`
 }
 
+// ManifestExecutables is a legacy structure capturing a subet of the known platform executables.
 type ManifestExecutables struct {
 	// LinuxAmd64 is the path to your executable binary for the corresponding platform
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
@@ -227,28 +224,6 @@ type ManifestWebapp struct {
 
 	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
 	BundleHash []byte `json:"-"`
-}
-
-func (m *Manifest) ToJson() string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestListToJson(m []*Manifest) string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestFromJson(data io.Reader) *Manifest {
-	var m *Manifest
-	json.NewDecoder(data).Decode(&m)
-	return m
-}
-
-func ManifestListFromJson(data io.Reader) []*Manifest {
-	var manifests []*Manifest
-	json.NewDecoder(data).Decode(&manifests)
-	return manifests
 }
 
 func (m *Manifest) HasClient() bool {
@@ -277,24 +252,14 @@ func (m *Manifest) ClientManifest() *Manifest {
 func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 	server := m.Server
 
-	// Support the deprecated backend parameter.
-	if server == nil {
-		server = m.Backend
-	}
-
 	if server == nil {
 		return ""
 	}
 
 	var executable string
-	if server.Executables != nil {
-		if goOs == "linux" && goArch == "amd64" {
-			executable = server.Executables.LinuxAmd64
-		} else if goOs == "darwin" && goArch == "amd64" {
-			executable = server.Executables.DarwinAmd64
-		} else if goOs == "windows" && goArch == "amd64" {
-			executable = server.Executables.WindowsAmd64
-		}
+	if len(server.Executables) > 0 {
+		osArch := fmt.Sprintf("%s-%s", goOs, goArch)
+		executable = server.Executables[osArch]
 	}
 
 	if executable == "" {
@@ -305,7 +270,7 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 }
 
 func (m *Manifest) HasServer() bool {
-	return m.Server != nil || m.Backend != nil
+	return m.Server != nil
 }
 
 func (m *Manifest) HasWebapp() bool {
@@ -329,15 +294,19 @@ func (m *Manifest) IsValid() error {
 		return errors.New("invalid plugin ID")
 	}
 
-	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
+	if strings.TrimSpace(m.Name) == "" {
+		return errors.New("a plugin name is needed")
+	}
+
+	if m.HomepageURL != "" && !IsValidHTTPURL(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHTTPURL(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
-	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+	if m.ReleaseNotesURL != "" && !IsValidHTTPURL(m.ReleaseNotesURL) {
 		return errors.New("invalid ReleaseNotesURL")
 	}
 

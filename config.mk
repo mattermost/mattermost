@@ -5,7 +5,7 @@
 # Enable services to be run in docker.
 #
 # Possible options: mysql, postgres, minio, inbucket, openldap, dejavu,
-# keycloak and elasticsearch
+# keycloak, elasticsearch, prometheus, and grafana.
 #
 # Must be space separated names.
 #
@@ -22,3 +22,6 @@ RUN_SERVER_IN_BACKGROUND ?= true
 #
 # Posible options: test or qa
 LDAP_DATA ?= test
+
+# Mock the CWS.
+MM_ENABLE_CWS_MOCK ?= false

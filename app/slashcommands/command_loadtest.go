@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,12 +13,14 @@ import (
 	"strconv"
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 var usage = `Mattermost testing commands to help configure the system
@@ -72,7 +75,7 @@ var usage = `Mattermost testing commands to help configure the system
 `
 
 const (
-	CMD_TEST = "test"
+	CmdTest = "test"
 )
 
 var (
@@ -90,16 +93,16 @@ func init() {
 	app.RegisterCommandProvider(&LoadTestProvider{})
 }
 
-func (me *LoadTestProvider) GetTrigger() string {
-	return CMD_TEST
+func (*LoadTestProvider) GetTrigger() string {
+	return CmdTest
 }
 
-func (me *LoadTestProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*LoadTestProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	if !*a.Config().ServiceSettings.EnableTesting {
 		return nil
 	}
 	return &model.Command{
-		Trigger:          CMD_TEST,
+		Trigger:          CmdTest,
 		AutoComplete:     false,
 		AutoCompleteDesc: "Debug Load Testing",
 		AutoCompleteHint: "help",
@@ -107,69 +110,69 @@ func (me *LoadTestProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *mode
 	}
 }
 
-func (me *LoadTestProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	commandResponse, err := me.doCommand(a, args, message)
+func (lt *LoadTestProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	commandResponse, err := lt.doCommand(a, c, args, message)
 	if err != nil {
-		mlog.Error("failed command /"+CMD_TEST, mlog.Err(err))
+		mlog.Error("failed command /"+CmdTest, mlog.Err(err))
 	}
 
 	return commandResponse
 }
 
-func (me *LoadTestProvider) doCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (lt *LoadTestProvider) doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	//This command is only available when EnableTesting is true
 	if !*a.Config().ServiceSettings.EnableTesting {
 		return &model.CommandResponse{}, nil
 	}
 
 	if strings.HasPrefix(message, "setup") {
-		return me.SetupCommand(a, args, message)
+		return lt.SetupCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "users") {
-		return me.UsersCommand(a, args, message)
+		return lt.UsersCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "activate_user") {
-		return me.ActivateUserCommand(a, args, message)
+		return lt.ActivateUserCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "deactivate_user") {
-		return me.DeActivateUserCommand(a, args, message)
+		return lt.DeActivateUserCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "channels") {
-		return me.ChannelsCommand(a, args, message)
+		return lt.ChannelsCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "posts") {
-		return me.PostsCommand(a, args, message)
+		return lt.PostsCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "post") {
-		return me.PostCommand(a, args, message)
+		return lt.PostCommand(a, args, message)
 	}
 
 	if strings.HasPrefix(message, "threaded_post") {
-		return me.ThreadedPostCommand(a, args, message)
+		return lt.ThreadedPostCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "url") {
-		return me.UrlCommand(a, args, message)
+		return lt.URLCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "json") {
-		return me.JsonCommand(a, args, message)
+		return lt.JsonCommand(a, c, args, message)
 	}
 
-	return me.HelpCommand(args, message), nil
+	return lt.HelpCommand(args, message), nil
 }
 
-func (me *LoadTestProvider) HelpCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	return &model.CommandResponse{Text: usage, ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+func (*LoadTestProvider) HelpCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+	return &model.CommandResponse{Text: usage, ResponseType: model.CommandResponseTypeEphemeral}
 }
 
-func (me *LoadTestProvider) SetupCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) SetupCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	tokens := strings.Fields(strings.TrimPrefix(message, "setup"))
 	doTeams := contains(tokens, "teams")
 	doFuzz := contains(tokens, "fuzz")
@@ -211,14 +214,15 @@ func (me *LoadTestProvider) SetupCommand(a *app.App, args *model.CommandArgs, me
 
 	if doTeams {
 		if err := CreateBasicUser(a, client); err != nil {
-			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-		_, resp := client.Login(BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
-		if resp.Error != nil {
-			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, resp.Error
+		_, _, err := client.Login(BTestUserEmail, BTestUserPassword)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 		environment, err := CreateTestEnvironmentWithTeams(
 			a,
+			c,
 			client,
 			utils.Range{Begin: numTeams, End: numTeams},
 			utils.Range{Begin: numChannels, End: numChannels},
@@ -226,22 +230,23 @@ func (me *LoadTestProvider) SetupCommand(a *app.App, args *model.CommandArgs, me
 			utils.Range{Begin: numPosts, End: numPosts},
 			doFuzz)
 		if err != nil {
-			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 
 		mlog.Info("Testing environment created")
 		for i := 0; i < len(environment.Teams); i++ {
 			mlog.Info("Team Created: " + environment.Teams[i].Name)
-			mlog.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
+			mlog.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + UserPassword)
 		}
 	} else {
 		team, err := a.Srv().Store.Team().Get(args.TeamId)
 		if err != nil {
-			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 
 		CreateTestEnvironmentInTeam(
 			a,
+			c,
 			client,
 			team,
 			utils.Range{Begin: numChannels, End: numChannels},
@@ -250,28 +255,28 @@ func (me *LoadTestProvider) SetupCommand(a *app.App, args *model.CommandArgs, me
 			doFuzz)
 	}
 
-	return &model.CommandResponse{Text: "Created environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Created environment", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (me *LoadTestProvider) ActivateUserCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) ActivateUserCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	user_id := strings.TrimSpace(strings.TrimPrefix(message, "activate_user"))
-	if err := a.UpdateUserActive(user_id, true); err != nil {
-		return &model.CommandResponse{Text: "Failed to activate user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	if err := a.UpdateUserActive(c, user_id, true); err != nil {
+		return &model.CommandResponse{Text: "Failed to activate user", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
-	return &model.CommandResponse{Text: "Activated user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Activated user", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (me *LoadTestProvider) DeActivateUserCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) DeActivateUserCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	user_id := strings.TrimSpace(strings.TrimPrefix(message, "deactivate_user"))
-	if err := a.UpdateUserActive(user_id, false); err != nil {
-		return &model.CommandResponse{Text: "Failed to deactivate user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	if err := a.UpdateUserActive(c, user_id, false); err != nil {
+		return &model.CommandResponse{Text: "Failed to deactivate user", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
-	return &model.CommandResponse{Text: "DeActivated user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "DeActivated user", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (me *LoadTestProvider) UsersCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) UsersCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "users"))
 
 	doFuzz := false
@@ -287,18 +292,20 @@ func (me *LoadTestProvider) UsersCommand(a *app.App, args *model.CommandArgs, me
 
 	team, err := a.Srv().Store.Team().Get(args.TeamId)
 	if err != nil {
-		return &model.CommandResponse{Text: "Failed to add users", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		return &model.CommandResponse{Text: "Failed to add users", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
 	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = doFuzz
-	userCreator.CreateTestUsers(usersr)
+	if _, err := userCreator.CreateTestUsers(c, usersr); err != nil {
+		return &model.CommandResponse{Text: "Failed to add users: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+	}
 
-	return &model.CommandResponse{Text: "Added users", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Added users", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (me *LoadTestProvider) ChannelsCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) ChannelsCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "channels"))
 
 	doFuzz := false
@@ -314,19 +321,19 @@ func (me *LoadTestProvider) ChannelsCommand(a *app.App, args *model.CommandArgs,
 
 	team, err := a.Srv().Store.Team().Get(args.TeamId)
 	if err != nil {
-		return &model.CommandResponse{Text: "Failed to add channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		return &model.CommandResponse{Text: "Failed to add channels", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	channelCreator := NewAutoChannelCreator(a, team, args.UserId)
 	channelCreator.Fuzzy = doFuzz
-	if _, err := channelCreator.CreateTestChannels(channelsr); err != nil {
-		return &model.CommandResponse{Text: "Failed to create test channels: " + err.Error(), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	if _, err := channelCreator.CreateTestChannels(c, channelsr); err != nil {
+		return &model.CommandResponse{Text: "Failed to create test channels: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
-	return &model.CommandResponse{Text: "Added channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Added channels", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (me *LoadTestProvider) ThreadedPostCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
 	if profileUsers, err := a.Srv().Store.User().GetProfiles(options); err == nil {
@@ -341,18 +348,18 @@ func (me *LoadTestProvider) ThreadedPostCommand(a *app.App, args *model.CommandA
 	testPoster := NewAutoPostCreator(a, args.ChannelId, args.UserId)
 	testPoster.Fuzzy = true
 	testPoster.Users = usernames
-	rpost, err2 := testPoster.CreateRandomPost()
+	rpost, err2 := testPoster.CreateRandomPost(c)
 	if err2 != nil {
-		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err2
+		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, err2
 	}
 	for i := 0; i < 1000; i++ {
-		testPoster.CreateRandomPostNested(rpost.Id, rpost.Id)
+		testPoster.CreateRandomPostNested(c, rpost.Id)
 	}
 
-	return &model.CommandResponse{Text: "Added threaded post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Added threaded post", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (me *LoadTestProvider) PostsCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) PostsCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "posts"))
 
 	doFuzz := false
@@ -393,14 +400,14 @@ func (me *LoadTestProvider) PostsCommand(a *app.App, args *model.CommandArgs, me
 	numPosts := utils.RandIntFromRange(postsr)
 	for i := 0; i < numPosts; i++ {
 		testPoster.HasImage = (i < numImages)
-		_, err := testPoster.CreateRandomPost()
+		_, err := testPoster.CreateRandomPost(c)
 		if err != nil {
-			return &model.CommandResponse{Text: "Failed to add posts", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+			return &model.CommandResponse{Text: "Failed to add posts", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 
 	}
 
-	return &model.CommandResponse{Text: "Added posts", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Added posts", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
 func getMatch(re *regexp.Regexp, text string) string {
@@ -411,53 +418,53 @@ func getMatch(re *regexp.Regexp, text string) string {
 	return ""
 }
 
-func (me *LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	textMessage := getMatch(messageRE, message)
 	if textMessage == "" {
-		return &model.CommandResponse{Text: "No message to post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+		return &model.CommandResponse{Text: "No message to post", ResponseType: model.CommandResponseTypeEphemeral}, nil
 	}
 
 	teamName := getMatch(teamRE, message)
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
-		return &model.CommandResponse{Text: "Failed to get a team", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		return &model.CommandResponse{Text: "Failed to get a team", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	channelName := getMatch(channelRE, message)
 	channel, err := a.GetChannelByName(channelName, team.Id, true)
 	if err != nil {
-		return &model.CommandResponse{Text: "Failed to get a channel", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		return &model.CommandResponse{Text: "Failed to get a channel", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	passwd := getMatch(passwdRE, message)
 	username := getMatch(userRE, message)
 	user, err := a.GetUserByUsername(username)
 	if err != nil {
-		return &model.CommandResponse{Text: "Failed to get a user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		return &model.CommandResponse{Text: "Failed to get a user", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	_, resp := client.LoginById(user.Id, passwd)
-	if resp.Error != nil {
-		return &model.CommandResponse{Text: "Failed to login a user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, resp.Error
+	_, _, nErr := client.LoginById(user.Id, passwd)
+	if nErr != nil {
+		return &model.CommandResponse{Text: "Failed to login a user", ResponseType: model.CommandResponseTypeEphemeral}, nErr
 	}
 
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   textMessage,
 	}
-	_, resp = client.CreatePost(post)
-	if resp.Error != nil {
-		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, resp.Error
+	_, _, nErr = client.CreatePost(post)
+	if nErr != nil {
+		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, nErr
 	}
 
-	return &model.CommandResponse{Text: "Added a post to " + channel.DisplayName, ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Added a post to " + channel.DisplayName, ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (me *LoadTestProvider) UrlCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) URLCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	url := strings.TrimSpace(strings.TrimPrefix(message, "url"))
-	if len(url) == 0 {
-		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	if url == "" {
+		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.CommandResponseTypeEphemeral}, nil
 	}
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
@@ -471,7 +478,7 @@ func (me *LoadTestProvider) UrlCommand(a *app.App, args *model.CommandArgs, mess
 
 	r, err := http.Get(url)
 	if err != nil {
-		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 	defer func() {
 		io.Copy(ioutil.Discard, r.Body)
@@ -479,7 +486,7 @@ func (me *LoadTestProvider) UrlCommand(a *app.App, args *model.CommandArgs, mess
 	}()
 
 	if r.StatusCode > 400 {
-		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, errors.Errorf("unexpected status code %d", r.StatusCode)
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("unexpected status code %d", r.StatusCode)
 	}
 
 	bytes := make([]byte, 4000)
@@ -488,7 +495,7 @@ func (me *LoadTestProvider) UrlCommand(a *app.App, args *model.CommandArgs, mess
 	for {
 		length, err := r.Body.Read(bytes)
 		if err != nil && err != io.EOF {
-			return &model.CommandResponse{Text: "Encountered error reading file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+			return &model.CommandResponse{Text: "Encountered error reading file", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 
 		if length == 0 {
@@ -500,18 +507,18 @@ func (me *LoadTestProvider) UrlCommand(a *app.App, args *model.CommandArgs, mess
 		post.ChannelId = args.ChannelId
 		post.UserId = args.UserId
 
-		if _, err := a.CreatePostMissingChannel(post, false); err != nil {
-			return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		if _, err := a.CreatePostMissingChannel(c, post, false); err != nil {
+			return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 	}
 
-	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (me *LoadTestProvider) JsonCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) JsonCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	url := strings.TrimSpace(strings.TrimPrefix(message, "json"))
-	if len(url) == 0 {
-		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	if url == "" {
+		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.CommandResponseTypeEphemeral}, nil
 	}
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
@@ -525,29 +532,32 @@ func (me *LoadTestProvider) JsonCommand(a *app.App, args *model.CommandArgs, mes
 
 	r, err := http.Get(url)
 	if err != nil {
-		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	if r.StatusCode > 400 {
-		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, errors.Errorf("unexpected status code %d", r.StatusCode)
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("unexpected status code %d", r.StatusCode)
 	}
 	defer func() {
 		io.Copy(ioutil.Discard, r.Body)
 		r.Body.Close()
 	}()
 
-	post := model.PostFromJson(r.Body)
+	var post model.Post
+	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
+		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("could not decode post from json")
+	}
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId
 	if post.Message == "" {
 		post.Message = message
 	}
 
-	if _, err := a.CreatePostMissingChannel(post, false); err != nil {
-		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	if _, err := a.CreatePostMissingChannel(c, &post, false); err != nil {
+		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
-	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
+	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
 func parseRange(command string, cmd string) (utils.Range, bool) {

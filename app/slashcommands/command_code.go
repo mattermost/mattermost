@@ -6,29 +6,30 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type CodeProvider struct {
 }
 
 const (
-	CMD_CODE = "code"
+	CmdCode = "code"
 )
 
 func init() {
 	app.RegisterCommandProvider(&CodeProvider{})
 }
 
-func (me *CodeProvider) GetTrigger() string {
-	return CMD_CODE
+func (*CodeProvider) GetTrigger() string {
+	return CmdCode
 }
 
-func (me *CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CodeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_CODE,
+		Trigger:          CmdCode,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_code.desc"),
 		AutoCompleteHint: T("api.command_code.hint"),
@@ -36,10 +37,10 @@ func (me *CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Co
 	}
 }
 
-func (me *CodeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if len(message) == 0 {
-		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+func (*CodeProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	if message == "" {
+		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 	rmsg := "    " + strings.Join(strings.Split(message, "\n"), "\n    ")
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg, SkipSlackParsing: true}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeInChannel, Text: rmsg, SkipSlackParsing: true}
 }

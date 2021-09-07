@@ -1,9 +1,13 @@
 package merror
 
+import "sync"
+
 // MError represents zero or more errors that can be
 // accumulated via the `Append` method.
 type MError struct {
-	cap       int
+	cap int
+
+	mux       sync.RWMutex
 	errors    []error
 	overflow  int
 	formatter FormatterFunc
@@ -34,6 +38,10 @@ func (me *MError) Append(err error) {
 	if err == nil {
 		return
 	}
+
+	me.mux.Lock()
+	defer me.mux.Unlock()
+
 	if me.cap > 0 && len(me.errors) >= me.cap {
 		me.overflow++
 	} else {
@@ -41,26 +49,41 @@ func (me *MError) Append(err error) {
 	}
 }
 
-// Errors returns an array of the `error` instances that have been
+// Errors returns a slice of the `error` instances that have been
 // appended to this `MError`.
 func (me *MError) Errors() []error {
-	return me.errors
+	me.mux.RLock()
+	defer me.mux.RUnlock()
+
+	errs := make([]error, len(me.errors))
+	copy(errs, me.errors)
+
+	return errs
 }
 
 // Len returns the number of errors that have been appended.
 func (me *MError) Len() int {
+	me.mux.RLock()
+	defer me.mux.RUnlock()
+
 	return len(me.errors)
 }
 
 // Overflow returns the number of errors that have been truncated
 // because maximum capacity was exceeded.
 func (me *MError) Overflow() int {
+	me.mux.RLock()
+	defer me.mux.RUnlock()
+
 	return me.overflow
 }
 
 // SetFormatter sets the `FormatterFunc` to be used when `Error` is
 // called. The previous `FormatterFunc` is returned.
 func (me *MError) SetFormatter(f FormatterFunc) (old FormatterFunc) {
+	me.mux.Lock()
+	defer me.mux.Unlock()
+
 	old = me.formatter
 	me.formatter = f
 	return
@@ -69,7 +92,14 @@ func (me *MError) SetFormatter(f FormatterFunc) (old FormatterFunc) {
 // ErrorOrNil returns nil if this `MError` contains no errors,
 // otherwise this `MError` is returned.
 func (me *MError) ErrorOrNil() error {
-	if me == nil || len(me.errors) == 0 {
+	if me == nil {
+		return nil
+	}
+
+	me.mux.RLock()
+	defer me.mux.RUnlock()
+
+	if len(me.errors) == 0 {
 		return nil
 	}
 	return me
@@ -79,6 +109,9 @@ func (me *MError) ErrorOrNil() error {
 // The output format depends on the `Formatter` set for this
 // merror instance, or the global formatter if none set.
 func (me *MError) Error() string {
+	me.mux.RLock()
+	defer me.mux.RUnlock()
+
 	f := me.formatter
 	if f == nil {
 		f = GlobalFormatter

@@ -4,31 +4,34 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
-	SESSION_COOKIE_TOKEN              = "MMAUTHTOKEN"
-	SESSION_COOKIE_USER               = "MMUSERID"
-	SESSION_COOKIE_CSRF               = "MMCSRF"
-	SESSION_CACHE_SIZE                = 35000
-	SESSION_PROP_PLATFORM             = "platform"
-	SESSION_PROP_OS                   = "os"
-	SESSION_PROP_BROWSER              = "browser"
-	SESSION_PROP_TYPE                 = "type"
-	SESSION_PROP_USER_ACCESS_TOKEN_ID = "user_access_token_id"
-	SESSION_PROP_IS_BOT               = "is_bot"
-	SESSION_PROP_IS_BOT_VALUE         = "true"
-	SESSION_TYPE_USER_ACCESS_TOKEN    = "UserAccessToken"
-	SESSION_PROP_IS_GUEST             = "is_guest"
-	SESSION_ACTIVITY_TIMEOUT          = 1000 * 60 * 5 // 5 minutes
-	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
+	SessionCookieToken            = "MMAUTHTOKEN"
+	SessionCookieUser             = "MMUSERID"
+	SessionCookieCsrf             = "MMCSRF"
+	SessionCacheSize              = 35000
+	SessionPropPlatform           = "platform"
+	SessionPropOs                 = "os"
+	SessionPropBrowser            = "browser"
+	SessionPropType               = "type"
+	SessionPropUserAccessTokenId  = "user_access_token_id"
+	SessionPropIsBot              = "is_bot"
+	SessionPropIsBotValue         = "true"
+	SessionTypeUserAccessToken    = "UserAccessToken"
+	SessionTypeCloudKey           = "CloudKey"
+	SessionTypeRemoteclusterToken = "RemoteClusterToken"
+	SessionPropIsGuest            = "is_guest"
+	SessionActivityTimeout        = 1000 * 60 * 5 // 5 minutes
+	SessionUserAccessTokenExpiry  = 100 * 365     // 100 years
 )
+
+//msgp StringMap
+type StringMap map[string]string
 
 //msgp:tuple Session
 
@@ -53,20 +56,20 @@ type Session struct {
 
 // Returns true if the session is unrestricted, which should grant it
 // with all permissions. This is used for local mode sessions
-func (me *Session) IsUnrestricted() bool {
-	return me.Local
+func (s *Session) IsUnrestricted() bool {
+	return s.Local
 }
 
-func (me *Session) DeepCopy() *Session {
-	copySession := *me
+func (s *Session) DeepCopy() *Session {
+	copySession := *s
 
-	if me.Props != nil {
-		copySession.Props = CopyStringMap(me.Props)
+	if s.Props != nil {
+		copySession.Props = CopyStringMap(s.Props)
 	}
 
-	if me.TeamMembers != nil {
-		copySession.TeamMembers = make([]*TeamMember, len(me.TeamMembers))
-		for index, tm := range me.TeamMembers {
+	if s.TeamMembers != nil {
+		copySession.TeamMembers = make([]*TeamMember, len(s.TeamMembers))
+		for index, tm := range s.TeamMembers {
 			copySession.TeamMembers[index] = new(TeamMember)
 			*copySession.TeamMembers[index] = *tm
 		}
@@ -75,73 +78,51 @@ func (me *Session) DeepCopy() *Session {
 	return &copySession
 }
 
-func (me *Session) ToJson() string {
-	b, _ := json.Marshal(me)
-	return string(b)
-}
-
-func SessionFromJson(data io.Reader) *Session {
-	var me *Session
-	json.NewDecoder(data).Decode(&me)
-	return me
-}
-
-func (me *Session) PreSave() {
-	if me.Id == "" {
-		me.Id = NewId()
+func (s *Session) PreSave() {
+	if s.Id == "" {
+		s.Id = NewId()
 	}
 
-	if me.Token == "" {
-		me.Token = NewId()
+	if s.Token == "" {
+		s.Token = NewId()
 	}
 
-	me.CreateAt = GetMillis()
-	me.LastActivityAt = me.CreateAt
+	s.CreateAt = GetMillis()
+	s.LastActivityAt = s.CreateAt
 
-	if me.Props == nil {
-		me.Props = make(map[string]string)
+	if s.Props == nil {
+		s.Props = make(map[string]string)
 	}
 }
 
-func (me *Session) Sanitize() {
-	me.Token = ""
+func (s *Session) Sanitize() {
+	s.Token = ""
 }
 
-func (me *Session) IsExpired() bool {
+func (s *Session) IsExpired() bool {
 
-	if me.ExpiresAt <= 0 {
+	if s.ExpiresAt <= 0 {
 		return false
 	}
 
-	if GetMillis() > me.ExpiresAt {
+	if GetMillis() > s.ExpiresAt {
 		return true
 	}
 
 	return false
 }
 
-// Deprecated: SetExpireInDays is deprecated and should not be used.
-//             Use (*App).SetSessionExpireInDays instead which handles the
-//			   cases where the new ExpiresAt is not relative to CreateAt.
-func (me *Session) SetExpireInDays(days int) {
-	if me.CreateAt == 0 {
-		me.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
-	} else {
-		me.ExpiresAt = me.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
-	}
-}
+func (s *Session) AddProp(key string, value string) {
 
-func (me *Session) AddProp(key string, value string) {
-
-	if me.Props == nil {
-		me.Props = make(map[string]string)
+	if s.Props == nil {
+		s.Props = make(map[string]string)
 	}
 
-	me.Props[key] = value
+	s.Props[key] = value
 }
 
-func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
-	for _, team := range me.TeamMembers {
+func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
+	for _, team := range s.TeamMembers {
 		if team.TeamId == teamId {
 			return team
 		}
@@ -150,81 +131,67 @@ func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
 	return nil
 }
 
-func (me *Session) IsMobileApp() bool {
-	return len(me.DeviceId) > 0 || me.IsMobile()
+func (s *Session) IsMobileApp() bool {
+	return s.DeviceId != "" || s.IsMobile()
 }
 
-func (me *Session) IsMobile() bool {
-	val, ok := me.Props[USER_AUTH_SERVICE_IS_MOBILE]
+func (s *Session) IsMobile() bool {
+	val, ok := s.Props[UserAuthServiceIsMobile]
 	if !ok {
 		return false
 	}
 	isMobile, err := strconv.ParseBool(val)
 	if err != nil {
-		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		mlog.Debug("Error parsing boolean property from Session", mlog.Err(err))
 		return false
 	}
 	return isMobile
 }
 
-func (me *Session) IsSaml() bool {
-	val, ok := me.Props[USER_AUTH_SERVICE_IS_SAML]
+func (s *Session) IsSaml() bool {
+	val, ok := s.Props[UserAuthServiceIsSaml]
 	if !ok {
 		return false
 	}
 	isSaml, err := strconv.ParseBool(val)
 	if err != nil {
-		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		mlog.Debug("Error parsing boolean property from Session", mlog.Err(err))
 		return false
 	}
 	return isSaml
 }
 
-func (me *Session) IsOAuthUser() bool {
-	val, ok := me.Props[USER_AUTH_SERVICE_IS_OAUTH]
+func (s *Session) IsOAuthUser() bool {
+	val, ok := s.Props[UserAuthServiceIsOAuth]
 	if !ok {
 		return false
 	}
 	isOAuthUser, err := strconv.ParseBool(val)
 	if err != nil {
-		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		mlog.Debug("Error parsing boolean property from Session", mlog.Err(err))
 		return false
 	}
 	return isOAuthUser
 }
 
-func (me *Session) IsSSOLogin() bool {
-	return me.IsOAuthUser() || me.IsSaml()
+func (s *Session) IsSSOLogin() bool {
+	return s.IsOAuthUser() || s.IsSaml()
 }
 
-func (me *Session) GetUserRoles() []string {
-	return strings.Fields(me.Roles)
+func (s *Session) GetUserRoles() []string {
+	return strings.Fields(s.Roles)
 }
 
-func (me *Session) GenerateCSRF() string {
+func (s *Session) GenerateCSRF() string {
 	token := NewId()
-	me.AddProp("csrf", token)
+	s.AddProp("csrf", token)
 	return token
 }
 
-func (me *Session) GetCSRF() string {
-	if me.Props == nil {
+func (s *Session) GetCSRF() string {
+	if s.Props == nil {
 		return ""
 	}
 
-	return me.Props["csrf"]
-}
-
-func SessionsToJson(o []*Session) string {
-	if b, err := json.Marshal(o); err != nil {
-		return "[]"
-	} else {
-		return string(b)
-	}
-}
-
-func SessionsFromJson(data io.Reader) []*Session {
-	var o []*Session
-	json.NewDecoder(data).Decode(&o)
-	return o
+	return s.Props["csrf"]
 }

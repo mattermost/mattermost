@@ -4,8 +4,7 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
+	"regexp"
 )
 
 type SidebarCategoryType string
@@ -45,6 +44,8 @@ type SidebarCategory struct {
 	Sorting     SidebarCategorySorting `json:"sorting"`
 	Type        SidebarCategoryType    `json:"type"`
 	DisplayName string                 `json:"display_name"`
+	Muted       bool                   `json:"muted"`
+	Collapsed   bool                   `json:"collapsed"`
 }
 
 // SidebarCategoryWithChannels combines data from SidebarCategory table with the Channel IDs that belong to that category
@@ -71,41 +72,14 @@ type SidebarChannel struct {
 type SidebarChannels []*SidebarChannel
 type SidebarCategoriesWithChannels []*SidebarCategoryWithChannels
 
-func SidebarCategoryFromJson(data io.Reader) (*SidebarCategoryWithChannels, error) {
-	var o *SidebarCategoryWithChannels
-	err := json.NewDecoder(data).Decode(&o)
-	return o, err
-}
+var categoryIdPattern = regexp.MustCompile("(favorites|channels|direct_messages)_[a-z0-9]{26}_[a-z0-9]{26}")
 
-func SidebarCategoriesFromJson(data io.Reader) ([]*SidebarCategoryWithChannels, error) {
-	var o []*SidebarCategoryWithChannels
-	err := json.NewDecoder(data).Decode(&o)
-	return o, err
-}
-
-func OrderedSidebarCategoriesFromJson(data io.Reader) (*OrderedSidebarCategories, error) {
-	var o *OrderedSidebarCategories
-	err := json.NewDecoder(data).Decode(&o)
-	return o, err
-}
-
-func (o SidebarCategoryWithChannels) ToJson() []byte {
-	b, _ := json.Marshal(o)
-	return b
-}
-
-func SidebarCategoriesWithChannelsToJson(o []*SidebarCategoryWithChannels) []byte {
-	if b, err := json.Marshal(o); err != nil {
-		return []byte("[]")
-	} else {
-		return b
+func IsValidCategoryId(s string) bool {
+	// Category IDs can either be regular IDs
+	if IsValidId(s) {
+		return true
 	}
-}
 
-func (o OrderedSidebarCategories) ToJson() []byte {
-	if b, err := json.Marshal(o); err != nil {
-		return []byte("[]")
-	} else {
-		return b
-	}
+	// Or default categories can follow the pattern {type}_{userID}_{teamID}
+	return categoryIdPattern.MatchString(s)
 }

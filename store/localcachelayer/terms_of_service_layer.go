@@ -4,12 +4,14 @@
 package localcachelayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"bytes"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
-	LATEST_KEY = "latest"
+	LatestKey = "latest"
 )
 
 type LocalCacheTermsOfServiceStore struct {
@@ -18,10 +20,10 @@ type LocalCacheTermsOfServiceStore struct {
 }
 
 func (s *LocalCacheTermsOfServiceStore) handleClusterInvalidateTermsOfService(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.termsOfServiceCache.Purge()
 	} else {
-		s.rootStore.termsOfServiceCache.Remove(msg.Data)
+		s.rootStore.termsOfServiceCache.Remove(string(msg.Data))
 	}
 }
 
@@ -38,7 +40,7 @@ func (s LocalCacheTermsOfServiceStore) Save(termsOfService *model.TermsOfService
 
 	if err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, tos.Id, tos)
-		s.rootStore.doInvalidateCacheCluster(s.rootStore.termsOfServiceCache, LATEST_KEY)
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.termsOfServiceCache, LatestKey)
 	}
 	return tos, err
 }
@@ -47,7 +49,7 @@ func (s LocalCacheTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.Te
 	if allowFromCache {
 		if len, err := s.rootStore.termsOfServiceCache.Len(); err == nil && len != 0 {
 			var cacheItem *model.TermsOfService
-			if err := s.rootStore.doStandardReadCache(s.rootStore.termsOfServiceCache, LATEST_KEY, &cacheItem); err == nil {
+			if err := s.rootStore.doStandardReadCache(s.rootStore.termsOfServiceCache, LatestKey, &cacheItem); err == nil {
 				return cacheItem, nil
 			}
 		}
@@ -57,7 +59,7 @@ func (s LocalCacheTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.Te
 
 	if allowFromCache && err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, termsOfService.Id, termsOfService)
-		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, LATEST_KEY, termsOfService)
+		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, LatestKey, termsOfService)
 	}
 
 	return termsOfService, err

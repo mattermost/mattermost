@@ -4,17 +4,19 @@
 package testlib
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 const (
@@ -86,6 +88,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 
 	var testResourcesToSetup = []testResourceDetails{
 		{root, "mattermost-server", resourceTypeFolder, actionSymlink},
+		{"go.mod", "go.mod", resourceTypeFile, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
@@ -115,6 +118,17 @@ func getTestResourcesToSetup() []testResourceDetails {
 	}
 
 	return testResourcesToSetup
+}
+
+func CopyFile(src, dst string) error {
+	fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{DriverName: "local", Directory: ""})
+	if err != nil {
+		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
+	}
+	if err = fileBackend.CopyFile(src, dst); err != nil {
+		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
+	}
+	return nil
 }
 
 func SetupTestResources() (string, error) {
@@ -151,9 +165,8 @@ func SetupTestResources() (string, error) {
 
 		if testResource.action == actionCopy {
 			if testResource.resType == resourceTypeFile {
-				err = utils.CopyFile(testResource.src, resourceDestInTemp)
-				if err != nil {
-					return "", errors.Wrapf(err, "failed to copy file %s to %s", testResource.src, resourceDestInTemp)
+				if err = CopyFile(testResource.src, resourceDestInTemp); err != nil {
+					return "", err
 				}
 			} else if testResource.resType == resourceTypeFolder {
 				err = utils.CopyDir(testResource.src, resourceDestInTemp)
@@ -194,8 +207,13 @@ func setupConfig(configDir string) error {
 		return errors.Wrapf(err, "failed to create config directory %s", configDir)
 	}
 
+	buf, err := json.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %v", err)
+	}
+
 	configJSON := path.Join(configDir, "config.json")
-	err = ioutil.WriteFile(configJSON, []byte(config.ToJson()), 0644)
+	err = ioutil.WriteFile(configJSON, buf, 0644)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write config to %s", configJSON)
 	}

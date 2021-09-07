@@ -30,8 +30,15 @@ type chunkedIntDecoder struct {
 	r               *segment.MemUvarintReader
 }
 
-func newChunkedIntDecoder(buf []byte, offset uint64) *chunkedIntDecoder {
-	rv := &chunkedIntDecoder{startOffset: offset, data: buf}
+// newChunkedIntDecoder expects an optional or reset chunkedIntDecoder for better reuse.
+func newChunkedIntDecoder(buf []byte, offset uint64, rv *chunkedIntDecoder) *chunkedIntDecoder {
+	if rv == nil {
+		rv = &chunkedIntDecoder{startOffset: offset, data: buf}
+	} else {
+		rv.startOffset = offset
+		rv.data = buf
+	}
+
 	var n, numChunks uint64
 	var read int
 	if offset == termNotEncoded {
@@ -91,7 +98,7 @@ func (d *chunkedIntDecoder) reset() {
 }
 
 func (d *chunkedIntDecoder) isNil() bool {
-	return d.curChunkBytes == nil
+	return d.curChunkBytes == nil || len(d.curChunkBytes) == 0
 }
 
 func (d *chunkedIntDecoder) readUvarint() (uint64, error) {

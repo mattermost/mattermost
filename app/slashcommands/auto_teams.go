@@ -4,8 +4,8 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type TeamEnvironment struct {
@@ -28,11 +28,11 @@ func NewAutoTeamCreator(client *model.Client4) *AutoTeamCreator {
 	return &AutoTeamCreator{
 		client:        client,
 		Fuzzy:         false,
-		NameLength:    TEAM_NAME_LEN,
+		NameLength:    TeamNameLen,
 		NameCharset:   utils.LOWERCASE,
-		DomainLength:  TEAM_DOMAIN_NAME_LEN,
+		DomainLength:  TeamDomainNameLen,
 		DomainCharset: utils.LOWERCASE,
-		EmailLength:   TEAM_EMAIL_LEN,
+		EmailLength:   TeamEmailLen,
 		EmailCharset:  utils.LOWERCASE,
 	}
 }
@@ -54,12 +54,12 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, error) {
 		DisplayName: teamDisplayName,
 		Name:        teamName,
 		Email:       teamEmail,
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 
-	createdTeam, resp := cfg.client.CreateTeam(team)
-	if resp.Error != nil {
-		return nil, resp.Error
+	createdTeam, _, err := cfg.client.CreateTeam(team)
+	if err != nil {
+		return nil, err
 	}
 	return createdTeam, nil
 }

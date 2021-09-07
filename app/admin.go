@@ -4,21 +4,19 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
+	"runtime/debug"
 	"time"
 
-	"runtime/debug"
-
-	"net/http"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mail"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -64,11 +62,8 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	var lines []string
 
 	if *s.Config().LogSettings.EnableFile {
-		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), mlog.DefaultFlushTimeout)
-		defer timeoutCancel()
-		mlog.Flush(timeoutCtx)
-
-		logFile := utils.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
+		s.Log.Flush()
+		logFile := config.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
@@ -156,8 +151,8 @@ func (s *Server) InvalidateAllCaches() *model.AppError {
 	if s.Cluster != nil {
 
 		msg := &model.ClusterMessage{
-			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,
-			SendType:         model.CLUSTER_SEND_RELIABLE,
+			Event:            model.ClusterEventInvalidateAllCaches,
+			SendType:         model.ClusterSendReliable,
 			WaitForAllToSend: true,
 		}
 
@@ -169,7 +164,7 @@ func (s *Server) InvalidateAllCaches() *model.AppError {
 
 func (s *Server) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	s.sessionCache.Purge()
+	s.userService.ClearAllUsersSessionCacheLocal()
 	s.statusCache.Purge()
 	s.Store.Team().ClearCaches()
 	s.Store.Channel().ClearCaches()
@@ -177,6 +172,7 @@ func (s *Server) InvalidateAllCachesSkipSend() {
 	s.Store.Post().ClearCaches()
 	s.Store.FileInfo().ClearCaches()
 	s.Store.Webhook().ClearCaches()
+	linkCache.Purge()
 	s.LoadLicense()
 }
 
@@ -205,14 +201,14 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 	return nil
 }
 
-func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
-	if len(*cfg.EmailSettings.SMTPServer) == 0 {
-		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
+func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
+	if *cfg.EmailSettings.SMTPServer == "" {
+		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, i18n.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection
-	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+	if *cfg.EmailSettings.SMTPPassword == model.FakeSetting {
 		if *cfg.EmailSettings.SMTPServer == *a.Config().EmailSettings.SMTPServer &&
 			*cfg.EmailSettings.SMTPPort == *a.Config().EmailSettings.SMTPPort &&
 			*cfg.EmailSettings.SMTPUsername == *a.Config().EmailSettings.SMTPUsername {
@@ -221,23 +217,24 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}
 	}
-	user, err := a.GetUser(userId)
+	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
 
-	T := utils.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(user.Locale)
 	license := a.Srv().License()
-	if err := mailservice.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance, ""); err != nil {
+	mailConfig := a.Srv().MailServiceConfig()
+	if err := mail.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), mailConfig, license != nil && *license.Features.Compliance, ""); err != nil {
 		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil
 }
 
-// ServerBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
-func (a *App) ServerBusyStateChanged(sbs *model.ServerBusyState) {
-	a.Srv().Busy.ClusterEventChanged(sbs)
+// serverBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
+func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
+	s.Busy.ClusterEventChanged(sbs)
 	if sbs.Busy {
 		mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
 	} else {

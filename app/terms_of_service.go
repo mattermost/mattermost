@@ -7,17 +7,17 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError) {
+func (a *App) CreateTermsOfService(text, userID string) (*model.TermsOfService, *model.AppError) {
 	termsOfService := &model.TermsOfService{
 		Text:   text,
-		UserId: userId,
+		UserId: userID,
 	}
 
-	if _, appErr := a.GetUser(userId); appErr != nil {
+	if _, appErr := a.GetUser(userID); appErr != nil {
 		return nil, appErr
 	}
 

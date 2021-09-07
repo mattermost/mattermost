@@ -4,11 +4,12 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type Option func(s *Server) error
@@ -21,14 +22,14 @@ func StoreOverride(override interface{}) Option {
 	return func(s *Server) error {
 		switch o := override.(type) {
 		case store.Store:
-			s.newStore = func() store.Store {
-				return o
+			s.newStore = func() (store.Store, error) {
+				return o, nil
 			}
 			return nil
 
 		case func(*Server) store.Store:
-			s.newStore = func() store.Store {
-				return o(s)
+			s.newStore = func() (store.Store, error) {
+				return o(s), nil
 			}
 			return nil
 
@@ -38,10 +39,13 @@ func StoreOverride(override interface{}) Option {
 	}
 }
 
-// Config applies the given config dsn, whether a path to config.json or a database connection string.
-func Config(dsn string, watch bool) Option {
+// Config applies the given config dsn, whether a path to config.json
+// or a database connection string. It receives as well a set of
+// custom defaults that will be applied for any unset property of the
+// config loaded from the dsn on top of the normal defaults
+func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
-		configStore, err := config.NewStore(dsn, watch)
+		configStore, err := config.NewStoreFromDSN(dsn, readOnly, configDefaults)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply Config option")
 		}
@@ -52,7 +56,7 @@ func Config(dsn string, watch bool) Option {
 }
 
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
-func ConfigStore(configStore config.Store) Option {
+func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
 		s.configStore = configStore
 
@@ -60,8 +64,8 @@ func ConfigStore(configStore config.Store) Option {
 	}
 }
 
-func RunJobs(s *Server) error {
-	s.runjobs = true
+func RunEssentialJobs(s *Server) error {
+	s.runEssentialJobs = true
 
 	return nil
 }
@@ -87,6 +91,14 @@ func StartSearchEngine(s *Server) error {
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
 		s.Log = logger
+		return nil
+	}
+}
+
+func SkipPostInitializiation() Option {
+	return func(s *Server) error {
+		s.skipPostInit = true
+
 		return nil
 	}
 }

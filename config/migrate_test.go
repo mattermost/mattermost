@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config_test
+package config
 
 import (
 	"io/ioutil"
@@ -9,13 +9,18 @@ import (
 	"path"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
+type cleanUpFn func(store *Store)
+
 func TestMigrate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping migration test in short mode")
+	}
 	files := []string{
 		"IdpCertificateFile",
 		"PublicCertificateFile",
@@ -46,11 +51,12 @@ func TestMigrate(t *testing.T) {
 		truncateTables(t)
 	}
 
-	setupSource := func(t *testing.T, source config.Store) {
+	setupSource := func(t *testing.T, source *Store) cleanUpFn {
 		t.Helper()
 
 		cfg := source.Get()
-		cfg.ServiceSettings.SiteURL = sToP("http://example.com")
+		originalCfg := cfg.Clone()
+		cfg.ServiceSettings.SiteURL = model.NewString("http://example.com")
 		cfg.SamlSettings.IdpCertificateFile = &files[0]
 		cfg.SamlSettings.PublicCertificateFile = &files[1]
 		cfg.SamlSettings.PrivateKeyFile = &files[2]
@@ -65,16 +71,21 @@ func TestMigrate(t *testing.T) {
 			"mysql://mmuser:password@tcp(searchreplicahost:3306)/mattermost",
 		}
 
-		_, err := source.Set(cfg)
+		_, _, err := source.Set(cfg)
 		require.NoError(t, err)
 
 		for i, file := range files {
 			err = source.SetFile(file, []byte(filesData[i]))
 			require.NoError(t, err)
 		}
+
+		return func(store *Store) {
+			_, _, err := store.Set(originalCfg)
+			require.NoError(t, err)
+		}
 	}
 
-	assertDestination := func(t *testing.T, destination config.Store, source config.Store) {
+	assertDestination := func(t *testing.T, destination *Store, source *Store) {
 		t.Helper()
 
 		for i, file := range files {
@@ -100,17 +111,22 @@ func TestMigrate(t *testing.T) {
 		destinationDSN := path.Join(pwd, "config-custom.json")
 		sourceDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 
-		source, err := config.NewDatabaseStore(sourceDSN)
+		sourcedb, err := NewDatabaseStore(sourceDSN)
+		require.NoError(t, err)
+		source, err := NewStoreFromBacking(sourcedb, nil, false)
 		require.NoError(t, err)
 		defer source.Close()
 
-		setupSource(t, source)
-		err = config.Migrate(sourceDSN, destinationDSN)
+		cleanUp := setupSource(t, source)
+		err = Migrate(sourceDSN, destinationDSN)
 		require.NoError(t, err)
 
-		destination, err := config.NewFileStore(destinationDSN, false)
+		destinationfile, err := NewFileStore(destinationDSN)
+		require.NoError(t, err)
+		destination, err := NewStoreFromBacking(destinationfile, nil, false)
 		require.NoError(t, err)
 		defer destination.Close()
+		defer cleanUp(destination)
 
 		assertDestination(t, destination, source)
 	})
@@ -125,17 +141,22 @@ func TestMigrate(t *testing.T) {
 		sourceDSN := path.Join(pwd, "config-custom.json")
 		destinationDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 
-		source, err := config.NewFileStore(sourceDSN, false)
+		sourcefile, err := NewFileStore(sourceDSN)
+		require.NoError(t, err)
+		source, err := NewStoreFromBacking(sourcefile, nil, false)
 		require.NoError(t, err)
 		defer source.Close()
 
-		setupSource(t, source)
-		err = config.Migrate(sourceDSN, destinationDSN)
+		cleanUp := setupSource(t, source)
+		err = Migrate(sourceDSN, destinationDSN)
 		require.NoError(t, err)
 
-		destination, err := config.NewDatabaseStore(destinationDSN)
+		destinationdb, err := NewDatabaseStore(destinationDSN)
+		require.NoError(t, err)
+		destination, err := NewStoreFromBacking(destinationdb, nil, false)
 		require.NoError(t, err)
 		defer destination.Close()
+		defer cleanUp(destination)
 
 		assertDestination(t, destination, source)
 	})

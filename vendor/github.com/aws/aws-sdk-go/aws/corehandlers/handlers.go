@@ -178,7 +178,7 @@ func handleSendError(r *request.Request, err error) {
 var ValidateResponseHandler = request.NamedHandler{Name: "core.ValidateResponseHandler", Fn: func(r *request.Request) {
 	if r.HTTPResponse.StatusCode == 0 || r.HTTPResponse.StatusCode >= 300 {
 		// this may be replaced by an UnmarshalError handler
-		r.Error = awserr.New("UnknownError", "unknown error", nil)
+		r.Error = awserr.New("UnknownError", "unknown error", r.Error)
 	}
 }}
 
@@ -225,6 +225,8 @@ var ValidateEndpointHandler = request.NamedHandler{Name: "core.ValidateEndpointH
 	if r.ClientInfo.SigningRegion == "" && aws.StringValue(r.Config.Region) == "" {
 		r.Error = aws.ErrMissingRegion
 	} else if r.ClientInfo.Endpoint == "" {
+		// Was any endpoint provided by the user, or one was derived by the
+		// SDK's endpoint resolver?
 		r.Error = aws.ErrMissingEndpoint
 	}
 }}

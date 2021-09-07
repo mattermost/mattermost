@@ -4,13 +4,12 @@
 package api4
 
 import (
-	"database/sql"
 	"encoding/json"
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type mixedUnlinkedGroup struct {
@@ -21,24 +20,24 @@ type mixedUnlinkedGroup struct {
 }
 
 func (api *API) InitLdap() {
-	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/migrateid", api.ApiSessionRequired(migrateIdLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIdLdap)).Methods("POST")
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
-	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getLdapGroups)).Methods("GET")
+	api.BaseRoutes.LDAP.Handle("/groups", api.APISessionRequired(getLdapGroups)).Methods("GET")
 
 	// POST /api/v4/ldap/groups/:remote_id/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.ApiSessionRequired(linkLdapGroup)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(linkLdapGroup)).Methods("POST")
 
 	// DELETE /api/v4/ldap/groups/:remote_id/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.ApiSessionRequired(unlinkLdapGroup)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(unlinkLdapGroup)).Methods("DELETE")
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.ApiSessionRequired(addLdapPublicCertificate)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.ApiSessionRequired(addLdapPrivateCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(addLdapPublicCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(addLdapPrivateCertificate)).Methods("POST")
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.ApiSessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.ApiSessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
 
 }
 
@@ -48,15 +47,21 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type LdapSyncOptions struct {
+		IncludeRemovedMembers bool `json:"include_removed_members"`
+	}
+	var opts LdapSyncOptions
+	json.NewDecoder(r.Body).Decode(&opts)
+
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
+		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
 		return
 	}
 
-	c.App.SyncLdap()
+	c.App.SyncLdap(opts.IncludeRemovedMembers)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -68,8 +73,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
+		c.SetPermissionError(model.PermissionTestLdap)
 		return
 	}
 
@@ -82,8 +87,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
 
@@ -139,8 +144,8 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
 		return
 	}
 
@@ -166,7 +171,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupSourceLdap)
-	if err != nil && err.DetailedError != sql.ErrNoRows.Error() {
+	if err != nil && err.Id != "app.group.no_rows" {
 		c.Err = err
 		return
 	}
@@ -240,8 +245,8 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("remote_id", c.Params.RemoteId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
 		return
 	}
 
@@ -270,9 +275,9 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	toAttribute, ok := props["toAttribute"].(string)
-	if !ok || len(toAttribute) == 0 {
+	if !ok || toAttribute == "" {
 		c.SetInvalidParam("toAttribute")
 		return
 	}
@@ -280,8 +285,8 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("idMigrateLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -320,8 +325,8 @@ func parseLdapCertificateRequest(r *http.Request, maxFileSize int64) (*multipart
 }
 
 func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddLdapPublicCert) {
+		c.SetPermissionError(model.PermissionAddLdapPublicCert)
 		return
 	}
 
@@ -344,8 +349,8 @@ func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddLdapPrivateCert) {
+		c.SetPermissionError(model.PermissionAddLdapPrivateCert)
 		return
 	}
 
@@ -368,8 +373,8 @@ func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveLdapPublicCert) {
+		c.SetPermissionError(model.PermissionRemoveLdapPublicCert)
 		return
 	}
 
@@ -386,8 +391,8 @@ func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveLdapPrivateCert) {
+		c.SetPermissionError(model.PermissionRemoveLdapPrivateCert)
 		return
 	}
 

@@ -108,7 +108,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v7.0.4"
+	libraryVersion = "v7.0.11"
 )
 
 // User Agent should always following the below style.
@@ -517,13 +517,6 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 	var bodySeeker io.Seeker // Extracted seeker from io.Reader.
 	var reqRetry = MaxRetry  // Indicates how many times we can retry the request
 
-	defer func() {
-		if err != nil {
-			// close idle connections before returning, upon error.
-			c.httpClient.CloseIdleConnections()
-		}
-	}()
-
 	if metadata.contentBody != nil {
 		// Check if body is seekable then it is retryable.
 		bodySeeker, retryable = metadata.contentBody.(io.Seeker)
@@ -551,9 +544,6 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 	// Indicate to our routine to exit cleanly upon return.
 	defer cancel()
 
-	// Blank indentifier is kept here on purpose since 'range' without
-	// blank identifiers is only supported since go1.4
-	// https://golang.org/doc/go1.4#forrange.
 	for range c.newRetryTimer(retryCtx, reqRetry, DefaultRetryUnit, DefaultRetryCap, MaxJitter) {
 		// Retry executes the following function body if request has an
 		// error until maxRetries have been exhausted, retry attempts are
@@ -578,15 +568,14 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 			return nil, err
 		}
 
-		// Add context to request
-		req = req.WithContext(ctx)
-
 		// Initiate the request.
 		res, err = c.do(req)
 		if err != nil {
-			if err == context.Canceled || err == context.DeadlineExceeded {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return nil, err
 			}
+
+			// Retry the request
 			continue
 		}
 
@@ -710,7 +699,7 @@ func (c Client) newRequest(ctx context.Context, method string, metadata requestM
 	}
 
 	// Initialize a new HTTP request for the method.
-	req, err = http.NewRequest(method, targetURL.String(), nil)
+	req, err = http.NewRequestWithContext(ctx, method, targetURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}

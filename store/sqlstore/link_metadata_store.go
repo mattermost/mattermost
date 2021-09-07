@@ -6,32 +6,32 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlLinkMetadataStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
+func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
 	s := &SqlLinkMetadataStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.LinkMetadata{}, "LinkMetadata").SetKeys(false, "Hash")
 		table.ColMap("URL").SetMaxSize(2048)
 		table.ColMap("Type").SetMaxSize(16)
-		table.ColMap("Data").SetMaxSize(4096)
+		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return s
 }
 
 func (s SqlLinkMetadataStore) createIndexesIfNotExists() {
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL(512)", "Timestamp"})
 	} else {
 		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL", "Timestamp"})

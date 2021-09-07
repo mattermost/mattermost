@@ -136,12 +136,12 @@ func (c *grpcStdioClient) Run(stdout, stderr io.Writer) {
 				status.Code(err) == codes.Canceled ||
 				status.Code(err) == codes.Unimplemented ||
 				err == context.Canceled {
-				c.log.Warn("received EOF, stopping recv loop", "err", err)
+				c.log.Debug("received EOF, stopping recv loop", "err", err)
 				return
 			}
 
 			c.log.Error("error receiving data", "err", err)
-			continue
+			return
 		}
 
 		// Determine our output writer based on channel
