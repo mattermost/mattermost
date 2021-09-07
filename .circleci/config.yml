@@ -19,6 +19,7 @@ jobs:
     docker:
       - image: mattermost/mattermost-build-webapp:20210524_node-16
     resource_class: xlarge
+    # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0; `retry` will not work, since it only retries on transient errors, 403 is not one of them.
     steps:
       - checkout
       - run: |
@@ -29,16 +30,24 @@ jobs:
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
-          trap 'npm ci && make build' ERR
-          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
-          mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
-          trap - ERR
-          cd -
+          FILE_DIST=dist.tar.gz
+          curl --version
 
-          cd mattermost-server/bin
-          wget https://releases.mattermost.com/mmctl/master/darwin_amd64.tar
-          wget https://releases.mattermost.com/mmctl/master/linux_amd64.tar
-          wget https://releases.mattermost.com/mmctl/master/windows_amd64.zip
+          runtime="2 minute"
+          endtime=$(date -ud "$runtime" +%s)
+          while [[ $(date -u +%s) -le $endtime ]]; do
+              if curl --max-time 30 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz; then
+                break
+              fi
+              echo "Waiting for webapp git commit $WEBAPP_GIT_COMMIT with sleep 5: `date +%H:%M:%S`"
+              sleep 5
+          done
+          ls -al
+          if tar -tzf $FILE_DIST >/dev/null; then
+            mkdir dist && tar -xvf $FILE_DIST -C dist --strip-components=1
+          else
+            npm ci && make build
+          fi
           cd -
       - persist_to_workspace:
           root: ~/mattermost
@@ -186,9 +195,7 @@ jobs:
           at: ~/mattermost/
       - run:
           command: |
-            echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
-            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
             export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
