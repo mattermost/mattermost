@@ -32,6 +32,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/go-asn1-ber/asn1-ber v1.5.3 // indirect
+	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/go-redis/redis/v8 v8.9.0 // indirect
 	github.com/go-resty/resty/v2 v2.6.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0

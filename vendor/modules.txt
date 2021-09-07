@@ -213,6 +213,8 @@ github.com/gigawattio/window
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 ## explicit
 github.com/go-asn1-ber/asn1-ber
+# github.com/go-kit/kit v0.10.0
+## explicit
 # github.com/go-redis/redis/v8 v8.9.0
 ## explicit
 github.com/go-redis/redis/v8

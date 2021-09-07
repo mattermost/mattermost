@@ -259,17 +259,12 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	store.stores.retentionPolicy.(*SqlRetentionPolicyStore).createIndexesIfNotExists()
-	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
 	store.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()
-	store.stores.uploadSession.(*SqlUploadSessionStore).createIndexesIfNotExists()
-	store.stores.job.(*SqlJobStore).createIndexesIfNotExists()
-	store.stores.plugin.(*SqlPluginStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
-	store.stores.sharedchannel.(*SqlSharedChannelStore).createIndexesIfNotExists()
 	store.stores.remoteCluster.(*sqlRemoteClusterStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
