@@ -168,10 +168,14 @@ func (s *Server) Publish(message *model.WebSocketEvent) {
 	s.PublishSkipClusterSend(message)
 
 	if s.Cluster != nil {
+		data, err := message.ToJSON()
+		if err != nil {
+			mlog.Warn("Failed to encode message to JSON", mlog.Err(err))
+		}
 		cm := &model.ClusterMessage{
 			Event:    model.ClusterEventPublish,
 			SendType: model.ClusterSendBestEffort,
-			Data:     message.ToJson(),
+			Data:     data,
 		}
 
 		if message.EventType() == model.WebsocketEventPosted ||

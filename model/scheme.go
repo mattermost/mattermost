@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"regexp"
 )
 
@@ -79,30 +77,6 @@ type SchemeRoles struct {
 	SchemeAdmin bool `json:"scheme_admin"`
 	SchemeUser  bool `json:"scheme_user"`
 	SchemeGuest bool `json:"scheme_guest"`
-}
-
-func (scheme *Scheme) ToJson() string {
-	b, _ := json.Marshal(scheme)
-	return string(b)
-}
-
-func SchemeFromJson(data io.Reader) *Scheme {
-	var scheme *Scheme
-	json.NewDecoder(data).Decode(&scheme)
-	return scheme
-}
-
-func SchemesToJson(schemes []*Scheme) string {
-	b, _ := json.Marshal(schemes)
-	return string(b)
-}
-
-func SchemesFromJson(data io.Reader) []*Scheme {
-	var schemes []*Scheme
-	if err := json.NewDecoder(data).Decode(&schemes); err == nil {
-		return schemes
-	}
-	return nil
 }
 
 func (scheme *Scheme) IsValid() bool {
@@ -187,40 +161,7 @@ func (scheme *Scheme) Patch(patch *SchemePatch) {
 	}
 }
 
-func (patch *SchemePatch) ToJson() string {
-	b, _ := json.Marshal(patch)
-	return string(b)
-}
-
-func SchemePatchFromJson(data io.Reader) *SchemePatch {
-	var patch *SchemePatch
-	json.NewDecoder(data).Decode(&patch)
-	return patch
-}
-
-func SchemeIDFromJson(data io.Reader) *string {
-	var p *SchemeIDPatch
-	json.NewDecoder(data).Decode(&p)
-	return p.SchemeID
-}
-
-func (p *SchemeIDPatch) ToJson() string {
-	b, _ := json.Marshal(p)
-	return string(b)
-}
-
 func IsValidSchemeName(name string) bool {
 	re := regexp.MustCompile(fmt.Sprintf("^[a-z0-9_]{2,%d}$", SchemeNameMaxLength))
 	return re.MatchString(name)
-}
-
-func (schemeRoles *SchemeRoles) ToJson() string {
-	b, _ := json.Marshal(schemeRoles)
-	return string(b)
-}
-
-func SchemeRolesFromJson(data io.Reader) *SchemeRoles {
-	var schemeRoles *SchemeRoles
-	json.NewDecoder(data).Decode(&schemeRoles)
-	return schemeRoles
 }

@@ -911,7 +911,7 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
 	require.Empty(t, data)
-	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
+	require.Equal(t, http.StatusNotModified, resp.StatusCode, "wrong status code for etag")
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {

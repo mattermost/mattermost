@@ -352,6 +352,7 @@ type ServiceSettings struct {
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
 	EnableSVGs                                        *bool `access:"site_posts"`
 	EnableLatex                                       *bool `access:"site_posts"`
+	EnableInlineLatex                                 *bool `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string // telemetry: none
@@ -734,6 +735,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			s.EnableLatex = NewBool(false)
 		}
+	}
+
+	if s.EnableInlineLatex == nil {
+		s.EnableInlineLatex = NewBool(true)
 	}
 
 	if s.EnableLocalMode == nil {
@@ -3034,7 +3039,7 @@ func (o *Config) Clone() *Config {
 	return &ret
 }
 
-func (o *Config) ToJsonFiltered(tagType, tagValue string) string {
+func (o *Config) ToJSONFiltered(tagType, tagValue string) ([]byte, error) {
 	filteredConfigMap := structToMapFilteredByTag(*o, tagType, tagValue)
 	for key, value := range filteredConfigMap {
 		v, ok := value.(map[string]interface{})
@@ -3042,8 +3047,7 @@ func (o *Config) ToJsonFiltered(tagType, tagValue string) string {
 			delete(filteredConfigMap, key)
 		}
 	}
-	b, _ := json.Marshal(filteredConfigMap)
-	return string(b)
+	return json.Marshal(filteredConfigMap)
 }
 
 func (o *Config) GetSSOService(service string) *SSOSettings {
@@ -3061,7 +3065,7 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	return nil
 }
 
-func ConfigFromJson(data io.Reader) *Config {
+func ConfigFromJSON(data io.Reader) *Config {
 	var o *Config
 	json.NewDecoder(data).Decode(&o)
 	return o
@@ -3543,6 +3547,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.ExperimentalGroupUnreadChannels != GroupUnreadChannelsDefaultOn &&
 		*s.ExperimentalGroupUnreadChannels != GroupUnreadChannelsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.CollapsedThreads != CollapsedThreadsDisabled && !*s.ThreadAutoFollow {
+		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.autofollow.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.CollapsedThreads != CollapsedThreadsDisabled &&

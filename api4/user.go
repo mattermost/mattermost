@@ -101,8 +101,8 @@ func (api *API) InitUser() {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	user := model.UserFromJson(r.Body)
-	if user == nil {
+	var user model.User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -147,14 +147,14 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		ruser, err = c.App.CreateUserWithToken(c.AppContext, user, token)
+		ruser, err = c.App.CreateUserWithToken(c.AppContext, &user, token)
 	} else if inviteId != "" {
-		ruser, err = c.App.CreateUserWithInviteId(c.AppContext, user, inviteId, redirect)
+		ruser, err = c.App.CreateUserWithInviteId(c.AppContext, &user, inviteId, redirect)
 	} else if c.IsSystemAdmin() {
-		ruser, err = c.App.CreateUserAsAdmin(c.AppContext, user, redirect)
+		ruser, err = c.App.CreateUserAsAdmin(c.AppContext, &user, redirect)
 		auditRec.AddMeta("admin", true)
 	} else {
-		ruser, err = c.App.CreateUserFromSignup(c.AppContext, user, redirect)
+		ruser, err = c.App.CreateUserFromSignup(c.AppContext, &user, redirect)
 	}
 
 	if err != nil {
@@ -623,7 +623,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	channelIds := model.ArrayFromJson(r.Body)
+	channelIds := model.ArrayFromJSON(r.Body)
 
 	if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
@@ -829,11 +829,18 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
-	w.Write([]byte(model.UserListToJson(profiles)))
+
+	js, jsonErr := json.Marshal(profiles)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -868,11 +875,17 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UserListToJson(users)))
+	js, jsonErr := json.Marshal(users)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUsersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	usernames := model.ArrayFromJson(r.Body)
+	usernames := model.ArrayFromJSON(r.Body)
 
 	if len(usernames) == 0 {
 		c.SetInvalidParam("usernames")
@@ -891,7 +904,13 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UserListToJson(users)))
+	js, jsonErr := json.Marshal(users)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUsersByNames", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -907,10 +926,14 @@ func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.UserSearchFromJson(r.Body)
-	if props == nil {
+	var props model.UserSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
 		c.SetInvalidParam("")
 		return
+	}
+
+	if props.Limit == 0 {
+		props.Limit = model.UserSearchDefaultLimit
 	}
 
 	if props.Term == "" {
@@ -985,13 +1008,19 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profiles, err := c.App.SearchUsers(props, options)
+	profiles, err := c.App.SearchUsers(&props, options)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(model.UserListToJson(profiles)))
+	js, jsonErr := json.Marshal(profiles)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1091,8 +1120,8 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := model.UserFromJson(r.Body)
-	if user == nil {
+	var user model.User
+	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -1150,7 +1179,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.UpdateUserAsUser(user, c.IsSystemAdmin())
+	ruser, err := c.App.UpdateUserAsUser(&user, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1171,8 +1200,8 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch := model.UserPatchFromJson(r.Body)
-	if patch == nil {
+	var patch model.UserPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -1206,7 +1235,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	conflictField := c.App.CheckProviderAttributes(ouser, patch)
+	conflictField := c.App.CheckProviderAttributes(ouser, &patch)
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
@@ -1227,7 +1256,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.PatchUser(c.Params.UserId, patch, c.IsSystemAdmin())
+	ruser, err := c.App.PatchUser(c.Params.UserId, &patch, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1303,7 +1332,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
 	if !model.IsValidUserRoles(newRoles) {
@@ -1351,7 +1380,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 
 	active, ok := props["active"].(bool)
 	if !ok {
@@ -1450,8 +1479,8 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateUserAuth", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	userAuth := model.UserAuthFromJson(r.Body)
-	if userAuth == nil {
+	var userAuth model.UserAuth
+	if jsonErr := json.NewDecoder(r.Body).Decode(&userAuth); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -1465,7 +1494,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	user, err := c.App.UpdateUserAuth(c.Params.UserId, userAuth)
+	user, err := c.App.UpdateUserAuth(c.Params.UserId, &userAuth)
 	if err != nil {
 		c.Err = err
 		return
@@ -1504,7 +1533,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("user", user)
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	activate, ok := props["activate"].(bool)
 	if !ok {
 		c.SetInvalidParam("activate")
@@ -1571,7 +1600,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	newPassword := props["new_password"]
 
 	auditRec := c.MakeAuditRecord("updatePassword", audit.Fail)
@@ -1630,7 +1659,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	token := props["token"]
 	if len(token) != model.TokenSize {
@@ -1658,7 +1687,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	email := props["email"]
 	email = strings.ToLower(email)
@@ -1747,7 +1776,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, "", http.StatusUnauthorized)
 	}()
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
@@ -1917,7 +1946,12 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		session.Sanitize()
 	}
 
-	w.Write([]byte(model.SessionsToJson(sessions)))
+	js, jsonErr := json.Marshal(sessions)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getSessions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1934,7 +1968,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	sessionId := props["session_id"]
 	if sessionId == "" {
 		c.SetInvalidParam("session_id")
@@ -2011,7 +2045,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	deviceId := props["device_id"]
 	if deviceId == "" {
@@ -2100,7 +2134,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	token := props["token"]
 	if len(token) != model.TokenSize {
@@ -2123,7 +2157,7 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	email := props["email"]
 	email = strings.ToLower(email)
@@ -2157,8 +2191,8 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
-	switchRequest := model.SwitchRequestFromJson(r.Body)
-	if switchRequest == nil {
+	var switchRequest model.SwitchRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&switchRequest); jsonErr != nil {
 		c.SetInvalidParam("switch_request")
 		return
 	}
@@ -2198,7 +2232,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
+	w.Write([]byte(model.MapToJSON(map[string]string{"follow_link": link})))
 }
 
 func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2220,8 +2254,8 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken := model.UserAccessTokenFromJson(r.Body)
-	if accessToken == nil {
+	var accessToken model.UserAccessToken
+	if jsonErr := json.NewDecoder(r.Body).Decode(&accessToken); jsonErr != nil {
 		c.SetInvalidParam("user_access_token")
 		return
 	}
@@ -2246,17 +2280,17 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	accessToken.UserId = c.Params.UserId
 	accessToken.Token = ""
 
-	accessToken, err := c.App.CreateUserAccessToken(accessToken)
+	token, err := c.App.CreateUserAccessToken(&accessToken)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("token_id", accessToken.Id)
-	c.LogAudit("success - token_id=" + accessToken.Id)
+	auditRec.AddMeta("token_id", token.Id)
+	c.LogAudit("success - token_id=" + token.Id)
 
-	if err := json.NewEncoder(w).Encode(accessToken); err != nil {
+	if err := json.NewEncoder(w).Encode(token); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -2266,8 +2300,9 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
-	props := model.UserAccessTokenSearchFromJson(r.Body)
-	if props == nil {
+
+	var props model.UserAccessTokenSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
 		c.SetInvalidParam("user_access_token_search")
 		return
 	}
@@ -2283,7 +2318,13 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(model.UserAccessTokenListToJson(accessTokens)))
+	js, jsonErr := json.Marshal(accessTokens)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2298,7 +2339,13 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UserAccessTokenListToJson(accessTokens)))
+	js, jsonErr := json.Marshal(accessTokens)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2323,7 +2370,13 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write([]byte(model.UserAccessTokenListToJson(accessTokens)))
+	js, jsonErr := json.Marshal(accessTokens)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2354,7 +2407,7 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	tokenId := props["token_id"]
 	if tokenId == "" {
@@ -2398,7 +2451,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	tokenId := props["token_id"]
 
 	if tokenId == "" {
@@ -2443,7 +2496,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	tokenId := props["token_id"]
 	if tokenId == "" {
@@ -2488,7 +2541,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 
 	userId := c.AppContext.Session().UserId
 	termsOfServiceId, ok := props["termsOfServiceId"].(string)
@@ -2631,8 +2684,8 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	typingRequest := model.TypingRequestFromJson(r.Body)
-	if typingRequest == nil {
+	var typingRequest model.TypingRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&typingRequest); jsonErr != nil {
 		c.SetInvalidParam("typing_request")
 		return
 	}
@@ -2716,10 +2769,17 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.Success()
 	auditRec.AddMeta("convertedTo", bot)
 
-	w.Write(bot.ToJson())
+	js, jsonErr := json.Marshal(bot)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("convertUserToBot", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+
+	w.Write(js)
 }
 
 func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2739,11 +2799,16 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.UploadSessionsToJson(uss)))
+	js, jsonErr := json.Marshal(uss)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUploadsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
@@ -2802,7 +2867,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
@@ -2823,7 +2888,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("matches")
 		return
 	}
-	usersMap := model.MapFromJson(strings.NewReader(model.StringInterfaceToJson(matches)))
+	usersMap := model.MapFromJSON(strings.NewReader(model.StringInterfaceToJSON(matches)))
 
 	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -2904,7 +2969,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		Since:    0,
 		Before:   "",
 		After:    "",
-		PageSize: 30,
+		PageSize: uint64(c.Params.PerPage),
 		Unread:   false,
 		Extended: false,
 		Deleted:  false,
@@ -2926,15 +2991,6 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if options.Before != "" && options.After != "" {
 		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
 		return
-	}
-	pageSizeString := r.URL.Query().Get("pageSize")
-	if pageSizeString != "" {
-		pageSize, parseError := strconv.ParseUint(pageSizeString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("pageSize")
-			return
-		}
-		options.PageSize = pageSize
 	}
 
 	deletedStr := r.URL.Query().Get("deleted")
