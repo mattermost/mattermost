@@ -62,6 +62,7 @@ jobs:
     steps:
       - checkout
       - run: |
+          cd ../
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mmctl.git
           cd mmctl
           git checkout $CIRCLE_BRANCH || git checkout master
@@ -70,7 +71,7 @@ jobs:
       - persist_to_workspace:
           root: ~/mattermost
           paths:
-            - mmctl
+            - mmctl/build
 
   check-deps:
     parameters:
