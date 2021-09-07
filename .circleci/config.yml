@@ -49,11 +49,18 @@ jobs:
             npm ci && make build
           fi
           cd -
+
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mmctl.git
+          cd mmctl
+          git checkout $CIRCLE_BRANCH || git checkout master
+          make package
+          cd -
       - persist_to_workspace:
           root: ~/mattermost
           paths:
             - mattermost-webapp
             - mattermost-server
+            - mmctl
 
   check-deps:
     parameters:
