@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"strings"
 )
 
@@ -397,39 +395,6 @@ type RolePatch struct {
 type RolePermissions struct {
 	RoleID      string
 	Permissions []string
-}
-
-func (r *Role) ToJson() string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func RoleFromJson(data io.Reader) *Role {
-	var r *Role
-	json.NewDecoder(data).Decode(&r)
-	return r
-}
-
-func RoleListToJson(r []*Role) string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func RoleListFromJson(data io.Reader) []*Role {
-	var roles []*Role
-	json.NewDecoder(data).Decode(&roles)
-	return roles
-}
-
-func (r *RolePatch) ToJson() string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func RolePatchFromJson(data io.Reader) *RolePatch {
-	var rolePatch *RolePatch
-	json.NewDecoder(data).Decode(&rolePatch)
-	return rolePatch
 }
 
 func (r *Role) Patch(patch *RolePatch) {

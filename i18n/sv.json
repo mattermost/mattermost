@@ -65,7 +65,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -81,7 +81,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6049,7 +6049,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "rangeringsfel"
+    "translation": "Misslyckades att arrangera."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -9197,5 +9197,21 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " kommenterade i en tråd du följer."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow måste aktiveras för att CollapsedThreads ska vara tillgängligt"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Misslyckades med att ladda om konfigurationen."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Misslyckades att arrangera posten."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Misslyckades att återskapa."
   }
 ]

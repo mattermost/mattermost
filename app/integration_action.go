@@ -242,7 +242,11 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		}
 		return "", nil
 	}
-	resp, appErr = a.DoActionRequest(c, upstreamURL, upstreamRequest.ToJson())
+	requestJSON, jsonErr := json.Marshal(upstreamRequest)
+	if jsonErr != nil {
+		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	resp, appErr = a.DoActionRequest(c, upstreamURL, requestJSON)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -530,7 +534,7 @@ type MailToLinkContent struct {
 	MailBody      string `json:"mail_body"`
 }
 
-func (mlc *MailToLinkContent) ToJson() string {
+func (mlc *MailToLinkContent) ToJSON() string {
 	b, _ := json.Marshal(mlc)
 	return string(b)
 }
@@ -569,7 +573,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 		MailBody:      mailBody,
 	}
 
-	return mailToLinkContent.ToJson()
+	return mailToLinkContent.ToJSON()
 }
 
 func (a *App) DoLocalRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {

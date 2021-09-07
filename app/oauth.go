@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -582,7 +582,7 @@ func (a *App) LoginByOAuth(c *request.Context, service string, userData io.Reade
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	authUser, err1 := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()), tokenUser)
+	authUser, err1 := provider.GetUserFromJSON(bytes.NewReader(buf.Bytes()), tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
@@ -633,7 +633,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.blank_email.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	ssoUser, err1 := provider.GetUserFromJson(userData, tokenUser)
+	ssoUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
@@ -744,7 +744,7 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	}
 
 	props["token"] = stateToken.Token
-	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
+	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJSON(props)))
 
 	siteURL := a.GetSiteURL()
 	if strings.TrimSpace(siteURL) == "" {
@@ -783,7 +783,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	}
 
 	stateStr := string(b)
-	stateProps := model.MapFromJson(strings.NewReader(stateStr))
+	stateProps := model.MapFromJSON(strings.NewReader(stateStr))
 
 	expectedToken, appErr := a.GetOAuthStateToken(stateProps["token"])
 	if appErr != nil {

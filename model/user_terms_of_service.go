@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -32,23 +30,12 @@ func (ut *UserTermsOfService) IsValid() *AppError {
 	return nil
 }
 
-func (ut *UserTermsOfService) ToJson() string {
-	b, _ := json.Marshal(ut)
-	return string(b)
-}
-
 func (ut *UserTermsOfService) PreSave() {
 	if ut.UserId == "" {
 		ut.UserId = NewId()
 	}
 
 	ut.CreateAt = GetMillis()
-}
-
-func UserTermsOfServiceFromJson(data io.Reader) *UserTermsOfService {
-	var userTermsOfService *UserTermsOfService
-	json.NewDecoder(data).Decode(&userTermsOfService)
-	return userTermsOfService
 }
 
 func InvalidUserTermsOfServiceError(fieldName string, userTermsOfServiceId string) *AppError {

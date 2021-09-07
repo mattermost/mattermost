@@ -1338,10 +1338,11 @@ func TestConfigToJSONFiltered(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
 
-	jsonCfgFiltered := c.ToJsonFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	jsonCfgFiltered, err := c.ToJSONFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	require.NoError(t, err)
 
 	unmarshaledCfg := make(map[string]json.RawMessage)
-	err := json.Unmarshal([]byte(jsonCfgFiltered), &unmarshaledCfg)
+	err = json.Unmarshal(jsonCfgFiltered, &unmarshaledCfg)
 	require.NoError(t, err)
 
 	_, ok := unmarshaledCfg["SqlSettings"]
@@ -1466,4 +1467,30 @@ func TestConfigExportSettingsIsValid(t *testing.T) {
 	err = cfg.ExportSettings.isValid()
 	require.NotNil(t, err)
 	require.Equal(t, "model.config.is_valid.export.retention_days_too_low.app_error", err.Id)
+}
+
+func TestConfigServiceSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDisabled
+	err = cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.ThreadAutoFollow = false
+	err = cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOff
+	err = cfg.ServiceSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
+
+	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOn
+	err = cfg.ServiceSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
 }

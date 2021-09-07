@@ -6,17 +6,19 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	mocks2 "github.com/mattermost/mattermost-server/v6/utils/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetOldClientLicense(t *testing.T) {
@@ -219,8 +221,36 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
-		t.Skip("MM-36695")
-		resp, err := th.SystemAdminClient.RequestTrialLicense(1)
+		nUsers := 1
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewInt(nUsers)
+		licenseJSON, jsonErr := json.Marshal(license)
+		require.NoError(t, jsonErr)
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			response := map[string]string{
+				"license": string(licenseJSON),
+			}
+			err := json.NewEncoder(res).Encode(response)
+			require.NoError(t, err)
+		}))
+		defer testServer.Close()
+
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		utils.LicenseValidator = &mockLicenseValidator
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().LicenseManager = licenseManagerMock
+
+		defer func(requestTrialURL string) {
+			app.RequestTrialURL = requestTrialURL
+		}(app.RequestTrialURL)
+		app.RequestTrialURL = testServer.URL
+
+		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		CheckErrorID(t, err, "api.license.add_license.unique_users.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
