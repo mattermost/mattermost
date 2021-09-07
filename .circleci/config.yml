@@ -14,7 +14,7 @@ executors:
       COMPOSE_PROJECT_NAME: "circleci"
 
 jobs:
-  setup:
+  setup-webapp:
     working_directory: ~/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:20210524_node-16
@@ -49,7 +49,19 @@ jobs:
             npm ci && make build
           fi
           cd -
+      - persist_to_workspace:
+          root: ~/mattermost
+          paths:
+            - mattermost-webapp
+            - mattermost-server
 
+  setup-mmctl:
+    working_directory: ~/mattermost/mattermost-server
+    docker:
+      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+    steps:
+      - checkout
+      - run: |
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mmctl.git
           cd mmctl
           git checkout $CIRCLE_BRANCH || git checkout master
@@ -58,8 +70,6 @@ jobs:
       - persist_to_workspace:
           root: ~/mattermost
           paths:
-            - mattermost-webapp
-            - mattermost-server
             - mmctl
 
   check-deps:
@@ -469,21 +479,22 @@ workflows:
   version: 2
   untagged-build:
     jobs:
-      - setup:
+      - setup-webapp:
           filters:
             branches:
               ignore:
                 - master
                 - /^release-.*/
-      # Disabling check-deps since the new version is not on bintray and all builds will fail
-      # we've are on top of this, and it's going to be temporary.
-      #- check-deps:
-      #     context: sast-webhook
-      #    requires:
-      #      - setup
+      - setup-mmctl:
+          filters:
+            branches:
+              ignore:
+                - master
+                - /^release-.*/
       # - check-i18n:
       #     requires:
-      #       - setup
+      #       - setup-webapp
+      #       - setup-mmctl
       - check-golangci-lint:
           filters:
             branches:
@@ -492,22 +503,28 @@ workflows:
                 - /^release-.*/
       - check-app-layers:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - check-store-layers:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - check-mocks:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - check-migrations:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - check-mattermost-vet:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - build-api-spec:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - build:
           requires:
             - check-app-layers
@@ -558,22 +575,24 @@ workflows:
 
   release-build:
     jobs:
-      - setup:
+      - setup-webapp:
           filters:
             branches:
               only:
                 - master
                 - /^release-.*/
                 - cloud
-      # Disabling check-deps since the new version is not on bintray and all builds will fail
-      # we've are on top of this, and it's going to be temporary.
-      #- check-deps:
-      #    context: sast-webhook
-      #    requires:
-      #      - setup
+      - setup-mmctl:
+          filters:
+            branches:
+              only:
+                - master
+                - /^release-.*/
+                - cloud
       # - check-i18n:
       #     requires:
-      #       - setup
+      #       - setup-webapp
+      #       - setup-mmctl
       - check-golangci-lint:
           filters:
             branches:
@@ -583,22 +602,28 @@ workflows:
                 - cloud
       - check-app-layers:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - check-store-layers:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - build-api-spec:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - check-mocks:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - check-migrations:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - check-mattermost-vet:
           requires:
-            - setup
+            - setup-webapp
+            - setup-mmctl
       - sentry:
           context: matterbuild-sentry
           requires:
