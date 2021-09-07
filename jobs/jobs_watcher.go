@@ -199,7 +199,12 @@ func (watcher *Watcher) PollAndNotify() {
 				}
 			}
 		} else if job.Type == model.JobTypeFixChannelUnreadsForCRT {
-			// TODO FIX ME
+			if watcher.workers.FixCRTChannelUnreads != nil {
+				select {
+				case watcher.workers.FixCRTChannelUnreads.JobChannel() <- *job:
+				default:
+				}
+			}
 		}
 	}
 }

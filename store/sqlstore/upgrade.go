@@ -1301,17 +1301,43 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
 
-	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
-
-	sqlStore.CreateColumnIfNotExists("ChannelMembers", "CRTFixesDone", "tinyint(1)", "boolean", "0")
+	// sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
+	// sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
+	// sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+	// sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+	// sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
+	// sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
+	// sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
+	// sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+	// sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+	fixCRTChannelCountsAndUnreadsUpdateColumn(sqlStore)
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
+}
+
+func fixCRTChannelCountsAndUnreadsUpdateColumn(sqlStore *SqlStore) {
+	created := sqlStore.CreateColumnIfNotExists("ChannelMembers", "CRTFixDone", "tinyint(1)", "boolean", "1")
+	if !created {
+		return
+	}
+
+	setFalseForUnreadChannels := `
+		UPDATE ChannelMembers
+		SET CRTFixDone=false
+		FROM Channels
+		WHERE Channels.Id = ChannelMembers.ChannelId AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot;
+	`
+
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
+		setFalseForUnreadChannels = `
+			UPDATE ChannelMembers
+			INNER JOIN Channels on Channels.Id = ChannelMembers.ChannelId
+			SET CRTFixDone=false
+			WHERE Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot;
+		`
+	}
+
+	if _, err := sqlStore.GetMaster().ExecNoTimeout(setFalseForUnreadChannels); err != nil {
+		mlog.Error("Error setting CRTFixDone column values", mlog.Err(err))
+	}
 }

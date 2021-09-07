@@ -33,6 +33,7 @@ type Workers struct {
 	Cloud                    model.Worker
 	ResendInvitationEmail    model.Worker
 	ExtractContent           model.Worker
+	FixCRTChannelUnreads     model.Worker
 
 	listenerId string
 	running    bool
@@ -129,6 +130,10 @@ func (srv *JobServer) InitWorkers() error {
 		workers.ExtractContent = extractContentInterface.MakeWorker()
 	}
 
+	if fixCRTChannelUnreads := srv.FixCRTChannelUnreads; fixCRTChannelUnreads != nil {
+		workers.FixCRTChannelUnreads = fixCRTChannelUnreads.MakeWorker()
+	}
+
 	srv.workers = workers
 
 	return nil
@@ -209,6 +214,10 @@ func (workers *Workers) Start() {
 
 	if workers.ExtractContent != nil {
 		go workers.ExtractContent.Run()
+	}
+
+	if workers.FixCRTChannelUnreads != nil {
+		go workers.FixCRTChannelUnreads.Run()
 	}
 
 	go workers.Watcher.Start()
@@ -346,6 +355,10 @@ func (workers *Workers) Stop() {
 
 	if workers.ExtractContent != nil {
 		workers.ExtractContent.Stop()
+	}
+
+	if workers.FixCRTChannelUnreads != nil {
+		workers.FixCRTChannelUnreads.Stop()
 	}
 
 	workers.running = false

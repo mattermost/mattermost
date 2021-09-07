@@ -8,14 +8,15 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type Scheduler struct {
 	App *app.App
 }
 
-func (ji *FixCRTChannelUnreadsJobInterfaceImpl) MakeScheduler() model.Scheduler {
-	return &Scheduler{ji.App}
+func (i *FixCRTChannelUnreadsJobInterfaceImpl) MakeScheduler() model.Scheduler {
+	return &Scheduler{i.App}
 }
 
 func (s *Scheduler) Name() string {
@@ -34,18 +35,27 @@ func (s *Scheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (s *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-	nextTime := time.Now().Add(30 * time.Minute)
+	nextTime := time.Now().Add(1 * time.Minute)
 
-	// if we have don't have pending jobs then schedule earlier
-	if !pendingJobs {
-		nextTime = time.Now().Add(5 * time.Minute)
+	runningJobs, err := s.App.Srv().Store.Job().GetCountByStatusAndType(model.JobStatusInProgress, s.JobType())
+	if err != nil {
+		mlog.Error("Failed to get running jobs", mlog.Err(err))
+		runningJobs = 1
+	}
+	// if we have have pending or running jobs then schedule later
+	if pendingJobs || runningJobs > 0 {
+		nextTime = time.Now().Add(30 * time.Minute)
 	}
 	return &nextTime
 }
 
 func (s *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
-	// if we have pending jobs then don't create a job
-	if pendingJobs {
+	// if we have pending or running jobs then don't create a job
+	runningJobs, sErr := s.App.Srv().Store.Job().GetCountByStatusAndType(model.JobStatusInProgress, s.JobType())
+	if sErr != nil {
+		mlog.Error("Failed to get running jobs", mlog.Err(sErr))
+	}
+	if pendingJobs || runningJobs > 0 {
 		return nil, nil
 	}
 

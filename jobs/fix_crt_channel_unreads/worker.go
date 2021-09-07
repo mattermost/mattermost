@@ -101,6 +101,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 	updatedInThisRun := 0
 	fixedBadCM := 0
 	migrationDone := false
+	var progress int64
 	for {
 		cms, sErr := w.app.Srv().Store.Channel().GetCRTUnfixedChannelMembershipsAfter(userID, channelID, 100)
 		if sErr != nil {
@@ -114,9 +115,15 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 				mlog.String("error", sErr.Error()))
 			continue
 		}
+		if len(cms) == 0 {
+			migrationDone = true
+			break
+		}
 		lastCM := cms[len(cms)-1]
 		userID = lastCM.UserId
 		channelID = lastCM.ChannelId
+		progress += int64(len(cms))
+		w.setJobProgress(job, progress)
 
 		markAsFixed := make([]model.ChannelMember, 0, len(cms))
 
@@ -197,6 +204,12 @@ func (w *FixCRTChannelUnreadsWorker) setJobError(job *model.Job, appError *model
 func (w *FixCRTChannelUnreadsWorker) updateData(job *model.Job) {
 	if err := w.app.Srv().Jobs.UpdateInProgressJobData(job); err != nil {
 		mlog.Error("Worker: Failed to update job data", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+	}
+}
+
+func (w *FixCRTChannelUnreadsWorker) setJobProgress(job *model.Job, progress int64) {
+	if err := w.app.Srv().Jobs.SetJobProgress(job, progress); err != nil {
+		mlog.Error("Worker: Failed to update job progress", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }
 

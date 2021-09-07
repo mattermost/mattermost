@@ -3446,7 +3446,7 @@ func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID 
 	getUnfixedCMQuery := `
 			SELECT *
 			FROM ChannelMembers
-			WHERE (ChannelId, UserId) > (:channelId, :userId) AND CRTFixesDone = false
+			WHERE (ChannelId, UserId) > (:channelId, :userId) AND CRTFixDone = false
 			ORDER BY ChannelId, UserId
 			LIMIT :count;
 	`
@@ -3454,14 +3454,14 @@ func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID 
 		getUnfixedCMQuery = `
 			SELECT *
 			FROM ChannelMembers
-			CRTFixesDone = false
+			WHERE CRTFixDone = false
 			ORDER BY ChannelId, UserId
 			LIMIT :count;
 		`
 	}
 	var cms []model.ChannelMember
 
-	if _, err := s.GetReplica().Select(&cms, getUnfixedCMQuery, map[string]interface{}{"ChannelId": channelID, "UserId": userID, "count": count}); err != nil {
+	if _, err := s.GetReplica().Select(&cms, getUnfixedCMQuery, map[string]interface{}{"channelId": channelID, "userId": userID, "count": count}); err != nil {
 		return nil, errors.Wrapf(err, "failed to %d ChannelMembers after channelId=%q and userId=%q", count, channelID, userID)
 	}
 	return cms, nil

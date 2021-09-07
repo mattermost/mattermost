@@ -39,4 +39,7 @@ import (
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
 	_ "github.com/mattermost/mattermost-server/v6/jobs/extract_content"
+
+	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
+	_ "github.com/mattermost/mattermost-server/v6/jobs/fix_crt_channel_unreads"
 )
