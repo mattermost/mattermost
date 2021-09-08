@@ -542,11 +542,11 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = appErr
 				return
 			}
-      msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
-      if appError != nil {
-        c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
-        return
-      }
+			msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
+			if appError != nil {
+				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
+				return
+			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				mlog.Warn("Error while writing response", mlog.Err(err2))
 			}
