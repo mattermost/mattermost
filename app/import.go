@@ -169,6 +169,10 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 		}
 
+		if importPath != "" {
+			rewriteFilePaths(&line, importPath)
+		}
+
 		if len(attachedFiles) > 0 && line.Post != nil && line.Post.Attachments != nil {
 			for i, attachment := range *line.Post.Attachments {
 				var ok bool
@@ -177,10 +181,6 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 					return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, fmt.Sprintf("attachment '%s' not found in map", path), http.StatusBadRequest), lineNumber
 				}
 			}
-		}
-
-		if importPath != "" {
-			rewriteFilePaths(&line, importPath)
 		}
 
 		if lineNumber == 1 {
