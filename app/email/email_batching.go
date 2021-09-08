@@ -206,20 +206,6 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 	}
 }
 
-func (es *Service) CountAdditionalBatchEmailSenders(notifications []*batchedNotification) int {
-	if len(notifications) == 0 {
-		return 0
-	}
-	count := 0
-	firstSenderId := notifications[0].post.UserId
-	for i := range notifications {
-		if notifications[i].post.UserId != firstSenderId {
-			count++
-		}
-	}
-	return count
-}
-
 /**
 * If the name is longer than i characters, replace remaining characters with ...
  */
@@ -245,7 +231,6 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 	postsData := make([]*postData, 0 /* len */, len(notifications) /* cap */)
 	embeddedFiles := make(map[string]io.Reader)
-	otherSendersCount := es.CountAdditionalBatchEmailSenders(notifications)
 
 	emailNotificationContentsType := model.EmailNotificationContentsFull
 	if license := es.license(); license != nil && *license.Features.EmailNotificationContents {
@@ -308,33 +293,9 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		"Day":      tm.Day(),
 	})
 
-	firstSender, err := es.userService.GetUser(notifications[0].post.UserId)
-	if err != nil {
-		mlog.Warn("Unable to find sender of post for batched email notification")
-	}
-
-	firstSenderDisplayName := firstSender.GetDisplayName(displayNameFormat)
-
-	title := translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications), map[string]interface{}{
-		"SenderName": firstSenderDisplayName,
-	})
-
-	if otherSendersCount == 1 {
-		title = translateFunc("api.email_batching.send_batched_email_notification.title_one_other", map[string]interface{}{
-			"SenderName": firstSenderDisplayName,
-		})
-	}
-
-	if otherSendersCount > 1 {
-		title = translateFunc("api.email_batching.send_batched_email_notification.title_others", map[string]interface{}{
-			"SenderName": firstSenderDisplayName,
-			"Count":      otherSendersCount,
-		})
-	}
-
 	data := es.NewEmailTemplateData(user.Locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = title
+	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title")
 	data.Props["SubTitle"] = translateFunc("api.email_batching.send_batched_email_notification.subTitle")
 	data.Props["Button"] = translateFunc("api.email_batching.send_batched_email_notification.button")
 	data.Props["ButtonURL"] = siteURL
