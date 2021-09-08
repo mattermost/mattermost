@@ -12,8 +12,16 @@ type Sugar struct {
 func (s Sugar) sugarLog(lvl Level, msg string, args ...interface{}) {
 	if s.logger.IsLevelEnabled(lvl) {
 		fields := make([]Field, 0, len(args))
-		for _, arg := range args {
-			fields = append(fields, Any("", arg))
+		for i := 0; i < len(args); i += 2 {
+			if i+1 >= len(args) {
+				break
+			}
+			key, ok := args[i].(string)
+			if !ok {
+				break
+			}
+			value := args[i+1]
+			fields = append(fields, Any(key, value))
 		}
 		s.logger.Log(lvl, msg, fields...)
 	}
