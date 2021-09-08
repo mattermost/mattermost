@@ -4863,6 +4863,10 @@
     "translation": "JSON decode of line failed."
   },
   {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Error while processing bulk import attachments."
+  },
+  {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
