@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "schikkingsfout"
+    "translation": "Fout bij marshal"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -4817,7 +4817,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4825,7 +4825,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 60+"
+    "translation": "Versie 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4833,7 +4833,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 61+"
+    "translation": "Versie 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9185,5 +9185,33 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " commentaar gegeven op een draadje dat je volgt."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow moet waar zijn om CollapsedThreads in te schakelen"
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} antwoordde op een draadje"
+  },
+  {
+    "id": "app.notification.body.thread.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Reageer op draadje"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Fout bij het herladen van de configuratie."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Fout bij marshallen van bericht."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Fout bij unmarshaling."
   }
 ]

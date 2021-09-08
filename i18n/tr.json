@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "sıralama sorunu"
+    "translation": "Sıraya sokulamadı."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -2365,7 +2365,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "JSON verileri dışa aktarılmak için sıralanırken bir sorun çıktı."
+    "translation": "JSON verileri dışa aktarılmak için sıraya getirilirken bir sorun çıktı."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2381,7 +2381,7 @@
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
-    "translation": "JSON satırın kodunu çözemedi."
+    "translation": "JSON satırın kodu çözülemedi."
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
@@ -2397,7 +2397,7 @@
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": "Kanal, Kanal Kapsamlı bir şemaya atanmış olmalıdır."
+    "translation": "Kanal, kanal kapsamlı bir şemaya atanmış olmalıdır."
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
@@ -2429,11 +2429,11 @@
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": "İçe aktarılan veri satırı \"channel\" türünde ancak kanal nesnesi null."
+    "translation": "İçe aktarılan veri satırı \"direct_channel\" türünde ancak kanal nesnesi null."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": "İçe aktarılan veri satırı \"post\" türünde ancak ileti nesnesi null."
+    "translation": "İçe aktarılan veri satırı \"direct_post\" türünde ancak ileti nesnesi null."
   },
   {
     "id": "app.import.import_line.null_emoji.error",
@@ -2481,7 +2481,7 @@
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": "Takım, Takım Kapsamlı bir şemaya atanmış olmalıdır."
+    "translation": "Takım, takım kapsamlı bir şemaya atanmış olmalıdır."
   },
   {
     "id": "app.import.import_user.save_preferences.error",
@@ -2501,7 +2501,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: goruntulenecek_ad"
+    "translation": "Zorunlu kanal özelliği eksik: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -2593,7 +2593,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Zorunlu doğrudan ileti özelliği eksik: kullanıcı"
+    "translation": "Zorunlu doğrudan ileti özelliği eksik: kullanici"
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
@@ -2617,7 +2617,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "İleti Eklenme Zamanı özelliği sıfır olamaz."
+    "translation": "İleti eklenme zamanı özelliği sıfır olamaz."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -2637,7 +2637,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Tepki Eklenme Zamanı özelliği üst iletinin Eklenme Zamanından sonra olmalıdır."
+    "translation": "Tepki eklenme zamanı özelliği üst iletinin eklenme zamanından sonra olmalıdır."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
@@ -2645,7 +2645,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "Tepki Eklenme Zamanı özelliği sıfır olamaz."
+    "translation": "Tepki eklenme zamanı özelliği sıfır olamaz."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
@@ -2657,11 +2657,11 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "Zorunlu tepki özelliği eksik: kullanici."
+    "translation": "Zorunlu tepki özelliği eksik: Kullanıcı."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Yanıt Oluşturulma Zamanı özelliği üst iletinin Oluşturulma Zamanından sonra olmalıdır."
+    "translation": "Yanıt oluşturulma zamanı özelliği üst iletinin oluşturulma zamanından sonra olmalıdır."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -2669,7 +2669,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": "Yanıt Eklenme Zamanı özelliği sıfır olamaz."
+    "translation": "Yanıt eklenme zamanı özelliği sıfır olamaz."
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
@@ -2681,7 +2681,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "Zorunlu yanıt özelliği eksik: kullanici."
+    "translation": "Zorunlu yanıt özelliği eksik: Kullanıcı."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
@@ -2765,31 +2765,31 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
-    "translation": "Kullanıcının Kanal Üyeliğinde kanal adı eksik."
+    "translation": "Kullanıcının kanal üyeliğinde kanal adı eksik."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Kullanıcının Kanal Üyeliğinde masaüstü bildirim özellikleri geçersiz."
+    "translation": "Kullanıcının kanal üyeliğinde masaüstü bildirim özellikleri geçersiz."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": "Kullanıcının Kanal Üyeliğinde okunmamış olarak işaretle bildirim özellikleri geçersiz."
+    "translation": "Kullanıcının kanal üyeliğinde okunmamış olarak işaretle bildirim özellikleri geçersiz."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
-    "translation": "Kullanıcının Kanal Üyeliğinde cep telefonu bildirim özellikleri geçersiz."
+    "translation": "Kullanıcının kanal üyeliğinde cep telefonu bildirim özellikleri geçersiz."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "Kullanıcının Kanal Üyeliğindeki roller geçersiz."
+    "translation": "Kullanıcının kanal üyeliğindeki roller geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "Kullanıcı Kimlik Doğrulama Verileri ile Parola eşleşmiyor."
+    "translation": "Kullanıcı kimlik doğrulama verileri ile parola eşleşmiyor."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
-    "translation": "Kullanıcı Kimlik Doğrulama Verileri çok uzun."
+    "translation": "Kullanıcı kimlik doğrulama verileri çok uzun."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
@@ -2801,15 +2801,15 @@
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
-    "translation": "Kullanıcının Adı çok uzun."
+    "translation": "Kullanıcının adı çok uzun."
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
-    "translation": "Kullanıcının Soyadı çok uzun."
+    "translation": "Kullanıcının soyadı çok uzun."
   },
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
-    "translation": "Kullanıcının Takma Adı çok uzun."
+    "translation": "Kullanıcının takma adı çok uzun."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
@@ -4809,7 +4809,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "Kullanıcı AuthService ve AuthData karşılıklı birbirini kapsıyor."
+    "translation": "Kullanıcı kimlik doğrulama hizmeti ve kimlik doğrulama verileri karşılıklı birbirini kapsıyor."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
@@ -5901,7 +5901,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 61+"
+    "translation": "Sürüm 89+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -5909,7 +5909,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 60+"
+    "translation": "Sürüm 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5917,7 +5917,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -9197,5 +9197,21 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " izlediğiniz bir konuya yorum yaptı."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "CollapsedThreads seçeneğini etkinleştirmek için ThreadAutoFollow seçeneği true olmalıdır"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Yapılandırma yeniden yüklenemedi."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "İleti sıraya sokulamadı."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Sıra dağıtılamadı."
   }
 ]

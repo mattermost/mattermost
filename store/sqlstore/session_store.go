@@ -251,7 +251,7 @@ func (me SqlSessionStore) UpdateProps(session *model.Session) error {
 	_, err := me.GetMaster().Exec(`UPDATE Sessions
 		SET Props=:Props
 		WHERE Id=:Id`, map[string]interface{}{
-		"Props": model.MapToJson(session.Props),
+		"Props": model.MapToJSON(session.Props),
 		"Id":    session.Id,
 	})
 	if err != nil {

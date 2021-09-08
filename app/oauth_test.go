@@ -152,7 +152,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	}
 
 	makeState := func(token *model.Token) string {
-		return base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+		return base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"token": token.Token,
 		})))
 	}
@@ -199,7 +199,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		th := setup(t, true, true, true, "")
 		defer th.TearDown()
 
-		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"token": model.NewId(),
 		})))
 
@@ -235,7 +235,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		token, err := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra(email, action, cookie))
 		require.Nil(t, err)
 
-		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"action": action,
 			"email":  email,
 			"token":  token.Token,
@@ -489,7 +489,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 					"team_id": model.NewId(),
 					"token":   makeToken(th, cookie).Token,
 				}
-				state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+				state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 
 				recorder := httptest.ResponseRecorder{}
 				body, receivedTeamId, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(&recorder, request, model.ServiceGitlab, "", state, "")

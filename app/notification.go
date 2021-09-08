@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"sort"
 	"strings"
@@ -201,9 +202,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
-			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
+			rootPost := parentPostList.Posts[parentPostList.Order[0]]
+			if rootPost.GetProp("from_webhook") != "true" {
+				threadParticipants[rootPost.UserId] = true
+			}
 			if channel.Type != model.ChannelTypeDirect {
-				rootPost := parentPostList.Posts[parentPostList.Order[0]]
 				rootMentions = getExplicitMentions(rootPost, keywords, groups)
 				for id := range rootMentions.Mentions {
 					threadParticipants[id] = true
@@ -522,7 +525,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil)
 
 	// Note that PreparePostForClient should've already been called by this point
-	message.Add("post", post.ToJson())
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		return nil, errors.Wrapf(jsonErr, "failed to encode post to JSON")
+	}
+	message.Add("post", postJSON)
 
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", notification.GetChannelName(model.ShowUsername, ""))
@@ -550,11 +557,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	if len(mentionedUsersList) != 0 {
-		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
+		message.Add("mentions", model.ArrayToJSON(mentionedUsersList))
 	}
 
 	if len(notificationsForCRT.Desktop) != 0 {
-		message.Add("followers", model.ArrayToJson(notificationsForCRT.Desktop))
+		message.Add("followers", model.ArrayToJSON(notificationsForCRT.Desktop))
 	}
 
 	published, err := a.publishWebsocketEventForPermalinkPost(post, message)
@@ -605,7 +612,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						}
 					}
 
-					message.Add("thread", userThread.ToJson())
+					payload, jsonErr := json.Marshal(userThread)
+					if jsonErr != nil {
+						mlog.Warn("Failed to encode thread to JSON")
+					}
+					message.Add("thread", string(payload))
+
 					a.Publish(message)
 				}
 			}
