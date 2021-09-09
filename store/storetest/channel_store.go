@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"sort"
 	"strconv"
@@ -34,6 +35,20 @@ func cleanupChannels(t *testing.T, ss store.Store) {
 		err = ss.Channel().PermanentDelete(channel.Id)
 		assert.NoError(t, err)
 	}
+}
+
+func channelToJSON(t *testing.T, channel *model.Channel) string {
+	t.Helper()
+	js, err := json.Marshal(channel)
+	require.NoError(t, err)
+	return string(js)
+}
+
+func channelMemberToJSON(t *testing.T, cm *model.ChannelMember) string {
+	t.Helper()
+	js, err := json.Marshal(cm)
+	require.NoError(t, err)
+	return string(js)
 }
 
 func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -379,7 +394,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 
 	c1, err := ss.Channel().Get(o1.Id, false)
 	require.NoError(t, err, err)
-	require.Equal(t, o1.ToJson(), c1.ToJson(), "invalid returned channel")
+	require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, c1), "invalid returned channel")
 
 	_, err = ss.Channel().Get("", false)
 	require.Error(t, err, "missing id should have failed")
@@ -421,11 +436,11 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 
 	c2, err := ss.Channel().Get(o2.Id, false)
 	require.NoError(t, err, err)
-	require.Equal(t, o2.ToJson(), c2.ToJson(), "invalid returned channel")
+	require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, c2), "invalid returned channel")
 
 	c4, err := ss.Channel().Get(o2.Id, true)
 	require.NoError(t, err, err)
-	require.Equal(t, o2.ToJson(), c4.ToJson(), "invalid returned channel")
+	require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, c4), "invalid returned channel")
 
 	channels, chanErr := ss.Channel().GetAll(o1.TeamId)
 	require.NoError(t, chanErr, chanErr)
@@ -499,8 +514,8 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}, false)
 		require.NoError(t, err, err)
 		require.Len(t, r1, 2, "invalid returned channels, exepected 2 and got "+strconv.Itoa(len(r1)))
-		require.Equal(t, o1.ToJson(), r1[0].ToJson())
-		require.Equal(t, o2.ToJson(), r1[1].ToJson())
+		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r1[0]))
+		require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, r1[1]))
 	})
 
 	t.Run("Get 1 existing and 1 not existing channel", func(t *testing.T) {
@@ -508,16 +523,16 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 		r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}, false)
 		require.NoError(t, err, err)
 		require.Len(t, r2, 1, "invalid returned channels, expected 1 and got "+strconv.Itoa(len(r2)))
-		require.Equal(t, o1.ToJson(), r2[0].ToJson(), "invalid returned channel")
+		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r2[0]), "invalid returned channel")
 	})
 
 	t.Run("Get 2 existing and 1 deleted channel", func(t *testing.T) {
 		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id, o3.Id}, true)
 		require.NoError(t, err, err)
 		require.Len(t, r1, 3, "invalid returned channels, exepected 3 and got "+strconv.Itoa(len(r1)))
-		require.Equal(t, o1.ToJson(), r1[0].ToJson())
-		require.Equal(t, o2.ToJson(), r1[1].ToJson())
-		require.Equal(t, o3.ToJson(), r1[2].ToJson())
+		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r1[0]))
+		require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, r1[1]))
+		require.Equal(t, channelToJSON(t, &o3), channelToJSON(t, r1[2]))
 	})
 }
 
@@ -656,7 +671,7 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 
 	result, err := ss.Channel().GetByName(o1.TeamId, o1.Name, true)
 	require.NoError(t, err)
-	require.Equal(t, o1.ToJson(), result.ToJson(), "invalid returned channel")
+	require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, result), "invalid returned channel")
 
 	channelID := result.Id
 
@@ -665,7 +680,7 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 
 	result, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
 	require.NoError(t, err)
-	require.Equal(t, o1.ToJson(), result.ToJson(), "invalid returned channel")
+	require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, result), "invalid returned channel")
 
 	_, err = ss.Channel().GetByName(o1.TeamId, "", false)
 	require.Error(t, err, "Missing id should have failed")
@@ -4405,7 +4420,7 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 
 	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId)
 	require.NoError(t, err, err)
-	require.Equal(t, m1.ToJson(), r1.ToJson(), "invalid returned channel member")
+	require.Equal(t, channelMemberToJSON(t, m1), channelMemberToJSON(t, r1), "invalid returned channel member")
 
 	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId())
 	require.Error(t, err, "shouldn't have returned a member")

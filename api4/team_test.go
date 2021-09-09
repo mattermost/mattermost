@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -343,7 +344,9 @@ func TestUpdateTeam(t *testing.T) {
 		originalTeamId := team.Id
 		team.Id = model.NewId()
 
-		r, err := th.Client.DoAPIPut("/teams/"+originalTeamId, team.ToJson())
+		teamJSON, jsonErr := json.Marshal(team)
+		require.NoError(t, jsonErr)
+		r, err := th.Client.DoAPIPut("/teams/"+originalTeamId, string(teamJSON))
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -2038,7 +2041,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	token := model.NewToken(
 		app.TokenTypeTeamInvitation,
-		model.MapToJson(map[string]string{"teamId": team.Id}),
+		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
@@ -2074,7 +2077,7 @@ func TestAddTeamMember(t *testing.T) {
 	testId := GenerateTestId()
 	token = model.NewToken(
 		app.TokenTypeTeamInvitation,
-		model.MapToJson(map[string]string{"teamId": testId}),
+		model.MapToJSON(map[string]string{"teamId": testId}),
 	)
 	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
@@ -2119,7 +2122,7 @@ func TestAddTeamMember(t *testing.T) {
 	// Attempt to use a token on a group-constrained team
 	token = model.NewToken(
 		app.TokenTypeTeamInvitation,
-		model.MapToJson(map[string]string{"teamId": team.Id}),
+		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 	_, _, err = client.AddTeamMemberFromInvite(token.Token, "")

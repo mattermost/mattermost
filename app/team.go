@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -286,7 +287,11 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 		teamID = team.Id
 	}
 	message := model.NewWebSocketEvent(event, teamID, "", "", nil)
-	message.Add("team", sanitizedTeam.ToJson())
+	teamJSON, jsonErr := json.Marshal(team)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode team to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("team", string(teamJSON))
 	a.Publish(message)
 }
 
@@ -428,7 +433,11 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 
 func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) {
 	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil)
-	message.Add("member", member.ToJson())
+	tmJSON, jsonErr := json.Marshal(member)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("member", string(tmJSON))
 	a.Publish(message)
 }
 
@@ -512,7 +521,7 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+	tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
 
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
@@ -1742,7 +1751,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
 
 		return tokenData["teamId"], nil
 	}
@@ -1907,7 +1916,11 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 			a.ClearSessionCacheForUser(teamMember.UserId)
 
 			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil)
-			message.Add("member", teamMember.ToJson())
+			tmJSON, jsonErr := json.Marshal(teamMember)
+			if jsonErr != nil {
+				mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
+			}
+			message.Add("member", string(tmJSON))
 			a.Publish(message)
 		}
 

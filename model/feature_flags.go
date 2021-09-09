@@ -41,8 +41,8 @@ type FeatureFlags struct {
 	// Enable the Global Header
 	GlobalHeader bool
 
-	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
-	InviteMembersButton string
+	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
+	AddChannelButton string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -58,7 +58,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TimedDND = false
 	f.PermalinkPreviews = true
 	f.GlobalHeader = false
-	f.InviteMembersButton = "none"
+	f.AddChannelButton = "by_team_name"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

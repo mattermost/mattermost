@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"unicode/utf8"
 )
@@ -29,17 +27,6 @@ type SharedChannel struct {
 	UpdateAt         int64       `json:"update_at"`
 	RemoteId         string      `json:"remote_id,omitempty"` // if not "home"
 	Type             ChannelType `db:"-"`
-}
-
-func (sc *SharedChannel) ToJson() string {
-	b, _ := json.Marshal(sc)
-	return string(b)
-}
-
-func SharedChannelFromJson(data io.Reader) (*SharedChannel, error) {
-	var sc *SharedChannel
-	err := json.NewDecoder(data).Decode(&sc)
-	return sc, err
 }
 
 func (sc *SharedChannel) IsValid() *AppError {
@@ -114,17 +101,6 @@ type SharedChannelRemote struct {
 	RemoteId          string `json:"remote_id"`
 	LastPostUpdateAt  int64  `json:"last_post_update_at"`
 	LastPostId        string `json:"last_post_id"`
-}
-
-func (sc *SharedChannelRemote) ToJson() string {
-	b, _ := json.Marshal(sc)
-	return string(b)
-}
-
-func SharedChannelRemoteFromJson(data io.Reader) (*SharedChannelRemote, error) {
-	var sc *SharedChannelRemote
-	err := json.NewDecoder(data).Decode(&sc)
-	return sc, err
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {

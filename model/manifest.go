@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -225,28 +224,6 @@ type ManifestWebapp struct {
 
 	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
 	BundleHash []byte `json:"-"`
-}
-
-func (m *Manifest) ToJson() string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestListToJson(m []*Manifest) string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestFromJson(data io.Reader) *Manifest {
-	var m *Manifest
-	json.NewDecoder(data).Decode(&m)
-	return m
-}
-
-func ManifestListFromJson(data io.Reader) []*Manifest {
-	var manifests []*Manifest
-	json.NewDecoder(data).Decode(&manifests)
-	return manifests
 }
 
 func (m *Manifest) HasClient() bool {
