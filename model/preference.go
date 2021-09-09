@@ -42,6 +42,7 @@ const (
 	PreferenceCategoryCustomStatus          = "custom_status"
 	PreferenceNameRecentCustomStatuses      = "recent_custom_statuses"
 	PreferenceNameCustomStatusTutorialState = "custom_status_tutorial_state"
+	PreferenceCollapsedThreadsTutorialState = "collapsed_threads_tutorial_state"
 
 	PreferenceCustomStatusModalViewed = "custom_status_modal_viewed"
 
