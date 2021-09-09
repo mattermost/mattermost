@@ -297,6 +297,12 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		}
 	}
 
+	post = a.PreparePostForClient(post, true, false)
+	previewPost := post.GetPreviewPost()
+	if previewPost != nil {
+		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
+	}
+
 	rpost, nErr := a.Srv().Store.Post().Save(post)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -344,11 +350,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
 	rpost = a.PreparePostForClient(rpost, true, false)
-
-	rpost, nErr = a.addPostPreviewProp(rpost)
-	if nErr != nil {
-		return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
