@@ -373,6 +373,56 @@ func TestProcessAttachments(t *testing.T) {
 			require.Equal(t, expected, *emojiLine.Emoji.Image)
 		})
 	})
+
+	t.Run("with filesMap", func(t *testing.T) {
+		t.Run("post attachments", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&line, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/somedir/file.jpg"] = nil
+			err = processAttachments(&line, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("direct post attachments", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&line2, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/somedir/file.jpg"] = nil
+			err = processAttachments(&line2, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("profile image", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&userLine, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/profile.jpg"] = nil
+			err = processAttachments(&userLine, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("emoji", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&emojiLine, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/emoji.png"] = nil
+			err = processAttachments(&emojiLine, "", filesMap)
+			require.NoError(t, err)
+		})
+	})
 }
 
 func BenchmarkBulkImport(b *testing.B) {
