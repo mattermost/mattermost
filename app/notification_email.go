@@ -186,13 +186,14 @@ func truncateUserNames(name string, i int) string {
 }
 
 type postData struct {
-	SenderName  string
-	ChannelName string
-	Message     template.HTML
-	MessageURL  string
-	SenderPhoto string
-	PostPhoto   string
-	Time        string
+	SenderName      string
+	ChannelName     string
+	Message         template.HTML
+	MessageURL      string
+	SenderPhoto     string
+	PostPhoto       string
+	Time            string
+	ShowChannelIcon bool
 }
 
 /**
