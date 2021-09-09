@@ -530,18 +530,27 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			)
 		}
 
-		notificationInterface := c.App.Notification()
-
-		if notificationInterface == nil {
-			c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
-			return
-		}
-
 		if ack.PostId != "" {
 			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
 				c.Err = appErr
 				return
 			}
+		}
+
+		// Return post data only when PostId is passed.
+		if ack.PostId != "" {
+			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
+				c.Err = appErr
+				return
+			}
+
+			notificationInterface := c.App.Notification()
+
+			if notificationInterface == nil {
+				c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
+				return
+			}
+
 			msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
 			if appError != nil {
 				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
