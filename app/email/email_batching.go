@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,13 +24,14 @@ const (
 )
 
 type postData struct {
-	SenderName  string
-	ChannelName string
-	Message     template.HTML
-	MessageURL  string
-	SenderPhoto string
-	PostPhoto   string
-	Time        string
+	SenderName      string
+	ChannelName     string
+	Message         template.HTML
+	MessageURL      string
+	SenderPhoto     string
+	PostPhoto       string
+	Time            string
+	ShowChannelIcon bool
 }
 
 func (es *Service) InitEmailBatching() {
@@ -273,13 +275,22 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
 
+			channelDisplayName := channel.DisplayName
+			showChannelIcon := true
+
+			if channel.Type == model.ChannelTypeGroup {
+				channelDisplayName = fmt.Sprint(len(strings.Split(channelDisplayName, ",")) - 1)
+				showChannelIcon = false
+			}
+
 			postsData = append(postsData, &postData{
-				SenderPhoto: senderPhoto,
-				SenderName:  truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
-				Time:        t,
-				ChannelName: channel.DisplayName,
-				Message:     template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
-				MessageURL:  MessageURL,
+				SenderPhoto:     senderPhoto,
+				SenderName:      truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
+				Time:            t,
+				ChannelName:     channelDisplayName,
+				Message:         template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
+				MessageURL:      MessageURL,
+				ShowChannelIcon: showChannelIcon,
 			})
 		}
 	}

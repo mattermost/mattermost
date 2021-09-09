@@ -71,9 +71,9 @@
         max-width: 100%;
       }
 
-      .mj-column-per-50 {
-        width: 50% !important;
-        max-width: 50%;
+      .mj-column-per-33-333333333333336 {
+        width: 33.333333333333336% !important;
+        max-width: 33.333333333333336%;
       }
 
       .mj-column-per-90 {
@@ -88,9 +88,9 @@
       max-width: 100%;
     }
 
-    .moz-text-html .mj-column-per-50 {
-      width: 50% !important;
-      max-width: 50%;
+    .moz-text-html .mj-column-per-33-333333333333336 {
+      width: 33.333333333333336% !important;
+      max-width: 33.333333333333336%;
     }
 
     .moz-text-html .mj-column-per-90 {
@@ -255,6 +255,7 @@
       background: rgba(63, 67, 80, 0.08);
       border-radius: 4px;
       display: flex;
+      padding-left: 4px;
     }
 
     .channelLogo {
@@ -427,8 +428,8 @@
                         <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
                           <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="width:552px;" ><![endif]-->
                           <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;">
-                            <!--[if mso | IE]><table border="0" cellpadding="0" cellspacing="0" role="presentation" ><tr><td style="vertical-align:top;width:276px;" ><![endif]-->
-                            <div class="mj-column-per-50 mj-outlook-group-fix messageAvatarCol" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:50%;">
+                            <!--[if mso | IE]><table border="0" cellpadding="0" cellspacing="0" role="presentation" ><tr><td style="vertical-align:top;width:184px;" ><![endif]-->
+                            <div class="mj-column-per-33-333333333333336 mj-outlook-group-fix messageAvatarCol" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;">
                               <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                                 <tbody>
                                   <tr>
@@ -436,8 +437,8 @@
                                       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                                         <tbody>
                                           <tr>
-                                            <td style="width:276px;">
-                                              <img alt="" height="auto" src="cid:{{.SenderPhoto}}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="276" />
+                                            <td style="width:184px;">
+                                              <img alt="" height="auto" src="cid:{{.SenderPhoto}}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="184" />
                                             </td>
                                           </tr>
                                         </tbody>
@@ -460,7 +461,9 @@
                                         {{end}}
                                         {{if .ChannelName}}
                                         <div class="channelBg">
+                                          {{if .ShowChannelIcon}}
                                           <div class="channelLogo"><img src="{{$.Props.SiteURL}}/static/images/channel_icon.png" width=10px height=10px></img></div>
+                                          {{end}}
                                           <div class="channelName">{{.ChannelName}}</div>
                                         </div>
                                         {{end}}
@@ -472,6 +475,13 @@
                                       <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Message}}</div>
                                     </td>
                                   </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <!--[if mso | IE]></td><td style="vertical-align:top;width:552px;" ><![endif]-->
+                            <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                <tbody>
                                   {{if .MessageURL}}
                                   <tr>
                                     <td align="center" vertical-align="middle" class="messageButton" style="font-size:0px;padding:16px 0px 0px 0px;word-break:break-word;">

@@ -152,6 +152,7 @@
     background: rgba(63, 67, 80, 0.08);
     border-radius: 4px;
     display: flex;
+    padding-left: 4px; 
   }
 
   .channelLogo {
