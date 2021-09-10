@@ -1350,6 +1350,43 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 	}
 
+	forceIndex := ""
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
+		forceIndex = "FORCE INDEX(idx_posts_channel_id)"
+	}
+
+	lastRootPostAtExists := sqlStore.DoesColumnExist("Channels", "LastRootPostAt")
+	sqlStore.CreateColumnIfNotExists("Channels", "LastRootPostAt", "bigint", "bigint", "0")
+
+	lastRootPostAtCTE := `
+		SELECT Channels.Id channelid, COALESCE(MAX(Posts.CreateAt), 0) as lastrootpost
+		FROM Channels
+		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
+		WHERE Posts.RootId = ''
+		GROUP BY Channels.Id
+	`
+
+	updateChannels := `
+		WITH q AS (` + lastRootPostAtCTE + `)
+		UPDATE Channels SET LastRootPostAt=q.lastrootpost
+		FROM q where q.channelid=Channels.Id;
+	`
+
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
+		updateChannels = `
+			UPDATE Channels
+			INNER Join (` + lastRootPostAtCTE + `) as q
+			ON q.channelid=Channels.Id
+			SET LastRootPostAt=lastrootpost;
+		`
+	}
+
+	if !lastRootPostAtExists {
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
+			mlog.Error("Error updating Channels table", mlog.Err(err))
+		}
+	}
+
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
 }
