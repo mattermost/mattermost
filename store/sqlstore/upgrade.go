@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"os"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
@@ -305,12 +303,6 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 			}
 		}
 
-		sqlStore.CreateColumnIfNotExists("OAuthApps", "IsTrusted", "tinyint(1)", "boolean", "0")
-		sqlStore.CreateColumnIfNotExists("OAuthApps", "IconURL", "varchar(512)", "varchar(512)", "")
-
-		sqlStore.RemoveColumnIfExists("Users", "LastActivityAt")
-		sqlStore.RemoveColumnIfExists("Users", "LastPingAt")
-
 		saveSchemaVersion(sqlStore, Version330)
 	}
 }
@@ -323,12 +315,13 @@ func upgradeDatabaseToVersion34(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version340, Version350) {
-		sqlStore.GetMaster().ExecNoTimeout("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
-		sqlStore.GetMaster().ExecNoTimeout("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
-		sqlStore.GetMaster().ExecNoTimeout("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
-		sqlStore.GetMaster().ExecNoTimeout("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
-		sqlStore.GetMaster().ExecNoTimeout("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
-		sqlStore.GetMaster().ExecNoTimeout("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+
+		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
+		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
 		sqlStore.Session().RemoveAllSessions()
 
@@ -338,9 +331,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version350, Version360) {
-		// Add a Position column to users.
-		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
-
 		saveSchemaVersion(sqlStore, Version360)
 	}
 }
@@ -379,11 +369,6 @@ func upgradeDatabaseToVersion40(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion41(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version400, Version410) {
-		// Increase maximum length of the Users table Roles column.
-		if sqlStore.GetMaxLengthOfColumnIfExists("Users", "Roles") != "256" {
-			sqlStore.AlterColumnTypeIfExists("Users", "Roles", "varchar(256)", "varchar(256)")
-		}
-
 		sqlStore.RemoveTableIfExists("JobStatuses")
 
 		saveSchemaVersion(sqlStore, Version410)
@@ -422,7 +407,6 @@ func upgradeDatabaseToVersion46(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion47(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version460, Version470) {
-		sqlStore.AlterColumnTypeIfExists("Users", "Position", "varchar(128)", "varchar(128)")
 		saveSchemaVersion(sqlStore, Version470)
 	}
 }
@@ -457,12 +441,6 @@ func upgradeDatabaseToVersion49(sqlStore *SqlStore) {
 	// in the file `app/app.go` in the function `DoAdvancedPermissionsMigration()`.
 
 	if shouldPerformUpgrade(sqlStore, Version481, Version490) {
-		defaultTimezone := timezones.DefaultUserTimezone()
-		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
-		if err != nil {
-			mlog.Critical(err.Error())
-		}
-		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 		saveSchemaVersion(sqlStore, Version490)
 	}
 }
@@ -470,7 +448,6 @@ func upgradeDatabaseToVersion49(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion410(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version490, Version4100) {
 		saveSchemaVersion(sqlStore, Version4100)
-		sqlStore.GetMaster().ExecNoTimeout("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
 	}
 }
 
@@ -534,14 +511,6 @@ func upgradeDatabaseToVersion55(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion56(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version550, Version560) {
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
-			sqlStore.RemoveIndexIfExists("idx_users_username_lower", "lower(Username)")
-			sqlStore.RemoveIndexIfExists("idx_users_nickname_lower", "lower(Nickname)")
-			sqlStore.RemoveIndexIfExists("idx_users_firstname_lower", "lower(FirstName)")
-			sqlStore.RemoveIndexIfExists("idx_users_lastname_lower", "lower(LastName)")
-		}
-
 		saveSchemaVersion(sqlStore, Version560)
 	}
 
@@ -728,8 +697,6 @@ func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion5281(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5280, Version5281) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "MiniPreview", "MEDIUMBLOB", "bytea")
-
 		saveSchemaVersion(sqlStore, Version5281)
 	}
 }
@@ -777,8 +744,6 @@ func upgradeDatabaseToVersion5291(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5291, Version5300) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
-
 		saveSchemaVersion(sqlStore, Version5300)
 	}
 }
@@ -851,8 +816,6 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
 		// Shared channels support
-		sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
-		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 		if _, err := sqlStore.GetMaster().ExecNoTimeout("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
 			mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
 		}
