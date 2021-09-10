@@ -491,10 +491,10 @@ CREATE TABLE `OAuthApps` (
   `ClientSecret` varchar(128) DEFAULT NULL,
   `Name` varchar(64) DEFAULT NULL,
   `Description` text,
-  `IconURL` text,
   `CallbackUrls` text,
   `Homepage` text,
-  `IsTrusted` tinyint(1) DEFAULT NULL,
+  `IsTrusted` tinyint(1) DEFAULT '0',
+  `IconURL` varchar(512) DEFAULT '',
   PRIMARY KEY (`Id`),
   KEY `idx_oauthapps_creator_id` (`CreatorId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
