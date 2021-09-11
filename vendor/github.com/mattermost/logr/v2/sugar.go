@@ -117,3 +117,81 @@ func (s Sugar) Fatalf(format string, args ...interface{}) {
 func (s Sugar) Panicf(format string, args ...interface{}) {
 	s.Logf(Panic, format, args...)
 }
+
+//
+// K/V style
+//
+
+// With returns a new Sugar logger with the specified key/value pairs added to the
+// fields list.
+func (s Sugar) With(keyValuePairs ...interface{}) Sugar {
+	return s.logger.With(s.argsToFields(keyValuePairs)...).Sugar()
+}
+
+// Tracew outputs at trace level with the specified key/value pairs converted to fields.
+func (s Sugar) Tracew(msg string, keyValuePairs ...interface{}) {
+	s.logger.Log(Trace, msg, s.argsToFields(keyValuePairs)...)
+}
+
+// Debugw outputs at debug level with the specified key/value pairs converted to fields.
+func (s Sugar) Debugw(msg string, keyValuePairs ...interface{}) {
+	s.logger.Log(Debug, msg, s.argsToFields(keyValuePairs)...)
+}
+
+// Infow outputs at info level with the specified key/value pairs converted to fields.
+func (s Sugar) Infow(msg string, keyValuePairs ...interface{}) {
+	s.logger.Log(Info, msg, s.argsToFields(keyValuePairs)...)
+}
+
+// Warnw outputs at warn level with the specified key/value pairs converted to fields.
+func (s Sugar) Warnw(msg string, keyValuePairs ...interface{}) {
+	s.logger.Log(Warn, msg, s.argsToFields(keyValuePairs)...)
+}
+
+// Errorw outputs at error level with the specified key/value pairs converted to fields.
+func (s Sugar) Errorw(msg string, keyValuePairs ...interface{}) {
+	s.logger.Log(Error, msg, s.argsToFields(keyValuePairs)...)
+}
+
+// Fatalw outputs at fatal level with the specified key/value pairs converted to fields.
+func (s Sugar) Fatalw(msg string, keyValuePairs ...interface{}) {
+	s.logger.Log(Fatal, msg, s.argsToFields(keyValuePairs)...)
+}
+
+// Panicw outputs at panic level with the specified key/value pairs converted to fields.
+func (s Sugar) Panicw(msg string, keyValuePairs ...interface{}) {
+	s.logger.Log(Panic, msg, s.argsToFields(keyValuePairs)...)
+}
+
+// argsToFields converts an array of args, possibly containing name/value pairs
+// into a []Field.
+func (s Sugar) argsToFields(keyValuePairs []interface{}) []Field {
+	if len(keyValuePairs) == 0 {
+		return nil
+	}
+
+	fields := make([]Field, 0, len(keyValuePairs))
+	count := len(keyValuePairs)
+
+	for i := 0; i < count; {
+		if fld, ok := keyValuePairs[i].(Field); ok {
+			fields = append(fields, fld)
+			i++
+			continue
+		}
+
+		if i == count-1 {
+			s.logger.Error("invalid key/value pair", Any("arg", keyValuePairs[i]))
+			break
+		}
+
+		// we should have a key/value pair now. The key must be a string.
+		if key, ok := keyValuePairs[i].(string); !ok {
+			s.logger.Error("invalid key for key/value pair", Int("pos", i))
+		} else {
+			fields = append(fields, Any(key, keyValuePairs[i+1]))
+		}
+		i += 2
+	}
+	return fields
+}

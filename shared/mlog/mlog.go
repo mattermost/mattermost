@@ -49,6 +49,9 @@ type LogRec = logr.LogRec
 type LogCloner = logr.LogCloner
 type MetricsCollector = logr.MetricsCollector
 type TargetCfg = logrcfg.TargetCfg
+type TargetFactory = logrcfg.TargetFactory
+type FormatterFactory = logrcfg.FormatterFactory
+type Factories = logrcfg.Factories
 type Sugar = logr.Sugar
 
 // LoggerConfiguration is a map of LogTarget configurations.
@@ -179,7 +182,10 @@ func NewLogger(options ...Option) (*Logger, error) {
 // For each case JSON containing log targets is provided. Target name collisions are resolved
 // using the following precedence:
 //     cfgFile > cfgEscaped
-func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
+//
+// An optional set of factories can be provided which will be called to create any target
+// types or formatters not built-in.
+func (l *Logger) Configure(cfgFile string, cfgEscaped string, factories *Factories) error {
 	if atomic.LoadInt32(l.lockConfig) != 0 {
 		return ErrConfigurationLock
 	}
@@ -213,16 +219,18 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
 		return nil
 	}
 
-	return logrcfg.ConfigureTargets(l.log.Logr(), cfgMap.toTargetCfg(), nil)
+	return logrcfg.ConfigureTargets(l.log.Logr(), cfgMap.toTargetCfg(), factories)
 }
 
 // ConfigureTargets provides a new configuration for this logger via a `LoggerConfig` map.
 // Typically `mlog.Configure` is used instead which accepts JSON formatted configuration.
-func (l *Logger) ConfigureTargets(cfg LoggerConfiguration) error {
+// An optional set of factories can be provided which will be called to create any target
+// types or formatters not built-in.
+func (l *Logger) ConfigureTargets(cfg LoggerConfiguration, factories *Factories) error {
 	if atomic.LoadInt32(l.lockConfig) != 0 {
 		return ErrConfigurationLock
 	}
-	return logrcfg.ConfigureTargets(l.log.Logr(), cfg.toTargetCfg(), nil)
+	return logrcfg.ConfigureTargets(l.log.Logr(), cfg.toTargetCfg(), factories)
 }
 
 // LockConfiguration disallows further configuration changes until `UnlockConfiguration`
@@ -403,6 +411,22 @@ func GetPackageName(f string) string {
 		}
 	}
 	return f
+}
+
+// ShouldQuote returns true if val contains any characters that might be unsafe
+// when injecting log output into an aggregator, viewer or report.
+// Returning true means that val should be surrounded by quotation marks before being
+// output into logs.
+func ShouldQuote(val string) bool {
+	for _, c := range val {
+		if !((c >= '0' && c <= '9') ||
+			(c >= 'a' && c <= 'z') ||
+			(c >= 'A' && c <= 'Z') ||
+			c == '-' || c == '.' || c == '_' || c == '/' || c == '@' || c == '^' || c == '+') {
+			return true
+		}
+	}
+	return false
 }
 
 type logWriter struct {
