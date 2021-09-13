@@ -1173,7 +1173,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "编码错误"
+    "translation": "编码失败。"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
