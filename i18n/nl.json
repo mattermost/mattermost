@@ -9195,10 +9195,6 @@
     "translation": "{{.SenderName}} antwoordde op een draadje"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
     "translation": "Reageer op draadje"
   },
