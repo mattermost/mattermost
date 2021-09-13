@@ -9187,10 +9187,6 @@
     "translation": "{{.SenderName}} replied to a thread"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
     "translation": "Reply to Thread"
   },

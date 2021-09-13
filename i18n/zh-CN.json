@@ -9182,10 +9182,6 @@
     "translation": "{{.SenderName}}回复了主题"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "您离开时，{{.SenderName}}回复了您关注的主题。"
-  },
-  {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " 在您关注的主题发布了评论。"
   },

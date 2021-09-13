@@ -9190,10 +9190,6 @@
     "translation": "{{.SenderName}} がスレッドへ返信しました"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "離席中にあなたがフォローしているスレッドへ {{.SenderName}} が返信しました。"
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "復元できませんでした。"
   },

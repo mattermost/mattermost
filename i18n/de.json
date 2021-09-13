@@ -9187,10 +9187,6 @@
     "translation": "{{.SenderName}} hat auf eine Unterhaltung geantwortet"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Während Sie weg waren, hat {{.SenderName}} auf eine Unterhaltung geantwortet, die Sie beobachten."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
     "translation": "Auf die Unterhaltung antworten"
   },

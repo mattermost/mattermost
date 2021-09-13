@@ -9187,10 +9187,6 @@
     "translation": "{{.SenderName}} bir konuyu yanıtladı"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Siz uzaktayken, {{.SenderName}} izlediğiniz bir konuyu yanıtladı."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
     "translation": "{{.channelName}} kanalında yanıt"
   },

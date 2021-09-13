@@ -9187,10 +9187,6 @@
     "translation": "{{.SenderName}} válaszolt egy üzenetszálra"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Amíg távol volt, {{.SenderName}} válaszolt egy üzenetszálra amit követ."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
     "translation": "Válasz az üzenetszálra"
   },
