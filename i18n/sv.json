@@ -9187,16 +9187,12 @@
     "translation": "{{.SenderName}} svarade i en tråd"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Medan du var borta så kommenterade {{.SenderName}} i en tråd du följer."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Svara i tråden"
+    "translation": "Svara i {{.channelName}}"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " kommenterade i en tråd du följer."
+    "translation": " svarade i en tråd du följer."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9213,5 +9209,29 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Misslyckades att återskapa."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Medan du var frånvarande, {{.SenderName}} svarade i en tråd i din grupp."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Medan du var frånvarande, {{.SenderName}} svarade i en tråd bland dina direktmeddelanden."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Medan du var frånvarande, {{.SenderName}} svarade i en tråd du följer i {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Medan du var frånvarande, {{.SenderName}} svarade i en tråd du följer."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Svarade i ett direktmeddelande"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " svarade i en tråd."
   }
 ]
