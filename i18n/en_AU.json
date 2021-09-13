@@ -9188,11 +9188,11 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Reply to Thread"
+    "translation": "Reply in {{.channelName}}"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " commented on a thread you are following."
+    "translation": " replied to a thread you're following."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9209,5 +9209,29 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Failed to unmarshal."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your group."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your Direct Message."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Reply in Direct Message"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " replied to a thread."
   }
 ]
