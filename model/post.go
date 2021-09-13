@@ -54,8 +54,8 @@ const (
 	PostMessageMaxRunesV1 = 4000
 	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
-	PostPropsMaxRunes     = 8000
-	PostPropsMaxUserRunes = PostPropsMaxRunes - 400 // Leave some room for system / pre-save modifications
+	PostPropsMaxRunes     = 800000
+	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
 	PropsAddChannelMember = "add_channel_member"
 
