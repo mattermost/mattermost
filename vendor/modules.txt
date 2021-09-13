@@ -151,11 +151,6 @@ github.com/blevesearch/zap/v15
 # github.com/cespare/xxhash/v2 v2.1.1
 ## explicit
 github.com/cespare/xxhash/v2
-# github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd
-## explicit
-# github.com/corpix/uarand v0.1.1
-## explicit
-github.com/corpix/uarand
 # github.com/couchbase/vellum v1.0.2
 github.com/couchbase/vellum
 github.com/couchbase/vellum/levenshtein
@@ -318,9 +313,6 @@ github.com/hashicorp/memberlist
 # github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864
 ## explicit
 github.com/hashicorp/yamux
-# github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
-## explicit
-github.com/icrowley/fake
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
 # github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
@@ -396,9 +388,7 @@ github.com/mattermost/gziphandler
 # github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 ## explicit
 github.com/mattermost/ldap
-# github.com/mattermost/logr v1.0.13
-## explicit
-# github.com/mattermost/logr/v2 v2.0.10
+# github.com/mattermost/logr/v2 v2.0.15
 ## explicit
 github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config
@@ -552,7 +542,6 @@ github.com/sean-/seed
 ## explicit
 github.com/segmentio/backo-go
 # github.com/sirupsen/logrus v1.8.1
-## explicit
 github.com/sirupsen/logrus
 # github.com/smartystreets/assertions v1.0.0
 ## explicit
@@ -688,7 +677,6 @@ github.com/vmihailenco/tagparser/v2/internal/parser
 ## explicit
 github.com/wiggin77/merror
 # github.com/wiggin77/srslog v1.0.1
-## explicit
 github.com/wiggin77/srslog
 # github.com/willf/bitset v1.1.11
 ## explicit
@@ -727,10 +715,6 @@ go.opentelemetry.io/otel/metric/unit
 # go.uber.org/atomic v1.8.0
 ## explicit
 go.uber.org/atomic
-# go.uber.org/multierr v1.7.0
-## explicit
-# go.uber.org/zap v1.17.0
-## explicit
 # golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 ## explicit
 golang.org/x/crypto/acme
@@ -931,7 +915,6 @@ gopkg.in/ini.v1
 ## explicit
 gopkg.in/mail.v2
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
-## explicit
 gopkg.in/natefinch/lumberjack.v2
 # gopkg.in/olivere/elastic.v6 v6.2.35
 ## explicit
@@ -940,6 +923,7 @@ gopkg.in/olivere/elastic.v6
 ## explicit
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+## explicit
 gopkg.in/yaml.v3
 # willnorris.com/go/gifresize v1.0.0
 willnorris.com/go/gifresize

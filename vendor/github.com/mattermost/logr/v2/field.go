@@ -15,7 +15,7 @@ var (
 	Space   = []byte{' '}
 	Newline = []byte{'\n'}
 	Quote   = []byte{'"'}
-	Colon   = []byte{'"'}
+	Colon   = []byte{':'}
 )
 
 // LogCloner is implemented by `Any` types that require a clone to be provided
