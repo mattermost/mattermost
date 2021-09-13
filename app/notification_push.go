@@ -4,6 +4,8 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -179,7 +181,17 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	}
 
 	if channelType == model.ChannelTypeDirect {
+		if replyToThreadType == model.CommentsNotifyCRT {
+			if contentsConfig == model.GenericNoChannelNotification {
+				return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread")
+			}
+			return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread_dm")
+		}
 		return userLocale("api.post.send_notifications_and_forget.push_message")
+	}
+
+	if replyToThreadType == model.CommentsNotifyCRT {
+		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread")
 	}
 
 	if channelWideMention {
@@ -367,8 +379,13 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 		mlog.String("status", model.PushSendPrepare),
 	)
 
+	msgJSON, jsonErr := json.Marshal(msg)
+	if jsonErr != nil {
+		return errors.Wrap(jsonErr, "failed to encode to JSON")
+	}
+
 	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
-	request, err := http.NewRequest("POST", url, strings.NewReader(msg.ToJson()))
+	request, err := http.NewRequest("POST", url, bytes.NewReader(msgJSON))
 	if err != nil {
 		return err
 	}
@@ -379,7 +396,10 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 	}
 	defer resp.Body.Close()
 
-	pushResponse := model.PushResponseFromJson(resp.Body)
+	var pushResponse model.PushResponse
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&pushResponse); jsonErr != nil {
+		return errors.Wrap(jsonErr, "failed to decode from JSON")
+	}
 
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
@@ -405,10 +425,15 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		mlog.String("status", model.PushReceived),
 	)
 
+	ackJSON, jsonErr := json.Marshal(ack)
+	if jsonErr != nil {
+		return errors.Wrap(jsonErr, "failed to encode to JSON")
+	}
+
 	request, err := http.NewRequest(
 		"POST",
 		strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.APIURLSuffixV1+"/ack",
-		strings.NewReader(ack.ToJson()),
+		bytes.NewReader(ackJSON),
 	)
 
 	if err != nil {
@@ -567,8 +592,16 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	cfg := a.Config()
 	if contentsConfig != model.GenericNoChannelNotification || channel.Type == model.ChannelTypeDirect {
 		msg.ChannelName = channelName
-		if a.isCRTEnabledForUser(user.Id) && post.RootId != "" {
-			msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads")
+	}
+
+	if a.isCRTEnabledForUser(user.Id) && post.RootId != "" {
+		if contentsConfig != model.GenericNoChannelNotification {
+			props := map[string]interface{}{"channelName": channelName}
+			msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads", props)
+
+			if channel.Type == model.ChannelTypeDirect {
+				msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads_dm")
+			}
 		}
 	}
 

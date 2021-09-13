@@ -279,8 +279,9 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userPatch := model.UserPatchFromJson(r.Body)
-	if userPatch == nil || userPatch.Password == nil || *userPatch.Password == "" {
+	var userPatch model.UserPatch
+	jsonErr := json.NewDecoder(r.Body).Decode(&userPatch)
+	if jsonErr != nil || userPatch.Password == nil || *userPatch.Password == "" {
 		c.SetInvalidParam("userPatch")
 		return
 	}
@@ -298,7 +299,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.ConvertBotToUser(bot, userPatch, systemAdmin)
+	user, err := c.App.ConvertBotToUser(bot, &userPatch, systemAdmin)
 	if err != nil {
 		c.Err = err
 		return

@@ -65,15 +65,6 @@ func TestAutocompleteData(t *testing.T) {
 	assert.Error(t, ad.IsValid())
 }
 
-func TestAutocompleteDataJSON(t *testing.T) {
-	ad := getAutocompleteData()
-	b, err := ad.ToJSON()
-	assert.NoError(t, err)
-	ad2, err := AutocompleteDataFromJSON(b)
-	assert.NoError(t, err)
-	assert.True(t, ad2.Equals(ad))
-}
-
 func getAutocompleteData() *AutocompleteData {
 	ad := NewAutocompleteData("jira", "", "Available commands:")
 	ad.RoleID = SystemUserRoleId

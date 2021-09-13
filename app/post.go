@@ -522,7 +522,12 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	message.Add("post", post.ToJson())
+
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 
 	return post
@@ -540,7 +545,11 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	message.Add("post", post.ToJson())
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 
 	return post
@@ -556,7 +565,11 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", "", userID, nil)
-	message.Add("post", post.ToJson())
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 }
 
@@ -684,7 +697,11 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil)
-	message.Add("post", rpost.ToJson())
+	postJSON, jsonErr := rpost.ToJSON()
+	if jsonErr != nil {
+		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	message.Add("post", postJSON)
 
 	published, err := a.publishWebsocketEventForPermalinkPost(rpost, message)
 	if err != nil {
@@ -744,7 +761,12 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 		broadcastCopy := messageCopy.GetBroadcast()
 		broadcastCopy.UserId = cm.UserId
 		messageCopy.SetBroadcast(broadcastCopy)
-		messageCopy.Add("post", postForUser.ToJson())
+
+		postJSON, jsonErr := postForUser.ToJSON()
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+		}
+		messageCopy.Add("post", postJSON)
 		a.Publish(messageCopy)
 	}
 
@@ -1150,11 +1172,13 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
+	if len(post.FileIds) > 0 {
+		a.Srv().Go(func() {
+			a.deletePostFiles(post.Id)
+		})
+	}
 	a.Srv().Go(func() {
-		a.DeletePostFiles(post)
-	})
-	a.Srv().Go(func() {
-		a.DeleteFlaggedPosts(post.Id)
+		a.deleteFlaggedPosts(post.Id)
 	})
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
@@ -1162,20 +1186,16 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 	return post, nil
 }
 
-func (a *App) DeleteFlaggedPosts(postID string) {
+func (a *App) deleteFlaggedPosts(postID string) {
 	if err := a.Srv().Store.Preference().DeleteCategoryAndName(model.PreferenceCategoryFlaggedPost, postID); err != nil {
 		mlog.Warn("Unable to delete flagged post preference when deleting post.", mlog.Err(err))
 		return
 	}
 }
 
-func (a *App) DeletePostFiles(post *model.Post) {
-	if len(post.FileIds) == 0 {
-		return
-	}
-
-	if _, err := a.Srv().Store.FileInfo().DeleteForPost(post.Id); err != nil {
-		mlog.Warn("Encountered error when deleting files for post", mlog.String("post_id", post.Id), mlog.Err(err))
+func (a *App) deletePostFiles(postID string) {
+	if _, err := a.Srv().Store.FileInfo().DeleteForPost(postID); err != nil {
+		mlog.Warn("Encountered error when deleting files for post", mlog.String("post_id", postID), mlog.Err(err))
 	}
 }
 

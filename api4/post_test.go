@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -341,7 +342,9 @@ func testCreatePostWithOutgoingHook(
 			ResponseType: respPostType,
 		}
 
-		fmt.Fprint(w, outGoingHookResponse.ToJson())
+		hookJSON, jsonErr := json.Marshal(outGoingHookResponse)
+		require.NoError(t, jsonErr)
+		w.Write(hookJSON)
 		success <- true
 	}))
 	defer ts.Close()
@@ -578,7 +581,9 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 				continue
 			}
 
-			wpost := model.PostFromJson(strings.NewReader(event.GetData()["post"].(string)))
+			var wpost model.Post
+			err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
+			require.NoError(t, err)
 
 			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]interface{})
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
@@ -634,7 +639,9 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 		Message:   "some message",
 	}
 
-	req := httptest.NewRequest("POST", "/api/v4/posts?set_online=false", strings.NewReader(post.ToJson()))
+	postJSON, jsonErr := json.Marshal(post)
+	require.NoError(t, jsonErr)
+	req := httptest.NewRequest("POST", "/api/v4/posts?set_online=false", bytes.NewReader(postJSON))
 	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)
@@ -645,7 +652,9 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.status.get.missing.app_error", appErr.Id)
 
-	req = httptest.NewRequest("POST", "/api/v4/posts", strings.NewReader(post.ToJson()))
+	postJSON, jsonErr = json.Marshal(post)
+	require.NoError(t, jsonErr)
+	req = httptest.NewRequest("POST", "/api/v4/posts", bytes.NewReader(postJSON))
 	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)
@@ -1945,7 +1954,8 @@ func TestGetPost(t *testing.T) {
 
 		require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
 
-		post, resp, _ = c.GetPost(th.BasicPost.Id, resp.Etag)
+		post, resp, err = c.GetPost(th.BasicPost.Id, resp.Etag)
+		require.NoError(t, err)
 		CheckEtag(t, post, resp)
 
 		_, resp, err = c.GetPost("", "")

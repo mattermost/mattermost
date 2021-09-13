@@ -65,7 +65,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -81,7 +81,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5949,7 +5949,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Failed to marshal."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -9187,15 +9187,51 @@
     "translation": "{{.SenderName}} replied to a thread"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Reply to Thread"
+    "translation": "Reply in {{.channelName}}"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " commented on a thread you are following."
+    "translation": " replied to a thread you're following."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Failed to reload config."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Failed to marshal post."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Failed to unmarshal."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your group."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your Direct Message."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Reply in Direct Message"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " replied to a thread."
   }
 ]

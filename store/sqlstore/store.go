@@ -142,13 +142,13 @@ type SqlStore struct {
 	srCounter int64
 
 	master  *gorp.DbMap
-	masterX *sqlx.DB
+	masterX *sqlxDBWrapper
 
 	Replicas  []*gorp.DbMap
-	ReplicaXs []*sqlx.DB
+	ReplicaXs []*sqlxDBWrapper
 
 	searchReplicas  []*gorp.DbMap
-	searchReplicaXs []*sqlx.DB
+	searchReplicaXs []*sqlxDBWrapper
 
 	replicaLagHandles []*dbsql.DB
 	stores            SqlStoreStores
@@ -389,18 +389,22 @@ func (ss *SqlStore) initConnection() {
 
 	handle := setupConnection("master", dataSource, ss.settings)
 	ss.master = getDBMap(ss.settings, handle)
-	ss.masterX = sqlx.NewDb(handle, ss.DriverName())
+	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
+		time.Duration(*ss.settings.QueryTimeout)*time.Second,
+		*ss.settings.Trace)
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
-		ss.ReplicaXs = make([]*sqlx.DB, len(ss.settings.DataSourceReplicas))
+		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 			ss.Replicas[i] = getDBMap(ss.settings, handle)
-			ss.ReplicaXs[i] = sqlx.NewDb(handle, ss.DriverName())
+			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
+				time.Duration(*ss.settings.QueryTimeout)*time.Second,
+				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.ReplicaXs[i].MapperFunc(noOpMapper)
 			}
@@ -409,11 +413,13 @@ func (ss *SqlStore) initConnection() {
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
-		ss.searchReplicaXs = make([]*sqlx.DB, len(ss.settings.DataSourceSearchReplicas))
+		ss.searchReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 			ss.searchReplicas[i] = getDBMap(ss.settings, handle)
-			ss.searchReplicaXs[i] = sqlx.NewDb(handle, ss.DriverName())
+			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
+				time.Duration(*ss.settings.QueryTimeout)*time.Second,
+				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
 			}
@@ -470,7 +476,7 @@ func (ss *SqlStore) GetMaster() *gorp.DbMap {
 	return ss.master
 }
 
-func (ss *SqlStore) GetMasterX() *sqlx.DB {
+func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
 	return ss.masterX
 }
 
@@ -502,7 +508,7 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 	return ss.Replicas[rrNum]
 }
 
-func (ss *SqlStore) GetReplicaX() *sqlx.DB {
+func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 	ss.licenseMutex.RLock()
 	license := ss.license
 	ss.licenseMutex.RUnlock()

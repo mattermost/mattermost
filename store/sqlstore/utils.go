@@ -55,6 +55,14 @@ func finalizeTransaction(transaction *gorp.Transaction) {
 	}
 }
 
+// finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
+func finalizeTransactionX(transaction *sqlxTxWrapper) {
+	// Rollback returns sql.ErrTxDone if the transaction was already closed.
+	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
+		mlog.Error("Failed to rollback transaction", mlog.Err(err))
+	}
+}
+
 // removeNonAlphaNumericUnquotedTerms removes all unquoted words that only contain
 // non-alphanumeric chars from given line
 func removeNonAlphaNumericUnquotedTerms(line, separator string) string {
