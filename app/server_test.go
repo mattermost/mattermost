@@ -536,7 +536,7 @@ func TestPanicLog(t *testing.T) {
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
 	require.NoError(t, err)
-	err = logger.ConfigureTargets(cfg)
+	err = logger.ConfigureTargets(cfg, nil)
 	require.NoError(t, err)
 	logger.LockConfiguration()
 
