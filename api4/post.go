@@ -28,6 +28,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 
 	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
@@ -474,14 +475,15 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
+	if c.Params.TeamId != "" {
+		if !model.IsValidId(c.Params.TeamId) {
+			c.SetInvalidURLParam("team_id")
+			return
+		}
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
 	}
 
 	var params model.SearchParameter

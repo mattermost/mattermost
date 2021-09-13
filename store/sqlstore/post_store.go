@@ -1527,6 +1527,16 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, q
 	return searchQuery, queryParams
 }
 
+func (s *SqlPostStore) buildSearchTeamFilterClause(teamId string, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	if teamId == "" {
+		return "", queryParams
+	}
+
+	queryParams["TeamId"] = teamId
+
+	return "AND (TeamId = :TeamId OR TeamId = '')", queryParams
+}
+
 func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byName bool) (string, map[string]interface{}) {
 	if len(channels) == 0 {
 		return "", queryParams
@@ -1608,7 +1618,6 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, error) {
 	queryParams := map[string]interface{}{
-		"TeamId": teamId,
 		"UserId": userId,
 	}
 
@@ -1649,7 +1658,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 						ChannelMembers
 					WHERE
 						Id = ChannelId
-							AND (TeamId = :TeamId OR TeamId = '')
+							TEAM_FILTER
 							` + userIdPart + `
 							` + deletedQueryPart + `
 							IN_CHANNEL_FILTER
@@ -1658,6 +1667,9 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 				SEARCH_CLAUSE
 				ORDER BY CreateAt DESC
 			LIMIT 100`
+
+	teamClause, queryParams := s.buildSearchTeamFilterClause(teamId, queryParams)
+	searchQuery = strings.Replace(searchQuery, "TEAM_FILTER", teamClause, 1)
 
 	inChannelClause, queryParams := s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams, channelsByName)
 	searchQuery = strings.Replace(searchQuery, "IN_CHANNEL_FILTER", inChannelClause, 1)
