@@ -209,17 +209,19 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 }
 
 func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) error {
-	err := c.ChannelStore.PermanentDeleteMembersByUser(userId)
-	if err == nil {
-		c.rootStore.indexUserFromID(userId)
+	channels, errGetChannels := c.ChannelStore.GetChannelsByUser(userId, false, 0)
+	if errGetChannels != nil {
+		mlog.Warn("Encountered error indexing channel after removing user", mlog.String("user_id", userId), mlog.Err(errGetChannels))
 	}
 
-	channels, err := c.ChannelStore.GetChannelsByUser(userId, false, 0)
-	if err == nil {
+	err := c.ChannelStore.PermanentDeleteMembersByUser(userId)
+	if err == nil && errGetChannels == nil {
+		c.rootStore.indexUserFromID(userId)
 		for _, ch := range channels {
 			c.indexChannel(ch)
 		}
 	}
+
 	return err
 }
 
