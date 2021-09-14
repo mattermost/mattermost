@@ -46,6 +46,9 @@ type FeatureFlags struct {
 
 	// Enable different treatments for first time users, possible values = ("none", "tour_point", "around_input")
 	PrewrittenMessages string
+
+	// Enable different treatments for first time users, possible values = ("string")
+	TestFlag string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -63,6 +66,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GlobalHeader = false
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "none"
+	f.TestFlag = "string"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
