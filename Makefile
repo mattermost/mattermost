@@ -24,6 +24,7 @@ BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 # If we don't set the build number it defaults to dev
 ifeq ($(BUILD_NUMBER),)
+	BUILD_DATE := dev
 	BUILD_NUMBER := dev
 endif
 BUILD_ENTERPRISE_DIR ?= ../enterprise
