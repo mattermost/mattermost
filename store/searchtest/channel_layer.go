@@ -89,9 +89,14 @@ func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "Channel Alternate", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
+
+	private, err := th.createChannel(th.Team.Id, "channel-altprivate", "Channel AltPrivate", "Channel Private", model.ChannelTypePrivate, false)
+	require.NoError(t, err)
+	defer th.deleteChannel(private)
+
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id}, res)
 }
 
 func testAutocompleteChannelByNamePostgres(t *testing.T, th *SearchTestHelper) {
@@ -107,9 +112,14 @@ func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
+
+	private, err := th.createChannel(th.Team.Id, "channel-altprivate", "ChannelAltPrivate", "Channel Private", model.ChannelTypePrivate, false)
+	require.NoError(t, err)
+	defer th.deleteChannel(private)
+
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "ChannelA", false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id}, res)
 }
 
 func testAutocompleteChannelByNameSplittedWithDashChar(t *testing.T, th *SearchTestHelper) {
