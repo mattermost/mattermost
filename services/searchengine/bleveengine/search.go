@@ -315,6 +315,12 @@ func (b *BleveEngine) IndexChannel(channel *model.Channel, userIDs []string) *mo
 }
 
 func (b *BleveEngine) SearchChannels(teamId, userID, term string) ([]string, *model.AppError) {
+	// This query essentially boils down to:
+	// match teamID == <>
+	// AND
+	// match term == <>
+	// AND
+	// match (channelType != 'P' || (<> in userIDs && channelType == 'P'))
 	teamIdQ := bleve.NewTermQuery(teamId)
 	teamIdQ.SetField("TeamId")
 	queries := []query.Query{teamIdQ}
