@@ -116,3 +116,11 @@ func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
 
 	return args, argString
 }
+
+func makeStringArgs(params []string) []interface{} {
+	args := make([]interface{}, len(params))
+	for i, name := range params {
+		args[i] = name
+	}
+	return args
+}

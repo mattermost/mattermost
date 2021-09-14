@@ -72,11 +72,7 @@ func (es SqlEmojiStore) GetByName(ctx context.Context, name string, allowFromCac
 func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
 	// Creating (?, ?, ?) len(names) number of times.
 	keys := strings.Join(strings.Fields(strings.Repeat("? ", len(names))), ",")
-
-	args := make([]interface{}, len(names))
-	for i, name := range names {
-		args[i] = name
-	}
+	args := makeStringArgs(names)
 
 	emojis := []*model.Emoji{}
 	if err := es.GetReplicaX().Select(&emojis,
