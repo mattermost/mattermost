@@ -207,6 +207,9 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th := SetupWithoutPreloadMigrations(t)
 	defer th.TearDown()
 
+	expectedSystemAdmin := allPermissionIDs
+	sort.Strings(expectedSystemAdmin)
+
 	th.ResetEmojisMigration()
 	th.App.DoEmojisPermissionsMigration()
 
@@ -229,7 +232,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	systemAdmin2, systemAdminErr2 := th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
 	assert.Nil(t, systemAdminErr2)
 	sort.Strings(systemAdmin2.Permissions)
-	// assert.Equal(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
+	assert.Equal(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemAdminRoleId))
 }
 
 func TestDBHealthCheckWriteAndDelete(t *testing.T) {
