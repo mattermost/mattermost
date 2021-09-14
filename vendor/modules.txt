@@ -151,8 +151,6 @@ github.com/blevesearch/zap/v15
 # github.com/cespare/xxhash/v2 v2.1.1
 ## explicit
 github.com/cespare/xxhash/v2
-# github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd
-## explicit
 # github.com/couchbase/vellum v1.0.2
 github.com/couchbase/vellum
 github.com/couchbase/vellum/levenshtein
@@ -390,7 +388,7 @@ github.com/mattermost/gziphandler
 # github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 ## explicit
 github.com/mattermost/ldap
-# github.com/mattermost/logr/v2 v2.0.10
+# github.com/mattermost/logr/v2 v2.0.15
 ## explicit
 github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config

@@ -505,9 +505,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
-					profileMap[id].NotifyProps[model.PushThreadsNotifyProp] == model.UserNotifyMention,
 					false,
-					model.UserNotifyAll,
+					false,
+					model.CommentsNotifyCRT,
 				)
 			} else {
 				// register that a notification was not sent
