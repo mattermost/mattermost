@@ -1492,7 +1492,6 @@ func doReportUsageToAWSMeteringService(s *Server) {
 }
 
 func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
-	doCheckAdminSupportStatus(a, c)
 	model.CreateRecurringTask("Check Admin Support Status Job", func() {
 		doCheckAdminSupportStatus(a, c)
 	}, time.Hour*model.WarnMetricJobInterval)
