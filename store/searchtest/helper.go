@@ -251,6 +251,13 @@ func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose str
 		return nil, err
 	}
 
+	if channelType == model.ChannelTypePrivate && th.User != nil {
+		err = th.addUserToChannels(th.User, []string{channel.Id})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if deleted {
 		err := th.Store.Channel().Delete(channel.Id, model.GetMillis())
 		if err != nil {
