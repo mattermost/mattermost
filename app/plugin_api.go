@@ -552,7 +552,7 @@ func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string)
 }
 
 func (api *PluginAPI) GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMembersForUserWithPagination(teamID, userID, page, perPage)
+	return api.app.getChannelMembersForUserWithPagination(teamID, userID, page, perPage)
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -714,7 +714,7 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
-	return api.app.GetFile(fileID)
+	return api.app.getFile(fileID)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {

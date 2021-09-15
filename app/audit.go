@@ -30,7 +30,7 @@ var (
 	LevelCLI     = mlog.LvlAuditCLI
 )
 
-func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
+func (a *App) getAudits(userID string, limit int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store.Audit().Get(userID, 0, limit)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds

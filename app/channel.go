@@ -335,7 +335,7 @@ func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID s
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		!a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
-		commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+		commonTeamIDs, err := a.getCommonTeamIDsForTwoUsers(userID, otherUserID)
 		if err != nil {
 			return nil, err
 		}
@@ -1845,7 +1845,7 @@ func (a *App) GetDeletedChannels(teamID string, offset int, limit int, userID st
 	return list, nil
 }
 
-func (a *App) GetChannelsUserNotIn(teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *App) getChannelsUserNotIn(teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	channels, err := a.Srv().Store.Channel().GetMoreChannels(teamID, userID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1945,7 +1945,7 @@ func (a *App) GetChannelMembersForUser(teamID string, userID string) (model.Chan
 	return channelMembers, nil
 }
 
-func (a *App) GetChannelMembersForUserWithPagination(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+func (a *App) getChannelMembersForUserWithPagination(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	m, err := a.Srv().Store.Channel().GetMembersForUserWithPagination(teamID, userID, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1986,7 +1986,7 @@ func (a *App) GetChannelPinnedPostCount(channelID string) (int64, *model.AppErro
 	return count, nil
 }
 
-func (a *App) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
+func (a *App) getChannelCounts(teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
 	counts, err := a.Srv().Store.Channel().GetChannelCounts(teamID, userID)
 	if err != nil {
 		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, err.Error(), http.StatusInternalServerError)

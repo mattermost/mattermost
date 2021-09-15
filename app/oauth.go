@@ -427,7 +427,7 @@ func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, serv
 
 	stateProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
 
-	authURL, err := a.GetAuthorizationCode(w, r, service, stateProps, loginHint)
+	authURL, err := a.getAuthorizationCode(w, r, service, stateProps, loginHint)
 	if err != nil {
 		return "", err
 	}
@@ -442,7 +442,7 @@ func (a *App) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, ser
 		stateProps["team_id"] = teamID
 	}
 
-	authURL, err := a.GetAuthorizationCode(w, r, service, stateProps, "")
+	authURL, err := a.getAuthorizationCode(w, r, service, stateProps, "")
 	if err != nil {
 		return "", err
 	}
@@ -701,7 +701,7 @@ func (a *App) getOAuthStateToken(token string) (*model.Token, *model.AppError) {
 	return mToken, nil
 }
 
-func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
+func (a *App) getAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return "", e
@@ -928,7 +928,7 @@ func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, 
 		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email=" + utils.URLEncode(email), nil
 	}
 
-	authURL, err := a.GetAuthorizationCode(w, r, service, stateProps, "")
+	authURL, err := a.getAuthorizationCode(w, r, service, stateProps, "")
 	if err != nil {
 		return "", err
 	}

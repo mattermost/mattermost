@@ -181,10 +181,10 @@ func (a *App) GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage i
 		return nil, err
 	}
 
-	return a.GetChannelsForScheme(scheme, page*perPage, perPage)
+	return a.getChannelsForScheme(scheme, page*perPage, perPage)
 }
 
-func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *App) getChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError) {
 	if err := a.isPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}

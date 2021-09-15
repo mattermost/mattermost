@@ -912,7 +912,7 @@ func (a *App) GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSe
 	return &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}, nil
 }
 
-func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
+func (a *App) getAllPrivateTeams() ([]*model.Team, *model.AppError) {
 	teams, err := a.Srv().Store.Team().GetAllPrivateTeamListing()
 	if err != nil {
 		return nil, model.NewAppError("GetAllPrivateTeams", "app.team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -921,7 +921,7 @@ func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
+func (a *App) getAllPublicTeams() ([]*model.Team, *model.AppError) {
 	teams, err := a.Srv().Store.Team().GetAllTeamListing()
 	if err != nil {
 		return nil, model.NewAppError("GetAllPublicTeams", "app.team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1025,7 +1025,7 @@ func (a *App) GetTeamMembersByIds(teamID string, userIDs []string, restrictions 
 	return teamMembers, nil
 }
 
-func (a *App) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError) {
+func (a *App) getCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError) {
 	teamIDs, err := a.Srv().Store.Team().GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 	if err != nil {
 		return nil, model.NewAppError("GetCommonTeamIDsForUsers", "app.team.get_common_team_ids_for_users.app_error", nil, err.Error(), http.StatusInternalServerError)

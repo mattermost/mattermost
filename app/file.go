@@ -1193,7 +1193,7 @@ func (a *App) getFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 	return fileInfos, nil
 }
 
-func (a *App) GetFile(fileID string) ([]byte, *model.AppError) {
+func (a *App) getFile(fileID string) ([]byte, *model.AppError) {
 	info, err := a.GetFileInfo(fileID)
 	if err != nil {
 		return nil, err

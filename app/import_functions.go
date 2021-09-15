@@ -1187,7 +1187,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 			}
 			// check md5
 			newHash := sha1.Sum(fileData)
-			oldFileData, err := a.GetFile(oldFile.Id)
+			oldFileData, err := a.getFile(oldFile.Id)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
