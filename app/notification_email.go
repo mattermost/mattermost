@@ -212,7 +212,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	}
 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
-		postMessage := a.GetMessageForNotification(post, translateFunc)
+		postMessage := a.getMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
 		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage)
 		if mdErr != nil {
@@ -358,6 +358,6 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 	return postMessage, nil
 }
 
-func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (a *App) getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
 	return a.Srv().EmailService.GetMessageForNotification(post, translateFunc)
 }

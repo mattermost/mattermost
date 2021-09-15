@@ -58,7 +58,7 @@ func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource)
 	return group, nil
 }
 
-func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+func (a *App) getGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
 	groups, err := a.Srv().Store.Group().GetAllBySource(groupSource)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsBySource", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
@@ -530,7 +530,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	}
 
 	// retrieve groups from DB
-	groups, appErr := a.GetGroupsByIDs(allUsersGroupIDSlice)
+	groups, appErr := a.getGroupsByIDs(allUsersGroupIDSlice)
 	if appErr != nil {
 		return nil, 0, appErr
 	}
@@ -559,7 +559,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	return users, totalCount, nil
 }
 
-func (a *App) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
+func (a *App) getGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
 	groups, err := a.Srv().Store.Group().GetByIDs(groupIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsByIDs", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
@@ -594,7 +594,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 	}
 
 	// retrieve groups from DB
-	groups, appErr := a.GetGroupsByIDs(allUsersGroupIDSlice)
+	groups, appErr := a.getGroupsByIDs(allUsersGroupIDSlice)
 	if appErr != nil {
 		return nil, 0, appErr
 	}

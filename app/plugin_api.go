@@ -582,7 +582,7 @@ func (api *PluginAPI) GetGroupMemberUsers(groupID string, page, perPage int) ([]
 }
 
 func (api *PluginAPI) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
-	return api.app.GetGroupsBySource(groupSource)
+	return api.app.getGroupsBySource(groupSource)
 }
 
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
@@ -689,7 +689,7 @@ func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppErr
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfos(page, perPage, opt)
+	return api.app.getFileInfos(page, perPage, opt)
 }
 
 func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {

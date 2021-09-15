@@ -422,7 +422,7 @@ func (a *App) GetIncomingWebhook(hookID string) (*model.IncomingWebhook, *model.
 	return webhook, nil
 }
 
-func (a *App) GetIncomingWebhooksForTeamPage(teamID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+func (a *App) getIncomingWebhooksForTeamPage(teamID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	return a.GetIncomingWebhooksForTeamPageByUser(teamID, "", page, perPage)
 }
 
@@ -452,7 +452,7 @@ func (a *App) GetIncomingWebhooksPageByUser(userID string, page, perPage int) ([
 	return webhooks, nil
 }
 
-func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+func (a *App) getIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	return a.GetIncomingWebhooksPageByUser("", page, perPage)
 }
 

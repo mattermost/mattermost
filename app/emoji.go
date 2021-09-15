@@ -228,7 +228,7 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 	return emoji, nil
 }
 
-func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (a *App) getMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}

@@ -181,7 +181,7 @@ func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*mode
 		return nil, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id, fromMaster)
+	return a.getFileInfosForPost(post.Id, fromMaster)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
@@ -361,7 +361,7 @@ func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reacti
 		return []*model.Emoji{}, nil
 	}
 
-	return a.GetMultipleEmojiByName(names)
+	return a.getMultipleEmojiByName(names)
 }
 
 func (a *App) isLinkAllowedForPreview(link string) bool {

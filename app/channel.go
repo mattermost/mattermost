@@ -183,7 +183,7 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 	}
 
 	// Get total number of channels on current team
-	count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId)
+	count, err := a.getNumberOfChannelsOnTeam(channel.TeamId)
 	if err != nil {
 		return nil, err
 	}
@@ -2415,7 +2415,7 @@ func (a *App) RemoveUserFromChannel(c *request.Context, userIDToRemove string, r
 	return nil
 }
 
-func (a *App) GetNumberOfChannelsOnTeam(teamID string) (int, *model.AppError) {
+func (a *App) getNumberOfChannelsOnTeam(teamID string) (int, *model.AppError) {
 	// Get total number of channels on current team
 	list, err := a.Srv().Store.Channel().GetTeamChannels(teamID)
 	if err != nil {
@@ -3029,7 +3029,7 @@ func (a *App) MoveChannel(c *request.Context, team *model.Team, channel *model.C
 		}
 	}
 
-	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
+	if incomingWebhooks, err := a.getIncomingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
 		mlog.Warn("Failed to get incoming webhooks", mlog.Err(err))
 	} else {
 		for _, webhook := range incomingWebhooks {

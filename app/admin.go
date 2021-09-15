@@ -130,7 +130,7 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	return lines, nil
 }
 
-func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+func (a *App) getLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	return a.Srv().GetLogsSkipSend(page, perPage)
 }
 

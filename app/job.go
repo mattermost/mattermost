@@ -26,11 +26,11 @@ func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
 	return job, nil
 }
 
-func (a *App) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobs(page*perPage, perPage)
+func (a *App) getJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
+	return a.getJobs(page*perPage, perPage)
 }
 
-func (a *App) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
+func (a *App) getJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
 	jobs, err := a.Srv().Store.Job().GetAllPage(offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetJobs", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -40,10 +40,10 @@ func (a *App) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
 }
 
 func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobsByType(jobType, page*perPage, perPage)
+	return a.getJobsByType(jobType, page*perPage, perPage)
 }
 
-func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (a *App) getJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
 	jobs, err := a.Srv().Store.Job().GetAllByTypePage(jobType, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -53,10 +53,10 @@ func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job
 }
 
 func (a *App) GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobsByTypes(jobType, page*perPage, perPage)
+	return a.getJobsByTypes(jobType, page*perPage, perPage)
 }
 
-func (a *App) GetJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (a *App) getJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
 	jobs, err := a.Srv().Store.Job().GetAllByTypesPage(jobTypes, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
