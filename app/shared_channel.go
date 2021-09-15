@@ -85,7 +85,7 @@ func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64,
 	return a.Srv().Store.SharedChannel().GetAllCount(opts)
 }
 
-func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+func (a *App) updateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	return a.Srv().Store.SharedChannel().Update(sc)
 }
 
@@ -133,7 +133,7 @@ func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.Re
 	return rc, nil
 }
 
-func (a *App) UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
+func (a *App) updateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	return a.Srv().Store.SharedChannel().UpdateRemoteCursor(id, cursor)
 }
 

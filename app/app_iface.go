@@ -1061,8 +1061,6 @@ type AppIface interface {
 	UpdatePreferences(userID string, preferences model.Preferences) *model.AppError
 	UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError)
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
-	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
-	UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) *model.AppError
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
