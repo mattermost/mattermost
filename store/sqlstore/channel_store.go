@@ -390,7 +390,7 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		tablem := db.AddTableWithName(channelMember{}, "ChannelMembers").SetKeys(false, "ChannelId", "UserId")
 		tablem.ColMap("ChannelId").SetMaxSize(26)
 		tablem.ColMap("UserId").SetMaxSize(26)
-		tablem.ColMap("Roles").SetMaxSize(64)
+		tablem.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
 		tablem.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 
 		tablePublicChannels := db.AddTableWithName(publicChannel{}, "PublicChannels").SetKeys(false, "Id")

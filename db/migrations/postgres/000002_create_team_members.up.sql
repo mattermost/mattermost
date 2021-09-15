@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS teammembers (
     teamid VARCHAR(26) NOT NULL,
     userid VARCHAR(26) NOT NULL,
-    roles VARCHAR(64),
+    roles VARCHAR(256),
     deleteat bigint,
     PRIMARY KEY (teamid, userid)
 );
