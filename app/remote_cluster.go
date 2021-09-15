@@ -62,7 +62,7 @@ func (a *App) GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*mo
 	return list, nil
 }
 
-func (a *App) UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError) {
+func (a *App) updateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store.RemoteCluster().UpdateTopics(remoteClusterId, topics)
 	if err != nil {
 		return nil, model.NewAppError("UpdateRemoteClusterTopics", "api.remote_cluster.save.app_error", nil, err.Error(), http.StatusInternalServerError)

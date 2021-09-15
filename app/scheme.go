@@ -109,7 +109,7 @@ func (a *App) PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*mode
 	}
 
 	scheme.Patch(patch)
-	scheme, err := a.UpdateScheme(scheme)
+	scheme, err := a.updateScheme(scheme)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (a *App) PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*mode
 	return scheme, err
 }
 
-func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (a *App) updateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}

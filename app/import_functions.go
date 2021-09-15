@@ -58,7 +58,7 @@ func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 	if scheme.Id == "" {
 		scheme, err = a.CreateScheme(scheme)
 	} else {
-		scheme, err = a.UpdateScheme(scheme)
+		scheme, err = a.updateScheme(scheme)
 	}
 
 	if err != nil {

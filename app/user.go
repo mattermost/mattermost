@@ -831,7 +831,7 @@ func (a *App) UpdatePasswordAsUser(userID, currentPassword, newPassword string) 
 
 	T := i18n.GetUserTranslations(user.Locale)
 
-	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
+	return a.updatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
 func (a *App) userDeactivated(c *request.Context, userID string) *model.AppError {
@@ -1193,7 +1193,7 @@ func (a *App) UpdatePasswordByUserIdSendEmail(userID, newPassword, method string
 		return err
 	}
 
-	return a.UpdatePasswordSendEmail(user, newPassword, method)
+	return a.updatePasswordSendEmail(user, newPassword, method)
 }
 
 func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppError {
@@ -1212,7 +1212,7 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 	return nil
 }
 
-func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method string) *model.AppError {
+func (a *App) updatePasswordSendEmail(user *model.User, newPassword, method string) *model.AppError {
 	if err := a.UpdatePassword(user, newPassword); err != nil {
 		return err
 	}
@@ -1279,7 +1279,7 @@ func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string
 
 	T := i18n.GetUserTranslations(user.Locale)
 
-	if err := a.UpdatePasswordSendEmail(user, newPassword, T("api.user.reset_password.method")); err != nil {
+	if err := a.updatePasswordSendEmail(user, newPassword, T("api.user.reset_password.method")); err != nil {
 		return err
 	}
 
