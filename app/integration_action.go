@@ -40,7 +40,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-func (a *App) DoPostAction(c *request.Context, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
+func (a *App) doPostAction(c *request.Context, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
 	return a.DoPostActionWithCookie(c, postID, actionId, userID, selectedOption, nil)
 }
 
@@ -318,7 +318,7 @@ func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*
 
 	rawURLPath := path.Clean(rawURL)
 	if strings.HasPrefix(rawURLPath, "/plugins/") || strings.HasPrefix(rawURLPath, "plugins/") {
-		return a.DoLocalRequest(c, rawURLPath, body)
+		return a.doLocalRequest(c, rawURLPath, body)
 	}
 
 	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
@@ -576,7 +576,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	return mailToLinkContent.ToJSON()
 }
 
-func (a *App) DoLocalRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) doLocalRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 

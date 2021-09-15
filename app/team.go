@@ -1655,7 +1655,7 @@ func (a *App) InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsIn
 	return nil
 }
 
-func (a *App) FindTeamByName(name string) bool {
+func (a *App) findTeamByName(name string) bool {
 	if _, err := a.Srv().Store.Team().GetByName(name); err != nil {
 		return false
 	}

@@ -241,7 +241,7 @@ func (s *Server) doGuestRolesCreationMigration() {
 	}
 }
 
-func (a *App) DoSystemConsoleRolesCreationMigration() {
+func (a *App) doSystemConsoleRolesCreationMigration() {
 	a.Srv().doSystemConsoleRolesCreationMigration()
 }
 

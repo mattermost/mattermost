@@ -34,7 +34,7 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 			return a.CreateChannel(c, channel, addMember)
 		},
 		DoUploadFile: func(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-			return a.DoUploadFile(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+			return a.doUploadFile(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 		},
 		GenerateThumbnailImage: a.generateThumbnailImage,
 		GeneratePreviewImage:   a.generatePreviewImage,
