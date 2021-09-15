@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"unicode/utf8"
 )
@@ -66,12 +64,12 @@ func (a *OAuthApp) IsValid() *AppError {
 	}
 
 	for _, callback := range a.CallbackUrls {
-		if !IsValidHttpUrl(callback) {
+		if !IsValidHTTPURL(callback) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
+	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHTTPURL(a.Homepage) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -80,7 +78,7 @@ func (a *OAuthApp) IsValid() *AppError {
 	}
 
 	if a.IconURL != "" {
-		if len(a.IconURL) > 512 || !IsValidHttpUrl(a.IconURL) {
+		if len(a.IconURL) > 512 || !IsValidHTTPURL(a.IconURL) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}
 	}
@@ -108,11 +106,6 @@ func (a *OAuthApp) PreUpdate() {
 	a.UpdateAt = GetMillis()
 }
 
-func (a *OAuthApp) ToJson() string {
-	b, _ := json.Marshal(a)
-	return string(b)
-}
-
 // Generate a valid strong etag so the browser can cache the results
 func (a *OAuthApp) Etag() string {
 	return Etag(a.Id, a.UpdateAt)
@@ -131,21 +124,4 @@ func (a *OAuthApp) IsValidRedirectURL(url string) bool {
 	}
 
 	return false
-}
-
-func OAuthAppFromJson(data io.Reader) *OAuthApp {
-	var app *OAuthApp
-	json.NewDecoder(data).Decode(&app)
-	return app
-}
-
-func OAuthAppListToJson(l []*OAuthApp) string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
-func OAuthAppListFromJson(data io.Reader) []*OAuthApp {
-	var o []*OAuthApp
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

@@ -13,23 +13,23 @@ import (
 )
 
 func (api *API) InitWebhook() {
-	api.BaseRoutes.IncomingHooks.Handle("", api.ApiSessionRequired(createIncomingHook)).Methods("POST")
-	api.BaseRoutes.IncomingHooks.Handle("", api.ApiSessionRequired(getIncomingHooks)).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(getIncomingHook)).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(updateIncomingHook)).Methods("PUT")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(deleteIncomingHook)).Methods("DELETE")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APISessionRequired(createIncomingHook)).Methods("POST")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APISessionRequired(getIncomingHooks)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(getIncomingHook)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(updateIncomingHook)).Methods("PUT")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(deleteIncomingHook)).Methods("DELETE")
 
-	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiSessionRequired(createOutgoingHook)).Methods("POST")
-	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiSessionRequired(getOutgoingHooks)).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(getOutgoingHook)).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
-	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(createOutgoingHook)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(getOutgoingHooks)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(getOutgoingHook)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(updateOutgoingHook)).Methods("PUT")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(deleteOutgoingHook)).Methods("DELETE")
+	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.APISessionRequired(regenOutgoingHookToken)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	hook := model.IncomingWebhookFromJson(r.Body)
-	if hook == nil {
+	var hook model.IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
 		c.SetInvalidParam("incoming_webhook")
 		return
 	}
@@ -72,7 +72,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		userId = hook.UserId
 	}
 
-	incomingHook, err := c.App.CreateIncomingWebhookForChannel(userId, channel, hook)
+	incomingHook, err := c.App.CreateIncomingWebhookForChannel(userId, channel, &hook)
 	if err != nil {
 		c.Err = err
 		return
@@ -94,8 +94,8 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedHook := model.IncomingWebhookFromJson(r.Body)
-	if updatedHook == nil {
+	var updatedHook model.IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
 		c.SetInvalidParam("incoming_webhook")
 		return
 	}
@@ -157,7 +157,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	incomingHook, err := c.App.UpdateIncomingWebhook(oldHook, updatedHook)
+	incomingHook, err := c.App.UpdateIncomingWebhook(oldHook, &updatedHook)
 	if err != nil {
 		c.Err = err
 		return
@@ -210,7 +210,12 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.IncomingWebhookListToJson(hooks)))
+	js, jsonErr := json.Marshal(hooks)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getIncomingHooks", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -326,8 +331,8 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedHook := model.OutgoingWebhookFromJson(r.Body)
-	if updatedHook == nil {
+	var updatedHook model.OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
 		c.SetInvalidParam("outgoing_webhook")
 		return
 	}
@@ -374,7 +379,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	updatedHook.CreatorId = c.AppContext.Session().UserId
 
-	rhook, err := c.App.UpdateOutgoingWebhook(oldHook, updatedHook)
+	rhook, err := c.App.UpdateOutgoingWebhook(oldHook, &updatedHook)
 	if err != nil {
 		c.Err = err
 		return
@@ -389,8 +394,8 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	hook := model.OutgoingWebhookFromJson(r.Body)
-	if hook == nil {
+	var hook model.OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
 		c.SetInvalidParam("outgoing_webhook")
 		return
 	}
@@ -421,7 +426,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	rhook, err := c.App.CreateOutgoingWebhook(hook)
+	rhook, err := c.App.CreateOutgoingWebhook(&hook)
 	if err != nil {
 		c.LogAudit("fail")
 		c.Err = err
@@ -491,7 +496,12 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.OutgoingWebhookListToJson(hooks)))
+	js, jsonErr := json.Marshal(hooks)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getOutgoingHooks", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {

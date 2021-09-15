@@ -525,14 +525,14 @@ type API interface {
 	// @tag Channel
 	// @tag User
 	// Minimum server version: 5.6
-	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+	GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError)
 
 	// GetChannelMembersByIds gets a channel membership for a particular User
 	//
 	// @tag Channel
 	// @tag User
 	// Minimum server version: 5.6
-	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+	GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError)
 
 	// GetChannelMembersForUser returns all channel memberships on a team for a user.
 	//
@@ -994,25 +994,6 @@ type API interface {
 	// @tag Bot
 	// Minimum server version: 5.10
 	PermanentDeleteBot(botUserId string) *model.AppError
-
-	// GetBotIconImage gets LHS bot icon image.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	GetBotIconImage(botUserId string) ([]byte, *model.AppError)
-
-	// SetBotIconImage sets LHS bot icon image.
-	// Icon image must be SVG format, all other formats are rejected.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	SetBotIconImage(botUserId string, data []byte) *model.AppError
-
-	// DeleteBotIconImage deletes LHS bot icon image.
-	//
-	// @tag Bot
-	// Minimum server version: 5.14
-	DeleteBotIconImage(botUserId string) *model.AppError
 
 	// PluginHTTP allows inter-plugin requests to plugin APIs.
 	//

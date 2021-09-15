@@ -45,7 +45,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, code, backend)
 
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "backend": {"executable": "backend.exe"}}`), 0600)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 		_, _, activationErr := env.Activate(pluginID)
 		pluginIDs = append(pluginIDs, pluginID)
 		activationErrors = append(activationErrors, activationErr)
@@ -918,7 +918,7 @@ func TestHookContext(t *testing.T) {
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", ctx.Session().Id).Return(nil)
 	mockAPI.On("LogInfo", ctx.RequestId()).Return(nil)
-	mockAPI.On("LogError", ctx.IpAddress()).Return(nil)
+	mockAPI.On("LogError", ctx.IPAddress()).Return(nil)
 	mockAPI.On("LogWarn", ctx.AcceptLanguage()).Return(nil)
 	mockAPI.On("DeleteTeam", ctx.UserAgent()).Return(nil)
 
@@ -939,7 +939,7 @@ func TestHookContext(t *testing.T) {
 		func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 			p.API.LogDebug(c.SessionId)
 			p.API.LogInfo(c.RequestId)
-			p.API.LogError(c.IpAddress)
+			p.API.LogError(c.IPAddress)
 			p.API.LogWarn(c.AcceptLanguage)
 			p.API.DeleteTeam(c.UserAgent)
 		}
@@ -1083,7 +1083,7 @@ func TestHookMetrics(t *testing.T) {
 	}
 `
 		utils.CompileGo(t, code, backend)
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "backend": {"executable": "backend.exe"}}`), 0600)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 
 		// Setup mocks before activating
 		metricsMock.On("ObservePluginHookDuration", pluginID, "Implemented", true, mock.Anything).Return()
@@ -1093,7 +1093,7 @@ func TestHookMetrics(t *testing.T) {
 		metricsMock.On("ObservePluginHookDuration", pluginID, "UserHasBeenCreated", true, mock.Anything).Return()
 
 		// Don't care about these calls.
-		metricsMock.On("ObservePluginApiDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
+		metricsMock.On("ObservePluginAPIDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookIterationDuration", mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
 

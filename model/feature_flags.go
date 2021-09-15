@@ -36,11 +36,16 @@ type FeatureFlags struct {
 	// Enable timed dnd support for user status
 	TimedDND bool
 
+	PermalinkPreviews bool
+
 	// Enable the Global Header
 	GlobalHeader bool
 
-	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
-	InviteMembersButton string
+	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
+	AddChannelButton string
+
+	// Enable different treatments for first time users, possible values = ("none", "tour_point", "around_input")
+	PrewrittenMessages string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -50,12 +55,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
-	f.PluginIncidentManagement = "1.14.3"
+	f.PluginIncidentManagement = "1.16.1"
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.TimedDND = false
+	f.PermalinkPreviews = true
 	f.GlobalHeader = false
-	f.InviteMembersButton = "none"
+	f.AddChannelButton = "by_team_name"
+	f.PrewrittenMessages = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

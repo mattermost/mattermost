@@ -35,7 +35,6 @@ type AccessResponse struct {
 // IsValid validates the AccessData and returns an error if it isn't configured
 // correctly.
 func (ad *AccessData) IsValid() *AppError {
-
 	if ad.ClientId == "" || len(ad.ClientId) > 26 {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -52,7 +51,7 @@ func (ad *AccessData) IsValid() *AppError {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.refresh_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if ad.RedirectUri == "" || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
+	if ad.RedirectUri == "" || len(ad.RedirectUri) > 256 || !IsValidHTTPURL(ad.RedirectUri) {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 	}
 

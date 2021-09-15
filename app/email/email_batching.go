@@ -170,7 +170,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 				continue
 			}
 
-			for _, channelMember := range *channelMembers {
+			for _, channelMember := range channelMembers {
 				if channelMember.LastViewedAt >= batchStartTime {
 					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userID))
 					delete(job.pendingNotifications, userID)
@@ -225,6 +225,16 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		emailNotificationContentsType = *es.config().EmailSettings.EmailNotificationContentsType
 	}
 
+	// check if user has CRT set to ON
+	threadsEnabled := false
+	if *es.config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled {
+		threadsEnabled = *es.config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
+		// check if a participant has overridden collapsed threads settings
+		if preference, errCrt := es.store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); errCrt == nil {
+			threadsEnabled = preference.Value == "on"
+		}
+	}
+
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		for i, notification := range notifications {
 			sender, errSender := es.userService.GetUser(notification.post.UserId)
@@ -261,11 +271,20 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
 
+			channelName := channel.DisplayName
+			if threadsEnabled && notification.post.RootId != "" {
+				props := map[string]interface{}{"channelName": channelName}
+				channelName = translateFunc("api.push_notification.title.collapsed_threads", props)
+				if channel.Type == model.ChannelTypeDirect {
+					channelName = translateFunc("api.push_notification.title.collapsed_threads_dm")
+				}
+			}
+
 			postsData = append(postsData, &postData{
 				SenderPhoto: senderPhoto,
 				SenderName:  sender.GetDisplayName(displayNameFormat),
 				Time:        t,
-				ChannelName: channel.DisplayName,
+				ChannelName: channelName,
 				Message:     template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
 				MessageURL:  MessageURL,
 			})

@@ -13,13 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPasswordHash(t *testing.T) {
-	hash := HashPassword("Test")
-
-	assert.True(t, ComparePassword(hash, "Test"), "Passwords don't match")
-	assert.False(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
-}
-
 func TestUserDeepCopy(t *testing.T) {
 	id := NewId()
 	authData := "authdata"
@@ -48,14 +41,6 @@ func TestUserDeepCopy(t *testing.T) {
 	copyUser = user.DeepCopy()
 
 	assert.Equal(t, id, copyUser.Id)
-}
-
-func TestUserJson(t *testing.T) {
-	user := User{Id: NewId(), Username: NewId()}
-	json := user.ToJson()
-	ruser := UserFromJson(strings.NewReader(json))
-
-	assert.Equal(t, user.Id, ruser.Id, "Ids do not match")
 }
 
 func TestUserPreSave(t *testing.T) {

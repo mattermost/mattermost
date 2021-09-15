@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -176,9 +175,6 @@ type Manifest struct {
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
-	// Backend is a deprecated flag for defining the server-side portion of your plugin. Going forward, use Server instead.
-	Backend *ManifestServer `json:"backend,omitempty" yaml:"backend,omitempty"`
-
 	// If your plugin extends the web app, you'll need to define webapp.
 	Webapp *ManifestWebapp `json:"webapp,omitempty" yaml:"webapp,omitempty"`
 
@@ -191,7 +187,7 @@ type Manifest struct {
 
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//
-	// Use the plugin helpers CheckRequiredServerConfiguration method to enforce this.
+	// Use the pluginapi.Configuration.CheckRequiredServerConfiguration method to enforce this.
 	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
@@ -230,28 +226,6 @@ type ManifestWebapp struct {
 	BundleHash []byte `json:"-"`
 }
 
-func (m *Manifest) ToJson() string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestListToJson(m []*Manifest) string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestFromJson(data io.Reader) *Manifest {
-	var m *Manifest
-	json.NewDecoder(data).Decode(&m)
-	return m
-}
-
-func ManifestListFromJson(data io.Reader) []*Manifest {
-	var manifests []*Manifest
-	json.NewDecoder(data).Decode(&manifests)
-	return manifests
-}
-
 func (m *Manifest) HasClient() bool {
 	return m.Webapp != nil
 }
@@ -278,11 +252,6 @@ func (m *Manifest) ClientManifest() *Manifest {
 func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 	server := m.Server
 
-	// Support the deprecated backend parameter.
-	if server == nil {
-		server = m.Backend
-	}
-
 	if server == nil {
 		return ""
 	}
@@ -301,7 +270,7 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 }
 
 func (m *Manifest) HasServer() bool {
-	return m.Server != nil || m.Backend != nil
+	return m.Server != nil
 }
 
 func (m *Manifest) HasWebapp() bool {
@@ -329,15 +298,15 @@ func (m *Manifest) IsValid() error {
 		return errors.New("a plugin name is needed")
 	}
 
-	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
+	if m.HomepageURL != "" && !IsValidHTTPURL(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHTTPURL(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
-	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+	if m.ReleaseNotesURL != "" && !IsValidHTTPURL(m.ReleaseNotesURL) {
 		return errors.New("invalid ReleaseNotesURL")
 	}
 

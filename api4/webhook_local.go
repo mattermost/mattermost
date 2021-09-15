@@ -13,22 +13,22 @@ import (
 )
 
 func (api *API) InitWebhookLocal() {
-	api.BaseRoutes.IncomingHooks.Handle("", api.ApiLocal(localCreateIncomingHook)).Methods("POST")
-	api.BaseRoutes.IncomingHooks.Handle("", api.ApiLocal(getIncomingHooks)).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiLocal(getIncomingHook)).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiLocal(updateIncomingHook)).Methods("PUT")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiLocal(deleteIncomingHook)).Methods("DELETE")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APILocal(localCreateIncomingHook)).Methods("POST")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APILocal(getIncomingHooks)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(getIncomingHook)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(updateIncomingHook)).Methods("PUT")
+	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(deleteIncomingHook)).Methods("DELETE")
 
-	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiLocal(localCreateOutgoingHook)).Methods("POST")
-	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiLocal(getOutgoingHooks)).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiLocal(getOutgoingHook)).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiLocal(updateOutgoingHook)).Methods("PUT")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiLocal(deleteOutgoingHook)).Methods("DELETE")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APILocal(localCreateOutgoingHook)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APILocal(getOutgoingHooks)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APILocal(getOutgoingHook)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APILocal(updateOutgoingHook)).Methods("PUT")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APILocal(deleteOutgoingHook)).Methods("DELETE")
 }
 
 func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	hook := model.IncomingWebhookFromJson(r.Body)
-	if hook == nil {
+	var hook model.IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
 		c.SetInvalidParam("incoming_webhook")
 		return
 	}
@@ -54,7 +54,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec.AddMeta("channel", channel)
 	c.LogAudit("attempt")
 
-	incomingHook, err := c.App.CreateIncomingWebhookForChannel(hook.UserId, channel, hook)
+	incomingHook, err := c.App.CreateIncomingWebhookForChannel(hook.UserId, channel, &hook)
 	if err != nil {
 		c.Err = err
 		return
@@ -71,8 +71,8 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	hook := model.OutgoingWebhookFromJson(r.Body)
-	if hook == nil {
+	var hook model.OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
 		c.SetInvalidParam("outgoing_webhook")
 		return
 	}
@@ -93,7 +93,7 @@ func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	rhook, err := c.App.CreateOutgoingWebhook(hook)
+	rhook, err := c.App.CreateOutgoingWebhook(&hook)
 	if err != nil {
 		c.LogAudit("fail")
 		c.Err = err

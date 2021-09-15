@@ -9,7 +9,7 @@ package plugin
 type Context struct {
 	SessionId      string
 	RequestId      string
-	IpAddress      string
+	IPAddress      string
 	AcceptLanguage string
 	UserAgent      string
 }

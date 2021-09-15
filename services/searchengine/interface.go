@@ -23,7 +23,7 @@ type SearchEngineInterface interface {
 	IsAutocompletionEnabled() bool
 	IsIndexingSync() bool
 	IndexPost(post *model.Post, teamId string) *model.AppError
-	SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
+	SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
 	DeletePost(post *model.Post) *model.AppError
 	DeleteChannelPosts(channelID string) *model.AppError
 	DeleteUserPosts(userID string) *model.AppError
@@ -35,7 +35,7 @@ type SearchEngineInterface interface {
 	SearchUsersInTeam(teamId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, *model.AppError)
 	DeleteUser(user *model.User) *model.AppError
 	IndexFile(file *model.FileInfo, channelId string) *model.AppError
-	SearchFiles(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, *model.AppError)
+	SearchFiles(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, *model.AppError)
 	DeleteFile(fileID string) *model.AppError
 	DeletePostFiles(postID string) *model.AppError
 	DeleteUserFiles(userID string) *model.AppError

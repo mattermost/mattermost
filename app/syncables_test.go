@@ -13,7 +13,6 @@ import (
 )
 
 func TestCreateDefaultMemberships(t *testing.T) {
-	t.Skip("MM-36909")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -169,7 +168,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	// update AutoAdd to true
 	scienceTeamGroupSyncable.AutoAdd = true
-	scienceTeamGroupSyncable, err = th.App.UpdateGroupSyncable(scienceTeamGroupSyncable)
+	_, err = th.App.UpdateGroupSyncable(scienceTeamGroupSyncable)
 	if err != nil {
 		t.Errorf("error updating group syncable: %s", err.Error())
 	}
@@ -297,14 +296,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("unable to add user to channel: %s", err.Error())
 	}
 
-	timeAfterLeaving := model.GetMillis()
+	timeAfterLeaving := model.GetMillis() + 1
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	_, _, nErr := th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+	deletedCount, _, nErr := th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
 		0, timeBeforeLeaving, 1000, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
+	require.Equal(t, int64(1), deletedCount)
 
 	pErr = th.App.CreateDefaultMemberships(th.Context, scienceChannelGroupSyncable.UpdateAt, false)
 	if pErr != nil {
@@ -317,11 +317,12 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	_, _, nErr = th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+	deletedCount, _, nErr = th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
 		0, timeAfterLeaving, 1000, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
+	require.Equal(t, int64(1), deletedCount)
 
 	pErr = th.App.CreateDefaultMemberships(th.Context, scienceChannelGroupSyncable.UpdateAt, false)
 	if pErr != nil {
@@ -440,8 +441,8 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	cmembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 99)
 	require.Nil(t, err)
-	require.Len(t, (*cmembers), 1)
-	require.Equal(t, th.SystemAdminUser.Id, (*cmembers)[0].UserId)
+	require.Len(t, cmembers, 1)
+	require.Equal(t, th.SystemAdminUser.Id, cmembers[0].UserId)
 }
 
 func TestSyncSyncableRoles(t *testing.T) {

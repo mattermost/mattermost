@@ -16,12 +16,12 @@ import (
 )
 
 func (api *API) InitJob() {
-	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(getJobs)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(createJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.ApiSessionRequiredTrustRequester(downloadJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.ApiSessionRequired(cancelJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.ApiSessionRequired(getJobsByType)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods("POST")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods("POST")
+	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods("GET")
 }
 
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -104,8 +104,8 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
-	job := model.JobFromJson(r.Body)
-	if job == nil {
+	var job model.Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
 		c.SetInvalidParam("job")
 		return
 	}
@@ -114,7 +114,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("job", job)
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
@@ -125,17 +125,17 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := c.App.CreateJob(job)
+	rjob, err := c.App.CreateJob(&job)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("job", job) // overwrite meta
+	auditRec.AddMeta("job", rjob) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(job); err != nil {
+	if err := json.NewEncoder(w).Encode(rjob); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -167,7 +167,12 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.JobsToJson(jobs)))
+	js, jsonErr := json.Marshal(jobs)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -192,7 +197,12 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.JobsToJson(jobs)))
+	js, jsonErr := json.Marshal(jobs)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getJobsByType", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
