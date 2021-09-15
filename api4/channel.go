@@ -912,7 +912,7 @@ func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Requ
 
 	name := r.URL.Query().Get("name")
 
-	channels, err := c.App.AutocompleteChannels(c.Params.TeamId, c.AppContext.Session().UserId, name)
+	channels, err := c.App.AutocompleteChannelsForTeam(c.Params.TeamId, c.AppContext.Session().UserId, name)
 	if err != nil {
 		c.Err = err
 		return
@@ -1029,6 +1029,31 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_search")
 		return
 	}
+
+	fromSysConsole := true
+	if val := r.URL.Query().Get("system_console"); val != "" {
+		fromSysConsole, err = strconv.ParseBool(val)
+		if err != nil {
+			c.SetInvalidParam("system_console")
+			return
+		}
+	}
+
+	if !fromSysConsole {
+		// If the request is not coming from system_console, only show the user level channels
+		// from all teams.
+		channels, err := c.App.AutocompleteChannels(c.AppContext.Session().UserId, props.Term)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(channels); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
 	// Only system managers may use the ExcludePolicyConstrained field
 	if props.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)

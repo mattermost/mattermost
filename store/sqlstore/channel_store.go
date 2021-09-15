@@ -2534,6 +2534,35 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(teamId, userId string, 
 	return dbMembers.ToModel(), nil
 }
 
+func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+	deleteFilter := "AND c.DeleteAt = 0"
+	if includeDeleted {
+		deleteFilter = ""
+	}
+
+	// TODO: think about pagination.
+	return s.performGlobalSearch(`
+	SELECT
+		c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
+	FROM
+		Channels c, Teams t
+	WHERE
+		c.TeamId=t.Id
+		`+deleteFilter+`
+		SEARCH_CLAUSE
+		AND (
+			c.Type != 'P'
+			OR (
+				c.Type = 'P'
+				AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
+			)
+		)
+	ORDER BY c.DisplayName
+	`, term, map[string]interface{}{
+		"UserId": userID,
+	})
+}
+
 func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
@@ -3013,6 +3042,28 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 	return channels, nil
 }
+
+func (s SqlChannelStore) performGlobalSearch(searchQuery string, term string, parameters map[string]interface{}) (model.ChannelListWithTeamData, error) {
+	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+	if likeTerm == "" {
+		// If the likeTerm is empty after preparing, then don't bother searching.
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	} else {
+		parameters["LikeTerm"] = likeTerm
+		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+		parameters["FulltextTerm"] = fulltextTerm
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
+	}
+
+	var channels model.ChannelListWithTeamData
+
+	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+	}
+
+	return channels, nil
+}
+
 
 func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPostgreSQL bool) (string, map[string]interface{}) {
 	var query, baseLikeClause string

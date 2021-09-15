@@ -550,6 +550,22 @@ func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.Autocomplete", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 	start := timemodule.Now()
 

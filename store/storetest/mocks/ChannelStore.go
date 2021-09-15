@@ -60,6 +60,29 @@ func (_m *ChannelStore) AnalyticsTypeCount(teamID string, channelType model.Chan
 	return r0, r1
 }
 
+// Autocomplete provides a mock function with given fields: userID, term, includeDeleted
+func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+	ret := _m.Called(userID, term, includeDeleted)
+
+	var r0 model.ChannelListWithTeamData
+	if rf, ok := ret.Get(0).(func(string, string, bool) model.ChannelListWithTeamData); ok {
+		r0 = rf(userID, term, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelListWithTeamData)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(userID, term, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AutocompleteInTeam provides a mock function with given fields: teamID, userID, term, includeDeleted
 func (_m *ChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 	ret := _m.Called(teamID, userID, term, includeDeleted)

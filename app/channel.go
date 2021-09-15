@@ -2705,7 +2705,19 @@ func (a *App) sendWebSocketPostUnreadEvent(channelUnread *model.ChannelUnreadAt,
 	a.Publish(message)
 }
 
-func (a *App) AutocompleteChannels(teamID, userID, term string) (model.ChannelList, *model.AppError) {
+func (a *App) AutocompleteChannels(userID, term string) (model.ChannelListWithTeamData, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	term = strings.TrimSpace(term)
+
+	channelList, err := a.Srv().Store.Channel().Autocomplete(userID, term, includeDeleted)
+	if err != nil {
+		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
+}
+
+func (a *App) AutocompleteChannelsForTeam(teamID, userID, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
