@@ -160,7 +160,7 @@ func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.Ap
 // SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 // status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 // while an 'away' device is still connected
-func (a *App) SetStatusLastActivityAt(userID string, activityAt int64) {
+func (a *App) setStatusLastActivityAt(userID string, activityAt int64) {
 	var status *model.Status
 	var err *model.AppError
 	if status, err = a.GetStatus(userID); err != nil {

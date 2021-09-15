@@ -66,7 +66,7 @@ type Hub struct {
 }
 
 // NewWebHub creates a new Hub.
-func (a *App) NewWebHub() *Hub {
+func (a *App) newWebHub() *Hub {
 	return &Hub{
 		app:             a,
 		register:        make(chan *WebConn),
@@ -95,7 +95,7 @@ func (a *App) HubStart() {
 	hubs := make([]*Hub, numberOfHubs)
 
 	for i := 0; i < numberOfHubs; i++ {
-		hubs[i] = a.NewWebHub()
+		hubs[i] = a.newWebHub()
 		hubs[i].connectionIndex = i
 		hubs[i].Start()
 	}
@@ -505,7 +505,7 @@ func (h *Hub) Start() {
 
 				if h.app.isUserAway(latestActivity) {
 					h.app.Srv().Go(func() {
-						h.app.SetStatusLastActivityAt(webConn.UserId, latestActivity)
+						h.app.setStatusLastActivityAt(webConn.UserId, latestActivity)
 					})
 				}
 			case userID := <-h.invalidateUser:

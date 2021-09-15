@@ -84,7 +84,7 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 // If includeRemovedMembers is true, then team members who left or were removed from the team will
 // be re-added; otherwise, they will not be re-added.
 func (a *App) createDefaultTeamMemberships(c *request.Context, since int64, teamID *string, includeRemovedMembers bool) error {
-	teamMembers, appErr := a.TeamMembersToAdd(since, teamID, includeRemovedMembers)
+	teamMembers, appErr := a.teamMembersToAdd(since, teamID, includeRemovedMembers)
 	if appErr != nil {
 		return appErr
 	}

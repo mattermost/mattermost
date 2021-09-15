@@ -246,7 +246,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	if jsonErr != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	resp, appErr = a.DoActionRequest(c, upstreamURL, requestJSON)
+	resp, appErr = a.doActionRequest(c, upstreamURL, requestJSON)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -310,7 +310,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 // For internal requests, requests are routed directly to a plugin ServerHTTP hook
-func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) doActionRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -607,7 +607,7 @@ func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDi
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
 	}
 
-	resp, err := a.DoActionRequest(c, url, b)
+	resp, err := a.doActionRequest(c, url, b)
 	if err != nil {
 		return nil, err
 	}

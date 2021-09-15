@@ -248,7 +248,7 @@ func (s *Server) initPlugins(c *request.Context, pluginDir, webappPluginDir stri
 
 // SyncPlugins synchronizes the plugins installed locally
 // with the plugin bundles available in the file store.
-func (a *App) SyncPlugins() *model.AppError {
+func (a *App) syncPlugins() *model.AppError {
 	return a.Srv().syncPlugins()
 }
 

@@ -186,7 +186,7 @@ func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppEr
 }
 
 // RenameTeam is used to rename the team Name and the DisplayName fields
-func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
+func (a *App) renameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
 
 	// check if name is occupied
 	_, errnf := a.GetTeamByName(newTeamName)
