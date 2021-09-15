@@ -30,7 +30,7 @@ func (s *Server) NewClusterDiscoveryService() *ClusterDiscoveryService {
 	return ds
 }
 
-func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
+func (a *App) newClusterDiscoveryService() *ClusterDiscoveryService {
 	return a.Srv().NewClusterDiscoveryService()
 }
 

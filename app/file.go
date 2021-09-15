@@ -159,7 +159,7 @@ func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
 	return modTime, nil
 }
 
-func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
+func (a *App) moveFile(oldPath, newPath string) *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return err

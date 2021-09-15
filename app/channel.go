@@ -164,7 +164,7 @@ func (a *App) postJoinMessageForDefaultChannel(c *request.Context, user *model.U
 				return err
 			}
 		} else {
-			if err := a.PostAddToChannelMessage(c, requestor, user, channel, ""); err != nil {
+			if err := a.postAddToChannelMessage(c, requestor, user, channel, ""); err != nil {
 				return err
 			}
 		}
@@ -1561,7 +1561,7 @@ func (a *App) AddChannelMember(c *request.Context, userID string, channel *model
 		}
 	} else {
 		a.Srv().Go(func() {
-			a.PostAddToChannelMessage(c, userRequestor, user, channel, opts.PostRootID)
+			a.postAddToChannelMessage(c, userRequestor, user, channel, opts.PostRootID)
 		})
 	}
 
@@ -2214,7 +2214,7 @@ func (a *App) postLeaveChannelMessage(c *request.Context, user *model.User, chan
 	return nil
 }
 
-func (a *App) PostAddToChannelMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) postAddToChannelMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
 	message := fmt.Sprintf(i18n.T("api.channel.add_member.added"), addedUser.Username, user.Username)
 	postType := model.PostTypeAddToChannel
 

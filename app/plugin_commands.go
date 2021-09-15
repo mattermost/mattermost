@@ -105,7 +105,7 @@ func (s *Server) unregisterPluginCommands(pluginID string) {
 	s.pluginCommands = remaining
 }
 
-func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
+func (a *App) pluginCommandsForTeam(teamID string) []*model.Command {
 	a.Srv().pluginCommandsLock.RLock()
 	defer a.Srv().pluginCommandsLock.RUnlock()
 

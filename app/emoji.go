@@ -343,7 +343,7 @@ func imageToPaletted(img image.Image) *image.Paletted {
 }
 
 func (a *App) deleteEmojiImage(id string) {
-	if err := a.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
+	if err := a.moveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
 		mlog.Warn("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
 	}
 }

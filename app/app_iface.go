@@ -850,8 +850,6 @@ type AppIface interface {
 	Metrics() einterfaces.MetricsInterface
 	MigrateIdLDAP(toAttribute string) *model.AppError
 	MoveCommand(team *model.Team, command *model.Command) *model.AppError
-	MoveFile(oldPath, newPath string) *model.AppError
-	NewClusterDiscoveryService() *ClusterDiscoveryService
 	NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
@@ -871,9 +869,7 @@ type AppIface interface {
 	PermanentDeleteTeam(team *model.Team) *model.AppError
 	PermanentDeleteTeamId(teamID string) *model.AppError
 	PermanentDeleteUser(c *request.Context, user *model.User) *model.AppError
-	PluginCommandsForTeam(teamID string) []*model.Command
 	PostActionCookieSecret() []byte
-	PostAddToChannelMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch
 	PostUpdateChannelDisplayNameMessage(c *request.Context, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError
 	PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post
