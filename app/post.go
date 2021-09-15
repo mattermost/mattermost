@@ -1385,7 +1385,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string) ([]*model.FileInfo
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, false)
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, true)
 			// The post has Filenames that need to be replaced with FileInfos
-			infos = a.MigrateFilenamesToFileInfos(post)
+			infos = a.migrateFilenamesToFileInfos(post)
 		}
 	}
 

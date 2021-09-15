@@ -44,7 +44,7 @@ func (a *App) CreateTeam(c *request.Context, team *model.Team) (*model.Team, *mo
 		}
 	}
 
-	if _, err := a.CreateDefaultChannels(c, rteam.Id); err != nil {
+	if _, err := a.createDefaultChannels(c, rteam.Id); err != nil {
 		return nil, err
 	}
 

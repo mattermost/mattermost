@@ -81,11 +81,6 @@ type AppIface interface {
 	ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError)
 	// CreateBot creates the given bot and corresponding user.
 	CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError)
-	// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
-	CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError)
-	// CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-	//
-	CreateDefaultChannels(c *request.Context, teamID string) ([]*model.Channel, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
 	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
@@ -97,19 +92,6 @@ type AppIface interface {
 	// CreateUser creates a user and sets several fields of the returned User struct to
 	// their zero values.
 	CreateUser(c *request.Context, user *model.User) (*model.User, *model.AppError)
-	// Creates and stores FileInfos for a post created before the FileInfos table existed.
-	MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo
-	// DefaultChannelNames returns the list of system-wide default channel names.
-	//
-	// By default the list will be (not necessarily in this order):
-	//	['town-square', 'off-topic']
-	// However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
-	// 'off-topic' and be included in the return results in addition to 'town-square'. For example:
-	//	['town-square', 'game-of-thrones', 'wow']
-	//
-	DefaultChannelNames() []string
-	// DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
-	DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
 	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 	// groups of all group-constrained teams and channels.
 	DeleteGroupConstrainedMemberships(c *request.Context) error
@@ -121,8 +103,6 @@ type AppIface interface {
 	// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError
-	// DoPermissionsMigrations execute all the permissions migrations need by the current version.
-	DoPermissionsMigrations() error
 	// EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 	// activation if inactive anywhere in the cluster.
 	// Notifies cluster peers through config change.

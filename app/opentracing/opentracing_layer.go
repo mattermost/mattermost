@@ -1293,28 +1293,6 @@ func (a *OpenTracingAppLayer) CreateChannel(c *request.Context, channel *model.C
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelScheme")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateChannelScheme(channel)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelWithUser")
@@ -1398,28 +1376,6 @@ func (a *OpenTracingAppLayer) CreateCommandWebhook(commandID string, args *model
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.CreateCommandWebhook(commandID, args)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) CreateDefaultChannels(c *request.Context, teamID string) ([]*model.Channel, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDefaultChannels")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateDefaultChannels(c, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2111,23 +2067,6 @@ func (a *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(userID string, appID st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DefaultChannelNames() []string {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DefaultChannelNames")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.DefaultChannelNames()
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) DeleteAllExpiredPluginKeys() *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteAllExpiredPluginKeys")
@@ -2192,28 +2131,6 @@ func (a *OpenTracingAppLayer) DeleteChannel(c *request.Context, channel *model.C
 	}
 
 	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteChannelScheme")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeleteChannelScheme(channel)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) DeleteCommand(commandID string) *model.AppError {
@@ -2816,28 +2733,6 @@ func (a *OpenTracingAppLayer) DoLogin(c *request.Context, w http.ResponseWriter,
 
 	defer span.Finish()
 	resultVar0 := a.app.DoLogin(c, w, r, user, deviceID, isMobile, isOAuthUser, isSaml)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) DoPermissionsMigrations() error {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoPermissionsMigrations")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.DoPermissionsMigrations()
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -8380,23 +8275,6 @@ func (a *OpenTracingAppLayer) MentionsToTeamMembers(message string, teamID strin
 
 	defer span.Finish()
 	resultVar0 := a.app.MentionsToTeamMembers(message, teamID)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MigrateFilenamesToFileInfos")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.MigrateFilenamesToFileInfos(post)
 
 	return resultVar0
 }

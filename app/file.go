@@ -342,7 +342,7 @@ func parseOldFilenames(filenames []string, channelID, userID string) [][]string 
 }
 
 // Creates and stores FileInfos for a post created before the FileInfos table existed.
-func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
+func (a *App) migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
 		mlog.Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}

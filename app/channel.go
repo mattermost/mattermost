@@ -23,13 +23,13 @@ import (
 
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
 //
-func (a *App) CreateDefaultChannels(c *request.Context, teamID string) ([]*model.Channel, *model.AppError) {
+func (a *App) createDefaultChannels(c *request.Context, teamID string) ([]*model.Channel, *model.AppError) {
 	displayNames := map[string]string{
 		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
 		"off-topic":   i18n.T("api.channel.create_default_channels.off_topic"),
 	}
 	channels := []*model.Channel{}
-	defaultChannelNames := a.DefaultChannelNames()
+	defaultChannelNames := a.defaultChannelNames()
 	for _, name := range defaultChannelNames {
 		displayName := i18n.TDefault(displayNames[name], name)
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
@@ -49,7 +49,7 @@ func (a *App) CreateDefaultChannels(c *request.Context, teamID string) ([]*model
 // 'off-topic' and be included in the return results in addition to 'town-square'. For example:
 //	['town-square', 'game-of-thrones', 'wow']
 //
-func (a *App) DefaultChannelNames() []string {
+func (a *App) defaultChannelNames() []string {
 	names := []string{"town-square"}
 
 	if len(a.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
@@ -84,7 +84,7 @@ func (a *App) joinDefaultChannels(c *request.Context, teamID string, user *model
 	}
 
 	var err *model.AppError
-	for _, channelName := range a.DefaultChannelNames() {
+	for _, channelName := range a.defaultChannelNames() {
 		channel, channelErr := a.Srv().Store.Channel().GetByName(teamID, channelName, true)
 		if channelErr != nil {
 			var nfErr *store.ErrNotFound
@@ -648,7 +648,7 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 }
 
 // CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
-func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError) {
+func (a *App) createChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError) {
 	scheme, err := a.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
@@ -666,7 +666,7 @@ func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model
 }
 
 // DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
-func (a *App) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *App) deleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
 	if channel.SchemeId != nil && *channel.SchemeId != "" {
 		if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
 			return nil, err
@@ -986,7 +986,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	var scheme *model.Scheme
 	// Channel has no scheme so create one
 	if channel.SchemeId == nil || *channel.SchemeId == "" {
-		scheme, err = a.CreateChannelScheme(channel)
+		scheme, err = a.createChannelScheme(channel)
 		if err != nil {
 			return nil, err
 		}
@@ -1053,7 +1053,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedGuestRole, guestRolePatch)) == 0
 	if memberRolePermissionsUnmodified && guestRolePermissionsUnmodified {
 		// The channel scheme matches the permissions of its higherScoped scheme so delete the scheme
-		if _, err = a.DeleteChannelScheme(channel); err != nil {
+		if _, err = a.deleteChannelScheme(channel); err != nil {
 			return nil, err
 		}
 
@@ -1796,7 +1796,7 @@ func (a *App) GetChannelsForUser(teamID string, userID string, includeDeleted bo
 
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError) {
 	if opts.ExcludeDefaultChannels {
-		opts.ExcludeChannelNames = a.DefaultChannelNames()
+		opts.ExcludeChannelNames = a.defaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
 		ExcludeChannelNames:      opts.ExcludeChannelNames,
@@ -1815,7 +1815,7 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (m
 
 func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
 	if opts.ExcludeDefaultChannels {
-		opts.ExcludeChannelNames = a.DefaultChannelNames()
+		opts.ExcludeChannelNames = a.defaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
 		ExcludeChannelNames:  opts.ExcludeChannelNames,
@@ -2733,7 +2733,7 @@ func (a *App) AutocompleteChannelsForSearch(teamID string, userID string, term s
 // SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
 func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, int64, *model.AppError) {
 	if opts.ExcludeDefaultChannels {
-		opts.ExcludeChannelNames = a.DefaultChannelNames()
+		opts.ExcludeChannelNames = a.defaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
 		ExcludeChannelNames:      opts.ExcludeChannelNames,
