@@ -744,7 +744,7 @@ func (api *PluginAPI) SetTeamIcon(teamID string, data []byte) *model.AppError {
 		return err
 	}
 
-	return api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
+	return api.app.setTeamIconFromFile(team, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {

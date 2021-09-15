@@ -15030,21 +15030,6 @@ func (a *OpenTracingAppLayer) SetStatusOnline(userID string, manual bool) {
 	a.app.SetStatusOnline(userID, manual)
 }
 
-func (a *OpenTracingAppLayer) SetStatusOutOfOffice(userID string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusOutOfOffice")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SetStatusOutOfOffice(userID)
-}
-
 func (a *OpenTracingAppLayer) SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIcon")
@@ -15058,50 +15043,6 @@ func (a *OpenTracingAppLayer) SetTeamIcon(teamID string, imageData *multipart.Fi
 
 	defer span.Finish()
 	resultVar0 := a.app.SetTeamIcon(teamID, imageData)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIconFromFile")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SetTeamIconFromFile(team, file)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIconFromMultiPartFile")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SetTeamIconFromMultiPartFile(teamID, file)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15302,21 +15243,6 @@ func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SyncPluginsActiveState() {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncPluginsActiveState")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SyncPluginsActiveState()
-}
-
 func (a *OpenTracingAppLayer) SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncRolesAndMembership")
@@ -15389,28 +15315,6 @@ func (a *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string, incl
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.TeamMembersToAdd(since, teamID, includeRemovedMembers)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TeamMembersToRemove")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.TeamMembersToRemove(teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -1006,10 +1006,7 @@ type AppIface interface {
 	SetStatusDoNotDisturb(userID string)
 	SetStatusOffline(userID string, manual bool)
 	SetStatusOnline(userID string, manual bool)
-	SetStatusOutOfOffice(userID string)
 	SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError
-	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
-	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
 	SlackImport(c *request.Context, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
 	SoftDeleteTeam(teamID string) *model.AppError
 	Srv() *Server
@@ -1018,8 +1015,6 @@ type AppIface interface {
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
 	SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError)
 	SwitchOAuthToEmail(email, password, requesterId string) (string, *model.AppError)
-	SyncPluginsActiveState()
-	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
 	TestEmail(userID string, cfg *model.Config) *model.AppError

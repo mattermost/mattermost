@@ -1932,10 +1932,10 @@ func (a *App) SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer file.Close()
-	return a.SetTeamIconFromMultiPartFile(teamID, file)
+	return a.setTeamIconFromMultiPartFile(teamID, file)
 }
 
-func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError {
+func (a *App) setTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError {
 	team, getTeamErr := a.GetTeam(teamID)
 
 	if getTeamErr != nil {
@@ -1951,10 +1951,10 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 			nil, limitErr.Error(), http.StatusBadRequest)
 	}
 
-	return a.SetTeamIconFromFile(team, file)
+	return a.setTeamIconFromFile(team, file)
 }
 
-func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
+func (a *App) setTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {

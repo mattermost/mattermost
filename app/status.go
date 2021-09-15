@@ -335,7 +335,7 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.BroadcastStatus(status)
 }
 
-func (a *App) SetStatusOutOfOffice(userID string) {
+func (a *App) setStatusOutOfOffice(userID string) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}

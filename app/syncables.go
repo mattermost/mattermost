@@ -149,7 +149,7 @@ func (a *App) DeleteGroupConstrainedMemberships(c *request.Context) error {
 // groups of the given group-constrained team. If a teamID is given then the procedure is scoped to the given team,
 // if teamID is nil then the procedure affects all teams.
 func (a *App) deleteGroupConstrainedTeamMemberships(c *request.Context, teamID *string) error {
-	teamMembers, appErr := a.TeamMembersToRemove(teamID)
+	teamMembers, appErr := a.teamMembersToRemove(teamID)
 	if appErr != nil {
 		return appErr
 	}
