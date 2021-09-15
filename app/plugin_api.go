@@ -966,7 +966,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 		}
 	}
 	responseTransfer := &PluginResponseWriter{}
-	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
+	api.app.serveInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	return responseTransfer.GenerateResponse()
 }
 

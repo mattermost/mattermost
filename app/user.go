@@ -1678,16 +1678,16 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 
 func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	if props.WithoutTeam {
-		return a.SearchUsersWithoutTeam(props.Term, options)
+		return a.searchUsersWithoutTeam(props.Term, options)
 	}
 	if props.InChannelId != "" {
 		return a.SearchUsersInChannel(props.InChannelId, props.Term, options)
 	}
 	if props.NotInChannelId != "" {
-		return a.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, options)
+		return a.searchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, options)
 	}
 	if props.NotInTeamId != "" {
-		return a.SearchUsersNotInTeam(props.NotInTeamId, props.Term, options)
+		return a.searchUsersNotInTeam(props.NotInTeamId, props.Term, options)
 	}
 	if props.InGroupId != "" {
 		return a.SearchUsersInGroup(props.InGroupId, props.Term, options)
@@ -1708,7 +1708,7 @@ func (a *App) SearchUsersInChannel(channelID string, term string, options *model
 	return users, nil
 }
 
-func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) searchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store.User().SearchNotInChannel(teamID, channelID, term, options)
 	if err != nil {
@@ -1737,7 +1737,7 @@ func (a *App) SearchUsersInTeam(teamID, term string, options *model.UserSearchOp
 	return users, nil
 }
 
-func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) searchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store.User().SearchNotInTeam(notInTeamId, term, options)
 	if err != nil {
@@ -1751,7 +1751,7 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 	return users, nil
 }
 
-func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) searchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store.User().SearchWithoutTeam(term, options)
 	if err != nil {

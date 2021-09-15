@@ -480,13 +480,13 @@ func (a *App) handlePostEvents(c *request.Context, post *model.Post, user *model
 	a.invalidateCacheForChannel(channel)
 	a.invalidateCacheForChannelPosts(channel.Id)
 
-	if _, err := a.SendNotifications(post, team, channel, user, parentPostList, setOnline); err != nil {
+	if _, err := a.sendNotifications(post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
 	}
 
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
 		a.Srv().Go(func() {
-			_, err := a.SendAutoResponseIfNecessary(c, channel, user, post)
+			_, err := a.sendAutoResponseIfNecessary(c, channel, user, post)
 			if err != nil {
 				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}

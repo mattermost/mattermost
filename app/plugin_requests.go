@@ -45,7 +45,7 @@ func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	s.servePluginRequest(w, r, hooks.ServeHTTP)
 }
 
-func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
+func (a *App) serveInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
