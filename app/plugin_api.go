@@ -855,7 +855,7 @@ func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds 
 }
 
 func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {
-	return api.app.GetPluginKey(api.id, key)
+	return api.app.getPluginKey(api.id, key)
 }
 
 func (api *PluginAPI) KVDelete(key string) *model.AppError {

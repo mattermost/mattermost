@@ -92,7 +92,7 @@ func (a *App) CompareAndDeletePluginKey(pluginID string, key string, oldValue []
 	return deleted, nil
 }
 
-func (a *App) GetPluginKey(pluginID string, key string) ([]byte, *model.AppError) {
+func (a *App) getPluginKey(pluginID string, key string) ([]byte, *model.AppError) {
 	if kv, err := a.Srv().Store.Plugin().Get(pluginID, key); err == nil {
 		return kv.Value, nil
 	} else if nfErr := new(store.ErrNotFound); !errors.As(err, &nfErr) {

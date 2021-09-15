@@ -906,7 +906,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 	return postList, nil
 }
 
-func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError) {
+func (a *App) getPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError) {
 	list, nErr := a.Srv().Store.Post().Get(context.Background(), postID, false, false, false, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -990,7 +990,7 @@ func (a *App) getPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 	return postList, nil
 }
 
-func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError) {
+func (a *App) getPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store.Post().GetPostAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
 		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -999,7 +999,7 @@ func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bo
 	return post, nil
 }
 
-func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
+func (a *App) getPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
 	postID, err := a.Srv().Store.Post().GetPostIdAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1008,7 +1008,7 @@ func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads 
 	return postID, nil
 }
 
-func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
+func (a *App) getPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
 	postID, err := a.Srv().Store.Post().GetPostIdBeforeTime(channelID, time, collapsedThreads)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1021,7 +1021,7 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThrea
 	if len(postList.Order) > 0 {
 		firstPostId := postList.Order[0]
 		firstPost := postList.Posts[firstPostId]
-		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads)
+		nextPostId, err := a.getPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads)
 		if err != nil {
 			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
 		}
@@ -1036,7 +1036,7 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThrea
 	if len(postList.Order) > 0 {
 		lastPostId := postList.Order[len(postList.Order)-1]
 		lastPost := postList.Posts[lastPostId]
-		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads)
+		previousPostId, err := a.getPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads)
 		if err != nil {
 			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
 		}
@@ -1099,7 +1099,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelID, userID string, limit
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, member.LastViewedAt, collapsedThreads)
+	lastUnreadPostId, err := a.getPostIdAfterTime(channelID, member.LastViewedAt, collapsedThreads)
 	if err != nil {
 		return nil, err
 	} else if lastUnreadPostId == "" {

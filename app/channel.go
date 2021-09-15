@@ -3042,7 +3042,7 @@ func (a *App) MoveChannel(c *request.Context, team *model.Team, channel *model.C
 		}
 	}
 
-	if outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
+	if outgoingWebhooks, err := a.getOutgoingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
 		mlog.Warn("Failed to get outgoing webhooks", mlog.Err(err))
 	} else {
 		for _, webhook := range outgoingWebhooks {

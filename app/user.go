@@ -1246,7 +1246,7 @@ func (a *App) updateHashedPassword(user *model.User, newHashedPassword string) *
 }
 
 func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError {
-	token, err := a.GetPasswordRecoveryToken(userSuppliedTokenString)
+	token, err := a.getPasswordRecoveryToken(userSuppliedTokenString)
 	if err != nil {
 		return err
 	}
@@ -1342,7 +1342,7 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 	return token, nil
 }
 
-func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
+func (a *App) getPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store.Token().GetByToken(token)
 	if err != nil {
 		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.invalid_link.app_error", nil, err.Error(), http.StatusBadRequest)

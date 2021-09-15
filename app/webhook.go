@@ -583,7 +583,7 @@ func (a *App) GetOutgoingWebhook(hookID string) (*model.OutgoingWebhook, *model.
 	return webhook, nil
 }
 
-func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) getOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	return a.GetOutgoingWebhooksPageByUser("", page, perPage)
 }
 
@@ -613,7 +613,7 @@ func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelID string, userID s
 	return webhooks, nil
 }
 
-func (a *App) GetOutgoingWebhooksForTeamPage(teamID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) getOutgoingWebhooksForTeamPage(teamID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	return a.GetOutgoingWebhooksForTeamPageByUser(teamID, "", page, perPage)
 }
 
