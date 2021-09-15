@@ -170,7 +170,7 @@ func (a *App) CreateUserFromSignup(c *request.Context, user *model.User, redirec
 		return nil, err
 	}
 
-	if !a.IsFirstUserAccount() && !*a.Config().TeamSettings.EnableOpenServer {
+	if !a.isFirstUserAccount() && !*a.Config().TeamSettings.EnableOpenServer {
 		err := model.NewAppError("CreateUserFromSignup", "api.user.create_user.no_open_server", nil, "email="+user.Email, http.StatusForbidden)
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (a *App) isUserSignUpAllowed() *model.AppError {
 	return nil
 }
 
-func (a *App) IsFirstUserAccount() bool {
+func (a *App) isFirstUserAccount() bool {
 	return a.srv.userService.IsFirstUserAccount()
 }
 

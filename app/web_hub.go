@@ -117,7 +117,7 @@ func (s *Server) HubStop() {
 	}
 }
 
-func (a *App) HubStop() {
+func (a *App) hubStop() {
 	a.Srv().HubStop()
 }
 

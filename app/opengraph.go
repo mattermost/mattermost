@@ -39,7 +39,7 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	openGraphDecodeHTMLEntities(og)
 
 	// If image proxy enabled modify open graph data to feed though proxy
-	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
+	if toProxyURL := a.imageProxyAdder(); toProxyURL != nil {
 		og = openGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
 	}
 

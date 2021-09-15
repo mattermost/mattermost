@@ -375,7 +375,7 @@ func (a *App) LimitedClientConfigWithComputed() map[string]string {
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
-	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
+	respCfg["NoAccounts"] = strconv.FormatBool(a.isFirstUserAccount())
 
 	return respCfg
 }

@@ -89,7 +89,7 @@ func (s *Server) IsLeader() bool {
 	return true
 }
 
-func (a *App) IsLeader() bool {
+func (a *App) isLeader() bool {
 	return a.Srv().IsLeader()
 }
 

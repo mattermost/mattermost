@@ -157,7 +157,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 	return err
 }
 
-func (a *App) ImportPermissions(jsonl io.Reader) error {
+func (a *App) importPermissions(jsonl io.Reader) error {
 	createdSchemeIDs := []string{}
 
 	scanner := bufio.NewScanner(jsonl)

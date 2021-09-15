@@ -1404,27 +1404,27 @@ func (a *App) GetFileInfosForPost(postID string, fromMaster bool) ([]*model.File
 }
 
 func (a *App) postWithProxyAddedToImageURLs(post *model.Post) *model.Post {
-	if f := a.ImageProxyAdder(); f != nil {
+	if f := a.imageProxyAdder(); f != nil {
 		return post.WithRewrittenImageURLs(f)
 	}
 	return post
 }
 
 func (a *App) PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post {
-	if f := a.ImageProxyRemover(); f != nil {
+	if f := a.imageProxyRemover(); f != nil {
 		return post.WithRewrittenImageURLs(f)
 	}
 	return post
 }
 
 func (a *App) PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch {
-	if f := a.ImageProxyRemover(); f != nil {
+	if f := a.imageProxyRemover(); f != nil {
 		return patch.WithRewrittenImageURLs(f)
 	}
 	return patch
 }
 
-func (a *App) ImageProxyAdder() func(string) string {
+func (a *App) imageProxyAdder() func(string) string {
 	if !*a.Config().ImageProxySettings.Enable {
 		return nil
 	}
@@ -1434,7 +1434,7 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 }
 
-func (a *App) ImageProxyRemover() (f func(string) string) {
+func (a *App) imageProxyRemover() (f func(string) string) {
 	if !*a.Config().ImageProxySettings.Enable {
 		return nil
 	}

@@ -61,7 +61,7 @@ const managedPluginFileName = ".filestore"
 // fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
 const fileStorePluginFolder = "plugins"
 
-func (a *App) InstallPluginFromData(data model.PluginEventData) {
+func (a *App) installPluginFromData(data model.PluginEventData) {
 	a.Srv().installPluginFromData(data)
 }
 
