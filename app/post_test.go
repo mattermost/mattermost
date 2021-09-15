@@ -786,6 +786,44 @@ func TestCreatePost(t *testing.T) {
 
 		assert.Equal(t, previewPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
 	})
+
+	t.Run("creates a single record for a permalink preview post", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channelForPreview := th.CreateChannel(th.BasicTeam)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://foobar.com"
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+		})
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost := &model.Post{
+			ChannelId: channelForPreview.Id,
+			Message:   permalink,
+			UserId:    th.BasicUser.Id,
+		}
+
+		previewPost, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, false, false)
+		require.Nil(t, err)
+
+		sqlStore := th.GetSqlStore()
+		sql := fmt.Sprintf("select count(*) from Posts where Id = '%[1]s' or OriginalId = '%[1]s';", previewPost.Id)
+		val, err2 := sqlStore.GetMaster().SelectInt(sql)
+		require.Nil(t, err2)
+
+		require.EqualValues(t, int64(1), val)
+	})
 }
 
 func TestPatchPost(t *testing.T) {
