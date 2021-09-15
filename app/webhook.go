@@ -308,7 +308,7 @@ func (a *App) CreateWebhookPost(c *request.Context, userID string, channel *mode
 		}
 	}
 
-	splits, err := SplitWebhookPost(post, a.MaxPostSize())
+	splits, err := SplitWebhookPost(post, a.maxPostSize())
 	if err != nil {
 		return nil, err
 	}

@@ -82,7 +82,7 @@ func (a *App) ClientConfigHash() string {
 	return a.Srv().ClientConfigHash()
 }
 
-func (a *App) LimitedClientConfig() map[string]string {
+func (a *App) limitedClientConfig() map[string]string {
 	return a.Srv().limitedClientConfig.Load().(map[string]string)
 }
 
@@ -369,7 +369,7 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (a *App) LimitedClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
-	for k, v := range a.LimitedClientConfig() {
+	for k, v := range a.limitedClientConfig() {
 		respCfg[k] = v
 	}
 

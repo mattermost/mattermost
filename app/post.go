@@ -92,7 +92,7 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	_, fromBot := post.GetProps()["from_bot"]
 	isCRTReply := post.RootId != "" && a.isCRTEnabledForUser(post.UserId)
 	if !fromWebhook && !fromBot && !isCRTReply {
-		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
+		if _, err := a.markChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
@@ -1453,7 +1453,7 @@ func (s *Server) MaxPostSize() int {
 	return maxPostSize
 }
 
-func (a *App) MaxPostSize() int {
+func (a *App) maxPostSize() int {
 	return a.Srv().MaxPostSize()
 }
 

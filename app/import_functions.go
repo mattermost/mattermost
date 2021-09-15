@@ -1058,7 +1058,7 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 	usernames := []string{}
 	for _, replyData := range data {
 		replyData := replyData
-		if err = validateReplyImportData(&replyData, post.CreateAt, a.MaxPostSize()); err != nil {
+		if err = validateReplyImportData(&replyData, post.CreateAt, a.maxPostSize()); err != nil {
 			return err
 		}
 		usernames = append(usernames, *replyData.User)
@@ -1302,7 +1302,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 	}
 
 	for _, line := range lines {
-		if err := validatePostImportData(line.Post, a.MaxPostSize()); err != nil {
+		if err := validatePostImportData(line.Post, a.maxPostSize()); err != nil {
 			return line.LineNumber, err
 		}
 	}
@@ -1595,7 +1595,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 	}
 
 	for _, line := range lines {
-		if err := validateDirectPostImportData(line.DirectPost, a.MaxPostSize()); err != nil {
+		if err := validateDirectPostImportData(line.DirectPost, a.maxPostSize()); err != nil {
 			return line.LineNumber, err
 		}
 	}

@@ -11016,23 +11016,6 @@ func (a *OpenTracingAppLayer) LeaveTeam(c *request.Context, team *model.Team, us
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) LimitedClientConfig() map[string]string {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LimitedClientConfig")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.LimitedClientConfig()
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) LimitedClientConfigWithComputed() map[string]string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LimitedClientConfigWithComputed")
@@ -11162,28 +11145,6 @@ func (a *OpenTracingAppLayer) ListImports() ([]string, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ListPluginKeys(pluginID string, page int, perPage int) ([]string, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListPluginKeys")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ListPluginKeys(pluginID, page, perPage)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) ListTeamCommands(teamID string) ([]*model.Command, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListTeamCommands")
@@ -11234,28 +11195,6 @@ func (a *OpenTracingAppLayer) LogAuditRecWithLevel(rec *audit.Record, level mlog
 
 	defer span.Finish()
 	a.app.LogAuditRecWithLevel(rec, level, err)
-}
-
-func (a *OpenTracingAppLayer) LoginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LoginByOAuth")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.LoginByOAuth(c, service, userData, teamID, tokenUser)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) MakeAuditRecord(event string, initialStatus string) *audit.Record {
@@ -11317,45 +11256,6 @@ func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID 
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MarkChannelsAsViewed")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.MarkChannelsAsViewed(channelIDs, userID, currentSessionId, collapsedThreadsSupported)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) MaxPostSize() int {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MaxPostSize")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.MaxPostSize()
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) MentionsToPublicChannels(message string, teamID string) model.ChannelMentionMap {

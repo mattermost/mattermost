@@ -2821,7 +2821,7 @@ func (a *App) searchChannelsUserNotIn(teamID string, userID string, term string)
 	return channelList, nil
 }
 
-func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
+func (a *App) markChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
 	if *a.Config().EmailSettings.SendPushNotifications {
@@ -2921,7 +2921,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSession
 		return map[string]int64{}, nil
 	}
 
-	return a.MarkChannelsAsViewed(channelIDs, userID, currentSessionId, collapsedThreadsSupported)
+	return a.markChannelsAsViewed(channelIDs, userID, currentSessionId, collapsedThreadsSupported)
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {

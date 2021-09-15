@@ -543,13 +543,13 @@ func (a *App) CompleteOAuth(c *request.Context, service string, body io.ReadClos
 	case model.OAuthActionSignup:
 		return a.CreateOAuthUser(c, service, body, teamID, tokenUser)
 	case model.OAuthActionLogin:
-		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
+		return a.loginByOAuth(c, service, body, teamID, tokenUser)
 	case model.OAuthActionEmailToSSO:
 		return a.CompleteSwitchWithOAuth(service, body, props["email"], tokenUser)
 	case model.OAuthActionSSOToEmail:
-		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
+		return a.loginByOAuth(c, service, body, teamID, tokenUser)
 	default:
-		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
+		return a.loginByOAuth(c, service, body, teamID, tokenUser)
 	}
 }
 
@@ -570,7 +570,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OAuthProvider, *model.
 	return provider, nil
 }
 
-func (a *App) LoginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) loginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return nil, e

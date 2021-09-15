@@ -148,7 +148,7 @@ func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
 	return nil
 }
 
-func (a *App) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
+func (a *App) listPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
 	data, err := a.Srv().Store.Plugin().List(pluginID, page*perPage, perPage)
 
 	if err != nil {

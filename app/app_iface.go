@@ -834,18 +834,13 @@ type AppIface interface {
 	Ldap() einterfaces.LdapInterface
 	LeaveChannel(c *request.Context, channelID string, userID string) *model.AppError
 	LeaveTeam(c *request.Context, team *model.Team, user *model.User, requestorId string) *model.AppError
-	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListExports() ([]string, *model.AppError)
 	ListImports() ([]string, *model.AppError)
-	ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError)
 	ListTeamCommands(teamID string) ([]*model.Command, *model.AppError)
 	Log() *mlog.Logger
-	LoginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
 	MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError
-	MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
-	MaxPostSize() int
 	MessageExport() einterfaces.MessageExportInterface
 	Metrics() einterfaces.MetricsInterface
 	MigrateIdLDAP(toAttribute string) *model.AppError
