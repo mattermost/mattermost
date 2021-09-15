@@ -69,7 +69,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, err
 	}
 
-	if err := a.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
+	if err := a.uploadEmojiImage(emoji.Id, imageData[0]); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *mod
 	return list, nil
 }
 
-func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
+func (a *App) uploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}

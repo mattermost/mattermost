@@ -1368,10 +1368,10 @@ func (a *App) UpdateUserRoles(userID string, newRoles string, sendWebSocketEvent
 		return nil, err
 	}
 
-	return a.UpdateUserRolesWithUser(user, newRoles, sendWebSocketEvent)
+	return a.updateUserRolesWithUser(user, newRoles, sendWebSocketEvent)
 }
 
-func (a *App) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
+func (a *App) updateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 
 	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
