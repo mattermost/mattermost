@@ -447,13 +447,9 @@ type AppIface interface {
 	ClientConfigHash() string
 	Cloud() einterfaces.CloudInterface
 	Cluster() einterfaces.ClusterInterface
-	CompareAndDeletePluginKey(pluginID string, key string, oldValue []byte) (bool, *model.AppError)
-	CompareAndSetPluginKey(pluginID string, key string, oldValue, newValue []byte) (bool, *model.AppError)
 	CompleteOAuth(c *request.Context, service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError)
-	CompleteSwitchWithOAuth(service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError)
 	Compliance() einterfaces.ComplianceInterface
 	Config() *model.Config
-	CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError)
 	CreateChannel(c *request.Context, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
@@ -464,10 +460,7 @@ type AppIface interface {
 	CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	CreateJob(job *model.Job) (*model.Job, *model.AppError)
 	CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
-	CreateOAuthStateToken(extra string) (*model.Token, *model.AppError)
-	CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
 	CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
-	CreatePasswordRecoveryToken(userID, email string) (*model.Token, *model.AppError)
 	CreatePost(c *request.Context, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	CreatePostAsUser(c *request.Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(c *request.Context, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError)

@@ -285,7 +285,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) createOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -1300,7 +1300,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	token, err := a.CreatePasswordRecoveryToken(user.Id, user.Email)
+	token, err := a.createPasswordRecoveryToken(user.Id, user.Email)
 	if err != nil {
 		return false, err
 	}
@@ -1313,7 +1313,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 	return result, nil
 }
 
-func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *model.AppError) {
+func (a *App) createPasswordRecoveryToken(userID, email string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
 		Email  string

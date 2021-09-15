@@ -1207,7 +1207,7 @@ func (a *App) getFile(fileID string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
+func (a *App) copyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
 	var newFileIds []string
 
 	now := model.GetMillis()

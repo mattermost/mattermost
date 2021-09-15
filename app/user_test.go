@@ -557,7 +557,7 @@ func createGitlabUser(t *testing.T, a *App, c *request.Context, id int64, userna
 	var user *model.User
 	var err *model.AppError
 
-	user, err = a.CreateOAuthUser(c, "gitlab", bytes.NewReader(gitlabUser), "", nil)
+	user, err = a.createOAuthUser(c, "gitlab", bytes.NewReader(gitlabUser), "", nil)
 	require.Nil(t, err, "unable to create the user", err)
 
 	return user, gitlabUserObj

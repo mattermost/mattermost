@@ -541,11 +541,11 @@ func (a *App) CompleteOAuth(c *request.Context, service string, body io.ReadClos
 
 	switch action {
 	case model.OAuthActionSignup:
-		return a.CreateOAuthUser(c, service, body, teamID, tokenUser)
+		return a.createOAuthUser(c, service, body, teamID, tokenUser)
 	case model.OAuthActionLogin:
 		return a.loginByOAuth(c, service, body, teamID, tokenUser)
 	case model.OAuthActionEmailToSSO:
-		return a.CompleteSwitchWithOAuth(service, body, props["email"], tokenUser)
+		return a.completeSwitchWithOAuth(service, body, props["email"], tokenUser)
 	case model.OAuthActionSSOToEmail:
 		return a.loginByOAuth(c, service, body, teamID, tokenUser)
 	default:
@@ -596,7 +596,7 @@ func (a *App) loginByOAuth(c *request.Context, service string, userData io.Reade
 	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
 	if err != nil {
 		if err.Id == MissingAuthAccountError {
-			user, err = a.CreateOAuthUser(c, service, bytes.NewReader(buf.Bytes()), teamID, tokenUser)
+			user, err = a.createOAuthUser(c, service, bytes.NewReader(buf.Bytes()), teamID, tokenUser)
 		} else {
 			return nil, err
 		}
@@ -623,7 +623,7 @@ func (a *App) loginByOAuth(c *request.Context, service string, userData io.Reade
 	return user, nil
 }
 
-func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) completeSwitchWithOAuth(service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return nil, e
@@ -672,7 +672,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 	return user, nil
 }
 
-func (a *App) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError) {
+func (a *App) createOAuthStateToken(extra string) (*model.Token, *model.AppError) {
 	token := model.NewToken(model.TokenTypeOAuth, extra)
 
 	if err := a.Srv().Store.Token().Save(token); err != nil {
@@ -738,7 +738,7 @@ func (a *App) getAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	scope := *sso.Scope
 
 	tokenExtra := generateOAuthStateTokenExtra(props["email"], props["action"], cookieValue)
-	stateToken, err := a.CreateOAuthStateToken(tokenExtra)
+	stateToken, err := a.createOAuthStateToken(tokenExtra)
 	if err != nil {
 		return "", err
 	}

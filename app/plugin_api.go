@@ -681,7 +681,7 @@ func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 }
 
 func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
-	return api.app.CopyFileInfos(userID, fileIDs)
+	return api.app.copyFileInfos(userID, fileIDs)
 }
 
 func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
@@ -843,11 +843,11 @@ func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 }
 
 func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
-	return api.app.CompareAndSetPluginKey(api.id, key, oldValue, newValue)
+	return api.app.compareAndSetPluginKey(api.id, key, oldValue, newValue)
 }
 
 func (api *PluginAPI) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
-	return api.app.CompareAndDeletePluginKey(api.id, key, oldValue)
+	return api.app.compareAndDeletePluginKey(api.id, key, oldValue)
 }
 
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {

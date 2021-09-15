@@ -32,7 +32,7 @@ func (a *App) setPluginKeyWithExpiry(pluginID string, key string, value []byte, 
 	return err
 }
 
-func (a *App) CompareAndSetPluginKey(pluginID string, key string, oldValue, newValue []byte) (bool, *model.AppError) {
+func (a *App) compareAndSetPluginKey(pluginID string, key string, oldValue, newValue []byte) (bool, *model.AppError) {
 	options := model.PluginKVSetOptions{
 		Atomic:   true,
 		OldValue: oldValue,
@@ -66,7 +66,7 @@ func (a *App) setPluginKeyWithOptions(pluginID string, key string, value []byte,
 	return updated, nil
 }
 
-func (a *App) CompareAndDeletePluginKey(pluginID string, key string, oldValue []byte) (bool, *model.AppError) {
+func (a *App) compareAndDeletePluginKey(pluginID string, key string, oldValue []byte) (bool, *model.AppError) {
 	kv := &model.PluginKeyValue{
 		PluginId: pluginID,
 		Key:      key,
