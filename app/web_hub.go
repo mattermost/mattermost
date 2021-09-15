@@ -503,7 +503,7 @@ func (h *Hub) Start() {
 					}
 				}
 
-				if h.app.IsUserAway(latestActivity) {
+				if h.app.isUserAway(latestActivity) {
 					h.app.Srv().Go(func() {
 						h.app.SetStatusLastActivityAt(webConn.UserId, latestActivity)
 					})

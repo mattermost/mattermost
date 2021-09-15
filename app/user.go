@@ -41,7 +41,7 @@ const (
 )
 
 func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *model.Token) (*model.User, *model.AppError) {
-	if err := a.IsUserSignUpAllowed(); err != nil {
+	if err := a.isUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 }
 
 func (a *App) CreateUserWithInviteId(c *request.Context, user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
-	if err := a.IsUserSignUpAllowed(); err != nil {
+	if err := a.isUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
@@ -166,7 +166,7 @@ func (a *App) CreateUserAsAdmin(c *request.Context, user *model.User, redirect s
 }
 
 func (a *App) CreateUserFromSignup(c *request.Context, user *model.User, redirect string) (*model.User, *model.AppError) {
-	if err := a.IsUserSignUpAllowed(); err != nil {
+	if err := a.isUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
@@ -189,7 +189,7 @@ func (a *App) CreateUserFromSignup(c *request.Context, user *model.User, redirec
 	return ruser, nil
 }
 
-func (a *App) IsUserSignUpAllowed() *model.AppError {
+func (a *App) isUserSignUpAllowed() *model.AppError {
 	if !*a.Config().EmailSettings.EnableSignUpWithEmail || !*a.Config().TeamSettings.EnableUserCreation {
 		err := model.NewAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return err
@@ -1197,7 +1197,7 @@ func (a *App) UpdatePasswordByUserIdSendEmail(userID, newPassword, method string
 }
 
 func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppError {
-	if err := a.IsPasswordValid(newPassword); err != nil {
+	if err := a.isPasswordValid(newPassword); err != nil {
 		return err
 	}
 
@@ -2028,7 +2028,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 
 	for _, team := range userTeams {
 		// Soft error if there is an issue joining the default channels
-		if err := a.JoinDefaultChannels(c, team.Id, user, false, requestorId); err != nil {
+		if err := a.joinDefaultChannels(c, team.Id, user, false, requestorId); err != nil {
 			mlog.Warn("Failed to join default channels", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId), mlog.Err(err))
 		}
 	}

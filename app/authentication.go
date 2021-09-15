@@ -44,7 +44,7 @@ func (tl TokenLocation) String() string {
 	}
 }
 
-func (a *App) IsPasswordValid(password string) *model.AppError {
+func (a *App) isPasswordValid(password string) *model.AppError {
 
 	if *a.Config().ServiceSettings.EnableDeveloper {
 		return nil

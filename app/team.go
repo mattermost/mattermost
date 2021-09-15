@@ -460,7 +460,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 	}
 
 	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
-	if err = a.IsPhase2MigrationCompleted(); err != nil {
+	if err = a.isPhase2MigrationCompleted(); err != nil {
 		member.ExplicitRoles = RemoveRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
 	}
 
@@ -815,7 +815,7 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 
 	if !user.IsGuest() {
 		// Soft error if there is an issue joining the default channels
-		if err := a.JoinDefaultChannels(c, team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
+		if err := a.joinDefaultChannels(c, team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
 			mlog.Warn(
 				"Encountered an issue joining default channels.",
 				mlog.String("user_id", user.Id),
@@ -1165,7 +1165,7 @@ func (a *App) RemoveUserFromTeam(c *request.Context, teamID string, userID strin
 	}
 	user := result.Data.(*model.User)
 
-	if err := a.LeaveTeam(c, team, user, requestorId); err != nil {
+	if err := a.leaveTeam(c, team, user, requestorId); err != nil {
 		return err
 	}
 
@@ -1238,7 +1238,7 @@ func (a *App) removeTeamMemberFromTeam(c *request.Context, teamMember *model.Tea
 	return nil
 }
 
-func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, requestorId string) *model.AppError {
+func (a *App) leaveTeam(c *request.Context, team *model.Team, user *model.User, requestorId string) *model.AppError {
 	teamMember, err := a.GetTeamMember(team.Id, user.Id)
 	if err != nil {
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
