@@ -37,6 +37,9 @@ import (
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
+	// @Ref
+	// AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
+	AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts ChannelMemberOpts, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError)
 	// @openTracingParams args
 	ExecuteCommand(c *request.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	// @openTracingParams teamID
@@ -44,8 +47,6 @@ type AppIface interface {
 	ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	// @openTracingParams teamID, skipSlackParsing
 	CreateCommandPost(c *request.Context, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError)
-	// AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
-	AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError)
 	// AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
 	// The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
 	// and only query to database whenever necessary.
@@ -53,7 +54,7 @@ type AppIface interface {
 	// AddPublicKey will add plugin public key to the config. Overwrites the previous file
 	AddPublicKey(name string, key io.Reader) *model.AppError
 	// AddUserToChannel adds a user to a given channel.
-	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
+	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError)
 	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
@@ -455,7 +456,7 @@ type AppIface interface {
 	Config() *model.Config
 	CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError)
 	CreateChannel(c *request.Context, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
-	CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
+	CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string, category *model.SidebarCategoryWithChannels) (*model.Channel, *model.AppError)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
 	CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError)
 	CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError)

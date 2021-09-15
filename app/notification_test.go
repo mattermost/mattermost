@@ -20,7 +20,7 @@ func TestSendNotifications(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false, nil)
 
 	post1, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -127,7 +127,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		user := th.CreateUser()
 		th.LinkUserToTeam(user, th.BasicTeam)
-		th.App.AddUserToChannel(user, th.BasicChannel, false)
+		th.App.AddUserToChannel(user, th.BasicChannel, false, nil)
 		users = append(users, user)
 	}
 
@@ -218,9 +218,9 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	th.LinkUserToTeam(user3, th.BasicTeam)
 	th.LinkUserToTeam(user4, th.BasicTeam)
 	th.LinkUserToTeam(guest, th.BasicTeam)
-	th.App.AddUserToChannel(guest, channel, false)
-	th.App.AddUserToChannel(user4, guestAndUser4Channel, false)
-	th.App.AddUserToChannel(guest, guestAndUser4Channel, false)
+	th.App.AddUserToChannel(guest, channel, false, nil)
+	th.App.AddUserToChannel(user4, guestAndUser4Channel, false, nil)
+	th.App.AddUserToChannel(guest, guestAndUser4Channel, false, nil)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -2445,13 +2445,13 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	groupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(groupChannelMember, team)
-	th.App.AddUserToChannel(groupChannelMember, channel, false)
+	th.App.AddUserToChannel(groupChannelMember, channel, false, nil)
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
 	nonGroupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(nonGroupChannelMember, team)
-	th.App.AddUserToChannel(nonGroupChannelMember, channel, false)
+	th.App.AddUserToChannel(nonGroupChannelMember, channel, false, nil)
 
 	nonChannelGroupMember := th.CreateUser()
 	th.LinkUserToTeam(nonChannelGroupMember, team)

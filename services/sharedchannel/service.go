@@ -46,9 +46,9 @@ type ServerIface interface {
 
 type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
-	CreateChannelWithUser(c *request.Context, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
+	CreateChannelWithUser(c *request.Context, channel *model.Channel, userId string, category *model.SidebarCategoryWithChannels) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(c *request.Context, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
-	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
+	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError
 	PermanentDeleteChannel(channel *model.Channel) *model.AppError
 	CreatePost(c *request.Context, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)

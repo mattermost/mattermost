@@ -19,7 +19,7 @@ type MockAppIface struct {
 }
 
 // AddUserToChannel provides a mock function with given fields: user, channel, skipTeamMemberIntegrityCheck
-func (_m *MockAppIface) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+func (_m *MockAppIface) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError) {
 	ret := _m.Called(user, channel, skipTeamMemberIntegrityCheck)
 
 	var r0 *model.ChannelMember
@@ -60,7 +60,7 @@ func (_m *MockAppIface) AddUserToTeamByTeamId(c *request.Context, teamId string,
 }
 
 // CreateChannelWithUser provides a mock function with given fields: c, channel, userId
-func (_m *MockAppIface) CreateChannelWithUser(c *request.Context, channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
+func (_m *MockAppIface) CreateChannelWithUser(c *request.Context, channel *model.Channel, userId string, category *model.SidebarCategoryWithChannels) (*model.Channel, *model.AppError) {
 	ret := _m.Called(c, channel, userId)
 
 	var r0 *model.Channel

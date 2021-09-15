@@ -208,7 +208,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cm, err := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
 		PostRootID: postRootId,
-	})
+	}, nil)
 	if err != nil {
 		c.Err = err
 		return

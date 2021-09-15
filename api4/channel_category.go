@@ -160,6 +160,7 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 	w.Write(categoriesJSON)
 }
 
+// @REF
 func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {

@@ -143,7 +143,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 
 	if _, err := a.AddChannelMember(c, userProfile.Id, channelToJoin, app.ChannelMemberOpts{
 		UserRequestorID: args.UserId,
-	}); err != nil {
+	}, nil); err != nil {
 		var text string
 		if err.Id == "api.channel.add_members.user_denied" {
 			text = args.T("api.command_invite.group_constrained_user_denied")

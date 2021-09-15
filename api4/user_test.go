@@ -408,7 +408,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		_, _, errr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
 		require.Nil(t, errr)
 
-		_, errr = th.App.AddUserToChannel(guest, th.BasicChannel, false)
+		_, errr = th.App.AddUserToChannel(guest, th.BasicChannel, false, nil)
 		require.Nil(t, errr)
 
 		guestClient := th.CreateClient()
@@ -5308,11 +5308,11 @@ func TestGetKnownUsers(t *testing.T) {
 	th.LinkUserToTeam(u3, t2)
 	th.LinkUserToTeam(u4, t3)
 
-	th.App.AddUserToChannel(u1, c1, false)
-	th.App.AddUserToChannel(u1, c2, false)
-	th.App.AddUserToChannel(u2, c1, false)
-	th.App.AddUserToChannel(u3, c2, false)
-	th.App.AddUserToChannel(u4, c3, false)
+	th.App.AddUserToChannel(u1, c1, false, nil)
+	th.App.AddUserToChannel(u1, c2, false, nil)
+	th.App.AddUserToChannel(u2, c1, false, nil)
+	th.App.AddUserToChannel(u3, c2, false, nil)
+	th.App.AddUserToChannel(u4, c3, false, nil)
 
 	t.Run("get know users sharing no channels", func(t *testing.T) {
 		_, _, _ = th.Client.Login(u4.Email, u4.Password)

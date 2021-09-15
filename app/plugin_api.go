@@ -525,7 +525,7 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 		// For now, don't allow overriding these via the plugin API.
 		UserRequestorID: "",
 		PostRootID:      "",
-	})
+	}, nil)
 }
 
 func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
@@ -536,7 +536,7 @@ func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*mod
 
 	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
 		UserRequestorID: asUserID,
-	})
+	}, nil)
 }
 
 func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {

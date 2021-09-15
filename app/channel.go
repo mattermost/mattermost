@@ -173,7 +173,7 @@ func (a *App) postJoinMessageForDefaultChannel(c *request.Context, user *model.U
 	return nil
 }
 
-func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string, category *model.SidebarCategoryWithChannels) (*model.Channel, *model.AppError) {
 	if channel.IsGroupOrDirect() {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -209,6 +209,18 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", userID, nil)
 	message.Add("channel_id", channel.Id)
 	message.Add("team_id", channel.TeamId)
+
+	if category != nil {
+		category.Channels = append([]string{channel.Id}, category.Channels...)
+		var categories []*model.SidebarCategoryWithChannels
+		categories = append(categories, category)
+		_, _, err := a.Srv().Store.Channel().UpdateSidebarCategories(user.Id, channel.TeamId, categories)
+		if err != nil {
+			return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		message.Add("categoryId", category.Id)
+	}
+
 	a.Publish(message)
 
 	return rchannel, nil
@@ -1474,7 +1486,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 }
 
 // AddUserToChannel adds a user to a given channel.
-func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError) {
 	if !skipTeamMemberIntegrityCheck {
 		teamMember, nErr := a.Srv().Store.Team().GetMember(context.Background(), channel.TeamId, user.Id)
 		if nErr != nil {
@@ -1500,6 +1512,17 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, skipTea
 	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil)
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
+
+	if category != nil {
+		var categories []*model.SidebarCategoryWithChannels
+		categories = append(categories, category)
+		_, _, err := a.Srv().Store.Channel().UpdateSidebarCategories(user.Id, channel.TeamId, categories)
+		if err != nil {
+			return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		message.Add("categoryId", category.Id)
+	}
+
 	a.Publish(message)
 
 	return newMember, nil
@@ -1515,8 +1538,9 @@ type ChannelMemberOpts struct {
 	SkipTeamMemberIntegrityCheck bool
 }
 
+// @Ref
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
-func (a *App) AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts ChannelMemberOpts, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv().Store.Channel().GetMember(context.Background(), channel.Id, userID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
@@ -1540,7 +1564,7 @@ func (a *App) AddChannelMember(c *request.Context, userID string, channel *model
 		}
 	}
 
-	cm, err := a.AddUserToChannel(user, channel, opts.SkipTeamMemberIntegrityCheck)
+	cm, err := a.AddUserToChannel(user, channel, opts.SkipTeamMemberIntegrityCheck, category)
 	if err != nil {
 		return nil, err
 	}
@@ -2051,7 +2075,7 @@ func (a *App) JoinChannel(c *request.Context, channel *model.Channel, userID str
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	cm, err := a.AddUserToChannel(user, channel, false)
+	cm, err := a.AddUserToChannel(user, channel, false, nil)
 	if err != nil {
 		return err
 	}

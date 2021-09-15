@@ -41,11 +41,11 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	guest := th.createGuest()
 
 	th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
-	th.App.AddUserToChannel(th.BasicUser, publicChannel, false)
-	th.App.AddUserToChannel(th.BasicUser, privateChannel, false)
+	th.App.AddUserToChannel(th.BasicUser, publicChannel, false, nil)
+	th.App.AddUserToChannel(th.BasicUser, privateChannel, false, nil)
 	th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, guest.Id)
-	th.App.AddUserToChannel(guest, publicChannel, false)
-	th.App.AddUserToChannel(guest, defaultChannel, false)
+	th.App.AddUserToChannel(guest, publicChannel, false, nil)
+	th.App.AddUserToChannel(guest, defaultChannel, false, nil)
 
 	t.Run("Should error when no Channel ID in args", func(t *testing.T) {
 		args := &model.CommandArgs{

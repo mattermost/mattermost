@@ -57,7 +57,7 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 
 		_, err = a.AddChannelMember(c, userChannel.UserID, channel, ChannelMemberOpts{
 			SkipTeamMemberIntegrityCheck: true,
-		})
+		}, nil)
 		if err != nil {
 			if err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
 				a.Log().Info("Not adding user to channel because they have already left the team",

@@ -65,6 +65,11 @@ type ChannelWithTeamData struct {
 	TeamUpdateAt    int64  `json:"team_update_at"`
 }
 
+type ChannelWithCategoryData struct {
+	Channel
+	CategoryId string `json:"category_id"`
+}
+
 type ChannelsWithCount struct {
 	Channels   ChannelListWithTeamData `json:"channels"`
 	TotalCount int64                   `json:"total_count"`

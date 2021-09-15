@@ -197,7 +197,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 	}
 
 	// check user perms?
-	channel, appErr := scs.app.CreateChannelWithUser(request.EmptyContext(), channelNew, rc.CreatorId)
+	channel, appErr := scs.app.CreateChannelWithUser(request.EmptyContext(), channelNew, rc.CreatorId, nil)
 	if appErr != nil {
 		return nil, fmt.Errorf("cannot create channel `%s`: %w", invite.ChannelId, appErr)
 	}

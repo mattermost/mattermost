@@ -353,7 +353,7 @@ func (th *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	member, err := th.App.AddUserToChannel(user, channel, false)
+	member, err := th.App.AddUserToChannel(user, channel, false, nil)
 	if err != nil {
 		panic(err)
 	}

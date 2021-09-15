@@ -94,7 +94,7 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 
 	if token.Type == TokenTypeGuestInvitation {
 		for _, channel := range channels {
-			_, err := a.AddChannelMember(c, ruser.Id, channel, ChannelMemberOpts{})
+			_, err := a.AddChannelMember(c, ruser.Id, channel, ChannelMemberOpts{}, nil)
 			if err != nil {
 				mlog.Warn("Failed to add channel member", mlog.Err(err))
 			}

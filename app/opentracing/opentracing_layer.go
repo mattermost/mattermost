@@ -87,7 +87,7 @@ func (a *OpenTracingAppLayer) ActivateMfa(userID string, token string) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts app.ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts app.ChannelMemberOpts, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddChannelMember")
 
@@ -99,7 +99,7 @@ func (a *OpenTracingAppLayer) AddChannelMember(c *request.Context, userID string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AddChannelMember(c, userID, channel, opts)
+	resultVar0, resultVar1 := a.app.AddChannelMember(c, userID, channel, opts, category)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -494,7 +494,7 @@ func (a *OpenTracingAppLayer) AddTeamsToRetentionPolicy(policyID string, teamIDs
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToChannel")
 
@@ -506,7 +506,7 @@ func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AddUserToChannel(user, channel, skipTeamMemberIntegrityCheck)
+	resultVar0, resultVar1 := a.app.AddUserToChannel(user, channel, skipTeamMemberIntegrityCheck, category)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1796,7 +1796,7 @@ func (a *OpenTracingAppLayer) CreateChannelScheme(channel *model.Channel) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string, category *model.SidebarCategoryWithChannels) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelWithUser")
 
@@ -1808,7 +1808,7 @@ func (a *OpenTracingAppLayer) CreateChannelWithUser(c *request.Context, channel 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateChannelWithUser(c, channel, userID)
+	resultVar0, resultVar1 := a.app.CreateChannelWithUser(c, channel, userID, category)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
