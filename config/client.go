@@ -18,7 +18,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableCustomUserStatuses"] = strconv.FormatBool(*c.TeamSettings.EnableCustomUserStatuses)
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
-	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
@@ -39,7 +38,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
 	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
 	props["MinimumHashtagLength"] = fmt.Sprintf("%v", *c.ServiceSettings.MinimumHashtagLength)
-	props["CloseUnusedDirectMessages"] = strconv.FormatBool(*c.ServiceSettings.CloseUnusedDirectMessages)
 	props["EnablePreviewFeatures"] = strconv.FormatBool(*c.ServiceSettings.EnablePreviewFeatures)
 	props["EnableTutorial"] = strconv.FormatBool(*c.ServiceSettings.EnableTutorial)
 	props["EnableOnboardingFlow"] = strconv.FormatBool(*c.ServiceSettings.EnableOnboardingFlow)
@@ -58,11 +56,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["ExperimentalCloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
 	props["ExperimentalCloudBilling"] = strconv.FormatBool(*c.ExperimentalSettings.CloudBilling)
-	if *c.ServiceSettings.ExperimentalChannelOrganization || *c.ServiceSettings.ExperimentalGroupUnreadChannels != model.GroupUnreadChannelsDisabled {
-		props["ExperimentalChannelOrganization"] = strconv.FormatBool(true)
-	} else {
-		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
-	}
 
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
@@ -101,13 +94,9 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["CloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
 
-	props["EnableLegacySidebar"] = strconv.FormatBool(*c.ServiceSettings.EnableLegacySidebar)
-
 	props["EnableReliableWebSockets"] = strconv.FormatBool(*c.ServiceSettings.EnableReliableWebSockets)
 
 	// Set default values for all options that require a license.
-	props["ExperimentalHideTownSquareinLHS"] = "false"
-	props["ExperimentalTownSquareIsReadOnly"] = "false"
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
@@ -144,8 +133,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
 
 	if license != nil {
-		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
-		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 
 		if *license.Features.LDAP {
