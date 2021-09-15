@@ -835,11 +835,11 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 // KV Store Section
 
 func (api *PluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
-	return api.app.SetPluginKeyWithOptions(api.id, key, value, options)
+	return api.app.setPluginKeyWithOptions(api.id, key, value, options)
 }
 
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
-	return api.app.SetPluginKey(api.id, key, value)
+	return api.app.setPluginKey(api.id, key, value)
 }
 
 func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
@@ -851,7 +851,7 @@ func (api *PluginAPI) KVCompareAndDelete(key string, oldValue []byte) (bool, *mo
 }
 
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
-	return api.app.SetPluginKeyWithExpiry(api.id, key, value, expireInSeconds)
+	return api.app.setPluginKeyWithExpiry(api.id, key, value, expireInSeconds)
 }
 
 func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {

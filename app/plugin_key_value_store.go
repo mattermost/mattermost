@@ -20,15 +20,15 @@ func getKeyHash(key string) string {
 	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) SetPluginKey(pluginID string, key string, value []byte) *model.AppError {
-	return a.SetPluginKeyWithExpiry(pluginID, key, value, 0)
+func (a *App) setPluginKey(pluginID string, key string, value []byte) *model.AppError {
+	return a.setPluginKeyWithExpiry(pluginID, key, value, 0)
 }
 
-func (a *App) SetPluginKeyWithExpiry(pluginID string, key string, value []byte, expireInSeconds int64) *model.AppError {
+func (a *App) setPluginKeyWithExpiry(pluginID string, key string, value []byte, expireInSeconds int64) *model.AppError {
 	options := model.PluginKVSetOptions{
 		ExpireInSeconds: expireInSeconds,
 	}
-	_, err := a.SetPluginKeyWithOptions(pluginID, key, value, options)
+	_, err := a.setPluginKeyWithOptions(pluginID, key, value, options)
 	return err
 }
 
@@ -37,10 +37,10 @@ func (a *App) CompareAndSetPluginKey(pluginID string, key string, oldValue, newV
 		Atomic:   true,
 		OldValue: oldValue,
 	}
-	return a.SetPluginKeyWithOptions(pluginID, key, newValue, options)
+	return a.setPluginKeyWithOptions(pluginID, key, newValue, options)
 }
 
-func (a *App) SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (a *App) setPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := options.IsValid(); err != nil {
 		mlog.Debug("Failed to set plugin key value with options", mlog.String("plugin_id", pluginID), mlog.String("key", key), mlog.Err(err))
 		return false, err

@@ -2430,7 +2430,7 @@ func (a *App) GetNumberOfChannelsOnTeam(teamID string) (int, *model.AppError) {
 	return len(list), nil
 }
 
-func (a *App) SetActiveChannel(userID string, channelID string) *model.AppError {
+func (a *App) setActiveChannel(userID string, channelID string) *model.AppError {
 	status, err := a.GetStatus(userID)
 
 	oldStatus := model.StatusOffline
@@ -2903,7 +2903,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 }
 
 func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
-	if err := a.SetActiveChannel(userID, view.ChannelId); err != nil {
+	if err := a.setActiveChannel(userID, view.ChannelId); err != nil {
 		return nil, err
 	}
 

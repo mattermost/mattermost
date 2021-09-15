@@ -749,10 +749,10 @@ func (a *App) SetProfileImage(userID string, imageData *multipart.FileHeader) *m
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer file.Close()
-	return a.SetProfileImageFromMultiPartFile(userID, file)
+	return a.setProfileImageFromMultiPartFile(userID, file)
 }
 
-func (a *App) SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError {
+func (a *App) setProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError {
 	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 	}

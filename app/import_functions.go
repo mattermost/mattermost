@@ -571,7 +571,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 		defer file.Close()
 		if err == nil {
-			if err := a.SetProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
+			if err := a.setProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
 				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
 			}
 		}

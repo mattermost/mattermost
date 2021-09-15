@@ -70,7 +70,7 @@ func (a *App) updateRemoteClusterTopics(remoteClusterId string, topics string) (
 	return rc, nil
 }
 
-func (a *App) SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError {
+func (a *App) setRemoteClusterLastPingAt(remoteClusterId string) *model.AppError {
 	err := a.Srv().Store.RemoteCluster().SetLastPingAt(remoteClusterId)
 	if err != nil {
 		return model.NewAppError("SetRemoteClusterLastPingAt", "api.remote_cluster.save.app_error", nil, err.Error(), http.StatusInternalServerError)
