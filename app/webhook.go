@@ -86,7 +86,7 @@ func (a *App) handleWebhookEvents(c *request.Context, post *model.Post, team *mo
 		}
 		a.Srv().Go(func(hook *model.OutgoingWebhook) func() {
 			return func() {
-				a.TriggerWebhook(c, payload, hook, post, channel)
+				a.triggerWebhook(c, payload, hook, post, channel)
 			}
 		}(hook))
 	}
@@ -94,7 +94,7 @@ func (a *App) handleWebhookEvents(c *request.Context, post *model.Post, team *mo
 	return nil
 }
 
-func (a *App) TriggerWebhook(c *request.Context, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
+func (a *App) triggerWebhook(c *request.Context, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
 	var body io.Reader
 	var contentType string
 	if hook.ContentType == "application/json" {

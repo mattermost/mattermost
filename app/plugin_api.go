@@ -71,7 +71,7 @@ func (api *PluginAPI) RegisterCommand(command *model.Command) error {
 }
 
 func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {
-	api.app.UnregisterPluginCommand(api.id, teamID, trigger)
+	api.app.unregisterPluginCommand(api.id, teamID, trigger)
 	return nil
 }
 

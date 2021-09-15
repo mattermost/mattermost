@@ -2455,7 +2455,7 @@ func (a *App) SetActiveChannel(userID string, channelID string) *model.AppError 
 	return nil
 }
 
-func (a *App) UpdateChannelLastViewedAt(channelIDs []string, userID string) *model.AppError {
+func (a *App) updateChannelLastViewedAt(channelIDs []string, userID string) *model.AppError {
 	if _, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, *a.Config().ServiceSettings.ThreadAutoFollow); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {

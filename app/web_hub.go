@@ -82,7 +82,7 @@ func (a *App) NewWebHub() *Hub {
 	}
 }
 
-func (a *App) TotalWebsocketConnections() int {
+func (a *App) totalWebsocketConnections() int {
 	return a.Srv().TotalWebsocketConnections()
 }
 
