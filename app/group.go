@@ -430,7 +430,7 @@ func (a *App) teamMembersToAdd(since int64, teamID *string, includeRemovedMember
 // Typically since will be the last successful group sync time.
 // If includeRemovedMembers is true, then channel members who left or were removed from the channel will
 // be included; otherwise, they will be excluded.
-func (a *App) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
+func (a *App) channelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
 	userChannels, err := a.Srv().Store.Group().ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("ChannelMembersToAdd", "app.select_error", nil, err.Error(), http.StatusInternalServerError)

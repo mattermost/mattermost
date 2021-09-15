@@ -19,7 +19,7 @@ import (
 // If includeRemovedMembers is true, then channel members who left or were removed from the channel will
 // be re-added; otherwise, they will not be re-added.
 func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, channelID *string, includeRemovedMembers bool) error {
-	channelMembers, appErr := a.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
+	channelMembers, appErr := a.channelMembersToAdd(since, channelID, includeRemovedMembers)
 	if appErr != nil {
 		return appErr
 	}
