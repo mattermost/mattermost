@@ -876,13 +876,9 @@ type AppIface interface {
 	PostAddToChannelMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch
 	PostUpdateChannelDisplayNameMessage(c *request.Context, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError
-	PostUpdateChannelHeaderMessage(c *request.Context, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError
-	PostUpdateChannelPurposeMessage(c *request.Context, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError
-	PostWithProxyAddedToImageURLs(post *model.Post) *model.Post
 	PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post
 	PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post
 	PreparePostListForClient(originalList *model.PostList) *model.PostList
-	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
@@ -893,13 +889,10 @@ type AppIface interface {
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
-	RegisterPluginCommand(pluginID string, command *model.Command) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) *model.AppError
-	RemoveConfigListener(id string)
 	RemoveCustomStatus(userID string) *model.AppError
-	RemoveDirectory(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError

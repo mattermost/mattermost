@@ -12125,67 +12125,6 @@ func (a *OpenTracingAppLayer) PostUpdateChannelDisplayNameMessage(c *request.Con
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PostUpdateChannelHeaderMessage(c *request.Context, userID string, channel *model.Channel, oldChannelHeader string, newChannelHeader string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostUpdateChannelHeaderMessage")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.PostUpdateChannelHeaderMessage(c, userID, channel, oldChannelHeader, newChannelHeader)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) PostUpdateChannelPurposeMessage(c *request.Context, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostUpdateChannelPurposeMessage")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.PostUpdateChannelPurposeMessage(c, userID, channel, oldChannelPurpose, newChannelPurpose)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostWithProxyAddedToImageURLs")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.PostWithProxyAddedToImageURLs(post)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostWithProxyRemovedFromImageURLs")
@@ -12250,23 +12189,6 @@ func (a *OpenTracingAppLayer) ProcessSlackAttachments(attachments []*model.Slack
 
 	defer span.Finish()
 	resultVar0 := a.app.ProcessSlackAttachments(attachments)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) ProcessSlackText(text string) string {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ProcessSlackText")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.ProcessSlackText(text)
 
 	return resultVar0
 }
@@ -12499,28 +12421,6 @@ func (a *OpenTracingAppLayer) RegenerateTeamInviteId(teamID string) (*model.Team
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RegisterPluginCommand(pluginID string, command *model.Command) error {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegisterPluginCommand")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RegisterPluginCommand(pluginID, command)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) ReloadConfig() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReloadConfig")
@@ -12587,21 +12487,6 @@ func (a *OpenTracingAppLayer) RemoveChannelsFromRetentionPolicy(policyID string,
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveConfigListener(id string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveConfigListener")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.RemoveConfigListener(id)
-}
-
 func (a *OpenTracingAppLayer) RemoveCustomStatus(userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveCustomStatus")
@@ -12615,28 +12500,6 @@ func (a *OpenTracingAppLayer) RemoveCustomStatus(userID string) *model.AppError 
 
 	defer span.Finish()
 	resultVar0 := a.app.RemoveCustomStatus(userID)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) RemoveDirectory(path string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveDirectory")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RemoveDirectory(path)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

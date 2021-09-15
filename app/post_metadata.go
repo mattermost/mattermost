@@ -98,7 +98,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
-	post = a.PostWithProxyAddedToImageURLs(post)
+	post = a.postWithProxyAddedToImageURLs(post)
 
 	a.OverrideIconURLIfEmoji(post)
 

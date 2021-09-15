@@ -234,7 +234,7 @@ func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
 	return paths, nil
 }
 
-func (a *App) RemoveDirectory(path string) *model.AppError {
+func (a *App) removeDirectory(path string) *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return err

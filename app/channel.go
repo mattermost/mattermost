@@ -842,13 +842,13 @@ func (a *App) PatchChannel(c *request.Context, channel *model.Channel, patch *mo
 	}
 
 	if channel.Header != oldChannelHeader {
-		if err = a.PostUpdateChannelHeaderMessage(c, userID, channel, oldChannelHeader, channel.Header); err != nil {
+		if err = a.postUpdateChannelHeaderMessage(c, userID, channel, oldChannelHeader, channel.Header); err != nil {
 			mlog.Warn(err.Error())
 		}
 	}
 
 	if channel.Purpose != oldChannelPurpose {
-		if err = a.PostUpdateChannelPurposeMessage(c, userID, channel, oldChannelPurpose, channel.Purpose); err != nil {
+		if err = a.postUpdateChannelPurposeMessage(c, userID, channel, oldChannelPurpose, channel.Purpose); err != nil {
 			mlog.Warn(err.Error())
 		}
 	}
@@ -1604,7 +1604,7 @@ func (a *App) AddDirectChannels(teamID string, user *model.User) *model.AppError
 	return nil
 }
 
-func (a *App) PostUpdateChannelHeaderMessage(c *request.Context, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError {
+func (a *App) postUpdateChannelHeaderMessage(c *request.Context, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError {
 	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelHeaderMessage", "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)
@@ -1638,7 +1638,7 @@ func (a *App) PostUpdateChannelHeaderMessage(c *request.Context, userID string, 
 	return nil
 }
 
-func (a *App) PostUpdateChannelPurposeMessage(c *request.Context, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
+func (a *App) postUpdateChannelPurposeMessage(c *request.Context, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
 	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_purpose_message.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)

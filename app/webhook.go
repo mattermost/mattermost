@@ -132,7 +132,7 @@ func (a *App) triggerWebhook(c *request.Context, payload *model.OutgoingWebhookP
 
 				text := ""
 				if webhookResp.Text != nil {
-					text = a.ProcessSlackText(*webhookResp.Text)
+					text = a.processSlackText(*webhookResp.Text)
 				}
 				webhookResp.Attachments = a.ProcessSlackAttachments(webhookResp.Attachments)
 				// attachments is in here for slack compatibility
@@ -701,7 +701,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 
 	req.Props["webhook_display_name"] = hook.DisplayName
 
-	text = a.ProcessSlackText(text)
+	text = a.processSlackText(text)
 	req.Attachments = a.ProcessSlackAttachments(req.Attachments)
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {

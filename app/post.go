@@ -1403,7 +1403,7 @@ func (a *App) GetFileInfosForPost(postID string, fromMaster bool) ([]*model.File
 	return fileInfos, nil
 }
 
-func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
+func (a *App) postWithProxyAddedToImageURLs(post *model.Post) *model.Post {
 	if f := a.ImageProxyAdder(); f != nil {
 		return post.WithRewrittenImageURLs(f)
 	}

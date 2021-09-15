@@ -20,7 +20,7 @@ type PluginCommand struct {
 	PluginId string
 }
 
-func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) error {
+func (a *App) registerPluginCommand(pluginID string, command *model.Command) error {
 	if command.Trigger == "" {
 		return errors.New("invalid command")
 	}
