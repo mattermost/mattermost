@@ -2545,9 +2545,13 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 	SELECT
 		c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
 	FROM
-		Channels c, Teams t
+		Channels c, Teams t, TeamMembers tm
 	WHERE
 		c.TeamId=t.Id
+		AND
+		t.Id=tm.TeamId
+		AND
+		tm.UserId = :UserId
 		`+deleteFilter+`
 		SEARCH_CLAUSE
 		AND (
@@ -3063,7 +3067,6 @@ func (s SqlChannelStore) performGlobalSearch(searchQuery string, term string, pa
 
 	return channels, nil
 }
-
 
 func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPostgreSQL bool) (string, map[string]interface{}) {
 	var query, baseLikeClause string
