@@ -1416,7 +1416,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 }
 
 func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate {
+	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeGroup {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1539,6 +1539,8 @@ func (a *App) AddChannelMember(c *request.Context, userID string, channel *model
 			return nil, err
 		}
 	}
+
+	opts.SkipTeamMemberIntegrityCheck = opts.SkipTeamMemberIntegrityCheck || channel.Type == model.ChannelTypeGroup
 
 	cm, err := a.AddUserToChannel(user, channel, opts.SkipTeamMemberIntegrityCheck)
 	if err != nil {
