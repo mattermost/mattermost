@@ -2236,7 +2236,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " commented on a thread you are following."
+    "translation": " replied to a thread you're following."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " replied to a thread."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
@@ -2320,7 +2324,11 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Reply to Thread"
+    "translation": "Reply in {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Reply in Direct Message"
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -5487,12 +5495,24 @@
     "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} replied to a thread"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
     "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
   },
   {
-    "id": "app.notification.body.thread.title",
-    "translation": "{{.SenderName}} replied to a thread"
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your Direct Message."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your group."
   },
   {
     "id": "app.notification.footer.info",

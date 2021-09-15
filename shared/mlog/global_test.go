@@ -108,7 +108,7 @@ func TestLoggingAfterInitialized(t *testing.T) {
 			}
 
 			logger, _ := mlog.NewLogger()
-			err := logger.ConfigureTargets(map[string]mlog.TargetCfg{testCase.description: testCase.cfg})
+			err := logger.ConfigureTargets(map[string]mlog.TargetCfg{testCase.description: testCase.cfg}, nil)
 			require.NoError(t, err)
 
 			mlog.InitGlobalLogger(logger)
