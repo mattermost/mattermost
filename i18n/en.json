@@ -7507,6 +7507,22 @@
     "translation": "Failed to get file information for content extraction."
   },
   {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Failed to get bad channel memberships"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Failed to get unique post types"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Killing orphaned jobs"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Failed to mark channel as read"
+  },
+  {
     "id": "group_not_associated_to_synced_team",
     "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
