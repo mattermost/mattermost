@@ -40,7 +40,7 @@ func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 		return nil
 	}
 
-	scheme, err := a.GetSchemeByName(*data.Name)
+	scheme, err := a.getSchemeByName(*data.Name)
 	if err != nil {
 		scheme = new(model.Scheme)
 	} else if scheme.Scope != *data.Scope {
@@ -188,7 +188,7 @@ func (a *App) importTeam(c *request.Context, data *TeamImportData, dryRun bool) 
 	}
 
 	if data.Scheme != nil {
-		scheme, err := a.GetSchemeByName(*data.Scheme)
+		scheme, err := a.getSchemeByName(*data.Scheme)
 		if err != nil {
 			return err
 		}
@@ -253,7 +253,7 @@ func (a *App) importChannel(c *request.Context, data *ChannelImportData, dryRun 
 	}
 
 	if data.Scheme != nil {
-		scheme, err := a.GetSchemeByName(*data.Scheme)
+		scheme, err := a.getSchemeByName(*data.Scheme)
 		if err != nil {
 			return err
 		}

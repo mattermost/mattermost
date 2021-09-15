@@ -42,7 +42,7 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 	statusMap := map[string]*model.Status{}
 	if userIDs, err := a.Srv().statusCache.Keys(); err == nil {
 		for _, userID := range userIDs {
-			status := a.GetStatusFromCache(userID)
+			status := a.getStatusFromCache(userID)
 			if status != nil {
 				statusMap[userID] = status
 			}
@@ -352,7 +352,7 @@ func (a *App) setStatusOutOfOffice(userID string) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func (a *App) GetStatusFromCache(userID string) *model.Status {
+func (a *App) getStatusFromCache(userID string) *model.Status {
 	var status *model.Status
 	if err := a.Srv().statusCache.Get(userID, &status); err == nil {
 		statusCopy := &model.Status{}
@@ -368,7 +368,7 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 		return &model.Status{}, nil
 	}
 
-	status := a.GetStatusFromCache(userID)
+	status := a.getStatusFromCache(userID)
 	if status != nil {
 		return status, nil
 	}

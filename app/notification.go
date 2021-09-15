@@ -1055,7 +1055,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 			keywords,
 			profile,
 			channelMemberNotifyPropsMap[profile.Id],
-			a.GetStatusFromCache(profile.Id),
+			a.getStatusFromCache(profile.Id),
 			allowChannelMentions,
 		)
 	}

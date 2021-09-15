@@ -81,7 +81,7 @@ func (a *App) GetSharedChannels(page int, perPage int, opts model.SharedChannelF
 	return channels, nil
 }
 
-func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64, error) {
+func (a *App) getSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64, error) {
 	return a.Srv().Store.SharedChannel().GetAllCount(opts)
 }
 
@@ -102,7 +102,7 @@ func (a *App) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model
 	return a.Srv().Store.SharedChannel().SaveRemote(remote)
 }
 
-func (a *App) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
+func (a *App) getSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
 	return a.Srv().Store.SharedChannel().GetRemote(id)
 }
 
@@ -110,7 +110,7 @@ func (a *App) GetSharedChannelRemoteByIds(channelID string, remoteID string) (*m
 	return a.Srv().Store.SharedChannel().GetRemoteByIds(channelID, remoteID)
 }
 
-func (a *App) GetSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+func (a *App) getSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 	return a.Srv().Store.SharedChannel().GetRemotes(opts)
 }
 

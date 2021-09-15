@@ -29,7 +29,7 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 	return scheme, nil
 }
 
-func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+func (a *App) getSchemeByName(name string) (*model.Scheme, *model.AppError) {
 	if err := a.isPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (a *App) GetSchemesPage(scope string, page int, perPage int) ([]*model.Sche
 		return nil, err
 	}
 
-	return a.GetSchemes(scope, page*perPage, perPage)
+	return a.getSchemes(scope, page*perPage, perPage)
 }
 
 func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
@@ -67,7 +67,7 @@ func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Schem
 	return scheme, nil
 }
 
-func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (a *App) getSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
 	return a.Srv().GetSchemes(scope, offset, limit)
 }
 

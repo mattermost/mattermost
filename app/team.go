@@ -346,7 +346,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 	a.Publish(message)
 }
 
-func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError) {
+func (a *App) getSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError) {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return "", "", "", err
@@ -379,7 +379,7 @@ func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles strin
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userID+" teamId="+teamID, http.StatusBadRequest)
 	}
 
-	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForTeam(teamID)
+	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.getSchemeRolesForTeam(teamID)
 	if err != nil {
 		return nil, err
 	}
