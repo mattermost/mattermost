@@ -427,17 +427,17 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	result, err := th.App.CreatePostAsUser(th.Context, post, "", true)
+	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
-	}, result.GetProp("channel_mentions"))
+	}, post.GetProp("channel_mentions"))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
-	result, err = th.App.UpdatePost(th.Context, post, false)
+	result, err := th.App.UpdatePost(th.Context, post, false)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
