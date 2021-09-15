@@ -1822,49 +1822,9 @@ func (s *RetryLayerChannelStore) InvalidatePinnedPostCount(channelID string) {
 
 }
 
-func (s *RetryLayerChannelStore) IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.IsChannelMemberUnread(cm, withCRT)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-	}
-
-}
-
 func (s *RetryLayerChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
 
 	return s.ChannelStore.IsUserInChannelUseCache(userID, channelID)
-
-}
-
-func (s *RetryLayerChannelStore) MarkChannelMembersAsCRTFixed(cms []model.ChannelMember) error {
-
-	tries := 0
-	for {
-		err := s.ChannelStore.MarkChannelMembersAsCRTFixed(cms)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-	}
 
 }
 

@@ -3444,17 +3444,17 @@ func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID 
 		return nil, fmt.Errorf("channelID=%q userID=%q, got one empty param, both need to be empty or specified", channelID, userID)
 	}
 	getUnfixedCMQuery := `
-			SELECT *
-			FROM ChannelMembers
-			WHERE (ChannelId, UserId) > (:channelId, :userId) AND CRTFixDone = false
+			SELECT ChannelMembers.*
+			FROM ChannelMembers, Channels
+			WHERE ChannelId = Id AND (ChannelMembers.ChannelId, ChannelMembers.UserId) > (:channelId, :userId) AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
 			ORDER BY ChannelId, UserId
 			LIMIT :count;
 	`
 	if userID == "" && channelID == "" {
 		getUnfixedCMQuery = `
-			SELECT *
-			FROM ChannelMembers
-			WHERE CRTFixDone = false
+			SELECT ChannelMembers.*
+			FROM ChannelMembers, Channels
+			WHERE ChannelId = Id AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
 			ORDER BY ChannelId, UserId
 			LIMIT :count;
 		`
@@ -3465,51 +3465,4 @@ func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID 
 		return nil, errors.Wrapf(err, "failed to %d ChannelMembers after channelId=%q and userId=%q", count, channelID, userID)
 	}
 	return cms, nil
-}
-
-func (s SqlChannelStore) IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error) {
-	isUnreadQuery := `
-			SELECT
-				(Channels.TotalMsgCount - ChannelMembers.MsgCount) Count
-			FROM
-				Channels, ChannelMembers
-			WHERE
-				Id = ChannelId
-				AND Id = :ChannelId
-				AND UserId = :UserId
-		`
-
-	if withCRT {
-		isUnreadQuery = `
-			SELECT
-				(Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) Count
-			FROM
-				Channels, ChannelMembers
-			WHERE
-				Id = ChannelId
-				AND Id = :ChannelId
-				AND UserId = :UserId
-		`
-
-	}
-
-	count, err := s.GetReplica().SelectInt(isUnreadQuery, map[string]interface{}{"ChannelId": cm.ChannelId, "UserId": cm.UserId})
-	return count > 0, errors.Wrapf(err, "failed to get message count for channelId=%q and userId=%q", cm.ChannelId, cm.UserId)
-}
-
-func (s SqlChannelStore) MarkChannelMembersAsCRTFixed(cms []model.ChannelMember) error {
-
-	where := sq.Or{}
-	for _, cm := range cms {
-		where = append(where, sq.Eq{"ChannelId": cm.ChannelId, "UserId": cm.UserId})
-	}
-	query := s.getQueryBuilder().Update("ChannelMembers").Set("CRTFixDone", true).Where(where)
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return err
-	}
-
-	_, err = s.GetMaster().Exec(queryString, args...)
-	return errors.Wrap(err, "failed to mark ChannelMembers as CRT fixed")
 }

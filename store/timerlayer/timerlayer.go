@@ -1614,22 +1614,6 @@ func (s *TimerLayerChannelStore) InvalidatePinnedPostCount(channelID string) {
 	}
 }
 
-func (s *TimerLayerChannelStore) IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.IsChannelMemberUnread(cm, withCRT)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.IsChannelMemberUnread", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
 	start := timemodule.Now()
 
@@ -1644,22 +1628,6 @@ func (s *TimerLayerChannelStore) IsUserInChannelUseCache(userID string, channelI
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.IsUserInChannelUseCache", success, elapsed)
 	}
 	return result
-}
-
-func (s *TimerLayerChannelStore) MarkChannelMembersAsCRTFixed(cms []model.ChannelMember) error {
-	start := timemodule.Now()
-
-	err := s.ChannelStore.MarkChannelMembersAsCRTFixed(cms)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MarkChannelMembersAsCRTFixed", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {

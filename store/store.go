@@ -271,12 +271,6 @@ type ChannelStore interface {
 
 	//GetCRTUnfixedChannelMembershipsAfter gets CRT unfixed channel memberships after the given channelID and userID
 	GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error)
-
-	// IsChannelMemberUnread returns whether the channel is unread
-	IsChannelMemberUnread(cm model.ChannelMember, withCRT bool) (bool, error)
-
-	// MarkChannelMemberAsCRTFixed marks a channel membership as fixed for CRT issues
-	MarkChannelMembersAsCRTFixed(cms []model.ChannelMember) error
 }
 
 type ChannelMemberHistoryStore interface {
