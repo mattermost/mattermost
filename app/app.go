@@ -51,7 +51,7 @@ func (s *Server) TemplatesContainer() *templates.Container {
 	return s.htmlTemplateWatcher
 }
 
-func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
+func (a *App) handle404(w http.ResponseWriter, r *http.Request) {
 	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
 	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
@@ -224,7 +224,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 
 func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId string, isE0Edition bool) *model.AppError {
 	// get warn metrics bot
-	warnMetricsBot, err := a.GetWarnMetricsBot()
+	warnMetricsBot, err := a.getWarnMetricsBot()
 	if err != nil {
 		return err
 	}

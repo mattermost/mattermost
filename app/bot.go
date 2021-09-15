@@ -92,7 +92,7 @@ func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.
 	return savedBot, nil
 }
 
-func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
+func (a *App) getWarnMetricsBot() (*model.Bot, *model.AppError) {
 	perPage := 1
 	userOptions := &model.UserGetOptions{
 		Page:     0,

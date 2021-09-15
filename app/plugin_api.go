@@ -269,7 +269,7 @@ func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *m
 
 func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	options := &model.UserGetOptions{InTeamId: teamID, Page: page, PerPage: perPage}
-	return api.app.GetUsersInTeam(options)
+	return api.app.getUsersInTeam(options)
 }
 
 func (api *PluginAPI) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
