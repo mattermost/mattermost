@@ -393,7 +393,7 @@ func (a *App) isUserAway(lastActivityAt int64) bool {
 
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
-func (a *App) updateDNDStatusOfUsers() {
+func (a *App) UpdateDNDStatusOfUsers() {
 	mlog.Debug("UpdateDNDStatusOfUsers: scheduled run started")
 	statuses, err := a.updateExpiredDNDStatuses()
 	if err != nil {

@@ -496,7 +496,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	uploadTime := time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local)
 	filename := "testGetFile"
 	fileData := []byte("Hello World")
-	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
+	info, err := th.App.doUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
@@ -518,7 +518,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	fileInfo1, err := th.App.DoUploadFile(th.Context,
+	fileInfo1, err := th.App.doUploadFile(th.Context,
 		time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
@@ -532,7 +532,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 		th.App.RemoveFile(fileInfo1.Path)
 	}()
 
-	fileInfo2, err := th.App.DoUploadFile(th.Context,
+	fileInfo2, err := th.App.doUploadFile(th.Context,
 		time.Date(2020, 1, 2, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
@@ -546,7 +546,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 		th.App.RemoveFile(fileInfo2.Path)
 	}()
 
-	fileInfo3, err := th.App.DoUploadFile(th.Context,
+	fileInfo3, err := th.App.doUploadFile(th.Context,
 		time.Date(2020, 1, 3, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
@@ -988,7 +988,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	appErr := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	appErr := th.App.setTeamIconFromFile(th.BasicTeam, fileReader)
 	require.Nil(t, appErr)
 
 	// Get the team icon to check
@@ -1050,7 +1050,7 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	err := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	err := th.App.setTeamIconFromFile(th.BasicTeam, fileReader)
 	require.Nil(t, err)
 	err = api.RemoveTeamIcon(th.BasicTeam.Id)
 	require.Nil(t, err)

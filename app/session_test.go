@@ -37,7 +37,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	time := session.LastActivityAt - (1000 * 60 * 6)
 	nErr := th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
-	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.clearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	rsession, err = th.App.GetSession(session.Token)
 	require.NotNil(t, err)
@@ -55,7 +55,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
-	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.clearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
@@ -70,7 +70,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
-	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.clearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
@@ -88,7 +88,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
-	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.clearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
@@ -167,7 +167,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		sessionLength := th.App.GetSessionLengthInMillis(session)
+		sessionLength := th.App.getSessionLengthInMillis(session)
 		require.Equal(t, dayMillis*3, sessionLength)
 	})
 
@@ -181,7 +181,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		sessionLength := th.App.GetSessionLengthInMillis(session)
+		sessionLength := th.App.getSessionLengthInMillis(session)
 		require.Equal(t, dayMillis*3, sessionLength)
 	})
 
@@ -196,7 +196,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		sessionLength := th.App.GetSessionLengthInMillis(session)
+		sessionLength := th.App.getSessionLengthInMillis(session)
 		require.Equal(t, dayMillis*3, sessionLength)
 	})
 
@@ -210,7 +210,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		sessionLength := th.App.GetSessionLengthInMillis(session)
+		sessionLength := th.App.getSessionLengthInMillis(session)
 		require.Equal(t, dayMillis*2, sessionLength)
 	})
 
@@ -223,7 +223,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		sessionLength := th.App.GetSessionLengthInMillis(session)
+		sessionLength := th.App.getSessionLengthInMillis(session)
 		require.Equal(t, dayMillis*2, sessionLength)
 	})
 
@@ -234,7 +234,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		sessionLength := th.App.GetSessionLengthInMillis(session)
+		sessionLength := th.App.getSessionLengthInMillis(session)
 		require.Equal(t, dayMillis*1, sessionLength)
 	})
 }
@@ -271,7 +271,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session)
+		expires := model.GetMillis() + th.App.getSessionLengthInMillis(session)
 		session.ExpiresAt = expires
 
 		ok := th.App.ExtendSessionExpiryIfNeeded(session)
@@ -301,7 +301,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			session, err := th.App.CreateSession(test.session)
 			require.Nil(t, err)
 
-			expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session) - hourMillis
+			expires := model.GetMillis() + th.App.getSessionLengthInMillis(session) - hourMillis
 			session.ExpiresAt = expires
 
 			ok := th.App.ExtendSessionExpiryIfNeeded(session)

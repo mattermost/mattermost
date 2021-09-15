@@ -69,10 +69,6 @@ func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
 	a.Srv().PluginsEnvironment = pluginsEnvironment
 }
 
-func (a *App) syncPluginsActiveState() {
-	a.Srv().syncPluginsActiveState()
-}
-
 func (s *Server) syncPluginsActiveState() {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	s.PluginsLock.RLock()

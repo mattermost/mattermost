@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
-	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type App struct {
@@ -49,18 +48,6 @@ func (a *App) TelemetryId() string {
 
 func (s *Server) TemplatesContainer() *templates.Container {
 	return s.htmlTemplateWatcher
-}
-
-func (a *App) handle404(w http.ResponseWriter, r *http.Request) {
-	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
-	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
-
-	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
-		http.NotFound(w, r)
-		return
-	}
-
-	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
 }
 
 func (s *Server) getSystemInstallDate() (int64, *model.AppError) {

@@ -435,7 +435,7 @@ func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 }
 
 func (th *TestHelper) CreateRole(roleName string) *model.Role {
-	role, _ := th.App.CreateRole(&model.Role{Name: roleName, DisplayName: roleName, Description: roleName, Permissions: []string{}})
+	role, _ := th.App.createRole(&model.Role{Name: roleName, DisplayName: roleName, Description: roleName, Permissions: []string{}})
 	return role
 }
 

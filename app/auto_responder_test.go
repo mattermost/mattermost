@@ -106,7 +106,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			th.BasicChannel,
 			false, true)
 
-		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
+		sent, err := th.App.sendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
 
 		assert.Nil(t, err)
 		assert.True(t, sent)
@@ -136,7 +136,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			th.BasicChannel,
 			false, true)
 
-		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
+		sent, err := th.App.sendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
 
 		assert.Nil(t, err)
 		assert.False(t, sent)
@@ -153,7 +153,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			th.BasicChannel,
 			false, true)
 
-		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, th.BasicChannel, th.BasicUser, savedPost)
+		sent, err := th.App.sendAutoResponseIfNecessary(th.Context, th.BasicChannel, th.BasicUser, savedPost)
 
 		assert.Nil(t, err)
 		assert.False(t, sent)
@@ -193,7 +193,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			th.BasicChannel,
 			false, true)
 
-		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, channel, botUser, savedPost)
+		sent, err := th.App.sendAutoResponseIfNecessary(th.Context, channel, botUser, savedPost)
 
 		assert.Nil(t, err)
 		assert.False(t, sent)
@@ -233,7 +233,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		require.Nil(t, err)
 		savedPost.CreateAt = model.GetMillisForTime(time.Now())
 
-		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
+		sent, err := th.App.sendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
 
 		require.Nil(t, err)
 		assert.True(t, sent)
@@ -262,12 +262,12 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 		th.BasicChannel,
 		false, true)
 
-	sent, err := th.App.SendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
+	sent, err := th.App.sendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
 
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.getPosts(th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -311,12 +311,12 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 		th.BasicChannel,
 		false, true)
 
-	sent, err := th.App.SendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
+	sent, err := th.App.sendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
 
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.getPosts(th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -351,12 +351,12 @@ func TestSendAutoResponseFailure(t *testing.T) {
 		th.BasicChannel,
 		false, true)
 
-	sent, err := th.App.SendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
+	sent, err := th.App.sendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
 
 	assert.Nil(t, err)
 	assert.False(t, sent)
 
-	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
+	if list, err := th.App.getPosts(th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)
 	} else {
 		autoResponderPostFound := false

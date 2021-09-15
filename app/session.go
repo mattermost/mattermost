@@ -174,16 +174,8 @@ func (a *App) ClearSessionCacheForUser(userID string) {
 	a.srv.userService.ClearUserSessionCache(userID)
 }
 
-func (a *App) clearSessionCacheForAllUsers() {
-	a.srv.userService.ClearAllUsersSessionCache()
-}
-
 func (a *App) clearSessionCacheForUserSkipClusterSend(userID string) {
 	a.Srv().clearSessionCacheForUserSkipClusterSend(userID)
-}
-
-func (a *App) clearSessionCacheForAllUsersSkipClusterSend() {
-	a.Srv().clearSessionCacheForAllUsersSkipClusterSend()
 }
 
 func (a *App) RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) *model.AppError {

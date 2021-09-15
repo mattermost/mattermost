@@ -462,7 +462,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFiles(th.Context,
+		_, err := th.App.uploadFiles(th.Context,
 			"noteam",
 			th.BasicChannel.Id,
 			th.BasicUser.Id,
@@ -515,7 +515,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFiles(th.Context,
+		_, err := th.App.uploadFiles(th.Context,
 			"noteam",
 			th.BasicChannel.Id,
 			th.BasicUser.Id,
@@ -562,7 +562,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFiles(th.Context,
+		response, err := th.App.uploadFiles(th.Context,
 			"noteam",
 			th.BasicChannel.Id,
 			th.BasicUser.Id,
@@ -638,7 +638,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFiles(th.Context,
+		response, err := th.App.uploadFiles(th.Context,
 			"noteam",
 			th.BasicChannel.Id,
 			th.BasicUser.Id,

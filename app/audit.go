@@ -30,20 +30,6 @@ var (
 	LevelCLI     = mlog.LvlAuditCLI
 )
 
-func (a *App) getAudits(userID string, limit int) (model.Audits, *model.AppError) {
-	audits, err := a.Srv().Store.Audit().Get(userID, 0, limit)
-	if err != nil {
-		var outErr *store.ErrOutOfBounds
-		switch {
-		case errors.As(err, &outErr):
-			return nil, model.NewAppError("GetAudits", "app.audit.get.limit.app_error", nil, err.Error(), http.StatusBadRequest)
-		default:
-			return nil, model.NewAppError("GetAudits", "app.audit.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-	return audits, nil
-}
-
 func (a *App) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store.Audit().Get(userID, page*perPage, perPage)
 	if err != nil {

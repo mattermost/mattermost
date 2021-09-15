@@ -915,11 +915,6 @@ func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
 	return transformations, nil
 }
 
-// DoPermissionsMigrations execute all the permissions migrations need by the current version.
-func (a *App) doPermissionsMigrations() error {
-	return a.Srv().doPermissionsMigrations()
-}
-
 func (s *Server) doPermissionsMigrations() error {
 	a := New(ServerConnector(s))
 	PermissionsMigrations := []struct {

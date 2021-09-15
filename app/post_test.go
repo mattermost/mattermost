@@ -217,7 +217,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		appErr := th.App.attachFilesToPost(post)
 		assert.Nil(t, appErr)
 
-		infos, appErr := th.App.GetFileInfosForPost(post.Id, false)
+		infos, appErr := th.App.getFileInfosForPost(post.Id, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
@@ -245,7 +245,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		appErr := th.App.attachFilesToPost(post)
 		assert.Nil(t, appErr)
 
-		infos, appErr := th.App.GetFileInfosForPost(post.Id, false)
+		infos, appErr := th.App.getFileInfosForPost(post.Id, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
@@ -552,7 +552,7 @@ func TestImageProxy(t *testing.T) {
 			list := model.NewPostList()
 			list.Posts[post.Id] = post
 
-			assert.Equal(t, "![foo]("+tc.ProxiedImageURL+")", th.App.PostWithProxyAddedToImageURLs(post).Message)
+			assert.Equal(t, "![foo]("+tc.ProxiedImageURL+")", th.App.postWithProxyAddedToImageURLs(post).Message)
 
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			post.Message = "![foo](" + tc.ProxiedImageURL + ")"
@@ -560,7 +560,7 @@ func TestImageProxy(t *testing.T) {
 
 			if tc.ImageURL != "" {
 				post.Message = "![foo](" + tc.ImageURL + " =500x200)"
-				assert.Equal(t, "![foo]("+tc.ProxiedImageURL+" =500x200)", th.App.PostWithProxyAddedToImageURLs(post).Message)
+				assert.Equal(t, "![foo]("+tc.ProxiedImageURL+" =500x200)", th.App.postWithProxyAddedToImageURLs(post).Message)
 				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 				post.Message = "![foo](" + tc.ProxiedImageURL + " =500x200)"
 				assert.Equal(t, "![foo]("+tc.ProxiedRemovedImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
@@ -611,7 +611,7 @@ func TestMaxPostSize(t *testing.T) {
 				},
 			}
 
-			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
+			assert.Equal(t, testCase.ExpectedMaxPostSize, app.maxPostSize())
 		})
 	}
 }
@@ -627,7 +627,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.doUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
@@ -1935,7 +1935,7 @@ func TestFillInPostProps(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		err = th.App.FillInPostProps(post1, channel)
+		err = th.App.fillInPostProps(post1, channel)
 
 		assert.Nil(t, err)
 		assert.Equal(t, post1.Props, model.StringInterface{})
@@ -1967,7 +1967,7 @@ func TestFillInPostProps(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		err = th.App.FillInPostProps(post1, channel)
+		err = th.App.fillInPostProps(post1, channel)
 
 		assert.Nil(t, err)
 		assert.Equal(t, post1.Props, model.StringInterface{})
@@ -2000,7 +2000,7 @@ func TestFillInPostProps(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		err = th.App.FillInPostProps(post1, channel)
+		err = th.App.fillInPostProps(post1, channel)
 
 		assert.Nil(t, err)
 		assert.Equal(t, post1.Props, model.StringInterface{"disable_group_highlight": true})
@@ -2034,11 +2034,11 @@ func TestThreadMembership(t *testing.T) {
 		require.Nil(t, err)
 
 		// first user should now be part of the thread since they replied to a post
-		memberships, err2 := th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
+		memberships, err2 := th.App.getThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
 		require.NoError(t, err2)
 		require.Len(t, memberships, 1)
 		// second user should also be part of a thread since they were mentioned
-		memberships, err2 = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
+		memberships, err2 = th.App.getThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 		require.NoError(t, err2)
 		require.Len(t, memberships, 1)
 
@@ -2058,7 +2058,7 @@ func TestThreadMembership(t *testing.T) {
 		require.Nil(t, err)
 
 		// first user should now be part of two threads
-		memberships, err2 = th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
+		memberships, err2 = th.App.getThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
 		require.NoError(t, err2)
 		require.Len(t, memberships, 2)
 	})
@@ -2142,12 +2142,12 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 	require.Nil(t, appErr)
 	p1, err := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, false, false)
 	require.Nil(t, err)
-	m, e := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
+	m, e := th.App.getThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e)
 	require.Len(t, m, 0)
 	_, err2 := th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
 	require.Nil(t, err2)
-	m, e = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
+	m, e = th.App.getThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e)
 	require.Len(t, m, 1)
 }
@@ -2174,7 +2174,7 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	require.Nil(t, err)
 	_, err2 := th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
 	require.Nil(t, err2)
-	m, e := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
+	m, e := th.App.getThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e)
 
 	th.App.ViewChannel(&model.ChannelView{
@@ -2182,7 +2182,7 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 		PrevChannelId: "",
 	}, user2.Id, "", true)
 
-	m1, e1 := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
+	m1, e1 := th.App.getThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e1)
 	require.Equal(t, m[0].LastViewed, m1[0].LastViewed) // opening the channel shouldn't update threads
 }

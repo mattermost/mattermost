@@ -13,21 +13,21 @@ func TestProcessSlackText(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	if th.App.ProcessSlackText("<!channel> foo <!channel>") != "@channel foo @channel" {
+	if th.App.processSlackText("<!channel> foo <!channel>") != "@channel foo @channel" {
 		t.Fail()
 	}
 
-	if th.App.ProcessSlackText("<!here> bar <!here>") != "@here bar @here" {
+	if th.App.processSlackText("<!here> bar <!here>") != "@here bar @here" {
 		t.Fail()
 	}
 
-	if th.App.ProcessSlackText("<!all> bar <!all>") != "@all bar @all" {
+	if th.App.processSlackText("<!all> bar <!all>") != "@all bar @all" {
 		t.Fail()
 	}
 
 	userID := th.BasicUser.Id
 	username := th.BasicUser.Username
-	if th.App.ProcessSlackText("<@"+userID+"> hello") != "@"+username+" hello" {
+	if th.App.processSlackText("<@"+userID+"> hello") != "@"+username+" hello" {
 		t.Fail()
 	}
 }
@@ -65,7 +65,7 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 			},
 		},
 	}
-	attachments = th.App.ProcessSlackAttachments(attachments)
+	attachments = th.App.processSlackAttachments(attachments)
 	if len(attachments) != 2 || len(attachments[0].Fields) != 1 || len(attachments[1].Fields) != 1 {
 		t.Fail()
 	}

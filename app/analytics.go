@@ -307,21 +307,6 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 	return nil, nil
 }
 
-func (a *App) getRecentlyActiveUsersForTeam(teamID string) (map[string]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetRecentlyActiveUsersForTeam(teamID, 0, 100, nil)
-	if err != nil {
-		return nil, model.NewAppError("GetRecentlyActiveUsersForTeam", "app.user.get_recently_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	userMap := make(map[string]*model.User)
-
-	for _, user := range users {
-		userMap[user.Id] = user
-	}
-
-	return userMap, nil
-}
-
 func (a *App) GetRecentlyActiveUsersForTeamPage(teamID string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store.User().GetRecentlyActiveUsersForTeam(teamID, page*perPage, perPage, viewRestrictions)
 	if err != nil {

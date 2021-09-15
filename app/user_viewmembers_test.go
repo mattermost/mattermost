@@ -536,7 +536,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 		}
 	})
 
-	t.Run("GetUsers", func(t *testing.T) {
+	t.Run("getUsers", func(t *testing.T) {
 		testCases := []struct {
 			Name            string
 			Restrictions    *model.ViewUsersRestrictions
@@ -574,7 +574,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				options := model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions}
-				results, err := th.App.GetUsers(&options)
+				results, err := th.App.getUsers(&options)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -585,7 +585,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 		}
 	})
 
-	t.Run("GetUsersWithoutTeam", func(t *testing.T) {
+	t.Run("getUsersWithoutTeam", func(t *testing.T) {
 		testCases := []struct {
 			Name            string
 			Restrictions    *model.ViewUsersRestrictions
@@ -622,7 +622,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetUsersWithoutTeam(&model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions})
+				results, err := th.App.getUsersWithoutTeam(&model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions})
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -633,7 +633,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 		}
 	})
 
-	t.Run("GetUsersNotInTeam", func(t *testing.T) {
+	t.Run("getUsersNotInTeam", func(t *testing.T) {
 		testCases := []struct {
 			Name            string
 			Restrictions    *model.ViewUsersRestrictions
@@ -697,7 +697,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetUsersNotInTeam(tc.TeamId, false, 0, 100, tc.Restrictions)
+				results, err := th.App.getUsersNotInTeam(tc.TeamId, false, 0, 100, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -708,7 +708,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 		}
 	})
 
-	t.Run("GetUsersNotInChannel", func(t *testing.T) {
+	t.Run("getUsersNotInChannel", func(t *testing.T) {
 		testCases := []struct {
 			Name            string
 			Restrictions    *model.ViewUsersRestrictions
@@ -780,7 +780,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetUsersNotInChannel(tc.TeamId, tc.ChannelId, false, 0, 100, tc.Restrictions)
+				results, err := th.App.getUsersNotInChannel(tc.TeamId, tc.ChannelId, false, 0, 100, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {

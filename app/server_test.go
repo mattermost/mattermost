@@ -755,7 +755,7 @@ func TestAdminAdvisor(t *testing.T) {
 		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
 		assert.Nil(t, err, "No error should be generated")
 
-		posts, err := th.App.GetPosts(channel.Id, 0, 100)
+		posts, err := th.App.getPosts(channel.Id, 0, 100)
 		assert.Nil(t, err, "No error should be generated")
 		assert.Equal(t, 0, len(posts.Posts))
 	})

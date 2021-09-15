@@ -906,38 +906,6 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 	return postList, nil
 }
 
-func (a *App) getPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError) {
-	list, nErr := a.Srv().Store.Post().Get(context.Background(), postID, false, false, false, userID)
-	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	if len(list.Order) != 1 {
-		return nil, model.NewAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusNotFound)
-	}
-	post := list.Posts[list.Order[0]]
-
-	channel, err := a.GetChannel(post.ChannelId)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = a.JoinChannel(c, channel, userID); err != nil {
-		return nil, err
-	}
-
-	return list, nil
-}
-
 func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetPostsBefore(options)
 	if err != nil {
@@ -966,37 +934,6 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 	}
 
 	return postList, nil
-}
-
-func (a *App) getPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	var postList *model.PostList
-	var err error
-	if before {
-		postList, err = a.Srv().Store.Post().GetPostsBefore(options)
-	} else {
-		postList, err = a.Srv().Store.Post().GetPostsAfter(options)
-	}
-
-	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
-		default:
-			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	return postList, nil
-}
-
-func (a *App) getPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store.Post().GetPostAfterTime(channelID, time, collapsedThreads)
-	if err != nil {
-		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return post, nil
 }
 
 func (a *App) getPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {

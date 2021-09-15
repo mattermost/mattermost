@@ -293,7 +293,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.DeleteIncomingWebhook(hook.Id)
 
-	post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", model.StringInterface{
+	post, err := th.App.createWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			{
 				Text: "text",
@@ -307,11 +307,11 @@ func TestCreateWebhookPost(t *testing.T) {
 	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
 	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
 
-	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "")
+	_, err = th.App.createWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "")
 	require.NotNil(t, err, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
-	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+	post, err = th.App.createWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			{
 				Text: "text",
@@ -323,7 +323,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	assert.Equal(t, expectedText, post.Message)
 
 	expectedText = "< | \n|\n>"
-	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+	post, err = th.App.createWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			{
 				Text: "text",
@@ -351,7 +351,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 
  test | 3 +++
  1 file changed, 3 insertions(+)`
-	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+	post, err = th.App.createWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			{
 				Text: "text",
@@ -591,7 +591,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		go func() {
 			for i := 0; i < 5; i++ {
 				time.Sleep(time.Second)
-				posts, _ := th.App.GetPosts(channel.Id, 0, 5)
+				posts, _ := th.App.getPosts(channel.Id, 0, 5)
 				if len(posts.Posts) > 0 {
 					for _, post := range posts.Posts {
 						createdPost <- post
@@ -685,7 +685,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			hook, _ := createOutgoingWebhook(channel, ts.URL, th)
 			payload := getPayload(hook, th, channel)
 
-			th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, channel)
+			th.App.triggerWebhook(th.Context, payload, hook, th.BasicPost, channel)
 
 			waitUntilWebhookResposeIsCreatedAsPost(channel, th, createdPost)
 

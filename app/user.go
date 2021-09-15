@@ -432,10 +432,6 @@ func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*mode
 	return users, nil
 }
 
-func (a *App) getUsersEtag(restrictionsHash string) string {
-	return a.srv.userService.GetUsersEtag(restrictionsHash)
-}
-
 func (a *App) getUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.srv.userService.GetUsersInTeam(options)
 	if err != nil {
@@ -498,22 +494,6 @@ func (a *App) getUsersInChannelByStatus(options *model.UserGetOptions) ([]*model
 	return users, nil
 }
 
-func (a *App) getUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.getUsersInChannel(options)
-	if err != nil {
-		return nil, err
-	}
-
-	userMap := make(map[string]*model.User, len(users))
-
-	for _, user := range users {
-		a.SanitizeProfile(user, asAdmin)
-		userMap[user.Id] = user
-	}
-
-	return userMap, nil
-}
-
 func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.getUsersInChannel(options)
 	if err != nil {
@@ -537,22 +517,6 @@ func (a *App) getUsersNotInChannel(teamID string, channelID string, groupConstra
 	}
 
 	return users, nil
-}
-
-func (a *App) getUsersNotInChannelMap(teamID string, channelID string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
-	users, err := a.getUsersNotInChannel(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
-	if err != nil {
-		return nil, err
-	}
-
-	userMap := make(map[string]*model.User, len(users))
-
-	for _, user := range users {
-		a.SanitizeProfile(user, asAdmin)
-		userMap[user.Id] = user
-	}
-
-	return userMap, nil
 }
 
 func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {

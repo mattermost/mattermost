@@ -1845,14 +1845,6 @@ func (a *App) GetDeletedChannels(teamID string, offset int, limit int, userID st
 	return list, nil
 }
 
-func (a *App) getChannelsUserNotIn(teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
-	channels, err := a.Srv().Store.Channel().GetMoreChannels(teamID, userID, offset, limit)
-	if err != nil {
-		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return channels, nil
-}
-
 func (a *App) GetPublicChannelsByIdsForTeam(teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store.Channel().GetPublicChannelsByIdsForTeam(teamID, channelIDs)
 	if err != nil {
@@ -1984,15 +1976,6 @@ func (a *App) GetChannelPinnedPostCount(channelID string) (int64, *model.AppErro
 	}
 
 	return count, nil
-}
-
-func (a *App) getChannelCounts(teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
-	counts, err := a.Srv().Store.Channel().GetChannelCounts(teamID, userID)
-	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return counts, nil
 }
 
 func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, *model.AppError) {
@@ -2808,16 +2791,6 @@ func (a *App) SearchGroupChannels(userID, term string) (model.ChannelList, *mode
 	if err != nil {
 		return nil, model.NewAppError("SearchGroupChannels", "app.channel.search_group_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return channelList, nil
-}
-
-func (a *App) searchChannelsUserNotIn(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
-	term = strings.TrimSpace(term)
-	channelList, err := a.Srv().Store.Channel().SearchMore(userID, teamID, term)
-	if err != nil {
-		return nil, model.NewAppError("SearchChannelsUserNotIn", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
 	return channelList, nil
 }
 

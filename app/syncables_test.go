@@ -236,7 +236,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	if err != nil {
 		t.Errorf("error leaving channel: %s", err.Error())
 	}
-	err = th.App.LeaveTeam(th.Context, singersTeam, singer1, "")
+	err = th.App.leaveTeam(th.Context, singersTeam, singer1, "")
 	if err != nil {
 		t.Errorf("error leaving team: %s", err.Error())
 	}

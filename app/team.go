@@ -185,34 +185,6 @@ func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppEr
 	return team, nil
 }
 
-// RenameTeam is used to rename the team Name and the DisplayName fields
-func (a *App) renameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
-
-	// check if name is occupied
-	_, errnf := a.GetTeamByName(newTeamName)
-
-	// "-" can be used as a newTeamName if only DisplayName change is wanted
-	if errnf == nil && newTeamName != "-" {
-		errbody := fmt.Sprintf("team with name %s already exists", newTeamName)
-		return nil, model.NewAppError("RenameTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest)
-	}
-
-	if newTeamName != "-" {
-		team.Name = newTeamName
-	}
-
-	if newDisplayName != "" {
-		team.DisplayName = newDisplayName
-	}
-
-	newTeam, err := a.updateTeamUnsanitized(team)
-	if err != nil {
-		return nil, err
-	}
-
-	return newTeam, nil
-}
-
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam, err := a.GetTeam(team.Id)
 	if err != nil {
@@ -910,24 +882,6 @@ func (a *App) GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSe
 		return nil, model.NewAppError("GetAllTeamsPageWithCount", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}, nil
-}
-
-func (a *App) getAllPrivateTeams() ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetAllPrivateTeamListing()
-	if err != nil {
-		return nil, model.NewAppError("GetAllPrivateTeams", "app.team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return teams, nil
-}
-
-func (a *App) getAllPublicTeams() ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetAllTeamListing()
-	if err != nil {
-		return nil, model.NewAppError("GetAllPublicTeams", "app.team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return teams, nil
 }
 
 // SearchAllTeams returns a team list and the total count of the results
@@ -1653,13 +1607,6 @@ func (a *App) InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsIn
 	}
 
 	return nil
-}
-
-func (a *App) findTeamByName(name string) bool {
-	if _, err := a.Srv().Store.Team().GetByName(name); err != nil {
-		return false
-	}
-	return true
 }
 
 func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {

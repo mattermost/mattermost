@@ -42,26 +42,26 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 		State:        "123",
 	}
 
-	session, err := th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
+	session, err := th.App.getOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
 	assert.Nil(t, err)
 	assert.NotNil(t, session)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
-	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
+	session, err = th.App.getOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
 	assert.NotNil(t, err, "should fail - oauth2 disabled")
 	assert.Nil(t, session)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	authRequest.ClientId = "junk"
 
-	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
+	session, err = th.App.getOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
 	assert.NotNil(t, err, "should fail - bad client id")
 	assert.Nil(t, session)
 
 	authRequest.ClientId = oapp.Id
 
-	session, err = th.App.GetOAuthAccessTokenForImplicitFlow("junk", authRequest)
+	session, err = th.App.getOAuthAccessTokenForImplicitFlow("junk", authRequest)
 	assert.NotNil(t, err, "should fail - bad user id")
 	assert.Nil(t, session)
 }
@@ -80,7 +80,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	var err *model.AppError
 	session, err = th.App.CreateSession(session)
 	require.Nil(t, err)
-	err = th.App.RevokeAccessToken(session.Token)
+	err = th.App.revokeAccessToken(session.Token)
 	require.NotNil(t, err, "Should have failed does not have an access token")
 	require.Equal(t, http.StatusBadRequest, err.StatusCode)
 }
@@ -158,7 +158,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	}
 
 	makeToken := func(th *TestHelper, cookie string) *model.Token {
-		token, _ := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra("", "", cookie))
+		token, _ := th.App.createOAuthStateToken(generateOAuthStateTokenExtra("", "", cookie))
 		return token
 	}
 
@@ -232,7 +232,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		action := model.OAuthActionEmailToSSO
 		cookie := model.NewId()
 
-		token, err := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra(email, action, cookie))
+		token, err := th.App.createOAuthStateToken(generateOAuthStateTokenExtra(email, action, cookie))
 		require.Nil(t, err)
 
 		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
@@ -265,7 +265,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 		cookie := model.NewId()
 
-		token, err := th.App.CreateOAuthStateToken(model.NewId())
+		token, err := th.App.createOAuthStateToken(model.NewId())
 		require.Nil(t, err)
 
 		request := makeRequest(cookie)
@@ -519,7 +519,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 			*cfg.GitLabSettings.Enable = false
 		})
 
-		_, err := th.App.GetAuthorizationCode(nil, nil, model.ServiceGitlab, map[string]string{}, "")
+		_, err := th.App.getAuthorizationCode(nil, nil, model.ServiceGitlab, map[string]string{}, "")
 		require.NotNil(t, err)
 
 		assert.Equal(t, "api.user.authorize_oauth_user.unsupported.app_error", err.Id)
@@ -556,7 +556,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 				}
 
 				recorder := httptest.ResponseRecorder{}
-				url, err := th.App.GetAuthorizationCode(&recorder, request, model.ServiceGitlab, stateProps, "")
+				url, err := th.App.getAuthorizationCode(&recorder, request, model.ServiceGitlab, stateProps, "")
 				require.Nil(t, err)
 				assert.NotEmpty(t, url)
 

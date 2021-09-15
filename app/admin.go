@@ -130,10 +130,6 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	return lines, nil
 }
 
-func (a *App) getLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
-	return a.Srv().GetLogsSkipSend(page, perPage)
-}
-
 func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	infos := make([]*model.ClusterInfo, 0)
 

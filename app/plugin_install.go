@@ -61,10 +61,6 @@ const managedPluginFileName = ".filestore"
 // fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
 const fileStorePluginFolder = "plugins"
 
-func (a *App) installPluginFromData(data model.PluginEventData) {
-	a.Srv().installPluginFromData(data)
-}
-
 func (s *Server) installPluginFromData(data model.PluginEventData) {
 	mlog.Debug("Installing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
@@ -111,10 +107,6 @@ func (s *Server) installPluginFromData(data model.PluginEventData) {
 	}
 }
 
-func (a *App) removePluginFromData(data model.PluginEventData) {
-	a.Srv().removePluginFromData(data)
-}
-
 func (s *Server) removePluginFromData(data model.PluginEventData) {
 	mlog.Debug("Removing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
@@ -125,11 +117,6 @@ func (s *Server) removePluginFromData(data model.PluginEventData) {
 	if err := s.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
-}
-
-// InstallPluginWithSignature verifies and installs plugin.
-func (a *App) installPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
-	return a.Srv().installPluginWithSignature(pluginFile, signature)
 }
 
 func (s *Server) installPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {

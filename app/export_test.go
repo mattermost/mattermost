@@ -41,7 +41,7 @@ func TestReactionsOfPost(t *testing.T) {
 
 	th.App.SaveReactionForPost(th.Context, &reactionObject)
 	th.App.SaveReactionForPost(th.Context, &reactionObjectDeleted)
-	reactionsOfPost, err := th.App.BuildPostReactions(post.Id)
+	reactionsOfPost, err := th.App.buildPostReactions(post.Id)
 	require.Nil(t, err)
 
 	assert.Equal(t, reactionObject.EmojiName, *(*reactionsOfPost)[0].EmojiName)
@@ -187,12 +187,12 @@ func TestExportAllUsers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	users1, err := th1.App.GetUsers(&model.UserGetOptions{
+	users1, err := th1.App.getUsers(&model.UserGetOptions{
 		Page:    0,
 		PerPage: 10,
 	})
 	assert.Nil(t, err)
-	users2, err := th2.App.GetUsers(&model.UserGetOptions{
+	users2, err := th2.App.getUsers(&model.UserGetOptions{
 		Page:    0,
 		PerPage: 10,
 	})
@@ -201,13 +201,13 @@ func TestExportAllUsers(t *testing.T) {
 	assert.ElementsMatch(t, users1, users2)
 
 	// Checking whether deactivated users were included in bulk export
-	deletedUsers1, err := th1.App.GetUsers(&model.UserGetOptions{
+	deletedUsers1, err := th1.App.getUsers(&model.UserGetOptions{
 		Inactive: true,
 		Page:     0,
 		PerPage:  10,
 	})
 	assert.Nil(t, err)
-	deletedUsers2, err := th1.App.GetUsers(&model.UserGetOptions{
+	deletedUsers2, err := th1.App.getUsers(&model.UserGetOptions{
 		Inactive: true,
 		Page:     0,
 		PerPage:  10,
@@ -614,7 +614,7 @@ func TestBulkExport(t *testing.T) {
 	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, dir)
+	appErr, _ := th.App.bulkImportWithPath(th.Context, jsonFile, nil, false, 1, dir)
 	require.Nil(t, appErr)
 
 	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
@@ -635,6 +635,6 @@ func TestBulkExport(t *testing.T) {
 	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ = th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, filepath.Join(dir, "data"))
+	appErr, _ = th.App.bulkImportWithPath(th.Context, jsonFile, nil, false, 1, filepath.Join(dir, "data"))
 	require.Nil(t, appErr)
 }

@@ -88,10 +88,6 @@ func (a *App) unregisterPluginCommand(pluginID, teamID, trigger string) {
 	a.Srv().pluginCommands = remaining
 }
 
-func (a *App) unregisterPluginCommands(pluginID string) {
-	a.Srv().unregisterPluginCommands(pluginID)
-}
-
 func (s *Server) unregisterPluginCommands(pluginID string) {
 	s.pluginCommandsLock.Lock()
 	defer s.pluginCommandsLock.Unlock()

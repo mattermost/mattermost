@@ -26,19 +26,6 @@ func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
 	return job, nil
 }
 
-func (a *App) getJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.getJobs(page*perPage, perPage)
-}
-
-func (a *App) getJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store.Job().GetAllPage(offset, limit)
-	if err != nil {
-		return nil, model.NewAppError("GetJobs", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return jobs, nil
-}
-
 func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
 	return a.getJobsByType(jobType, page*perPage, perPage)
 }

@@ -193,32 +193,6 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelID string, perm
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) hasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postID, askingUserId); err == nil {
-		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
-			return true
-		}
-	}
-
-	if channel, err := a.Srv().Store.Channel().GetForPost(postID); err == nil {
-		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
-	}
-
-	return a.HasPermissionTo(askingUserId, permission)
-}
-
-func (a *App) hasPermissionToUser(askingUserId string, userID string) bool {
-	if askingUserId == userID {
-		return true
-	}
-
-	if a.HasPermissionTo(askingUserId, model.PermissionEditOtherUsers) {
-		return true
-	}
-
-	return false
-}
-
 func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	roles, err := a.GetRolesByNames(roleNames)
 	if err != nil {

@@ -148,10 +148,6 @@ func (s *Server) doEmojisPermissionsMigration() {
 	}
 }
 
-func (a *App) doGuestRolesCreationMigration() {
-	a.Srv().doGuestRolesCreationMigration()
-}
-
 func (s *Server) doGuestRolesCreationMigration() {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store.System().GetByName(GuestRolesCreationMigrationKey); err == nil {
@@ -239,10 +235,6 @@ func (s *Server) doGuestRolesCreationMigration() {
 	if err := s.Store.System().Save(&system); err != nil {
 		mlog.Critical("Failed to mark guest roles creation migration as completed.", mlog.Err(err))
 	}
-}
-
-func (a *App) doSystemConsoleRolesCreationMigration() {
-	a.Srv().doSystemConsoleRolesCreationMigration()
 }
 
 func (s *Server) doSystemConsoleRolesCreationMigration() {

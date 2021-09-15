@@ -276,7 +276,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 
 	// create a new user that joins the default channels
 	user := th.CreateUser()
-	th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
+	th.App.joinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
 	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
@@ -307,7 +307,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 
 	// create a new user that joins the default channels
 	user := th.CreateUser()
-	th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
+	th.App.joinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
 	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
@@ -334,7 +334,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
 
 	user := th.CreateUser()
-	th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
+	th.App.joinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 
 	for _, channelName := range defaultChannelList {
 		channel, err := th.App.GetChannelByName(channelName, th.BasicTeam.Id, false)
@@ -939,7 +939,7 @@ func TestRenameChannel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			channel, err := th.App.RenameChannel(tc.Channel, tc.ChannelName, "New Display Name")
+			channel, err := th.App.renameChannel(tc.Channel, tc.ChannelName, "New Display Name")
 			if tc.ExpectError {
 				assert.NotNil(t, err)
 			} else {
@@ -1146,7 +1146,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		_, err = th.App.CreateRole(&model.Role{Name: "custom", DisplayName: "custom", Description: "custom"})
+		_, err = th.App.createRole(&model.Role{Name: "custom", DisplayName: "custom", Description: "custom"})
 		require.Nil(t, err)
 
 		_, err = th.App.UpdateChannelMemberRoles(th.BasicChannel.Id, ruser.Id, "channel_guest custom")
@@ -1172,7 +1172,7 @@ func TestDefaultChannelNames(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	actual := th.App.DefaultChannelNames()
+	actual := th.App.defaultChannelNames()
 	expect := []string{"town-square", "off-topic"}
 	require.ElementsMatch(t, expect, actual)
 
@@ -1180,7 +1180,7 @@ func TestDefaultChannelNames(t *testing.T) {
 		cfg.TeamSettings.ExperimentalDefaultChannels = []string{"foo", "bar"}
 	})
 
-	actual = th.App.DefaultChannelNames()
+	actual = th.App.defaultChannelNames()
 	expect = []string{"town-square", "foo", "bar"}
 	require.ElementsMatch(t, expect, actual)
 }
@@ -1264,9 +1264,9 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
 	require.Nil(t, err)
 	require.Equal(t, int64(4), unread.MsgCount)
-	err = th.App.UpdateChannelLastViewedAt([]string{c1.Id, pc1.Id}, u1.Id)
+	err = th.App.updateChannelLastViewedAt([]string{c1.Id, pc1.Id}, u1.Id)
 	require.Nil(t, err)
-	err = th.App.UpdateChannelLastViewedAt([]string{c1.Id, pc1.Id}, u2.Id)
+	err = th.App.updateChannelLastViewedAt([]string{c1.Id, pc1.Id}, u2.Id)
 	require.Nil(t, err)
 	unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
 	require.Nil(t, err)
@@ -1814,7 +1814,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			higherScopedPermissionsOverriden := tc.HigherScopedMemberPermissions != nil || tc.HigherScopedGuestPermissions != nil
 			// If the test case restricts higher scoped permissions.
 			if higherScopedPermissionsOverriden {
-				higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
+				higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.getTeamSchemeChannelRoles(channel.TeamId)
 				if tc.HigherScopedMemberPermissions != nil {
 					higherScopedMemberRole, err := th.App.GetRoleByName(context.Background(), higherScopedMemberRoleName)
 					require.Nil(t, err)
@@ -1913,7 +1913,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 		}
 		wg.Wait()
 
-		higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
+		higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.getTeamSchemeChannelRoles(channel.TeamId)
 		higherScopedMemberRole, _ := th.App.GetRoleByName(context.Background(), higherScopedMemberRoleName)
 		higherScopedGuestRole, _ := th.App.GetRoleByName(context.Background(), higherScopedGuestRoleName)
 		assert.Contains(t, higherScopedMemberRole.Permissions, createPosts)
@@ -1988,7 +1988,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	mockStore.On("Thread").Return(&mockThreadStore)
 
-	_, appErr := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.Context.Session().Id, false)
+	_, appErr := th.App.markChannelsAsViewed([]string{"channelID"}, "userID", th.Context.Session().Id, false)
 	require.Nil(t, appErr)
 }
 
@@ -2097,7 +2097,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	require.Truef(t, found, "did not find created thread in user's threads")
 
 	// Mark channel as read from a client that supports CRT
-	_, appErr = th.App.MarkChannelsAsViewed([]string{c1.Id}, u1.Id, th.Context.Session().Id, true)
+	_, appErr = th.App.markChannelsAsViewed([]string{c1.Id}, u1.Id, th.Context.Session().Id, true)
 	require.Nil(t, appErr)
 
 	// Thread should be marked as read because CRT has been turned off by user

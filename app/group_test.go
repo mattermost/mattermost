@@ -47,11 +47,11 @@ func TestGetGroupsByType(t *testing.T) {
 	th.CreateGroup()
 	th.CreateGroup()
 
-	groups, err := th.App.GetGroupsBySource(model.GroupSourceLdap)
+	groups, err := th.App.getGroupsBySource(model.GroupSourceLdap)
 	require.Nil(t, err)
 	require.NotEmpty(t, groups)
 
-	groups, err = th.App.GetGroupsBySource(model.GroupSource("blah"))
+	groups, err = th.App.getGroupsBySource(model.GroupSource("blah"))
 	require.Nil(t, err)
 	require.Empty(t, groups)
 }
@@ -380,7 +380,7 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	require.Nil(t, err)
 
 	// no syncables are set to scheme admin true, so this returns false
-	actual, err := th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	actual, err := th.App.userIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 	require.False(t, actual)
 
@@ -390,13 +390,13 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	require.Nil(t, err)
 
 	// a syncable is set to scheme admin true, so this returns true
-	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	actual, err = th.App.userIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 	require.True(t, actual)
 
 	// delete the syncable, should be false again
 	th.App.DeleteGroupSyncable(group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	actual, err = th.App.userIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 	require.False(t, actual)
 }

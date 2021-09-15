@@ -90,7 +90,7 @@ func TestCreateBot(t *testing.T) {
 		// Check that a post was created to add bot to team and channels
 		channel, err := th.App.getOrCreateDirectChannelWithUser(th.Context, user, th.BasicUser)
 		require.Nil(t, err)
-		posts, err := th.App.GetPosts(channel.Id, 0, 1)
+		posts, err := th.App.getPosts(channel.Id, 0, 1)
 		require.Nil(t, err)
 
 		postArray := posts.ToSlice()
@@ -662,11 +662,11 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	require.Nil(t, err)
 
 	// get posts from sysadmin1 and sysadmin2 DM channels
-	posts1, err := th.App.GetPosts(channelSys1.Id, 0, 5)
+	posts1, err := th.App.getPosts(channelSys1.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Empty(t, posts1.Order)
 
-	posts2, err := th.App.GetPosts(channelSys2.Id, 0, 5)
+	posts2, err := th.App.getPosts(channelSys2.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Empty(t, posts2.Order)
 
@@ -675,11 +675,11 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	require.Nil(t, err)
 
 	// get posts from sysadmin1  and sysadmin2 DM channels
-	posts1, err = th.App.GetPosts(channelSys1.Id, 0, 5)
+	posts1, err = th.App.getPosts(channelSys1.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Len(t, posts1.Order, 1)
 
-	posts2, err = th.App.GetPosts(channelSys2.Id, 0, 5)
+	posts2, err = th.App.getPosts(channelSys2.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Len(t, posts2.Order, 1)
 
@@ -768,7 +768,7 @@ func TestGetSystemBot(t *testing.T) {
 
 		require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
 
-		_, err := th.App.GetSystemBot()
+		_, err := th.App.getSystemBot()
 		require.NotNil(t, err)
 		require.Equal(t, "app.bot.get_system_bot.empty_admin_list.app_error", err.Id)
 	})
@@ -781,7 +781,7 @@ func TestGetSystemBot(t *testing.T) {
 		_, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.NotNil(t, err)
 
-		bot, err := th.App.GetSystemBot()
+		bot, err := th.App.getSystemBot()
 		require.Nil(t, err)
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 	})
@@ -792,7 +792,7 @@ func TestGetSystemBot(t *testing.T) {
 		require.Nil(t, err)
 		require.True(t, botUser.IsBot)
 
-		bot, err := th.App.GetSystemBot()
+		bot, err := th.App.getSystemBot()
 		require.Nil(t, err)
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)

@@ -13,7 +13,6 @@ import (
 	"image"
 	"image/gif"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -232,19 +231,6 @@ func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
 	}
 
 	return paths, nil
-}
-
-func (a *App) removeDirectory(path string) *model.AppError {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return err
-	}
-	nErr := backend.RemoveDirectory(path)
-	if nErr != nil {
-		return model.NewAppError("RemoveDirectory", "api.file.remove_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
 }
 
 func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, oldId, filename string) *model.FileInfo {
@@ -471,27 +457,6 @@ func GeneratePublicLinkHash(fileID, salt string) string {
 	hash.Write([]byte(fileID))
 
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
-}
-
-func (a *App) uploadMultipartFiles(c *request.Context, teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
-	files := make([]io.ReadCloser, len(fileHeaders))
-	filenames := make([]string, len(fileHeaders))
-
-	for i, fileHeader := range fileHeaders {
-		file, fileErr := fileHeader.Open()
-		if fileErr != nil {
-			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.read_request.app_error",
-				map[string]interface{}{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
-		}
-
-		// Will be closed after UploadFiles returns
-		defer file.Close()
-
-		files[i] = file
-		filenames[i] = fileHeader.Filename
-	}
-
-	return a.uploadFiles(c, teamID, channelID, userID, files, filenames, clientIds, now)
 }
 
 // Uploads some files to the given team and channel as the given user. files and filenames should have
