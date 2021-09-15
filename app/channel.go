@@ -2350,7 +2350,7 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
-			if err = a.RemoveTeamMemberFromTeam(c, teamMember, removerUserId); err != nil {
+			if err = a.removeTeamMemberFromTeam(c, teamMember, removerUserId); err != nil {
 				return err
 			}
 		}
@@ -2811,7 +2811,7 @@ func (a *App) SearchGroupChannels(userID, term string) (model.ChannelList, *mode
 	return channelList, nil
 }
 
-func (a *App) SearchChannelsUserNotIn(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
+func (a *App) searchChannelsUserNotIn(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
 	channelList, err := a.Srv().Store.Channel().SearchMore(userID, teamID, term)
 	if err != nil {

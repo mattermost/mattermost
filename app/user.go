@@ -1681,7 +1681,7 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 		return a.searchUsersWithoutTeam(props.Term, options)
 	}
 	if props.InChannelId != "" {
-		return a.SearchUsersInChannel(props.InChannelId, props.Term, options)
+		return a.searchUsersInChannel(props.InChannelId, props.Term, options)
 	}
 	if props.NotInChannelId != "" {
 		return a.searchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, options)
@@ -1690,12 +1690,12 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 		return a.searchUsersNotInTeam(props.NotInTeamId, props.Term, options)
 	}
 	if props.InGroupId != "" {
-		return a.SearchUsersInGroup(props.InGroupId, props.Term, options)
+		return a.searchUsersInGroup(props.InGroupId, props.Term, options)
 	}
 	return a.SearchUsersInTeam(props.TeamId, props.Term, options)
 }
 
-func (a *App) SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) searchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store.User().SearchInChannel(channelID, term, options)
 	if err != nil {
@@ -1765,7 +1765,7 @@ func (a *App) searchUsersWithoutTeam(term string, options *model.UserSearchOptio
 	return users, nil
 }
 
-func (a *App) SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) searchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store.User().SearchInGroup(groupID, term, options)
 	if err != nil {

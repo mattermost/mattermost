@@ -904,27 +904,23 @@ type AppIface interface {
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
 	RemovePlugin(id string) *model.AppError
-	RemovePluginFromData(data model.PluginEventData)
 	RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError
 	RemoveSamlIdpCertificate() *model.AppError
 	RemoveSamlPrivateCertificate() *model.AppError
 	RemoveSamlPublicCertificate() *model.AppError
 	RemoveTeamIcon(teamID string) *model.AppError
-	RemoveTeamMemberFromTeam(c *request.Context, teamMember *model.TeamMember, requestorId string) *model.AppError
 	RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) *model.AppError
 	RemoveUserFromChannel(c *request.Context, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(c *request.Context, teamID string, userID string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(c *request.Context, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError
 	ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError
-	ResetPermissionsSystem() *model.AppError
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
 	RestoreChannel(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	RestoreTeam(teamID string) *model.AppError
 	RestrictUsersGetByPermissions(userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
 	ReturnSessionToPool(session *model.Session)
-	RevokeAccessToken(token string) *model.AppError
 	RevokeAllSessions(userID string) *model.AppError
 	RevokeSession(session *model.Session) *model.AppError
 	RevokeSessionById(sessionID string) *model.AppError
@@ -944,11 +940,9 @@ type AppIface interface {
 	SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError
-	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
 	SearchArchivedChannels(teamID string, term string, userID string) (model.ChannelList, *model.AppError)
 	SearchChannels(teamID string, term string) (model.ChannelList, *model.AppError)
 	SearchChannelsForUser(userID, teamID, term string) (model.ChannelList, *model.AppError)
-	SearchChannelsUserNotIn(teamID string, userID string, term string) (model.ChannelList, *model.AppError)
 	SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 	SearchEngine() *searchengine.Broker
 	SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError)
@@ -959,8 +953,6 @@ type AppIface interface {
 	SearchPublicTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError)
 	SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersInTeam(teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendCloudTrialEndWarningEmail(trialEndDate, siteURL string) *model.AppError

@@ -111,7 +111,7 @@ func (s *Server) installPluginFromData(data model.PluginEventData) {
 	}
 }
 
-func (a *App) RemovePluginFromData(data model.PluginEventData) {
+func (a *App) removePluginFromData(data model.PluginEventData) {
 	a.Srv().removePluginFromData(data)
 }
 

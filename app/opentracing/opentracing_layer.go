@@ -12734,21 +12734,6 @@ func (a *OpenTracingAppLayer) RemovePlugin(id string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemovePluginFromData(data model.PluginEventData) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemovePluginFromData")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.RemovePluginFromData(data)
-}
-
 func (a *OpenTracingAppLayer) RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveRecentCustomStatus")
@@ -12850,28 +12835,6 @@ func (a *OpenTracingAppLayer) RemoveTeamIcon(teamID string) *model.AppError {
 
 	defer span.Finish()
 	resultVar0 := a.app.RemoveTeamIcon(teamID)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) RemoveTeamMemberFromTeam(c *request.Context, teamMember *model.TeamMember, requestorId string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveTeamMemberFromTeam")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RemoveTeamMemberFromTeam(c, teamMember, requestorId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13057,28 +13020,6 @@ func (a *OpenTracingAppLayer) ResetPasswordFromToken(userSuppliedTokenString str
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ResetPermissionsSystem() *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResetPermissionsSystem")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.ResetPermissionsSystem()
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResetSamlAuthDataToEmail")
@@ -13202,28 +13143,6 @@ func (a *OpenTracingAppLayer) ReturnSessionToPool(session *model.Session) {
 
 	defer span.Finish()
 	a.app.ReturnSessionToPool(session)
-}
-
-func (a *OpenTracingAppLayer) RevokeAccessToken(token string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeAccessToken")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RevokeAccessToken(token)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) RevokeAllSessions(userID string) *model.AppError {
@@ -13637,23 +13556,6 @@ func (a *OpenTracingAppLayer) SaveUserTermsOfService(userID string, termsOfServi
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SchemesIterator(scope string, batchSize int) func() []*model.Scheme {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SchemesIterator")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SchemesIterator(scope, batchSize)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) SearchAllChannels(term string, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchAllChannels")
@@ -13755,28 +13657,6 @@ func (a *OpenTracingAppLayer) SearchChannelsForUser(userID string, teamID string
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.SearchChannelsForUser(userID, teamID, term)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SearchChannelsUserNotIn(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchChannelsUserNotIn")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchChannelsUserNotIn(teamID, userID, term)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13992,50 +13872,6 @@ func (a *OpenTracingAppLayer) SearchUsers(props *model.UserSearch, options *mode
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.SearchUsers(props, options)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersInChannel")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchUsersInChannel(channelID, term, options)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersInGroup")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchUsersInGroup(groupID, term, options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -321,7 +321,7 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	transformations := permissionsMap{}
 
 	var allTeamSchemes []*model.Scheme
-	next := a.SchemesIterator(model.SchemeScopeTeam, 100)
+	next := a.schemesIterator(model.SchemeScopeTeam, 100)
 	var schemeBatch []*model.Scheme
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {
 		allTeamSchemes = append(allTeamSchemes, schemeBatch...)

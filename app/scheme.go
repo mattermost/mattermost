@@ -215,7 +215,7 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 	return a.Srv().IsPhase2MigrationCompleted()
 }
 
-func (a *App) SchemesIterator(scope string, batchSize int) func() []*model.Scheme {
+func (a *App) schemesIterator(scope string, batchSize int) func() []*model.Scheme {
 	offset := 0
 	return func() []*model.Scheme {
 		schemes, err := a.Srv().Store.Scheme().GetAllPage(scope, offset, batchSize)

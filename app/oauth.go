@@ -480,7 +480,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError {
 	}
 
 	for _, ad := range accessData {
-		if err := a.RevokeAccessToken(ad.Token); err != nil {
+		if err := a.revokeAccessToken(ad.Token); err != nil {
 			return err
 		}
 
@@ -519,7 +519,7 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 	return app, nil
 }
 
-func (a *App) RevokeAccessToken(token string) *model.AppError {
+func (a *App) revokeAccessToken(token string) *model.AppError {
 	if err := a.srv.userService.RevokeAccessToken(token); err != nil {
 		switch {
 		case errors.Is(err, users.GetTokenError):
