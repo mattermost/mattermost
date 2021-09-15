@@ -998,7 +998,7 @@ func (a *App) GetTeamMembersForUser(userID string) ([]*model.TeamMember, *model.
 	return teamMembers, nil
 }
 
-func (a *App) GetTeamMembersForUserWithPagination(userID string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+func (a *App) getTeamMembersForUserWithPagination(userID string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
 	teamMembers, err := a.Srv().Store.Team().GetTeamsForUserWithPagination(userID, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamMembersForUserWithPagination", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)

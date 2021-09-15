@@ -245,7 +245,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 	// get sysadmins
 	var sysAdmins []*model.User
 	for {
-		sysAdminsList, err := a.GetUsers(userOptions)
+		sysAdminsList, err := a.getUsers(userOptions)
 		if err != nil {
 			return err
 		}

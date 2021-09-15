@@ -161,10 +161,10 @@ func (a *App) GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int)
 		return nil, err
 	}
 
-	return a.GetTeamsForScheme(scheme, page*perPage, perPage)
+	return a.getTeamsForScheme(scheme, page*perPage, perPage)
 }
 
-func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]*model.Team, *model.AppError) {
+func (a *App) getTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]*model.Team, *model.AppError) {
 	if err := a.isPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}

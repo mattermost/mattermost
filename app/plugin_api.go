@@ -223,7 +223,7 @@ func (api *PluginAPI) GetTeamMember(teamID, userID string) (*model.TeamMember, *
 }
 
 func (api *PluginAPI) GetTeamMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMembersForUserWithPagination(userID, page, perPage)
+	return api.app.getTeamMembersForUserWithPagination(userID, page, perPage)
 }
 
 func (api *PluginAPI) UpdateTeamMemberRoles(teamID, userID, newRoles string) (*model.TeamMember, *model.AppError) {
@@ -248,7 +248,7 @@ func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	return api.app.GetUsers(options)
+	return api.app.getUsers(options)
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
@@ -341,13 +341,13 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
 	case model.ChannelSortByUsername:
-		return api.app.GetUsersInChannel(&model.UserGetOptions{
+		return api.app.getUsersInChannel(&model.UserGetOptions{
 			InChannelId: channelID,
 			Page:        page,
 			PerPage:     perPage,
 		})
 	case model.ChannelSortByStatus:
-		return api.app.GetUsersInChannelByStatus(&model.UserGetOptions{
+		return api.app.getUsersInChannelByStatus(&model.UserGetOptions{
 			InChannelId: channelID,
 			Page:        page,
 			PerPage:     perPage,

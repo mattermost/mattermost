@@ -1663,7 +1663,7 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	return false
 }
 
-func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error) {
+func (a *App) getThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error) {
 	return a.Srv().Store.Thread().GetMembershipsForUser(userID, teamID)
 }
 

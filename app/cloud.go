@@ -20,7 +20,7 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
-	return a.GetUsers(userOptions)
+	return a.getUsers(userOptions)
 }
 
 // SendAdminUpgradeRequestEmail takes the username of user trying to alert admins and then applies rate limit of n (number of admins) emails per user per day

@@ -414,7 +414,7 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return user, nil
 }
 
-func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+func (a *App) getUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.srv.userService.GetUsers(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -432,7 +432,7 @@ func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*mode
 	return users, nil
 }
 
-func (a *App) GetUsersEtag(restrictionsHash string) string {
+func (a *App) getUsersEtag(restrictionsHash string) string {
 	return a.srv.userService.GetUsersEtag(restrictionsHash)
 }
 
@@ -480,7 +480,7 @@ func (a *App) GetUsersNotInTeamEtag(teamID string, restrictionsHash string) stri
 	return a.srv.userService.GetUsersNotInTeamEtag(teamID, restrictionsHash)
 }
 
-func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+func (a *App) getUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store.User().GetProfilesInChannel(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersInChannel", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -489,7 +489,7 @@ func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *
 	return users, nil
 }
 
-func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+func (a *App) getUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store.User().GetProfilesInChannelByStatus(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersInChannelByStatus", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -498,8 +498,8 @@ func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model
 	return users, nil
 }
 
-func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannel(options)
+func (a *App) getUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := a.getUsersInChannel(options)
 	if err != nil {
 		return nil, err
 	}
@@ -515,7 +515,7 @@ func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) 
 }
 
 func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannel(options)
+	users, err := a.getUsersInChannel(options)
 	if err != nil {
 		return nil, err
 	}
@@ -523,7 +523,7 @@ func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool)
 }
 
 func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannelByStatus(options)
+	users, err := a.getUsersInChannelByStatus(options)
 	if err != nil {
 		return nil, err
 	}
