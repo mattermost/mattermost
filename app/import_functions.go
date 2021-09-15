@@ -150,7 +150,7 @@ func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 	}
 
 	if role.Id == "" {
-		_, err = a.CreateRole(role)
+		_, err = a.createRole(role)
 	} else {
 		_, err = a.UpdateRole(role)
 	}

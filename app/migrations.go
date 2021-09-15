@@ -91,7 +91,7 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	return nil
 }
 
-func (a *App) DoEmojisPermissionsMigration() {
+func (a *App) doEmojisPermissionsMigration() {
 	a.Srv().doEmojisPermissionsMigration()
 }
 
@@ -148,7 +148,7 @@ func (s *Server) doEmojisPermissionsMigration() {
 	}
 }
 
-func (a *App) DoGuestRolesCreationMigration() {
+func (a *App) doGuestRolesCreationMigration() {
 	a.Srv().doGuestRolesCreationMigration()
 }
 

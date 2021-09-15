@@ -129,7 +129,7 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 	return role, err
 }
 
-func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
+func (a *App) createRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.Id = ""
 	role.CreateAt = 0
 	role.UpdateAt = 0

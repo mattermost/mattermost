@@ -614,7 +614,7 @@ func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *mode
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
-	api.app.DeleteEphemeralPost(userID, postID)
+	api.app.deleteEphemeralPost(userID, postID)
 }
 
 func (api *PluginAPI) DeletePost(postID string) *model.AppError {
@@ -859,11 +859,11 @@ func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) KVDelete(key string) *model.AppError {
-	return api.app.DeletePluginKey(api.id, key)
+	return api.app.deletePluginKey(api.id, key)
 }
 
 func (api *PluginAPI) KVDeleteAll() *model.AppError {
-	return api.app.DeleteAllKeysForPlugin(api.id)
+	return api.app.deleteAllKeysForPlugin(api.id)
 }
 
 func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {

@@ -686,7 +686,7 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 	return nil
 }
 
-func (a *App) DeactivateMfa(userID string) *model.AppError {
+func (a *App) deactivateMfa(userID string) *model.AppError {
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
 		return appErr
@@ -1167,7 +1167,7 @@ func (a *App) UpdateMfa(activate bool, userID, token string) *model.AppError {
 			return err
 		}
 	} else {
-		if err := a.DeactivateMfa(userID); err != nil {
+		if err := a.deactivateMfa(userID); err != nil {
 			return err
 		}
 	}

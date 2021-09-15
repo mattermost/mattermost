@@ -111,7 +111,7 @@ func (a *App) getPluginKey(pluginID string, key string) ([]byte, *model.AppError
 	return nil, nil
 }
 
-func (a *App) DeletePluginKey(pluginID string, key string) *model.AppError {
+func (a *App) deletePluginKey(pluginID string, key string) *model.AppError {
 	if err := a.Srv().Store.Plugin().Delete(pluginID, getKeyHash(key)); err != nil {
 		mlog.Error("Failed to delete plugin key value", mlog.String("plugin_id", pluginID), mlog.String("key", key), mlog.Err(err))
 		return model.NewAppError("DeletePluginKey", "app.plugin_store.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -126,7 +126,7 @@ func (a *App) DeletePluginKey(pluginID string, key string) *model.AppError {
 	return nil
 }
 
-func (a *App) DeleteAllKeysForPlugin(pluginID string) *model.AppError {
+func (a *App) deleteAllKeysForPlugin(pluginID string) *model.AppError {
 	if err := a.Srv().Store.Plugin().DeleteAllForPlugin(pluginID); err != nil {
 		mlog.Error("Failed to delete all plugin key values", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return model.NewAppError("DeleteAllKeysForPlugin", "app.plugin_store.delete.app_error", nil, err.Error(), http.StatusInternalServerError)

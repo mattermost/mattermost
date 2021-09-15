@@ -555,7 +555,7 @@ func (a *App) updateEphemeralPost(userID string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) DeleteEphemeralPost(userID, postID string) {
+func (a *App) deleteEphemeralPost(userID, postID string) {
 	post := &model.Post{
 		Id:       postID,
 		UserId:   userID,
