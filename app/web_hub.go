@@ -293,7 +293,7 @@ func (a *App) SessionIsRegistered(session model.Session) bool {
 	return false
 }
 
-func (a *App) CheckWebConn(userID, connectionID string) *CheckConnResult {
+func (a *App) checkWebConn(userID, connectionID string) *CheckConnResult {
 	hub := a.GetHubForUserId(userID)
 	if hub != nil {
 		return hub.CheckConn(userID, connectionID)

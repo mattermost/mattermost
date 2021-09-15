@@ -218,7 +218,7 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	return savedRole, nil
 }
 
-func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
+func (a *App) checkRolesExist(roleNames []string) *model.AppError {
 	roles, err := a.GetRolesByNames(roleNames)
 	if err != nil {
 		return err

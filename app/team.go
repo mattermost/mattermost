@@ -118,7 +118,7 @@ func (a *App) getAllowedDomains(user *model.User, team *model.Team) []string {
 	return []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
 }
 
-func (a *App) CheckValidDomains(team *model.Team) *model.AppError {
+func (a *App) checkValidDomains(team *model.Team) *model.AppError {
 	validDomains := a.normalizeDomains(*a.Config().TeamSettings.RestrictCreationToDomains)
 	if len(validDomains) > 0 {
 		for _, domain := range a.normalizeDomains(team.AllowedDomains) {
@@ -145,7 +145,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		return nil, err
 	}
 
-	if err = a.CheckValidDomains(team); err != nil {
+	if err = a.checkValidDomains(team); err != nil {
 		return nil, err
 	}
 
@@ -286,7 +286,7 @@ func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *mo
 		team.InviteId = model.NewId()
 	}
 
-	if err = a.CheckValidDomains(team); err != nil {
+	if err = a.checkValidDomains(team); err != nil {
 		return nil, err
 	}
 

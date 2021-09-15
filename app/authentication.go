@@ -64,7 +64,7 @@ func (a *App) isPasswordValid(password string) *model.AppError {
 }
 
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
+	if err := a.checkUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
@@ -84,7 +84,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		}
 	}
 
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := a.checkUserMfa(user, mfaToken); err != nil {
 		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
 		// about the MFA state of the user in question
 		if mfaToken != "" {
@@ -104,7 +104,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 
 	a.InvalidateCacheForUser(user.Id)
 
-	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+	if err := a.checkUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
 	}
 
@@ -154,7 +154,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *st
 		return nil, err
 	}
 
-	if err := a.CheckUserMfa(ldapUser, mfaToken); err != nil {
+	if err := a.checkUserMfa(ldapUser, mfaToken); err != nil {
 		return nil, err
 	}
 
@@ -167,18 +167,18 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *st
 }
 
 func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
+	if err := a.checkUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
-	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+	if err := a.checkUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+func (a *App) checkUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
 	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 	return nil
 }
 
-func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
+func (a *App) checkUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
 	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -202,7 +202,7 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model
 	return nil
 }
 
-func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
+func (a *App) checkUserMfa(user *model.User, token string) *model.AppError {
 	if !user.MfaActive || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}

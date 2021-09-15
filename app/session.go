@@ -174,15 +174,15 @@ func (a *App) ClearSessionCacheForUser(userID string) {
 	a.srv.userService.ClearUserSessionCache(userID)
 }
 
-func (a *App) ClearSessionCacheForAllUsers() {
+func (a *App) clearSessionCacheForAllUsers() {
 	a.srv.userService.ClearAllUsersSessionCache()
 }
 
-func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
+func (a *App) clearSessionCacheForUserSkipClusterSend(userID string) {
 	a.Srv().clearSessionCacheForUserSkipClusterSend(userID)
 }
 
-func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
+func (a *App) clearSessionCacheForAllUsersSkipClusterSend() {
 	a.Srv().clearSessionCacheForAllUsersSkipClusterSend()
 }
 

@@ -1373,7 +1373,7 @@ func (a *App) UpdateUserRoles(userID string, newRoles string, sendWebSocketEvent
 
 func (a *App) updateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 
-	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+	if err := a.checkRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
 	}
 

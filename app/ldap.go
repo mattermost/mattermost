@@ -141,7 +141,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 		return "", err
 	}
 
-	if err := a.CheckUserMfa(user, code); err != nil {
+	if err := a.checkUserMfa(user, code); err != nil {
 		return "", err
 	}
 
