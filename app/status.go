@@ -13,12 +13,12 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
+func (a *App) addStatusCacheSkipClusterSend(status *model.Status) {
 	a.Srv().statusCache.Set(status.UserId, status)
 }
 
 func (a *App) AddStatusCache(status *model.Status) {
-	a.AddStatusCacheSkipClusterSend(status)
+	a.addStatusCacheSkipClusterSend(status)
 
 	if a.Cluster() != nil {
 		statusJSON, jsonErr := json.Marshal(status)
@@ -82,7 +82,7 @@ func (a *App) GetStatusesByIds(userIDs []string) (map[string]interface{}, *model
 		}
 
 		for _, s := range statuses {
-			a.AddStatusCacheSkipClusterSend(s)
+			a.addStatusCacheSkipClusterSend(s)
 			statusMap[s.UserId] = s.Status
 		}
 
@@ -130,7 +130,7 @@ func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.Ap
 		}
 
 		for _, s := range statuses {
-			a.AddStatusCacheSkipClusterSend(s)
+			a.addStatusCacheSkipClusterSend(s)
 		}
 
 		statusMap = append(statusMap, statuses...)
@@ -169,7 +169,7 @@ func (a *App) SetStatusLastActivityAt(userID string, activityAt int64) {
 
 	status.LastActivityAt = activityAt
 
-	a.AddStatusCacheSkipClusterSend(status)
+	a.addStatusCacheSkipClusterSend(status)
 	a.SetStatusAwayIfNeeded(userID, false)
 }
 
@@ -224,11 +224,11 @@ func (a *App) SetStatusOnline(userID string, manual bool) {
 	}
 
 	if broadcast {
-		a.BroadcastStatus(status)
+		a.broadcastStatus(status)
 	}
 }
 
-func (a *App) BroadcastStatus(status *model.Status) {
+func (a *App) broadcastStatus(status *model.Status) {
 	if a.Srv().Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return
@@ -332,7 +332,7 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
-	a.BroadcastStatus(status)
+	a.broadcastStatus(status)
 }
 
 func (a *App) setStatusOutOfOffice(userID string) {
@@ -402,7 +402,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 	}
 	for i := range statuses {
 		a.AddStatusCache(statuses[i])
-		a.BroadcastStatus(statuses[i])
+		a.broadcastStatus(statuses[i])
 	}
 }
 

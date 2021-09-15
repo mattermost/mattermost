@@ -415,7 +415,7 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]Attachme
 			postLine.Post.Replies = &replies
 			postLine.Post.Reactions = &[]ReactionImportData{}
 			if post.HasReactions {
-				postLine.Post.Reactions, err = a.BuildPostReactions(post.Id)
+				postLine.Post.Reactions, err = a.buildPostReactions(post.Id)
 				if err != nil {
 					return nil, err
 				}
@@ -453,7 +453,7 @@ func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImpo
 		replyImportObject := ImportReplyFromPost(reply)
 		if reply.HasReactions {
 			var appErr *model.AppError
-			replyImportObject.Reactions, appErr = a.BuildPostReactions(reply.Id)
+			replyImportObject.Reactions, appErr = a.buildPostReactions(reply.Id)
 			if appErr != nil {
 				return nil, nil, appErr
 			}
@@ -475,7 +475,7 @@ func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImpo
 	return replies, attachments, nil
 }
 
-func (a *App) BuildPostReactions(postID string) (*[]ReactionImportData, *model.AppError) {
+func (a *App) buildPostReactions(postID string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []ReactionImportData
 
 	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postID, true)

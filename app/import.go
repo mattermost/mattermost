@@ -129,7 +129,7 @@ func (a *App) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) bulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
 }
 

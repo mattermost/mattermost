@@ -448,7 +448,7 @@ func (a *App) teamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.A
 	return teamMembers, nil
 }
 
-func (a *App) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError) {
+func (a *App) channelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError) {
 	channelMembers, err := a.Srv().Store.Group().ChannelMembersToRemove(teamID)
 	if err != nil {
 		return nil, model.NewAppError("ChannelMembersToRemove", "app.select_error", nil, err.Error(), http.StatusInternalServerError)

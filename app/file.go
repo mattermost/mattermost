@@ -188,7 +188,7 @@ func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
 	return result, nil
 }
 
-func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
+func (a *App) appendFile(fr io.Reader, path string) (int64, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return 0, err

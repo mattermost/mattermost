@@ -557,7 +557,7 @@ func (a *App) AddUserToTeamByTeamId(c *request.Context, teamID string, user *mod
 	return nil
 }
 
-func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError) {
+func (a *App) addUserToTeamByToken(c *request.Context, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError) {
 	token, err := a.Srv().Store.Token().GetByToken(tokenID)
 	if err != nil {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -649,7 +649,7 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 	return team, teamMember, nil
 }
 
-func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError) {
+func (a *App) addUserToTeamByInviteId(c *request.Context, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().GetByInviteId(inviteId)
@@ -1078,7 +1078,7 @@ func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string
 }
 
 func (a *App) AddTeamMemberByToken(c *request.Context, userID, tokenID string) (*model.TeamMember, *model.AppError) {
-	_, teamMember, err := a.AddUserToTeamByToken(c, userID, tokenID)
+	_, teamMember, err := a.addUserToTeamByToken(c, userID, tokenID)
 	if err != nil {
 		return nil, err
 	}
@@ -1087,7 +1087,7 @@ func (a *App) AddTeamMemberByToken(c *request.Context, userID, tokenID string) (
 }
 
 func (a *App) AddTeamMemberByInviteId(c *request.Context, inviteId, userID string) (*model.TeamMember, *model.AppError) {
-	team, teamMember, err := a.AddUserToTeamByInviteId(c, inviteId, userID)
+	team, teamMember, err := a.addUserToTeamByInviteId(c, inviteId, userID)
 	if err != nil {
 		return nil, err
 	}

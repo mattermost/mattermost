@@ -392,19 +392,15 @@ type AppIface interface {
 	AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSessionToCache(session *model.Session)
 	AddStatusCache(status *model.Status)
-	AddStatusCacheSkipClusterSend(status *model.Status)
 	AddTeamMember(c *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
 	AddTeamMemberByInviteId(c *request.Context, inviteId, userID string) (*model.TeamMember, *model.AppError)
 	AddTeamMemberByToken(c *request.Context, userID, tokenID string) (*model.TeamMember, *model.AppError)
 	AddTeamMembers(c *request.Context, teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError)
 	AddTeamsToRetentionPolicy(policyID string, teamIDs []string) *model.AppError
 	AddUserToTeam(c *request.Context, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError)
-	AddUserToTeamByInviteId(c *request.Context, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByTeamId(c *request.Context, teamID string, user *model.User) *model.AppError
-	AddUserToTeamByToken(c *request.Context, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
 	AllowOAuthAppAccessToUser(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
-	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError
 	AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request)
@@ -414,15 +410,10 @@ type AppIface interface {
 	AutocompleteChannelsForSearch(teamID string, userID string, term string) (model.ChannelList, *model.AppError)
 	AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
 	AutocompleteUsersInTeam(teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError)
-	BroadcastStatus(status *model.Status)
-	BuildPostReactions(postID string) (*[]ReactionImportData, *model.AppError)
 	BuildPushNotificationMessage(contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError)
-	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
 	BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) *model.AppError
 	BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int)
-	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CancelJob(jobId string) *model.AppError
-	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppError
 	CheckCanInviteToSharedChannel(channelId string) error
 	CheckCloudAccountAtLimit() (bool, *model.AppError)

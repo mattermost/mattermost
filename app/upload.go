@@ -222,7 +222,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		}
 	} else if us.FileOffset < us.FileSize {
 		// resume upload
-		written, err = a.AppendFile(lr, uploadPath)
+		written, err = a.appendFile(lr, uploadPath)
 	}
 	if written > 0 {
 		us.FileOffset += written

@@ -173,7 +173,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(c *request.Context, teamID *
 // groups of the given group-constrained channel. If a channelID is given then the procedure is scoped to the given team,
 // if channelID is nil then the procedure affects all teams.
 func (a *App) deleteGroupConstrainedChannelMemberships(c *request.Context, channelID *string) error {
-	channelMembers, appErr := a.ChannelMembersToRemove(channelID)
+	channelMembers, appErr := a.channelMembersToRemove(channelID)
 	if appErr != nil {
 		return appErr
 	}

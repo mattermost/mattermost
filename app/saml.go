@@ -193,7 +193,7 @@ func (a *App) GetSamlMetadataFromIdp(idpMetadataURL string) (*model.SamlMetadata
 		return nil, err
 	}
 
-	data, err := a.BuildSamlMetadataObject(idpMetadataRaw)
+	data, err := a.buildSamlMetadataObject(idpMetadataRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func (a *App) fetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
 	return bodyXML, nil
 }
 
-func (a *App) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError) {
+func (a *App) buildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError) {
 	entityDescriptor := model.EntityDescriptor{}
 	err := xml.Unmarshal(idpMetadata, &entityDescriptor)
 	if err != nil {
