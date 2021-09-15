@@ -255,7 +255,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if err = a.FillInPostProps(post, channel); err != nil {
+	if err = a.fillInPostProps(post, channel); err != nil {
 		return nil, err
 	}
 
@@ -417,7 +417,7 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 // channel_mentions.
 //
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
-func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.AppError {
+func (a *App) fillInPostProps(post *model.Post, channel *model.Channel) *model.AppError {
 	channelMentions := post.ChannelMentions()
 	channelMentionsProp := make(map[string]interface{})
 
@@ -643,7 +643,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err = a.FillInPostProps(post, nil); err != nil {
+	if err = a.fillInPostProps(post, nil); err != nil {
 		return nil, err
 	}
 

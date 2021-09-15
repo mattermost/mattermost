@@ -36,7 +36,7 @@ func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppErro
 }
 
 // GetPluginStatus returns the status for a plugin installed on this server.
-func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+func (a *App) getPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
 	return a.Srv().GetPluginStatus(id)
 }
 
@@ -65,7 +65,7 @@ func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 }
 
 // GetPluginStatuses returns the status for plugins installed on this server.
-func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+func (a *App) getPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	return a.Srv().GetPluginStatuses()
 }
 

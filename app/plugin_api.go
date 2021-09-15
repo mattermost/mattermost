@@ -816,7 +816,7 @@ func (api *PluginAPI) RemovePlugin(id string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	return api.app.GetPluginStatus(id)
+	return api.app.getPluginStatus(id)
 }
 
 func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {

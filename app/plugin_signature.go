@@ -20,7 +20,7 @@ import (
 )
 
 // GetPluginPublicKeyFiles returns all public keys listed in the config.
-func (a *App) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
+func (a *App) getPluginPublicKeyFiles() ([]string, *model.AppError) {
 	return a.Srv().getPluginPublicKeyFiles()
 }
 
@@ -29,7 +29,7 @@ func (s *Server) getPluginPublicKeyFiles() ([]string, *model.AppError) {
 }
 
 // GetPublicKey will return the actual public key saved in the `name` file.
-func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
+func (a *App) getPublicKey(name string) ([]byte, *model.AppError) {
 	return a.Srv().getPublicKey(name)
 }
 

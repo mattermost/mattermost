@@ -593,7 +593,7 @@ func (a *App) getTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) 
 }
 
 // GetChannelGroupUsers returns the users who are associated to the channel via GroupChannels and GroupMembers.
-func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
+func (a *App) getChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store.User().GetChannelGroupUsers(channelID)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelGroupUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1894,7 +1894,7 @@ func (a *App) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]s
 // FilterNonGroupChannelMembers returns the subset of the given user IDs of the users who are not members of groups
 // associated to the channel excluding bots
 func (a *App) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
-	channelGroupUsers, err := a.GetChannelGroupUsers(channel.Id)
+	channelGroupUsers, err := a.getChannelGroupUsers(channel.Id)
 	if err != nil {
 		return nil, err
 	}

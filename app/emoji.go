@@ -281,7 +281,7 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 
 // GetEmojiStaticURL returns a relative static URL for system default emojis,
 // and the API route for custom ones. Errors if not found or if custom and deleted.
-func (a *App) GetEmojiStaticURL(emojiName string) (string, *model.AppError) {
+func (a *App) getEmojiStaticURL(emojiName string) (string, *model.AppError) {
 	subPath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	if id, found := model.GetSystemEmojiId(emojiName); found {

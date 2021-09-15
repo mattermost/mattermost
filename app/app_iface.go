@@ -127,20 +127,10 @@ type AppIface interface {
 	// activation if inactive anywhere in the cluster.
 	// Notifies cluster peers through config change.
 	EnablePlugin(id string) *model.AppError
-	// Expand announcements in incoming webhooks from Slack. Those announcements
-	// can be found in the text attribute, or in the pretext, text, title and value
-	// attributes of the attachment structure. The Slack attachment structure is
-	// documented here: https://api.slack.com/docs/attachments
-	ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment
 	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 	// A new ExpiresAt is only written if enough time has elapsed since last update.
 	// Returns true only if the session was extended.
 	ExtendSessionExpiryIfNeeded(session *model.Session) bool
-	// FillInPostProps should be invoked before saving posts to fill in properties such as
-	// channel_mentions.
-	//
-	// If channel is nil, FillInPostProps will look up the channel corresponding to the post.
-	FillInPostProps(post *model.Post, channel *model.Channel) *model.AppError
 	// FilterNonGroupChannelMembers returns the subset of the given user IDs of the users who are not members of groups
 	// associated to the channel excluding bots
 	FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error)
@@ -154,17 +144,12 @@ type AppIface interface {
 	GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
 	// GetBots returns the requested page of bots.
 	GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError)
-	// GetChannelGroupUsers returns the users who are associated to the channel via GroupChannels and GroupMembers.
-	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
 	// GetChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
 	GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError)
 	// GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
 	GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	// GetConfigFile proxies access to the given configuration file to the underlying config store.
 	GetConfigFile(name string) ([]byte, error)
-	// GetEmojiStaticURL returns a relative static URL for system default emojis,
-	// and the API route for custom ones. Errors if not found or if custom and deleted.
-	GetEmojiStaticURL(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	// If filter is not nil and returns false for a struct field, that field will be omitted.
 	GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{}
@@ -181,12 +166,6 @@ type AppIface interface {
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 	// and plugins that are installed locally.
 	GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError)
-	// GetPluginPublicKeyFiles returns all public keys listed in the config.
-	GetPluginPublicKeyFiles() ([]string, *model.AppError)
-	// GetPluginStatus returns the status for a plugin installed on this server.
-	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
-	// GetPluginStatuses returns the status for plugins installed on this server.
-	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
 	// GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 	// initialized.
 	//
@@ -195,8 +174,6 @@ type AppIface interface {
 	GetPluginsEnvironment() *plugin.Environment
 	// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 	GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError)
-	// GetPublicKey will return the actual public key saved in the `name` file.
-	GetPublicKey(name string) ([]byte, *model.AppError)
 	// GetSanitizedConfig gets the configuration for a system admin without any secrets.
 	GetSanitizedConfig() *model.Config
 	// GetSuggestions returns suggestions for user input.
