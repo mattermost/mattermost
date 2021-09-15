@@ -265,7 +265,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		mlog.Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
-	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
+	go a.updateViewedProductNoticesForNewUser(ruser.Id)
 
 	// This message goes to everyone, so the teamID, channelID and userID are irrelevant
 	message := model.NewWebSocketEvent(model.WebsocketEventNewUser, "", "", "", nil)
@@ -657,7 +657,7 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 	return mfaSecret, nil
 }
 
-func (a *App) ActivateMfa(userID, token string) *model.AppError {
+func (a *App) activateMfa(userID, token string) *model.AppError {
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
 		return appErr
@@ -1163,7 +1163,7 @@ func (a *App) updateUserNotifyProps(userID string, props map[string]string) *mod
 
 func (a *App) UpdateMfa(activate bool, userID, token string) *model.AppError {
 	if activate {
-		if err := a.ActivateMfa(userID, token); err != nil {
+		if err := a.activateMfa(userID, token); err != nil {
 			return err
 		}
 	} else {

@@ -2228,7 +2228,7 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 
 func createDNDStatusExpirationRecurringTask(a *App) {
 	a.srv.dndTaskMut.Lock()
-	a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+	a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.updateDNDStatusOfUsers, 5*time.Minute)
 	a.srv.dndTaskMut.Unlock()
 }
 

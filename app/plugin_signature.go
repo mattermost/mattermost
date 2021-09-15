@@ -82,7 +82,7 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 }
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
-func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
+func (a *App) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
 	return a.Srv().verifyPlugin(plugin, signature)
 }
 

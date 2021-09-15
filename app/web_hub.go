@@ -277,7 +277,7 @@ func (a *App) invalidateCacheForUserTeams(userID string) {
 }
 
 // UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
-func (a *App) UpdateWebConnUserActivity(session model.Session, activityAt int64) {
+func (a *App) updateWebConnUserActivity(session model.Session, activityAt int64) {
 	hub := a.GetHubForUserId(session.UserId)
 	if hub != nil {
 		hub.UpdateActivity(session.UserId, session.Token, activityAt)

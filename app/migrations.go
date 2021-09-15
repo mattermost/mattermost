@@ -18,7 +18,7 @@ const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrat
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
-func (a *App) DoAdvancedPermissionsMigration() {
+func (a *App) doAdvancedPermissionsMigration() {
 	a.Srv().doAdvancedPermissionsMigration()
 }
 

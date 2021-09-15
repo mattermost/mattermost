@@ -772,7 +772,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 		if !user.IsGuest() {
 			var userShouldBeAdmin bool
-			userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+			userShouldBeAdmin, err = a.userIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
 			if err != nil {
 				return err
 			}
@@ -937,7 +937,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 		}
 		if !user.IsGuest() {
 			var userShouldBeAdmin bool
-			userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+			userShouldBeAdmin, err = a.userIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
 			if err != nil {
 				return err
 			}

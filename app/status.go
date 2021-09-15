@@ -17,7 +17,7 @@ func (a *App) addStatusCacheSkipClusterSend(status *model.Status) {
 	a.Srv().statusCache.Set(status.UserId, status)
 }
 
-func (a *App) AddStatusCache(status *model.Status) {
+func (a *App) addStatusCache(status *model.Status) {
 	a.addStatusCacheSkipClusterSend(status)
 
 	if a.Cluster() != nil {
@@ -207,7 +207,7 @@ func (a *App) SetStatusOnline(userID string, manual bool) {
 		status.LastActivityAt = model.GetMillis()
 	}
 
-	a.AddStatusCache(status)
+	a.addStatusCache(status)
 
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
@@ -326,7 +326,7 @@ func (a *App) SetStatusDoNotDisturb(userID string) {
 }
 
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
-	a.AddStatusCache(status)
+	a.addStatusCache(status)
 
 	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
 		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
@@ -393,7 +393,7 @@ func (a *App) isUserAway(lastActivityAt int64) bool {
 
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
-func (a *App) UpdateDNDStatusOfUsers() {
+func (a *App) updateDNDStatusOfUsers() {
 	mlog.Debug("UpdateDNDStatusOfUsers: scheduled run started")
 	statuses, err := a.updateExpiredDNDStatuses()
 	if err != nil {
@@ -401,7 +401,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		return
 	}
 	for i := range statuses {
-		a.AddStatusCache(statuses[i])
+		a.addStatusCache(statuses[i])
 		a.broadcastStatus(statuses[i])
 	}
 }

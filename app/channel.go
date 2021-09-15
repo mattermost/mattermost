@@ -1450,7 +1450,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 
 	if !user.IsGuest() {
 		var userShouldBeAdmin bool
-		userShouldBeAdmin, appErr := a.UserIsInAdminRoleGroup(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+		userShouldBeAdmin, appErr := a.userIsInAdminRoleGroup(user.Id, channel.Id, model.GroupSyncableTypeChannel)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -2446,7 +2446,7 @@ func (a *App) setActiveChannel(userID string, channelID string) *model.AppError 
 		status.LastActivityAt = model.GetMillis()
 	}
 
-	a.AddStatusCache(status)
+	a.addStatusCache(status)
 
 	if status.Status != oldStatus {
 		a.broadcastStatus(status)

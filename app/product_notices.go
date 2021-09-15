@@ -335,7 +335,7 @@ func (a *App) UpdateViewedProductNotices(userID string, noticeIds []string) *mod
 
 // UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
 // user as viewed in order to avoid showing them imminently on first login
-func (a *App) UpdateViewedProductNoticesForNewUser(userID string) {
+func (a *App) updateViewedProductNoticesForNewUser(userID string) {
 	var noticeIds []string
 	for _, notice := range cachedNotices {
 		noticeIds = append(noticeIds, notice.ID)

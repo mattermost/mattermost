@@ -237,7 +237,7 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	now := model.GetMillis()
 
-	a.UpdateWebConnUserActivity(session, now)
+	a.updateWebConnUserActivity(session, now)
 
 	if now-session.LastActivityAt < model.SessionActivityTimeout {
 		return
