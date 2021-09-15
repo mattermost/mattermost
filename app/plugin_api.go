@@ -610,7 +610,7 @@ func (api *PluginAPI) SendEphemeralPost(userID string, post *model.Post) *model.
 }
 
 func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.UpdateEphemeralPost(userID, post)
+	return api.app.updateEphemeralPost(userID, post)
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {

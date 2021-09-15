@@ -533,7 +533,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
+func (a *App) updateEphemeralPost(userID string, post *model.Post) *model.Post {
 	post.Type = model.PostTypeEphemeral
 
 	post.UpdateAt = model.GetMillis()

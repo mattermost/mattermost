@@ -564,6 +564,6 @@ func (a *App) SetServer(srv *Server) {
 	a.srv = srv
 }
 
-func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+func (a *App) updateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
 }

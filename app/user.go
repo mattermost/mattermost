@@ -1232,10 +1232,10 @@ func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *mo
 		return err
 	}
 
-	return a.UpdateHashedPassword(user, newHashedPassword)
+	return a.updateHashedPassword(user, newHashedPassword)
 }
 
-func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
+func (a *App) updateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
 	if err := a.Srv().Store.User().UpdatePassword(user.Id, newHashedPassword); err != nil {
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1815,7 +1815,7 @@ func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model
 	return autocomplete, nil
 }
 
-func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
+func (a *App) updateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
 	oauthUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)

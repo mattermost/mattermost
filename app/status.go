@@ -395,7 +395,7 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
 	mlog.Debug("UpdateDNDStatusOfUsers: scheduled run started")
-	statuses, err := a.UpdateExpiredDNDStatuses()
+	statuses, err := a.updateExpiredDNDStatuses()
 	if err != nil {
 		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 		return

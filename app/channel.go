@@ -2584,7 +2584,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 	}
 
 	a.sendWebSocketPostUnreadEvent(channelUnread, postID, false)
-	a.UpdateMobileAppBadge(userID)
+	a.updateMobileAppBadge(userID)
 
 	return channelUnread, nil
 }
@@ -2620,7 +2620,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 		}
 
 		a.sendWebSocketPostUnreadEvent(channelUnread, postID, true)
-		a.UpdateMobileAppBadge(userID)
+		a.updateMobileAppBadge(userID)
 		return channelUnread, nil
 	}
 

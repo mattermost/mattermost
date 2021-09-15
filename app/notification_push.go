@@ -266,7 +266,7 @@ func (a *App) updateMobileAppBadgeSync(userID string) *model.AppError {
 	return a.sendPushNotificationToAllSessions(msg, userID, "")
 }
 
-func (a *App) UpdateMobileAppBadge(userID string) {
+func (a *App) updateMobileAppBadge(userID string) {
 	select {
 	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeUpdateBadge,
