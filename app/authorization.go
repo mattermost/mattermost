@@ -193,7 +193,7 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelID string, perm
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
+func (a *App) hasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
 	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
@@ -207,7 +207,7 @@ func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, p
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToUser(askingUserId string, userID string) bool {
+func (a *App) hasPermissionToUser(askingUserId string, userID string) bool {
 	if askingUserId == userID {
 		return true
 	}
@@ -279,6 +279,6 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 	return nil
 }
 
-func (a *App) HasPermissionToReadChannel(userID string, channel *model.Channel) bool {
+func (a *App) hasPermissionToReadChannel(userID string, channel *model.Channel) bool {
 	return a.HasPermissionToChannel(userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
 }

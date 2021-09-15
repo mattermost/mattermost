@@ -156,7 +156,7 @@ func (a *App) SanitizePostMetadataForUser(post *model.Post, userID string) (*mod
 		return nil, err
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(userID, previewedChannel) {
+	if previewedChannel != nil && !a.hasPermissionToReadChannel(userID, previewedChannel) {
 		post = post.Clone()
 		post.Metadata.Embeds[0].Data = nil
 	}

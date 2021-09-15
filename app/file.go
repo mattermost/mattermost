@@ -538,7 +538,7 @@ func (a *App) UploadFiles(c *request.Context, teamID string, channelID string, u
 		}
 	}
 
-	a.HandleImages(previewPathList, thumbnailPathList, imageDataList)
+	a.handleImages(previewPathList, thumbnailPathList, imageDataList)
 
 	return resStruct, nil
 }
@@ -561,7 +561,7 @@ func (a *App) UploadFile(c *request.Context, data []byte, channelID string, file
 		thumbnailPathList := []string{info.ThumbnailPath}
 		imageDataList := [][]byte{data}
 
-		a.HandleImages(previewPathList, thumbnailPathList, imageDataList)
+		a.handleImages(previewPathList, thumbnailPathList, imageDataList)
 	}
 
 	return info, nil
@@ -1036,7 +1036,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 	return info, data, nil
 }
 
-func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
+func (a *App) handleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {

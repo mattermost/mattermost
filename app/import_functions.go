@@ -1209,7 +1209,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 	}
 
 	if fileInfo.IsImage() {
-		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
+		a.handleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
 	}
 
 	return fileInfo, nil

@@ -277,7 +277,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		if fileErr != nil {
 			return nil, fileErr
 		}
-		a.HandleImages([]string{info.PreviewPath}, []string{info.ThumbnailPath}, [][]byte{imgData})
+		a.handleImages([]string{info.PreviewPath}, []string{info.ThumbnailPath}, [][]byte{imgData})
 	}
 
 	if us.Type == model.UploadTypeImport {
