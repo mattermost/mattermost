@@ -857,7 +857,7 @@ func (a *App) PatchChannel(c *request.Context, channel *model.Channel, patch *mo
 }
 
 // GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
-func (a *App) GetSchemeRolesForChannel(channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
+func (a *App) getSchemeRolesForChannel(channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	channel, err := a.GetChannel(channelID)
 	if err != nil {
 		return
@@ -877,11 +877,11 @@ func (a *App) GetSchemeRolesForChannel(channelID string) (guestRoleName, userRol
 		return
 	}
 
-	return a.GetTeamSchemeChannelRoles(channel.TeamId)
+	return a.getTeamSchemeChannelRoles(channel.TeamId)
 }
 
 // GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
-func (a *App) GetTeamSchemeChannelRoles(teamID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
+func (a *App) getTeamSchemeChannelRoles(teamID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return
@@ -908,7 +908,7 @@ func (a *App) GetTeamSchemeChannelRoles(teamID string) (guestRoleName, userRoleN
 
 // GetChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
 func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
-	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(channel.Id)
+	guestRoleName, memberRoleName, _, err := a.getSchemeRolesForChannel(channel.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -926,7 +926,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 		}
 	}
 
-	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.getTeamSchemeChannelRoles(channel.TeamId)
 	if err != nil {
 		return nil, err
 	}
@@ -948,7 +948,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 
 // PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
-	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.getTeamSchemeChannelRoles(channel.TeamId)
 	if err != nil {
 		return nil, err
 	}
@@ -1136,7 +1136,7 @@ func (a *App) UpdateChannelMemberRoles(channelID string, userID string, newRoles
 		return nil, err
 	}
 
-	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(channelID)
+	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.getSchemeRolesForChannel(channelID)
 	if err != nil {
 		return nil, err
 	}

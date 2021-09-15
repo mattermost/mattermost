@@ -128,7 +128,7 @@ func (s *Server) removePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignature verifies and installs plugin.
-func (a *App) InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
+func (a *App) installPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
 	return a.Srv().installPluginWithSignature(pluginFile, signature)
 }
 

@@ -583,7 +583,7 @@ func (a *App) getUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User,
 }
 
 // GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
-func (a *App) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
+func (a *App) getTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store.User().GetTeamGroupUsers(teamID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamGroupUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1884,7 +1884,7 @@ func (a *App) RestrictUsersGetByPermissions(userID string, options *model.UserGe
 // FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
 // associated to the team excluding bots.
 func (a *App) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error) {
-	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
+	teamGroupUsers, err := a.getTeamGroupUsers(team.Id)
 	if err != nil {
 		return nil, err
 	}

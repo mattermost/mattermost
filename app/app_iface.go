@@ -199,34 +199,19 @@ type AppIface interface {
 	GetPublicKey(name string) ([]byte, *model.AppError)
 	// GetSanitizedConfig gets the configuration for a system admin without any secrets.
 	GetSanitizedConfig() *model.Config
-	// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
-	GetSchemeRolesForChannel(channelID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
-	// GetSessionLengthInMillis returns the session length, in milliseconds,
-	// based on the type of session (Mobile, SSO, Web/LDAP).
-	GetSessionLengthInMillis(session *model.Session) int64
 	// GetSuggestions returns suggestions for user input.
 	GetSuggestions(c *request.Context, commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion
-	// GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
-	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
-	// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
-	GetTeamSchemeChannelRoles(teamID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
 	// HasRemote returns whether a given channelID is present in the channel remotes or not.
 	HasRemote(channelID string, remoteID string) (bool, error)
 	// HubRegister registers a connection to a hub.
 	HubRegister(webConn *WebConn)
-	// HubStart starts all the hubs.
-	HubStart()
-	// HubUnregister unregisters a connection from a hub.
-	HubUnregister(webConn *WebConn)
 	// InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 	// from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
 	InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError)
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
-	// InstallPluginWithSignature verifies and installs plugin.
-	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
 	// LogAuditRec logs an audit record using default LvlAuditCLI.

@@ -263,7 +263,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 		return false
 	}
 
-	sessionLength := a.GetSessionLengthInMillis(session)
+	sessionLength := a.getSessionLengthInMillis(session)
 
 	// Only extend the expiry if the lessor of 1% or 1 day has elapsed within the
 	// current session duration.
@@ -308,7 +308,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 
 // GetSessionLengthInMillis returns the session length, in milliseconds,
 // based on the type of session (Mobile, SSO, Web/LDAP).
-func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
+func (a *App) getSessionLengthInMillis(session *model.Session) int64 {
 	if session == nil {
 		return 0
 	}

@@ -87,7 +87,7 @@ func (a *App) totalWebsocketConnections() int {
 }
 
 // HubStart starts all the hubs.
-func (a *App) HubStart() {
+func (a *App) hubStart() {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
 	mlog.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
@@ -150,7 +150,7 @@ func (a *App) HubRegister(webConn *WebConn) {
 }
 
 // HubUnregister unregisters a connection from a hub.
-func (a *App) HubUnregister(webConn *WebConn) {
+func (a *App) hubUnregister(webConn *WebConn) {
 	hub := a.GetHubForUserId(webConn.UserId)
 	if hub != nil {
 		if metrics := a.Metrics(); metrics != nil {

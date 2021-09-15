@@ -267,7 +267,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	app := New(ServerConnector(s))
-	app.HubStart()
+	app.hubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {

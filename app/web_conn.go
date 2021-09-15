@@ -303,7 +303,7 @@ func (wc *WebConn) Pump() {
 	close(wc.endWritePump)
 	close(wc.pluginPosted)
 	wg.Wait()
-	wc.App.HubUnregister(wc)
+	wc.App.hubUnregister(wc)
 	close(wc.pumpFinished)
 
 	if pluginsEnvironment := wc.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
