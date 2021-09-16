@@ -156,6 +156,7 @@
     background: rgba(63, 67, 80, 0.08);
     border-radius: 4px;
     display: flex;
+    padding-left: 4px; 
   }
 
   .channelLogo {
@@ -174,6 +175,13 @@
     text-transform: uppercase;
     color: rgba(63, 67, 80, 0.64);
     padding: 2px 6px 2px 0px;
+  }
+
+  .gmChannelCount {
+    background-color: rgba(63, 67, 80, 0.2);
+    padding: 0 5px;
+    border-radius: 2px;
+    margin-right: 2px;
   }
   
   .senderMessage div {
