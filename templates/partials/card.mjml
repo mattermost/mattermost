@@ -19,7 +19,7 @@
                 {{end}}
                   <div class="channelName">
                   {{if .OtherChannelMembersCount}}
-                  <span>{{.OtherChannelMembersCount}}</span>
+                  <span class="gmChannelCount">{{.OtherChannelMembersCount}}</span>
                   {{end}}
                   {{.ChannelName}}
                   </div>
