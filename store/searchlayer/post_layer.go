@@ -189,5 +189,5 @@ func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchPara
 	}
 
 	mlog.Debug("Using database search because no other search engine is available")
-	return s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, page, perPage)
+	return s.PostStore.SearchPostsForUser(paramsList, userId, teamId, page, perPage)
 }

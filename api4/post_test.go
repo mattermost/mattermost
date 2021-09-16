@@ -2218,6 +2218,11 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
+	otherTeam := th.CreateTeam()
+	channelInOtherTeam := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, otherTeam.Id)
+	_ = th.AddUserToChannel(th.BasicUser, channelInOtherTeam)
+	_ = th.CreateMessagePostWithClient(th.Client, channelInOtherTeam, "search for post 5")
+
 	terms := "search"
 	isOrSearch := false
 	timezoneOffset := 5
@@ -2229,6 +2234,18 @@ func TestSearchPosts(t *testing.T) {
 	posts, _, err := client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
 	require.Len(t, posts.Order, 3, "wrong search")
+
+	terms = "search"
+	isOrSearch = false
+	timezoneOffset = 5
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	posts, _, err = client.SearchPostsWithParams("", &searchParams)
+	require.NoError(t, err)
+	require.Len(t, posts.Order, 4, "wrong search along multiple teams")
 
 	terms = "search"
 	page := 0
