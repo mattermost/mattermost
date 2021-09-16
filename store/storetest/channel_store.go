@@ -98,6 +98,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
+	t.Run("Autocomplete", func(t *testing.T) { testAutocomplete(t, ss) })
 	t.Run("SearchArchivedInTeam", func(t *testing.T) { testChannelStoreSearchArchivedInTeam(t, ss, s) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
@@ -5377,6 +5378,151 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 			require.NoError(t, err)
 			sort.Sort(ByChannelDisplayName(channels))
 			require.Equal(t, testCase.ExpectedResults, channels)
+		})
+	}
+}
+
+func testAutocomplete(t *testing.T, ss store.Store) {
+	t1 := &model.Team{
+		DisplayName: "t1",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
+	t1, err := ss.Team().Save(t1)
+	require.NoError(t, err)
+	teamID := t1.Id
+
+	t2 := &model.Team{
+		DisplayName: "t2",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
+	t2, err = ss.Team().Save(t2)
+	require.NoError(t, err)
+	otherTeamID := t2.Id
+
+	o1 := model.Channel{
+		TeamId:      teamID,
+		DisplayName: "ChannelA1",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	_, err = ss.Channel().Save(&o1, -1)
+	require.NoError(t, err)
+
+	o2 := model.Channel{
+		TeamId:      otherTeamID,
+		DisplayName: "ChannelA2",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	_, err = ss.Channel().Save(&o2, -1)
+	require.NoError(t, err)
+
+	m1 := model.ChannelMember{
+		ChannelId:   o1.Id,
+		UserId:      model.NewId(),
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m1)
+	require.NoError(t, err)
+
+	m2 := model.ChannelMember{
+		ChannelId:   o2.Id,
+		UserId:      m1.UserId,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m2)
+	require.NoError(t, err)
+
+	tm1 := &model.TeamMember{TeamId: teamID, UserId: m1.UserId}
+	_, err = ss.Team().SaveMember(tm1, -1)
+	require.NoError(t, err)
+
+	tm2 := &model.TeamMember{TeamId: otherTeamID, UserId: m1.UserId}
+	_, err = ss.Team().SaveMember(tm2, -1)
+	require.NoError(t, err)
+
+	m3 := model.ChannelMember{
+		ChannelId:   o2.Id,
+		UserId:      model.NewId(),
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m3)
+	require.NoError(t, err)
+
+	tm3 := &model.TeamMember{TeamId: otherTeamID, UserId: m3.UserId}
+	_, err = ss.Team().SaveMember(tm3, -1)
+	require.NoError(t, err)
+
+	tm4 := &model.TeamMember{TeamId: teamID, UserId: m3.UserId}
+	_, err = ss.Team().SaveMember(tm4, -1)
+	require.NoError(t, err)
+
+	o3 := model.Channel{
+		TeamId:      teamID,
+		DisplayName: "ChannelA private",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypePrivate,
+	}
+	_, err = ss.Channel().Save(&o3, -1)
+	require.NoError(t, err)
+
+	o4 := model.Channel{
+		TeamId:      otherTeamID,
+		DisplayName: "ChannelB",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypePrivate,
+	}
+	_, err = ss.Channel().Save(&o4, -1)
+	require.NoError(t, err)
+
+	m4 := &model.ChannelMember{
+		ChannelId:   o3.Id,
+		UserId:      m3.UserId,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(m4)
+	require.NoError(t, err)
+
+	m5 := &model.ChannelMember{
+		ChannelId:   o4.Id,
+		UserId:      m1.UserId,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(m5)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		Description        string
+		UserID             string
+		Term               string
+		IncludeDeleted     bool
+		ExpectedChannelIds []string
+		ExpectedTeamNames  []string
+	}{
+		{"user 1, Channel A", m1.UserId, "ChannelA", false, []string{o1.Id, o2.Id}, []string{t1.Name, t2.Name}},
+		{"user 1, Channel B", m1.UserId, "ChannelB", false, []string{o4.Id}, []string{t2.Name}},
+		{"user 2, Channel A", m3.UserId, "ChannelA", false, []string{o3.Id, o1.Id, o2.Id}, []string{t2.Name, t1.Name, t1.Name}},
+		{"user 2, Channel B", m3.UserId, "ChannelB", false, nil, nil},
+		{"user 1, empty string", m1.UserId, "", false, []string{o1.Id, o2.Id, o4.Id}, []string{t1.Name, t2.Name, t2.Name}},
+		{"user 2, empty string", m3.UserId, "", false, []string{o1.Id, o2.Id, o3.Id}, []string{t1.Name, t2.Name, t1.Name}},
+	}
+
+	for _, testCase := range testCases {
+		t.Run("Autocomplete/"+testCase.Description, func(t *testing.T) {
+			channels, err := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted)
+			require.NoError(t, err)
+			var gotChannelIds []string
+			var gotTeamNames []string
+			for _, ch := range channels {
+				gotChannelIds = append(gotChannelIds, ch.Id)
+				gotTeamNames = append(gotTeamNames, ch.TeamName)
+			}
+			require.ElementsMatch(t, testCase.ExpectedChannelIds, gotChannelIds)
+			require.ElementsMatch(t, testCase.ExpectedTeamNames, gotTeamNames)
 		})
 	}
 }
