@@ -214,10 +214,10 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	if _, ok := post.GetProps()["focalboard"]; ok {
+	if _, ok := post.GetProps()["boards"]; ok {
 		return &model.PostEmbed{
-			Type: model.PostEmbedFocalboard,
-			Data: post.GetProps()["focalboard"],
+			Type: model.PostEmbedBoards,
+			Data: post.GetProps()["boards"],
 		}, nil
 	}
 

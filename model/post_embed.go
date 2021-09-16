@@ -9,7 +9,7 @@ const (
 	PostEmbedOpengraph         PostEmbedType = "opengraph"
 	PostEmbedLink              PostEmbedType = "link"
 	PostEmbedPermalink         PostEmbedType = "permalink"
-	PostEmbedFocalboard        PostEmbedType = "focalboard"
+	PostEmbedBoards            PostEmbedType = "boards"
 )
 
 type PostEmbedType string
