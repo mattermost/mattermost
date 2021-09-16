@@ -1561,9 +1561,9 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("category")
 			return
 		}
-		categoryData, err := c.App.GetSidebarCategory(categoryId)
-		if err != nil {
-			c.Err = err
+		categoryData, categoryDataErr := c.App.GetSidebarCategory(categoryId)
+		if categoryDataErr != nil {
+			c.Err = categoryDataErr
 			return
 		}
 		category = categoryData
