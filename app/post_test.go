@@ -820,7 +820,7 @@ func TestCreatePost(t *testing.T) {
 		sqlStore := th.GetSqlStore()
 		sql := fmt.Sprintf("select count(*) from Posts where Id = '%[1]s' or OriginalId = '%[1]s';", previewPost.Id)
 		val, err2 := sqlStore.GetMaster().SelectInt(sql)
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 
 		require.EqualValues(t, int64(1), val)
 	})
