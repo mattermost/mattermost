@@ -32,7 +32,7 @@ func TestConfigListener(t *testing.T) {
 		listenerCalled = true
 	}
 	listenerId := th.App.AddConfigListener(listener)
-	defer th.App.removeConfigListener(listenerId)
+	defer th.App.RemoveConfigListener(listenerId)
 
 	listener2Called := false
 	listener2 := func(oldConfig *model.Config, newConfig *model.Config) {
@@ -41,7 +41,7 @@ func TestConfigListener(t *testing.T) {
 		listener2Called = true
 	}
 	listener2Id := th.App.AddConfigListener(listener2)
-	defer th.App.removeConfigListener(listener2Id)
+	defer th.App.RemoveConfigListener(listener2Id)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.SiteName = "test123"

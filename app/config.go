@@ -102,7 +102,7 @@ func (s *Server) RemoveConfigListener(id string) {
 	s.configStore.RemoveListener(id)
 }
 
-func (a *App) removeConfigListener(id string) {
+func (a *App) RemoveConfigListener(id string) {
 	a.Srv().RemoveConfigListener(id)
 }
 

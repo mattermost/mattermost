@@ -9208,6 +9208,21 @@ func (a *OpenTracingAppLayer) RemoveChannelsFromRetentionPolicy(policyID string,
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) RemoveConfigListener(id string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveConfigListener")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.RemoveConfigListener(id)
+}
+
 func (a *OpenTracingAppLayer) RemoveCustomStatus(userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveCustomStatus")
