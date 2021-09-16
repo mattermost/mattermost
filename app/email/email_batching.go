@@ -286,7 +286,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
 
-			channelDisplayName := channel.DisplayName
+			channelDisplayName := truncateUserNames(channel.DisplayName, 22)
 			showChannelIcon := true
 			otherChannelMembersCount := 0
 
@@ -300,7 +300,6 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 			if channel.Type == model.ChannelTypeGroup {
 				otherChannelMembersCount = len(strings.Split(channelDisplayName, ",")) - 1
-				channelDisplayName = truncateUserNames(channelDisplayName, 22)
 				showChannelIcon = false
 			}
 
