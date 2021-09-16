@@ -449,7 +449,7 @@ func TestGetPluginStatusesDisabled(t *testing.T) {
 
 	_, err := th.App.getPluginStatuses()
 	require.NotNil(t, err)
-	require.EqualError(t, err, "getPluginStatuses: Plugins have been disabled. Please check your logs for details., ")
+	require.EqualError(t, err, "GetPluginStatuses: Plugins have been disabled. Please check your logs for details., ")
 }
 
 func TestGetPluginStatuses(t *testing.T) {
