@@ -1837,6 +1837,7 @@ func testSearchAcrossTeams(t *testing.T, th *SearchTestHelper) {
 
 	params := &model.SearchParams{Terms: "search"}
 	results, err := th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, "", 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.Posts, 2)
 }
