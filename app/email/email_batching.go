@@ -240,6 +240,16 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		emailNotificationContentsType = *es.config().EmailSettings.EmailNotificationContentsType
 	}
 
+	// check if user has CRT set to ON
+	threadsEnabled := false
+	if *es.config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled {
+		threadsEnabled = *es.config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
+		// check if a participant has overridden collapsed threads settings
+		if preference, errCrt := es.store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); errCrt == nil {
+			threadsEnabled = preference.Value == "on"
+		}
+	}
+
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		for i, notification := range notifications {
 			sender, errSender := es.userService.GetUser(notification.post.UserId)
@@ -279,6 +289,14 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 			channelDisplayName := channel.DisplayName
 			showChannelIcon := true
 			otherChannelMembersCount := 0
+
+			if threadsEnabled && notification.post.RootId != "" {
+				props := map[string]interface{}{"channelName": channelDisplayName}
+				channelDisplayName = translateFunc("api.push_notification.title.collapsed_threads", props)
+				if channel.Type == model.ChannelTypeDirect {
+					channelDisplayName = translateFunc("api.push_notification.title.collapsed_threads_dm")
+				}
+			}
 
 			if channel.Type == model.ChannelTypeGroup {
 				otherChannelMembersCount = len(strings.Split(channelDisplayName, ",")) - 1

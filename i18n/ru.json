@@ -8980,10 +8980,6 @@
     "translation": "{{.SenderName}} ответил в обсуждении"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Пока Вас не было, {{.SenderName}} ответил в обсуждении, на которое Вы подписаны."
-  },
-  {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
     "translation": " дополнил обсуждение, на которое Вы подписаны."
   }

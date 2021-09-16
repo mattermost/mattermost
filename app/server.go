@@ -850,7 +850,7 @@ func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings *
 		return fmt.Errorf("invalid config source for %s, %w", name, err)
 	}
 
-	if err := logger.ConfigureTargets(cfg); err != nil {
+	if err := logger.ConfigureTargets(cfg, nil); err != nil {
 		return fmt.Errorf("invalid config for %s, %w", name, err)
 	}
 	return nil
@@ -1492,7 +1492,6 @@ func doReportUsageToAWSMeteringService(s *Server) {
 }
 
 func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
-	doCheckAdminSupportStatus(a, c)
 	model.CreateRecurringTask("Check Admin Support Status Job", func() {
 		doCheckAdminSupportStatus(a, c)
 	}, time.Hour*model.WarnMetricJobInterval)

@@ -213,7 +213,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		post.AddProp("from_bot", "true")
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
+	if a.Srv().License() != nil &&
 		!post.IsSystemMessage() &&
 		channel.Name == model.DefaultChannelName &&
 		!a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
@@ -1172,11 +1172,13 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
+	if len(post.FileIds) > 0 {
+		a.Srv().Go(func() {
+			a.deletePostFiles(post.Id)
+		})
+	}
 	a.Srv().Go(func() {
-		a.DeletePostFiles(post)
-	})
-	a.Srv().Go(func() {
-		a.DeleteFlaggedPosts(post.Id)
+		a.deleteFlaggedPosts(post.Id)
 	})
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
@@ -1184,20 +1186,16 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 	return post, nil
 }
 
-func (a *App) DeleteFlaggedPosts(postID string) {
+func (a *App) deleteFlaggedPosts(postID string) {
 	if err := a.Srv().Store.Preference().DeleteCategoryAndName(model.PreferenceCategoryFlaggedPost, postID); err != nil {
 		mlog.Warn("Unable to delete flagged post preference when deleting post.", mlog.Err(err))
 		return
 	}
 }
 
-func (a *App) DeletePostFiles(post *model.Post) {
-	if len(post.FileIds) == 0 {
-		return
-	}
-
-	if _, err := a.Srv().Store.FileInfo().DeleteForPost(post.Id); err != nil {
-		mlog.Warn("Encountered error when deleting files for post", mlog.String("post_id", post.Id), mlog.Err(err))
+func (a *App) deletePostFiles(postID string) {
+	if _, err := a.Srv().Store.FileInfo().DeleteForPost(postID); err != nil {
+		mlog.Warn("Encountered error when deleting files for post", mlog.String("post_id", postID), mlog.Err(err))
 	}
 }
 
