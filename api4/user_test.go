@@ -2094,7 +2094,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 			Name:        "user-created-channel",
 			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
-		}, th.BasicUser.Id)
+		}, th.BasicUser.Id, nil)
 		require.Nil(t, appErr)
 
 		// Check that we have users and posts in the database
