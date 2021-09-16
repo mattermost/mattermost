@@ -24,14 +24,15 @@ const (
 )
 
 type postData struct {
-	SenderName      string
-	ChannelName     string
-	Message         template.HTML
-	MessageURL      string
-	SenderPhoto     string
-	PostPhoto       string
-	Time            string
-	ShowChannelIcon bool
+	SenderName               string
+	ChannelName              string
+	Message                  template.HTML
+	MessageURL               string
+	SenderPhoto              string
+	PostPhoto                string
+	Time                     string
+	ShowChannelIcon          bool
+	OtherChannelMembersCount int
 }
 
 func (es *Service) InitEmailBatching() {
@@ -277,20 +278,23 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 			channelDisplayName := channel.DisplayName
 			showChannelIcon := true
+			otherChannelMembersCount := 0
 
 			if channel.Type == model.ChannelTypeGroup {
-				channelDisplayName = fmt.Sprint(len(strings.Split(channelDisplayName, ",")) - 1)
+				otherChannelMembersCount = len(strings.Split(channelDisplayName, ",")) - 1
+				channelDisplayName = truncateUserNames(channelDisplayName, 22)
 				showChannelIcon = false
 			}
 
 			postsData = append(postsData, &postData{
-				SenderPhoto:     senderPhoto,
-				SenderName:      truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
-				Time:            t,
-				ChannelName:     channelDisplayName,
-				Message:         template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
-				MessageURL:      MessageURL,
-				ShowChannelIcon: showChannelIcon,
+				SenderPhoto:              senderPhoto,
+				SenderName:               truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
+				Time:                     t,
+				ChannelName:              channelDisplayName,
+				Message:                  template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
+				MessageURL:               MessageURL,
+				ShowChannelIcon:          showChannelIcon,
+				OtherChannelMembersCount: otherChannelMembersCount,
 			})
 		}
 	}

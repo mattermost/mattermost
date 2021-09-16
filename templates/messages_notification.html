@@ -464,7 +464,12 @@
                                           {{if .ShowChannelIcon}}
                                           <div class="channelLogo"><img src="{{$.Props.SiteURL}}/static/images/channel_icon.png" width=10px height=10px></img></div>
                                           {{end}}
-                                          <div class="channelName">{{.ChannelName}}</div>
+                                          <div class="channelName">
+                                            {{if .OtherChannelMembersCount}}
+                                            <span>{{.OtherChannelMembersCount}}}</span>
+                                            {{end}}
+                                            {{.ChannelName}}
+                                          </div>
                                         </div>
                                         {{end}}
                                       </div>
