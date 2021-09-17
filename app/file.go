@@ -1130,8 +1130,8 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			if fi.ChannelId != "" {
 				channel, err2 := a.GetChannel(fi.ChannelId)
 				if err2 != nil {
-					debugErr := fmt.Errorf("tried to get channel from ChannelId: %s ; received error: %w ; original imgErr: %w",
-						fi.ChannelId, err2, imgErr)
+					debugErr := fmt.Errorf("tried to get channel from ChannelId: %s ; received error: %s ; original imgErr: %w",
+						fi.ChannelId, err2.Error(), imgErr)
 					mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(debugErr))
 					return
 				}
@@ -1142,8 +1142,8 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			if fi.CreatorId != "" {
 				user, err2 := a.GetUser(fi.CreatorId)
 				if err2 != nil {
-					debugErr := fmt.Errorf("tried to get user from CreatorId: %s ; received error: %w ; original imgErr: %w",
-						fi.CreatorId, err2, imgErr)
+					debugErr := fmt.Errorf("tried to get user from CreatorId: %s ; received error: %s ; original imgErr: %w",
+						fi.CreatorId, err2.Error(), imgErr)
 					mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(debugErr))
 					return
 				}
