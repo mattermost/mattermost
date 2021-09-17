@@ -1624,7 +1624,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("channel", channel)
 	auditRec.AddMeta("remove_user_id", user.Id)
 
-	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
+	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate || channel.Type == model.ChannelTypeGroup) {
 		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
