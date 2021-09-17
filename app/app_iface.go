@@ -667,6 +667,7 @@ type AppIface interface {
 	GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingWebhooksPageByUser(userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError)
+	GetCreateUserToken(token string) (*model.Token, *model.AppError)
 	GetPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError)
 	GetPinnedPosts(channelID string) (*model.PostList, *model.AppError)
 	GetPluginKey(pluginID string, key string) ([]byte, *model.AppError)
