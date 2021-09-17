@@ -1463,6 +1463,10 @@
     "translation": "Failed to merge given config."
   },
   {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Failed to reload config."
+  },
+  {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "Site URL cannot be cleared."
   },
@@ -1607,10 +1611,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "{{ .SenderName }} sent you new message",
-      "other": "{{ .SenderName }} and {{.Count}} others sent you new messages"
-    }
+    "translation": "You have new messages"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1966,7 +1967,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Failed to marshal."
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -2232,7 +2233,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " commented on a thread you are following."
+    "translation": " replied to a thread you're following."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " replied to a thread."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
@@ -2316,7 +2321,11 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Reply to Thread"
+    "translation": "Reply in {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Reply in Direct Message"
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -3717,6 +3726,10 @@
   {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Error reading file from backend"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Failed to unmarshal."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
@@ -5479,12 +5492,24 @@
     "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} replied to a thread"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
     "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
   },
   {
-    "id": "app.notification.body.thread.title",
-    "translation": "{{.SenderName}} replied to a thread"
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your Direct Message."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your group."
   },
   {
     "id": "app.notification.footer.info",
@@ -5805,6 +5830,10 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Failed to marshal post."
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7891,6 +7920,10 @@
     "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
   },
   {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
+  },
+  {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
@@ -9116,7 +9149,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9124,7 +9157,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9132,7 +9165,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

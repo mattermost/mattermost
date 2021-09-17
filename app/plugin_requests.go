@@ -27,7 +27,7 @@ func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		s.Log.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJson()))
+		w.Write([]byte(err.ToJSON()))
 		return
 	}
 
@@ -52,7 +52,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		a.Log().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJson()))
+		w.Write([]byte(err.ToJSON()))
 		return
 	}
 

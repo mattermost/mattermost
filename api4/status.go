@@ -49,7 +49,7 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -64,14 +64,18 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// No permission check required
-
-	statusMap, err := c.App.GetUserStatusesByIds(userIds)
+	statuses, err := c.App.GetUserStatusesByIds(userIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(model.StatusListToJson(statusMap)))
+	js, jsonErr := json.Marshal(statuses)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUserStatusesByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -80,8 +84,8 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := model.StatusFromJson(r.Body)
-	if status == nil {
+	var status model.Status
+	if jsonErr := json.NewDecoder(r.Body).Decode(&status); jsonErr != nil {
 		c.SetInvalidParam("status")
 		return
 	}
@@ -134,8 +138,9 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	customStatus := model.CustomStatusFromJson(r.Body)
-	if customStatus == nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
+	var customStatus model.CustomStatus
+	jsonErr := json.NewDecoder(r.Body).Decode(&customStatus)
+	if jsonErr != nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
 		c.SetInvalidParam("custom_status")
 		return
 	}
@@ -146,7 +151,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	customStatus.PreSave()
-	err := c.App.SetCustomStatus(c.Params.UserId, customStatus)
+	err := c.App.SetCustomStatus(c.Params.UserId, &customStatus)
 	if err != nil {
 		c.Err = err
 		return
@@ -190,8 +195,8 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	recentCustomStatus := model.CustomStatusFromJson(r.Body)
-	if recentCustomStatus == nil {
+	var recentCustomStatus model.CustomStatus
+	if jsonErr := json.NewDecoder(r.Body).Decode(&recentCustomStatus); jsonErr != nil {
 		c.SetInvalidParam("recent_custom_status")
 		return
 	}
@@ -201,7 +206,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, recentCustomStatus); err != nil {
+	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, &recentCustomStatus); err != nil {
 		c.Err = err
 		return
 	}

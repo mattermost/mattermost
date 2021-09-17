@@ -44,7 +44,7 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("createTermsOfService", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	text := props["text"]
 	userId := c.AppContext.Session().UserId
 

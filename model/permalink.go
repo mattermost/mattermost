@@ -3,8 +3,6 @@
 
 package model
 
-import "encoding/json"
-
 type Permalink struct {
 	PreviewPost *PreviewPost `json:"preview_post"`
 }
@@ -26,9 +24,4 @@ func NewPreviewPost(post *Post, team *Team, channel *Channel) *PreviewPost {
 		TeamName:           team.Name,
 		ChannelDisplayName: channel.DisplayName,
 	}
-}
-
-func (o *Permalink) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }

@@ -69,7 +69,12 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
-		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
@@ -86,12 +91,15 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+	if !c.AppContext.Session().IsUnrestricted() && *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("configReload", "api.restricted_system_admin", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	c.App.ReloadConfig()
+	if err := c.App.ReloadConfig(); err != nil {
+		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	auditRec.Success()
 
@@ -100,7 +108,7 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -167,7 +175,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if mergeErr != nil {
-		c.Err = model.NewAppError("getConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	auditRec.Success()
@@ -175,7 +183,12 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
-		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 		return
 	}
 
@@ -204,7 +217,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		config = c.App.ClientConfigWithComputed()
 	}
 
-	w.Write([]byte(model.MapToJson(config)))
+	w.Write([]byte(model.MapToJSON(config)))
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -215,11 +228,11 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(model.StringInterfaceToJson(envConfig)))
+	w.Write([]byte(model.StringInterfaceToJSON(envConfig)))
 }
 
 func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -291,12 +304,17 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if mergeErr != nil {
-		c.Err = model.NewAppError("getConfig", "api.config.patch_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
-		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 		return
 	}
 
@@ -369,7 +387,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 }
 
 func migrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")

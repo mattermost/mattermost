@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/pkg/errors"
 )
 
@@ -185,13 +186,15 @@ func truncateUserNames(name string, i int) string {
 }
 
 type postData struct {
-	SenderName  string
-	ChannelName string
-	Message     template.HTML
-	MessageURL  string
-	SenderPhoto string
-	PostPhoto   string
-	Time        string
+	SenderName               string
+	ChannelName              string
+	Message                  template.HTML
+	MessageURL               string
+	SenderPhoto              string
+	PostPhoto                string
+	Time                     string
+	ShowChannelIcon          bool
+	OtherChannelMembersCount int
 }
 
 /**
@@ -213,10 +216,16 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
-		normalizedPostMessage, err := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
+		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage)
+		if mdErr != nil {
+			mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
+			mdPostMessage = postMessage
+		}
+
+		normalizedPostMessage, err := a.generateHyperlinkForChannels(mdPostMessage, teamName, landingURL)
 		if err != nil {
 			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
-			normalizedPostMessage = postMessage
+			normalizedPostMessage = mdPostMessage
 		}
 		pData.Message = template.HTML(normalizedPostMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
@@ -236,10 +245,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	data.Props["NotificationFooterInfoLogin"] = translateFunc("app.notification.footer.infoLogin")
 	data.Props["NotificationFooterInfo"] = translateFunc("app.notification.footer.info")
 
-	if a.isCRTEnabledForUser(recipient.Id) && post.RootId != "" {
-		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]interface{}{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.thread.subTitle", map[string]interface{}{"SenderName": senderName})
-	} else if channel.Type == model.ChannelTypeDirect {
+	if channel.Type == model.ChannelTypeDirect {
 		// Direct Messages
 		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]interface{}{"SenderName": senderName})
@@ -252,6 +258,26 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
 		pData.ChannelName = channelName
+	}
+
+	// Override title and subtile for replies with CRT enabled
+	if a.isCRTEnabledForUser(recipient.Id) && post.RootId != "" {
+		// Title is the same in all cases
+		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]interface{}{"SenderName": senderName})
+
+		if channel.Type == model.ChannelTypeDirect {
+			// Direct Reply
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_dm.subTitle", map[string]interface{}{"SenderName": senderName})
+		} else if channel.Type == model.ChannelTypeGroup {
+			// Group Reply
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_gm.subTitle", map[string]interface{}{"SenderName": senderName})
+		} else if emailNotificationContentsType == model.EmailNotificationContentsFull {
+			// Channel Reply with full content
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel_full.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
+		} else {
+			// Channel Reply with generic content
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel.subTitle", map[string]interface{}{"SenderName": senderName})
+		}
 	}
 
 	// only include posts in notification email if email notification contents type is set to full
