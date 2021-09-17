@@ -1126,7 +1126,33 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 		defer file.Close()
 		img, release, imgErr := prepareImage(a.srv.imgDecoder, file)
 		if imgErr != nil {
-			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(imgErr))
+			channelName := "n/a"
+			if fi.ChannelId != "" {
+				channel, err2 := a.GetChannel(fi.ChannelId)
+				if err2 != nil {
+					debugErr := fmt.Errorf("tried to get channel from ChannelId: %s ; received error: %w ; original imgErr: %w",
+						fi.ChannelId, err2, imgErr)
+					mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(debugErr))
+					return
+				}
+				channelName = channel.Name
+			}
+
+			username := "n/a"
+			if fi.CreatorId != "" {
+				user, err2 := a.GetUser(fi.CreatorId)
+				if err2 != nil {
+					debugErr := fmt.Errorf("tried to get user from CreatorId: %s ; received error: %w ; original imgErr: %w",
+						fi.CreatorId, err2, imgErr)
+					mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(debugErr))
+					return
+				}
+				username = user.Username
+			}
+
+			debugErr := fmt.Errorf("FileInfo id: %s ; CreatorId: %s ; username: %s ; PostId: %s ; ChannelId: %s ; ChannelName: %s ; CreateAt: %d ; Name: %s ; Extension: %s ; Size: %d ; MimeType: %s ; Path: %s ; error: %w",
+				fi.Id, fi.CreatorId, username, fi.PostId, fi.ChannelId, channelName, fi.CreateAt, fi.Name, fi.Extension, fi.Size, fi.MimeType, fi.Path, imgErr)
+			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(debugErr))
 			return
 		}
 		defer release()
