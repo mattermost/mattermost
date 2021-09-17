@@ -18,11 +18,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/gitlab"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/store"
 	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -38,9 +38,10 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	t.Run("create user successfully", func(t *testing.T) {
 		glUser := oauthgitlab.GitLabUser{Id: 42, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
-		json := glUser.ToJson()
+		js, jsonErr := json.Marshal(glUser)
+		require.NoError(t, jsonErr)
 
-		user, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, strings.NewReader(json), th.BasicTeam.Id, nil)
+		user, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, bytes.NewReader(js), th.BasicTeam.Id, nil)
 		require.Nil(t, err)
 
 		require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
@@ -59,7 +60,7 @@ func TestCreateOAuthUser(t *testing.T) {
 		mockUser := &model.User{Id: "abcdef", AuthData: model.NewString("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
 		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.Anything, mock.Anything).Return(true)
-		providerMock.On("GetUserFromJson", mock.Anything, mock.Anything).Return(mockUser, nil)
+		providerMock.On("GetUserFromJSON", mock.Anything, mock.Anything).Return(mockUser, nil)
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
@@ -734,7 +735,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("invalid token type", func(t *testing.T) {
 		token := model.NewToken(
 			TokenTypeVerifyEmail,
-			model.MapToJson(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
@@ -745,7 +746,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("expired token", func(t *testing.T) {
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
@@ -757,7 +758,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("invalid team id", func(t *testing.T) {
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": model.NewId(), "email": user.Email}),
+			model.MapToJSON(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
@@ -769,7 +770,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		newUser, err := th.App.CreateUserWithToken(th.Context, &user, token)
@@ -782,14 +783,14 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
 		require.Nil(t, err)
-		assert.Len(t, *members, 2)
+		assert.Len(t, members, 2)
 	})
 
 	t.Run("valid guest request", func(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -803,8 +804,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("create guest having email domain restrictions", func(t *testing.T) {
@@ -819,11 +820,11 @@ func TestCreateUserWithToken(t *testing.T) {
 		grantedInvitationEmail := model.NewId() + "other-email@restricted.com"
 		forbiddenDomainToken := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		grantedDomainToken := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(forbiddenDomainToken))
 		require.NoError(t, th.App.Srv().Store.Token().Save(grantedDomainToken))
@@ -848,8 +849,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
@@ -866,7 +867,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		guest := model.User{
@@ -885,8 +886,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 }
 
@@ -1183,7 +1184,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
-		require.Len(t, *channelMembers, 1)
+		require.Len(t, channelMembers, 1)
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -1201,7 +1202,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
-		assert.Len(t, *channelMembers, 3)
+		assert.Len(t, channelMembers, 3)
 	})
 
 	t.Run("Must invalidate channel stats cache when promoting a guest", func(t *testing.T) {
@@ -1346,7 +1347,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
-		require.Len(t, *channelMembers, 3)
+		require.Len(t, channelMembers, 3)
 
 		err = th.App.DemoteUserToGuest(user)
 		require.Nil(t, err)
@@ -1364,7 +1365,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
-		assert.Len(t, *channelMembers, 3)
+		assert.Len(t, channelMembers, 3)
 	})
 
 	t.Run("Must be removed as team and channel admin", func(t *testing.T) {

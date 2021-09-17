@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
@@ -94,7 +94,7 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	require.Nil(t, err)
 	channelMembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 10000000)
 	require.Nil(t, err)
-	require.Len(t, *channelMembers, 2)
+	require.Len(t, channelMembers, 2)
 	_, err = th.App.UpdateActive(th.Context, deacivatedUser, false)
 	require.Nil(t, err)
 
@@ -103,7 +103,7 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 
 	channelMembers, err = th.App.GetChannelMembersPage(channel.Id, 0, 10000000)
 	require.Nil(t, err)
-	require.Len(t, *channelMembers, 1)
+	require.Len(t, channelMembers, 1)
 }
 
 func TestMoveChannel(t *testing.T) {
@@ -254,9 +254,9 @@ func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 
 	channelMembers, err := th.App.GetChannelMembersPage(channel1.Id, 0, 10000000)
 	require.Nil(t, err)
-	require.Len(t, *channelMembers, 1)
-	members := make([]model.ChannelMember, len(*channelMembers))
-	for i, m := range *channelMembers {
+	require.Len(t, channelMembers, 1)
+	members := make([]model.ChannelMember, len(channelMembers))
+	for i, m := range channelMembers {
 		members[i] = m
 	}
 	require.Equal(t, members[0].UserId, th.BasicUser.Id)
@@ -771,12 +771,12 @@ func TestFillInChannelProps(t *testing.T) {
 	t.Run("multiple channels", func(t *testing.T) {
 		testCases := []struct {
 			Description          string
-			Channels             *model.ChannelList
+			Channels             model.ChannelList
 			ExpectedChannelProps map[string]interface{}
 		}{
 			{
 				"single channel on basic team",
-				&model.ChannelList{
+				model.ChannelList{
 					{
 						Name:    "test",
 						TeamId:  th.BasicTeam.Id,
@@ -796,7 +796,7 @@ func TestFillInChannelProps(t *testing.T) {
 			},
 			{
 				"multiple channels on basic team",
-				&model.ChannelList{
+				model.ChannelList{
 					{
 						Name:    "test",
 						TeamId:  th.BasicTeam.Id,
@@ -830,7 +830,7 @@ func TestFillInChannelProps(t *testing.T) {
 			},
 			{
 				"multiple channels across teams",
-				&model.ChannelList{
+				model.ChannelList{
 					{
 						Name:    "test",
 						TeamId:  th.BasicTeam.Id,
@@ -875,7 +875,7 @@ func TestFillInChannelProps(t *testing.T) {
 				err = th.App.FillInChannelsProps(testCase.Channels)
 				require.Nil(t, err)
 
-				for _, channel := range *testCase.Channels {
+				for _, channel := range testCase.Channels {
 					assert.Equal(t, testCase.ExpectedChannelProps[channel.Name], channel.Props)
 				}
 			})
@@ -998,19 +998,19 @@ func TestGetChannelsForUser(t *testing.T) {
 
 	channelList, err := th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false, 0)
 	require.Nil(t, err)
-	require.Len(t, *channelList, 4)
+	require.Len(t, channelList, 4)
 
 	th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
 
 	// Now we get all the non-archived channels for the user
 	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false, 0)
 	require.Nil(t, err)
-	require.Len(t, *channelList, 3)
+	require.Len(t, channelList, 3)
 
 	// Now we get all the channels, even though are archived, for the user
 	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, true, 0)
 	require.Nil(t, err)
-	require.Len(t, *channelList, 4)
+	require.Len(t, channelList, 4)
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
@@ -1053,7 +1053,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	channelList2, err := th.App.GetPublicChannelsForTeam(team.Id, 5, 5)
 	require.Nil(t, err)
 
-	channels := append(*channelList, *channelList2...)
+	channels := append(channelList, channelList2...)
 	assert.ElementsMatch(t, expectedChannels, channels)
 }
 
@@ -1086,7 +1086,7 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 	channelList2, err := th.App.GetPrivateChannelsForTeam(team.Id, 5, 5)
 	require.Nil(t, err)
 
-	channels := append(*channelList, *channelList2...)
+	channels := append(channelList, channelList2...)
 	assert.ElementsMatch(t, expectedChannels, channels)
 }
 
@@ -1213,10 +1213,10 @@ func TestSearchChannelsForUser(t *testing.T) {
 	searchAndCheck := func(t *testing.T, term string, expectedDisplayNames []string) {
 		res, searchErr := th.App.SearchChannelsForUser(th.BasicUser.Id, th.BasicTeam.Id, term)
 		require.Nil(t, searchErr)
-		require.Len(t, *res, len(expectedDisplayNames))
+		require.Len(t, res, len(expectedDisplayNames))
 
 		resultDisplayNames := []string{}
-		for _, c := range *res {
+		for _, c := range res {
 			resultDisplayNames = append(resultDisplayNames, c.Name)
 		}
 		require.ElementsMatch(t, expectedDisplayNames, resultDisplayNames)
@@ -2004,8 +2004,8 @@ func TestClearChannelMembersCache(t *testing.T) {
 			ChannelId: "1",
 		})
 	}
-	mockChannelStore.On("GetMembers", "channelID", 0, 100).Return(&cms, nil)
-	mockChannelStore.On("GetMembers", "channelID", 100, 100).Return(&model.ChannelMembers{
+	mockChannelStore.On("GetMembers", "channelID", 0, 100).Return(cms, nil)
+	mockChannelStore.On("GetMembers", "channelID", 100, 100).Return(model.ChannelMembers{
 		model.ChannelMember{
 			ChannelId: "1",
 		}}, nil)
@@ -2061,7 +2061,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	err := th.App.Srv().Store.Preference().Save(&preferences)
+	err := th.App.Srv().Store.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	// mention the user in a root post
@@ -2137,7 +2137,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	err := th.App.Srv().Store.Preference().Save(&preferences)
+	err := th.App.Srv().Store.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	// user2: first root mention @user1

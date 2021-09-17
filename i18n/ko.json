@@ -148,14 +148,6 @@
     "translation": "이 채널은 비공개 채널로 변경되었습니다."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "기본 채널은 비공개 채널로 변환할 수 없습니다."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "변환하기 위해 요청 된 채널은 이미 개인 채널입니다."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "개인 메시지 채널을 만들기 위해서는 반드시 createDirectChannel API 서비스를 이용해야 함"
   },
@@ -1314,10 +1306,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "루트 아이디 매개변수의 잘못된 채널 아이디입니다."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "잘못된 ParentId 매개변수입니다"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3016,10 +3004,6 @@
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "내용을 가져올수 없습니다."
   },
@@ -3716,10 +3700,6 @@
     "translation": "Invalid command hook id"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "잘못된 Parent Id 입니다."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "잘못된 루트 아이디입니다."
   },
@@ -4404,20 +4384,12 @@
     "translation": "Invalid original id"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "잘못된 Parent Id 입니다."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "잘못된 프로퍼티입니다."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "잘못된 루트 아이디입니다."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Invalid root id must be set if parent id set"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5128,10 +5100,6 @@
     "translation": "eml 파일을 생성할 수 없습니다."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "나가는 웹훅이 삭제되었지만, 오류가 발생해서 새 웹훅을 생성할 수 없습니다."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Failed to close user index."
   },
@@ -5748,10 +5716,6 @@
     "translation": "플러그인을 다운로드하는 동안 오류가 발생하였습니다."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "공개 키 파일을 여는 동안 오류가 발생함"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "라이선스 비활성화 전자우편을 성공적으로 발송하지 못했습니다."
   },
@@ -5870,38 +5834,6 @@
   {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "나를 대화하기를 원하는 팀과 채널에 추가하여 주십시오. 이렇게 하려면 브라우저 또는 Mattermost 데스크탑 앱을 사용하십시오."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "용량이 커서 아이콘 이미지 파일을 업로드 할 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "잘못된 multipart form을 파싱할 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "이미지 파일을 열 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "요청의 'image' 속성 아래에 파일이 없습니다"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "요청의 'image' 속성에 빈 배열이 전달되었습니다"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "아이콘 이미지를 업로드 할 수 없습니다."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "아이콘 이미지 파일을 읽을 수 없습니다."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "아이콘 이미지를 삭제할 수 없습니다."
   },
   {
     "id": "api.bot.create_disabled",

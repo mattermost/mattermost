@@ -32,15 +32,11 @@ func testSupervisorInvalidExecutablePath(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "/foo/../../backend.exe"}}`), 0600)
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "/foo/../../backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	assert.Nil(t, supervisor)
 	assert.Error(t, err)
@@ -51,15 +47,11 @@ func testSupervisorNonExistentExecutablePath(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "thisfileshouldnotexist"}}`), 0600)
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "thisfileshouldnotexist"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
@@ -81,15 +73,11 @@ func testSupervisorStartTimeout(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)

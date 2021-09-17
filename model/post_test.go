@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"strings"
 	"sync"
@@ -13,18 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPostToJson(t *testing.T) {
+func TestPostToJSON(t *testing.T) {
 	o := Post{Id: NewId(), Message: NewId()}
-	j := o.ToJson()
-	ro := PostFromJson(strings.NewReader(j))
-
-	assert.NotNil(t, ro)
+	j, err := o.ToJSON()
+	assert.NoError(t, err)
+	var ro Post
+	err = json.Unmarshal([]byte(j), &ro)
+	assert.NoError(t, err)
 	assert.Equal(t, &o, ro.Clone())
-}
-
-func TestPostFromJsonError(t *testing.T) {
-	ro := PostFromJson(strings.NewReader(""))
-	assert.Nil(t, ro)
 }
 
 func TestPostIsValid(t *testing.T) {
@@ -56,16 +53,7 @@ func TestPostIsValid(t *testing.T) {
 	require.NotNil(t, err)
 
 	o.RootId = ""
-	o.ParentId = "123"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
 
-	o.ParentId = NewId()
-	o.RootId = ""
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
-
-	o.ParentId = ""
 	o.Message = strings.Repeat("0", maxPostSize+1)
 	err = o.IsValid(maxPostSize)
 	require.NotNil(t, err)
@@ -855,34 +843,6 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 		patch.DisableMentionHighlights()
 		// Useless assertion to prevent compiler elision.
 		assert.Nil(t, patch.Message)
-	})
-}
-
-func TestSearchParameterFromJson(t *testing.T) {
-	t.Run("empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader(""))
-		require.Nil(t, params)
-		require.Error(t, err)
-	})
-
-	t.Run("invalid json", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("invalid"))
-		require.Nil(t, params)
-		require.Error(t, err)
-	})
-
-	t.Run("valid empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("{}"))
-		require.NoError(t, err)
-		require.NotNil(t, params)
-		require.Equal(t, &SearchParameter{}, params)
-	})
-
-	t.Run("valid non-empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("{\"terms\": \"test\"}"))
-		require.NoError(t, err)
-		require.NotNil(t, params)
-		require.Equal(t, "test", *params.Terms)
 	})
 }
 

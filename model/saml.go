@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"encoding/xml"
-	"io"
 	"time"
 )
 
@@ -31,8 +29,8 @@ type SamlCertificateStatus struct {
 }
 
 type SamlMetadataResponse struct {
-	IdpDescriptorUrl     string `json:"idp_descriptor_url"`
-	IdpUrl               string `json:"idp_url"`
+	IdpDescriptorURL     string `json:"idp_descriptor_url"`
+	IdpURL               string `json:"idp_url"`
 	IdpPublicCertificate string `json:"idp_public_certificate"`
 }
 
@@ -175,26 +173,4 @@ type EntityDescriptor struct {
 	IDPSSODescriptors []IDPSSODescriptor `xml:"IDPSSODescriptor"`
 	Organization      Organization       `xml:"Organization"`
 	ContactPerson     ContactPerson      `xml:"ContactPerson"`
-}
-
-func (s *SamlCertificateStatus) ToJson() string {
-	b, _ := json.Marshal(s)
-	return string(b)
-}
-
-func SamlCertificateStatusFromJson(data io.Reader) *SamlCertificateStatus {
-	var status *SamlCertificateStatus
-	json.NewDecoder(data).Decode(&status)
-	return status
-}
-
-func (s *SamlMetadataResponse) ToJson() string {
-	b, _ := json.Marshal(s)
-	return string(b)
-}
-
-func SamlMetadataResponseFromJson(data io.Reader) *SamlMetadataResponse {
-	var status *SamlMetadataResponse
-	json.NewDecoder(data).Decode(&status)
-	return status
 }

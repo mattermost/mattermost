@@ -16,15 +16,15 @@ import (
 )
 
 func (api *API) InitCompliance() {
-	api.BaseRoutes.Compliance.Handle("/reports", api.ApiSessionRequired(createComplianceReport)).Methods("POST")
-	api.BaseRoutes.Compliance.Handle("/reports", api.ApiSessionRequired(getComplianceReports)).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getComplianceReport)).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.ApiSessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(createComplianceReport)).Methods("POST")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(getComplianceReports)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(getComplianceReport)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
 }
 
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
-	job := model.ComplianceFromJson(r.Body)
-	if job == nil {
+	var job model.Compliance
+	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
 		c.SetInvalidParam("compliance")
 		return
 	}
@@ -39,7 +39,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	job.UserId = c.AppContext.Session().UserId
 
-	rjob, err := c.App.SaveComplianceReport(job)
+	rjob, err := c.App.SaveComplianceReport(&job)
 	if err != nil {
 		c.Err = err
 		return

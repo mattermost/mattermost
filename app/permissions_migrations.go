@@ -705,7 +705,7 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 		model.PermissionSysconsoleReadEnvironmentElasticsearch.Id,
 		model.PermissionSysconsoleReadEnvironmentFileStorage.Id,
 		model.PermissionSysconsoleReadEnvironmentImageProxy.Id,
-		model.PermissionSysconsoleReadEnvironmentSmtp.Id,
+		model.PermissionSysconsoleReadEnvironmentSMTP.Id,
 		model.PermissionSysconsoleReadEnvironmentPushNotificationServer.Id,
 		model.PermissionSysconsoleReadEnvironmentHighAvailability.Id,
 		model.PermissionSysconsoleReadEnvironmentRateLimiting.Id,
@@ -720,7 +720,7 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 		model.PermissionSysconsoleWriteEnvironmentElasticsearch.Id,
 		model.PermissionSysconsoleWriteEnvironmentFileStorage.Id,
 		model.PermissionSysconsoleWriteEnvironmentImageProxy.Id,
-		model.PermissionSysconsoleWriteEnvironmentSmtp.Id,
+		model.PermissionSysconsoleWriteEnvironmentSMTP.Id,
 		model.PermissionSysconsoleWriteEnvironmentPushNotificationServer.Id,
 		model.PermissionSysconsoleWriteEnvironmentHighAvailability.Id,
 		model.PermissionSysconsoleWriteEnvironmentRateLimiting.Id,
@@ -755,7 +755,7 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 	transformations = append(transformations, permissionTransformation{
 		On: permissionExists(model.PermissionSysconsoleWriteEnvironmentWebServer.Id),
 		Add: []string{
-			model.PermissionTestSiteUrl.Id,
+			model.PermissionTestSiteURL.Id,
 			model.PermissionReloadConfig.Id,
 			model.PermissionInvalidateCaches.Id,
 		},
@@ -908,7 +908,7 @@ func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
 
 	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_SMTP
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(model.PermissionSysconsoleWriteEnvironmentSmtp.Id),
+		On:  permissionExists(model.PermissionSysconsoleWriteEnvironmentSMTP.Id),
 		Add: []string{model.PermissionTestEmail.Id},
 	})
 

@@ -250,7 +250,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 			return err
 		}
 
-		if len(sysAdminsList) == 0 {
+		if len(sysAdmins) == 0 && len(sysAdminsList) == 0 {
 			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
 		}
 		sysAdmins = append(sysAdmins, sysAdminsList...)
@@ -259,6 +259,8 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 			mlog.Debug("Number of system admins is less than page limit", mlog.Int("count", len(sysAdminsList)))
 			break
 		}
+
+		userOptions.Page++
 	}
 
 	for _, sysAdmin := range sysAdmins {
@@ -286,13 +288,13 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 		actionId := "contactUs"
 		actionName := T("api.server.warn_metric.contact_us")
 		postActionValue := T("api.server.warn_metric.contacting_us")
-		postActionUrl := fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId)
+		postActionURL := fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId)
 
 		if isE0Edition {
 			actionId = "startTrial"
 			actionName = T("api.server.warn_metric.start_trial")
 			postActionValue = T("api.server.warn_metric.starting_trial")
-			postActionUrl = fmt.Sprintf("/warn_metrics/trial-license-ack/%s", warnMetricId)
+			postActionURL = fmt.Sprintf("/warn_metrics/trial-license-ack/%s", warnMetricId)
 		}
 
 		actions := []*model.PostAction{}
@@ -316,7 +318,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId st
 						"bot_user_id": warnMetricsBot.UserId,
 						"force_ack":   false,
 					},
-					URL: postActionUrl,
+					URL: postActionURL,
 				},
 			},
 		)
@@ -527,7 +529,7 @@ func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.srv.Cloud
 }
 func (a *App) HTTPService() httpservice.HTTPService {
-	return a.srv.HTTPService
+	return a.srv.httpService
 }
 func (a *App) ImageProxy() *imageproxy.ImageProxy {
 	return a.srv.ImageProxy

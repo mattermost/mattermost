@@ -16,9 +16,9 @@ import (
 )
 
 func (api *API) InitUpload() {
-	api.BaseRoutes.Uploads.Handle("", api.ApiSessionRequired(createUpload)).Methods("POST")
-	api.BaseRoutes.Upload.Handle("", api.ApiSessionRequired(getUpload)).Methods("GET")
-	api.BaseRoutes.Upload.Handle("", api.ApiSessionRequired(uploadData)).Methods("POST")
+	api.BaseRoutes.Uploads.Handle("", api.APISessionRequired(createUpload)).Methods("POST")
+	api.BaseRoutes.Upload.Handle("", api.APISessionRequired(getUpload)).Methods("GET")
+	api.BaseRoutes.Upload.Handle("", api.APISessionRequired(uploadData)).Methods("POST")
 }
 
 func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -29,8 +29,8 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	us := model.UploadSessionFromJson(r.Body)
-	if us == nil {
+	var us model.UploadSession
+	if jsonErr := json.NewDecoder(r.Body).Decode(&us); jsonErr != nil {
 		c.SetInvalidParam("upload")
 		return
 	}
@@ -60,7 +60,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().UserId != "" {
 		us.UserId = c.AppContext.Session().UserId
 	}
-	us, err := c.App.CreateUploadSession(us)
+	rus, err := c.App.CreateUploadSession(&us)
 	if err != nil {
 		c.Err = err
 		return
@@ -68,7 +68,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(us); err != nil {
+	if err := json.NewEncoder(w).Encode(rus); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }

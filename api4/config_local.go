@@ -16,10 +16,11 @@ import (
 )
 
 func (api *API) InitConfigLocal() {
-	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localGetConfig)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localUpdateConfig)).Methods("PUT")
-	api.BaseRoutes.ApiRoot.Handle("/config/patch", api.ApiLocal(localPatchConfig)).Methods("PUT")
-	api.BaseRoutes.ApiRoot.Handle("/config/migrate", api.ApiLocal(migrateConfig)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(migrateConfig)).Methods("POST")
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -34,7 +35,7 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -86,7 +87,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return

@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 )
@@ -18,49 +16,6 @@ type Reaction struct {
 	UpdateAt  int64   `json:"update_at"`
 	DeleteAt  int64   `json:"delete_at"`
 	RemoteId  *string `json:"remote_id"`
-}
-
-func (o *Reaction) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func ReactionFromJson(data io.Reader) *Reaction {
-	var o Reaction
-
-	if err := json.NewDecoder(data).Decode(&o); err != nil {
-		return nil
-	}
-	return &o
-}
-
-func ReactionsToJson(o []*Reaction) string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func MapPostIdToReactionsToJson(o map[string][]*Reaction) string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func MapPostIdToReactionsFromJson(data io.Reader) map[string][]*Reaction {
-	decoder := json.NewDecoder(data)
-
-	var objmap map[string][]*Reaction
-	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string][]*Reaction)
-	}
-	return objmap
-}
-
-func ReactionsFromJson(data io.Reader) []*Reaction {
-	var o []*Reaction
-
-	if err := json.NewDecoder(data).Decode(&o); err != nil {
-		return nil
-	}
-	return o
 }
 
 func (o *Reaction) IsValid() *AppError {

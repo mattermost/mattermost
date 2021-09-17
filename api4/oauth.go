@@ -13,21 +13,20 @@ import (
 )
 
 func (api *API) InitOAuth() {
-	api.BaseRoutes.OAuthApps.Handle("", api.ApiSessionRequired(createOAuthApp)).Methods("POST")
-	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(updateOAuthApp)).Methods("PUT")
-	api.BaseRoutes.OAuthApps.Handle("", api.ApiSessionRequired(getOAuthApps)).Methods("GET")
-	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(getOAuthApp)).Methods("GET")
-	api.BaseRoutes.OAuthApp.Handle("/info", api.ApiSessionRequired(getOAuthAppInfo)).Methods("GET")
-	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(deleteOAuthApp)).Methods("DELETE")
-	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.ApiSessionRequired(regenerateOAuthAppSecret)).Methods("POST")
+	api.BaseRoutes.OAuthApps.Handle("", api.APISessionRequired(createOAuthApp)).Methods("POST")
+	api.BaseRoutes.OAuthApp.Handle("", api.APISessionRequired(updateOAuthApp)).Methods("PUT")
+	api.BaseRoutes.OAuthApps.Handle("", api.APISessionRequired(getOAuthApps)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("", api.APISessionRequired(getOAuthApp)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("/info", api.APISessionRequired(getOAuthAppInfo)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("", api.APISessionRequired(deleteOAuthApp)).Methods("DELETE")
+	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.APISessionRequired(regenerateOAuthAppSecret)).Methods("POST")
 
-	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.ApiSessionRequired(getAuthorizedOAuthApps)).Methods("GET")
+	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.APISessionRequired(getAuthorizedOAuthApps)).Methods("GET")
 }
 
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
-	oauthApp := model.OAuthAppFromJson(r.Body)
-
-	if oauthApp == nil {
+	var oauthApp model.OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oauthApp); jsonErr != nil {
 		c.SetInvalidParam("oauth_app")
 		return
 	}
@@ -46,7 +45,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oauthApp.CreatorId = c.AppContext.Session().UserId
 
-	rapp, err := c.App.CreateOAuthApp(oauthApp)
+	rapp, err := c.App.CreateOAuthApp(&oauthApp)
 	if err != nil {
 		c.Err = err
 		return
@@ -78,8 +77,8 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthApp := model.OAuthAppFromJson(r.Body)
-	if oauthApp == nil {
+	var oauthApp model.OAuthApp
+	if jsonErr := json.NewDecoder(r.Body).Decode(&oauthApp); jsonErr != nil {
 		c.SetInvalidParam("oauth_app")
 		return
 	}
@@ -106,7 +105,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		oauthApp.IsTrusted = oldOAuthApp.IsTrusted
 	}
 
-	updatedOAuthApp, err := c.App.UpdateOAuthApp(oldOAuthApp, oauthApp)
+	updatedOAuthApp, err := c.App.UpdateOAuthApp(oldOAuthApp, &oauthApp)
 	if err != nil {
 		c.Err = err
 		return
@@ -143,7 +142,12 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.OAuthAppListToJson(apps)))
+	js, jsonErr := json.Marshal(apps)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getOAuthApps", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -289,5 +293,10 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(model.OAuthAppListToJson(apps)))
+	js, jsonErr := json.Marshal(apps)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getAuthorizedOAuthApps", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }

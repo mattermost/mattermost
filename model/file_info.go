@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"image"
 	"image/gif"
 	"io"
@@ -56,36 +55,6 @@ type FileInfo struct {
 	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
-}
-
-func (fi *FileInfo) ToJson() string {
-	b, _ := json.Marshal(fi)
-	return string(b)
-}
-
-func FileInfoFromJson(data io.Reader) *FileInfo {
-	decoder := json.NewDecoder(data)
-
-	var fi FileInfo
-	if err := decoder.Decode(&fi); err != nil {
-		return nil
-	}
-	return &fi
-}
-
-func FileInfosToJson(infos []*FileInfo) string {
-	b, _ := json.Marshal(infos)
-	return string(b)
-}
-
-func FileInfosFromJson(data io.Reader) []*FileInfo {
-	decoder := json.NewDecoder(data)
-
-	var infos []*FileInfo
-	if err := decoder.Decode(&infos); err != nil {
-		return nil
-	}
-	return infos
 }
 
 func (fi *FileInfo) PreSave() {

@@ -66,7 +66,7 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 		key += utils.GetIPAddress(r, rl.trustedProxyIPHeader)
 	}
 
-	// Note that most of the time the user won't have to set this because the utils.GetIpAddress above tries the
+	// Note that most of the time the user won't have to set this because the utils.GetIPAddress above tries the
 	// most common headers anyway.
 	if rl.header != "" {
 		key += strings.ToLower(r.Header.Get(rl.header))

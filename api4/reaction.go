@@ -12,15 +12,15 @@ import (
 )
 
 func (api *API) InitReaction() {
-	api.BaseRoutes.Reactions.Handle("", api.ApiSessionRequired(saveReaction)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/reactions", api.ApiSessionRequired(getReactions)).Methods("GET")
-	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.ApiSessionRequired(deleteReaction)).Methods("DELETE")
-	api.BaseRoutes.Posts.Handle("/ids/reactions", api.ApiSessionRequired(getBulkReactions)).Methods("POST")
+	api.BaseRoutes.Reactions.Handle("", api.APISessionRequired(saveReaction)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/reactions", api.APISessionRequired(getReactions)).Methods("GET")
+	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions)).Methods("POST")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
-	reaction := model.ReactionFromJson(r.Body)
-	if reaction == nil {
+	var reaction model.Reaction
+	if jsonErr := json.NewDecoder(r.Body).Decode(&reaction); jsonErr != nil {
 		c.SetInvalidParam("reaction")
 		return
 	}
@@ -40,13 +40,13 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reaction, err := c.App.SaveReactionForPost(c.AppContext, reaction)
+	re, err := c.App.SaveReactionForPost(c.AppContext, &reaction)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(reaction); err != nil {
+	if err := json.NewEncoder(w).Encode(re); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -68,7 +68,12 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.ReactionsToJson(reactions)))
+	js, jsonErr := json.Marshal(reactions)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getReactions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -113,7 +118,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
-	postIds := model.ArrayFromJson(r.Body)
+	postIds := model.ArrayFromJSON(r.Body)
 	for _, postId := range postIds {
 		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), postId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
@@ -126,5 +131,10 @@ func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.MapPostIdToReactionsToJson(reactions)))
+	js, jsonErr := json.Marshal(reactions)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getBulkReactions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }

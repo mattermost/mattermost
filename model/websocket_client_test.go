@@ -46,7 +46,7 @@ func TestWebSocketRace(t *testing.T) {
 
 	url := strings.Replace(s.URL, "http://", "ws://", 1)
 	cli, err := NewWebSocketClient4(url, "authToken")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	cli.Listen()
 
@@ -110,7 +110,7 @@ func TestWebSocketClose(t *testing.T) {
 
 	t.Run("SuddenClose", func(t *testing.T) {
 		cli, err := NewWebSocketClient4(url, "authToken")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		cli.Listen()
 
@@ -132,7 +132,7 @@ func TestWebSocketClose(t *testing.T) {
 
 	t.Run("ExplicitClose", func(t *testing.T) {
 		cli, err := NewWebSocketClient4(url, "authToken")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		cli.Listen()
 

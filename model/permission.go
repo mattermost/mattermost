@@ -108,7 +108,7 @@ var PermissionCreateComplianceExportJob *Permission
 var PermissionReadComplianceExportJob *Permission
 var PermissionReadAudits *Permission
 var PermissionTestElasticsearch *Permission
-var PermissionTestSiteUrl *Permission
+var PermissionTestSiteURL *Permission
 var PermissionTestS3 *Permission
 var PermissionReloadConfig *Permission
 var PermissionInvalidateCaches *Permission
@@ -202,8 +202,8 @@ var PermissionSysconsoleWriteEnvironmentFileStorage *Permission
 var PermissionSysconsoleReadEnvironmentImageProxy *Permission
 var PermissionSysconsoleWriteEnvironmentImageProxy *Permission
 
-var PermissionSysconsoleReadEnvironmentSmtp *Permission
-var PermissionSysconsoleWriteEnvironmentSmtp *Permission
+var PermissionSysconsoleReadEnvironmentSMTP *Permission
+var PermissionSysconsoleWriteEnvironmentSMTP *Permission
 
 var PermissionSysconsoleReadEnvironmentPushNotificationServer *Permission
 var PermissionSysconsoleWriteEnvironmentPushNotificationServer *Permission
@@ -909,7 +909,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
-	PermissionTestSiteUrl = &Permission{
+	PermissionTestSiteURL = &Permission{
 		"test_site_url",
 		"",
 		"",
@@ -1366,13 +1366,13 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleReadEnvironmentSmtp = &Permission{
+	PermissionSysconsoleReadEnvironmentSMTP = &Permission{
 		"sysconsole_read_environment_smtp",
 		"",
 		"",
 		PermissionScopeSystem,
 	}
-	PermissionSysconsoleWriteEnvironmentSmtp = &Permission{
+	PermissionSysconsoleWriteEnvironmentSMTP = &Permission{
 		"sysconsole_write_environment_smtp",
 		"",
 		"",
@@ -1912,7 +1912,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadEnvironmentElasticsearch,
 		PermissionSysconsoleReadEnvironmentFileStorage,
 		PermissionSysconsoleReadEnvironmentImageProxy,
-		PermissionSysconsoleReadEnvironmentSmtp,
+		PermissionSysconsoleReadEnvironmentSMTP,
 		PermissionSysconsoleReadEnvironmentPushNotificationServer,
 		PermissionSysconsoleReadEnvironmentHighAvailability,
 		PermissionSysconsoleReadEnvironmentRateLimiting,
@@ -1969,7 +1969,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteEnvironmentElasticsearch,
 		PermissionSysconsoleWriteEnvironmentFileStorage,
 		PermissionSysconsoleWriteEnvironmentImageProxy,
-		PermissionSysconsoleWriteEnvironmentSmtp,
+		PermissionSysconsoleWriteEnvironmentSMTP,
 		PermissionSysconsoleWriteEnvironmentPushNotificationServer,
 		PermissionSysconsoleWriteEnvironmentHighAvailability,
 		PermissionSysconsoleWriteEnvironmentRateLimiting,
@@ -2048,7 +2048,7 @@ func initializePermissions() {
 		PermissionCreateComplianceExportJob,
 		PermissionReadComplianceExportJob,
 		PermissionReadAudits,
-		PermissionTestSiteUrl,
+		PermissionTestSiteURL,
 		PermissionTestElasticsearch,
 		PermissionTestS3,
 		PermissionReloadConfig,

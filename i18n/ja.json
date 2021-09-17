@@ -148,14 +148,6 @@
     "translation": "このチャンネルは非公開チャンネルに変更されました。"
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "このデフォルトチャンネルは非公開チャンネルに変更できません。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "変更しようとしているチャンネルはすでに非公開チャンネルです。"
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "ダイレクトメッセージチャンネルを作成するにはcreateDirectChannel APIを使用してください。"
   },
@@ -1181,7 +1173,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "変換エラー"
+    "translation": "変換できませんでした。"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1314,10 +1306,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "RootIdパラメーターのChannelIdが不正です。"
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "ParentIdパラメーターが不正です。"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3016,10 +3004,6 @@
     "translation": "ファイルストレージに画像ファイルを書き込めません。接続を確認し、再度実行してください。"
   },
   {
-    "id": "cli.license.critical",
-    "translation": "この機能はEnterprise Editionへのアップグレードとライセンスキーを要求しています。システム管理者に連絡してください。"
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "ユーザーを取得できません。"
   },
@@ -3716,10 +3700,6 @@
     "translation": "不正なコマンドフックIDです。"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "不正な親IDです。"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "不正なルートIDです。"
   },
@@ -4381,7 +4361,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "ファイルIDが不正です。アップロードは最大5ファイルまでに制限されています。それ以上のファイルをアップロードするには追加の投稿を行ってください。"
+    "translation": "ファイルIDが不正です。アップロードは最大10ファイルまでに制限されています。それ以上のファイルをアップロードするには追加の投稿を行ってください。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4404,20 +4384,12 @@
     "translation": "不正なオリジナルIDです。"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "不正な親IDです。"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "不正な設定値です。"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "不正なルートIDです。"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "親IDが設定されている場合、無効なルートIDが設定されていなければなりません。"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4817,7 +4789,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4825,7 +4797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4833,7 +4805,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5126,10 +5098,6 @@
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "zipファイルを作成できません"
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "外向きのウェブフッは削除されましたが、エラーにより新しいウェブフックを作成できませんでした。"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5752,10 +5720,6 @@
     "translation": "プラグインをダウンロードする際にエラーが発生しました。"
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "公開鍵ファイルを開く際にエラーが発生しました。"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "無効化されたライセンスへの電子メールを送信できませんでした。"
   },
@@ -5874,38 +5838,6 @@
   {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "ブラウザ、もしくはMattermostデスクトップアプリから、Botをチーム・チャンネルに追加してください。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "プロフィール画像をアップロードできません。ファイルが大き過ぎます。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "マルチパートフォームを解析できません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "画像ファイルを開けません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "リクエストの'image'以下にファイルがありません。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "リクエストの'image'以下の配列が空です。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "アイコン画像をアップロードできませんでした。"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "アイコン画像ファイルを読み込めませんでした。"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "アイコン画像を削除できませんでした。"
   },
   {
     "id": "api.bot.create_disabled",
@@ -9175,7 +9107,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "クラウドチェックに失敗したか、制限を超えています。"
+    "translation": "Mattermostクラウドインスタンスのユーザー数を確認できませんでした。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -9224,5 +9156,53 @@
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "電子メール確認トークンを無効にする際にタイプ別のトークンを取得できませんでした"
+  },
+  {
+    "id": "extract_content.worker.do_job.file_info",
+    "translation": "コンテンツ抽出中、ファイル情報を取得できませんでした。"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.to",
+    "translation": "不正な入力値 'to'"
+  },
+  {
+    "id": "extrac_content.worker.do_job.invalid_input.from",
+    "translation": "不正な入力値 'from'"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "この機能を利用するには、Enterprise Editionへのアップグレードが必要です。"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "ユーザーストアが空であるかどうか確認できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "スレッドの折り畳み機能を有効にするには、ThreadAutoFollowが有効である必要があります"
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "投稿を変換できませんでした。"
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} がスレッドへ返信しました"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "復元できませんでした。"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "スレッドへの返信"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " フォローしているスレッドへコメントがありました。"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "設定をリロードできませんでした。"
   }
 ]
