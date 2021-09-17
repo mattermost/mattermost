@@ -1024,12 +1024,12 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 
-	var channels model.ChannelList
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "getchannels_tosql")
 	}
 
+	var channels model.ChannelList
 	_, err = s.GetReplica().Select(&channels, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get channels with UserId=%s", userId)

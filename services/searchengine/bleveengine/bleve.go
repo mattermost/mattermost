@@ -61,7 +61,7 @@ func getChannelIndexMapping() *mapping.IndexMappingImpl {
 	channelMapping.AddFieldMappingsAt("Id", keywordMapping)
 	channelMapping.AddFieldMappingsAt("TeamId", keywordMapping)
 	channelMapping.AddFieldMappingsAt("NameSuggest", keywordMapping)
-	channelMapping.AddFieldMappingsAt("UserIds", standardMapping)
+	channelMapping.AddFieldMappingsAt("UserIds", keywordMapping)
 
 	indexMapping := bleve.NewIndexMapping()
 	indexMapping.AddDocumentMapping("_default", channelMapping)

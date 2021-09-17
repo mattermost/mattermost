@@ -60,19 +60,19 @@ func (th *SearchTestHelper) SetupBasicFixtures() error {
 	}
 
 	// Create channels
-	channelBasic, err := th.createChannel(team.Id, "channel-a", "ChannelA", "", model.ChannelTypeOpen, false)
+	channelBasic, err := th.createChannel(team.Id, "channel-a", "ChannelA", "", model.ChannelTypeOpen, nil, false)
 	if err != nil {
 		return err
 	}
-	channelPrivate, err := th.createChannel(team.Id, "channel-private", "ChannelPrivate", "", model.ChannelTypePrivate, false)
+	channelPrivate, err := th.createChannel(team.Id, "channel-private", "ChannelPrivate", "", model.ChannelTypePrivate, nil, false)
 	if err != nil {
 		return err
 	}
-	channelDeleted, err := th.createChannel(team.Id, "channel-deleted", "ChannelA (deleted)", "", model.ChannelTypeOpen, true)
+	channelDeleted, err := th.createChannel(team.Id, "channel-deleted", "ChannelA (deleted)", "", model.ChannelTypeOpen, nil, true)
 	if err != nil {
 		return err
 	}
-	channelAnotherTeam, err := th.createChannel(anotherTeam.Id, "channel-a", "ChannelA", "", model.ChannelTypeOpen, false)
+	channelAnotherTeam, err := th.createChannel(anotherTeam.Id, "channel-a", "ChannelA", "", model.ChannelTypeOpen, nil, false)
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func (th *SearchTestHelper) deleteBot(botID string) error {
 	return nil
 }
 
-func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose string, channelType model.ChannelType, deleted bool) (*model.Channel, error) {
+func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose string, channelType model.ChannelType, user *model.User, deleted bool) (*model.Channel, error) {
 	channel, err := th.Store.Channel().Save(&model.Channel{
 		TeamId:      teamID,
 		DisplayName: displayName,
@@ -251,8 +251,8 @@ func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose str
 		return nil, err
 	}
 
-	if channelType == model.ChannelTypePrivate && th.User != nil {
-		err = th.addUserToChannels(th.User, []string{channel.Id})
+	if channelType == model.ChannelTypePrivate && user != nil {
+		err = th.addUserToChannels(user, []string{channel.Id})
 		if err != nil {
 			return nil, err
 		}
