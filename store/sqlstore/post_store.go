@@ -1660,7 +1660,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
-		//searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		// Parse text for wildcards
 		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
@@ -1683,7 +1682,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		searchClause := fmt.Sprintf("to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		baseQuery = baseQuery.Where(searchClause)
-		//searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
 			var err error
@@ -1699,7 +1697,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		searchClause := fmt.Sprintf("MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 		baseQuery = baseQuery.Where(searchClause)
-		//searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 
 		excludeClause := ""
 		if excludedTerms != "" {
