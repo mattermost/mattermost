@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS TeamMembers (
     TeamId varchar(26) NOT NULL,
     UserId varchar(26) NOT NULL,
-    Roles text,
+    Roles varchar(64),
     DeleteAt bigint(20),
     PRIMARY KEY (TeamId, UserId),
     KEY idx_teammembers_user_id (UserId),
