@@ -94,6 +94,7 @@ type User struct {
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
 	RemoteId               *string   `json:"remote_id,omitempty"`
+	ShowLastActive         bool      `json:"show_last_active"`
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
@@ -117,18 +118,19 @@ type UserUpdate struct {
 
 //msgp:ignore UserPatch
 type UserPatch struct {
-	Username    *string   `json:"username"`
-	Password    *string   `json:"password,omitempty"`
-	Nickname    *string   `json:"nickname"`
-	FirstName   *string   `json:"first_name"`
-	LastName    *string   `json:"last_name"`
-	Position    *string   `json:"position"`
-	Email       *string   `json:"email"`
-	Props       StringMap `json:"props,omitempty"`
-	NotifyProps StringMap `json:"notify_props,omitempty"`
-	Locale      *string   `json:"locale"`
-	Timezone    StringMap `json:"timezone"`
-	RemoteId    *string   `json:"remote_id"`
+	Username       *string   `json:"username"`
+	Password       *string   `json:"password,omitempty"`
+	Nickname       *string   `json:"nickname"`
+	FirstName      *string   `json:"first_name"`
+	LastName       *string   `json:"last_name"`
+	Position       *string   `json:"position"`
+	Email          *string   `json:"email"`
+	Props          StringMap `json:"props,omitempty"`
+	NotifyProps    StringMap `json:"notify_props,omitempty"`
+	Locale         *string   `json:"locale"`
+	Timezone       StringMap `json:"timezone"`
+	RemoteId       *string   `json:"remote_id"`
+	ShowLastActive *bool     `json:"show_last_active"`
 }
 
 //msgp:ignore UserAuth
@@ -383,6 +385,8 @@ func (u *User) PreSave() {
 
 	u.MfaActive = false
 
+	u.ShowLastActive = true
+
 	if u.Locale == "" {
 		u.Locale = DefaultLocale
 	}
@@ -529,6 +533,10 @@ func (u *User) Patch(patch *UserPatch) {
 
 	if patch.RemoteId != nil {
 		u.RemoteId = patch.RemoteId
+	}
+
+	if patch.ShowLastActive != nil {
+		u.ShowLastActive = *patch.ShowLastActive
 	}
 }
 
