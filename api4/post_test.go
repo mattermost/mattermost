@@ -2231,9 +2231,9 @@ func TestSearchPosts(t *testing.T) {
 		IsOrSearch:     &isOrSearch,
 		TimeZoneOffset: &timezoneOffset,
 	}
-	posts, _, err := client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
+	allTeamsPosts, _, err := client.SearchPostsWithParams("", &searchParams)
 	require.NoError(t, err)
-	require.Len(t, posts.Order, 3, "wrong search")
+	require.Len(t, allTeamsPosts.Order, 4, "wrong search along multiple teams")
 
 	terms = "search"
 	isOrSearch = false
@@ -2243,9 +2243,9 @@ func TestSearchPosts(t *testing.T) {
 		IsOrSearch:     &isOrSearch,
 		TimeZoneOffset: &timezoneOffset,
 	}
-	posts, _, err = client.SearchPostsWithParams("", &searchParams)
+	posts, _, err := client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
-	require.Len(t, posts.Order, 4, "wrong search along multiple teams")
+	require.Len(t, posts.Order, 3, "wrong search")
 
 	terms = "search"
 	page := 0
