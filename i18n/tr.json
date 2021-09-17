@@ -4837,7 +4837,7 @@
   },
   {
     "id": "app.plugin.marketplace_client.failed_to_fetch",
-    "translation": "Mağaza sunucusundan uygulama ekleri alınamadı."
+    "translation": "Uygulama ekleri mağaza sunucusundan alınamadı."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
@@ -4861,7 +4861,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Yükseltme işlemi sırasında uygulama eki yeniden başlatılamadı."
+    "translation": "Uygulama eki yükseltme işlemi sırasında yeniden başlatılamadı."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
@@ -4873,7 +4873,7 @@
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Dosya depolama alanındaki uygulama eki klasöründeki dosyalar okunurken sorun çıktı."
+    "translation": "Dosya depolama alanında uygulama eki klasöründeki dosyalar okunurken sorun çıktı."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
