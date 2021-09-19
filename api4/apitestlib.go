@@ -123,7 +123,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}
 	// lock logger config so server init cannot override it during testing.
@@ -911,7 +911,7 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
 	require.Empty(t, data)
-	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
+	require.Equal(t, http.StatusNotModified, resp.StatusCode, "wrong status code for etag")
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {

@@ -30,6 +30,7 @@ type FeatureFlags struct {
 
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
+	PluginPlaybooks          string `plugin_id:"playbooks"`
 	PluginApps               string `plugin_id:"com.mattermost.apps"`
 	PluginFocalboard         string `plugin_id:"focalboard"`
 
@@ -41,8 +42,14 @@ type FeatureFlags struct {
 	// Enable the Global Header
 	GlobalHeader bool
 
-	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
-	InviteMembersButton string
+	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
+	AddChannelButton string
+
+	// Enable different treatments for first time users, possible values = ("none", "tour_point", "around_input")
+	PrewrittenMessages string
+
+	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
+	DownloadAppsCTA string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -58,7 +65,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TimedDND = false
 	f.PermalinkPreviews = true
 	f.GlobalHeader = false
-	f.InviteMembersButton = "none"
+	f.AddChannelButton = "by_team_name"
+	f.PrewrittenMessages = "none"
+	f.DownloadAppsCTA = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

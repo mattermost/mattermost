@@ -53,7 +53,7 @@ func threadToSlice(thread *model.Thread) []interface{} {
 		thread.ChannelId,
 		thread.LastReplyAt,
 		thread.ReplyCount,
-		model.ArrayToJson(thread.Participants),
+		model.ArrayToJSON(thread.Participants),
 	}
 }
 
@@ -448,6 +448,18 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		}
 	}
 
+	var participants []*model.User
+	for _, participantId := range thread.Participants {
+		var participant *model.User
+		for _, u := range users {
+			if u.Id == participantId {
+				participant = u
+				break
+			}
+		}
+		participants = append(participants, participant)
+	}
+
 	result := &model.ThreadResponse{
 		PostId:         thread.PostId,
 		ReplyCount:     thread.ReplyCount,
@@ -455,7 +467,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		LastViewedAt:   thread.LastViewedAt,
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
-		Participants:   users,
+		Participants:   participants,
 		Post:           thread.Post.ToNilIfInvalid(),
 	}
 

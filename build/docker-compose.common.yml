@@ -68,7 +68,7 @@ services:
     image: "inbucket/inbucket:stable"
     restart: always
     environment:
-      INBUCKET_WEB_ADDR: "0.0.0.0:10080"
+      INBUCKET_WEB_ADDR: "0.0.0.0:9001"
       INBUCKET_POP3_ADDR: "0.0.0.0:10110"
       INBUCKET_SMTP_ADDR: "0.0.0.0:10025"
     networks:

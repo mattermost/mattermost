@@ -37,10 +37,6 @@
     color: rgb(28, 88, 217) !important;
   }
 
-  .subTitle a {
-    color: rgba(28, 88, 217, 1) !important;
-  }
-
   .button a {
     background-color: #1C58D9 !important;
     font-weight: 600 !important;
@@ -156,6 +152,7 @@
     background: rgba(63, 67, 80, 0.08);
     border-radius: 4px;
     display: flex;
+    padding-left: 4px; 
   }
 
   .channelLogo {
@@ -174,6 +171,13 @@
     text-transform: uppercase;
     color: rgba(63, 67, 80, 0.64);
     padding: 2px 6px 2px 0px;
+  }
+
+  .gmChannelCount {
+    background-color: rgba(63, 67, 80, 0.2);
+    padding: 0 5px;
+    border-radius: 2px;
+    margin-right: 2px;
   }
   
   .senderMessage div {
