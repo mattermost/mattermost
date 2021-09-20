@@ -2170,7 +2170,7 @@ func (a *App) LeaveChannel(c *request.Context, channelID string, userID string) 
 	user := uresult.Data.(*model.User)
 	membersCount := ccresult.Data.(int64)
 
-	if channel.Type == model.ChannelTypePrivate {
+	if channel.Type == model.ChannelTypeDirect {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
 		return err
 	}
