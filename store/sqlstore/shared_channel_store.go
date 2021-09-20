@@ -222,10 +222,7 @@ func (s SqlSharedChannelStore) getSharedChannelsQuery(opts model.SharedChannelFi
 	}
 
 	if opts.TeamId != "" {
-		query = query.Where(sq.Or{
-			sq.Eq{"sc.TeamId": opts.TeamId},
-			sq.Eq{"sc.TeamId": ""},
-		})
+		query = query.Where(sq.Eq{"sc.TeamId": opts.TeamId})
 	}
 
 	if opts.CreatorId != "" {
