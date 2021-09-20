@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5380
+	CurrentSchemaVersion   = Version600
 	Version600             = "6.0.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
@@ -1539,10 +1539,6 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
 		sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
 
-		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
-			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-		}
-
 		sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"})
 		sqlStore.RemoveIndexIfExists("idx_posts_root_id", "Posts")
 
@@ -1559,11 +1555,15 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 
 		sqlStore.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
 		sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
+
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+		}
 	}
 
-	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
-	// 	saveSchemaVersion(sqlStore, Version600)
-	// }
+	if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+		saveSchemaVersion(sqlStore, Version600)
+	}
 }
 
 func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {

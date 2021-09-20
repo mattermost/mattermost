@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost-server/v6
 
-go 1.15
+go 1.16
 
 require (
 	code.sajari.com/docconv v1.1.1-0.20210427001343-7b3472bc323a
@@ -16,10 +16,8 @@ require (
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/aws/aws-sdk-go v1.38.67
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/blevesearch/bleve v1.0.14
+	github.com/blevesearch/bleve/v2 v2.1.0
 	github.com/cespare/xxhash/v2 v2.1.1
-	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
-	github.com/corpix/uarand v0.1.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.2
@@ -56,7 +54,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/memberlist v0.2.4
 	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // indirect
-	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/jonboulle/clockwork v0.2.2
@@ -72,8 +69,7 @@ require (
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
-	github.com/mattermost/logr v1.0.13 // indirect
-	github.com/mattermost/logr/v2 v2.0.10
+	github.com/mattermost/logr/v2 v2.0.15
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
@@ -103,7 +99,6 @@ require (
 	github.com/russellhaering/goxmldsig v1.1.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/splitio/go-client/v6 v6.1.0
@@ -119,15 +114,11 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.4
 	github.com/wiggin77/merror v1.0.3
-	github.com/wiggin77/srslog v1.0.1 // indirect
-	github.com/willf/bitset v1.1.11 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.3.8
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.opentelemetry.io/otel/internal/metric v0.21.0 // indirect
 	go.uber.org/atomic v1.8.0 // indirect
-	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/image v0.0.0-20210622092929-e6eecd499c2c
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
@@ -139,7 +130,6 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/olivere/elastic.v6 v6.2.35
 	gopkg.in/yaml.v2 v2.4.0
 	willnorris.com/go/imageproxy v0.10.0

@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"strings"
 )
 
@@ -399,39 +397,6 @@ type RolePermissions struct {
 	Permissions []string
 }
 
-func (r *Role) ToJson() string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func RoleFromJson(data io.Reader) *Role {
-	var r *Role
-	json.NewDecoder(data).Decode(&r)
-	return r
-}
-
-func RoleListToJson(r []*Role) string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func RoleListFromJson(data io.Reader) []*Role {
-	var roles []*Role
-	json.NewDecoder(data).Decode(&roles)
-	return roles
-}
-
-func (r *RolePatch) ToJson() string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func RolePatchFromJson(data io.Reader) *RolePatch {
-	var rolePatch *RolePatch
-	json.NewDecoder(data).Decode(&rolePatch)
-	return rolePatch
-}
-
 func (r *Role) Patch(patch *RolePatch) {
 	if patch.Permissions != nil {
 		r.Permissions = *patch.Permissions
@@ -740,6 +705,13 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreatePost.Id,
 			PermissionUseChannelMentions.Id,
 			PermissionUseSlashCommands.Id,
+			PermissionManagePublicChannelProperties.Id,
+			PermissionDeletePublicChannel.Id,
+			PermissionManagePrivateChannelProperties.Id,
+			PermissionDeletePrivateChannel.Id,
+			PermissionManagePrivateChannelMembers.Id,
+			PermissionDeletePost.Id,
+			PermissionEditPost.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -777,6 +749,10 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionJoinPublicChannels.Id,
 			PermissionReadPublicChannel.Id,
 			PermissionViewTeam.Id,
+			PermissionCreatePublicChannel.Id,
+			PermissionCreatePrivateChannel.Id,
+			PermissionInviteUser.Id,
+			PermissionAddUserToTeam.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -824,6 +800,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManageOutgoingWebhooks.Id,
 			PermissionConvertPublicChannelToPrivate.Id,
 			PermissionConvertPrivateChannelToPublic.Id,
+			PermissionDeletePost.Id,
+			PermissionDeleteOthersPosts.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -851,6 +829,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreateDirectChannel.Id,
 			PermissionCreateGroupChannel.Id,
 			PermissionViewMembers.Id,
+			PermissionCreateTeam.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

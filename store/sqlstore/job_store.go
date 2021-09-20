@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -46,11 +47,15 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 }
 
 func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+	dataJSON, jsonErr := json.Marshal(job.Data)
+	if jsonErr != nil {
+		return false, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
+	}
 	query, args, err := jss.getQueryBuilder().
 		Update("Jobs").
 		Set("LastActivityAt", model.GetMillis()).
 		Set("Status", job.Status).
-		Set("Data", job.DataToJson()).
+		Set("Data", string(dataJSON)).
 		Set("Progress", job.Progress).
 		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).ToSql()
 	if err != nil {

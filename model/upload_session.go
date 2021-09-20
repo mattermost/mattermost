@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -46,39 +44,6 @@ type UploadSession struct {
 	RemoteId string `json:"remote_id"`
 	// Requested file id if uploading for shared channel
 	ReqFileId string `json:"req_file_id"`
-}
-
-// ToJson serializes the UploadSession into JSON and returns it as string.
-func (us *UploadSession) ToJson() string {
-	b, _ := json.Marshal(us)
-	return string(b)
-}
-
-// UploadSessionsToJson serializes a list of UploadSession into JSON and
-// returns it as string.
-func UploadSessionsToJson(uss []*UploadSession) string {
-	b, _ := json.Marshal(uss)
-	return string(b)
-}
-
-// UploadSessionsFromJson deserializes a list of UploadSession from JSON data.
-func UploadSessionsFromJson(data io.Reader) []*UploadSession {
-	decoder := json.NewDecoder(data)
-	var uss []*UploadSession
-	if err := decoder.Decode(&uss); err != nil {
-		return nil
-	}
-	return uss
-}
-
-// UploadSessionFromJson deserializes the UploadSession from JSON data.
-func UploadSessionFromJson(data io.Reader) *UploadSession {
-	decoder := json.NewDecoder(data)
-	var us UploadSession
-	if err := decoder.Decode(&us); err != nil {
-		return nil
-	}
-	return &us
 }
 
 // PreSave is a utility function used to fill required information.

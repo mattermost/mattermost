@@ -24,9 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
@@ -536,7 +536,7 @@ func TestPanicLog(t *testing.T) {
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
 	require.NoError(t, err)
-	err = logger.ConfigureTargets(cfg)
+	err = logger.ConfigureTargets(cfg, nil)
 	require.NoError(t, err)
 	logger.LockConfiguration()
 

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -117,7 +116,6 @@ func TestSaveSchemaVersion(t *testing.T) {
 		})
 	})
 }
-
 func createChannelMemberWithLastViewAt(ss store.Store, channelId, userId string, lastViewAt int64) *model.ChannelMember {
 	m := model.ChannelMember{}
 	m.ChannelId = channelId

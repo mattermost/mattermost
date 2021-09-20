@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
@@ -38,16 +36,4 @@ func (i *GuestsInvite) IsValid() *AppError {
 		}
 	}
 	return nil
-}
-
-// GuestsInviteFromJson will decode the input and return a GuestsInvite
-func GuestsInviteFromJson(data io.Reader) *GuestsInvite {
-	var i *GuestsInvite
-	json.NewDecoder(data).Decode(&i)
-	return i
-}
-
-func (i *GuestsInvite) ToJson() string {
-	b, _ := json.Marshal(i)
-	return string(b)
 }

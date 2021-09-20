@@ -309,20 +309,20 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 }
 
 func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
-	t.Run("should enable IncidentManagement plugin by default on enterprise-ready builds", func(t *testing.T) {
+	t.Run("should enable Playbooks plugin by default on enterprise-ready builds", func(t *testing.T) {
 		BuildEnterpriseReady = "true"
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
+		assert.True(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
 	})
 
-	t.Run("should not enable IncidentManagement plugin by default on non-enterprise-ready builds", func(t *testing.T) {
+	t.Run("should not enable Playbooks plugin by default on non-enterprise-ready builds", func(t *testing.T) {
 		BuildEnterpriseReady = ""
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.Nil(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"])
+		assert.Nil(t, c1.PluginSettings.PluginStates["playbooks"])
 	})
 
 	t.Run("should not re-enable IncidentManagement plugin after it has been disabled", func(t *testing.T) {
@@ -330,7 +330,7 @@ func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
 		c1 := Config{
 			PluginSettings: PluginSettings{
 				PluginStates: map[string]*PluginState{
-					"com.mattermost.plugin-incident-management": {
+					"playbooks": {
 						Enable: false,
 					},
 				},
@@ -339,7 +339,7 @@ func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
 
 		c1.SetDefaults()
 
-		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
+		assert.False(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
 	})
 }
 
@@ -814,48 +814,14 @@ func TestListenAddressIsValidated(t *testing.T) {
 }
 
 func TestImageProxySettingsSetDefaults(t *testing.T) {
-	ss := ServiceSettings{
-		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(ImageProxyTypeAtmosCamo),
-		DEPRECATED_DO_NOT_USE_ImageProxyURL:     NewString("http://images.example.com"),
-		DEPRECATED_DO_NOT_USE_ImageProxyOptions: NewString("1234abcd"),
-	}
-
-	t.Run("default, no old settings", func(t *testing.T) {
+	t.Run("default settings", func(t *testing.T) {
 		ips := ImageProxySettings{}
-		ips.SetDefaults(ServiceSettings{})
+		ips.SetDefaults()
 
 		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
 		assert.Equal(t, "", *ips.RemoteImageProxyURL)
 		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
-	})
-
-	t.Run("default, old settings", func(t *testing.T) {
-		ips := ImageProxySettings{}
-		ips.SetDefaults(ss)
-
-		assert.Equal(t, true, *ips.Enable)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyType, *ips.ImageProxyType)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyURL, *ips.RemoteImageProxyURL)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions, *ips.RemoteImageProxyOptions)
-	})
-
-	t.Run("not default, old settings", func(t *testing.T) {
-		url := "http://images.mattermost.com"
-		options := "aaaaaaaa"
-
-		ips := ImageProxySettings{
-			Enable:                  NewBool(false),
-			ImageProxyType:          NewString(ImageProxyTypeLocal),
-			RemoteImageProxyURL:     &url,
-			RemoteImageProxyOptions: &options,
-		}
-		ips.SetDefaults(ss)
-
-		assert.Equal(t, false, *ips.Enable)
-		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
-		assert.Equal(t, url, *ips.RemoteImageProxyURL)
-		assert.Equal(t, options, *ips.RemoteImageProxyOptions)
 	})
 }
 
@@ -1338,10 +1304,11 @@ func TestConfigToJSONFiltered(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
 
-	jsonCfgFiltered := c.ToJsonFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	jsonCfgFiltered, err := c.ToJSONFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	require.NoError(t, err)
 
 	unmarshaledCfg := make(map[string]json.RawMessage)
-	err := json.Unmarshal([]byte(jsonCfgFiltered), &unmarshaledCfg)
+	err = json.Unmarshal(jsonCfgFiltered, &unmarshaledCfg)
 	require.NoError(t, err)
 
 	_, ok := unmarshaledCfg["SqlSettings"]
@@ -1466,4 +1433,30 @@ func TestConfigExportSettingsIsValid(t *testing.T) {
 	err = cfg.ExportSettings.isValid()
 	require.NotNil(t, err)
 	require.Equal(t, "model.config.is_valid.export.retention_days_too_low.app_error", err.Id)
+}
+
+func TestConfigServiceSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDisabled
+	err = cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.ThreadAutoFollow = false
+	err = cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOff
+	err = cfg.ServiceSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
+
+	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOn
+	err = cfg.ServiceSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
 }
