@@ -696,3 +696,10 @@ func (o *Post) GetPreviewPost() *PreviewPost {
 	}
 	return nil
 }
+
+func (o *Post) GetPreviewedPostProp() string {
+	if val, ok := o.GetProp(PostPropsPreviewedPost).(string); ok {
+		return val
+	}
+	return ""
+}
