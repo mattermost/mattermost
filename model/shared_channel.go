@@ -238,6 +238,7 @@ func (scf *SharedChannelAttachment) IsValid() *AppError {
 type SharedChannelFilterOpts struct {
 	TeamId        string
 	CreatorId     string
+	MemberId      string
 	ExcludeHome   bool
 	ExcludeRemote bool
 }
