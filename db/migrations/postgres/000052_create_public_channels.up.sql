@@ -33,3 +33,5 @@ BEGIN
 	END IF;
 END migratepc
 $$;
+
+DROP INDEX IF EXISTS idx_publicchannels_name;

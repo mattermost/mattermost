@@ -828,7 +828,6 @@ func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
 	sqlStore.RemoveIndexIfExists("idx_posts_channel_id", "Posts")
-	sqlStore.RemoveIndexIfExists("idx_publicchannels_name", "PublicChannels")
 	sqlStore.RemoveIndexIfExists("idx_emoji_name", "Emoji")
 	sqlStore.RemoveIndexIfExists("idx_oauthaccessdata_client_id", "OAuthAccessData")
 	sqlStore.RemoveIndexIfExists("idx_oauthauthdata_client_id", "OAuthAuthData")

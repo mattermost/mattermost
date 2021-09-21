@@ -89,3 +89,18 @@ END;
 CALL MigratePC();
 
 DROP PROCEDURE IF EXISTS MigratePC;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'PublicChannels'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_publicchannels_name'
+    ) > 0,
+    'DROP INDEX idx_publicchannels_name ON PublicChannels;',
+    'SELECT 1'
+));
+
+PREPARE removeIndexIfExists FROM @preparedStatement;
+EXECUTE removeIndexIfExists;
+DEALLOCATE PREPARE removeIndexIfExists;
