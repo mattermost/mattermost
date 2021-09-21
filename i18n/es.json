@@ -8009,7 +8009,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "El texto introducido supera el límite de caracteres. La cabecera del canal está limitada a {{.MaxLength} caracteres."
+    "translation": "El texto introducido supera el límite de caracteres. La cabecera del canal está limitada a {{.MaxLength}} caracteres."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
