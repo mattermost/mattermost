@@ -419,24 +419,6 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 	return s
 }
 
-func (s SqlChannelStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
-	s.CreateIndexIfNotExists("idx_channels_update_at", "Channels", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
-	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		s.CreateIndexIfNotExists("idx_channels_name_lower", "Channels", "lower(Name)")
-		s.CreateIndexIfNotExists("idx_channels_displayname_lower", "Channels", "lower(DisplayName)")
-	}
-
-	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
-
-	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
-
-	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-}
-
 func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, channel *model.Channel) error {
 	publicChannel := &publicChannel{
 		Id:          channel.Id,
