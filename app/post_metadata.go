@@ -493,7 +493,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 		if referencedPost == nil {
 			msg := "Referenced post is nil"
-			mlog.Warn(msg)
+			mlog.Warn(msg, mlog.String("post_id", referencedPostID))
 			return nil, nil, nil, errors.New(msg)
 		}
 
