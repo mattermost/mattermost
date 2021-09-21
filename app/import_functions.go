@@ -574,8 +574,8 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 			mlog.Warn("Unable to open the profile image.", mlog.Err(err))
 		} else {
 			defer file.Close()
-			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
+			if limitErr := checkImageLimits(file); limitErr != nil {
+				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, limitErr.Error(), http.StatusBadRequest)
 			}
 			if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
 				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
