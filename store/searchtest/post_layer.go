@@ -1827,7 +1827,7 @@ func testShouldNotReturnLinksEmbeddedInMarkdown(t *testing.T, th *SearchTestHelp
 func testSearchAcrossTeams(t *testing.T, th *SearchTestHelper) {
 	err := th.addUserToChannels(th.User, []string{th.ChannelAnotherTeam.Id})
 	require.NoError(t, err)
-	// Should remove from channel?
+	defer th.Store.Channel().RemoveMember(th.ChannelAnotherTeam.Id, th.User.Id)
 
 	_, err = th.createPost(th.User.Id, th.ChannelAnotherTeam.Id, "text to search", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
