@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -488,6 +489,12 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		// TODO: Look into saving a value in the LinkMetadat.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 			return nil, nil, nil, appErr
+		}
+
+		if referencedPost == nil {
+			msg := "Referenced post is nil"
+			mlog.Warn(msg)
+			return nil, nil, nil, errors.New(msg)
 		}
 
 		referencedChannel, appErr := a.GetChannel(referencedPost.ChannelId)
