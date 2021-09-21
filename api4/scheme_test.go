@@ -797,14 +797,18 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 
 		th.LoginBasic()
 
-		_, _, err := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
+		_, _, err := th.Client.CreateChannel(&model.ChannelWithCategoryData{
+			Channel: model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id},
+		})
 		require.NoError(t, err)
 
 		team.SchemeId = &teamScheme.Id
 		team, appErr = th.App.UpdateTeamScheme(team)
 		require.Nil(t, appErr)
 
-		_, _, err = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
+		_, _, err = th.Client.CreateChannel(&model.ChannelWithCategoryData{
+			Channel: model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id},
+		})
 		require.Error(t, err)
 	})
 }

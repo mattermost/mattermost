@@ -82,7 +82,7 @@ func CreateTestEnvironmentInTeam(a *app.App, c *request.Context, client *model.C
 				return TeamEnvironment{}, err
 			}
 
-			_, _, err = client.AddChannelMember(channel.Id, user.Id)
+			_, _, err = client.AddChannelMember(channel.Id, user.Id, "")
 			if err != nil {
 				return TeamEnvironment{}, err
 			}

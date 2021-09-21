@@ -30,8 +30,29 @@ func TestCreateChannel(t *testing.T) {
 	client := th.Client
 	team := th.BasicTeam
 
-	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
-	private := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypePrivate, TeamId: team.Id}
+	// Test with CategoryId
+	// Throw error when invalid categoryId is passed
+	channelWithCategory := &model.ChannelWithCategoryData{
+		Channel: model.Channel{DisplayName: "Channel With Category", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id},
+	}
+	channelWithCategory.CategoryId = "badCategoryId"
+	_, _, err := client.CreateChannel(channelWithCategory)
+	require.Error(t, err)
+
+	// Accept valid categoryId
+	categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, team.Id, "")
+	require.NoError(t, err)
+	channelWithCategory.CategoryId = categories.Categories[0].Id
+	_, _, err = client.CreateChannel(channelWithCategory)
+	require.NoError(t, err)
+
+	channel := &model.ChannelWithCategoryData{
+		Channel: model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id},
+	}
+
+	private := &model.ChannelWithCategoryData{
+		Channel: model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypePrivate, TeamId: team.Id},
+	}
 
 	rchannel, resp, err := client.CreateChannel(channel)
 	require.NoError(t, err)
@@ -52,7 +73,9 @@ func TestCreateChannel(t *testing.T) {
 	CheckErrorID(t, err, "store.sql_channel.save_channel.exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
-	direct := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeDirect, TeamId: team.Id}
+	direct := &model.ChannelWithCategoryData{
+		Channel: model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeDirect, TeamId: team.Id},
+	}
 	_, resp, err = client.CreateChannel(direct)
 	CheckErrorID(t, err, "api.channel.create_channel.direct_channel.app_error")
 	CheckBadRequestStatus(t, resp)
@@ -131,7 +154,9 @@ func TestCreateChannel(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, r.StatusCode, "Expected 400 Bad Request")
 
 	// Test GroupConstrained flag
-	groupConstrainedChannel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id, GroupConstrained: model.NewBool(true)}
+	groupConstrainedChannel := &model.ChannelWithCategoryData{
+		Channel: model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id, GroupConstrained: model.NewBool(true)},
+	}
 	rchannel, _, err = client.CreateChannel(groupConstrainedChannel)
 	require.NoError(t, err)
 
@@ -147,8 +172,8 @@ func TestUpdateChannel(t *testing.T) {
 	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
 	private := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypePrivate, TeamId: team.Id}
 
-	channel, _, _ = client.CreateChannel(channel)
-	private, _, _ = client.CreateChannel(private)
+	channel, _, _ = client.CreateChannel(&model.ChannelWithCategoryData{Channel: *channel})
+	private, _, _ = client.CreateChannel(&model.ChannelWithCategoryData{Channel: *private})
 
 	//Update a open channel
 	channel.DisplayName = "My new display name"
@@ -348,11 +373,14 @@ func TestChannelUnicodeNames(t *testing.T) {
 	team := th.BasicTeam
 
 	t.Run("create channel unicode", func(t *testing.T) {
-		channel := &model.Channel{
-			Name:        "\u206cenglish\u206dchannel",
-			DisplayName: "The \u206cEnglish\u206d Channel",
-			Type:        model.ChannelTypeOpen,
-			TeamId:      team.Id}
+		channel := &model.ChannelWithCategoryData{
+			Channel: model.Channel{
+				Name:        "\u206cenglish\u206dchannel",
+				DisplayName: "The \u206cEnglish\u206d Channel",
+				Type:        model.ChannelTypeOpen,
+				TeamId:      team.Id,
+			},
+		}
 
 		rchannel, resp, err := client.CreateChannel(channel)
 		require.NoError(t, err)
@@ -369,7 +397,7 @@ func TestChannelUnicodeNames(t *testing.T) {
 			Type:        model.ChannelTypeOpen,
 			TeamId:      team.Id,
 		}
-		channel, _, _ = client.CreateChannel(channel)
+		channel, _, _ = client.CreateChannel(&model.ChannelWithCategoryData{Channel: *channel})
 
 		channel.Name = "\u206ahistorychannel"
 		channel.DisplayName = "UFO's and \ufff9stuff\ufffb."
@@ -1366,29 +1394,35 @@ func TestSearchAllChannels(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	openChannel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
-		DisplayName: "SearchAllChannels-FOOBARDISPLAYNAME",
-		Name:        "whatever",
-		Type:        model.ChannelTypeOpen,
-		TeamId:      th.BasicTeam.Id,
+	openChannel, _, err := th.SystemAdminClient.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "SearchAllChannels-FOOBARDISPLAYNAME",
+			Name:        "whatever",
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		},
 	})
 	require.NoError(t, err)
 
-	privateChannel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
-		DisplayName: "SearchAllChannels-private1",
-		Name:        "private1",
-		Type:        model.ChannelTypePrivate,
-		TeamId:      th.BasicTeam.Id,
+	privateChannel, _, err := th.SystemAdminClient.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "SearchAllChannels-private1",
+			Name:        "private1",
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		},
 	})
 	require.NoError(t, err)
 
 	team := th.CreateTeam()
-	groupConstrainedChannel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
-		DisplayName:      "SearchAllChannels-groupConstrained-1",
-		Name:             "groupconstrained1",
-		Type:             model.ChannelTypePrivate,
-		GroupConstrained: model.NewBool(true),
-		TeamId:           team.Id,
+	groupConstrainedChannel, _, err := th.SystemAdminClient.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName:      "SearchAllChannels-groupConstrained-1",
+			Name:             "groupconstrained1",
+			Type:             model.ChannelTypePrivate,
+			GroupConstrained: model.NewBool(true),
+			TeamId:           team.Id,
+		},
 	})
 	require.NoError(t, err)
 
@@ -1695,7 +1729,7 @@ func TestDeleteChannel(t *testing.T) {
 			Type:        model.ChannelTypeOpen,
 			TeamId:      sdTeam.Id,
 		}
-		sdPublicChannel, _, err = c.CreateChannel(sdPublicChannel)
+		sdPublicChannel, _, err = c.CreateChannel(&model.ChannelWithCategoryData{Channel: *sdPublicChannel})
 		require.NoError(t, err)
 		_, err = client.DeleteChannel(sdPublicChannel.Id)
 		require.NoError(t, err)
@@ -1706,7 +1740,7 @@ func TestDeleteChannel(t *testing.T) {
 			Type:        model.ChannelTypePrivate,
 			TeamId:      sdTeam.Id,
 		}
-		sdPrivateChannel, _, err = c.CreateChannel(sdPrivateChannel)
+		sdPrivateChannel, _, err = c.CreateChannel(&model.ChannelWithCategoryData{Channel: *sdPrivateChannel})
 		require.NoError(t, err)
 		_, err = client.DeleteChannel(sdPrivateChannel.Id)
 		require.NoError(t, err)
@@ -2749,17 +2783,28 @@ func TestAddChannelMember(t *testing.T) {
 	publicChannel := th.CreatePublicChannel()
 	privateChannel := th.CreatePrivateChannel()
 
-	user3 := th.CreateUserWithClient(th.SystemAdminClient)
-	_, _, err := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id)
+	// Check with CategoryId
+	// Throw error when invalid categoryId is passed
+	_, _, err := client.AddChannelMember(privateChannel.Id, user.Id, "badCategoryId")
+	require.Error(t, err)
+
+	// Accept valid categoryId
+	categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team.Id, "")
+	require.NoError(t, err)
+	_, _, err = client.AddChannelMember(privateChannel.Id, user.Id, categories.Categories[0].Id)
 	require.NoError(t, err)
 
-	cm, resp, err := client.AddChannelMember(publicChannel.Id, user2.Id)
+	user3 := th.CreateUserWithClient(th.SystemAdminClient)
+	_, _, err = th.SystemAdminClient.AddTeamMember(team.Id, user3.Id)
+	require.NoError(t, err)
+
+	cm, resp, err := client.AddChannelMember(publicChannel.Id, user2.Id, "")
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	require.Equal(t, publicChannel.Id, cm.ChannelId, "should have returned exact channel")
 	require.Equal(t, user2.Id, cm.UserId, "should have returned exact user added to public channel")
 
-	cm, _, err = client.AddChannelMember(privateChannel.Id, user2.Id)
+	cm, _, err = client.AddChannelMember(privateChannel.Id, user2.Id, "")
 	require.NoError(t, err)
 	require.Equal(t, privateChannel.Id, cm.ChannelId, "should have returned exact channel")
 	require.Equal(t, user2.Id, cm.UserId, "should have returned exact user added to private channel")
@@ -2783,23 +2828,23 @@ func TestAddChannelMember(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	client.RemoveUserFromChannel(publicChannel.Id, user.Id)
-	_, _, err = client.AddChannelMember(publicChannel.Id, user.Id)
+	_, _, err = client.AddChannelMember(publicChannel.Id, user.Id, "")
 	require.NoError(t, err)
 
-	cm, resp, err = client.AddChannelMember(publicChannel.Id, "junk")
+	cm, resp, err = client.AddChannelMember(publicChannel.Id, "junk", "")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	require.Nil(t, cm, "should return nothing")
 
-	_, resp, err = client.AddChannelMember(publicChannel.Id, GenerateTestId())
+	_, resp, err = client.AddChannelMember(publicChannel.Id, GenerateTestId(), "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, err = client.AddChannelMember("junk", user2.Id)
+	_, resp, err = client.AddChannelMember("junk", user2.Id, "")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddChannelMember(GenerateTestId(), user2.Id)
+	_, resp, err = client.AddChannelMember(GenerateTestId(), user2.Id, "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -2808,15 +2853,15 @@ func TestAddChannelMember(t *testing.T) {
 	client.Logout()
 	client.Login(user2.Id, user2.Password)
 
-	_, resp, err = client.AddChannelMember(publicChannel.Id, otherUser.Id)
+	_, resp, err = client.AddChannelMember(publicChannel.Id, otherUser.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, err = client.AddChannelMember(privateChannel.Id, otherUser.Id)
+	_, resp, err = client.AddChannelMember(privateChannel.Id, otherUser.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, err = client.AddChannelMember(otherChannel.Id, otherUser.Id)
+	_, resp, err = client.AddChannelMember(otherChannel.Id, otherUser.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
@@ -2824,31 +2869,31 @@ func TestAddChannelMember(t *testing.T) {
 	client.Login(user.Id, user.Password)
 
 	// should fail adding user who is not a member of the team
-	_, resp, err = client.AddChannelMember(otherChannel.Id, otherUser.Id)
+	_, resp, err = client.AddChannelMember(otherChannel.Id, otherUser.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	client.DeleteChannel(otherChannel.Id)
 
 	// should fail adding user to a deleted channel
-	_, resp, err = client.AddChannelMember(otherChannel.Id, user2.Id)
+	_, resp, err = client.AddChannelMember(otherChannel.Id, user2.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	client.Logout()
-	_, resp, err = client.AddChannelMember(publicChannel.Id, user2.Id)
+	_, resp, err = client.AddChannelMember(publicChannel.Id, user2.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, err = client.AddChannelMember(privateChannel.Id, user2.Id)
+	_, resp, err = client.AddChannelMember(privateChannel.Id, user2.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, _, err = client.AddChannelMember(publicChannel.Id, user2.Id)
+		_, _, err = client.AddChannelMember(publicChannel.Id, user2.Id, "")
 		require.NoError(t, err)
 
-		_, _, err = client.AddChannelMember(privateChannel.Id, user2.Id)
+		_, _, err = client.AddChannelMember(privateChannel.Id, user2.Id, "")
 		require.NoError(t, err)
 	})
 
@@ -2863,12 +2908,12 @@ func TestAddChannelMember(t *testing.T) {
 	// Check that a regular channel user can add other users.
 	client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
-	_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
+	_, _, err = client.AddChannelMember(privateChannel.Id, user.Id, "")
 	require.NoError(t, err)
 	client.Logout()
 
 	client.Login(user.Username, user.Password)
-	_, _, err = client.AddChannelMember(privateChannel.Id, user3.Id)
+	_, _, err = client.AddChannelMember(privateChannel.Id, user3.Id, "")
 	require.NoError(t, err)
 	client.Logout()
 
@@ -2878,12 +2923,12 @@ func TestAddChannelMember(t *testing.T) {
 
 	client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
-	_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
+	_, _, err = client.AddChannelMember(privateChannel.Id, user.Id, "")
 	require.NoError(t, err)
 	client.Logout()
 
 	client.Login(user.Username, user.Password)
-	_, resp, err = client.AddChannelMember(privateChannel.Id, user3.Id)
+	_, resp, err = client.AddChannelMember(privateChannel.Id, user3.Id, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	client.Logout()
@@ -2892,7 +2937,7 @@ func TestAddChannelMember(t *testing.T) {
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Username, user.Password)
-	_, _, err = client.AddChannelMember(privateChannel.Id, user3.Id)
+	_, _, err = client.AddChannelMember(privateChannel.Id, user3.Id, "")
 	require.NoError(t, err)
 	client.Logout()
 
@@ -2903,7 +2948,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// User is not in associated groups so shouldn't be allowed
-		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
+		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id, "")
 		CheckErrorID(t, err, "api.channel.add_members.user_denied")
 	})
 
@@ -2920,7 +2965,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Nil(t, appErr)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
+		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id, "")
 		require.NoError(t, err)
 	})
 }
@@ -2991,7 +3036,7 @@ func TestAddChannelMemberAddMyself(t *testing.T) {
 				th.RemovePermissionFromRole(model.PermissionJoinPublicChannels.Id, model.TeamUserRoleId)
 			}
 
-			_, _, err := client.AddChannelMember(tc.Channel.Id, user.Id)
+			_, _, err := client.AddChannelMember(tc.Channel.Id, user.Id, "")
 			if tc.ExpectedError == "" {
 				require.NoError(t, err)
 			} else {
@@ -3157,9 +3202,9 @@ func TestRemoveChannelMember(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Check that a regular channel user can remove other users.
 		privateChannel := th.CreateChannelWithClient(client, model.ChannelTypePrivate)
-		_, _, err = client.AddChannelMember(privateChannel.Id, user1.Id)
+		_, _, err = client.AddChannelMember(privateChannel.Id, user1.Id, "")
 		require.NoError(t, err)
-		_, _, err = client.AddChannelMember(privateChannel.Id, user2.Id)
+		_, _, err = client.AddChannelMember(privateChannel.Id, user2.Id, "")
 		require.NoError(t, err)
 
 		_, err = client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
@@ -3171,11 +3216,11 @@ func TestRemoveChannelMember(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionManagePrivateChannelMembers.Id, model.ChannelUserRoleId)
 
 	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
-	_, _, err = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
+	_, _, err = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id, "")
 	require.NoError(t, err)
-	_, _, err = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
+	_, _, err = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id, "")
 	require.NoError(t, err)
-	_, _, err = th.SystemAdminClient.AddChannelMember(privateChannel.Id, bot.UserId)
+	_, _, err = th.SystemAdminClient.AddChannelMember(privateChannel.Id, bot.UserId, "")
 	require.NoError(t, err)
 
 	resp, err = client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
@@ -3188,7 +3233,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, err = client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.AddChannelMember(privateChannel.Id, th.SystemAdminUser.Id)
+	_, _, err = th.SystemAdminClient.AddChannelMember(privateChannel.Id, th.SystemAdminUser.Id, "")
 	require.NoError(t, err)
 
 	// If the channel is group-constrained the user cannot be removed
@@ -3239,17 +3284,21 @@ func TestAutocompleteChannels(t *testing.T) {
 	defer th.TearDown()
 
 	// A private channel to make sure private channels are not used
-	ptown, _, _ := th.Client.CreateChannel(&model.Channel{
-		DisplayName: "Town",
-		Name:        "town",
-		Type:        model.ChannelTypePrivate,
-		TeamId:      th.BasicTeam.Id,
+	ptown, _, _ := th.Client.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "Town",
+			Name:        "town",
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		},
 	})
-	tower, _, _ := th.Client.CreateChannel(&model.Channel{
-		DisplayName: "Tower",
-		Name:        "tower",
-		Type:        model.ChannelTypeOpen,
-		TeamId:      th.BasicTeam.Id,
+	tower, _, _ := th.Client.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "Tower",
+			Name:        "tower",
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		},
 	})
 	defer func() {
 		th.Client.DeleteChannel(ptown.Id)
@@ -3319,20 +3368,24 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, u4)
 
 	// A private channel to make sure private channels are not used
-	ptown, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
-		DisplayName: "Town",
-		Name:        "town",
-		Type:        model.ChannelTypePrivate,
-		TeamId:      th.BasicTeam.Id,
+	ptown, _, _ := th.SystemAdminClient.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "Town",
+			Name:        "town",
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		},
 	})
 	defer func() {
 		th.Client.DeleteChannel(ptown.Id)
 	}()
-	mypriv, _, _ := th.Client.CreateChannel(&model.Channel{
-		DisplayName: "My private town",
-		Name:        "townpriv",
-		Type:        model.ChannelTypePrivate,
-		TeamId:      th.BasicTeam.Id,
+	mypriv, _, _ := th.Client.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "My private town",
+			Name:        "townpriv",
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		},
 	})
 	defer func() {
 		th.Client.DeleteChannel(mypriv.Id)
@@ -3447,28 +3500,32 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	require.NoError(t, err)
 
 	// A private channel to make sure private channels are not used
-	town, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
-		DisplayName: "Town",
-		Name:        "town",
-		Type:        model.ChannelTypeOpen,
-		TeamId:      th.BasicTeam.Id,
+	town, _, _ := th.SystemAdminClient.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "Town",
+			Name:        "town",
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		},
 	})
 	defer func() {
 		th.SystemAdminClient.DeleteChannel(town.Id)
 	}()
-	_, _, err = th.SystemAdminClient.AddChannelMember(town.Id, guest.Id)
+	_, _, err = th.SystemAdminClient.AddChannelMember(town.Id, guest.Id, "")
 	require.NoError(t, err)
 
-	mypriv, _, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
-		DisplayName: "My private town",
-		Name:        "townpriv",
-		Type:        model.ChannelTypePrivate,
-		TeamId:      th.BasicTeam.Id,
+	mypriv, _, _ := th.SystemAdminClient.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "My private town",
+			Name:        "townpriv",
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		},
 	})
 	defer func() {
 		th.SystemAdminClient.DeleteChannel(mypriv.Id)
 	}()
-	_, _, err = th.SystemAdminClient.AddChannelMember(mypriv.Id, guest.Id)
+	_, _, err = th.SystemAdminClient.AddChannelMember(mypriv.Id, guest.Id, "")
 	require.NoError(t, err)
 
 	dc1, _, err := th.SystemAdminClient.CreateDirectChannel(th.BasicUser.Id, guest.Id)
@@ -3564,11 +3621,13 @@ func TestUpdateChannelScheme(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	channel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
-		DisplayName: "Name",
-		Name:        "z-z-" + model.NewId() + "a",
-		Type:        model.ChannelTypeOpen,
-		TeamId:      team.Id,
+	channel, _, err := th.SystemAdminClient.CreateChannel(&model.ChannelWithCategoryData{
+		Channel: model.Channel{
+			DisplayName: "Name",
+			Name:        "z-z-" + model.NewId() + "a",
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		},
 	})
 	require.NoError(t, err)
 
@@ -4255,7 +4314,7 @@ func TestMoveChannel(t *testing.T) {
 		_, err := client.RemoveTeamMember(team2.Id, user.Id)
 		require.NoError(t, err)
 
-		_, _, err = client.AddChannelMember(publicChannel.Id, user.Id)
+		_, _, err = client.AddChannelMember(publicChannel.Id, user.Id, "")
 		require.NoError(t, err)
 
 		_, _, err = client.MoveChannel(publicChannel.Id, team2.Id, false)
@@ -4270,7 +4329,7 @@ func TestMoveChannel(t *testing.T) {
 		_, err := client.RemoveTeamMember(team2.Id, user.Id)
 		require.NoError(t, err)
 
-		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
+		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id, "")
 		require.NoError(t, err)
 
 		_, _, err = client.MoveChannel(privateChannel.Id, team2.Id, false)
@@ -4285,7 +4344,7 @@ func TestMoveChannel(t *testing.T) {
 		_, err := client.RemoveTeamMember(team2.Id, user.Id)
 		require.NoError(t, err)
 
-		_, _, err = client.AddChannelMember(publicChannel.Id, user.Id)
+		_, _, err = client.AddChannelMember(publicChannel.Id, user.Id, "")
 		require.NoError(t, err)
 
 		newChannel, _, err := client.MoveChannel(publicChannel.Id, team2.Id, true)
@@ -4300,7 +4359,7 @@ func TestMoveChannel(t *testing.T) {
 		_, err := client.RemoveTeamMember(team2.Id, user.Id)
 		require.NoError(t, err)
 
-		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
+		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id, "")
 		require.NoError(t, err)
 
 		newChannel, _, err := client.MoveChannel(privateChannel.Id, team2.Id, true)

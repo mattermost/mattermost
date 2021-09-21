@@ -117,10 +117,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var category *model.SidebarCategoryWithChannels
 	categoryId := data.CategoryId
 	if categoryId != "" {
-		if !model.IsValidId(categoryId) {
-			c.SetInvalidParam("category_id")
-			return
-		}
 		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.AppContext.Session().UserId, channel.TeamId, categoryId) {
 			c.SetInvalidParam("category")
 			return
@@ -1550,10 +1546,6 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	var category *model.SidebarCategoryWithChannels
 	categoryId, ok := props["category_id"].(string)
 	if categoryId != "" {
-		if !ok || !model.IsValidId(categoryId) {
-			c.SetInvalidParam("category_id")
-			return
-		}
 		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), member.UserId, channel.TeamId, categoryId) {
 			c.SetInvalidParam("category")
 			return

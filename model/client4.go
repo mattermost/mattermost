@@ -2814,7 +2814,7 @@ func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (C
 }
 
 // CreateChannel creates a channel based on the provided channel struct.
-func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response, error) {
+func (c *Client4) CreateChannel(channel *ChannelWithCategoryData) (*Channel, *Response, error) {
 	channelJSON, jsonErr := json.Marshal(channel)
 	if jsonErr != nil {
 		return nil, nil, NewAppError("CreateChannel", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
@@ -3443,8 +3443,8 @@ func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[s
 }
 
 // AddChannelMember adds user to channel and return a channel member.
-func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response, error) {
-	requestBody := map[string]string{"user_id": userId}
+func (c *Client4) AddChannelMember(channelId, userId, categoryId string) (*ChannelMember, *Response, error) {
+	requestBody := map[string]string{"user_id": userId, "category_id": categoryId}
 	r, err := c.DoAPIPost(c.channelMembersRoute(channelId)+"", MapToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
