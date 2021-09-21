@@ -594,7 +594,6 @@ type AppIface interface {
 	GetComplianceReport(reportId string) (*model.Compliance, *model.AppError)
 	GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError)
 	GetCookieDomain() string
-	GetCreateUserToken(token string) (*model.Token, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError)
 	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
@@ -758,6 +757,7 @@ type AppIface interface {
 	GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError)
 	GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
 	GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
+	GetTokenById(token string) (*model.Token, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)

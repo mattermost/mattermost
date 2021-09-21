@@ -1353,7 +1353,7 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 	return rtoken, nil
 }
 
-func (a *App) GetCreateUserToken(token string) (*model.Token, *model.AppError) {
+func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store.Token().GetByToken(token)
 
 	if err != nil {
@@ -1366,7 +1366,7 @@ func (a *App) GetCreateUserToken(token string) (*model.Token, *model.AppError) {
 			status = http.StatusInternalServerError
 		}
 
-		return nil, model.NewAppError("GetCreateUserToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), status)
+		return nil, model.NewAppError("GetTokenById", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), status)
 	}
 
 	return rtoken, nil

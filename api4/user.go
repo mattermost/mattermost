@@ -123,7 +123,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if tokenId != "" {
-		token, appErr := c.App.GetCreateUserToken(tokenId)
+		token, appErr := c.App.GetTokenById(tokenId)
 		if appErr != nil {
 			c.Err = appErr
 			return
