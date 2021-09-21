@@ -38,44 +38,74 @@ func stopOnError(err LineImportWorkerError) bool {
 	}
 }
 
-func rewriteAttachmentPaths(files *[]AttachmentImportData, basePath string) {
+func processAttachmentPaths(files *[]AttachmentImportData, basePath string, filesMap map[string]*zip.File) error {
 	if files == nil {
-		return
+		return nil
 	}
-	for _, f := range *files {
+	var ok bool
+	for i, f := range *files {
 		if f.Path != nil {
-			*f.Path = filepath.Join(basePath, *f.Path)
+			path := filepath.Join(basePath, *f.Path)
+			*f.Path = path
+			if len(filesMap) > 0 {
+				if (*files)[i].Data, ok = filesMap[path]; !ok {
+					return fmt.Errorf("attachment %q not found in map", path)
+				}
+			}
 		}
 	}
+
+	return nil
 }
 
-func rewriteFilePaths(line *LineImportData, basePath string) {
+func processAttachments(line *LineImportData, basePath string, filesMap map[string]*zip.File) error {
+	var ok bool
 	switch line.Type {
 	case "post", "direct_post":
 		var replies []ReplyImportData
 		if line.Type == "direct_post" {
-			rewriteAttachmentPaths(line.DirectPost.Attachments, basePath)
+			if err := processAttachmentPaths(line.DirectPost.Attachments, basePath, filesMap); err != nil {
+				return err
+			}
 			if line.DirectPost.Replies != nil {
 				replies = *line.DirectPost.Replies
 			}
 		} else {
-			rewriteAttachmentPaths(line.Post.Attachments, basePath)
+			if err := processAttachmentPaths(line.Post.Attachments, basePath, filesMap); err != nil {
+				return err
+			}
 			if line.Post.Replies != nil {
 				replies = *line.Post.Replies
 			}
 		}
 		for _, reply := range replies {
-			rewriteAttachmentPaths(reply.Attachments, basePath)
+			if err := processAttachmentPaths(reply.Attachments, basePath, filesMap); err != nil {
+				return err
+			}
 		}
 	case "user":
 		if line.User.ProfileImage != nil {
-			*line.User.ProfileImage = filepath.Join(basePath, *line.User.ProfileImage)
+			path := filepath.Join(basePath, *line.User.ProfileImage)
+			*line.User.ProfileImage = path
+			if len(filesMap) > 0 {
+				if line.User.ProfileImageData, ok = filesMap[path]; !ok {
+					return fmt.Errorf("attachment %q not found in map", path)
+				}
+			}
 		}
 	case "emoji":
 		if line.Emoji.Image != nil {
-			*line.Emoji.Image = filepath.Join(basePath, *line.Emoji.Image)
+			path := filepath.Join(basePath, *line.Emoji.Image)
+			*line.Emoji.Image = path
+			if len(filesMap) > 0 {
+				if line.Emoji.Data, ok = filesMap[path]; !ok {
+					return fmt.Errorf("attachment %q not found in map", path)
+				}
+			}
 		}
 	}
+
+	return nil
 }
 
 func (a *App) bulkImportWorker(c *request.Context, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
@@ -169,18 +199,8 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 		}
 
-		if len(attachedFiles) > 0 && line.Post != nil && line.Post.Attachments != nil {
-			for i, attachment := range *line.Post.Attachments {
-				var ok bool
-				path := *attachment.Path
-				if (*line.Post.Attachments)[i].Data, ok = attachedFiles[path]; !ok {
-					return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, fmt.Sprintf("attachment '%s' not found in map", path), http.StatusBadRequest), lineNumber
-				}
-			}
-		}
-
-		if importPath != "" {
-			rewriteFilePaths(&line, importPath)
+		if err := processAttachments(&line, importPath, attachedFiles); err != nil {
+			return model.NewAppError("BulkImport", "app.import.bulk_import.process_attachments.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 		}
 
 		if lineNumber == 1 {
