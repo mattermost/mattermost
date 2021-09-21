@@ -766,13 +766,13 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeID string, offset int, limit i
 	return r0, r1
 }
 
-// GetChannelsByUser provides a mock function with given fields: userID, includeDeleted, lastDeleteAt
-func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
-	ret := _m.Called(userID, includeDeleted, lastDeleteAt)
+// GetChannelsByUser provides a mock function with given fields: userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID
+func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int, pageSize int, fromChannelID string) (model.ChannelList, error) {
+	ret := _m.Called(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 
 	var r0 model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, bool, int) model.ChannelList); ok {
-		r0 = rf(userID, includeDeleted, lastDeleteAt)
+	if rf, ok := ret.Get(0).(func(string, bool, int, int, string) model.ChannelList); ok {
+		r0 = rf(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelList)
@@ -780,8 +780,8 @@ func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, la
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool, int) error); ok {
-		r1 = rf(userID, includeDeleted, lastDeleteAt)
+	if rf, ok := ret.Get(1).(func(string, bool, int, int, string) error); ok {
+		r1 = rf(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 	} else {
 		r1 = ret.Error(1)
 	}

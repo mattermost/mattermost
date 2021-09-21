@@ -1794,8 +1794,8 @@ func (a *App) GetChannelsForTeamForUser(teamID string, userID string, includeDel
 	return list, nil
 }
 
-func (a *App) GetChannelsForUser(userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannelsByUser(userID, includeDeleted, lastDeleteAt)
+func (a *App) GetChannelsForUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
+	list, err := a.Srv().Store.Channel().GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

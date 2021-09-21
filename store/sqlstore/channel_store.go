@@ -998,7 +998,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
+func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
 		Select("Channels.*").
 		From("Channels, ChannelMembers").
@@ -1008,7 +1008,15 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 				sq.Eq{"UserId": userId},
 			},
 		).
-		OrderBy("DisplayName")
+		OrderBy("Id ASC")
+
+	if fromChannelID != "" {
+		query = query.Where(sq.Gt{"Id": fromChannelID})
+	}
+
+	if pageSize != -1 {
+		query = query.Limit(uint64(pageSize))
+	}
 
 	if includeDeleted {
 		if lastDeleteAt != 0 {
@@ -2470,17 +2478,17 @@ func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, inclu
 	query := `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
 	 FROM Channels c, Teams t
 	 WHERE
-	 	c.TeamId=t.Id
-	 	AND
+		c.TeamId=t.Id
+		AND
 	  c.Id IN ` + keys + ` ORDER BY c.Name`
 	if !includeDeleted {
 		query = `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
 			 FROM Channels c, Teams t
 			 WHERE
-			 	c.TeamId=t.Id
-			 	AND
-			 	c.DeleteAt = 0
-			 	AND
+				c.TeamId=t.Id
+				AND
+				c.DeleteAt = 0
+				AND
 			  c.Id IN ` + keys + ` ORDER BY c.Name`
 	}
 

@@ -3374,7 +3374,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&m4)
 	require.NoError(t, err)
 
-	list, nErr := ss.Channel().GetChannelsByUser(m1.UserId, false, 0)
+	list, nErr := ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 3)
 	require.Equal(t, o1.Id, list[0].Id, "missing channel")
@@ -3388,13 +3388,13 @@ func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	// should return 1
-	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, false, 0)
+	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 1)
 	require.Equal(t, o1.Id, list[0].Id, "missing channel")
 
 	// Should return all
-	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 0)
+	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 0, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 3)
 	require.Equal(t, o1.Id, list[0].Id, "missing channel")
@@ -3402,7 +3402,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
 	require.Equal(t, o3.Id, list[2].Id, "missing channel")
 
 	// Should still return all
-	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 10)
+	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 10, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 3)
 	require.Equal(t, o1.Id, list[0].Id, "missing channel")
@@ -3410,7 +3410,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
 	require.Equal(t, o3.Id, list[2].Id, "missing channel")
 
 	// Should return 2
-	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 20)
+	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 20, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 2)
 	require.Equal(t, o1.Id, list[0].Id, "missing channel")

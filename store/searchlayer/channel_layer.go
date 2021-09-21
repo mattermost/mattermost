@@ -264,7 +264,7 @@ func (c *SearchChannelStore) searchAutocompleteChannelsAllTeams(engine searcheng
 }
 
 func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) error {
-	channels, errGetChannels := c.ChannelStore.GetChannelsByUser(userId, false, 0)
+	channels, errGetChannels := c.ChannelStore.GetChannelsByUser(userId, false, 0, -1, "")
 	if errGetChannels != nil {
 		mlog.Warn("Encountered error indexing channel after removing user", mlog.String("user_id", userId), mlog.Err(errGetChannels))
 	}

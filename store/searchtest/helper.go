@@ -481,6 +481,15 @@ func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string
 	require.ElementsMatch(t, expected, channelIds)
 }
 
+func (th *SearchTestHelper) checkChannelIdsMatchWithTeamData(t *testing.T, expected []string, results model.ChannelListWithTeamData) {
+	t.Helper()
+	channelIds := make([]string, len(results))
+	for i, channel := range results {
+		channelIds[i] = channel.Id
+	}
+	require.ElementsMatch(t, expected, channelIds)
+}
+
 type ByChannelDisplayName model.ChannelList
 
 func (s ByChannelDisplayName) Len() int { return len(s) }

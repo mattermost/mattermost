@@ -1159,7 +1159,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByScheme(schemeID string, offs
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
+func (s *OpenTracingLayerChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int, pageSize int, fromChannelID string) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -1168,7 +1168,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByUser(userID string, includeD
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt)
+	result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

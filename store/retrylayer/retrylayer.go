@@ -1254,11 +1254,11 @@ func (s *RetryLayerChannelStore) GetChannelsByScheme(schemeID string, offset int
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
+func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int, pageSize int, fromChannelID string) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt)
+		result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 		if err == nil {
 			return result, nil
 		}

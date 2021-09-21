@@ -921,27 +921,56 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: stream the response
-	channels, err := c.App.GetChannelsForUser(c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	pageSize := 100
+	fromChannelID := ""
+	// We have to write `[` and `]` separately because we want to stream the response.
+	// The internal API is paginated, but the client always needs to get the full data.
+	// Therefore, to avoid forcing the client to go through all the pages,
+	// we stream the full data from server side itself.
+	//
+	// Note that this means if an error occurs in mid-stream, the response won't be
+	// fully JSON.
+	w.Write([]byte(`[`))
+	enc := json.NewEncoder(w)
+	for {
+		channels, err := c.App.GetChannelsForUser(c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt, pageSize, fromChannelID)
+		if err != nil {
+			// If the page size was a perfect multiple of the total number of results,
+			// then the last query will always return zero results.
+			if fromChannelID != "" && err.Id == "app.channel.get_channels.not_found.app_error" {
+				break
+			}
+			c.Err = err
+			return
+		}
 
-	if c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
-		return
-	}
+		err = c.App.FillInChannelsProps(channels)
+		if err != nil {
+			c.Err = err
+			return
+		}
 
-	err = c.App.FillInChannelsProps(channels)
-	if err != nil {
-		c.Err = err
-		return
-	}
+		// intermediary comma between sets
+		if fromChannelID != "" {
+			w.Write([]byte(`,`))
+		}
 
-	w.Header().Set(model.HeaderEtagServer, channels.Etag())
-	if err := json.NewEncoder(w).Encode(channels); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		for i, ch := range channels {
+			if err := enc.Encode(ch); err != nil {
+				mlog.Warn("Error while writing response", mlog.Err(err))
+			}
+			if i < len(channels)-1 {
+				w.Write([]byte(`,`))
+			}
+		}
+
+		if len(channels) < pageSize {
+			break
+		}
+
+		fromChannelID = channels[len(channels)-1].Id
 	}
+	w.Write([]byte(`]`))
 }
 
 func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
