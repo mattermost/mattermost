@@ -123,7 +123,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}
 	// lock logger config so server init cannot override it during testing.
