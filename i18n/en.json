@@ -7032,6 +7032,10 @@
     "translation": "Failed to get all channel members"
   },
   {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Failed to get all team members"
+  },
+  {
     "id": "ent.elasticsearch.index_channel.error",
     "translation": "Failed to index the channel"
   },

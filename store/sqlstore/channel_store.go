@@ -2465,6 +2465,34 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bo
 	return channels, nil
 }
 
+func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
+	keys, params := MapStringsToQueryParams(channelIds, "Channel")
+	query := `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
+	 FROM Channels c, Teams t
+	 WHERE
+	 	c.TeamId=t.Id
+	 	AND
+	  c.Id IN ` + keys + ` ORDER BY c.Name`
+	if !includeDeleted {
+		query = `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
+			 FROM Channels c, Teams t
+			 WHERE
+			 	c.TeamId=t.Id
+			 	AND
+			 	c.DeleteAt = 0
+			 	AND
+			  c.Id IN ` + keys + ` ORDER BY c.Name`
+	}
+
+	var channels []*model.ChannelWithTeamData
+	_, err := s.GetReplica().Select(&channels, query, params)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Channels")
+	}
+	return channels, nil
+}
+
 func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	channel := &model.Channel{}
 	if err := s.GetReplica().SelectOne(
@@ -2534,13 +2562,29 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(teamId, userId string, 
 	return dbMembers.ToModel(), nil
 }
 
+func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+	teamMemberIDs := []string{}
+	if err := s.GetReplicaX().Select(&teamMemberIDs, `SELECT tm.UserId
+		FROM Channels c, Teams t, TeamMembers tm
+		WHERE
+			c.TeamId=t.Id
+			AND
+			t.Id=tm.TeamId
+			AND
+			c.Id = ?`,
+		channelID); err != nil {
+		return nil, errors.Wrapf(err, "error while getting team members for a channel")
+	}
+
+	return teamMemberIDs, nil
+}
+
 func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
 		deleteFilter = ""
 	}
 
-	// TODO: think about pagination.
 	return s.performGlobalSearch(`
 	SELECT
 		c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt

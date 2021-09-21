@@ -1274,6 +1274,26 @@ func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted
 
 }
 
+func (s *RetryLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelsWithTeamDataByIds(channelIds, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error) {
 
 	tries := 0
@@ -1765,6 +1785,26 @@ func (s *RetryLayerChannelStore) GetTeamForChannel(channelID string) (*model.Tea
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetTeamForChannel(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetTeamMembersForChannel(channelID)
 		if err == nil {
 			return result, nil
 		}

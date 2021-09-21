@@ -11,11 +11,12 @@ import (
 )
 
 type BLVChannel struct {
-	Id          string
-	Type        model.ChannelType
-	UserIDs     []string
-	TeamId      []string
-	NameSuggest []string
+	Id            string
+	Type          model.ChannelType
+	UserIDs       []string
+	TeamId        []string
+	TeamMemberIDs []string
+	NameSuggest   []string
 }
 
 type BLVUser struct {
@@ -48,16 +49,17 @@ type BLVFile struct {
 	Extension string
 }
 
-func BLVChannelFromChannel(channel *model.Channel, userIDs []string) *BLVChannel {
+func BLVChannelFromChannel(channel *model.Channel, userIDs, teamMemberIDs []string) *BLVChannel {
 	displayNameInputs := searchengine.GetSuggestionInputsSplitBy(channel.DisplayName, " ")
 	nameInputs := searchengine.GetSuggestionInputsSplitByMultiple(channel.Name, []string{"-", "_"})
 
 	return &BLVChannel{
-		Id:          channel.Id,
-		Type:        channel.Type,
-		TeamId:      []string{channel.TeamId},
-		NameSuggest: append(displayNameInputs, nameInputs...),
-		UserIDs:     userIDs,
+		Id:            channel.Id,
+		Type:          channel.Type,
+		TeamId:        []string{channel.TeamId},
+		NameSuggest:   append(displayNameInputs, nameInputs...),
+		UserIDs:       userIDs,
+		TeamMemberIDs: teamMemberIDs,
 	}
 }
 

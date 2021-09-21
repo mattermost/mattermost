@@ -900,7 +900,6 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 }
 
-
 func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -922,6 +921,7 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: stream the response
 	channels, err := c.App.GetChannelsForUser(c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
 	if err != nil {
 		c.Err = err

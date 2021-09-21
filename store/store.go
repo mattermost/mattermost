@@ -191,6 +191,7 @@ type ChannelStore interface {
 	GetTeamChannels(teamID string) (model.ChannelList, error)
 	GetAll(teamID string) ([]*model.Channel, error)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
+	GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error)
 	GetForPost(postID string) (*model.Channel, error)
 	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
 	SaveMember(member *model.ChannelMember) (*model.ChannelMember, error)
@@ -227,6 +228,7 @@ type ChannelStore interface {
 	IncrementMentionCount(channelID string, userID string, updateThreads, isRoot bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
+	GetTeamMembersForChannel(channelID string) ([]string, error)
 	GetMembersForUserWithPagination(teamID, userID string, page, perPage int) (model.ChannelMembers, error)
 	Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error)
 	AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error)

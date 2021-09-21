@@ -303,11 +303,11 @@ func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) IndexChannel(channel *model.Channel, userIDs []string) *model.AppError {
+func (b *BleveEngine) IndexChannel(channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
-	blvChannel := BLVChannelFromChannel(channel, userIDs)
+	blvChannel := BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
 	if err := b.ChannelIndex.Index(blvChannel.Id, blvChannel); err != nil {
 		return model.NewAppError("Bleveengine.IndexChannel", "bleveengine.index_channel.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -315,15 +315,30 @@ func (b *BleveEngine) IndexChannel(channel *model.Channel, userIDs []string) *mo
 }
 
 func (b *BleveEngine) SearchChannels(teamId, userID, term string) ([]string, *model.AppError) {
-	// This query essentially boils down to:
+	// This query essentially boils down to (if teamID is passed):
 	// match teamID == <>
 	// AND
 	// match term == <>
 	// AND
 	// match (channelType != 'P' || (<> in userIDs && channelType == 'P'))
-	teamIdQ := bleve.NewTermQuery(teamId)
-	teamIdQ.SetField("TeamId")
-	queries := []query.Query{teamIdQ}
+
+	// (or if teamID is not passed)
+	// <> in teamMemberIds
+	// AND
+	// match term == <>
+	// AND
+	// match (channelType != 'P' || (<> in userIDs && channelType == 'P'))
+
+	queries := []query.Query{}
+	if teamId != "" {
+		teamIdQ := bleve.NewTermQuery(teamId)
+		teamIdQ.SetField("TeamId")
+		queries = append(queries, teamIdQ)
+	} else {
+		teamMemberQ := bleve.NewTermQuery(userID)
+		teamMemberQ.SetField("TeamMemberIDs")
+		queries = append(queries, teamMemberQ)
+	}
 
 	boolNotPrivate := bleve.NewBooleanQuery()
 	privateQ := bleve.NewTermQuery(string(model.ChannelTypePrivate))

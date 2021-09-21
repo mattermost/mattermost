@@ -36,19 +36,26 @@ func (c *SearchChannelStore) deleteChannelIndex(channel *model.Channel) {
 }
 
 func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
-	var userIDs []string
+	var userIDs, teamMemberIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
 		userIDs, err = c.GetAllChannelMembersById(channel.Id)
 		if err != nil {
-			mlog.Warn("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+			mlog.Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			return
 		}
 	}
+
+	teamMemberIDs, err = c.GetTeamMembersForChannel(channel.Id)
+	if err != nil {
+		mlog.Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		return
+	}
+
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.IndexChannel(channel, userIDs); err != nil {
+				if err := engineCopy.IndexChannel(channel, userIDs, teamMemberIDs); err != nil {
 					mlog.Warn("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
@@ -154,6 +161,39 @@ func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, mem
 	return channel, err
 }
 
+func (c *SearchChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+	var channelList model.ChannelListWithTeamData
+	var err error
+
+	allFailed := true
+	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
+		if engine.IsAutocompletionEnabled() {
+			channelList, err = c.searchAutocompleteChannelsAllTeams(engine, userID, term, includeDeleted)
+			if err != nil {
+				mlog.Warn("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				continue
+			}
+			allFailed = false
+			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
+			break
+		}
+	}
+
+	if allFailed {
+		mlog.Debug("Using database search because no other search engine is available")
+		channelList, err = c.ChannelStore.Autocomplete(userID, term, includeDeleted)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to autocomplete channels in team")
+		}
+	}
+
+	if err != nil {
+		return channelList, err
+	}
+
+	return channelList, nil
+}
+
 func (c *SearchChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error) {
 	var channelList model.ChannelList
 	var err error
@@ -194,14 +234,29 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	}
 
 	channelList := model.ChannelList{}
+	var nErr error
 	if len(channelIds) > 0 {
-		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to get channels by ids")
+		channelList, nErr = c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
+		if nErr != nil {
+			return nil, errors.Wrap(nErr, "Failed to get channels by ids")
 		}
+	}
 
-		for _, ch := range channels {
-			channelList = append(channelList, ch)
+	return channelList, nil
+}
+
+func (c *SearchChannelStore) searchAutocompleteChannelsAllTeams(engine searchengine.SearchEngineInterface, userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+	channelIds, err := engine.SearchChannels("", userID, term)
+	if err != nil {
+		return nil, err
+	}
+
+	channelList := model.ChannelListWithTeamData{}
+	var nErr error
+	if len(channelIds) > 0 {
+		channelList, nErr = c.ChannelStore.GetChannelsWithTeamDataByIds(channelIds, includeDeleted)
+		if nErr != nil {
+			return nil, errors.Wrap(nErr, "Failed to get channels by ids")
 		}
 	}
 

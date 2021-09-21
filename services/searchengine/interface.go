@@ -29,7 +29,7 @@ type SearchEngineInterface interface {
 	DeleteUserPosts(userID string) *model.AppError
 	// IndexChannel indexes a given channel. The userIDs are only populated
 	// for private channels.
-	IndexChannel(channel *model.Channel, userIDs []string) *model.AppError
+	IndexChannel(channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError
 	SearchChannels(teamId, userID, term string) ([]string, *model.AppError)
 	DeleteChannel(channel *model.Channel) *model.AppError
 	IndexUser(user *model.User, teamsIds, channelsIds []string) *model.AppError

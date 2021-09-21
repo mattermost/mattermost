@@ -518,7 +518,14 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 					return 0, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
-			searchChannel := bleveengine.BLVChannelFromChannel(channel, userIDs)
+
+			// Get teamMember ids from channelid
+			teamMemberIDs, err := worker.jobServer.Store.Channel().GetTeamMembersForChannel(channel.Id)
+			if err != nil {
+				return 0, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
+			searchChannel := bleveengine.BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
 			batch.Index(searchChannel.Id, searchChannel)
 		} else {
 			batch.Delete(channel.Id)
