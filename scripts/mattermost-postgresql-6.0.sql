@@ -1006,7 +1006,8 @@ CREATE TABLE public.users (
     timezone jsonb,
     mfaactive boolean,
     mfasecret character varying(128),
-    remoteid character varying(26)
+    remoteid character varying(26),
+    showlastactive boolean,
 );
 
 

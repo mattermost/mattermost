@@ -1162,6 +1162,7 @@ CREATE TABLE `Users` (
   `MfaActive` tinyint(1) DEFAULT NULL,
   `MfaSecret` varchar(128) DEFAULT NULL,
   `RemoteId` varchar(26) DEFAULT NULL,
+  `ShowLastActive` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Username` (`Username`),
   UNIQUE KEY `AuthData` (`AuthData`),
