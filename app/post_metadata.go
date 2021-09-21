@@ -502,9 +502,21 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 			return nil, nil, nil, appErr
 		}
 
+		if referencedChannel == nil {
+			msg := "Referenced channel is nil"
+			mlog.Warn(msg, mlog.String("channel_id", referencedPost.ChannelId))
+			return nil, nil, nil, errors.New(msg)
+		}
+
 		referencedTeam, appErr := a.GetTeam(referencedChannel.TeamId)
 		if appErr != nil {
 			return nil, nil, nil, appErr
+		}
+
+		if referencedTeam == nil {
+			msg := "Referenced team is nil"
+			mlog.Warn(msg, mlog.String("team_id", referencedChannel.TeamId))
+			return nil, nil, nil, errors.New(msg)
 		}
 
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
