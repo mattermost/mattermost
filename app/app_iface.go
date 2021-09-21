@@ -37,7 +37,6 @@ import (
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
-	// @Ref
 	// AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 	AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts ChannelMemberOpts, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError)
 	// @openTracingParams args

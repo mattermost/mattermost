@@ -212,13 +212,11 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 
 	if category != nil {
 		category.Channels = append([]string{channel.Id}, category.Channels...)
-		var categories []*model.SidebarCategoryWithChannels
-		categories = append(categories, category)
-		_, _, err := a.Srv().Store.Channel().UpdateSidebarCategories(user.Id, channel.TeamId, categories)
+		_, _, err := a.Srv().Store.Channel().UpdateSidebarCategories(user.Id, channel.TeamId, []*model.SidebarCategoryWithChannels{category})
 		if err != nil {
 			return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		message.Add("categoryId", category.Id)
+		message.Add("category_id", category.Id)
 	}
 
 	a.Publish(message)
@@ -1514,13 +1512,11 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, skipTea
 	message.Add("team_id", channel.TeamId)
 
 	if category != nil {
-		var categories []*model.SidebarCategoryWithChannels
-		categories = append(categories, category)
-		_, _, err := a.Srv().Store.Channel().UpdateSidebarCategories(user.Id, channel.TeamId, categories)
+		_, _, err := a.Srv().Store.Channel().UpdateSidebarCategories(user.Id, channel.TeamId, []*model.SidebarCategoryWithChannels{category})
 		if err != nil {
 			return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		message.Add("categoryId", category.Id)
+		message.Add("category_id", category.Id)
 	}
 
 	a.Publish(message)
@@ -1538,7 +1534,6 @@ type ChannelMemberOpts struct {
 	SkipTeamMemberIntegrityCheck bool
 }
 
-// @Ref
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 func (a *App) AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts ChannelMemberOpts, category *model.SidebarCategoryWithChannels) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv().Store.Channel().GetMember(context.Background(), channel.Id, userID); err != nil {

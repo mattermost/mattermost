@@ -67,7 +67,7 @@ type ChannelWithTeamData struct {
 
 type ChannelWithCategoryData struct {
 	Channel
-	CategoryId string `json:"category_id"`
+	CategoryId string `json:"category_id,omitempty"`
 }
 
 type ChannelsWithCount struct {

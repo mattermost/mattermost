@@ -84,21 +84,21 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel")
 		return
 	}
-
-	var channel model.Channel
-	channel.CreateAt = data.CreateAt
-	channel.CreatorId = data.CreatorId
-	channel.DeleteAt = data.DeleteAt
-	channel.DisplayName = data.DisplayName
-	channel.GroupConstrained = data.GroupConstrained
-	channel.Header = data.Header
-	channel.LastPostAt = data.LastPostAt
-	channel.Name = data.Name
-	channel.Purpose = data.Purpose
-	channel.SchemeId = data.SchemeId
-	channel.TeamId = data.TeamId
-	channel.Type = data.Type
-	channel.UpdateAt = data.UpdateAt
+	channel := model.Channel{
+		CreateAt:         data.CreateAt,
+		CreatorId:        data.CreatorId,
+		DeleteAt:         data.DeleteAt,
+		DisplayName:      data.DisplayName,
+		GroupConstrained: data.GroupConstrained,
+		Header:           data.Header,
+		LastPostAt:       data.LastPostAt,
+		Name:             data.Name,
+		Purpose:          data.Purpose,
+		SchemeId:         data.SchemeId,
+		TeamId:           data.TeamId,
+		Type:             data.Type,
+		UpdateAt:         data.UpdateAt,
+	}
 
 	auditRec := c.MakeAuditRecord("createChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -121,18 +121,16 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("category_id")
 			return
 		}
-		if len(categoryId) == 26 {
-			if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.AppContext.Session().UserId, channel.TeamId, categoryId) {
-				c.SetInvalidParam("category")
-				return
-			}
-			categoryData, err := c.App.GetSidebarCategory(categoryId)
-			if err != nil {
-				c.Err = err
-				return
-			}
-			category = categoryData
+		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.AppContext.Session().UserId, channel.TeamId, categoryId) {
+			c.SetInvalidParam("category")
+			return
 		}
+		categoryData, err := c.App.GetSidebarCategory(categoryId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		category = categoryData
 	}
 
 	sc, appErr := c.App.CreateChannelWithUser(c.AppContext, &channel, c.AppContext.Session().UserId, category)
@@ -1549,21 +1547,20 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categoryId, categoryIdOK := props["category_id"].(string)
-	if categoryIdOK && categoryId != "" && !model.IsValidId(categoryId) {
-		c.SetInvalidParam("category_id")
-		return
-	}
-
 	var category *model.SidebarCategoryWithChannels
-	if categoryIdOK && len(categoryId) == 26 {
+	categoryId, ok := props["category_id"].(string)
+	if categoryId != "" {
+		if !ok || !model.IsValidId(categoryId) {
+			c.SetInvalidParam("category_id")
+			return
+		}
 		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), member.UserId, channel.TeamId, categoryId) {
 			c.SetInvalidParam("category")
 			return
 		}
-		categoryData, categoryDataErr := c.App.GetSidebarCategory(categoryId)
-		if categoryDataErr != nil {
-			c.Err = categoryDataErr
+		categoryData, err2 := c.App.GetSidebarCategory(categoryId)
+		if err2 != nil {
+			c.Err = err2
 			return
 		}
 		category = categoryData
