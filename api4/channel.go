@@ -1545,7 +1545,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var category *model.SidebarCategoryWithChannels
 	categoryId, ok := props["category_id"].(string)
-	if categoryId != "" {
+	if ok && categoryId != "" {
 		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), member.UserId, channel.TeamId, categoryId) {
 			c.SetInvalidParam("category")
 			return
