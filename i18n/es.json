@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error al actualizar el canal actual."
+    "translation": "Error al actualizar la cabecera del canal."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "error de formato"
+    "translation": "Error al procesar."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -8006,5 +8006,21 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "No se ha podido restablecer el campo AuthData a Email."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "El texto introducido supera el límite de caracteres. La cabecera del canal está limitada a {{.MaxLength} caracteres."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "El evento de Webhook no fue manejado. O bien falta o no es válido."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Error al invalidar la caché"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "No se puede crear un canal directo entre estos usuarios porque no comparten un equipo en común."
   }
 ]
