@@ -6,9 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
@@ -220,9 +218,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 
 func saveSchemaVersion(sqlStore *SqlStore, version string) {
 	if err := sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: version}); err != nil {
-		mlog.Critical(err.Error())
-		time.Sleep(time.Second)
-		os.Exit(ExitVersionSave)
+		mlog.Fatal(err.Error())
 	}
 
 	mlog.Warn("The database schema version has been upgraded", mlog.String("version", version))
@@ -266,9 +262,7 @@ func upgradeDatabaseToVersion32(sqlStore *SqlStore) {
 }
 
 func themeMigrationFailed(err error) {
-	mlog.Critical("Failed to migrate User.ThemeProps to Preferences table", mlog.Err(err))
-	time.Sleep(time.Second)
-	os.Exit(ExitThemeMigration)
+	mlog.Fatal("Failed to migrate User.ThemeProps to Preferences table", mlog.Err(err))
 }
 
 func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
@@ -536,7 +530,7 @@ func upgradeDatabaseToVersion49(sqlStore *SqlStore) {
 		defaultTimezone := timezones.DefaultUserTimezone()
 		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 		if err != nil {
-			mlog.Critical(err.Error())
+			mlog.Fatal(err.Error())
 		}
 		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
@@ -616,9 +610,7 @@ func upgradeDatabaseToVersion54(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "varchar(500)", "varchar(500)")
 		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "varchar(500)", "varchar(500)")
 		if err := sqlStore.Channel().MigratePublicChannels(); err != nil {
-			mlog.Critical("Failed to migrate PublicChannels table", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitGenericFailure)
+			mlog.Fatal("Failed to migrate PublicChannels table", mlog.Err(err))
 		}
 		saveSchemaVersion(sqlStore, Version540)
 	}
@@ -866,8 +858,7 @@ func upgradeDatabaseToVersion527(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5270, Version5280) {
 		if err := precheckMigrationToVersion528(sqlStore); err != nil {
-			mlog.Critical("Error upgrading DB schema to 5.28.0", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
+			mlog.Fatal("Error upgrading DB schema to 5.28.0", mlog.Err(err))
 		}
 
 		sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
