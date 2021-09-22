@@ -30,6 +30,7 @@ type FeatureFlags struct {
 
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
+	PluginPlaybooks          string `plugin_id:"playbooks"`
 	PluginApps               string `plugin_id:"com.mattermost.apps"`
 	PluginFocalboard         string `plugin_id:"focalboard"`
 
