@@ -2932,21 +2932,6 @@ func (a *OpenTracingAppLayer) DeleteExport(name string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteFlaggedPosts(postID string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteFlaggedPosts")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.DeleteFlaggedPosts(postID)
-}
-
 func (a *OpenTracingAppLayer) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroup")
@@ -3143,21 +3128,6 @@ func (a *OpenTracingAppLayer) DeletePost(postID string, deleteByID string) (*mod
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) DeletePostFiles(post *model.Post) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePostFiles")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.DeletePostFiles(post)
 }
 
 func (a *OpenTracingAppLayer) DeletePreferences(userID string, preferences model.Preferences) *model.AppError {

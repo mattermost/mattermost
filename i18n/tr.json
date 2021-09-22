@@ -2817,7 +2817,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": "Kullanıcının Comments Prop değeri geçersiz."
+    "translation": "Kullanıcının yorum bildirimi değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -2833,7 +2833,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
-    "translation": "Kullanıcının mobil bildirimi değeri geçersiz."
+    "translation": "Kullanıcının mobil bildirim değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
@@ -2841,11 +2841,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
-    "translation": "Kullanıcı Parolası uzunluğu geçersiz."
+    "translation": "Kullanıcı parolası uzunluğu geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
-    "translation": "Kullanıcının Konumu çok uzun."
+    "translation": "Kullanıcının konumu çok uzun."
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
@@ -2853,7 +2853,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": "Kullanıcının Rolleri geçersiz."
+    "translation": "Kullanıcının rolleri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
@@ -2861,27 +2861,27 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Zorunlu kullanıcı özelliği eksik: kullaniciadi."
+    "translation": "Zorunlu kullanıcı özelliği eksik: Kullanıcı adı."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": "Kullanıcının Takım Üyeliğindeki rolleri geçersiz."
+    "translation": "Kullanıcının takım üyeliğindeki rolleri geçersiz."
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "Kullanıcının Takım Üyeliğinde takım adı eksik."
+    "translation": "Kullanıcının takım üyeliğinde takım adı eksik."
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}], {{ .SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir Doğrudan İleti gönderildi"
+    "translation": "[{{.SiteName}}], {{ .SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir doğrudan ileti gönderildi"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] {{ .ChannelName}} grubuna {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir Grup İletisi gönderildi"
+    "translation": "[{{ .SiteName }}] {{ .ChannelName}} grubuna {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir grup iletisi gönderildi"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] sitesinde {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir Grup İletisi gönderildi"
+    "translation": "[{{.SiteName}}] sitesinde {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir grup iletisi gönderildi"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -2889,7 +2889,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "Küme özelliği kullanılırken ve SaltOkunurYapılandırma seçeneği etkinken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir."
+    "translation": "Küme özelliği kullanılırken ve ReadOnlyConfig seçeneği etkinken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -4837,7 +4837,7 @@
   },
   {
     "id": "app.plugin.marketplace_client.failed_to_fetch",
-    "translation": "Mağaza sunucusundan uygulama ekleri alınamadı."
+    "translation": "Uygulama ekleri mağaza sunucusundan alınamadı."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
@@ -4861,7 +4861,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Yükseltme işlemi sırasında uygulama eki yeniden başlatılamadı."
+    "translation": "Uygulama eki yükseltme işlemi sırasında yeniden başlatılamadı."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
@@ -4873,7 +4873,7 @@
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Dosya depolama alanındaki uygulama eki klasöründeki dosyalar okunurken sorun çıktı."
+    "translation": "Dosya depolama alanında uygulama eki klasöründeki dosyalar okunurken sorun çıktı."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
@@ -8989,11 +8989,11 @@
   },
   {
     "id": "app.notification.footer.infoLogin",
-    "translation": "Mattermost Oturumu Aç"
+    "translation": "Mattermost oturumu aç"
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " ve Hesap Ayarları > Bildirimler bölümüne gidin"
+    "translation": " ve Hesap ayarları > Bildirimler bölümüne gidin"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9026,8 +9026,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} size yeni bir ileti göndermiş",
-      "other": "{{ .SenderName }} ve {{.Count}} diğer kişi size yeni iletiler göndermiş"
+      "one": "Yeni bir iletiniz var",
+      "other": "Yeni iletileriniz var"
     }
   },
   {
@@ -9187,16 +9187,12 @@
     "translation": "{{.SenderName}} bir konuyu yanıtladı"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Siz uzaktayken, {{.SenderName}} izlediğiniz bir konuyu yanıtladı."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Konuyu yanıtla"
+    "translation": "{{.channelName}} kanalında yanıt"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " izlediğiniz bir konuya yorum yaptı."
+    "translation": " izlediğiniz bir konuyu yanıtladı."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9213,5 +9209,29 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Sıra dağıtılamadı."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} grubunuzdaki bir konuyu yanıtladı."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} doğrudan iletinizdeki bir konuyu yanıyı."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Siz uzaktayken {{.SenderName}}, lzlediğiniz{{.ChannelName}} kanalında bir konuyu yanıtladı."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} izlediğiniz bir konuyu yanıtladı."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Doğrudan iletide yanıt"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " bir konuyu yanıtladı."
   }
 ]

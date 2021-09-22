@@ -7406,8 +7406,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} sendete Ihnen neue Nachrichten",
-      "other": "{{ .SenderName }} und {{.Count}} andere sendeten Ihnen neue Nachrichten"
+      "one": "Sie haben eine neue Nachricht",
+      "other": "Sie haben neue Nachrichten"
     }
   },
   {
@@ -9187,16 +9187,12 @@
     "translation": "{{.SenderName}} hat auf eine Unterhaltung geantwortet"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Während Sie weg waren, hat {{.SenderName}} auf eine Unterhaltung geantwortet, die Sie beobachten."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Auf die Unterhaltung antworten"
+    "translation": "Antwort in {{.channelName}}"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " einen Kommentar zu einer Unterhaltung abgegeben, das Sie verfolgen."
+    "translation": " antwortete auf eine Unterhaltung, der Sie folgen."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9213,5 +9209,29 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Fehler beim Unmarshalling."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Während Sie weg waren, antwortete {{.SenderName}} auf eine Unterhaltung in Ihren Gruppennachrichten."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Während Sie weg waren, antwortete {{.SenderName}} auf eine Unterhaltung in Ihren Direktnachrichten."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Während Sie weg waren, antwortete {{.SenderName}} auf eine Unterhaltung im Kanal {{.ChannelName}}, der Sie folgen."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Während Sie weg waren, antwortete {{.SenderName}} auf eine Unterhaltung, der Sie folgen."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Antwort in Direktnachricht"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " antwortete auf eine Unterhaltung."
   }
 ]

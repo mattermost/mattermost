@@ -182,7 +182,17 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	}
 
 	if channelType == model.ChannelTypeDirect {
+		if replyToThreadType == model.CommentsNotifyCRT {
+			if contentsConfig == model.GenericNoChannelNotification {
+				return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread")
+			}
+			return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread_dm")
+		}
 		return userLocale("api.post.send_notifications_and_forget.push_message")
+	}
+
+	if replyToThreadType == model.CommentsNotifyCRT {
+		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread")
 	}
 
 	if channelWideMention {
@@ -599,12 +609,20 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	cfg := a.Config()
 	if contentsConfig != model.GenericNoChannelNotification || channel.Type == model.ChannelTypeDirect {
 		msg.ChannelName = channelName
-		if a.isCRTEnabledForUser(user.Id) {
-			msg.IsCRTEnabled = true
-			if post.RootId != "" {
-				msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads")
-			}
-		}
+	}
+
+	if a.isCRTEnabledForUser(user.Id) {
+    msg.IsCRTEnabled = true
+    if post.RootId != "" {
+      if contentsConfig != model.GenericNoChannelNotification {
+        props := map[string]interface{}{"channelName": channelName}
+        msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads", props)
+
+        if channel.Type == model.ChannelTypeDirect {
+          msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads_dm")
+        }
+      }
+    }
 	}
 
 	msg.SenderName = senderName

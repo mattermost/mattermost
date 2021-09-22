@@ -8970,7 +8970,7 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} új üzenetet küldött Önnek",
+      "one": "Önnek új üzenetei vannak",
       "other": "{{ .SenderName }} és {{.Count}} másvalaki új üzenetet kültek Önnek"
     }
   },
@@ -9187,16 +9187,12 @@
     "translation": "{{.SenderName}} válaszolt egy üzenetszálra"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Amíg távol volt, {{.SenderName}} válaszolt egy üzenetszálra amit követ."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Válasz az üzenetszálra"
+    "translation": "Válasz a {{.channelName}} beszélgetésben"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " megjegyzést írt egy üzenetszálhoz amit követ."
+    "translation": " válaszolt egy üzenetszálra amit követ."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9213,5 +9209,29 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Adatkonverzió nem sikerült."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " válaszolt egy üzenetszálra."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a {{.ChannelName}} beszélgetésben amit követ."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a közvetlen üzenetében."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a csoportjában."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra amit követ."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Válasz a közvetlen üzenetben"
   }
 ]

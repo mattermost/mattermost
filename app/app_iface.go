@@ -500,7 +500,6 @@ type AppIface interface {
 	DeleteEmoji(emoji *model.Emoji) *model.AppError
 	DeleteEphemeralPost(userID, postID string)
 	DeleteExport(name string) *model.AppError
-	DeleteFlaggedPosts(postID string)
 	DeleteGroup(groupID string) (*model.Group, *model.AppError)
 	DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
@@ -509,7 +508,6 @@ type AppIface interface {
 	DeleteOutgoingWebhook(hookID string) *model.AppError
 	DeletePluginKey(pluginID string, key string) *model.AppError
 	DeletePost(postID, deleteByID string) (*model.Post, *model.AppError)
-	DeletePostFiles(post *model.Post)
 	DeletePreferences(userID string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
