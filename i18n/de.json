@@ -7406,8 +7406,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} sendete Ihnen neue Nachrichten",
-      "other": "{{ .SenderName }} und {{.Count}} andere sendeten Ihnen neue Nachrichten"
+      "one": "Sie haben eine neue Nachricht",
+      "other": "Sie haben neue Nachrichten"
     }
   },
   {

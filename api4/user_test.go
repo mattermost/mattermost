@@ -2769,7 +2769,6 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
-		*c.ServiceSettings.DisableLegacyMFA = true
 		*c.ServiceSettings.EnableMultifactorAuthentication = true
 	})
 
