@@ -612,17 +612,17 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	}
 
 	if a.isCRTEnabledForUser(user.Id) {
-    msg.IsCRTEnabled = true
-    if post.RootId != "" {
-      if contentsConfig != model.GenericNoChannelNotification {
-        props := map[string]interface{}{"channelName": channelName}
-        msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads", props)
+		msg.IsCRTEnabled = true
+		if post.RootId != "" {
+			if contentsConfig != model.GenericNoChannelNotification {
+				props := map[string]interface{}{"channelName": channelName}
+				msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads", props)
 
-        if channel.Type == model.ChannelTypeDirect {
-          msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads_dm")
-        }
-      }
-    }
+				if channel.Type == model.ChannelTypeDirect {
+					msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads_dm")
+				}
+			}
+		}
 	}
 
 	msg.SenderName = senderName
