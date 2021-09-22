@@ -115,6 +115,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster: cluster,
 		metrics: metrics,
 	}
+
+	// TODO OAUTH consider add the OAuth Store cache.
+
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   ReactionCacheSize,

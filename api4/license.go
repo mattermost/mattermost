@@ -19,12 +19,12 @@ import (
 )
 
 func (api *API) InitLicense() {
-	api.BaseRoutes.APIRoot.Handle("/trial-license", api.APISessionRequired(requestTrialLicense)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/trial-license/prev", api.APISessionRequired(getPrevTrialLicense)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(addLicense)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods("DELETE")
-	api.BaseRoutes.APIRoot.Handle("/license/renewal", api.APISessionRequired(requestRenewalLink)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/trial-license", api.APISessionRequired(requestTrialLicense, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/trial-license/prev", api.APISessionRequired(getPrevTrialLicense, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(addLicense, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.APIRoot.Handle("/license/renewal", api.APISessionRequired(requestRenewalLink, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods("GET") // TODO Consider OAuth scopes
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {

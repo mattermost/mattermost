@@ -120,6 +120,23 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetSessionsForOAuthApp(appId string) ([]*model.Session, error) {
+	var sessions []*model.Session
+
+	if _, err := me.GetReplica().Select(&sessions, `
+		SELECT *
+		FROM Sessions
+		WHERE
+			ISJSON(props)
+			AND JSON_VALUE(props, '$.`+model.SessionPropOAuthAppID+`') = :AppId
+		ORDER BY LastActivityAt DESC`,
+		map[string]interface{}{"AppId": appId}); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Sessions with appId=%s", appId)
+	}
+
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	query :=
 		`SELECT *

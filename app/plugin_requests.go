@@ -115,6 +115,8 @@ func (s *Server) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request
 }
 
 func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
+	params := mux.Vars(r)
+	pluginID := params["plugin_id"]
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
@@ -141,7 +143,8 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
-		session, err := New(ServerConnector(s)).GetSession(token)
+		sc := New(ServerConnector(s))
+		session, err := sc.GetSession(token)
 		defer s.userService.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false
@@ -197,6 +200,23 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
+
+			if oAuthAppID := session.Props[model.SessionPropOAuthAppID]; oAuthAppID != "" {
+				oAuthApp, err := sc.GetOAuthApp(oAuthAppID)
+				if err != nil {
+					// TODO OAUTH write error
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				if !oAuthApp.Scopes.IsPluginInScope(pluginID) {
+					// TODO OAUTH write error
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+
+				r.Header.Set("Mattermost-Scopes", oAuthApp.Scopes.ToJSON())
+			}
 		}
 	}
 
@@ -210,14 +230,12 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	r.Header.Del(model.HeaderAuth)
 	r.Header.Del("Referer")
 
-	params := mux.Vars(r)
-
 	subpath, _ := utils.GetSubpathFromConfig(s.Config())
 
 	newQuery := r.URL.Query()
 	newQuery.Del("access_token")
 	r.URL.RawQuery = newQuery.Encode()
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", params["plugin_id"]))
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID))
 
 	handler(context, w, r)
 }

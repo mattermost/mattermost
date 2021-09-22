@@ -17,64 +17,64 @@ import (
 
 func (api *API) InitGroup() {
 	// GET /api/v4/groups
-	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(getGroups)).Methods("GET")
+	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(getGroups, model.ScopeDeny())).Methods("GET")
 
 	// GET /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(getGroup)).Methods("GET")
+		api.APISessionRequired(getGroup, model.ScopeDeny())).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/patch",
-		api.APISessionRequired(patchGroup)).Methods("PUT")
+		api.APISessionRequired(patchGroup, model.ScopeDeny())).Methods("PUT")
 
 	// POST /api/v4/groups/:group_id/teams/:team_id/link
 	// POST /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
-		api.APISessionRequired(linkGroupSyncable)).Methods("POST")
+		api.APISessionRequired(linkGroupSyncable, model.ScopeDeny())).Methods("POST")
 
 	// DELETE /api/v4/groups/:group_id/teams/:team_id/link
 	// DELETE /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
-		api.APISessionRequired(unlinkGroupSyncable)).Methods("DELETE")
+		api.APISessionRequired(unlinkGroupSyncable, model.ScopeDeny())).Methods("DELETE")
 
 	// GET /api/v4/groups/:group_id/teams/:team_id
 	// GET /api/v4/groups/:group_id/channels/:channel_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(getGroupSyncable)).Methods("GET")
+		api.APISessionRequired(getGroupSyncable, model.ScopeDeny())).Methods("GET")
 
 	// GET /api/v4/groups/:group_id/teams
 	// GET /api/v4/groups/:group_id/channels
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}",
-		api.APISessionRequired(getGroupSyncables)).Methods("GET")
+		api.APISessionRequired(getGroupSyncables, model.ScopeDeny())).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/teams/:team_id/patch
 	// PUT /api/v4/groups/:group_id/channels/:channel_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/patch",
-		api.APISessionRequired(patchGroupSyncable)).Methods("PUT")
+		api.APISessionRequired(patchGroupSyncable, model.ScopeDeny())).Methods("PUT")
 
 	// GET /api/v4/groups/:group_id/stats
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/stats",
-		api.APISessionRequired(getGroupStats)).Methods("GET")
+		api.APISessionRequired(getGroupStats, model.ScopeDeny())).Methods("GET")
 
 	// GET /api/v4/groups/:group_id/members?page=0&per_page=100
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(getGroupMembers)).Methods("GET")
+		api.APISessionRequired(getGroupMembers, model.ScopeDeny())).Methods("GET")
 
 	// GET /api/v4/users/:user_id/groups?page=0&per_page=100
 	api.BaseRoutes.Users.Handle("/{user_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(getGroupsByUserId)).Methods("GET")
+		api.APISessionRequired(getGroupsByUserId, model.ScopeDeny())).Methods("GET")
 
 	// GET /api/v4/channels/:channel_id/groups?page=0&per_page=100
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(getGroupsByChannel)).Methods("GET")
+		api.APISessionRequired(getGroupsByChannel, model.ScopeDeny())).Methods("GET")
 
 	// GET /api/v4/teams/:team_id/groups?page=0&per_page=100
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(getGroupsByTeam)).Methods("GET")
+		api.APISessionRequired(getGroupsByTeam, model.ScopeDeny())).Methods("GET")
 
 	// GET /api/v4/teams/:team_id/groups_by_channels?page=0&per_page=100
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups_by_channels",
-		api.APISessionRequired(getGroupsAssociatedToChannelsByTeam)).Methods("GET")
+		api.APISessionRequired(getGroupsAssociatedToChannelsByTeam, model.ScopeDeny())).Methods("GET")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {

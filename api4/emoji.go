@@ -21,14 +21,14 @@ const (
 )
 
 func (api *API) InitEmoji() {
-	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(getEmojiList)).Methods("GET")
-	api.BaseRoutes.Emojis.Handle("/search", api.APISessionRequired(searchEmojis)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis)).Methods("GET")
-	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(deleteEmoji)).Methods("DELETE")
-	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(getEmoji)).Methods("GET")
-	api.BaseRoutes.EmojiByName.Handle("", api.APISessionRequired(getEmojiByName)).Methods("GET")
-	api.BaseRoutes.Emoji.Handle("/image", api.APISessionRequiredTrustRequester(getEmojiImage)).Methods("GET")
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(getEmojiList, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Emojis.Handle("/search", api.APISessionRequired(searchEmojis, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(deleteEmoji, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(getEmoji, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.EmojiByName.Handle("", api.APISessionRequired(getEmojiByName, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Emoji.Handle("/image", api.APISessionRequiredTrustRequester(getEmojiImage, model.ScopeDeny())).Methods("GET")
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {

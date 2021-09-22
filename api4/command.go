@@ -15,18 +15,18 @@ import (
 )
 
 func (api *API) InitCommand() {
-	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(createCommand)).Methods("POST")
-	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(listCommands)).Methods("GET")
-	api.BaseRoutes.Commands.Handle("/execute", api.APISessionRequired(executeCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(createCommand, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(listCommands, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Commands.Handle("/execute", api.APISessionRequired(executeCommand, model.ScopeDeny())).Methods("POST")
 
-	api.BaseRoutes.Command.Handle("", api.APISessionRequired(getCommand)).Methods("GET")
-	api.BaseRoutes.Command.Handle("", api.APISessionRequired(updateCommand)).Methods("PUT")
-	api.BaseRoutes.Command.Handle("/move", api.APISessionRequired(moveCommand)).Methods("PUT")
-	api.BaseRoutes.Command.Handle("", api.APISessionRequired(deleteCommand)).Methods("DELETE")
+	api.BaseRoutes.Command.Handle("", api.APISessionRequired(getCommand, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Command.Handle("", api.APISessionRequired(updateCommand, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.Command.Handle("/move", api.APISessionRequired(moveCommand, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.Command.Handle("", api.APISessionRequired(deleteCommand, model.ScopeDeny())).Methods("DELETE")
 
-	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.APISessionRequired(listAutocompleteCommands)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/commands/autocomplete_suggestions", api.APISessionRequired(listCommandAutocompleteSuggestions)).Methods("GET")
-	api.BaseRoutes.Command.Handle("/regen_token", api.APISessionRequired(regenCommandToken)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.APISessionRequired(listAutocompleteCommands, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Team.Handle("/commands/autocomplete_suggestions", api.APISessionRequired(listCommandAutocompleteSuggestions, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Command.Handle("/regen_token", api.APISessionRequired(regenCommandToken, model.ScopeDeny())).Methods("PUT")
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {

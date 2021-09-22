@@ -16,21 +16,21 @@ import (
 )
 
 func (api *API) InitSaml() {
-	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata)).Methods("GET") // TODO OAUTH Consider OAuth Scoping
 
-	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(addSamlPublicCertificate)).Methods("POST")
-	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(addSamlPrivateCertificate)).Methods("POST")
-	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(addSamlIdpCertificate)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(addSamlPublicCertificate, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(addSamlPrivateCertificate, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(addSamlIdpCertificate, model.ScopeDeny())).Methods("POST")
 
-	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(removeSamlPublicCertificate)).Methods("DELETE")
-	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(removeSamlPrivateCertificate)).Methods("DELETE")
-	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(removeSamlIdpCertificate)).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(removeSamlPublicCertificate, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(removeSamlPrivateCertificate, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(removeSamlIdpCertificate, model.ScopeDeny())).Methods("DELETE")
 
-	api.BaseRoutes.SAML.Handle("/certificate/status", api.APISessionRequired(getSamlCertificateStatus)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/certificate/status", api.APISessionRequired(getSamlCertificateStatus, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.APIHandler(getSamlMetadataFromIdp)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.APIHandler(getSamlMetadataFromIdp)).Methods("POST") // TODO OAUTH Consider Oauth scoping
 
-	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APISessionRequired(resetAuthDataToEmail)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APISessionRequired(resetAuthDataToEmail, model.ScopeDeny())).Methods("POST")
 }
 
 func (api *API) InitSamlLocal() {

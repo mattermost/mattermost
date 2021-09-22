@@ -153,6 +153,21 @@ func (us *UserService) RevokeSessionsForDeviceId(userID string, deviceID string,
 	return nil
 }
 
+func (us *UserService) RevokeSessionsForOAuthApp(appID string) error {
+	// TODO OAUTH this is really underperformant.
+	sessions, err := us.sessionStore.GetSessionsForOAuthApp(appID)
+	if err != nil {
+		return err
+	}
+	for _, session := range sessions {
+		if err := us.RevokeSession(session); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (us *UserService) RevokeSession(session *model.Session) error {
 	if session.IsOAuth {
 		if err := us.RevokeAccessToken(session.Token); err != nil {

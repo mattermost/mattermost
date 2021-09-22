@@ -16,10 +16,10 @@ import (
 )
 
 func (api *API) InitCompliance() {
-	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(createComplianceReport)).Methods("POST")
-	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(getComplianceReports)).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(getComplianceReport)).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(createComplianceReport, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(getComplianceReports, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(getComplianceReport, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadComplianceReport, model.ScopeDeny())).Methods("GET")
 }
 
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {

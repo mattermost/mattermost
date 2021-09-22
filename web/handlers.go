@@ -82,6 +82,7 @@ type Handler struct {
 	IsStatic                  bool
 	IsLocal                   bool
 	DisableWhenBusy           bool
+	AllowedScopes             model.Scope
 
 	cspShaDirective string
 }
@@ -254,6 +255,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	sessionOAuthAppId, ok := c.AppContext.Session().Props[model.SessionPropOAuthAppID]
+	if ok {
+		scopes := h.checkScopes(c, sessionOAuthAppId)
+		if c.Err == nil && len(scopes) > 0 {
+			c.AppContext.SetScopes(scopes)
+		}
+	}
+
 	c.Logger = c.App.Log().With(
 		mlog.String("path", c.AppContext.Path()),
 		mlog.String("request_id", c.AppContext.RequestId()),
@@ -341,6 +350,34 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}
+}
+
+func (h *Handler) checkScopes(c *Context, appID string) model.Scope {
+	oAuthApp, err := c.App.GetOAuthApp(appID)
+	if err != nil {
+		c.Err = err
+		return nil
+	}
+
+	// To support legacy OAuth Apps, we consider nil scopes as a non-scoped OAuth App.
+	if oAuthApp.Scopes == nil {
+		return nil
+	}
+
+	// Allowed endpoints will just relay the scopes, in case there is any consideration to be made based on scopes.
+	if h.AllowedScopes.Equals(model.ScopeAllow()) {
+		return oAuthApp.Scopes
+	}
+
+	// Check if any of the app scopes is allowed by this endpoint.
+	scopeIntersection := oAuthApp.Scopes.Intersection(h.AllowedScopes)
+	if len(scopeIntersection) == 0 {
+		c.Err = model.NewAppError("ServeHTTP", "api.context.scope_mismatch.app_error", nil, "", http.StatusUnauthorized)
+		return nil
+	}
+
+	// Return all scopes from the App, for extra checks on the next layer.
+	return oAuthApp.Scopes
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not

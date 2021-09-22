@@ -7650,6 +7650,26 @@ func (s *RetryLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobil
 
 }
 
+func (s *RetryLayerSessionStore) GetSessionsForOAuthApp(appId string) ([]*model.Session, error) {
+
+	tries := 0
+	for {
+		result, err := s.SessionStore.GetSessionsForOAuthApp(appId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSessionStore) GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error) {
 
 	tries := 0

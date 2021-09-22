@@ -35,39 +35,39 @@ var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
 })
 
 func (api *API) InitSystem() {
-	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing)).Methods("GET")
+	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing)).Methods("GET") // TODO OAUTH Consider OAuth Scoping
 
-	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequired(getSupportedTimezones)).Methods("GET")
+	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequired(getSupportedTimezones, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.APIRoot.Handle("/audits", api.APISessionRequired(getAudits)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/audits", api.APISessionRequired(getAudits, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches, model.ScopeDeny())).Methods("POST")
 
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST") // TODO OAUTH Consider Oauth Scoping
 
-	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.APIRoot.Handle("/notifications/ack", api.APISessionRequired(pushNotificationAck)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/notifications/ack", api.APISessionRequired(pushNotificationAck, model.ScopeDeny())).Methods("POST")
 
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(setServerBusy)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(getServerBusyExpires)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(clearServerBusy)).Methods("DELETE")
-	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/status", api.APISessionRequired(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(sendWarnMetricAckEmail)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
-	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
-	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(setServerBusy, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(getServerBusyExpires, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(clearServerBusy, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/warn_metrics/status", api.APISessionRequired(getWarnMetricsStatus, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(sendWarnMetricAckEmail)).Methods("POST")                            // TODO OAUTH consider OAuth Scoping
+	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST") // TODO OAUTH Consider OAuth scoping
+	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices, model.ScopeDeny())).Methods("PUT")
 
-	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
+	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket, model.ScopeDeny())).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -11,8 +11,8 @@ import (
 )
 
 func (api *API) InitElasticsearch() {
-	api.BaseRoutes.Elasticsearch.Handle("/test", api.APISessionRequired(testElasticsearch)).Methods("POST")
-	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.APISessionRequired(purgeElasticsearchIndexes)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/test", api.APISessionRequired(testElasticsearch, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.APISessionRequired(purgeElasticsearchIndexes, model.ScopeDeny())).Methods("POST")
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {

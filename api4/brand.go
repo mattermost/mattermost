@@ -14,8 +14,8 @@ import (
 
 func (api *API) InitBrand() {
 	api.BaseRoutes.Brand.Handle("/image", api.APIHandlerTrustRequester(getBrandImage)).Methods("GET")
-	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(uploadBrandImage)).Methods("POST")
-	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(deleteBrandImage)).Methods("DELETE")
+	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(uploadBrandImage, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(deleteBrandImage, model.ScopeDeny())).Methods("DELETE")
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {

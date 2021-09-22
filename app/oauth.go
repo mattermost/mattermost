@@ -101,6 +101,12 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 		}
 	}
 
+	if !oldApp.Scopes.Equals(updatedApp.Scopes) {
+		if err := a.RevokeSessionsForOAuthAppId(updatedApp.Id); err != nil {
+			mlog.Warn("error in revoking app sessions after update", mlog.Err(err))
+		}
+	}
+
 	return oauthApp, nil
 }
 
@@ -244,7 +250,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(userID string, authRequest *mod
 		return nil, err
 	}
 
-	session, err := a.newSession(oauthApp.Name, user)
+	session, err := a.newSession(oauthApp, user)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +312,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, c
 		if accessData != nil {
 			if accessData.IsExpired() {
 				var access *model.AccessResponse
-				access, err := a.newSessionUpdateToken(oauthApp.Name, accessData, user)
+				access, err := a.newSessionUpdateToken(oauthApp, accessData, user)
 				if err != nil {
 					return nil, err
 				}
@@ -323,7 +329,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, c
 		} else {
 			var session *model.Session
 			// Create a new session and return new access token
-			session, err := a.newSession(oauthApp.Name, user)
+			session, err := a.newSession(oauthApp, user)
 			if err != nil {
 				return nil, err
 			}
@@ -357,7 +363,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
 
-		access, err := a.newSessionUpdateToken(oauthApp.Name, accessData, user)
+		access, err := a.newSessionUpdateToken(oauthApp, accessData, user)
 		if err != nil {
 			return nil, err
 		}
@@ -367,12 +373,14 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, c
 	return accessRsp, nil
 }
 
-func (a *App) newSession(appName string, user *model.User) (*model.Session, *model.AppError) {
+func (a *App) newSession(app *model.OAuthApp, user *model.User) (*model.Session, *model.AppError) {
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
 	a.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
-	session.AddProp(model.SessionPropPlatform, appName)
+	session.AddProp(model.SessionPropPlatform, app.Name)
+	session.AddProp(model.SessionPropOAuthAppID, app.Id)
+	session.AddProp(model.SessionPropAppsFrameworkAppID, app.AppsFrameworkAppID) // TODO OAUTH use this value to remove all sessions belonging to an app when uninstalled.
 	session.AddProp(model.SessionPropOs, "OAuth2")
 	session.AddProp(model.SessionPropBrowser, "OAuth2")
 
@@ -386,13 +394,13 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	return session, nil
 }
 
-func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
+func (a *App) newSessionUpdateToken(app *model.OAuthApp, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
 	if err := a.Srv().Store.Session().Remove(accessData.Token); err != nil {
 		mlog.Warn("error removing access data token from session", mlog.Err(err))
 	}
 
-	session, err := a.newSession(appName, user)
+	session, err := a.newSession(app, user)
 	if err != nil {
 		return nil, err
 	}

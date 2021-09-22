@@ -16,23 +16,23 @@ import (
 )
 
 func (api *API) InitPost() {
-	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost)).Methods("POST")
-	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost)).Methods("GET")
-	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
-	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods("GET")
-	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods("GET")
-	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel)).Methods("GET")
-	api.BaseRoutes.PostsForUser.Handle("/flagged", api.APISessionRequired(getFlaggedPostsForUser)).Methods("GET")
+	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost, model.ScopeAny(model.ScopeMessageWrite))).Methods("POST")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost, model.ScopeAny(model.ScopeMessageRead))).Methods("GET")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.PostsForUser.Handle("/flagged", api.APISessionRequired(getFlaggedPostsForUser, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
+	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
-	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
-	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
-	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPosts, model.ScopeAny(model.ScopeSearchPosts))).Methods("POST")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost, model.ScopeDeny())).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {

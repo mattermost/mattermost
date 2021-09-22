@@ -120,6 +120,29 @@ func (_m *SessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly boo
 	return r0, r1
 }
 
+// GetSessionsForOAuthApp provides a mock function with given fields: appId
+func (_m *SessionStore) GetSessionsForOAuthApp(appId string) ([]*model.Session, error) {
+	ret := _m.Called(appId)
+
+	var r0 []*model.Session
+	if rf, ok := ret.Get(0).(func(string) []*model.Session); ok {
+		r0 = rf(appId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Session)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(appId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSessionsWithActiveDeviceIds provides a mock function with given fields: userID
 func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error) {
 	ret := _m.Called(userID)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/gziphandler"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
 
@@ -25,6 +26,7 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request))
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
+		AllowedScopes:  model.ScopeAllow(),
 	}
 	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -34,7 +36,7 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request))
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scope) http.Handler {
 	handler := &web.Handler{
 		App:            api.app,
 		HandleFunc:     h,
@@ -44,6 +46,7 @@ func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.R
 		RequireMfa:     true,
 		IsStatic:       false,
 		IsLocal:        false,
+		AllowedScopes:  scope,
 	}
 	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -136,7 +139,7 @@ func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
-func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scope) http.Handler {
 	handler := &web.Handler{
 		App:            api.app,
 		HandleFunc:     h,
@@ -146,6 +149,7 @@ func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseW
 		RequireMfa:     true,
 		IsStatic:       false,
 		IsLocal:        false,
+		AllowedScopes:  scope,
 	}
 	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -156,7 +160,7 @@ func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseW
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
 // responding with HTTP 503 (Service Unavailable).
-func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scope) http.Handler {
 	handler := &web.Handler{
 		App:             api.app,
 		HandleFunc:      h,
@@ -167,6 +171,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.Response
 		IsStatic:        false,
 		IsLocal:         false,
 		DisableWhenBusy: true,
+		AllowedScopes:   scope,
 	}
 	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)

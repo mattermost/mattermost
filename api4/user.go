@@ -22,82 +22,82 @@ import (
 )
 
 func (api *API) InitUser() {
-	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods("POST")
-	api.BaseRoutes.Users.Handle("", api.APISessionRequired(getUsers)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/ids", api.APISessionRequired(getUsersByIds)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/known", api.APISessionRequired(getKnownUsers)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/autocomplete", api.APISessionRequired(autocompleteUsers)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/stats", api.APISessionRequired(getTotalUsersStats)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/stats/filtered", api.APISessionRequired(getFilteredUsersStats)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/group_channels", api.APISessionRequired(getUsersByGroupChannelIds)).Methods("POST")
+	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods("POST") // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("", api.APISessionRequired(getUsers, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Users.Handle("/ids", api.APISessionRequired(getUsersByIds, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/known", api.APISessionRequired(getKnownUsers, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Users.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchUsers, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/autocomplete", api.APISessionRequired(autocompleteUsers, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats", api.APISessionRequired(getTotalUsersStats, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats/filtered", api.APISessionRequired(getFilteredUsersStats, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Users.Handle("/group_channels", api.APISessionRequired(getUsersByGroupChannelIds, model.ScopeDeny())).Methods("POST")
 
-	api.BaseRoutes.User.Handle("", api.APISessionRequired(getUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/image/default", api.APISessionRequiredTrustRequester(getDefaultProfileImage)).Methods("GET")
-	api.BaseRoutes.User.Handle("/image", api.APISessionRequiredTrustRequester(getProfileImage)).Methods("GET")
-	api.BaseRoutes.User.Handle("/image", api.APISessionRequired(setProfileImage)).Methods("POST")
-	api.BaseRoutes.User.Handle("/image", api.APISessionRequired(setDefaultProfileImage)).Methods("DELETE")
-	api.BaseRoutes.User.Handle("", api.APISessionRequired(updateUser)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/patch", api.APISessionRequired(patchUser)).Methods("PUT")
-	api.BaseRoutes.User.Handle("", api.APISessionRequired(deleteUser)).Methods("DELETE")
-	api.BaseRoutes.User.Handle("/roles", api.APISessionRequired(updateUserRoles)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/active", api.APISessionRequired(updateUserActive)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/password", api.APISessionRequired(updatePassword)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/promote", api.APISessionRequired(promoteGuestToUser)).Methods("POST")
-	api.BaseRoutes.User.Handle("/demote", api.APISessionRequired(demoteUserToGuest)).Methods("POST")
-	api.BaseRoutes.User.Handle("/convert_to_bot", api.APISessionRequired(convertUserToBot)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/password/reset", api.APIHandler(resetPassword)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/password/reset/send", api.APIHandler(sendPasswordReset)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/email/verify", api.APIHandler(verifyUserEmail)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/email/verify/send", api.APIHandler(sendVerificationEmail)).Methods("POST")
-	api.BaseRoutes.User.Handle("/email/verify/member", api.APISessionRequired(verifyUserEmailWithoutToken)).Methods("POST")
-	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(saveUserTermsOfService)).Methods("POST")
-	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(getUserTermsOfService)).Methods("GET")
+	api.BaseRoutes.User.Handle("", api.APISessionRequired(getUser, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.User.Handle("/image/default", api.APISessionRequiredTrustRequester(getDefaultProfileImage, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.User.Handle("/image", api.APISessionRequiredTrustRequester(getProfileImage, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.User.Handle("/image", api.APISessionRequired(setProfileImage, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.User.Handle("/image", api.APISessionRequired(setDefaultProfileImage, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.User.Handle("", api.APISessionRequired(updateUser, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.User.Handle("/patch", api.APISessionRequired(patchUser, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.User.Handle("", api.APISessionRequired(deleteUser, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/roles", api.APISessionRequired(updateUserRoles, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.User.Handle("/active", api.APISessionRequired(updateUserActive, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.User.Handle("/password", api.APISessionRequired(updatePassword, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.User.Handle("/promote", api.APISessionRequired(promoteGuestToUser, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.User.Handle("/demote", api.APISessionRequired(demoteUserToGuest, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.User.Handle("/convert_to_bot", api.APISessionRequired(convertUserToBot, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/password/reset", api.APIHandler(resetPassword)).Methods("POST")            // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("/password/reset/send", api.APIHandler(sendPasswordReset)).Methods("POST")   // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("/email/verify", api.APIHandler(verifyUserEmail)).Methods("POST")            // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("/email/verify/send", api.APIHandler(sendVerificationEmail)).Methods("POST") // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.User.Handle("/email/verify/member", api.APISessionRequired(verifyUserEmailWithoutToken, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(saveUserTermsOfService, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(getUserTermsOfService, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.User.Handle("/auth", api.APISessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/auth", api.APISessionRequiredTrustRequester(updateUserAuth, model.ScopeDeny())).Methods("PUT")
 
-	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST")
+	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods("PUT")               // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST") // TODO OAUTH Consider OAuth Scopes
 
-	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods("POST")                      // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods("POST")   // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST") // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods("POST")                    // TODO OAUTH Consider OAuth Scopes
 
-	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods("GET")
-	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequired(getUserByEmail)).Methods("GET")
+	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequired(getUserByEmail, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.User.Handle("/sessions", api.APISessionRequired(getSessions)).Methods("GET")
-	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession)).Methods("POST")
-	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(attachDeviceId)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits)).Methods("GET")
+	api.BaseRoutes.User.Handle("/sessions", api.APISessionRequired(getSessions, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(attachDeviceId, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken)).Methods("POST")
-	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(getUserAccessTokensForUser)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/tokens", api.APISessionRequired(getUserAccessTokens)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/tokens/search", api.APISessionRequired(searchUserAccessTokens)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.APISessionRequired(getUserAccessToken)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APISessionRequired(revokeUserAccessToken)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/tokens/disable", api.APISessionRequired(disableUserAccessToken)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/tokens/enable", api.APISessionRequired(enableUserAccessToken)).Methods("POST")
+	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(getUserAccessTokensForUser, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Users.Handle("/tokens", api.APISessionRequired(getUserAccessTokens, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Users.Handle("/tokens/search", api.APISessionRequired(searchUserAccessTokens, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.APISessionRequired(getUserAccessToken, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APISessionRequired(revokeUserAccessToken, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/disable", api.APISessionRequired(disableUserAccessToken, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/enable", api.APISessionRequired(enableUserAccessToken, model.ScopeDeny())).Methods("POST")
 
-	api.BaseRoutes.User.Handle("/typing", api.APISessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
+	api.BaseRoutes.User.Handle("/typing", api.APISessionRequiredDisableWhenBusy(publishUserTyping, model.ScopeDeny())).Methods("POST")
 
-	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.APISessionRequired(migrateAuthToLDAP)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.APISessionRequired(migrateAuthToSaml)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.APISessionRequired(migrateAuthToLDAP, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.APISessionRequired(migrateAuthToSaml, model.ScopeDeny())).Methods("POST")
 
-	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser, model.ScopeDeny())).Methods("GET")
 
-	api.BaseRoutes.UserThreads.Handle("", api.APISessionRequired(getThreadsForUser)).Methods("GET")
-	api.BaseRoutes.UserThreads.Handle("/read", api.APISessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
+	api.BaseRoutes.UserThreads.Handle("", api.APISessionRequired(getThreadsForUser, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.UserThreads.Handle("/read", api.APISessionRequired(updateReadStateAllThreadsByUser, model.ScopeDeny())).Methods("PUT")
 
-	api.BaseRoutes.UserThread.Handle("", api.APISessionRequired(getThreadForUser)).Methods("GET")
-	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(followThreadByUser)).Methods("PUT")
-	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(unfollowThreadByUser)).Methods("DELETE")
-	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.APISessionRequired(updateReadStateThreadByUser)).Methods("PUT")
+	api.BaseRoutes.UserThread.Handle("", api.APISessionRequired(getThreadForUser, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(followThreadByUser, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(unfollowThreadByUser, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.APISessionRequired(updateReadStateThreadByUser, model.ScopeDeny())).Methods("PUT")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {

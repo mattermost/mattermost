@@ -19,6 +19,10 @@ type Context struct {
 	userAgent      string
 	acceptLanguage string
 
+	// Scopes stores the oAuth scopes associated to the session in this context.
+	// nil scopes mean not scoped operation.
+	scopes model.Scope
+
 	context context.Context
 }
 
@@ -63,6 +67,9 @@ func (c *Context) UserAgent() string {
 func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
+func (c *Context) Scopes() model.Scope {
+	return c.scopes
+}
 
 func (c *Context) Context() context.Context {
 	return c.context
@@ -92,6 +99,9 @@ func (c *Context) SetPath(s string) {
 }
 func (c *Context) SetContext(ctx context.Context) {
 	c.context = ctx
+}
+func (c *Context) SetScopes(scopes model.Scope) {
+	c.scopes = scopes
 }
 
 func (c *Context) GetT() i18n.TranslateFunc {

@@ -14,9 +14,9 @@ import (
 )
 
 func (api *API) InitExport() {
-	api.BaseRoutes.Exports.Handle("", api.APISessionRequired(listExports)).Methods("GET")
-	api.BaseRoutes.Export.Handle("", api.APISessionRequired(deleteExport)).Methods("DELETE")
-	api.BaseRoutes.Export.Handle("", api.APISessionRequired(downloadExport)).Methods("GET")
+	api.BaseRoutes.Exports.Handle("", api.APISessionRequired(listExports, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Export.Handle("", api.APISessionRequired(deleteExport, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.Export.Handle("", api.APISessionRequired(downloadExport, model.ScopeDeny())).Methods("GET")
 }
 
 func listExports(c *Context, w http.ResponseWriter, r *http.Request) {

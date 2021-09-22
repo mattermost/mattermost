@@ -18,17 +18,19 @@ const (
 )
 
 type OAuthApp struct {
-	Id           string      `json:"id"`
-	CreatorId    string      `json:"creator_id"`
-	CreateAt     int64       `json:"create_at"`
-	UpdateAt     int64       `json:"update_at"`
-	ClientSecret string      `json:"client_secret"`
-	Name         string      `json:"name"`
-	Description  string      `json:"description"`
-	IconURL      string      `json:"icon_url"`
-	CallbackUrls StringArray `json:"callback_urls"`
-	Homepage     string      `json:"homepage"`
-	IsTrusted    bool        `json:"is_trusted"`
+	Id                 string      `json:"id"`
+	CreatorId          string      `json:"creator_id"`
+	CreateAt           int64       `json:"create_at"`
+	UpdateAt           int64       `json:"update_at"`
+	ClientSecret       string      `json:"client_secret"`
+	Name               string      `json:"name"`
+	Description        string      `json:"description"`
+	IconURL            string      `json:"icon_url"`
+	CallbackUrls       StringArray `json:"callback_urls"`
+	Homepage           string      `json:"homepage"`
+	IsTrusted          bool        `json:"is_trusted"`
+	Scopes             Scope       `json:"scopes"`
+	AppsFrameworkAppID string      `json:"apps_framework_app_id"`
 }
 
 // IsValid validates the app and returns an error if it isn't configured
@@ -81,6 +83,10 @@ func (a *OAuthApp) IsValid() *AppError {
 		if len(a.IconURL) > 512 || !IsValidHTTPURL(a.IconURL) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}
+	}
+
+	if !a.Scopes.Validate() {
+		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.scopes.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
 	return nil

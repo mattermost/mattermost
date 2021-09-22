@@ -6361,6 +6361,22 @@ func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobil
 	return result, err
 }
 
+func (s *TimerLayerSessionStore) GetSessionsForOAuthApp(appId string) ([]*model.Session, error) {
+	start := timemodule.Now()
+
+	result, err := s.SessionStore.GetSessionsForOAuthApp(appId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetSessionsForOAuthApp", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error) {
 	start := timemodule.Now()
 

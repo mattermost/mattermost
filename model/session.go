@@ -22,6 +22,8 @@ const (
 	SessionPropUserAccessTokenId  = "user_access_token_id"
 	SessionPropIsBot              = "is_bot"
 	SessionPropIsBotValue         = "true"
+	SessionPropOAuthAppID         = "oauth_app_id"
+	SessionPropAppsFrameworkAppID = "apps_framework_app_id"
 	SessionTypeUserAccessToken    = "UserAccessToken"
 	SessionTypeCloudKey           = "CloudKey"
 	SessionTypeRemoteclusterToken = "RemoteClusterToken"

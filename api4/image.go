@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitImage() {
-	api.BaseRoutes.Image.Handle("", api.APISessionRequiredTrustRequester(getImage)).Methods("GET")
+	api.BaseRoutes.Image.Handle("", api.APISessionRequiredTrustRequester(getImage, model.ScopeDeny())).Methods("GET")
 }
 
 func getImage(c *Context, w http.ResponseWriter, r *http.Request) {

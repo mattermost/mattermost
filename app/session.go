@@ -194,6 +194,14 @@ func (a *App) RevokeSessionsForDeviceId(userID string, deviceID string, currentS
 	return nil
 }
 
+func (a *App) RevokeSessionsForOAuthAppId(appID string) *model.AppError {
+	if err := a.srv.userService.RevokeSessionsForOAuthApp(appID); err != nil {
+		return model.NewAppError("RevokeSessionsForOAuthAppId", "app.session.revoke_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (a *App) GetSessionById(sessionID string) (*model.Session, *model.AppError) {
 	session, err := a.srv.userService.GetSessionByID(sessionID)
 	if err != nil {
