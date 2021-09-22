@@ -645,13 +645,11 @@ func (th *TestHelper) CreateChannelWithClient(client *model.Client4, channelType
 func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, channelType model.ChannelType, teamId string) *model.Channel {
 	id := model.NewId()
 
-	channel := &model.ChannelWithCategoryData{
-		Channel: model.Channel{
-			DisplayName: "dn_" + id,
-			Name:        GenerateTestChannelName(),
-			Type:        channelType,
-			TeamId:      teamId,
-		},
+	channel := &model.Channel{
+		DisplayName: "dn_" + id,
+		Name:        GenerateTestChannelName(),
+		Type:        channelType,
+		TeamId:      teamId,
 	}
 
 	rchannel, _, err := client.CreateChannel(channel)

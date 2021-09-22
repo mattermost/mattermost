@@ -116,17 +116,17 @@ func testJoinCommands(t *testing.T, alias string) {
 	user2 := th.BasicUser2
 
 	channel0 := &model.Channel{DisplayName: "00", Name: "00" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
-	channel0, _, err := client.CreateChannel(&model.ChannelWithCategoryData{Channel: *channel0})
+	channel0, _, err := client.CreateChannel(channel0)
 	require.NoError(t, err)
 
 	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
-	channel1, _, err = client.CreateChannel(&model.ChannelWithCategoryData{Channel: *channel1})
+	channel1, _, err = client.CreateChannel(channel1)
 	require.NoError(t, err)
 	_, err = client.RemoveUserFromChannel(channel1.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
-	channel2, _, err = client.CreateChannel(&model.ChannelWithCategoryData{Channel: *channel2})
+	channel2, _, err = client.CreateChannel(channel2)
 	require.NoError(t, err)
 	_, err = client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id)
 	require.NoError(t, err)
@@ -155,7 +155,7 @@ func testJoinCommands(t *testing.T, alias string) {
 
 	// test case insensitively
 	channel4 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
-	channel4, _, err = client.CreateChannel(&model.ChannelWithCategoryData{Channel: *channel4})
+	channel4, _, err = client.CreateChannel(channel4)
 	require.NoError(t, err)
 	_, err = client.RemoveUserFromChannel(channel4.Id, th.BasicUser.Id)
 	require.NoError(t, err)
@@ -282,17 +282,17 @@ func TestLeaveCommands(t *testing.T) {
 	user2 := th.BasicUser2
 
 	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id}
-	channel1, _, err := client.CreateChannel(&model.ChannelWithCategoryData{Channel: *channel1})
+	channel1, _, err := client.CreateChannel(channel1)
 	require.NoError(t, err)
-	_, _, err = client.AddChannelMember(channel1.Id, th.BasicUser.Id, "")
+	_, _, err = client.AddChannelMember(channel1.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.ChannelTypePrivate, TeamId: team.Id}
-	channel2, _, err = client.CreateChannel(&model.ChannelWithCategoryData{Channel: *channel2})
+	channel2, _, err = client.CreateChannel(channel2)
 	require.NoError(t, err)
-	_, _, err = client.AddChannelMember(channel2.Id, th.BasicUser.Id, "")
+	_, _, err = client.AddChannelMember(channel2.Id, th.BasicUser.Id)
 	require.NoError(t, err)
-	_, _, err = client.AddChannelMember(channel2.Id, user2.Id, "")
+	_, _, err = client.AddChannelMember(channel2.Id, user2.Id)
 	require.NoError(t, err)
 
 	channel3, _, err := client.CreateDirectChannel(th.BasicUser.Id, user2.Id)
