@@ -30,10 +30,6 @@ func (s *Server) NewClusterDiscoveryService() *ClusterDiscoveryService {
 	return ds
 }
 
-func (a *App) newClusterDiscoveryService() *ClusterDiscoveryService {
-	return a.Srv().NewClusterDiscoveryService()
-}
-
 func (cds *ClusterDiscoveryService) Start() {
 	err := cds.srv.Store.ClusterDiscovery().Cleanup()
 	if err != nil {
@@ -87,10 +83,6 @@ func (s *Server) IsLeader() bool {
 		return s.Cluster.IsLeader()
 	}
 	return true
-}
-
-func (a *App) isLeader() bool {
-	return a.Srv().IsLeader()
 }
 
 func (a *App) GetClusterId() string {

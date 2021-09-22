@@ -82,10 +82,6 @@ func (a *App) newWebHub() *Hub {
 	}
 }
 
-func (a *App) totalWebsocketConnections() int {
-	return a.Srv().TotalWebsocketConnections()
-}
-
 // HubStart starts all the hubs.
 func (a *App) hubStart() {
 	// Total number of hubs is twice the number of CPUs.

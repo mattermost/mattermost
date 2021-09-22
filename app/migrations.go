@@ -17,11 +17,6 @@ const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 
-// This function migrates the default built in roles from code/config to the database.
-func (a *App) doAdvancedPermissionsMigration() {
-	a.Srv().doAdvancedPermissionsMigration()
-}
-
 func (s *Server) doAdvancedPermissionsMigration() {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store.System().GetByName(model.AdvancedPermissionsMigrationKey); err == nil {
@@ -89,10 +84,6 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	}
 	a.Srv().phase2PermissionsMigrationComplete = isComplete
 	return nil
-}
-
-func (a *App) doEmojisPermissionsMigration() {
-	a.Srv().doEmojisPermissionsMigration()
 }
 
 func (s *Server) doEmojisPermissionsMigration() {

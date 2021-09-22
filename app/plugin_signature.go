@@ -23,11 +23,7 @@ func (s *Server) getPluginPublicKeyFiles() ([]string, *model.AppError) {
 	return s.Config().PluginSettings.SignaturePublicKeyFiles, nil
 }
 
-// GetPublicKey will return the actual public key saved in the `name` file.
-func (a *App) getPublicKey(name string) ([]byte, *model.AppError) {
-	return a.Srv().getPublicKey(name)
-}
-
+// getPublicKey will return the actual public key saved in the `name` file.
 func (s *Server) getPublicKey(name string) ([]byte, *model.AppError) {
 	data, err := s.configStore.GetFile(name)
 	if err != nil {

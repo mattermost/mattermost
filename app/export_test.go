@@ -614,7 +614,7 @@ func TestBulkExport(t *testing.T) {
 	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ := th.App.bulkImportWithPath(th.Context, jsonFile, nil, false, 1, dir)
+	appErr, _ := th.App.bulkImport(th.Context, jsonFile, nil, false, 1, dir)
 	require.Nil(t, appErr)
 
 	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
@@ -635,6 +635,6 @@ func TestBulkExport(t *testing.T) {
 	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ = th.App.bulkImportWithPath(th.Context, jsonFile, nil, false, 1, filepath.Join(dir, "data"))
+	appErr, _ = th.App.bulkImport(th.Context, jsonFile, nil, false, 1, filepath.Join(dir, "data"))
 	require.Nil(t, appErr)
 }

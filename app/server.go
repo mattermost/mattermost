@@ -2245,12 +2245,12 @@ func runDNDStatusExpireJob(a *App) {
 	if !a.Config().FeatureFlags.TimedDND {
 		return
 	}
-	if a.isLeader() {
+	if a.Srv().IsLeader() {
 		createDNDStatusExpirationRecurringTask(a)
 	}
 	a.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.isLeader()))
-		if a.isLeader() {
+		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.Srv().IsLeader()))
+		if a.Srv().IsLeader() {
 			createDNDStatusExpirationRecurringTask(a)
 		} else {
 			cancelDNDStatusExpirationRecurringTask(a)
@@ -2259,7 +2259,7 @@ func runDNDStatusExpireJob(a *App) {
 }
 
 func stopDNDStatusExpireJob(a *App) {
-	if a.isLeader() {
+	if a.Srv().IsLeader() {
 		cancelDNDStatusExpirationRecurringTask(a)
 	}
 }

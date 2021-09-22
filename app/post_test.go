@@ -611,7 +611,7 @@ func TestMaxPostSize(t *testing.T) {
 				},
 			}
 
-			assert.Equal(t, testCase.ExpectedMaxPostSize, app.maxPostSize())
+			assert.Equal(t, testCase.ExpectedMaxPostSize, app.Srv().MaxPostSize())
 		})
 	}
 }

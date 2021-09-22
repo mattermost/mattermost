@@ -43,10 +43,6 @@ func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[st
 	return s.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (a *App) environmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
-	return a.Srv().EnvironmentConfig(filter)
-}
-
 func (s *Server) UpdateConfig(f func(*model.Config)) {
 	if s.configStore.IsReadOnly() {
 		return
@@ -80,10 +76,6 @@ func (a *App) ClientConfig() map[string]string {
 
 func (a *App) ClientConfigHash() string {
 	return a.Srv().ClientConfigHash()
-}
-
-func (a *App) limitedClientConfig() map[string]string {
-	return a.Srv().limitedClientConfig.Load().(map[string]string)
 }
 
 // Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
@@ -369,7 +361,7 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (a *App) LimitedClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
-	for k, v := range a.limitedClientConfig() {
+	for k, v := range a.Srv().limitedClientConfig.Load().(map[string]string) {
 		respCfg[k] = v
 	}
 
@@ -401,7 +393,7 @@ func (a *App) GetSanitizedConfig() *model.Config {
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 // If filter is not nil and returns false for a struct field, that field will be omitted.
 func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
-	return a.environmentConfig(filter)
+	return a.Srv().EnvironmentConfig(filter)
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.

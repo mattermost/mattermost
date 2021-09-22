@@ -174,10 +174,6 @@ func (a *App) ClearSessionCacheForUser(userID string) {
 	a.srv.userService.ClearUserSessionCache(userID)
 }
 
-func (a *App) clearSessionCacheForUserSkipClusterSend(userID string) {
-	a.Srv().clearSessionCacheForUserSkipClusterSend(userID)
-}
-
 func (a *App) RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) *model.AppError {
 	if err := a.srv.userService.RevokeSessionsForDeviceId(userID, deviceID, currentSessionId); err != nil {
 		return model.NewAppError("RevokeSessionsForDeviceId", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)

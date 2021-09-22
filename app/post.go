@@ -1390,10 +1390,6 @@ func (s *Server) MaxPostSize() int {
 	return maxPostSize
 }
 
-func (a *App) maxPostSize() int {
-	return a.Srv().MaxPostSize()
-}
-
 // countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.
 func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID string, timestamp int64) (int64, *model.AppError) {
 	channel, err := a.GetChannel(post.ChannelId)

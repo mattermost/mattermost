@@ -393,7 +393,7 @@ func BenchmarkBulkImport(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err, _ := th.App.bulkImportWithPath(th.Context, jsonFile, nil, false, runtime.NumCPU(), dir)
+		err, _ := th.App.bulkImport(th.Context, jsonFile, nil, false, runtime.NumCPU(), dir)
 		require.Nil(b, err)
 	}
 	b.StopTimer()

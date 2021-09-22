@@ -43,12 +43,12 @@ func TestPluginPublicKeys(t *testing.T) {
 	require.NoError(t, err)
 	defer fileReader.Close()
 	th.App.AddPublicKey(publicKeyFilename, fileReader)
-	file, appErr := th.App.getPublicKey(publicKeyFilename)
+	file, appErr := th.App.Srv().getPublicKey(publicKeyFilename)
 	require.Nil(t, appErr)
 	require.Equal(t, publicKey, file)
-	_, appErr = th.App.getPublicKey("wrong file name")
+	_, appErr = th.App.Srv().getPublicKey("wrong file name")
 	require.NotNil(t, appErr)
-	_, appErr = th.App.getPublicKey("wrong-file-name.plugin.gpg")
+	_, appErr = th.App.Srv().getPublicKey("wrong-file-name.plugin.gpg")
 	require.NotNil(t, appErr)
 
 	appErr = th.App.DeletePublicKey("wrong file name")
@@ -58,7 +58,7 @@ func TestPluginPublicKeys(t *testing.T) {
 
 	appErr = th.App.DeletePublicKey(publicKeyFilename)
 	require.Nil(t, appErr)
-	_, appErr = th.App.getPublicKey(publicKeyFilename)
+	_, appErr = th.App.Srv().getPublicKey(publicKeyFilename)
 	require.NotNil(t, appErr)
 }
 

@@ -447,7 +447,7 @@ func TestGetPluginStatusesDisabled(t *testing.T) {
 		*cfg.PluginSettings.Enable = false
 	})
 
-	_, err := th.App.getPluginStatuses()
+	_, err := th.App.Srv().GetPluginStatuses()
 	require.NotNil(t, err)
 	require.EqualError(t, err, "GetPluginStatuses: Plugins have been disabled. Please check your logs for details., ")
 }
@@ -460,7 +460,7 @@ func TestGetPluginStatuses(t *testing.T) {
 		*cfg.PluginSettings.Enable = true
 	})
 
-	pluginStatuses, err := th.App.getPluginStatuses()
+	pluginStatuses, err := th.App.Srv().GetPluginStatuses()
 	require.Nil(t, err)
 	require.NotNil(t, pluginStatuses)
 }
@@ -530,7 +530,7 @@ func TestPluginSync(t *testing.T) {
 				_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.syncPlugins()
+				appErr = th.App.Srv().syncPlugins()
 				checkNoError(t, appErr)
 
 				// Check if installed
@@ -548,7 +548,7 @@ func TestPluginSync(t *testing.T) {
 				appErr := th.App.RemoveFile(getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.syncPlugins()
+				appErr = th.App.Srv().syncPlugins()
 				checkNoError(t, appErr)
 
 				// Check if removed
@@ -568,7 +568,7 @@ func TestPluginSync(t *testing.T) {
 				_, appErr := th.App.WriteFile(pluginFileReader, getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.syncPlugins()
+				appErr = th.App.Srv().syncPlugins()
 				checkNoError(t, appErr)
 				pluginStatus, err := env.Statuses()
 				require.NoError(t, err)
@@ -586,7 +586,7 @@ func TestPluginSync(t *testing.T) {
 				_, appErr := th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.syncPlugins()
+				appErr = th.App.Srv().syncPlugins()
 				checkNoError(t, appErr)
 
 				pluginStatus, err := env.Statuses()
@@ -610,7 +610,7 @@ func TestPluginSync(t *testing.T) {
 				_, appErr = th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.syncPlugins()
+				appErr = th.App.Srv().syncPlugins()
 				checkNoError(t, appErr)
 
 				pluginStatus, err := env.Statuses()
@@ -652,7 +652,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 	checkNoError(t, appErr)
 
 	// Sync with file store so the plugin environment has access to this plugin.
-	appErr = th.App.syncPlugins()
+	appErr = th.App.Srv().syncPlugins()
 	checkNoError(t, appErr)
 
 	// Verify the plugin was installed and set to deactivated.

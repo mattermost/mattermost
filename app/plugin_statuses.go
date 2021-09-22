@@ -35,11 +35,6 @@ func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppErro
 	return nil, model.NewAppError("GetPluginStatus", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 }
 
-// GetPluginStatus returns the status for a plugin installed on this server.
-func (a *App) getPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	return a.Srv().GetPluginStatus(id)
-}
-
 // GetPluginStatuses returns the status for plugins installed on this server.
 func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	pluginsEnvironment := s.GetPluginsEnvironment()
@@ -62,11 +57,6 @@ func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	}
 
 	return pluginStatuses, nil
-}
-
-// GetPluginStatuses returns the status for plugins installed on this server.
-func (a *App) getPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	return a.Srv().GetPluginStatuses()
 }
 
 // GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
