@@ -775,7 +775,7 @@ func TestGetFileHeaders(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	testHeaders := func(data []byte, filename string, expectedContentType string, getInline, loadFile bool) func(*testing.T) {
+	testHeaders := func(data []byte, filename string, expectedContentType string, getInline bool, loadFile bool) func(*testing.T) {
 		return func(t *testing.T) {
 			if loadFile {
 				var err error
