@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -637,4 +638,68 @@ func TestBulkExport(t *testing.T) {
 
 	appErr, _ = th.App.bulkImport(th.Context, jsonFile, nil, false, 1, filepath.Join(dir, "data"))
 	require.Nil(t, appErr)
+}
+
+func TestBuildPostReplies(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	createPostWithAttachments := func(th *TestHelper, n int, rootID string) *model.Post {
+		var fileIDs []string
+		for i := 0; i < n; i++ {
+			info, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Name:      fmt.Sprintf("file%d", i),
+				Path:      fmt.Sprintf("/data/file%d", i),
+			})
+			require.NoError(t, err)
+			fileIDs = append(fileIDs, info.Id)
+		}
+
+		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: rootID, FileIds: fileIDs}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		return post
+	}
+
+	t.Run("basic post", func(t *testing.T) {
+		data, attachments, err := th.App.buildPostReplies(th.BasicPost.Id, true)
+		require.Nil(t, err)
+		require.Empty(t, data)
+		require.Empty(t, attachments)
+	})
+
+	t.Run("root post with attachments and no replies", func(t *testing.T) {
+		post := createPostWithAttachments(th, 5, "")
+		data, attachments, err := th.App.buildPostReplies(post.Id, true)
+		require.Nil(t, err)
+		require.Empty(t, data)
+		require.Empty(t, attachments)
+	})
+
+	t.Run("root post with attachments and a reply", func(t *testing.T) {
+		post := createPostWithAttachments(th, 5, "")
+		createPostWithAttachments(th, 0, post.Id)
+		data, attachments, err := th.App.buildPostReplies(post.Id, true)
+		require.Nil(t, err)
+		require.Len(t, data, 1)
+		require.Empty(t, attachments)
+	})
+
+	t.Run("root post with attachments and multiple replies with attachments", func(t *testing.T) {
+		post := createPostWithAttachments(th, 5, "")
+		reply1 := createPostWithAttachments(th, 2, post.Id)
+		reply2 := createPostWithAttachments(th, 3, post.Id)
+		data, attachments, err := th.App.buildPostReplies(post.Id, true)
+		require.Nil(t, err)
+		require.Len(t, data, 2)
+		require.Len(t, attachments, 5)
+		if reply1.Id < reply2.Id {
+			require.Len(t, *data[0].Attachments, 2)
+			require.Len(t, *data[1].Attachments, 3)
+		} else {
+			require.Len(t, *data[1].Attachments, 2)
+			require.Len(t, *data[0].Attachments, 3)
+		}
+	})
 }

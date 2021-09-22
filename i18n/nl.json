@@ -9030,8 +9030,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} stuurde je een nieuw bericht",
-      "other": "{{ .SenderName }} and {{.Count}} anderen stuurde je een nieuw bericht"
+      "one": "Je hebt een nieuwe bericht",
+      "other": "Je hebt nieuwe berichten"
     }
   },
   {
@@ -9184,7 +9184,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " commentaar gegeven op een draadje dat je volgt."
+    "translation": " antwoordde op een draadje dat je volgt."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9196,7 +9196,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Reageer op draadje"
+    "translation": "Antwoord in {{.channelName}}"
   },
   {
     "id": "api.config.reload_config.app_error",
@@ -9209,5 +9209,29 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Fout bij unmarshaling."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} een bericht beantwoord in jouw groep."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Antwoord in privé-bericht"
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.Afzendernaam}} op een draadje in je privé-berichten geantwoord."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " antwoordde op een draadje."
   }
 ]

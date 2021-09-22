@@ -1091,7 +1091,9 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 		defer file.Close()
 		img, release, imgErr := prepareImage(a.srv.imgDecoder, file)
 		if imgErr != nil {
-			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(imgErr))
+			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(imgErr),
+				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
+				mlog.String("creator_id", fi.CreatorId))
 			return
 		}
 		defer release()

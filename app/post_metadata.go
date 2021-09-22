@@ -129,7 +129,12 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	firstLink, images := a.getFirstLinkAndImages(post.Message)
 
 	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
-		mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		appErr, ok := err.(*model.AppError)
+		isNotFound := ok && appErr.StatusCode == http.StatusNotFound
+		// Ignore NotFound errors.
+		if !isNotFound {
+			mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		}
 	} else if embed == nil {
 		post.Metadata.Embeds = []*model.PostEmbed{}
 	} else {
@@ -218,7 +223,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		return nil, nil
 	}
 
-	og, image, permalink, err := a.getLinkMetadata(firstLink, post.CreateAt, isNewPost)
+	og, image, permalink, err := a.getLinkMetadata(firstLink, post.CreateAt, isNewPost, post.GetPreviewedPostProp())
 	if err != nil {
 		return nil, err
 	}
@@ -289,9 +294,14 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 	}
 
 	for _, imageURL := range imageURLs {
-		if _, image, _, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
-			mlog.Debug("Failed to get dimensions of an image in a post",
-				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Err(err))
+		if _, image, _, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
+			appErr, ok := err.(*model.AppError)
+			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
+			// Ignore NotFound errors.
+			if !isNotFound {
+				mlog.Debug("Failed to get dimensions of an image in a post",
+					mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Err(err))
+			}
 		} else if image != nil {
 			images[imageURL] = image
 		}
@@ -453,7 +463,7 @@ func looksLikeAPermalink(url, siteURL string) bool {
 	return matched
 }
 
-func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
+func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
 	timestamp = model.FloorToNearestHour(timestamp)
@@ -464,29 +474,26 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		permalink = nil
 	}
 
-	if ok {
+	if ok && previewedPostPropVal == "" {
 		return og, image, permalink, nil
 	}
 
 	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
 	if !isNewPost {
 		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
-		if ok {
+		if ok && previewedPostPropVal == "" {
 			cacheLinkMetadata(requestURL, timestamp, og, image, nil)
 			return og, image, nil, nil
 		}
 	}
 
 	var err error
-
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
 		referencedPostID := requestURL[len(requestURL)-26:]
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID)
-		// Ignore 'not found' errors; post could have been deleted via retention policy so we don't want to permanently log a warning.
-		//
 		// TODO: Look into saving a value in the LinkMetadat.Data field to prevent perpetually re-querying for the deleted post.
-		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		if appErr != nil {
 			return nil, nil, nil, appErr
 		}
 
