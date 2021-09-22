@@ -1131,8 +1131,8 @@ func rootCountMigration(sqlStore *SqlStore) {
 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 	}
 	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
-	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootAt", "bigint", "bigint")
+	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootAt")
 
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
@@ -1148,28 +1148,28 @@ func rootCountMigration(sqlStore *SqlStore) {
 		WHERE Posts.RootId = ''
 		GROUP BY Channels.Id
 	`
-	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
+	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootAt from Channels"
 	updateChannels := `
 		WITH q AS (` + totalMsgCountRootCTE + `)
-		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
+		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost
 		FROM q where q.channelid=Channels.Id;
 	`
 	updateChannelMembers := `
 		WITH q as (` + channelsCTE + `)
 		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
-		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
+		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootat;
 	`
 	if sqlStore.DriverName() == model.DatabaseDriverMysql {
 		updateChannels = `
 			UPDATE Channels
 			INNER Join (` + totalMsgCountRootCTE + `) as q
 			ON q.channelid=Channels.Id
-			SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
+			SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost;
 		`
 		updateChannelMembers = `
 			UPDATE ChannelMembers CM
 			INNER JOIN (` + channelsCTE + `) as q
-			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
+			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootat
 			SET MsgCountRoot=TotalMsgCountRoot
 			`
 	}
