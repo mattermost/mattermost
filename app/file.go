@@ -1118,15 +1118,15 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 // will save fileinfo with the preview added
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
 	if fi.IsImage() && fi.MiniPreview == nil {
-		file, err := a.FileReader(fi.Path)
-		if err != nil {
-			mlog.Debug("error reading image file", mlog.Err(err))
+		file, appErr := a.FileReader(fi.Path)
+		if appErr != nil {
+			mlog.Debug("error reading image file", mlog.Err(appErr))
 			return
 		}
 		defer file.Close()
-		img, release, imgErr := prepareImage(a.srv.imgDecoder, file)
-		if imgErr != nil {
-			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(imgErr),
+		img, release, err := prepareImage(a.srv.imgDecoder, file)
+		if err != nil {
+			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
 				mlog.String("creator_id", fi.CreatorId))
 
@@ -1134,8 +1134,8 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			// from entering generateMiniPreview in the future
 			fi.UpdateAt = model.GetMillis()
 			fi.MimeType = "invalid-" + fi.MimeType
-			if _, err2 := a.Srv().Store.FileInfo().Upsert(fi); err2 != nil {
-				mlog.Debug("FileInfo save failed", mlog.Err(err2))
+			if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
+				mlog.Debug("Invalidating FileInfo failed", mlog.Err(err))
 			}
 
 			return
@@ -1147,8 +1147,8 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 		} else {
 			fi.MiniPreview = &miniPreview
 		}
-		if _, appErr := a.Srv().Store.FileInfo().Upsert(fi); appErr != nil {
-			mlog.Debug("creating mini preview failed", mlog.Err(appErr))
+		if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
+			mlog.Debug("creating mini preview failed", mlog.Err(err))
 		} else {
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
 		}
