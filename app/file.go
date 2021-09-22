@@ -1141,7 +1141,8 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			return
 		}
 		defer release()
-		if miniPreview, err := imaging.GenerateMiniPreviewImage(img,
+		var miniPreview []byte
+		if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
 			miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
 			mlog.Info("Unable to generate mini preview image", mlog.Err(err))
 		} else {
