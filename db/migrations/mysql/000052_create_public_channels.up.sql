@@ -63,7 +63,7 @@ SET @preparedStatement = (SELECT IF(
         AND index_name = 'idx_publicchannels_search_txt'
     ) > 0,
     'SELECT 1',
-    'CREATE INDEX idx_publicchannels_search_txt ON PublicChannels(name, displayname, purpose);'
+    'CREATE FULLTEXT INDEX idx_publicchannels_search_txt ON PublicChannels(name, displayname, purpose);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
