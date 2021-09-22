@@ -128,6 +128,24 @@ func (s Scope) Equals(s2 Scope) bool {
 	return len(s) == len(s2) && len(s) == len(s.Intersection(s2))
 }
 
+func (s Scope) IsSuperset(s2 Scope) bool {
+	if s == nil {
+		return s2 == nil
+	}
+
+	if len(s2) > len(s) {
+		return false
+	}
+
+	for _, ss2 := range s2 {
+		if !s.IsInScope(ss2) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (s Scope) Normalize() Scope {
 	if s == nil {
 		return nil

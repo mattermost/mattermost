@@ -101,7 +101,7 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 		}
 	}
 
-	if !oldApp.Scopes.Equals(updatedApp.Scopes) {
+	if !oldApp.Scopes.IsSuperset(updatedApp.Scopes) {
 		if err := a.RevokeSessionsForOAuthAppId(updatedApp.Id); err != nil {
 			mlog.Warn("error in revoking app sessions after update", mlog.Err(err))
 		}
