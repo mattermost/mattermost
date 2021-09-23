@@ -419,53 +419,6 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 	return s
 }
 
-func (s SqlChannelStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
-	s.CreateIndexIfNotExists("idx_channels_update_at", "Channels", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
-	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		s.CreateIndexIfNotExists("idx_channels_name_lower", "Channels", "lower(Name)")
-		s.CreateIndexIfNotExists("idx_channels_displayname_lower", "Channels", "lower(DisplayName)")
-	}
-
-	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
-
-	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
-
-	s.CreateIndexIfNotExists("idx_publicchannels_team_id", "PublicChannels", "TeamId")
-	s.CreateIndexIfNotExists("idx_publicchannels_delete_at", "PublicChannels", "DeleteAt")
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		s.CreateIndexIfNotExists("idx_publicchannels_name_lower", "PublicChannels", "lower(Name)")
-		s.CreateIndexIfNotExists("idx_publicchannels_displayname_lower", "PublicChannels", "lower(DisplayName)")
-	}
-	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
-	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-}
-
-// MigratePublicChannels initializes the PublicChannels table with data created before this version
-// of the Mattermost server kept it up-to-date.
-func (s SqlChannelStore) MigratePublicChannels() error {
-	if _, err := s.GetMaster().Exec(`
-		INSERT INTO PublicChannels
-		    (Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-		SELECT
-		    c.Id, c.DeleteAt, c.TeamId, c.DisplayName, c.Name, c.Header, c.Purpose
-		FROM
-		    Channels c
-		LEFT JOIN
-		    PublicChannels pc ON (pc.Id = c.Id)
-		WHERE
-		    c.Type = 'O'
-		AND pc.Id IS NULL
-	`); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, channel *model.Channel) error {
 	publicChannel := &publicChannel{
 		Id:          channel.Id,

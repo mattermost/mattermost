@@ -661,10 +661,10 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userID *model.User, otherUs
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userId string, teamID string) (*model.OrderedSidebarCategories, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.CreateInitialSidebarCategories(userID, teamID)
+	result, err := s.ChannelStore.CreateInitialSidebarCategories(userId, teamID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1381,10 +1381,10 @@ func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamID string, offset 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategories(userId string, teamID string) (*model.OrderedSidebarCategories, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategories(userID, teamID)
+	result, err := s.ChannelStore.GetSidebarCategories(userId, teamID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1628,22 +1628,6 @@ func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigrateChannelMembers", success, elapsed)
 	}
 	return result, err
-}
-
-func (s *TimerLayerChannelStore) MigratePublicChannels() error {
-	start := timemodule.Now()
-
-	err := s.ChannelStore.MigratePublicChannels()
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigratePublicChannels", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerChannelStore) PermanentDelete(channelID string) error {
