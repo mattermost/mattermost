@@ -673,8 +673,9 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
+	ids := postIds{}
 	// TODO: change this to later delete thread directly from postID
-	rootID, err := s.GetReplica().SelectStr("SELECT RootId FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postID})
+	err = s.GetReplica().SelectOne(&ids, "SELECT RootId, UserId FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postID})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return store.NewErrNotFound("Post", postID)
@@ -683,7 +684,7 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
 	}
 
-	return s.cleanupThreads(postID, rootID, false)
+	return s.cleanupThreads(postID, ids.RootId, false, ids.UserId)
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
@@ -692,7 +693,7 @@ func (s *SqlPostStore) permanentDelete(postId string) error {
 	if err != nil && err != sql.ErrNoRows {
 		return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 	}
-	if err = s.cleanupThreads(post.Id, post.RootId, true); err != nil {
+	if err = s.cleanupThreads(post.Id, post.RootId, true, post.UserId); err != nil {
 		return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 	}
 
@@ -717,7 +718,7 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, true); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, true, userId); err != nil {
 			return err
 		}
 	}
@@ -773,7 +774,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, true); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, true, ids.UserId); err != nil {
 			return err
 		}
 	}
@@ -2353,7 +2354,7 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return oldest, nil
 }
 
-func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool) error {
+func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, userId string) error {
 	if permanent {
 		if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
 			return errors.Wrap(err, "failed to delete Threads")
@@ -2364,7 +2365,32 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool) err
 		return nil
 	}
 	if rootId != "" {
-		_, err := s.GetMaster().Exec(`UPDATE Threads SET ReplyCount = ReplyCount - 1 WHERE PostId = :Id AND ReplyCount > 0`, map[string]interface{}{"Id": rootId})
+		queryString, args, err := s.getQueryBuilder().
+			Select("COUNT(Id)").
+			From("Posts").
+			Where(sq.And{
+				sq.Eq{"RootId": rootId},
+				sq.Eq{"UserId": userId},
+				sq.Eq{"DeleteAt": 0},
+			}).
+			ToSql()
+
+		count, err := s.GetReplica().SelectInt(queryString, args...)
+
+		queryString, args, err = s.getQueryBuilder().
+			Select("Participants").
+			From("Threads").
+			Where(sq.Eq{"PostId": rootId}).
+			ToSql()
+
+		var participants model.StringArray
+		err = s.GetReplica().SelectOne(&participants, queryString, args...)
+
+		if count == 0 && participants.Contains(userId) {
+			participants = participants.Remove(userId)
+		}
+
+		_, err = s.GetMaster().Exec(`UPDATE Threads SET ReplyCount = ReplyCount - 1, Participants = :Participants WHERE PostId = :Id AND ReplyCount > 0`, map[string]interface{}{"Id": rootId, "Participants": participants})
 		if err != nil {
 			return errors.Wrap(err, "failed to update Threads")
 		}
