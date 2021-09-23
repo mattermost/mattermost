@@ -2365,7 +2365,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 		return nil
 	}
 	if rootId != "" {
-		queryString, args, err := s.getQueryBuilder().
+		queryString, args, _ := s.getQueryBuilder().
 			Select("COUNT(Id)").
 			From("Posts").
 			Where(sq.And{
@@ -2377,7 +2377,11 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 		count, err := s.GetReplica().SelectInt(queryString, args...)
 
-		queryString, args, err = s.getQueryBuilder().
+		if err != nil {
+			mlog.Warn("Error counting user's posts in thread", mlog.Err(err))
+		}
+
+		queryString, args, _ = s.getQueryBuilder().
 			Select("Participants").
 			From("Threads").
 			Where(sq.Eq{"PostId": rootId}).
@@ -2385,6 +2389,10 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 		var participants model.StringArray
 		err = s.GetReplica().SelectOne(&participants, queryString, args...)
+
+		if err != nil {
+			mlog.Warn("Error getting thread participants", mlog.Err(err))
+		}
 
 		if count == 0 && participants.Contains(userId) {
 			participants = participants.Remove(userId)
