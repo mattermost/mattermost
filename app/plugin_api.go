@@ -889,16 +889,16 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
-	api.logger.Debug(msg, keyValuePairs...)
+	api.logger.Debugw(msg, keyValuePairs...)
 }
 func (api *PluginAPI) LogInfo(msg string, keyValuePairs ...interface{}) {
-	api.logger.Info(msg, keyValuePairs...)
+	api.logger.Infow(msg, keyValuePairs...)
 }
 func (api *PluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
-	api.logger.Error(msg, keyValuePairs...)
+	api.logger.Errorw(msg, keyValuePairs...)
 }
 func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...interface{}) {
-	api.logger.Warn(msg, keyValuePairs...)
+	api.logger.Warnw(msg, keyValuePairs...)
 }
 
 func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {

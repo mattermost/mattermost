@@ -775,7 +775,6 @@ func TestPushNotificationAck(t *testing.T) {
 
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusForbidden, resp.Code)
-		fmt.Printf("DEBUG/resp.Body: %+v\n", resp.Body)
 		assert.NotNil(t, resp.Body)
 	})
 }

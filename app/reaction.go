@@ -29,7 +29,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 		return nil, model.NewAppError("deleteReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DefaultChannelName {
+	if a.Srv().License() != nil && channel.Name == model.DefaultChannelName {
 		var user *model.User
 		user, err = a.GetUser(reaction.UserId)
 		if err != nil {
@@ -123,7 +123,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 		return model.NewAppError("DeleteReactionForPost", "api.reaction.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DefaultChannelName {
+	if a.Srv().License() != nil && channel.Name == model.DefaultChannelName {
 		user, err := a.GetUser(reaction.UserId)
 		if err != nil {
 			return err
