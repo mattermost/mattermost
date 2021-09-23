@@ -953,8 +953,8 @@ type AppIface interface {
 	SearchEngine() *searchengine.Broker
 	SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError)
 	SearchGroupChannels(userID, term string) (model.ChannelList, *model.AppError)
+	SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError)
 	SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError)
-	SearchPostsInTeamForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError)
 	SearchPrivateTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	SearchPublicTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError)
