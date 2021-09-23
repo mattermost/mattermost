@@ -734,11 +734,11 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(userID *model.User, otherUs
 
 }
 
-func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(userId string, teamID string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CreateInitialSidebarCategories(userID, teamID)
+		result, err := s.ChannelStore.CreateInitialSidebarCategories(userId, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -1620,11 +1620,11 @@ func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamID string, offset 
 
 }
 
-func (s *RetryLayerChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *RetryLayerChannelStore) GetSidebarCategories(userId string, teamID string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSidebarCategories(userID, teamID)
+		result, err := s.ChannelStore.GetSidebarCategories(userId, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -1823,26 +1823,6 @@ func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
-		}
-	}
-
-}
-
-func (s *RetryLayerChannelStore) MigratePublicChannels() error {
-
-	tries := 0
-	for {
-		err := s.ChannelStore.MigratePublicChannels()
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
 		}
 	}
 

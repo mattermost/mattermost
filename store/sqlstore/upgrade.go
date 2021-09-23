@@ -494,11 +494,6 @@ func upgradeDatabaseToVersion53(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion54(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version530, Version540) {
-		if err := sqlStore.Channel().MigratePublicChannels(); err != nil {
-			mlog.Critical("Failed to migrate PublicChannels table", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitGenericFailure)
-		}
 		saveSchemaVersion(sqlStore, Version540)
 	}
 }
@@ -833,7 +828,6 @@ func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
 	sqlStore.RemoveIndexIfExists("idx_posts_channel_id", "Posts")
-	sqlStore.RemoveIndexIfExists("idx_publicchannels_name", "PublicChannels")
 	sqlStore.RemoveIndexIfExists("idx_emoji_name", "Emoji")
 	sqlStore.RemoveIndexIfExists("idx_oauthaccessdata_client_id", "OAuthAccessData")
 	sqlStore.RemoveIndexIfExists("idx_oauthauthdata_client_id", "OAuthAuthData")
