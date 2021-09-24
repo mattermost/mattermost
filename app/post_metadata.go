@@ -60,7 +60,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClient(originalPost, false, false, true)
+		post := a.PreparePostForClientWithEmbedsAndImages(originalPost, false, false)
 
 		list.Posts[id] = post
 	}
@@ -94,7 +94,7 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	}
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPost, includeEmbedsAndImages bool) *model.Post {
+func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -126,10 +126,12 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 		post.Metadata.Files = fileInfos
 	}
 
-	if includeEmbedsAndImages {
-		post = a.getEmbedsAndImages(post, true)
-	}
+	return post
+}
 
+func (a *App) PreparePostForClientWithEmbedsAndImages(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
+	post := a.PreparePostForClient(originalPost, isNewPost, isEditPost)
+	post = a.getEmbedsAndImages(post, true)
 	return post
 }
 

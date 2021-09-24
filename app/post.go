@@ -349,7 +349,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost, true, false, false)
+	rpost = a.PreparePostForClient(rpost, true, false)
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -521,7 +521,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false, true)
+	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	postJSON, jsonErr := post.ToJSON()
@@ -544,7 +544,7 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false, true)
+	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
@@ -685,7 +685,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost, false, true, true)
+	rpost = a.PreparePostForClientWithEmbedsAndImages(rpost, false, true)
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
