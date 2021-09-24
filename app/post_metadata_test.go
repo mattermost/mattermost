@@ -2229,6 +2229,23 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.NotNil(t, img)
 		assert.NoError(t, err)
 	})
+
+	t.Run("should throw error if post doesn't exist", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+			*cfg.ServiceSettings.SiteURL = server.URL
+			cfg.FeatureFlags.PermalinkPreviews = true
+		})
+
+		requestURL := server.URL + "/pl/5rpoy4o3nbgwjm7gs4cm71h6ho"
+		timestamp := int64(1547510400000)
+
+		_, _, _, err := th.App.getLinkMetadata(requestURL, timestamp, true, "")
+		assert.Error(t, err)
+	})
 }
 
 func TestResolveMetadataURL(t *testing.T) {
