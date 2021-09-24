@@ -2180,24 +2180,8 @@
     "translation": "Erro ao enviar o email de conta desativada"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Erro ao enviar email de troca de notificação"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Erro ao enviar notificação por email sobre alteração do nome do usuário"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Erro ao enviar verificação de email"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Não é possível enviar email de notificação para mudança no MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Erro ao enviar uma atualização de senha por email"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2196,8 @@
     "translation": "Erro ao enviar atualização de senha por email"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Falha ao enviar e-mail \"Token de acesso do usuário adicionado\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Erro ao enviar verificação de email"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Erro ao enviar boas vindas por email"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5904,38 +5880,6 @@
     "translation": "Por favor, adicione-me às equipes e canais nos quais você quer que eu interaja. Para fazer isso, use o navegador ou o aplicativo Mattermost Desktop."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Não foi possível enviar a imagem do ícone. Arquivo muito grande."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Não foi possível processar o formulário multipart."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Não foi possível abrir arquivo de imagem."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nenhum arquivo em 'image' no pedido."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Matriz vazia em 'image' na requisição."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Não foi possível fazer o upload da imagem do ícone."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Não foi possível ler o arquivo de imagem do ícone."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Não foi possível excluir a imagem do ícone."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Criação de bot foi desativada."
   },
@@ -8414,10 +8358,6 @@
   {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "A solicitação está sem o parâmetro AuthData ou AuthService."
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Falha ao enviar e-mail para notificação de limite do usuário ao administrador"
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",

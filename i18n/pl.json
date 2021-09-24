@@ -2184,24 +2184,8 @@
     "translation": "Nie udało się wysłać e-maila z dezaktywacją konta"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila z powiadomieniem o zmianie adresu email"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila z powiadomieniem o zmianie nazwy użytkownika"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Nie udało się pomyślnie wysłać emaila z weryfikacją zmiany adresu email"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Nie można wysłać powiadomienia e-mail o zmianie MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila ze zmianą hasła"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2216,16 +2200,8 @@
     "translation": "Nie udało się pomyślnie wysłać emaila ze zmianą hasła"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Nie udało się wysłać maila \"Osobisty token dostępu został dodany\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Nie udało się pomyślnie wysłać emaila weryfikacyjnego"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila powitalnego"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5902,38 +5878,6 @@
   {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub aplikacji Mattermost."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony. Plik jest zbyt duży."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nie udało się przetworzyć wieloczęściowego formularza"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Nie można otworzyć pliku obrazu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Brak pliku w polu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Pusta tablica w kluczu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Nie można odczytać obrazu ikony"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nie można usunąć obrazu ikony"
   },
   {
     "id": "api.bot.create_disabled",

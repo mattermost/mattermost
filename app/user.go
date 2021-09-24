@@ -257,9 +257,10 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		a.sendUpdatedUserEvent(*nUser)
 	}
 
-	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
-		mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
+	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_RECOMMENDED_NEXT_STEPS, Name: "hide", Value: "false"}
+	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
+	if err := a.Srv().Store.Preference().Save(&model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
+		mlog.Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
 	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
@@ -931,6 +932,7 @@ func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 	return nil
 }
 
+// TODO: migrate this after the user service implementation is completed
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	return a.srv.userService.GetSanitizeOptions(asAdmin)
 }
@@ -1301,7 +1303,6 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 }
 
 func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *model.AppError) {
-
 	tokenExtra := struct {
 		UserId string
 		Email  string

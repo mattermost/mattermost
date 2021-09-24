@@ -254,6 +254,8 @@ type Cmdable interface {
 	ZCount(ctx context.Context, key, min, max string) *IntCmd
 	ZLexCount(ctx context.Context, key, min, max string) *IntCmd
 	ZIncrBy(ctx context.Context, key string, increment float64, member string) *FloatCmd
+	ZInter(ctx context.Context, store *ZStore) *StringSliceCmd
+	ZInterWithScores(ctx context.Context, store *ZStore) *ZSliceCmd
 	ZInterStore(ctx context.Context, destination string, store *ZStore) *IntCmd
 	ZMScore(ctx context.Context, key string, members ...string) *FloatSliceCmd
 	ZPopMax(ctx context.Context, key string, count ...int64) *ZSliceCmd
@@ -279,6 +281,7 @@ type Cmdable interface {
 	ZRandMember(ctx context.Context, key string, count int, withScores bool) *StringSliceCmd
 	ZDiff(ctx context.Context, keys ...string) *StringSliceCmd
 	ZDiffWithScores(ctx context.Context, keys ...string) *ZSliceCmd
+	ZDiffStore(ctx context.Context, destination string, keys ...string) *IntCmd
 
 	PFAdd(ctx context.Context, key string, els ...interface{}) *IntCmd
 	PFCount(ctx context.Context, keys ...string) *IntCmd
@@ -1773,7 +1776,7 @@ func (c cmdable) XReadGroup(ctx context.Context, a *XReadGroupArgs) *XStreamSlic
 	args := make([]interface{}, 0, 8+len(a.Streams))
 	args = append(args, "xreadgroup", "group", a.Group, a.Consumer)
 
-	keyPos := int8(1)
+	keyPos := int8(4)
 	if a.Count > 0 {
 		args = append(args, "count", a.Count)
 		keyPos += 2
@@ -1943,6 +1946,17 @@ type ZStore struct {
 	Aggregate string
 }
 
+func (z *ZStore) len() (n int) {
+	n = len(z.Keys)
+	if len(z.Weights) > 0 {
+		n += 1 + len(z.Weights)
+	}
+	if z.Aggregate != "" {
+		n += 2
+	}
+	return n
+}
+
 // Redis `BZPOPMAX key [key ...] timeout` command.
 func (c cmdable) BZPopMax(ctx context.Context, timeout time.Duration, keys ...string) *ZWithKeyCmd {
 	args := make([]interface{}, 1+len(keys)+1)
@@ -2088,7 +2102,7 @@ func (c cmdable) ZIncrBy(ctx context.Context, key string, increment float64, mem
 }
 
 func (c cmdable) ZInterStore(ctx context.Context, destination string, store *ZStore) *IntCmd {
-	args := make([]interface{}, 0, 3+len(store.Keys))
+	args := make([]interface{}, 0, 3+store.len())
 	args = append(args, "zinterstore", destination, len(store.Keys))
 	for _, key := range store.Keys {
 		args = append(args, key)
@@ -2104,6 +2118,50 @@ func (c cmdable) ZInterStore(ctx context.Context, destination string, store *ZSt
 	}
 	cmd := NewIntCmd(ctx, args...)
 	cmd.setFirstKeyPos(3)
+	_ = c(ctx, cmd)
+	return cmd
+}
+
+func (c cmdable) ZInter(ctx context.Context, store *ZStore) *StringSliceCmd {
+	args := make([]interface{}, 0, 2+store.len())
+	args = append(args, "zinter", len(store.Keys))
+	for _, key := range store.Keys {
+		args = append(args, key)
+	}
+	if len(store.Weights) > 0 {
+		args = append(args, "weights")
+		for _, weights := range store.Weights {
+			args = append(args, weights)
+		}
+	}
+
+	if store.Aggregate != "" {
+		args = append(args, "aggregate", store.Aggregate)
+	}
+	cmd := NewStringSliceCmd(ctx, args...)
+	cmd.setFirstKeyPos(2)
+	_ = c(ctx, cmd)
+	return cmd
+}
+
+func (c cmdable) ZInterWithScores(ctx context.Context, store *ZStore) *ZSliceCmd {
+	args := make([]interface{}, 0, 3+store.len())
+	args = append(args, "zinter", len(store.Keys))
+	for _, key := range store.Keys {
+		args = append(args, key)
+	}
+	if len(store.Weights) > 0 {
+		args = append(args, "weights")
+		for _, weights := range store.Weights {
+			args = append(args, weights)
+		}
+	}
+	if store.Aggregate != "" {
+		args = append(args, "aggregate", store.Aggregate)
+	}
+	args = append(args, "withscores")
+	cmd := NewZSliceCmd(ctx, args...)
+	cmd.setFirstKeyPos(2)
 	_ = c(ctx, cmd)
 	return cmd
 }
@@ -2334,7 +2392,7 @@ func (c cmdable) ZScore(ctx context.Context, key, member string) *FloatCmd {
 }
 
 func (c cmdable) ZUnionStore(ctx context.Context, dest string, store *ZStore) *IntCmd {
-	args := make([]interface{}, 0, 3+len(store.Keys))
+	args := make([]interface{}, 0, 3+store.len())
 	args = append(args, "zunionstore", dest, len(store.Keys))
 	for _, key := range store.Keys {
 		args = append(args, key)
@@ -2380,6 +2438,7 @@ func (c cmdable) ZDiff(ctx context.Context, keys ...string) *StringSliceCmd {
 	}
 
 	cmd := NewStringSliceCmd(ctx, args...)
+	cmd.setFirstKeyPos(2)
 	_ = c(ctx, cmd)
 	return cmd
 }
@@ -2395,6 +2454,19 @@ func (c cmdable) ZDiffWithScores(ctx context.Context, keys ...string) *ZSliceCmd
 	args[len(keys)+2] = "withscores"
 
 	cmd := NewZSliceCmd(ctx, args...)
+	cmd.setFirstKeyPos(2)
+	_ = c(ctx, cmd)
+	return cmd
+}
+
+// redis-server version >=6.2.0.
+func (c cmdable) ZDiffStore(ctx context.Context, destination string, keys ...string) *IntCmd {
+	args := make([]interface{}, 0, 3+len(keys))
+	args = append(args, "zdiffstore", destination, len(keys))
+	for _, key := range keys {
+		args = append(args, key)
+	}
+	cmd := NewIntCmd(ctx, args...)
 	_ = c(ctx, cmd)
 	return cmd
 }
@@ -2658,6 +2730,7 @@ func (c cmdable) MemoryUsage(ctx context.Context, key string, samples ...int) *I
 		args = append(args, "SAMPLES", samples[0])
 	}
 	cmd := NewIntCmd(ctx, args...)
+	cmd.setFirstKeyPos(2)
 	_ = c(ctx, cmd)
 	return cmd
 }
@@ -2674,6 +2747,7 @@ func (c cmdable) Eval(ctx context.Context, script string, keys []string, args ..
 	}
 	cmdArgs = appendArgs(cmdArgs, args)
 	cmd := NewCmd(ctx, cmdArgs...)
+	cmd.setFirstKeyPos(3)
 	_ = c(ctx, cmd)
 	return cmd
 }
@@ -2688,6 +2762,7 @@ func (c cmdable) EvalSha(ctx context.Context, sha1 string, keys []string, args .
 	}
 	cmdArgs = appendArgs(cmdArgs, args)
 	cmd := NewCmd(ctx, cmdArgs...)
+	cmd.setFirstKeyPos(3)
 	_ = c(ctx, cmd)
 	return cmd
 }

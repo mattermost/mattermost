@@ -183,7 +183,7 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 }
 
 func (api *PluginAPI) GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError) {
-	return api.app.GetTeamsUnreadForUser("", userID)
+	return api.app.GetTeamsUnreadForUser("", userID, false)
 }
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -282,6 +282,19 @@ func (api *PluginAPI) UpdatePreferencesForUser(userID string, preferences []mode
 
 func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
 	return api.app.DeletePreferences(userID, preferences)
+}
+
+func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	return api.app.CreateUserAccessToken(token)
+}
+
+func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
+	accessToken, err := api.app.GetUserAccessToken(tokenID, false)
+	if err != nil {
+		return err
+	}
+
+	return api.app.RevokeUserAccessToken(accessToken)
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
@@ -437,6 +450,18 @@ func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Chann
 		return nil, err
 	}
 	return *channels, err
+}
+
+func (api *PluginAPI) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return api.app.CreateSidebarCategory(userID, teamID, newCategory)
+}
+
+func (api *PluginAPI) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	return api.app.GetSidebarCategories(userID, teamID)
+}
+
+func (api *PluginAPI) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	return api.app.UpdateSidebarCategories(userID, teamID, categories)
 }
 
 func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
@@ -1075,6 +1100,27 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 	}
 
 	return nil
+}
+
+func (api *PluginAPI) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	return api.app.CreateOAuthApp(app)
+}
+
+func (api *PluginAPI) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
+	return api.app.GetOAuthApp(appID)
+}
+
+func (api *PluginAPI) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	oldApp, err := api.GetOAuthApp(app.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.app.UpdateOauthApp(oldApp, app)
+}
+
+func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
+	return api.app.DeleteOAuthApp(appID)
 }
 
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
