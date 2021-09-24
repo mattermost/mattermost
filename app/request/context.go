@@ -21,7 +21,7 @@ type Context struct {
 
 	// Scopes stores the oAuth scopes associated to the session in this context.
 	// nil scopes mean not scoped operation.
-	scopes model.Scope
+	scopes model.Scopes
 
 	context context.Context
 }
@@ -67,7 +67,7 @@ func (c *Context) UserAgent() string {
 func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
-func (c *Context) Scopes() model.Scope {
+func (c *Context) Scopes() model.Scopes {
 	return c.scopes
 }
 
@@ -100,7 +100,7 @@ func (c *Context) SetPath(s string) {
 func (c *Context) SetContext(ctx context.Context) {
 	c.context = ctx
 }
-func (c *Context) SetScopes(scopes model.Scope) {
+func (c *Context) SetScopes(scopes model.Scopes) {
 	c.scopes = scopes
 }
 

@@ -82,7 +82,7 @@ type Handler struct {
 	IsStatic                  bool
 	IsLocal                   bool
 	DisableWhenBusy           bool
-	AllowedScopes             model.Scope
+	AllowedScopes             model.Scopes
 
 	cspShaDirective string
 }
@@ -352,31 +352,22 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) checkScopes(c *Context, appID string) model.Scope {
+func (h *Handler) checkScopes(c *Context, appID string) model.Scopes {
 	oAuthApp, err := c.App.GetOAuthApp(appID)
 	if err != nil {
 		c.Err = err
 		return nil
 	}
 
-	// To support legacy OAuth Apps, we consider nil scopes as a non-scoped OAuth App.
-	if oAuthApp.Scopes == nil {
-		return nil
+	if oAuthApp == nil {
+		c.Err = model.NewAppError("ServeHTTP", "api.context.nil_oauthapp.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	// Allowed endpoints will just relay the scopes, in case there is any consideration to be made based on scopes.
-	if h.AllowedScopes.Equals(model.ScopeAllow()) {
-		return oAuthApp.Scopes
-	}
-
-	// Check if any of the app scopes is allowed by this endpoint.
-	scopeIntersection := oAuthApp.Scopes.Intersection(h.AllowedScopes)
-	if len(scopeIntersection) == 0 {
+	if !oAuthApp.Scopes.AreAllowed(h.AllowedScopes) {
 		c.Err = model.NewAppError("ServeHTTP", "api.context.scope_mismatch.app_error", nil, "", http.StatusUnauthorized)
 		return nil
 	}
 
-	// Return all scopes from the App, for extra checks on the next layer.
 	return oAuthApp.Scopes
 }
 

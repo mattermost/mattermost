@@ -1,39 +1,80 @@
 package model
 
 import (
-	"encoding/json"
 	"strings"
 )
 
-type Scope []string
+type Scopes []Scope
+type Scope string
 
 const (
-	ScopeChannelJoin  = "channels:join"
-	ScopeMessageRead  = "message:read"
-	ScopeMessageWrite = "message:write"
-	ScopeFilesRead    = "files:read"
-	ScopeFilesWrite   = "files:write"
-	ScopeSearchPosts  = "search:post"
+	ScopeChannelJoin  Scope = "channels:join"
+	ScopeMessageRead  Scope = "message:read"
+	ScopeMessageWrite Scope = "message:write"
+	ScopeFilesRead    Scope = "files:read"
+	ScopeFilesWrite   Scope = "files:write"
+	ScopeSearchPosts  Scope = "search:post"
+
+	PluginScopePrefix         = "plugin:"
+	PluginSpecificScopePrefix = "pluginscope:"
 )
 
-func ScopeAny(scopes ...string) Scope {
+func ScopeAny(scopes ...Scope) Scopes {
 	return scopes
 }
 
-func ScopeAllow() Scope {
-	return Scope{}
+func ScopeAllow() Scopes {
+	return Scopes{}
 }
 
-func ScopeDeny() Scope {
+func ScopeDeny() Scopes {
 	return nil
 }
 
-func (s Scope) IsInScope(scope string) bool {
-	if s == nil {
+func NewPluginScope(pluginID string) Scope {
+	return Scope(PluginScopePrefix + pluginID)
+}
+
+func NewPluginSpecificScope(scopeName string) Scope {
+	//TODO this leads to clashes between plugin scopes. Rethink.
+	return Scope(PluginSpecificScopePrefix + scopeName)
+}
+
+func (s Scope) IsPluginScope() bool {
+	return strings.HasPrefix(string(s), PluginScopePrefix)
+}
+
+func (s Scope) IsPluginSpecificScope() bool {
+	return strings.HasPrefix(string(s), PluginSpecificScopePrefix)
+}
+
+func getPredefinedScopes() Scopes {
+	return Scopes{
+		ScopeChannelJoin,
+		ScopeMessageRead,
+		ScopeMessageWrite,
+		ScopeFilesRead,
+		ScopeFilesWrite,
+		ScopeSearchPosts,
+	}
+}
+
+func (s Scope) IsPredefinedScope() bool {
+	return getPredefinedScopes().isInScope(s)
+}
+
+func (s Scope) IsScopeForPlugin(pluginID string) bool {
+	return s.IsPluginScope() &&
+		strings.TrimPrefix(string(s), PluginScopePrefix) == pluginID
+}
+
+// isInScope checks if a scope is in the scope list
+func (ss Scopes) isInScope(scope Scope) bool {
+	if ss == nil {
 		return false
 	}
 
-	for _, allowed := range s {
+	for _, allowed := range ss {
 		if scope == allowed {
 			return true
 		}
@@ -42,14 +83,35 @@ func (s Scope) IsInScope(scope string) bool {
 	return false
 }
 
-func (s Scope) IsPluginInScope(pluginID string) bool {
-	if s == nil {
+func (ss Scopes) AreAllowed(allowed Scopes) bool {
+	// To support legacy OAuth Apps, we consider nil scopes as a non-scoped OAuth App.
+	if ss == nil {
+		return true
+	}
+
+	// Allowed endpoints will just relay the scopes, in case there is any consideration to be made based on scopes.
+	if allowed.equals(ScopeAllow()) {
+		return true
+	}
+
+	if allowed.equals(ScopeDeny()) {
 		return false
 	}
 
-	for _, allowed := range s {
-		if strings.HasPrefix(allowed, "plugin:") &&
-			strings.TrimPrefix(allowed, "plugin:") == pluginID {
+	if len(ss.intersection(allowed)) == 0 {
+		return false
+	}
+
+	return true
+}
+
+func (ss Scopes) IsPluginInScope(pluginID string) bool {
+	if ss == nil {
+		return false
+	}
+
+	for _, allowed := range ss {
+		if allowed.IsScopeForPlugin(pluginID) {
 			return true
 		}
 	}
@@ -57,14 +119,14 @@ func (s Scope) IsPluginInScope(pluginID string) bool {
 	return false
 }
 
-func (s Scope) Intersection(scope Scope) Scope {
-	if s == nil || scope == nil {
+func (ss Scopes) intersection(scope Scopes) Scopes {
+	if ss == nil || scope == nil {
 		return ScopeDeny()
 	}
 
-	out := Scope{}
-	for _, x := range s {
-		if scope.IsInScope(x) {
+	out := Scopes{}
+	for _, x := range ss {
+		if scope.isInScope(x) {
 			out = append(out, x)
 		}
 	}
@@ -76,43 +138,11 @@ func (s Scope) Intersection(scope Scope) Scope {
 	return out
 }
 
-func (s Scope) ToJSON() string {
-	bytes, err := json.Marshal(s)
-	if err != nil {
-		return ""
-	}
-	return string(bytes)
-}
-
-func ScopeFromJSON(in string) (Scope, error) {
-	var scope = Scope{}
-	err := json.Unmarshal([]byte(in), &scope)
-	if err != nil {
-		return nil, err
-	}
-	return scope, nil
-}
-
-func (s Scope) Validate() bool {
-	validScopes := Scope{
-		ScopeChannelJoin,
-		ScopeMessageRead,
-		ScopeMessageWrite,
-		ScopeFilesRead,
-		ScopeFilesWrite,
-		ScopeSearchPosts,
-	}
-
-	for _, scope := range s {
-		// Scopes as "plugin:plugin_id" that allow to access that plugin API
-		if strings.HasPrefix(scope, "plugin:") {
-			continue
-		}
-		// Scopes as "pluginscope:scope_name". These will be for plugins to interpret.
-		if strings.HasPrefix(scope, "pluginscope:") {
-			continue
-		}
-		if !validScopes.IsInScope(scope) {
+func (ss Scopes) Validate() bool {
+	for _, s := range ss {
+		if !s.IsPluginScope() &&
+			!s.IsPluginSpecificScope() &&
+			!s.IsPredefinedScope() {
 			return false
 		}
 	}
@@ -120,25 +150,34 @@ func (s Scope) Validate() bool {
 	return true
 }
 
-func (s Scope) Equals(s2 Scope) bool {
+func (ss Scopes) equals(ss2 Scopes) bool {
 	// TODO OAUTH confirm this is true
-	if s == nil {
-		return s2 == nil
-	}
-	return len(s) == len(s2) && len(s) == len(s.Intersection(s2))
-}
-
-func (s Scope) IsSuperset(s2 Scope) bool {
-	if s == nil {
-		return s2 == nil
+	if ss == nil {
+		return ss2 == nil
 	}
 
-	if len(s2) > len(s) {
+	if ss2 == nil {
 		return false
 	}
 
-	for _, ss2 := range s2 {
-		if !s.IsInScope(ss2) {
+	return len(ss) == len(ss2) && len(ss) == len(ss.intersection(ss2))
+}
+
+func (ss Scopes) IsSuperset(ss2 Scopes) bool {
+	if ss == nil {
+		return true
+	}
+
+	if ss2 == nil {
+		return false
+	}
+
+	if len(ss2) > len(ss) {
+		return false
+	}
+
+	for _, s2 := range ss2 {
+		if !ss.isInScope(s2) {
 			return false
 		}
 	}
@@ -146,15 +185,16 @@ func (s Scope) IsSuperset(s2 Scope) bool {
 	return true
 }
 
-func (s Scope) Normalize() Scope {
-	if s == nil {
+// Normalize removes all repeated scopes from a list of Scopes.
+func (ss Scopes) Normalize() Scopes {
+	if ss == nil {
 		return nil
 	}
 
-	out := Scope{}
+	out := Scopes{}
 
 OUTER:
-	for _, inScope := range s {
+	for _, inScope := range ss {
 		for _, outScope := range out {
 			if inScope == outScope {
 				continue OUTER

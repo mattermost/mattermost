@@ -36,7 +36,7 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request))
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scope) http.Handler {
+func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scopes) http.Handler {
 	handler := &web.Handler{
 		App:            api.app,
 		HandleFunc:     h,
@@ -139,7 +139,7 @@ func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
-func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scope) http.Handler {
+func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scopes) http.Handler {
 	handler := &web.Handler{
 		App:            api.app,
 		HandleFunc:     h,
@@ -160,7 +160,7 @@ func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseW
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
 // responding with HTTP 503 (Service Unavailable).
-func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scope) http.Handler {
+func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scopes) http.Handler {
 	handler := &web.Handler{
 		App:             api.app,
 		HandleFunc:      h,

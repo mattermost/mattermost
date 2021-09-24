@@ -29,7 +29,7 @@ type OAuthApp struct {
 	CallbackUrls       StringArray `json:"callback_urls"`
 	Homepage           string      `json:"homepage"`
 	IsTrusted          bool        `json:"is_trusted"`
-	Scopes             Scope       `json:"scopes"`
+	Scopes             Scopes      `json:"scopes"`
 	AppsFrameworkAppID string      `json:"apps_framework_app_id"`
 }
 

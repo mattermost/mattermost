@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -144,12 +145,12 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		sc := New(ServerConnector(s))
-		session, err := sc.GetSession(token)
+		session, appErr := sc.GetSession(token)
 		defer s.userService.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false
 
-		if session != nil && err == nil && cookieAuth && r.Method != "GET" {
+		if session != nil && appErr == nil && cookieAuth && r.Method != "GET" {
 			sentToken := ""
 
 			if r.Header.Get(model.HeaderCsrfToken) == "" {
@@ -197,13 +198,13 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 			csrfCheckPassed = true
 		}
 
-		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
+		if (session != nil && session.Id != "") && appErr == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
 
 			if oAuthAppID := session.Props[model.SessionPropOAuthAppID]; oAuthAppID != "" {
-				oAuthApp, err := sc.GetOAuthApp(oAuthAppID)
-				if err != nil {
+				oAuthApp, appError := sc.GetOAuthApp(oAuthAppID)
+				if appError != nil {
 					// TODO OAUTH write error
 					w.WriteHeader(http.StatusInternalServerError)
 					return
@@ -215,7 +216,13 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 					return
 				}
 
-				r.Header.Set("Mattermost-Scopes", oAuthApp.Scopes.ToJSON())
+				b, err := json.Marshal(oAuthApp.Scopes)
+				if err != nil {
+					// TODO OAUTH write error
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				r.Header.Set("Mattermost-Scopes", string(b))
 			}
 		}
 	}
