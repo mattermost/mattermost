@@ -2311,12 +2311,6 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 	}
 	isGuest := user.IsGuest()
 
-	if channel.Name == model.DefaultChannelName {
-		if !isGuest {
-			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
-		}
-	}
-
 	if channel.IsGroupConstrained() && userIDToRemove != removerUserId && !user.IsBot {
 		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIDToRemove}, channel)
 		if err != nil {

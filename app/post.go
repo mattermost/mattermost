@@ -213,13 +213,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		post.AddProp("from_bot", "true")
 	}
 
-	if a.Srv().License() != nil &&
-		!post.IsSystemMessage() &&
-		channel.Name == model.DefaultChannelName &&
-		!a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
-		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
-	}
-
 	var ephemeralPost *model.Post
 	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PermissionUseChannelMentions) {
 		mention := post.DisableMentionHighlights()
