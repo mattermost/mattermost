@@ -13,11 +13,11 @@ import (
 )
 
 func (api *API) InitScheme() {
-	api.BaseRoutes.Schemes.Handle("", api.APISessionRequired(getSchemes, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Schemes.Handle("", api.APISessionRequired(createScheme, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteScheme, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.Schemes.Handle("", api.APISessionRequiredWithDenyScope(getSchemes)).Methods("GET")
+	api.BaseRoutes.Schemes.Handle("", api.APISessionRequiredWithDenyScope(createScheme)).Methods("POST")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.APISessionRequiredWithDenyScope(deleteScheme)).Methods("DELETE")
 	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.APISessionRequiredTrustRequester(getScheme, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/patch", api.APISessionRequired(patchScheme, model.ScopeDeny())).Methods("PUT")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/patch", api.APISessionRequiredWithDenyScope(patchScheme)).Methods("PUT")
 	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/teams", api.APISessionRequiredTrustRequester(getTeamsForScheme, model.ScopeDeny())).Methods("GET")
 	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/channels", api.APISessionRequiredTrustRequester(getChannelsForScheme, model.ScopeDeny())).Methods("GET")
 }

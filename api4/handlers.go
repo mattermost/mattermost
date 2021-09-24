@@ -55,6 +55,27 @@ func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.R
 
 }
 
+// APISessionRequiredWithDenyScope provides a handler for API endpoints which require the user to be logged in in order for access to
+// be granted, and deny any session coming from an scoped oauth app.
+func (api *API) APISessionRequiredWithDenyScope(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &web.Handler{
+		App:            api.app,
+		HandleFunc:     h,
+		HandlerName:    web.GetHandlerName(h),
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     true,
+		IsStatic:       false,
+		IsLocal:        false,
+		AllowedScopes:  model.ScopeDeny(),
+	}
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+
+}
+
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
 func (api *API) CloudAPIKeyRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{

@@ -14,14 +14,14 @@ import (
 )
 
 func (api *API) InitBot() {
-	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(createBot, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(patchBot, model.ScopeDeny())).Methods("PUT")
-	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(getBot, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(getBots, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Bot.Handle("/disable", api.APISessionRequired(disableBot, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/enable", api.APISessionRequired(enableBot, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/convert_to_user", api.APISessionRequired(convertBotToUser, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(assignBot, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Bots.Handle("", api.APISessionRequiredWithDenyScope(createBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("", api.APISessionRequiredWithDenyScope(patchBot)).Methods("PUT")
+	api.BaseRoutes.Bot.Handle("", api.APISessionRequiredWithDenyScope(getBot)).Methods("GET")
+	api.BaseRoutes.Bots.Handle("", api.APISessionRequiredWithDenyScope(getBots)).Methods("GET")
+	api.BaseRoutes.Bot.Handle("/disable", api.APISessionRequiredWithDenyScope(disableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/enable", api.APISessionRequiredWithDenyScope(enableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/convert_to_user", api.APISessionRequiredWithDenyScope(convertBotToUser)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequiredWithDenyScope(assignBot)).Methods("POST")
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {

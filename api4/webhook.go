@@ -13,18 +13,18 @@ import (
 )
 
 func (api *API) InitWebhook() {
-	api.BaseRoutes.IncomingHooks.Handle("", api.APISessionRequired(createIncomingHook, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.IncomingHooks.Handle("", api.APISessionRequired(getIncomingHooks, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(getIncomingHook, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(updateIncomingHook, model.ScopeDeny())).Methods("PUT")
-	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(deleteIncomingHook, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APISessionRequiredWithDenyScope(createIncomingHook)).Methods("POST")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APISessionRequiredWithDenyScope(getIncomingHooks)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequiredWithDenyScope(getIncomingHook)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequiredWithDenyScope(updateIncomingHook)).Methods("PUT")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequiredWithDenyScope(deleteIncomingHook)).Methods("DELETE")
 
-	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(createOutgoingHook, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(getOutgoingHooks, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(getOutgoingHook, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(updateOutgoingHook, model.ScopeDeny())).Methods("PUT")
-	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(deleteOutgoingHook, model.ScopeDeny())).Methods("DELETE")
-	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.APISessionRequired(regenOutgoingHookToken, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequiredWithDenyScope(createOutgoingHook)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequiredWithDenyScope(getOutgoingHooks)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequiredWithDenyScope(getOutgoingHook)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequiredWithDenyScope(updateOutgoingHook)).Methods("PUT")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequiredWithDenyScope(deleteOutgoingHook)).Methods("DELETE")
+	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.APISessionRequiredWithDenyScope(regenOutgoingHookToken)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {

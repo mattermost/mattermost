@@ -58,9 +58,9 @@ func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, model.ScopeAny(model.ScopeFilesRead))).Methods("POST")
 	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile, model.ScopeAny(model.ScopeFilesWrite))).Methods("GET")
 	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.File.Handle("/link", api.APISessionRequiredWithDenyScope(getFileLink)).Methods("GET")
 	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.File.Handle("/info", api.APISessionRequiredWithDenyScope(getFileInfo)).Methods("GET")
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles, model.ScopeDeny())).Methods("POST")
 

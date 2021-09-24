@@ -12,10 +12,10 @@ import (
 )
 
 func (api *API) InitReaction() {
-	api.BaseRoutes.Reactions.Handle("", api.APISessionRequired(saveReaction, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Post.Handle("/reactions", api.APISessionRequired(getReactions, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction, model.ScopeDeny())).Methods("DELETE")
-	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Reactions.Handle("", api.APISessionRequiredWithDenyScope(saveReaction)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/reactions", api.APISessionRequiredWithDenyScope(getReactions)).Methods("GET")
+	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequiredWithDenyScope(deleteReaction)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequiredWithDenyScope(getBulkReactions)).Methods("POST")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitImport() {
-	api.BaseRoutes.Imports.Handle("", api.APISessionRequired(listImports, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Imports.Handle("", api.APISessionRequiredWithDenyScope(listImports)).Methods("GET")
 }
 
 func listImports(c *Context, w http.ResponseWriter, r *http.Request) {

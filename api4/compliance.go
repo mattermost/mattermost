@@ -16,9 +16,9 @@ import (
 )
 
 func (api *API) InitCompliance() {
-	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(createComplianceReport, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(getComplianceReports, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(getComplianceReport, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequiredWithDenyScope(createComplianceReport)).Methods("POST")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequiredWithDenyScope(getComplianceReports)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.APISessionRequiredWithDenyScope(getComplianceReport)).Methods("GET")
 	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadComplianceReport, model.ScopeDeny())).Methods("GET")
 }
 

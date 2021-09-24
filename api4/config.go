@@ -29,13 +29,13 @@ const (
 )
 
 func (api *API) InitConfig() {
-	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(getConfig, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(updateConfig, model.ScopeDeny())).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APISessionRequired(patchConfig, model.ScopeDeny())).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequiredWithDenyScope(getConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequiredWithDenyScope(updateConfig)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APISessionRequiredWithDenyScope(patchConfig)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequiredWithDenyScope(configReload)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods("GET") // Scoping done in getClientConfig
-	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APISessionRequired(migrateConfig, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequiredWithDenyScope(getEnvironmentConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APISessionRequiredWithDenyScope(migrateConfig)).Methods("POST")
 }
 
 func init() {

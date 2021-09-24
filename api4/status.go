@@ -12,16 +12,16 @@ import (
 )
 
 func (api *API) InitStatus() {
-	api.BaseRoutes.User.Handle("/status", api.APISessionRequired(getUserStatus, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Users.Handle("/status/ids", api.APISessionRequired(getUserStatusesByIds, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.User.Handle("/status", api.APISessionRequired(updateUserStatus, model.ScopeDeny())).Methods("PUT")
-	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequired(updateUserCustomStatus, model.ScopeDeny())).Methods("PUT")
-	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequired(removeUserCustomStatus, model.ScopeDeny())).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/status", api.APISessionRequiredWithDenyScope(getUserStatus)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/status/ids", api.APISessionRequiredWithDenyScope(getUserStatusesByIds)).Methods("POST")
+	api.BaseRoutes.User.Handle("/status", api.APISessionRequiredWithDenyScope(updateUserStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequiredWithDenyScope(updateUserCustomStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequiredWithDenyScope(removeUserCustomStatus)).Methods("DELETE")
 
 	// Both these handlers are for removing the recent custom status but the one with the POST method should be preferred
 	// as DELETE method doesn't support request body in the mobile app.
-	api.BaseRoutes.User.Handle("/status/custom/recent", api.APISessionRequired(removeUserRecentCustomStatus, model.ScopeDeny())).Methods("DELETE")
-	api.BaseRoutes.User.Handle("/status/custom/recent/delete", api.APISessionRequired(removeUserRecentCustomStatus, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.User.Handle("/status/custom/recent", api.APISessionRequiredWithDenyScope(removeUserRecentCustomStatus)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/status/custom/recent/delete", api.APISessionRequiredWithDenyScope(removeUserRecentCustomStatus)).Methods("POST")
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {

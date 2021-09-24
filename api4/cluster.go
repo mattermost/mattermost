@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitCluster() {
-	api.BaseRoutes.Cluster.Handle("/status", api.APISessionRequired(getClusterStatus, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Cluster.Handle("/status", api.APISessionRequiredWithDenyScope(getClusterStatus)).Methods("GET")
 }
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {

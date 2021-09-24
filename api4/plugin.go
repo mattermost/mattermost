@@ -27,22 +27,22 @@ const (
 func (api *API) InitPlugin() {
 	mlog.Debug("EXPERIMENTAL: Initializing plugin api")
 
-	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(getPlugins, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Plugin.Handle("", api.APISessionRequired(removePlugin, model.ScopeDeny())).Methods("DELETE")
-	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APISessionRequired(installPluginFromURL, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(installMarketplacePlugin, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequiredWithDenyScope(uploadPlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequiredWithDenyScope(getPlugins)).Methods("GET")
+	api.BaseRoutes.Plugin.Handle("", api.APISessionRequiredWithDenyScope(removePlugin)).Methods("DELETE")
+	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APISessionRequiredWithDenyScope(installPluginFromURL)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequiredWithDenyScope(installMarketplacePlugin)).Methods("POST")
 
-	api.BaseRoutes.Plugins.Handle("/statuses", api.APISessionRequired(getPluginStatuses, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequired(enablePlugin, model.ScopeDeny())).Methods("POST")
-	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequired(disablePlugin, model.ScopeDeny())).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/statuses", api.APISessionRequiredWithDenyScope(getPluginStatuses)).Methods("GET")
+	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequiredWithDenyScope(enablePlugin)).Methods("POST")
+	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequiredWithDenyScope(disablePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods("GET") // TODO OAUTH Consider OAuth scoping
 
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(getMarketplacePlugins, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequiredWithDenyScope(getMarketplacePlugins)).Methods("GET")
 
 	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST") // TODO OAUTH consider OAuth scoping and session required permission
-	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequired(getFirstAdminVisitMarketplaceStatus, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequiredWithDenyScope(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
