@@ -41,6 +41,7 @@ func init() {
 		ChannelGuestRoleId,
 		ChannelUserRoleId,
 		ChannelAdminRoleId,
+		ChannelPreviewerRoleId,
 	}, NewSystemRoleIDs...)
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
@@ -358,9 +359,10 @@ const (
 	TeamPostAllRoleId       = "team_post_all"
 	TeamPostAllPublicRoleId = "team_post_all_public"
 
-	ChannelGuestRoleId = "channel_guest"
-	ChannelUserRoleId  = "channel_user"
-	ChannelAdminRoleId = "channel_admin"
+	ChannelGuestRoleId     = "channel_guest"
+	ChannelUserRoleId      = "channel_user"
+	ChannelAdminRoleId     = "channel_admin"
+	ChannelPreviewerRoleId = "channel_previewer"
 
 	RoleNameMaxLength        = 64
 	RoleDisplayNameMaxLength = 128
@@ -777,6 +779,17 @@ func MakeDefaultRoles() map[string]*Role {
 		Permissions: []string{
 			PermissionCreatePostPublic.Id,
 			PermissionUseChannelMentions.Id,
+		},
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[ChannelPreviewerRoleId] = &Role{
+		Name:        "channel_previewer",
+		DisplayName: "authentication.roles.channel_previewer.name",
+		Description: "authentication.roles.channel_previewer.description",
+		Permissions: []string{
+			PermissionReadChannel.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,
