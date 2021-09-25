@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -78,7 +79,11 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventEmojiAdded, "", "", "", nil)
-	message.Add("emoji", emoji.ToJson())
+	emojiJSON, jsonErr := json.Marshal(emoji)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode emoji to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("emoji", string(emojiJSON))
 	a.Publish(message)
 	return emoji, nil
 }
@@ -274,9 +279,9 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 	return list, nil
 }
 
-// GetEmojiStaticUrl returns a relative static URL for system default emojis,
+// GetEmojiStaticURL returns a relative static URL for system default emojis,
 // and the API route for custom ones. Errors if not found or if custom and deleted.
-func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
+func (a *App) GetEmojiStaticURL(emojiName string) (string, *model.AppError) {
 	subPath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	if id, found := model.GetSystemEmojiId(emojiName); found {
@@ -290,9 +295,9 @@ func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
 	var nfErr *store.ErrNotFound
 	switch {
 	case errors.As(err, &nfErr):
-		return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.no_result", nil, err.Error(), http.StatusNotFound)
+		return "", model.NewAppError("GetEmojiStaticURL", "app.emoji.get_by_name.no_result", nil, err.Error(), http.StatusNotFound)
 	default:
-		return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("GetEmojiStaticURL", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 }
 

@@ -330,7 +330,6 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 			// If post in thread
 			if sPost.ThreadTS != "" && sPost.ThreadTS != sPost.TimeStamp {
 				newPost.RootId = threads[sPost.ThreadTS]
-				newPost.ParentId = threads[sPost.ThreadTS]
 			}
 			postId := si.oldImportPost(&newPost)
 			// If post is thread starter
@@ -631,8 +630,8 @@ func (si *SlackImporter) oldImportPost(post *model.Post) string {
 	// Workaround for empty messages, which may be the case if they are webhook posts.
 	firstIteration := true
 	firstPostId := ""
-	if post.ParentId != "" {
-		firstPostId = post.ParentId
+	if post.RootId != "" {
+		firstPostId = post.RootId
 	}
 	maxPostSize := si.actions.MaxPostSize()
 	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0 || firstIteration; messageRuneCount = utf8.RuneCountInString(post.Message) {
@@ -647,7 +646,6 @@ func (si *SlackImporter) oldImportPost(post *model.Post) string {
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 		post.RootId = firstPostId
-		post.ParentId = firstPostId
 
 		_, err := si.store.Post().Save(post)
 		if err != nil {

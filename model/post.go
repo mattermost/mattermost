@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -55,14 +54,14 @@ const (
 	PostMessageMaxRunesV1 = 4000
 	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
-	PostPropsMaxRunes     = 8000
-	PostPropsMaxUserRunes = PostPropsMaxRunes - 400 // Leave some room for system / pre-save modifications
+	PostPropsMaxRunes     = 800000
+	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
 	PropsAddChannelMember = "add_channel_member"
 
 	PostPropsAddedUserId       = "addedUserId"
 	PostPropsDeleteBy          = "deleteBy"
-	PostPropsOverrideIconUrl   = "override_icon_url"
+	PostPropsOverrideIconURL   = "override_icon_url"
 	PostPropsOverrideIconEmoji = "override_icon_emoji"
 
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
@@ -81,7 +80,6 @@ type Post struct {
 	UserId     string `json:"user_id"`
 	ChannelId  string `json:"channel_id"`
 	RootId     string `json:"root_id"`
-	ParentId   string `json:"parent_id"`
 	OriginalId string `json:"original_id"`
 
 	Message string `json:"message"`
@@ -194,7 +192,6 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.UserId = o.UserId
 	dst.ChannelId = o.ChannelId
 	dst.RootId = o.RootId
-	dst.ParentId = o.ParentId
 	dst.OriginalId = o.OriginalId
 	dst.Message = o.Message
 	dst.MessageSource = o.MessageSource
@@ -223,16 +220,11 @@ func (o *Post) Clone() *Post {
 	return copy
 }
 
-func (o *Post) ToJson() string {
+func (o *Post) ToJSON() (string, error) {
 	copy := o.Clone()
 	copy.StripActionIntegrations()
-	b, _ := json.Marshal(copy)
-	return string(b)
-}
-
-func (o *Post) ToUnsanitizedJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
+	b, err := json.Marshal(copy)
+	return string(b), err
 }
 
 type GetPostsSinceOptions struct {
@@ -267,12 +259,6 @@ type GetPostsOptions struct {
 	CollapsedThreadsExtended bool
 }
 
-func PostFromJson(data io.Reader) *Post {
-	var o *Post
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *Post) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
@@ -300,14 +286,6 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 
 	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if !(IsValidId(o.ParentId) || o.ParentId == "") {
-		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(o.ParentId) == 26 && o.RootId == "" {
-		return NewAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(len(o.OriginalId) == 26 || o.OriginalId == "") {
@@ -357,15 +335,15 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		}
 	}
 
-	if utf8.RuneCountInString(ArrayToJson(o.Filenames)) > PostFilenamesMaxRunes {
+	if utf8.RuneCountInString(ArrayToJSON(o.Filenames)) > PostFilenamesMaxRunes {
 		return NewAppError("Post.IsValid", "model.post.is_valid.filenames.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(ArrayToJson(o.FileIds)) > PostFileidsMaxRunes {
+	if utf8.RuneCountInString(ArrayToJSON(o.FileIds)) > PostFileidsMaxRunes {
 		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(StringInterfaceToJson(o.GetProps())) > PostPropsMaxRunes {
+	if utf8.RuneCountInString(StringInterfaceToJSON(o.GetProps())) > PostPropsMaxRunes {
 		return NewAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -523,45 +501,6 @@ func (o *Post) Patch(patch *PostPatch) {
 	}
 }
 
-func (o *PostPatch) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
-}
-
-func PostPatchFromJson(data io.Reader) *PostPatch {
-	decoder := json.NewDecoder(data)
-	var post PostPatch
-	err := decoder.Decode(&post)
-	if err != nil {
-		return nil
-	}
-
-	return &post
-}
-
-func (o *SearchParameter) SearchParameterToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
-}
-
-func SearchParameterFromJson(data io.Reader) (*SearchParameter, error) {
-	decoder := json.NewDecoder(data)
-	var searchParam SearchParameter
-	if err := decoder.Decode(&searchParam); err != nil {
-		return nil, err
-	}
-
-	return &searchParam, nil
-}
-
 func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
@@ -670,11 +609,6 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 	return copy
 }
 
-func (o *PostEphemeral) ToUnsanitizedJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced
 // according to the function f. For each image URL, f will be invoked, and the resulting markdown
 // will contain the URL returned by that invocation instead.
@@ -761,4 +695,11 @@ func (o *Post) GetPreviewPost() *PreviewPost {
 		}
 	}
 	return nil
+}
+
+func (o *Post) GetPreviewedPostProp() string {
+	if val, ok := o.GetProp(PostPropsPreviewedPost).(string); ok {
+		return val
+	}
+	return ""
 }

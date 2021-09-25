@@ -179,13 +179,13 @@ func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, er
 	return r0, r1
 }
 
-// GetThreadFollowers provides a mock function with given fields: threadID
-func (_m *ThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
-	ret := _m.Called(threadID)
+// GetThreadFollowers provides a mock function with given fields: threadID, fetchOnlyActive
+func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
+	ret := _m.Called(threadID, fetchOnlyActive)
 
 	var r0 []string
-	if rf, ok := ret.Get(0).(func(string) []string); ok {
-		r0 = rf(threadID)
+	if rf, ok := ret.Get(0).(func(string, bool) []string); ok {
+		r0 = rf(threadID, fetchOnlyActive)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -193,8 +193,8 @@ func (_m *ThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(threadID)
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(threadID, fetchOnlyActive)
 	} else {
 		r1 = ret.Error(1)
 	}

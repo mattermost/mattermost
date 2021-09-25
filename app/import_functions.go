@@ -17,8 +17,8 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -510,7 +510,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
-		if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
+		if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
 			mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
 
@@ -527,7 +527,10 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 			}
 		}
 		if hasNotifyPropsChanged {
-			if savedUser, appErr = a.UpdateUserNotifyProps(user.Id, user.NotifyProps, false); appErr != nil {
+			if appErr = a.updateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
+				return appErr
+			}
+			if savedUser, appErr = a.GetUser(user.Id); appErr != nil {
 				return appErr
 			}
 		}
@@ -562,13 +565,22 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	if data.ProfileImage != nil {
-		file, err := os.Open(*data.ProfileImage)
+		var file io.ReadCloser
+		var err error
+		if data.ProfileImageData != nil {
+			file, err = data.ProfileImageData.Open()
+		} else {
+			file, err = os.Open(*data.ProfileImage)
+		}
+
 		if err != nil {
 			mlog.Warn("Unable to open the profile image.", mlog.Err(err))
-		}
-		defer file.Close()
-		if err == nil {
-			if err := a.SetProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
+		} else {
+			defer file.Close()
+			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
+				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
+			}
+			if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
 				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
 			}
 		}
@@ -683,7 +695,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	if len(preferences) > 0 {
-		if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+		if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -837,7 +849,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	for _, team := range allTeams {
 		if len(teamThemePreferencesByID[team.Id]) > 0 {
 			pref := teamThemePreferencesByID[team.Id]
-			if err := a.Srv().Store.Preference().Save(&pref); err != nil {
+			if err := a.Srv().Store.Preference().Save(pref); err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -878,7 +890,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 		return model.NewAppError("importUserChannels", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	existingMembershipsByChannelId := map[string]model.ChannelMember{}
-	for _, channelMembership := range *existingMemberships {
+	for _, channelMembership := range existingMemberships {
 		existingMembershipsByChannelId[channelMembership.ChannelId] = channelMembership
 	}
 	for _, cdata := range *data {
@@ -1011,7 +1023,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 	for _, channel := range allChannels {
 		if len(channelPreferencesByID[channel.Id]) > 0 {
 			pref := channelPreferencesByID[channel.Id]
-			if err := a.Srv().Store.Preference().Save(&pref); err != nil {
+			if err := a.Srv().Store.Preference().Save(pref); err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -1093,15 +1105,11 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		}
 		reply.UserId = user.Id
 		reply.ChannelId = post.ChannelId
-		reply.ParentId = post.Id
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 
-		fileIDs, err := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
-		if err != nil {
-			return err
-		}
+		fileIDs := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
@@ -1378,10 +1386,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			post.Props = *line.Post.Props
 		}
 
-		fileIDs, appErr := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
-		if appErr != nil {
-			return line.LineNumber, appErr
-		}
+		fileIDs := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
@@ -1453,7 +1458,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			}
 
 			if len(preferences) > 0 {
-				if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+				if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
@@ -1480,20 +1485,29 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImportData, post *model.Post, teamID string) (map[string]bool, *model.AppError) {
+func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImportData, post *model.Post, teamID string) map[string]bool {
 	if attachments == nil {
-		return nil, nil
+		return nil
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
-			return nil, err
+			if attachment.Path != nil {
+				mlog.Warn(
+					"failed to import attachment",
+					mlog.String("path", *attachment.Path),
+					mlog.String("error", err.Error()))
+			} else {
+				mlog.Warn("failed to import attachment; path was nil",
+					mlog.String("error", err.Error()))
+			}
+			continue
 		}
 		fileIDs[fileInfo.Id] = true
 	}
-	return fileIDs, nil
+	return fileIDs
 }
 
 func (a *App) updateFileInfoWithPostId(post *model.Post) {
@@ -1561,7 +1575,7 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 		}
 	}
 
-	if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -1674,10 +1688,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			post.Props = *line.DirectPost.Props
 		}
 
-		fileIDs, err := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
-		if err != nil {
-			return line.LineNumber, err
-		}
+		fileIDs := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
@@ -1747,7 +1758,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			}
 
 			if len(preferences) > 0 {
-				if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+				if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
@@ -1802,7 +1813,12 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 		emoji.PreSave()
 	}
 
-	file, err := os.Open(*data.Image)
+	var file io.ReadCloser
+	if data.Data != nil {
+		file, err = data.Data.Open()
+	} else {
+		file, err = os.Open(*data.Image)
+	}
 	if err != nil {
 		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]interface{}{"EmojiName": *data.Name}, "", http.StatusBadRequest)
 	}

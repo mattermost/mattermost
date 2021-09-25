@@ -148,14 +148,6 @@
     "translation": "Канал преобразован в приватный."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Этот канал по умолчанию не может быть преобразован в приватный."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Канал, запрошенный для преобразования, уже является приватным каналом."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Нужно использовать createDirectChannel из API для создания канала личных сообщений."
   },
@@ -1318,10 +1310,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Неверный ChannelId для параметра RootId."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Неправильный ParentId параметр."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -3024,10 +3012,6 @@
     "translation": "Невозможно записать файл изображения в хранилище файлов. Пожалуйста, проверьте ваше соединение и попробуйте снова."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Функция требует обновления до Корпоративной редакции и включения лицензионного ключа. Пожалуйста, обратитесь к системному администратору."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Не удалось получить пользователей."
   },
@@ -3724,10 +3708,6 @@
     "translation": "Недопустимый идентификатор хука команды."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Некорректный идентификатор родителя."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Некорректный корневой идентификатор."
   },
@@ -4412,20 +4392,12 @@
     "translation": "Некорректный идентификатор оригинала."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Некорректный идентификатор родителя."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Некорректные свойства."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Некорректный корневой идентификатор."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Должен быть установлен неверный корневой идентификатор, если установлен родительский."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4796,22 +4768,6 @@
     "translation": "Отсутствует узел служб SSO Identity Provider в XML."
   },
   {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Невозможно прочитать файл изображения профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Пустой массив 'image' в запросе."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Нет файла 'image' в запросе."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Невозможно загрузить изображение профиля. Слишком большой файл."
-  },
-  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Пожалуйста, добавьте меня в команды и каналы, c которыми мне нужно взаимодействовать. Это можно сделать в браузере или в приложении Mattermost для ПК."
   },
@@ -4870,22 +4826,6 @@
   {
     "id": "api.bot.create_disabled",
     "translation": "Создание бота было отключено."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Не получилось удалить изображение профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Не удалось загрузить изображение профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Не удалось открыть файл изображения."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Не удалось разобрать составную форму."
   },
   {
     "id": "api.channel.add_guest.added",
@@ -5304,10 +5244,6 @@
     "translation": "имя группы уже существует как имя пользователя"
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Произошла ошибка при открытии файла открытого ключа."
-  },
-  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "При скачивании плагина произошла ошибка."
   },
@@ -5562,10 +5498,6 @@
   {
     "id": "bleveengine.stop_channel_index.error",
     "translation": "Не удалось закрыть индекс канала."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Исходящий вебхук удален, но не удалось создать новый в связи с какой-то ошибкой."
   },
   {
     "id": "ent.cluster.json_encode.error",
@@ -7721,15 +7653,15 @@
   },
   {
     "id": "app.user.update_threads_read_for_user.app_error",
-    "translation": "Не удалось пометить все пользовательские треды как прочтённые"
+    "translation": "Не удалось пометить все пользовательские обсуждения как прочтённые"
   },
   {
     "id": "app.user.update_thread_read_for_user.app_error",
-    "translation": "Не удалось обновить статус прочтения для треда"
+    "translation": "Не удалось обновить статус прочтения для обсуждения"
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
-    "translation": "Невозможно обновить состояние отслеживания для треда"
+    "translation": "Невозможно обновить состояние отслеживания для обсуждения"
   },
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
@@ -7805,11 +7737,11 @@
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
-    "translation": "Тред пользователя не существует или не отслеживается"
+    "translation": "Обсуждение пользователя не существует или не отслеживается"
   },
   {
     "id": "app.user.get_threads_for_user.app_error",
-    "translation": "Не удалось получить треды пользователя"
+    "translation": "Не удалось получить обсуждения пользователя"
   },
   {
     "id": "app.user.get_recently_active_users.app_error",
@@ -7993,7 +7925,7 @@
   },
   {
     "id": "app.channel.autofollow.app_error",
-    "translation": "Не удалось обновить членство в треде для указанного пользователя"
+    "translation": "Не удалось обновить участие в обсуждении для указанного пользователя"
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -9042,5 +8974,13 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Между этими пользователями невозможно создать прямой канал, потому что у них нет общей команды."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} ответил в обсуждении"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " дополнил обсуждение, на которое Вы подписаны."
   }
 ]

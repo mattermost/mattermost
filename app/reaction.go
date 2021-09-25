@@ -4,12 +4,14 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
@@ -27,7 +29,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 		return nil, model.NewAppError("deleteReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DefaultChannelName {
+	if a.Srv().License() != nil && channel.Name == model.DefaultChannelName {
 		var user *model.User
 		user, err = a.GetUser(reaction.UserId)
 		if err != nil {
@@ -121,7 +123,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 		return model.NewAppError("DeleteReactionForPost", "api.reaction.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DefaultChannelName {
+	if a.Srv().License() != nil && channel.Name == model.DefaultChannelName {
 		user, err := a.GetUser(reaction.UserId)
 		if err != nil {
 			return err
@@ -159,6 +161,10 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
-	message.Add("reaction", reaction.ToJson())
+	reactionJSON, jsonErr := json.Marshal(reaction)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode reaction to JSON")
+	}
+	message.Add("reaction", string(reactionJSON))
 	a.Publish(message)
 }

@@ -10,8 +10,10 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 var ImportCmd = &cobra.Command{
@@ -168,4 +170,17 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func getTeamFromTeamArg(a *app.App, teamArg string) *model.Team {
+	var team *model.Team
+	team, err := a.Srv().Store.Team().GetByName(teamArg)
+
+	if err != nil {
+		var t *model.Team
+		if t, err = a.Srv().Store.Team().Get(teamArg); err == nil {
+			team = t
+		}
+	}
+	return team
 }

@@ -38,7 +38,6 @@ import (
 )
 
 const (
-	maxImageRes                = int64(6048 * 4032) // 24 megapixels, up to ~196MB as a raw image
 	imageThumbnailWidth        = 120
 	imageThumbnailHeight       = 100
 	imagePreviewWidth          = 1920
@@ -642,6 +641,7 @@ type UploadFileTask struct {
 	teeInput     io.Reader
 	fileinfo     *model.FileInfo
 	maxFileSize  int64
+	maxImageRes  int64
 
 	// Cached image data that (may) get initialized in preprocessImage and
 	// is used in postprocessImage
@@ -702,6 +702,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 		Name:        filepath.Base(name),
 		Input:       input,
 		maxFileSize: *a.Config().FileSettings.MaxFileSize,
+		maxImageRes: *a.Config().FileSettings.MaxImageResolution,
 		imgDecoder:  a.srv.imgDecoder,
 		imgEncoder:  a.srv.imgEncoder,
 	}
@@ -806,7 +807,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	t.fileinfo.Width = w
 	t.fileinfo.Height = h
 
-	if err = checkImageResolutionLimit(w, h); err != nil {
+	if err = checkImageResolutionLimit(w, h, t.maxImageRes); err != nil {
 		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
 	}
 
@@ -973,7 +974,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() {
-		if limitErr := checkImageResolutionLimit(info.Width, info.Height); limitErr != nil {
+		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
 			return nil, data, err
 		}
@@ -1117,26 +1118,38 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 // will save fileinfo with the preview added
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
 	if fi.IsImage() && fi.MiniPreview == nil {
-		file, err := a.FileReader(fi.Path)
-		if err != nil {
-			mlog.Debug("error reading image file", mlog.Err(err))
+		file, appErr := a.FileReader(fi.Path)
+		if appErr != nil {
+			mlog.Debug("error reading image file", mlog.Err(appErr))
 			return
 		}
 		defer file.Close()
-		img, release, imgErr := prepareImage(a.srv.imgDecoder, file)
-		if imgErr != nil {
-			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(imgErr))
+		img, release, err := prepareImage(a.srv.imgDecoder, file)
+		if err != nil {
+			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
+				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
+				mlog.String("creator_id", fi.CreatorId))
+
+			// Since this file is not a valid image (for whatever reason), prevent this fileInfo
+			// from entering generateMiniPreview in the future
+			fi.UpdateAt = model.GetMillis()
+			fi.MimeType = "invalid-" + fi.MimeType
+			if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
+				mlog.Debug("Invalidating FileInfo failed", mlog.Err(err))
+			}
+
 			return
 		}
 		defer release()
-		if miniPreview, err := imaging.GenerateMiniPreviewImage(img,
+		var miniPreview []byte
+		if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
 			miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
 			mlog.Info("Unable to generate mini preview image", mlog.Err(err))
 		} else {
 			fi.MiniPreview = &miniPreview
 		}
-		if _, appErr := a.Srv().Store.FileInfo().Upsert(fi); appErr != nil {
-			mlog.Debug("creating mini preview failed", mlog.Err(appErr))
+		if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
+			mlog.Debug("creating mini preview failed", mlog.Err(err))
 		} else {
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
 		}
@@ -1330,7 +1343,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SearchPostsInTeamForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 

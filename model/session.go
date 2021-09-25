@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"strconv"
 	"strings"
 
@@ -78,17 +76,6 @@ func (s *Session) DeepCopy() *Session {
 	}
 
 	return &copySession
-}
-
-func (s *Session) ToJson() string {
-	b, _ := json.Marshal(s)
-	return string(b)
-}
-
-func SessionFromJson(data io.Reader) *Session {
-	var s *Session
-	json.NewDecoder(data).Decode(&s)
-	return s
 }
 
 func (s *Session) PreSave() {
@@ -207,18 +194,4 @@ func (s *Session) GetCSRF() string {
 	}
 
 	return s.Props["csrf"]
-}
-
-func SessionsToJson(o []*Session) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func SessionsFromJson(data io.Reader) []*Session {
-	var o []*Session
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

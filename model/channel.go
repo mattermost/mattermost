@@ -6,7 +6,6 @@ package model
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"encoding/json"
 	"io"
 	"net/http"
 	"sort"
@@ -67,8 +66,8 @@ type ChannelWithTeamData struct {
 }
 
 type ChannelsWithCount struct {
-	Channels   *ChannelListWithTeamData `json:"channels"`
-	TotalCount int64                    `json:"total_count"`
+	Channels   ChannelListWithTeamData `json:"channels"`
+	TotalCount int64                   `json:"total_count"`
 }
 
 type ChannelPatch struct {
@@ -163,11 +162,6 @@ func (o *Channel) DeepCopy() *Channel {
 		copy.SchemeId = NewString(*o.SchemeId)
 	}
 	return &copy
-}
-
-func (o *Channel) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func (o *Channel) Etag() string {

@@ -19,11 +19,11 @@ var notAllowedPermissions = []string{
 }
 
 func (api *API) InitRole() {
-	api.BaseRoutes.Roles.Handle("", api.ApiSessionRequired(getAllRoles)).Methods("GET")
-	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getRole)).Methods("GET")
-	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.ApiSessionRequiredTrustRequester(getRoleByName)).Methods("GET")
-	api.BaseRoutes.Roles.Handle("/names", api.ApiSessionRequiredTrustRequester(getRolesByNames)).Methods("POST")
-	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}/patch", api.ApiSessionRequired(patchRole)).Methods("PUT")
+	api.BaseRoutes.Roles.Handle("", api.APISessionRequired(getAllRoles)).Methods("GET")
+	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.APISessionRequiredTrustRequester(getRole)).Methods("GET")
+	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.APISessionRequiredTrustRequester(getRoleByName)).Methods("GET")
+	api.BaseRoutes.Roles.Handle("/names", api.APISessionRequiredTrustRequester(getRolesByNames)).Methods("POST")
+	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}/patch", api.APISessionRequired(patchRole)).Methods("PUT")
 }
 
 func getAllRoles(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -76,7 +76,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	rolenames := model.ArrayFromJson(r.Body)
+	rolenames := model.ArrayFromJSON(r.Body)
 
 	if len(rolenames) == 0 {
 		c.SetInvalidParam("rolenames")
@@ -95,7 +95,12 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.RoleListToJson(roles)))
+	js, jsonErr := json.Marshal(roles)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getRolesByNames", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -104,8 +109,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch := model.RolePatchFromJson(r.Body)
-	if patch == nil {
+	var patch model.RolePatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
 		c.SetInvalidParam("role")
 		return
 	}
@@ -143,7 +148,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Licensed instances can not change permissions in the blacklist set.
 	if patch.Permissions != nil {
-		deltaPermissions := model.PermissionsChangedByPatch(oldRole, patch)
+		deltaPermissions := model.PermissionsChangedByPatch(oldRole, &patch)
 
 		for _, permission := range deltaPermissions {
 			notAllowed := false
@@ -179,7 +184,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	role, err := c.App.PatchRole(oldRole, patch)
+	role, err := c.App.PatchRole(oldRole, &patch)
 	if err != nil {
 		c.Err = err
 		return

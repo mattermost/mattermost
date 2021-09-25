@@ -14,14 +14,14 @@ import (
 )
 
 func (api *API) InitBot() {
-	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(createBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(patchBot)).Methods("PUT")
-	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(getBot)).Methods("GET")
-	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(getBots)).Methods("GET")
-	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/enable", api.ApiSessionRequired(enableBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/convert_to_user", api.ApiSessionRequired(convertBotToUser)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(assignBot)).Methods("POST")
+	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(createBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(patchBot)).Methods("PUT")
+	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(getBot)).Methods("GET")
+	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(getBots)).Methods("GET")
+	api.BaseRoutes.Bot.Handle("/disable", api.APISessionRequired(disableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/enable", api.APISessionRequired(enableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/convert_to_user", api.APISessionRequired(convertBotToUser)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(assignBot)).Methods("POST")
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -279,8 +279,9 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userPatch := model.UserPatchFromJson(r.Body)
-	if userPatch == nil || userPatch.Password == nil || *userPatch.Password == "" {
+	var userPatch model.UserPatch
+	jsonErr := json.NewDecoder(r.Body).Decode(&userPatch)
+	if jsonErr != nil || userPatch.Password == nil || *userPatch.Password == "" {
 		c.SetInvalidParam("userPatch")
 		return
 	}
@@ -298,7 +299,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.ConvertBotToUser(bot, userPatch, systemAdmin)
+	user, err := c.App.ConvertBotToUser(bot, &userPatch, systemAdmin)
 	if err != nil {
 		c.Err = err
 		return

@@ -104,7 +104,7 @@ type Address struct {
 // PaymentMethod represents methods of payment for a customer.
 type PaymentMethod struct {
 	Type      string `json:"type"`
-	LastFour  int    `json:"last_four"`
+	LastFour  string `json:"last_four"`
 	ExpMonth  int    `json:"exp_month"`
 	ExpYear   int    `json:"exp_year"`
 	CardBrand string `json:"card_brand"`
@@ -169,7 +169,7 @@ type CWSWebhookPayload struct {
 
 type FailedPayment struct {
 	CardBrand      string `json:"card_brand"`
-	LastFour       int    `json:"last_four"`
+	LastFour       string `json:"last_four"`
 	FailureMessage string `json:"failure_message"`
 }
 

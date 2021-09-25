@@ -19,21 +19,21 @@ import (
 )
 
 func (api *API) InitTeamLocal() {
-	api.BaseRoutes.Teams.Handle("", api.ApiLocal(localCreateTeam)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("", api.ApiLocal(getAllTeams)).Methods("GET")
-	api.BaseRoutes.Teams.Handle("/search", api.ApiLocal(searchTeams)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("", api.APILocal(localCreateTeam)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("", api.APILocal(getAllTeams)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/search", api.APILocal(searchTeams)).Methods("POST")
 
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(getTeam)).Methods("GET")
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(updateTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(localDeleteTeam)).Methods("DELETE")
-	api.BaseRoutes.Team.Handle("/invite/email", api.ApiLocal(localInviteUsersToTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/patch", api.ApiLocal(patchTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/privacy", api.ApiLocal(updateTeamPrivacy)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/restore", api.ApiLocal(restoreTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("", api.APILocal(getTeam)).Methods("GET")
+	api.BaseRoutes.Team.Handle("", api.APILocal(updateTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("", api.APILocal(localDeleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/invite/email", api.APILocal(localInviteUsersToTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/patch", api.APILocal(patchTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/privacy", api.APILocal(updateTeamPrivacy)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/restore", api.APILocal(restoreTeam)).Methods("POST")
 
-	api.BaseRoutes.TeamByName.Handle("", api.ApiLocal(getTeamByName)).Methods("GET")
-	api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")
-	api.BaseRoutes.TeamMember.Handle("", api.ApiLocal(removeTeamMember)).Methods("DELETE")
+	api.BaseRoutes.TeamByName.Handle("", api.APILocal(getTeamByName)).Methods("GET")
+	api.BaseRoutes.TeamMembers.Handle("", api.APILocal(addTeamMember)).Methods("POST")
+	api.BaseRoutes.TeamMember.Handle("", api.APILocal(removeTeamMember)).Methods("DELETE")
 }
 
 func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -76,7 +76,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	emailList := model.ArrayFromJson(r.Body)
+	emailList := model.ArrayFromJSON(r.Body)
 	if len(emailList) == 0 {
 		c.SetInvalidParam("user_email")
 		return
@@ -142,7 +142,12 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			}
 		}
 		// in graceful mode we return both the successful ones and the failed ones
-		w.Write([]byte(model.EmailInviteWithErrorToJson(invitesWithErrors)))
+		js, jsonErr := json.Marshal(invitesWithErrors)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 	} else {
 		var invalidEmailList []string
 
@@ -200,18 +205,19 @@ func normalizeDomains(domains string) []string {
 }
 
 func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	team := model.TeamFromJson(r.Body)
-	if team == nil {
+	var team model.Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
 		c.SetInvalidParam("team")
 		return
 	}
+
 	team.Email = strings.ToLower(team.Email)
 
 	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("team", team)
 
-	rteam, err := c.App.CreateTeam(c.AppContext, team)
+	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {
 		c.Err = err
 		return

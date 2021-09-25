@@ -19,10 +19,10 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -54,7 +54,7 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+	tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
 
 	team, nErr := a.Srv().Store.Team().Get(tokenData["teamId"])
 	if nErr != nil {
@@ -261,7 +261,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
-	if err := a.Srv().Store.Preference().Save(&model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
+	if err := a.Srv().Store.Preference().Save(model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
 		mlog.Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
@@ -294,7 +294,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	if e != nil {
 		return nil, e
 	}
-	user, err1 := provider.GetUserFromJson(userData, tokenUser)
+	user, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusInternalServerError)
 	}
@@ -753,7 +753,7 @@ func (a *App) SetProfileImage(userID string, imageData *multipart.FileHeader) *m
 }
 
 func (a *App) SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError {
-	if limitErr := checkImageLimits(file); limitErr != nil {
+	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -868,7 +868,7 @@ func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError 
 			return err
 		}
 
-		for _, channel := range *channelsForUser {
+		for _, channel := range channelsForUser {
 			a.invalidateCacheForChannelMembers(channel.Id)
 		}
 	}
@@ -1143,20 +1143,22 @@ func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *
 	return nil
 }
 
-func (a *App) UpdateUserNotifyProps(userID string, props map[string]string, sendNotifications bool) (*model.User, *model.AppError) {
-	user, err := a.GetUser(userID)
+func (a *App) updateUserNotifyProps(userID string, props map[string]string) *model.AppError {
+	err := a.srv.userService.UpdateUserNotifyProps(userID, props)
 	if err != nil {
-		return nil, err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
-	user.NotifyProps = props
+	a.InvalidateCacheForUser(userID)
+	a.onUserProfileChange(userID)
 
-	ruser, err := a.UpdateUser(user, sendNotifications)
-	if err != nil {
-		return nil, err
-	}
-
-	return ruser, nil
+	return nil
 }
 
 func (a *App) UpdateMfa(activate bool, userID, token string) *model.AppError {
@@ -1814,7 +1816,7 @@ func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model
 }
 
 func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
-	oauthUser, err1 := provider.GetUserFromJson(userData, tokenUser)
+	oauthUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
 	}
@@ -2054,11 +2056,15 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 			mlog.Warn("Failed to get channel members for user on promote guest to user", mlog.Err(err))
 		}
 
-		for _, member := range *channelMembers {
+		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
-			evt.Add("channelMember", member.ToJson())
+			memberJSON, jsonErr := json.Marshal(member)
+			if jsonErr != nil {
+				mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			}
+			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
 		}
 	}
@@ -2095,11 +2101,15 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 			continue
 		}
 
-		for _, member := range *channelMembers {
+		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
-			evt.Add("channelMember", member.ToJson())
+			memberJSON, jsonErr := json.Marshal(member)
+			if jsonErr != nil {
+				mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			}
+			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
 		}
 	}

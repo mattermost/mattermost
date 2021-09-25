@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -18,9 +19,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -337,7 +338,11 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 		teamID = team.Id
 	}
 	message := model.NewWebSocketEvent(event, teamID, "", "", nil)
-	message.Add("team", sanitizedTeam.ToJson())
+	teamJSON, jsonErr := json.Marshal(team)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode team to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("team", string(teamJSON))
 	a.Publish(message)
 }
 
@@ -479,7 +484,11 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 
 func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) {
 	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil)
-	message.Add("member", member.ToJson())
+	tmJSON, jsonErr := json.Marshal(member)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("member", string(tmJSON))
 	a.Publish(message)
 }
 
@@ -563,7 +572,7 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+	tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
 
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
@@ -1235,19 +1244,18 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	var channelList *model.ChannelList
-
+	var channelList model.ChannelList
 	var nErr error
 	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true, 0); nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
-			channelList = &model.ChannelList{}
+			channelList = model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	for _, channel := range *channelList {
+	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
 			if nErr = a.Srv().Store.Channel().RemoveMember(channel.Id, user.Id); nErr != nil {
@@ -1739,7 +1747,7 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		for _, c := range *channels {
+		for _, c := range channels {
 			a.PermanentDeleteChannel(c)
 		}
 	}
@@ -1863,7 +1871,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
 
 		return tokenData["teamId"], nil
 	}
@@ -1938,7 +1946,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if limitErr := checkImageLimits(file); limitErr != nil {
+	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.check_image_limits.app_error",
 			nil, limitErr.Error(), http.StatusBadRequest)
 	}
@@ -2028,7 +2036,11 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 			a.ClearSessionCacheForUser(teamMember.UserId)
 
 			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil)
-			message.Add("member", teamMember.ToJson())
+			tmJSON, jsonErr := json.Marshal(teamMember)
+			if jsonErr != nil {
+				mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
+			}
+			message.Add("member", string(tmJSON))
 			a.Publish(message)
 		}
 

@@ -24,7 +24,7 @@ type apiTimerLayer struct {
 func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, success bool) {
 	if api.metrics != nil {
 		elapsedTime := float64(timePkg.Since(startTime)) / float64(timePkg.Second)
-		api.metrics.ObservePluginApiDuration(api.pluginID, name, success, elapsedTime)
+		api.metrics.ObservePluginAPIDuration(api.pluginID, name, success, elapsedTime)
 	}
 }
 
@@ -574,14 +574,14 @@ func (api *apiTimerLayer) GetChannelMember(channelId, userID string) (*model.Cha
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembers(channelId string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetChannelMembers(channelId, page, perPage)
 	api.recordTime(startTime, "GetChannelMembers", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembersByIds(channelId string, userIds []string) (model.ChannelMembers, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetChannelMembersByIds(channelId, userIds)
 	api.recordTime(startTime, "GetChannelMembersByIds", _returnsB == nil)
