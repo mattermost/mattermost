@@ -75,7 +75,7 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "gzip" })
 
 		testAPIHandlerGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip), "")
-		testAPIHandlerGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip, model.ScopeDeny()), session.Token)
+		testAPIHandlerGzipMode(t, "ApiSessionRequired", api.APISessionRequiredWithDenyScope(handlerForGzip), session.Token)
 		testAPIHandlerGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip), session.Token)
 		testAPIHandlerGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip), "")
 		testAPIHandlerGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip, model.ScopeDeny()), session.Token)
@@ -85,7 +85,7 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "nogzip" })
 
 		testAPIHandlerNoGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip), "")
-		testAPIHandlerNoGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip, model.ScopeDeny()), session.Token)
+		testAPIHandlerNoGzipMode(t, "ApiSessionRequired", api.APISessionRequiredWithDenyScope(handlerForGzip), session.Token)
 		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip), session.Token)
 		testAPIHandlerNoGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip), "")
 		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip, model.ScopeDeny()), session.Token)

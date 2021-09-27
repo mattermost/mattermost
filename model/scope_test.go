@@ -16,7 +16,7 @@ func TestIsPluginScope(t *testing.T) {
 
 	assert.True(t, NewPluginScope("pluginID").IsPluginScope(), "NewPluginScope should create valid plugin scopes")
 
-	assert.False(t, NewPluginSpecificScope("scope").IsPluginScope(), "NewPluginSpecificScope should not create valid plugin scopes")
+	assert.False(t, NewPluginSpecificScope("pluginID", "scope").IsPluginScope(), "NewPluginSpecificScope should not create valid plugin scopes")
 }
 
 func TestIsPluginSpecificScope(t *testing.T) {
@@ -26,7 +26,7 @@ func TestIsPluginSpecificScope(t *testing.T) {
 
 	assert.False(t, NewPluginScope("pluginID").IsPluginSpecificScope(), "NewPluginScope should not create valid plugin specific scopes")
 
-	assert.True(t, NewPluginSpecificScope("scope").IsPluginSpecificScope(), "NewPluginSpecificScope should create valid plugin specific scopes")
+	assert.True(t, NewPluginSpecificScope("pluginID", "scope").IsPluginSpecificScope(), "NewPluginSpecificScope should create valid plugin specific scopes")
 }
 
 func TestIsPredefinedScope(t *testing.T) {
@@ -36,7 +36,7 @@ func TestIsPredefinedScope(t *testing.T) {
 
 	assert.False(t, NewPluginScope("pluginID").IsPredefinedScope(), "NewPluginScope should not create valid plugin predefined scopes")
 
-	assert.False(t, NewPluginSpecificScope("scope").IsPredefinedScope(), "NewPluginSpecificScope should not create valid plugin predefined scopes")
+	assert.False(t, NewPluginSpecificScope("pluginID", "scope").IsPredefinedScope(), "NewPluginSpecificScope should not create valid plugin predefined scopes")
 }
 
 func TestIsScopeForPlugin(t *testing.T) {
@@ -47,14 +47,14 @@ func TestIsScopeForPlugin(t *testing.T) {
 	assert.True(t, plugin1Scope.IsScopeForPlugin(plugin1ID), "NewPluginScope should create a valid plugin scope for the provided ID")
 	assert.False(t, plugin1Scope.IsScopeForPlugin(plugin2ID), "IsScopeForPlugin should not recognize a different plugin")
 
-	otherScopes := append(getPredefinedScopes(), NewPluginSpecificScope("scope"))
+	otherScopes := append(getPredefinedScopes(), NewPluginSpecificScope("pluginID", "scope"))
 	for _, s := range otherScopes {
 		assert.False(t, s.IsScopeForPlugin(""), "Scope %v should not be a scope for a plugin", s)
 	}
 }
 
 func TestIsInScope(t *testing.T) {
-	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("scope"))
+	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("pluginID", "scope"))
 	others := Scopes{}
 	for _, s := range allScopes {
 		assert.False(t, ScopeDeny().isInScope(s), "Scope %v should not be in Deny scope", s)
@@ -68,7 +68,7 @@ func TestIsInScope(t *testing.T) {
 
 func TestAreAllowed(t *testing.T) {
 	var legacyScopes Scopes = nil
-	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("scope"))
+	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("pluginID", "scope"))
 	emptyScopes := Scopes{}
 
 	assert.True(t, legacyScopes.AreAllowed(ScopeDeny()), "Legacy scopes should be always allowed")
@@ -98,6 +98,12 @@ func TestIsPluginInScope(t *testing.T) {
 
 	assert.True(t, scope.IsPluginInScope(plugin1ID))
 	assert.False(t, scope.IsPluginInScope(plugin2ID))
+
+	var legacyScope Scopes = nil
+	assert.True(t, legacyScope.IsPluginInScope(plugin1ID), "legacy scopes allow access to all plugins")
+
+	emptyScope := Scopes{}
+	assert.False(t, emptyScope.IsPluginInScope(plugin1ID), "empty scopes should not allow plugins")
 }
 
 func TestIntersection(t *testing.T) {
@@ -205,10 +211,10 @@ func TestValidate(t *testing.T) {
 	assert.True(t, ScopeAllow().Validate(), "ScopeAllow should be a valid scope")
 	assert.True(t, ScopeAny(getPredefinedScopes()...).Validate(), "Predefined scopes should be valid")
 	assert.True(t, ScopeAny(NewPluginScope("pluginID")).Validate(), "Plugin scopes should be valid")
-	assert.True(t, ScopeAny(NewPluginSpecificScope("scope")).Validate(), "Plugin specific scopes should be valid")
+	assert.True(t, ScopeAny(NewPluginSpecificScope("pluginID", "scope")).Validate(), "Plugin specific scopes should be valid")
 	assert.False(t, ScopeAny(Scope("arbitrary:string")).Validate(), "Arbitrary strings are not valid scopes")
 
-	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("scope"))
+	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("pluginID", "scope"))
 	assert.True(t, allScopes.Validate(), "all scopes should be valid")
 	assert.False(t, append(allScopes, Scope("arbitrary:string")).Validate(), "all scopes and one invalid scope makes the whole scopes invalid")
 }
@@ -233,6 +239,12 @@ func TestIsSuperset(t *testing.T) {
 			in2: Scopes{ScopeChannelJoin, ScopeFilesRead},
 			out: true,
 			msg: "In2 contained in in1 considers in1 a superset",
+		},
+		{
+			in1: Scopes{ScopeChannelJoin, ScopeFilesRead},
+			in2: Scopes{ScopeChannelJoin, ScopeFilesRead, ScopeFilesWrite},
+			out: false,
+			msg: "Cannot be a supperset of a bigger set",
 		},
 		{
 			in1: Scopes{ScopeChannelJoin, ScopeFilesRead},
@@ -310,4 +322,42 @@ func TestNormalize(t *testing.T) {
 	for _, tc := range tcs {
 		assert.True(t, tc.in.Normalize().equals(tc.out), tc.msg)
 	}
+}
+
+func TestValueScan(t *testing.T) {
+	type TC struct {
+		in  Scopes
+		msg string
+	}
+
+	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("pluginID", "scope"))
+
+	tcs := []TC{
+		{
+			in:  Scopes{ScopeChannelJoin},
+			msg: "Scopes with one element return the same scope",
+		},
+		{
+			in:  Scopes{},
+			msg: "Emtpy scope return empty scopes",
+		},
+		{
+			in:  nil,
+			msg: "Nil scope return nil scope",
+		},
+		{
+			in:  allScopes,
+			msg: "All scopes are returned correctly",
+		},
+	}
+
+	for _, tc := range tcs {
+		v, err := tc.in.Value()
+		assert.NoError(t, err, "should not have errors getting the value")
+		scope := &Scopes{}
+		err = scope.Scan(v)
+		assert.NoError(t, err, "should not have errors when scanning the value")
+		assert.True(t, tc.in.equals(*scope), tc.msg)
+	}
+
 }

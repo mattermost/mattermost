@@ -1,7 +1,11 @@
 package model
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type Scopes []Scope
@@ -35,9 +39,9 @@ func NewPluginScope(pluginID string) Scope {
 	return Scope(PluginScopePrefix + pluginID)
 }
 
-func NewPluginSpecificScope(scopeName string) Scope {
-	//TODO this leads to clashes between plugin scopes. Rethink.
-	return Scope(PluginSpecificScopePrefix + scopeName)
+func NewPluginSpecificScope(pluginID, scopeName string) Scope {
+	// This is valid since a plugin can't have a ":" in their ID
+	return Scope(PluginSpecificScopePrefix + pluginID + ":" + scopeName)
 }
 
 func (s Scope) IsPluginScope() bool {
@@ -90,11 +94,11 @@ func (ss Scopes) AreAllowed(allowed Scopes) bool {
 	}
 
 	// Allowed endpoints will just relay the scopes, in case there is any consideration to be made based on scopes.
-	if allowed.equals(ScopeAllow()) {
+	if allowed.Equals(ScopeAllow()) {
 		return true
 	}
 
-	if allowed.equals(ScopeDeny()) {
+	if allowed.Equals(ScopeDeny()) {
 		return false
 	}
 
@@ -107,7 +111,7 @@ func (ss Scopes) AreAllowed(allowed Scopes) bool {
 
 func (ss Scopes) IsPluginInScope(pluginID string) bool {
 	if ss == nil {
-		return false
+		return true
 	}
 
 	for _, allowed := range ss {
@@ -150,7 +154,7 @@ func (ss Scopes) Validate() bool {
 	return true
 }
 
-func (ss Scopes) equals(ss2 Scopes) bool {
+func (ss Scopes) Equals(ss2 Scopes) bool {
 	// TODO OAUTH confirm this is true
 	if ss == nil {
 		return ss2 == nil
@@ -205,4 +209,47 @@ OUTER:
 	}
 
 	return out
+}
+
+func (ss Scopes) Value() (driver.Value, error) {
+	if ss == nil {
+		return nil, nil
+	}
+
+	b, err := json.Marshal(ss)
+	if err != nil {
+		return nil, err
+	}
+
+	return string(b), nil
+}
+
+func (ss *Scopes) Scan(value interface{}) error {
+	if value == nil {
+		*ss = nil
+		return nil
+	}
+	sv, err := driver.String.ConvertValue(value)
+	if err != nil {
+		return err
+	}
+
+	v, ok := sv.(string)
+	if !ok {
+		// MySQL seems to return this as a []byte
+		vb, ok2 := sv.([]byte)
+		if !ok2 {
+			return errors.Errorf("value cannot be converted to string", sv)
+		}
+		v = string(vb)
+	}
+
+	scopes := Scopes{}
+	err = json.Unmarshal([]byte(v), &scopes)
+	if err != nil {
+		return err
+	}
+
+	*ss = scopes
+	return nil
 }

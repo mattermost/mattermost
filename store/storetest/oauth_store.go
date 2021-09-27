@@ -53,6 +53,17 @@ func testOAuthStoreSaveApp(t *testing.T, ss store.Store) {
 	a1.Name = "TestApp" + model.NewId()
 	_, err = ss.OAuth().SaveApp(&a1)
 	require.NoError(t, err)
+
+	// Save a scoped app
+	a2 := model.OAuthApp{}
+	a2.CreatorId = model.NewId()
+	a2.CallbackUrls = []string{"https://nowhere.com"}
+	a2.Homepage = "https://nowhere.com"
+	a2.Name = "TestApp" + model.NewId()
+	a2.Scopes = model.ScopeAny(model.ScopeFilesRead)
+
+	_, err = ss.OAuth().SaveApp(&a2)
+	require.NoError(t, err)
 }
 
 func testOAuthStoreGetApp(t *testing.T, ss store.Store) {
@@ -116,6 +127,17 @@ func testOAuthStoreUpdateApp(t *testing.T, ss store.Store) {
 	require.Equal(t, ua.Name, "NewName", "name did not update")
 	require.NotEqual(t, ua.CreateAt, 1, "create at should not have updated")
 	require.NotEqual(t, ua.CreatorId, "12345678901234567890123456", "creator id should not have updated")
+
+	// Lets update the scopes
+	a1.Scopes = model.ScopeAny(model.ScopeFilesRead)
+	ua, err = ss.OAuth().UpdateApp(&a1)
+	require.NoError(t, err)
+	require.True(t, ua.Scopes.Equals(a1.Scopes), "scopes should be updated")
+
+	a1.Scopes = nil
+	ua, err = ss.OAuth().UpdateApp(&a1)
+	require.NoError(t, err)
+	require.True(t, ua.Scopes.Equals(a1.Scopes), "scopes should be updated")
 }
 
 func testOAuthStoreSaveAccessData(t *testing.T, ss store.Store) {

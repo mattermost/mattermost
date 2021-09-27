@@ -669,3 +669,215 @@ func TestCheckCSRFToken(t *testing.T) {
 		assert.Nil(t, c.Err)
 	})
 }
+
+func TestHandlerServeOAuthScoped(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oAuthApp := &model.OAuthApp{
+		CreatorId:    th.SystemAdminUser.Id,
+		Name:         "app",
+		Description:  "app",
+		Homepage:     "http://foo.com",
+		CallbackUrls: []string{"http://foo.com"},
+		Scopes:       model.ScopeAny(model.ScopeMessageRead),
+	}
+
+	oAuthApp, err := th.App.CreateOAuthApp(oAuthApp)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	session := &model.Session{
+		UserId:   th.BasicUser.Id,
+		CreateAt: model.GetMillis(),
+		Roles:    model.SystemUserRoleId,
+		IsOAuth:  true,
+		Props: map[string]string{
+			model.SessionPropOAuthAppID: oAuthApp.Id,
+		},
+	}
+
+	th.App.SetSessionExpireInDays(session, 1)
+	session, err = th.App.CreateSession(session)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	web := New(th.App, th.Server.Router)
+
+	// Denied handler
+	handler := Handler{
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+	}
+
+	request := httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	require.Equal(t, http.StatusUnauthorized, response.Code, "if the endpoint blocks oauth apps, it should not pass the handler check")
+
+	// Allowed handler
+	handler = Handler{
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		AllowedScopes:  model.ScopeAllow(),
+	}
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	require.Equal(t, http.StatusOK, response.Code, "if the endpoint allows all oauth apps, it should pass the handler check")
+
+	// Scoped handler with different scope
+	handler = Handler{
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		AllowedScopes:  model.ScopeAny(model.ScopeMessageWrite),
+	}
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	require.Equal(t, http.StatusUnauthorized, response.Code, "if the scope is not contained, it should not pass the handler check")
+
+	// Scoped handler with same scope
+	handler = Handler{
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		AllowedScopes:  model.ScopeAny(model.ScopeMessageRead),
+	}
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	require.Equal(t, http.StatusOK, response.Code, "if the scope is contained, it should pass the handler check")
+}
+
+func TestHandlerServeOAuthLegacy(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oAuthApp := &model.OAuthApp{
+		CreatorId:    th.SystemAdminUser.Id,
+		Name:         "app",
+		Description:  "app",
+		Homepage:     "http://foo.com",
+		CallbackUrls: []string{"http://foo.com"},
+		Scopes:       nil,
+	}
+
+	oAuthApp, err := th.App.CreateOAuthApp(oAuthApp)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	session := &model.Session{
+		UserId:   th.BasicUser.Id,
+		CreateAt: model.GetMillis(),
+		Roles:    model.SystemUserRoleId,
+		IsOAuth:  true,
+		Props: map[string]string{
+			model.SessionPropOAuthAppID: oAuthApp.Id,
+		},
+	}
+
+	th.App.SetSessionExpireInDays(session, 1)
+	session, err = th.App.CreateSession(session)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	web := New(th.App, th.Server.Router)
+
+	// Denied handler
+	handler := Handler{
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+	}
+
+	request := httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	require.Equal(t, http.StatusOK, response.Code, "legacy OAuth Apps should always pass the handler check")
+
+	// Allowed handler
+	handler = Handler{
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		AllowedScopes:  model.ScopeAllow(),
+	}
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	require.Equal(t, http.StatusOK, response.Code, "legacy OAuth Apps should always pass the handler check")
+
+	// Scoped handler with different scope
+	handler = Handler{
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		AllowedScopes:  model.ScopeAny(model.ScopeMessageWrite),
+	}
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	require.Equal(t, http.StatusOK, response.Code, "legacy OAuth Apps should always pass the handler check")
+
+	// Scoped handler with same scope
+	handler = Handler{
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		AllowedScopes:  model.ScopeAny(model.ScopeMessageRead),
+	}
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	require.Equal(t, http.StatusOK, response.Code, "legacy OAuth Apps should always pass the handler check")
+}

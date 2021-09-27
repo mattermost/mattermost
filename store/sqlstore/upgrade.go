@@ -212,6 +212,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
+	upgradeDatabaseToVersion601(sqlStore)
 
 	return nil
 }
@@ -1343,4 +1344,10 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
+}
+
+func upgradeDatabaseToVersion601(sqlStore *SqlStore) {
+	// TODO OAUTH not sure if needed
+	sqlStore.CreateColumnIfNotExists("OAuthApp", "Scopes", "JSON", "jsonb", "null")
+	sqlStore.CreateColumnIfNotExists("", "AppsFrameworkAppID", "VARCHAR(26)", "VARCHAR(26)", "")
 }
