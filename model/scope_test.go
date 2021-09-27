@@ -142,8 +142,8 @@ func TestIntersection(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		assert.True(t, tc.in1.intersection(tc.in2).equals(tc.out), tc.msg)
-		assert.True(t, tc.in2.intersection(tc.in1).equals(tc.out), "intersection must be commutative")
+		assert.True(t, tc.in1.intersection(tc.in2).Equals(tc.out), tc.msg)
+		assert.True(t, tc.in2.intersection(tc.in1).Equals(tc.out), "intersection must be commutative")
 	}
 }
 
@@ -201,8 +201,8 @@ func TestEquals(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		assert.Equal(t, tc.out, tc.in1.equals(tc.in2), tc.msg)
-		assert.Equal(t, tc.out, tc.in2.equals(tc.in1), "equality must be commutative")
+		assert.Equal(t, tc.out, tc.in1.Equals(tc.in2), tc.msg)
+		assert.Equal(t, tc.out, tc.in2.Equals(tc.in1), "equality must be commutative")
 	}
 }
 
@@ -320,7 +320,7 @@ func TestNormalize(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		assert.True(t, tc.in.Normalize().equals(tc.out), tc.msg)
+		assert.True(t, tc.in.Normalize().Equals(tc.out), tc.msg)
 	}
 }
 
@@ -357,7 +357,7 @@ func TestValueScan(t *testing.T) {
 		scope := &Scopes{}
 		err = scope.Scan(v)
 		assert.NoError(t, err, "should not have errors when scanning the value")
-		assert.True(t, tc.in.equals(*scope), tc.msg)
+		assert.True(t, tc.in.Equals(*scope), tc.msg)
 	}
 
 }
