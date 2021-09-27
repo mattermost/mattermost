@@ -1539,6 +1539,10 @@
     "translation": "Secure connection ID missing."
   },
   {
+    "id": "api.context.scope_mismatch.app_error",
+    "translation": "This session doesn't have the right scopes to reach this endpoint."
+  },
+  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
@@ -6000,6 +6004,10 @@
     "translation": "Unable to remove all the sessions."
   },
   {
+    "id": "app.session.revoke_sessions.app_error",
+    "translation": "Unable to revoke the sessions for the app."
+  },
+  {
     "id": "app.session.save.app_error",
     "translation": "Unable to save the session."
   },
@@ -8522,6 +8530,10 @@
   {
     "id": "model.oauth.is_valid.name.app_error",
     "translation": "Invalid name."
+  },
+  {
+    "id": "model.oauth.is_valid.scopes.app_error",
+    "translation": "Invalid scopes."
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",

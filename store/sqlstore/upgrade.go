@@ -1348,6 +1348,6 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion601(sqlStore *SqlStore) {
 	// TODO OAUTH not sure if needed
-	sqlStore.CreateColumnIfNotExists("OAuthApp", "Scopes", "JSON", "jsonb", "null")
-	sqlStore.CreateColumnIfNotExists("", "AppsFrameworkAppID", "VARCHAR(26)", "VARCHAR(26)", "")
+	sqlStore.CreateColumnIfNotExists("OAuthApps", "Scopes", "JSON", "jsonb", "null")
+	sqlStore.CreateColumnIfNotExists("OAuthApps", "AppsFrameworkAppID", "VARCHAR(26)", "VARCHAR(26)", "")
 }
