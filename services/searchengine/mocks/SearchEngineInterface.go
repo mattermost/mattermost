@@ -234,13 +234,13 @@ func (_m *SearchEngineInterface) GetVersion() int {
 	return r0
 }
 
-// IndexChannel provides a mock function with given fields: channel, userIDs
-func (_m *SearchEngineInterface) IndexChannel(channel *model.Channel, userIDs []string) *model.AppError {
-	ret := _m.Called(channel, userIDs)
+// IndexChannel provides a mock function with given fields: channel, userIDs, teamMemberIDs
+func (_m *SearchEngineInterface) IndexChannel(channel *model.Channel, userIDs []string, teamMemberIDs []string) *model.AppError {
+	ret := _m.Called(channel, userIDs, teamMemberIDs)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Channel, []string) *model.AppError); ok {
-		r0 = rf(channel, userIDs)
+	if rf, ok := ret.Get(0).(func(*model.Channel, []string, []string) *model.AppError); ok {
+		r0 = rf(channel, userIDs, teamMemberIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
