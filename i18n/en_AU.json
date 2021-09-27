@@ -9233,5 +9233,9 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " replied to a thread."
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Error while processing bulk import attachments."
   }
 ]
