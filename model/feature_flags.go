@@ -64,7 +64,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginFocalboard = ""
 	f.TimedDND = false
 	f.PermalinkPreviews = true
-	f.GlobalHeader = false
+	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "none"
 	f.DownloadAppsCTA = "none"
