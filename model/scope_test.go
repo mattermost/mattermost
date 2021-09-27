@@ -305,7 +305,7 @@ func TestNormalize(t *testing.T) {
 		{
 			in:  Scopes{},
 			out: Scopes{},
-			msg: "Emtpy scope should remain an empty scope",
+			msg: "Empty scope should remain an empty scope",
 		},
 		{
 			in:  nil,
@@ -339,7 +339,7 @@ func TestValueScan(t *testing.T) {
 		},
 		{
 			in:  Scopes{},
-			msg: "Emtpy scope return empty scopes",
+			msg: "Empty scope return empty scopes",
 		},
 		{
 			in:  nil,

@@ -359,10 +359,6 @@ func (h *Handler) checkScopes(c *Context, appID string) model.Scopes {
 		return nil
 	}
 
-	if oAuthApp == nil {
-		c.Err = model.NewAppError("ServeHTTP", "api.context.nil_oauthapp.app_error", nil, "", http.StatusInternalServerError)
-	}
-
 	if !oAuthApp.Scopes.AreAllowed(h.AllowedScopes) {
 		c.Err = model.NewAppError("ServeHTTP", "api.context.scope_mismatch.app_error", nil, "", http.StatusUnauthorized)
 		return nil

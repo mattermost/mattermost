@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package model
 
 import (
@@ -239,7 +242,7 @@ func (ss *Scopes) Scan(value interface{}) error {
 		// MySQL seems to return this as a []byte
 		vb, ok2 := sv.([]byte)
 		if !ok2 {
-			return errors.Errorf("value cannot be converted to string", sv)
+			return errors.New("value cannot be converted to string")
 		}
 		v = string(vb)
 	}
