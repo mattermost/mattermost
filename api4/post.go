@@ -127,7 +127,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClient(rp, true, false)
+	rp = c.App.PreparePostForClientWithEmbedsAndImages(rp, true, false)
 	rp, err := c.App.SanitizePostMetadataForUser(rp, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -375,7 +375,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post = c.App.PreparePostForClient(post, false, false)
+	post = c.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 	post, err = c.App.SanitizePostMetadataForUser(post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
