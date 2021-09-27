@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Błąd aktualizacji bieżącego kanału."
+    "translation": "Błąd aktualizacji nagłówka kanału."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Błąd aktualizacji bieżącego kanału."
+    "translation": "Błąd aktualizacji opisu kanału."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -1177,7 +1177,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "błąd sędziego"
+    "translation": "Nie udało się zorganizować."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1829,11 +1829,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Dołącz zespół"
+    "translation": "Dołącz teraz"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Jesteś już zaproszony"
+    "translation": "{{ .SenderName }} zaprosił cię do zespołu {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1873,7 +1873,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Przejdź do postu"
+    "translation": "Zobacz post"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1881,7 +1881,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Zażądano zmiany hasła"
+    "translation": "Zmień swoje hasło"
   },
   {
     "id": "api.templates.reset_subject",
@@ -1933,11 +1933,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Zweryfikuj swój adres email klikając poniżej."
+    "translation": "Ten adres email został wykorzystany do utworzenia konta w Mattermost."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Dołączyłeś do {{ .ServerURL }}"
+    "translation": "Zweryfikuj swój adres email"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1945,7 +1945,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "W celu wygodniejszego użytkowania pobierz aplikacje dla PC, Mac, iOS i Android z:"
+    "translation": "W celu wygodniejszego użytkowania pobierz aplikacje dla PC, Mac, iOS i Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1953,11 +1953,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Zweryfikuj swój adres email klikając poniżej."
+    "translation": "Ten adres email został wykorzystany do utworzenia konta w Mattermost."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Dołączyłeś do {{ .ServerURL }}"
+    "translation": "Witaj w zespole"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -2001,7 +2001,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Niewspierany usługodawca OAuth"
+    "translation": "{{.Service}} SSO poprzerz OAuth 2.0 jest niedostępny na tym serwerze."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -4369,7 +4369,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 5 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
+    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 10 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4797,7 +4797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4805,7 +4805,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 60+"
+    "translation": "Wersja 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4813,7 +4813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 61+"
+    "translation": "Wersja 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5605,11 +5605,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Twoja licencja Enterprise Edition wygasła i niektóre funkcjonalności mogą być niedostępne. Proszę odnowić swoją licencję."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Odśwież licencję"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6181,7 +6181,7 @@
   },
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Wystąpił błąd w trakcie kasowania ustawień"
+    "translation": "Wystąpił błąd w trakcie kasowania ustawień."
   },
   {
     "id": "app.preference.get_category.app_error",
@@ -6201,15 +6201,15 @@
   },
   {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL strony:"
+    "translation": "URL strony: "
   },
   {
     "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Ogólnie aktywnych użytkowników"
+    "translation": "Ogólnie aktywnych użytkowników: "
   },
   {
     "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "E-Mail:"
+    "translation": "E-Mail: "
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6477,7 +6477,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Nie można uzyskać wielu kanałów do indeksowania"
+    "translation": "Nie można uzyskać wielu kanałów do indeksowania."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -6537,11 +6537,11 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Wymuszaj uwierzytelnianie wieloskładnikowe:"
+    "translation": "Wymuszaj uwierzytelnianie wieloskładnikowe"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
+    "translation": "Nie można uzyskać wielu wpisów do indeksowania."
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -6842,5 +6842,9 @@
   {
     "id": "api.user.login_cws.license.error",
     "translation": "Logowanie bota jest zabronione"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP jest niedostępne."
   }
 ]
