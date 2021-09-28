@@ -2381,24 +2381,38 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 			mlog.Warn("Error counting user's posts in thread", mlog.Err(err))
 		}
 
-		queryString, args, _ = s.getQueryBuilder().
-			Select("Participants").
-			From("Threads").
-			Where(sq.Eq{"PostId": rootId}).
+		updateQuery := s.getQueryBuilder().Update("Threads")
+
+		if count == 0 {
+			queryString, args, _ = s.getQueryBuilder().
+				Select("Participants").
+				From("Threads").
+				Where(sq.Eq{"PostId": rootId}).
+				ToSql()
+
+			var participants model.StringArray
+			err = s.GetReplica().SelectOne(&participants, queryString, args...)
+
+			if err != nil {
+				mlog.Warn("Error getting thread participants", mlog.Err(err))
+			}
+
+			if participants.Contains(userId) {
+				participants = participants.Remove(userId)
+				updateQuery = updateQuery.Set("Participants", participants)
+			}
+		}
+
+		updateQueryString, updateArgs, _ := updateQuery.
+			Set("ReplyCount", sq.Expr("ReplyCount - 1")).
+			Where(sq.And{
+				sq.Eq{"PostId": rootId},
+				sq.Gt{"ReplyCount": 0},
+			}).
 			ToSql()
 
-		var participants model.StringArray
-		err = s.GetReplica().SelectOne(&participants, queryString, args...)
+		_, err = s.GetMaster().Exec(updateQueryString, updateArgs...)
 
-		if err != nil {
-			mlog.Warn("Error getting thread participants", mlog.Err(err))
-		}
-
-		if count == 0 && participants.Contains(userId) {
-			participants = participants.Remove(userId)
-		}
-
-		_, err = s.GetMaster().Exec(`UPDATE Threads SET ReplyCount = ReplyCount - 1, Participants = :Participants WHERE PostId = :Id AND ReplyCount > 0`, map[string]interface{}{"Id": rootId, "Participants": participants})
 		if err != nil {
 			return errors.Wrap(err, "failed to update Threads")
 		}
