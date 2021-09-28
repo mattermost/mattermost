@@ -2384,14 +2384,14 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 		updateQuery := s.getQueryBuilder().Update("Threads")
 
 		if count == 0 {
-			queryString, args, _ = s.getQueryBuilder().
+			var participants model.StringArray
+			err = s.getQueryBuilder().
 				Select("Participants").
 				From("Threads").
 				Where(sq.Eq{"PostId": rootId}).
-				ToSql()
-
-			var participants model.StringArray
-			err = s.GetReplica().SelectOne(&participants, queryString, args...)
+				RunWith(s.GetReplica()).
+				QueryRow().
+				Scan(&participants)
 
 			if err != nil {
 				mlog.Warn("Error getting thread participants", mlog.Err(err))
