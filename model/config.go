@@ -2703,7 +2703,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["playbooks"] == nil && BuildEnterpriseReady == "true" {
+	if s.PluginStates["playbooks"] == nil {
 		// Enable the playbooks plugin by default
 		s.PluginStates["playbooks"] = &PluginState{Enable: true}
 	}
