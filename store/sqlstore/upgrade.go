@@ -1361,7 +1361,7 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 
 	forceIndex := ""
 	if sqlStore.DriverName() == model.DatabaseDriverMysql {
-		forceIndex = "FORCE INDEX(idx_posts_channel_id)"
+		forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
 	}
 
 	lastRootPostAtExists := sqlStore.DoesColumnExist("Channels", "LastRootPostAt")
