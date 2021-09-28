@@ -9233,5 +9233,9 @@
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
     "translation": "Válasz a közvetlen üzenetben"
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Hiba a mellékletek tömeges importálása közben."
   }
 ]
