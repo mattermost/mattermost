@@ -128,7 +128,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClient(rp, true, false)
+	rp = c.App.PreparePostForClientWithEmbedsAndImages(rp, true, false)
 	rp, err := c.App.SanitizePostMetadataForUser(rp, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -376,7 +376,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post = c.App.PreparePostForClient(post, false, false)
+	post = c.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 	post, err = c.App.SanitizePostMetadataForUser(post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -713,32 +713,12 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	// Restrict pinning if the experimental read-only-town-square setting is on.
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
 	post, err := c.App.GetSinglePost(c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 	auditRec.AddMeta("post", post)
-
-	channel, err := c.App.GetChannel(post.ChannelId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if c.App.Srv().License() != nil &&
-		channel.Name == model.DefaultChannelName &&
-		!c.App.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
-		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.save_is_pinned_post.town_square_read_only", nil, "", http.StatusForbidden)
-		return
-	}
 
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewBool(isPinned)
