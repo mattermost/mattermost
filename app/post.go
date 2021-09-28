@@ -57,30 +57,6 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 			err.StatusCode = http.StatusBadRequest
 		}
 
-		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, nErr := a.Srv().Store.User().Get(context.Background(), post.UserId)
-			if nErr != nil {
-				var nfErr *store.ErrNotFound
-				switch {
-				case errors.As(nErr, &nfErr):
-					return nil, model.NewAppError("CreatePostAsUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-				default:
-					return nil, model.NewAppError("CreatePostAsUser", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				}
-			}
-
-			T := i18n.GetUserTranslations(user.Locale)
-			a.SendEphemeralPost(
-				post.UserId,
-				&model.Post{
-					ChannelId: channel.Id,
-					RootId:    post.RootId,
-					UserId:    post.UserId,
-					Message:   T("api.post.create_post.town_square_read_only"),
-					CreateAt:  model.GetMillis() + 1,
-				},
-			)
-		}
 		return nil, err
 	}
 
@@ -211,13 +187,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	if user.IsBot {
 		post.AddProp("from_bot", "true")
-	}
-
-	if a.Srv().License() != nil &&
-		!post.IsSystemMessage() &&
-		channel.Name == model.DefaultChannelName &&
-		!a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
-		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
 	var ephemeralPost *model.Post
