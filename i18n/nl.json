@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "schikkingsfout"
+    "translation": "Fout bij marshal"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -4817,7 +4817,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4825,7 +4825,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 60+"
+    "translation": "Versie 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4833,7 +4833,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 61+"
+    "translation": "Versie 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9030,8 +9030,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} stuurde je een nieuw bericht",
-      "other": "{{ .SenderName }} and {{.Count}} anderen stuurde je een nieuw bericht"
+      "one": "Je hebt een nieuwe bericht",
+      "other": "Je hebt nieuwe berichten"
     }
   },
   {
@@ -9184,7 +9184,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " commentaar gegeven op een draadje dat je volgt."
+    "translation": " antwoordde op een draadje dat je volgt."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9195,15 +9195,47 @@
     "translation": "{{.SenderName}} antwoordde op een draadje"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Reageer op draadje"
+    "translation": "Antwoord in {{.channelName}}"
   },
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Fout bij het herladen van de configuratie."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Fout bij marshallen van bericht."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Fout bij unmarshaling."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} een bericht beantwoord in jouw groep."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Antwoord in privé-bericht"
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.Afzendernaam}} op een draadje in je privé-berichten geantwoord."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " antwoordde op een draadje."
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
   }
 ]

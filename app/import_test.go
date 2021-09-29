@@ -4,6 +4,8 @@
 package app
 
 import (
+	"archive/zip"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -278,7 +280,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	}
 }
 
-func TestRewriteFilePaths(t *testing.T) {
+func TestProcessAttachments(t *testing.T) {
 	genAttachments := func() []AttachmentImportData {
 		return []AttachmentImportData{
 			{
@@ -327,9 +329,11 @@ func TestRewriteFilePaths(t *testing.T) {
 				Path: model.NewString("somedir/file.jpg"),
 			},
 		}
-		rewriteFilePaths(&line, "")
+		err := processAttachments(&line, "", nil)
+		require.NoError(t, err)
 		require.Equal(t, expected, line.Post.Attachments)
-		rewriteFilePaths(&line2, "")
+		err = processAttachments(&line2, "", nil)
+		require.NoError(t, err)
 		require.Equal(t, expected, line2.DirectPost.Attachments)
 	})
 
@@ -344,25 +348,79 @@ func TestRewriteFilePaths(t *testing.T) {
 		}
 
 		t.Run("post attachments", func(t *testing.T) {
-			rewriteFilePaths(&line, "/tmp")
+			err := processAttachments(&line, "/tmp", nil)
+			require.NoError(t, err)
 			require.Equal(t, expected, line.Post.Attachments)
 		})
 
 		t.Run("direct post attachments", func(t *testing.T) {
-			rewriteFilePaths(&line2, "/tmp")
+			err := processAttachments(&line2, "/tmp", nil)
+			require.NoError(t, err)
 			require.Equal(t, expected, line2.DirectPost.Attachments)
 		})
 
 		t.Run("profile image", func(t *testing.T) {
 			expected := "/tmp/profile.jpg"
-			rewriteFilePaths(&userLine, "/tmp")
+			err := processAttachments(&userLine, "/tmp", nil)
+			require.NoError(t, err)
 			require.Equal(t, expected, *userLine.User.ProfileImage)
 		})
 
 		t.Run("emoji", func(t *testing.T) {
 			expected := "/tmp/emoji.png"
-			rewriteFilePaths(&emojiLine, "/tmp")
+			err := processAttachments(&emojiLine, "/tmp", nil)
+			require.NoError(t, err)
 			require.Equal(t, expected, *emojiLine.Emoji.Image)
+		})
+	})
+
+	t.Run("with filesMap", func(t *testing.T) {
+		t.Run("post attachments", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&line, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/somedir/file.jpg"] = nil
+			err = processAttachments(&line, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("direct post attachments", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&line2, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/somedir/file.jpg"] = nil
+			err = processAttachments(&line2, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("profile image", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&userLine, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/profile.jpg"] = nil
+			err = processAttachments(&userLine, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("emoji", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&emojiLine, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/emoji.png"] = nil
+			err = processAttachments(&emojiLine, "", filesMap)
+			require.NoError(t, err)
 		})
 	})
 }
@@ -397,4 +455,46 @@ func BenchmarkBulkImport(b *testing.B) {
 		require.Nil(b, err)
 	}
 	b.StopTimer()
+}
+
+func TestImportBulkImportWithAttachments(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	testsDir, _ := fileutils.FindDir("tests")
+
+	importFile, err := os.Open(testsDir + "/export_test.zip")
+	require.NoError(t, err)
+	defer importFile.Close()
+
+	info, err := importFile.Stat()
+	require.NoError(t, err)
+
+	importZipReader, err := zip.NewReader(importFile, info.Size())
+	require.NoError(t, err)
+	require.NotNil(t, importZipReader)
+
+	var jsonFile io.ReadCloser
+	for _, f := range importZipReader.File {
+		if filepath.Ext(f.Name) != ".jsonl" {
+			continue
+		}
+
+		jsonFile, err = f.Open()
+		require.NoError(t, err)
+		defer jsonFile.Close()
+		break
+	}
+	require.NotNil(t, jsonFile)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(1000) })
+
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, 1, ExportDataDir)
+	require.Nil(t, appErr)
+
+	adminUser, appErr := th.App.GetUserByUsername("sysadmin")
+	require.Nil(t, appErr)
+
+	files := GetAttachments(adminUser.Id, th, t)
+	require.Len(t, files, 11)
 }

@@ -1611,10 +1611,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "{{ .SenderName }} sent you new message",
-      "other": "{{ .SenderName }} and {{.Count}} others sent you new messages"
-    }
+    "translation": "You have new messages"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -2153,10 +2150,6 @@
     "translation": "Invalid RootId parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
   },
@@ -2219,10 +2212,6 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -2236,7 +2225,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " commented on a thread you are following."
+    "translation": " replied to a thread you're following."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " replied to a thread."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
@@ -2320,7 +2313,11 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Reply to Thread"
+    "translation": "Reply in {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Reply in Direct Message"
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -2353,10 +2350,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "You cannot save reaction for the other user."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
@@ -4863,6 +4856,10 @@
     "translation": "JSON decode of line failed."
   },
   {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Error while processing bulk import attachments."
+  },
+  {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
@@ -5487,12 +5484,24 @@
     "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} replied to a thread"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
     "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
   },
   {
-    "id": "app.notification.body.thread.title",
-    "translation": "{{.SenderName}} replied to a thread"
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your Direct Message."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your group."
   },
   {
     "id": "app.notification.footer.info",
@@ -9132,7 +9141,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9140,7 +9149,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9148,7 +9157,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

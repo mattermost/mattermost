@@ -184,6 +184,8 @@ func testHasSharedChannel(t *testing.T, ss store.Store) {
 
 func testGetSharedChannels(t *testing.T, ss store.Store) {
 	require.NoError(t, clearSharedChannels(ss))
+	user, err := createTestUser(ss, "gary.goodspeed")
+	require.NoError(t, err)
 
 	creator := model.NewId()
 	team1 := model.NewId()
@@ -203,7 +205,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 	}
 
 	for i, sc := range data {
-		channel, err := createTestChannel(ss, "test_get2_"+strconv.Itoa(i))
+		channel, err := createTestChannelWithUser(ss, "test_get2_"+strconv.Itoa(i), user)
 		require.NoError(t, err)
 
 		sc.ChannelId = channel.Id
@@ -286,6 +288,41 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 
 		_, err = ss.SharedChannel().GetAll(0, -100, opts)
 		require.Error(t, err)
+	})
+
+	t.Run("Get shared channels for member", func(t *testing.T) {
+		opts := model.SharedChannelFilterOpts{
+			TeamId:   team1,
+			MemberId: user.Id,
+		}
+
+		count, err := ss.SharedChannel().GetAllCount(opts)
+		require.NoError(t, err, "error getting shared channels count")
+
+		remotes, err := ss.SharedChannel().GetAll(0, 100, opts)
+		require.NoError(t, err, "error getting shared channels")
+
+		require.Equal(t, int(count), len(remotes))
+		require.Len(t, remotes, 4, "should be 4 matching channels")
+		for _, sc := range remotes {
+			require.Equal(t, team1, sc.TeamId)
+		}
+	})
+
+	t.Run("Get shared channels for non-member", func(t *testing.T) {
+		opts := model.SharedChannelFilterOpts{
+			TeamId:   team1,
+			MemberId: model.NewId(),
+		}
+
+		count, err := ss.SharedChannel().GetAllCount(opts)
+		require.NoError(t, err, "error getting shared channels count")
+
+		remotes, err := ss.SharedChannel().GetAll(0, 100, opts)
+		require.NoError(t, err, "error getting shared channels")
+
+		require.Equal(t, int(count), len(remotes))
+		require.Len(t, remotes, 0, "should be 0 matching channels")
 	})
 }
 
@@ -661,7 +698,7 @@ func testHasRemote(t *testing.T, ss store.Store) {
 func testGetRemoteForUser(t *testing.T, ss store.Store) {
 	// add remotes, and users to simulated shared channels.
 	teamId := model.NewId()
-	channel, err := createSharedTestChannel(ss, "share_test_channel", true)
+	channel, err := createSharedTestChannel(ss, "share_test_channel", true, nil)
 	require.NoError(t, err)
 	remotes := []*model.RemoteCluster{
 		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_1"},
@@ -781,12 +818,25 @@ func testDeleteSharedChannelRemote(t *testing.T, ss store.Store) {
 	})
 }
 
+func createTestUser(ss store.Store, username string) (*model.User, error) {
+	user := &model.User{
+		Username: username,
+		Email:    "gary@example.com",
+	}
+	return ss.User().Save(user)
+}
+
 func createTestChannel(ss store.Store, name string) (*model.Channel, error) {
-	channel, err := createSharedTestChannel(ss, name, false)
+	channel, err := createSharedTestChannel(ss, name, false, nil)
 	return channel, err
 }
 
-func createSharedTestChannel(ss store.Store, name string, shared bool) (*model.Channel, error) {
+func createTestChannelWithUser(ss store.Store, name string, member *model.User) (*model.Channel, error) {
+	channel, err := createSharedTestChannel(ss, name, false, member)
+	return channel, err
+}
+
+func createSharedTestChannel(ss store.Store, name string, shared bool, member *model.User) (*model.Channel, error) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -800,6 +850,21 @@ func createSharedTestChannel(ss store.Store, name string, shared bool) (*model.C
 	channel, err := ss.Channel().Save(channel, 10000)
 	if err != nil {
 		return nil, err
+	}
+
+	if member != nil {
+		newMember := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      member.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: member.IsGuest(),
+			SchemeUser:  !member.IsGuest(),
+		}
+
+		_, err = ss.Channel().SaveMember(newMember)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if shared {

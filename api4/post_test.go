@@ -1006,23 +1006,6 @@ func TestPinPost(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
-		townSquareIsReadOnly := *th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
-		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-
-		defer th.App.Srv().RemoveLicense()
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly })
-
-		channel, appErr := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
-		assert.Nil(t, appErr)
-		adminPost := th.CreatePostWithClient(th.SystemAdminClient, channel)
-
-		resp, err = client.PinPost(adminPost.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
 	client.Logout()
 	resp, err = client.PinPost(post.Id)
 	require.Error(t, err)
@@ -2218,10 +2201,27 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
+	otherTeam := th.CreateTeam()
+	channelInOtherTeam := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, otherTeam.Id)
+	_ = th.AddUserToChannel(th.BasicUser, channelInOtherTeam)
+	_ = th.CreateMessagePostWithClient(th.Client, channelInOtherTeam, "search for post 5")
+
 	terms := "search"
 	isOrSearch := false
 	timezoneOffset := 5
 	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	allTeamsPosts, _, err := client.SearchPostsWithParams("", &searchParams)
+	require.NoError(t, err)
+	require.Len(t, allTeamsPosts.Order, 4, "wrong search along multiple teams")
+
+	terms = "search"
+	isOrSearch = false
+	timezoneOffset = 5
+	searchParams = model.SearchParameter{
 		Terms:          &terms,
 		IsOrSearch:     &isOrSearch,
 		TimeZoneOffset: &timezoneOffset,
