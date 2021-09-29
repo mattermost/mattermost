@@ -7,6 +7,7 @@ const (
 	PermissionScopeSystem  = "system_scope"
 	PermissionScopeTeam    = "team_scope"
 	PermissionScopeChannel = "channel_scope"
+	PermissionScopeGroup   = "group_scope"
 )
 
 type Permission struct {
@@ -335,6 +336,11 @@ var PermissionSysconsoleWriteExperimentalBleve *Permission
 // in the future this could be broken up to allow access to some
 // admin functions but not others
 var PermissionManageSystem *Permission
+
+var PermissionCreateCustomGroup *Permission
+var PermissionCustomGroupManageMembers *Permission
+var PermissionCustomGroupRename *Permission
+var PermissionCustomGroupDelete *Permission
 
 var AllPermissions []*Permission
 var DeprecatedPermissions []*Permission
@@ -1895,6 +1901,34 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionCreateCustomGroup = &Permission{
+		"create_group",
+		"authentication.permissions.custom_group_manage_members.name",
+		"authentication.permissions.custom_group_manage_members.description",
+		PermissionScopeSystem,
+	}
+
+	PermissionCustomGroupManageMembers = &Permission{
+		"custom_group_manage_members",
+		"authentication.permissions.custom_group_manage_members.name",
+		"authentication.permissions.custom_group_manage_members.description",
+		PermissionScopeGroup,
+	}
+
+	PermissionCustomGroupRename = &Permission{
+		"custom_group_rename",
+		"authentication.permissions.custom_group_rename.name",
+		"authentication.permissions.custom_group_rename.description",
+		PermissionScopeGroup,
+	}
+
+	PermissionCustomGroupDelete = &Permission{
+		"custom_group_delete",
+		"authentication.permissions.custom_group_delete.name",
+		"authentication.permissions.custom_group_delete.description",
+		PermissionScopeGroup,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2082,6 +2116,7 @@ func initializePermissions() {
 		PermissionGetLogs,
 		PermissionReadLicenseInformation,
 		PermissionManageLicenseInformation,
+		PermissionCreateCustomGroup,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -2139,6 +2174,12 @@ func initializePermissions() {
 		PermissionUseGroupMentions,
 	}
 
+	GroupScopedPermissions := []*Permission{
+		PermissionCustomGroupManageMembers,
+		PermissionCustomGroupRename,
+		PermissionCustomGroupDelete,
+	}
+
 	DeprecatedPermissions = []*Permission{
 		PermissionPermanentDeleteUser,
 		PermissionManageWebhooks,
@@ -2169,6 +2210,7 @@ func initializePermissions() {
 	AllPermissions = append(AllPermissions, ChannelScopedPermissions...)
 	AllPermissions = append(AllPermissions, SysconsoleReadPermissions...)
 	AllPermissions = append(AllPermissions, SysconsoleWritePermissions...)
+	AllPermissions = append(AllPermissions, GroupScopedPermissions...)
 
 	ChannelModeratedPermissions = []string{
 		PermissionCreatePost.Id,

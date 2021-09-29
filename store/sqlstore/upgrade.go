@@ -212,6 +212,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
+	upgradeDatabaseToVersion610(sqlStore)
 
 	return nil
 }
@@ -1342,5 +1343,14 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	}
 
 	// saveSchemaVersion(sqlStore, Version600)
+	// }
+}
+func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version600, Version600) {
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("GroupMembers", "SchemeUser", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("GroupMembers", "SchemeAdmin", "boolean", "boolean")
+
+	// saveSchemaVersion(sqlStore, Version610)
 	// }
 }
