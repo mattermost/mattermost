@@ -2383,7 +2383,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 		updateQuery := s.getQueryBuilder().Update("Threads")
 
-		if count == 0 {
+		if count == 0 && err == nil {
 			var participants model.StringArray
 			err = s.getQueryBuilder().
 				Select("Participants").
