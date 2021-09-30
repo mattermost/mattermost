@@ -6372,6 +6372,10 @@
     "translation": "We encountered an error while finding the recently active users."
   },
   {
+    "id": "app.user.get_teams_unread_count.app_error",
+    "translation": "We could not get the teams unread message count for the user."
+  },
+  {
     "id": "app.user.get_thread_membership_for_user.app_error",
     "translation": "Unable to get user thread membership"
   },

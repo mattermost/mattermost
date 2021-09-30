@@ -225,19 +225,17 @@ func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID, roo
 		ChannelId:        channelID,
 		RootId:           rootID,
 		ContentAvailable: 1,
+		Badge:            0,
+		IsCRTEnabled:     a.isCRTEnabledForUser(userID),
 	}
 
-	msg.IsCRTEnabled = a.isCRTEnabledForUser(userID)
 	if msg.IsCRTEnabled {
 		unreadTeamsList, err := a.GetTeamsUnreadForUser("", userID, true)
 		if err != nil {
-			return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("clearPushNotificationSync", "app.user.get_teams_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		msg.Badge = 0
-		for i := 0; i < len(unreadTeamsList); i++ {
-			team := unreadTeamsList[i]
-			msg.Badge += int(team.MentionCountRoot)
-			msg.Badge += int(team.ThreadMentionCount)
+		for _, team := range unreadTeamsList {
+			msg.Badge += int(team.MentionCountRoot) + int(team.ThreadMentionCount)
 		}
 	} else {
 		unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
