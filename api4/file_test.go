@@ -775,8 +775,14 @@ func TestGetFileHeaders(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	testHeaders := func(data []byte, filename string, expectedContentType string, getInline bool) func(*testing.T) {
+	testHeaders := func(data []byte, filename string, expectedContentType string, getInline bool, loadFile bool) func(*testing.T) {
 		return func(t *testing.T) {
+			if loadFile {
+				var err error
+				data, err = testutils.ReadTestFile(filename)
+				require.NoError(t, err)
+			}
+
 			fileResp, _, err := client.UploadFile(data, channel.Id, filename)
 			require.NoError(t, err)
 
@@ -803,20 +809,20 @@ func TestGetFileHeaders(t *testing.T) {
 
 	data := []byte("ABC")
 
-	t.Run("png", testHeaders(data, "test.png", "image/png", true))
-	t.Run("gif", testHeaders(data, "test.gif", "image/gif", true))
-	t.Run("mp4", testHeaders(data, "test.mp4", "video/mp4", true))
-	t.Run("mp3", testHeaders(data, "test.mp3", "audio/mpeg", true))
-	t.Run("pdf", testHeaders(data, "test.pdf", "application/pdf", false))
-	t.Run("txt", testHeaders(data, "test.txt", "text/plain", false))
-	t.Run("html", testHeaders(data, "test.html", "text/plain", false))
-	t.Run("js", testHeaders(data, "test.js", "text/plain", false))
-	t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false))
-	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false))
+	t.Run("png", testHeaders(data, "test.png", "image/png", true, true))
+	t.Run("gif", testHeaders(data, "testgif.gif", "image/gif", true, true))
+	t.Run("mp4", testHeaders(data, "test.mp4", "video/mp4", true, false))
+	t.Run("mp3", testHeaders(data, "test.mp3", "audio/mpeg", true, false))
+	t.Run("pdf", testHeaders(data, "test.pdf", "application/pdf", false, false))
+	t.Run("txt", testHeaders(data, "test.txt", "text/plain", false, false))
+	t.Run("html", testHeaders(data, "test.html", "text/plain", false, false))
+	t.Run("js", testHeaders(data, "test.js", "text/plain", false, false))
+	t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false, false))
+	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false, false))
 	// Not every platform can recognize these
 	//t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
-	t.Run("no extension", testHeaders(data, "test", "application/octet-stream", false))
-	t.Run("no extension 2", testHeaders([]byte("<html></html>"), "test", "application/octet-stream", false))
+	t.Run("no extension", testHeaders(data, "test", "application/octet-stream", false, false))
+	t.Run("no extension 2", testHeaders([]byte("<html></html>"), "test", "application/octet-stream", false, false))
 }
 
 func TestGetFileThumbnail(t *testing.T) {
