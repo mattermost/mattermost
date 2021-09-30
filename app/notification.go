@@ -618,6 +618,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					}
 					message.Add("thread", string(payload))
 
+					previousUnreadMentions := userThread.UnreadMentions
+					previousUnreadReplies := userThread.UnreadReplies - 1
+
+					if mentions.isUserMentioned(uid) {
+						previousUnreadMentions = userThread.UnreadMentions - 1
+					}
+
+					message.Add("previous_unread_mentions", previousUnreadMentions)
+					message.Add("previous_unread_replies", previousUnreadReplies)
+
 					a.Publish(message)
 				}
 			}
@@ -881,6 +891,18 @@ const (
 	// The post contains a group mention for the user
 	GroupMention
 )
+
+func (m *ExplicitMentions) isUserMentioned(userID string) bool {
+	if _, ok := m.Mentions[userID]; ok {
+		return true
+	}
+
+	if _, ok := m.GroupMentions[userID]; ok {
+		return true
+	}
+
+	return m.HereMentioned || m.AllMentioned || m.ChannelMentioned
+}
 
 func (m *ExplicitMentions) addMention(userID string, mentionType MentionType) {
 	if m.Mentions == nil {

@@ -2288,6 +2288,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 		UpdateFollowing: true,
 	}
 	membership, storeErr := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	previousUnreadMentions := membership.UnreadMentions
 	if storeErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 	}
@@ -2306,11 +2307,13 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	}
 
 	membership.LastViewed = timestamp
+	thread, err := a.GetThreadForUser(teamID, membership, false)
+	previousUnreadReplies := thread.UnreadReplies
 	nErr = a.Srv().Store.Thread().MarkAsRead(userID, threadID, timestamp)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	thread, err := a.GetThreadForUser(teamID, membership, false)
+	thread, err = a.GetThreadForUser(teamID, membership, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2320,6 +2323,8 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	message.Add("timestamp", timestamp)
 	message.Add("unread_mentions", membership.UnreadMentions)
 	message.Add("unread_replies", thread.UnreadReplies)
+	message.Add("previous_unread_mentions", previousUnreadMentions)
+	message.Add("previous_unread_replies", previousUnreadReplies)
 	message.Add("channel_id", post.ChannelId)
 	a.Publish(message)
 	return thread, nil

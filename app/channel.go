@@ -2564,6 +2564,8 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				}
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 				message.Add("thread", string(payload))
+				message.Add("previous_unread_mentions", 0)
+				message.Add("previous_unread_replies", 0)
 				a.Publish(message)
 			}
 		} else if !threadMembership.Following && followThread {
@@ -2683,6 +2685,8 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 		}
 		message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 		message.Add("thread", string(payload))
+		message.Add("previous_unread_mentions", 0)
+		message.Add("previous_unread_replies", 0)
 		a.Publish(message)
 	}
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false, false)
