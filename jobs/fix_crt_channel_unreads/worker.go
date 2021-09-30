@@ -117,9 +117,9 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 	fixedBadCM := 0
 	migrationDone := false
 	prevErr := false
-	userID, channelID := w.getProgressFromPreviousJobs(job)
+	channelID, userID := w.getProgressFromPreviousJobs(job)
 	if userID != "" && channelID != "" {
-		mlog.Info("Restarting from previous job run", mlog.String("UserID", userID), mlog.String("ChannelID", channelID))
+		mlog.Info("Restarting from previous job run", mlog.String("ChannelID", channelID), mlog.String("UserID", userID))
 	}
 	shouldStop := false
 	for {
@@ -132,7 +132,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 		if shouldStop {
 			break
 		}
-		cms, sErr := w.app.Srv().Store.Channel().GetCRTUnfixedChannelMembershipsAfter(userID, channelID, 100)
+		cms, sErr := w.app.Srv().Store.Channel().GetCRTUnfixedChannelMembershipsAfter(channelID, userID, 100)
 		if sErr != nil {
 			if sErr == sql.ErrNoRows {
 				migrationDone = true
@@ -143,7 +143,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 				mlog.String("job_id", job.Id),
 				mlog.String("error", sErr.Error()))
 			if prevErr {
-				w.updateProgress(job, userID, channelID)
+				w.updateProgress(job, channelID, userID)
 				w.setJobError(job, model.NewAppError(w.name, "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships", nil, sErr.Error(), http.StatusInternalServerError))
 				return
 			}
@@ -155,8 +155,8 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 			break
 		}
 		lastCM := cms[len(cms)-1]
-		userID = lastCM.UserId
 		channelID = lastCM.ChannelId
+		userID = lastCM.UserId
 
 		prevErr = false
 		for _, cm := range cms {
@@ -167,7 +167,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 					mlog.String("job_id", job.Id),
 					mlog.String("error", err.Error()))
 				if prevErr {
-					w.updateProgress(job, cm.UserId, cm.ChannelId)
+					w.updateProgress(job, cm.ChannelId, cm.UserId)
 					w.setJobError(job, model.NewAppError(w.name, "fix_crt_channel_unreads.worker.do_job.get_post_types", nil, err.Error(), http.StatusInternalServerError))
 					return
 				}
@@ -182,7 +182,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 						mlog.String("job_id", job.Id),
 						mlog.String("error", err.Error()))
 					if prevErr {
-						w.updateProgress(job, cm.UserId, cm.ChannelId)
+						w.updateProgress(job, cm.ChannelId, cm.UserId)
 						w.setJobError(job, model.NewAppError(w.name, "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read", nil, err.Error(), http.StatusInternalServerError))
 						return
 					}
@@ -192,7 +192,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 				fixedBadCM++
 			}
 		}
-		w.updateProgress(job, userID, channelID)
+		w.updateProgress(job, channelID, userID)
 		prevErr = false
 	}
 
@@ -233,9 +233,9 @@ func (w *FixCRTChannelUnreadsWorker) updateData(job *model.Job) {
 	}
 }
 
-func (w *FixCRTChannelUnreadsWorker) updateProgress(job *model.Job, userID, channelID string) {
-	job.Data["UserID"] = userID
+func (w *FixCRTChannelUnreadsWorker) updateProgress(job *model.Job, channelID, userID string) {
 	job.Data["ChannelID"] = channelID
+	job.Data["UserID"] = userID
 	w.updateData(job)
 }
 
@@ -247,7 +247,7 @@ func (w *FixCRTChannelUnreadsWorker) getProgressFromPreviousJobs(job *model.Job)
 	if err != nil {
 		return "", ""
 	}
-	return olderJob.Data["UserID"], olderJob.Data["ChannelID"]
+	return olderJob.Data["ChannelID"], olderJob.Data["UserID"]
 }
 
 func containsNormalPost(postTypes []string) bool {
