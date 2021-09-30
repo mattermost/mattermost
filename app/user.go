@@ -2288,11 +2288,10 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 		UpdateFollowing: true,
 	}
 	membership, storeErr := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
-	previousUnreadMentions := membership.UnreadMentions
 	if storeErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 	}
-
+	previousUnreadMentions := membership.UnreadMentions
 	post, err := a.GetSinglePost(threadID)
 	if err != nil {
 		return nil, err
@@ -2307,8 +2306,14 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	}
 
 	membership.LastViewed = timestamp
-	thread, err := a.GetThreadForUser(teamID, membership, false)
+
+	var thread *model.ThreadResponse
+	thread, err = a.GetThreadForUser(teamID, membership, false)
+	if err != nil {
+		return nil, err
+	}
 	previousUnreadReplies := thread.UnreadReplies
+
 	nErr = a.Srv().Store.Thread().MarkAsRead(userID, threadID, timestamp)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
