@@ -4,10 +4,14 @@
 // mysql/000001_create_teams.up.sql
 // mysql/000002_create_team_members.down.sql
 // mysql/000002_create_team_members.up.sql
+// mysql/000003_alter_team_members_roles.down.sql
+// mysql/000003_alter_team_members_roles.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
 // postgres/000002_create_team_members.up.sql
+// postgres/000003_alter_team_members_roles.down.sql
+// postgres/000003_alter_team_members_roles.up.sql
 package migrations
 
 import (
@@ -164,6 +168,46 @@ func mysql000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000003_alter_team_members_rolesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xf3\x30\x14\x86\xef\xf3\x2b\xde\xef\xaa\xed\x87\x88\x82\x78\x53\x2a\x66\xed\x29\x2b\xb4\xcd\x48\x33\xd4\xab\x91\xcd\x23\x13\x9a\x6d\xa4\x51\xf4\xdf\x8b\x5b\x19\x73\x9a\x8b\x70\xe0\x3c\xef\xc3\xe1\xed\xc8\xe0\x7e\xe7\x79\x67\x3d\x3f\x77\xc1\x06\x76\xbc\x09\xc8\x10\x77\x54\x53\x6e\x50\x95\xb1\x00\x80\xc3\xff\xfd\xc6\x45\xae\xe6\xad\x89\xff\x27\x28\xb5\x6a\x50\xb5\xa5\xd2\x8d\x34\x95\x6a\x17\x5d\x3e\xa5\x46\x5e\xe6\xaa\x9e\x37\x6d\x77\xcc\x3d\x4c\x49\x13\x82\x5d\xf6\xbc\xd8\x58\xc7\xc8\x10\x19\xb6\xae\x61\xb7\x64\x3f\x44\x47\x50\xb6\xc5\x88\x0d\xab\x35\x3b\x8b\x0c\x85\x34\x72\x22\x3b\x8a\x93\x1f\xd4\x6a\xdb\xbf\xb9\xcd\xd1\xa6\xb7\x3d\x9f\x79\x46\x22\x7c\xee\x18\xff\x32\x44\xef\xd6\xaf\xd6\xd6\xc7\xb7\x37\xc9\x01\x4c\x70\x87\xab\x8b\xfd\x18\xc9\xda\x90\x86\x91\x93\x9a\x70\x72\x19\x1a\x55\x54\xe5\x13\xf6\x7a\x9c\x18\xd2\x68\x0c\x8e\x95\x5c\x47\x22\x49\x52\x21\x66\x9a\x66\x52\x13\x6c\x1f\xd8\x57\x2f\xf4\xf1\x3a\x84\xe1\xd0\xd3\xef\xae\x53\x41\x8f\x94\xcf\xcd\x19\x9e\x8a\x82\x64\x5d\xab\x5c\x1a\xc2\x9f\xc2\x54\x7c\x05\x00\x00\xff\xff\xfa\xc1\xc8\x90\xbd\x01\x00\x00")
+
+func mysql000003_alter_team_members_rolesDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000003_alter_team_members_rolesDownSql,
+		"mysql/000003_alter_team_members_roles.down.sql",
+	)
+}
+
+func mysql000003_alter_team_members_rolesDownSql() (*asset, error) {
+	bytes, err := mysql000003_alter_team_members_rolesDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000003_alter_team_members_roles.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000003_alter_team_members_rolesUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xc3\x30\x14\x85\xdf\xf3\x2b\x8e\x4f\x6d\x45\x44\x9f\x4b\xc5\xac\xbd\x65\x85\xb6\x19\x49\x86\xfa\x34\xb2\x79\x45\xa1\xd9\x46\x1b\x61\xfe\x7b\xd9\x56\x8a\x4e\xf3\x10\x2e\xdc\xef\x7c\x5c\x8e\x21\x8b\xc7\x7d\xcf\x7b\xd7\xf3\xab\x09\x2e\xb0\xe7\x6d\x40\x86\xd8\x50\x4d\xb9\x45\x55\xc6\x02\x00\xce\xff\xf1\x8d\x8b\x5c\x2d\x5b\x1b\x5f\x27\x28\xb5\x6a\x50\xb5\xa5\xd2\x8d\xb4\x95\x6a\x57\x26\x9f\x53\x23\x6f\x73\x55\x2f\x9b\xd6\x4c\xb9\xa7\x39\x69\x42\x70\xeb\x8e\x57\x5b\xe7\x19\x19\x22\xcb\xce\x37\xec\xd7\xdc\x0f\xd1\x04\xca\xb6\x18\xb1\x61\xf3\xce\xde\x21\x43\x21\xad\x9c\x49\x43\x71\xf2\x8b\xda\xec\xba\x4f\xbf\x9d\x6c\x7a\xd7\xf1\x85\x67\x24\xc2\xd7\x9e\x71\x95\x21\x0a\x7c\x08\x67\x22\xc1\x03\xee\x6e\x4e\x63\x24\x6b\x4b\x1a\x56\xce\x6a\xc2\x8f\x93\xd0\xa8\xa2\x2a\x5f\x70\xf2\xe2\x18\x4d\xa3\x31\x31\x96\x70\x1f\x89\x24\x49\x85\x58\x68\x5a\x48\x4d\x70\x5d\xe0\xbe\x7a\xa3\xc3\xc7\x10\x86\x73\x33\x7f\xdb\x4d\x05\x3d\x53\xbe\xb4\x17\x78\x2a\x0a\x92\x75\xad\x72\x69\x09\xff\x0a\x53\xf1\x1d\x00\x00\xff\xff\xea\x54\xe5\x8d\xaf\x01\x00\x00")
+
+func mysql000003_alter_team_members_rolesUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000003_alter_team_members_rolesUpSql,
+		"mysql/000003_alter_team_members_roles.up.sql",
+	)
+}
+
+func mysql000003_alter_team_members_rolesUpSql() (*asset, error) {
+	bytes, err := mysql000003_alter_team_members_rolesUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000003_alter_team_members_roles.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\x72\x25\x81\x9a\xed\xc9\x5c\x40\xc8\xb4\x2b\x55\x80\x42\xa9\xc1\x40\x99\x8c\xea\x0e\x4b\xbe\x33\xd3\xfc\x8c\x2f\xdd\x18\x23\xef\x00\x00\x00\xff\xff\x38\xaf\xff\x77\xd4\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -244,6 +288,46 @@ func postgres000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000003_alter_team_members_rolesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x92\xcf\x8b\xea\x30\x10\xc7\xef\xfd\x2b\xe6\x81\xa0\xbe\xc3\xe3\x1d\xc4\xc3\xab\x15\xd4\xc6\x67\xa1\xb6\x4b\x37\xcb\xb2\xa7\x30\xb6\x53\x0d\xe4\xc7\x92\xc6\x45\xff\xfb\xa5\xd1\x75\x3d\xc9\x9e\x06\x32\x9f\xf9\xf2\xc9\x24\x69\x09\x83\x41\x34\x9b\x69\xdb\xc8\xf6\x2c\x6a\xab\x8e\xda\x08\x7f\x7e\x27\x21\xdb\x6b\xed\x44\x23\xdb\x96\x1c\x19\x3f\x9f\x47\x29\x5b\xe5\x8b\x8a\x45\x00\x00\xb5\x55\x82\x4e\xb2\xf3\x02\x4d\x73\xa1\x6f\x28\xec\xac\x55\x84\x06\xfe\x25\xd0\xa2\xea\x28\x8e\x96\xec\x7f\x56\x84\xc1\x67\x96\xb3\x15\x87\xda\x1e\x8d\x1f\xfd\x1e\xc3\xaf\x04\xfe\x42\x56\xf0\xf2\x61\x64\x18\x5d\x57\xe5\x16\xa4\x69\xad\xd3\xe8\xa5\x35\xa2\xab\x0f\xa4\xf1\xcf\x45\xbd\x0b\xcc\xeb\x86\x55\x0c\x3c\xee\x14\x09\x83\x9a\x20\x81\xa1\x27\xd4\x9a\xf4\x8e\x5c\x37\x0c\xd0\xa2\x48\xe1\x7a\xdf\x2f\xc6\x59\x45\x77\xdd\x06\x3d\x06\x85\xbe\x57\x1f\xd0\x61\xed\xc9\xc1\x07\xba\xb3\x34\xfb\x6f\xae\x28\x39\xdc\xda\x42\xe3\x49\xea\xa3\x16\x8a\xcc\xde\x1f\x20\x81\xe9\x24\x8e\x02\x9b\xad\x1f\x6f\x8c\x6f\xd8\x65\x3d\x21\x38\xe7\xac\x02\xbe\x58\xe6\x0c\xee\xdc\xaf\xe7\xab\x32\x7f\xd9\x16\x10\x84\x81\xbf\x3d\xb1\xde\xaa\x77\x18\x4d\x27\xe3\x38\x84\xb0\x22\x85\x6c\x1d\x47\x7d\xfd\xe1\xf3\xf6\x7f\xe1\x33\x00\x00\xff\xff\xa2\x05\x42\xa3\x12\x02\x00\x00")
+
+func postgres000003_alter_team_members_rolesDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000003_alter_team_members_rolesDownSql,
+		"postgres/000003_alter_team_members_roles.down.sql",
+	)
+}
+
+func postgres000003_alter_team_members_rolesDownSql() (*asset, error) {
+	bytes, err := postgres000003_alter_team_members_rolesDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000003_alter_team_members_roles.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000003_alter_team_members_rolesUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x92\x4f\x6b\xf2\x40\x10\x87\xef\xf9\x14\xf3\x82\xa0\xbe\x87\x52\x04\x3d\x34\x46\x50\xb3\xd6\x40\x4c\x4a\x9a\x52\x7a\x5a\xc6\x64\xa2\x0b\xfb\xa7\x6c\xd6\xa2\xdf\xbe\x64\xb5\xd6\x93\xf4\x34\xb0\xf3\xcc\x8f\x67\x67\x37\xce\xa1\xd7\x0b\xa6\x53\x65\x6a\xd1\x9c\x78\x65\xe4\x41\x69\xee\x4e\x9f\xc4\x45\x73\xa9\x2d\xaf\x45\xd3\x90\x25\xed\x66\xb3\x20\x66\xcb\x74\x5e\xb0\x00\x00\xa0\x32\x92\xd3\x51\xb4\x8e\xa3\xae\xcf\xf4\x15\x85\xad\x31\x92\x50\xc3\x53\x04\x0d\xca\x96\xc2\x60\xc1\x9e\x93\xcc\x0f\xbe\xb2\x94\x2d\x4b\xa8\xcc\x41\xbb\xc1\xff\x21\xfc\x8b\xe0\x11\x92\xac\xcc\xef\x46\xfa\xd1\x55\x91\x6f\x40\xe8\xc6\x58\x85\x4e\x18\xcd\xdb\x6a\x4f\x0a\x1f\xce\xea\xad\x67\xde\xd7\xac\x60\xe0\x70\x2b\x89\x6b\x54\x04\x11\xf4\x1d\xa1\x52\xa4\xb6\x64\xdb\xbe\x87\xe6\x59\x0c\x97\xfb\xfe\x30\xd6\x48\xba\xe9\xd6\xe8\xd0\x2b\x74\xbd\x6a\x8f\x16\x2b\x47\x16\xbe\xd0\x9e\x84\xde\xfd\x72\x59\x5e\xc2\xb5\xcd\x15\x1e\x85\x3a\x28\x2e\x49\xef\xdc\x1e\x22\x18\x8d\x27\x61\xe0\xe1\x64\x75\x7f\x65\xe5\x9a\x9d\xf7\xe3\x93\xd3\x92\x15\x50\xce\x17\x29\x83\x1b\xf9\xcb\xf9\x32\x4f\xdf\x36\x19\x78\x63\x28\x3f\x5e\x58\xa7\xd5\x49\x0c\x46\xe3\xc9\x30\xf4\x29\x2c\x8b\x21\x59\x85\x41\x57\xff\xf8\xc0\xdd\x6f\xf8\x0e\x00\x00\xff\xff\x50\xc7\xd4\x10\x14\x02\x00\x00")
+
+func postgres000003_alter_team_members_rolesUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000003_alter_team_members_rolesUpSql,
+		"postgres/000003_alter_team_members_roles.up.sql",
+	)
+}
+
+func postgres000003_alter_team_members_rolesUpSql() (*asset, error) {
+	bytes, err := postgres000003_alter_team_members_rolesUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000003_alter_team_members_roles.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -296,14 +380,18 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"mysql/000001_create_teams.down.sql":           mysql000001_create_teamsDownSql,
-	"mysql/000001_create_teams.up.sql":             mysql000001_create_teamsUpSql,
-	"mysql/000002_create_team_members.down.sql":    mysql000002_create_team_membersDownSql,
-	"mysql/000002_create_team_members.up.sql":      mysql000002_create_team_membersUpSql,
-	"postgres/000001_create_teams.down.sql":        postgres000001_create_teamsDownSql,
-	"postgres/000001_create_teams.up.sql":          postgres000001_create_teamsUpSql,
-	"postgres/000002_create_team_members.down.sql": postgres000002_create_team_membersDownSql,
-	"postgres/000002_create_team_members.up.sql":   postgres000002_create_team_membersUpSql,
+	"mysql/000001_create_teams.down.sql":                mysql000001_create_teamsDownSql,
+	"mysql/000001_create_teams.up.sql":                  mysql000001_create_teamsUpSql,
+	"mysql/000002_create_team_members.down.sql":         mysql000002_create_team_membersDownSql,
+	"mysql/000002_create_team_members.up.sql":           mysql000002_create_team_membersUpSql,
+	"mysql/000003_alter_team_members_roles.down.sql":    mysql000003_alter_team_members_rolesDownSql,
+	"mysql/000003_alter_team_members_roles.up.sql":      mysql000003_alter_team_members_rolesUpSql,
+	"postgres/000001_create_teams.down.sql":             postgres000001_create_teamsDownSql,
+	"postgres/000001_create_teams.up.sql":               postgres000001_create_teamsUpSql,
+	"postgres/000002_create_team_members.down.sql":      postgres000002_create_team_membersDownSql,
+	"postgres/000002_create_team_members.up.sql":        postgres000002_create_team_membersUpSql,
+	"postgres/000003_alter_team_members_roles.down.sql": postgres000003_alter_team_members_rolesDownSql,
+	"postgres/000003_alter_team_members_roles.up.sql":   postgres000003_alter_team_members_rolesUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -348,16 +436,20 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"mysql": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":        &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":          &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql": &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":   &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":             &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":               &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":      &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":        &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_alter_team_members_roles.down.sql": &bintree{mysql000003_alter_team_members_rolesDownSql, map[string]*bintree{}},
+		"000003_alter_team_members_roles.up.sql":   &bintree{mysql000003_alter_team_members_rolesUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":        &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":          &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql": &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":   &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":             &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":               &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":      &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":        &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_alter_team_members_roles.down.sql": &bintree{postgres000003_alter_team_members_rolesDownSql, map[string]*bintree{}},
+		"000003_alter_team_members_roles.up.sql":   &bintree{postgres000003_alter_team_members_rolesUpSql, map[string]*bintree{}},
 	}},
 }}
 
