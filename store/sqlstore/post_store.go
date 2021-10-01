@@ -410,26 +410,21 @@ func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, error) {
 }
 
 func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
-	pl := model.NewPostList()
-
-	var posts []*model.Post
-	if _, err := s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PreferenceCategoryFlaggedPost, "Offset": offset, "Limit": limit}); err != nil {
-		return nil, errors.Wrap(err, "failed to find Posts")
-	}
-
-	for _, post := range posts {
-		pl.AddPost(post)
-		pl.AddOrder(post.Id)
-	}
-
-	return pl, nil
+	return s.getFlaggedPosts(userId, "", "", offset, limit)
 }
 
 func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, error) {
+	return s.getFlaggedPosts(userId, "", teamId, offset, limit)
+}
+
+func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, error) {
+	return s.getFlaggedPosts(userId, channelId, "", offset, limit)
+}
+
+func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset int, limit int) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	var posts []*model.Post
-
 	query := `
             SELECT
                 A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN A.RootId = '' THEN A.Id ELSE A.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
@@ -441,22 +436,49 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
                 WHERE
                     Id
                 IN
-                    (SELECT
-                        Name
-                    FROM
-                        Preferences
-                    WHERE
-                        UserId = :UserId
-                        AND Category = :Category)
-                        AND DeleteAt = 0
+                    (
+						SELECT
+							Name
+						FROM
+							Preferences
+						WHERE
+							UserId = :UserId
+							AND Category = :Category
+					)
+					CHANNEL_FILTER
+					AND DeleteAt = 0
                 ) as A
             INNER JOIN Channels as B
                 ON B.Id = A.ChannelId
-            WHERE B.TeamId = :TeamId OR B.TeamId = ''
+			WHERE
+				ChannelId IN (
+					SELECT
+						Id
+					FROM
+						Channels,
+						ChannelMembers
+					WHERE
+						Id = ChannelId
+						AND UserId = :UserId
+				)
+				TEAM_FILTER
             ORDER BY CreateAt DESC
             LIMIT :Limit OFFSET :Offset`
 
-	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PreferenceCategoryFlaggedPost, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
+	queryParams := map[string]interface{}{
+		"UserId":   userId,
+		"Category": model.PreferenceCategoryFlaggedPost,
+		"Offset":   offset,
+		"Limit":    limit,
+	}
+
+	teamClause, queryParams := s.buildFlaggedPostTeamFilterClause(teamId, queryParams)
+	query = strings.Replace(query, "TEAM_FILTER", teamClause, 1)
+
+	channelClause, queryParams := s.buildFlaggedPostChannelFilterClause(channelId, queryParams)
+	query = strings.Replace(query, "CHANNEL_FILTER", channelClause, 1)
+
+	if _, err := s.GetReplica().Select(&posts, query, queryParams); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
@@ -468,31 +490,26 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, error) {
-	pl := model.NewPostList()
-
-	var posts []*model.Post
-	query := `
-		SELECT
-			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
-		FROM Posts p
-		WHERE
-			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
-			AND ChannelId = :ChannelId
-			AND DeleteAt = 0
-		ORDER BY CreateAt DESC
-		LIMIT :Limit OFFSET :Offset`
-
-	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PreferenceCategoryFlaggedPost, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-		return nil, errors.Wrap(err, "failed to find Posts")
-	}
-	for _, post := range posts {
-		pl.AddPost(post)
-		pl.AddOrder(post.Id)
+func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	if teamId == "" {
+		return "", queryParams
 	}
 
-	return pl, nil
+	queryParams["TeamId"] = teamId
+
+	return "AND B.TeamId = :TeamId OR B.TeamId = ''", queryParams
 }
+
+func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	if channelId == "" {
+		return "", queryParams
+	}
+
+	queryParams["ChannelId"] = channelId
+
+	return "AND ChannelId = :ChannelId", queryParams
+}
+
 func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended bool) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
