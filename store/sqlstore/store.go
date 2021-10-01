@@ -891,7 +891,6 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 		}
 		_, err = ss.GetMaster().ExecNoTimeout(query)
 	}
-
 	if err != nil {
 		msg := "Failed to alter column type."
 		if mySqlColType == "JSON" && postgresColType == "jsonb" {

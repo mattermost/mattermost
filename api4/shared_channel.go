@@ -27,8 +27,19 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// make sure user has access to the team.
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
 	opts := model.SharedChannelFilterOpts{
 		TeamId: c.Params.TeamId,
+	}
+
+	// only return channels the user is a member of, unless they are a shared channels manager.
+	if !c.App.HasPermissionTo(c.AppContext.Session().UserId, model.PermissionManageSharedChannels) {
+		opts.MemberId = c.AppContext.Session().UserId
 	}
 
 	channels, appErr := c.App.GetSharedChannels(c.Params.Page, c.Params.PerPage, opts)
