@@ -3377,9 +3377,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
 	list, nErr := ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 3)
-	require.Equal(t, o1.Id, list[0].Id, "missing channel")
-	require.Equal(t, o2.Id, list[1].Id, "missing channel")
-	require.Equal(t, o3.Id, list[2].Id, "missing channel")
+	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id}, []string{list[0].Id, list[1].Id, list[2].Id}, "channels did not match")
 
 	nErr = ss.Channel().Delete(o2.Id, 10)
 	require.NoError(t, nErr)
@@ -3397,24 +3395,19 @@ func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
 	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 0, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 3)
-	require.Equal(t, o1.Id, list[0].Id, "missing channel")
-	require.Equal(t, o2.Id, list[1].Id, "missing channel")
-	require.Equal(t, o3.Id, list[2].Id, "missing channel")
+	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id}, []string{list[0].Id, list[1].Id, list[2].Id}, "channels did not match")
 
 	// Should still return all
 	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 10, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 3)
-	require.Equal(t, o1.Id, list[0].Id, "missing channel")
-	require.Equal(t, o2.Id, list[1].Id, "missing channel")
-	require.Equal(t, o3.Id, list[2].Id, "missing channel")
+	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id}, []string{list[0].Id, list[1].Id, list[2].Id}, "channels did not match")
 
 	// Should return 2
 	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 20, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 2)
-	require.Equal(t, o1.Id, list[0].Id, "missing channel")
-	require.Equal(t, o3.Id, list[1].Id, "missing channel")
+	require.ElementsMatch(t, []string{o1.Id, o3.Id}, []string{list[0].Id, list[1].Id}, "channels did not match")
 }
 
 func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
