@@ -148,14 +148,6 @@
     "translation": "Канал перетворений в приватний."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Цей стандартний канал не може бути конвертований в приватний."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Канал, що потрібно конвертувати, вже приватний."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Потрібно використовувати createDirectChannel з API для створення каналу особистих повідомлень"
   },
@@ -1320,10 +1312,6 @@
     "translation": "Недійсний параметр ChannelId для параметра RootId"
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Недійсний параметр ParentId"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Недійсний параметр RootId"
   },
@@ -1718,10 +1706,6 @@
   {
     "id": "api.team.set_team_icon.decode.app_error",
     "translation": "Не вдалося розібрати піктограму команди"
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не вдається розкрити метадані піктограми команди"
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -2188,24 +2172,8 @@
     "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Не вдалося надіслати електронне повідомлення про зміну електронної пошти успішно"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Не вдалося успішно відправити повідомлення про зміну імені користувача "
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Не вдалося успішно надіслати лист підтвердження змін електронною поштою"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Неможливо відправити email повідомлення для зміни MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Не вдалося успішно надіслати пару електронних листів оновлення"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2220,16 +2188,8 @@
     "translation": "Не вдалося відправити лист про оновлення пароля"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Не вдалося успішно надіслати \"Доданий токен особистого доступу\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Не вдалося успішно надіслати електронний лист для підтвердження"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Не вдалося успішно надіслати вітальний лист"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2274,10 +2234,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Не вдається декодувати зображення профілю"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Не вдалося зберегти зображення профілю. Файл не є дійсним зображенням."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3044,10 +3000,6 @@
     "translation": "Неможливо декодувати дані зображення."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Неможливо отримати метадані зображення."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Неможливо перетворити дані зображення у формат PNG. Будь ласка спробуйте ще раз."
   },
@@ -3058,14 +3010,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Не вдається записати файл зображення у файловий накопичувач. Перевірте ваше з'єднання та повторіть спробу."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Неможливо прочитати файл зображення. Переконайтеся, що розмір зображення менше 2 МБ, і спробуйте ще раз."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Функція вимагає оновлення Enterprise Edition та включення ліцензійного ключа. Будь ласка, зв'яжіться зі своїм системним адміністратором."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3764,10 +3708,6 @@
     "translation": "Недійсний ідентифікатор командного крюка"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Недійсний батьківський ідентифікатор"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Недійсний ідентифікатор кореня"
   },
@@ -4452,20 +4392,12 @@
     "translation": "Некоректний оригінальний ідентифікатор"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Недійсний батьківський ідентифікатор"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Неправильні властивості"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Недійсний ідентифікатор кореня"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Необхідно встановити неправильний кореневий ідентифікатор, якщо встановлено батьківський"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5176,10 +5108,6 @@
     "translation": "Неможливо створити файл eml."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Failed to close user index."
   },
@@ -5792,10 +5720,6 @@
     "translation": "An error occurred while downloading the plugin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Під час видалення додатка OAuth2 сталася помилка"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
   },
@@ -5916,38 +5840,6 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий. "
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Неможливо обробити форму з декількох частин"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Не вдається відкрити файл зображення"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\"."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Порожній масив 'image' в запиті"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Не вдається прочитати файл зображення піктограми."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Створення ботів вимкнено."
   },
@@ -5990,10 +5882,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "Unable to delete brand image, not found."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6212,10 +6100,6 @@
     "translation": "Не вдалося отримати користувачів у каналі протягом певного періоду часу"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Не вдалося очистити записи"
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Не вдається зберегти смайли"
   },
@@ -6274,10 +6158,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6560,10 +6440,6 @@
     "translation": "Не вдається отримати схему"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Не вдається зберегти інформацію про файл"
   },
@@ -6650,10 +6526,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Не вдалося отримати партію повідомлень для індексації"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.post.overwrite.app_error",

@@ -4,8 +4,10 @@
 package localcachelayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"bytes"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type LocalCacheChannelStore struct {
@@ -14,34 +16,34 @@ type LocalCacheChannelStore struct {
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.channelMemberCountsCache.Purge()
 	} else {
-		s.rootStore.channelMemberCountsCache.Remove(msg.Data)
+		s.rootStore.channelMemberCountsCache.Remove(string(msg.Data))
 	}
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelPinnedPostCount(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.channelPinnedPostCountsCache.Purge()
 	} else {
-		s.rootStore.channelPinnedPostCountsCache.Remove(msg.Data)
+		s.rootStore.channelPinnedPostCountsCache.Remove(string(msg.Data))
 	}
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.channelGuestCountCache.Purge()
 	} else {
-		s.rootStore.channelGuestCountCache.Remove(msg.Data)
+		s.rootStore.channelGuestCountCache.Remove(string(msg.Data))
 	}
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.channelByIdCache.Purge()
 	} else {
-		s.rootStore.channelByIdCache.Remove(msg.Data)
+		s.rootStore.channelByIdCache.Remove(string(msg.Data))
 	}
 }
 

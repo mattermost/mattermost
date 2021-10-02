@@ -42,16 +42,8 @@ issues:
       text: "SetupEnterprise"
 
     - linters:
-      - staticcheck
-      path: ".*_test.go|store/storetest"
-
-    - linters:
       - golint
       text: "should have|should be|should replace|stutters|underscore|annoying|error strings should not be capitalized"
-
-    - linters:
-      - golint
-      path: "model/"
 
     - linters:
       - misspell

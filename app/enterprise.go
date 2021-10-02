@@ -4,12 +4,12 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
@@ -139,6 +139,12 @@ func RegisterJobsExportDeleteInterface(f func(*Server) tjobs.ExportDeleteInterfa
 	jobsExportDeleteInterface = f
 }
 
+var jobsExtractContentInterface func(*Server) tjobs.ExtractContentInterface
+
+func RegisterJobsExtractContentInterface(f func(*Server) tjobs.ExtractContentInterface) {
+	jobsExtractContentInterface = f
+}
+
 var productNoticesJobInterface func(*Server) tjobs.ProductNoticesJobInterface
 
 func RegisterProductNoticesJobInterface(f func(*Server) tjobs.ProductNoticesJobInterface) {
@@ -181,6 +187,12 @@ func RegisterNotificationInterface(f func(*Server) einterfaces.NotificationInter
 	notificationInterface = f
 }
 
+var licenseInterface func(*Server) einterfaces.LicenseInterface
+
+func RegisterLicenseInterface(f func(*Server) einterfaces.LicenseInterface) {
+	licenseInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if metricsInterface != nil {
 		s.Metrics = metricsInterface(s)
@@ -200,6 +212,11 @@ func (s *Server) initEnterprise() {
 	if elasticsearchInterface != nil {
 		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
 	}
+
+	if licenseInterface != nil {
+		s.LicenseManager = licenseInterface(s)
+	}
+
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s)
 	}

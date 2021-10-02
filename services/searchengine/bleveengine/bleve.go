@@ -12,14 +12,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
-	"github.com/blevesearch/bleve/analysis/analyzer/standard"
-	"github.com/blevesearch/bleve/mapping"
+	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
+	"github.com/blevesearch/bleve/v2/analysis/analyzer/standard"
+	"github.com/blevesearch/bleve/v2/mapping"
 
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -134,7 +134,10 @@ func (b *BleveEngine) createOrOpenIndex(indexName string, mapping *mapping.Index
 		return index, nil
 	}
 
-	index, err := bleve.New(indexPath, mapping)
+	index, err := bleve.NewUsing(indexPath, mapping, "scorch", "scorch", map[string]interface{}{
+		"forceSegmentType":    "zap",
+		"forceSegmentVersion": 15,
+	})
 	if err != nil {
 		return nil, err
 	}

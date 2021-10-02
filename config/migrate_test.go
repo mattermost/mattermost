@@ -12,12 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type cleanUpFn func(store *Store)
 
 func TestMigrate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping migration test in short mode")
+	}
 	files := []string{
 		"IdpCertificateFile",
 		"PublicCertificateFile",
@@ -68,7 +71,7 @@ func TestMigrate(t *testing.T) {
 			"mysql://mmuser:password@tcp(searchreplicahost:3306)/mattermost",
 		}
 
-		_, err := source.Set(cfg)
+		_, _, err := source.Set(cfg)
 		require.NoError(t, err)
 
 		for i, file := range files {
@@ -77,7 +80,7 @@ func TestMigrate(t *testing.T) {
 		}
 
 		return func(store *Store) {
-			_, err := store.Set(originalCfg)
+			_, _, err := store.Set(originalCfg)
 			require.NoError(t, err)
 		}
 	}
@@ -118,7 +121,7 @@ func TestMigrate(t *testing.T) {
 		err = Migrate(sourceDSN, destinationDSN)
 		require.NoError(t, err)
 
-		destinationfile, err := NewFileStore(destinationDSN, false)
+		destinationfile, err := NewFileStore(destinationDSN)
 		require.NoError(t, err)
 		destination, err := NewStoreFromBacking(destinationfile, nil, false)
 		require.NoError(t, err)
@@ -138,7 +141,7 @@ func TestMigrate(t *testing.T) {
 		sourceDSN := path.Join(pwd, "config-custom.json")
 		destinationDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 
-		sourcefile, err := NewFileStore(sourceDSN, false)
+		sourcefile, err := NewFileStore(sourceDSN)
 		require.NoError(t, err)
 		source, err := NewStoreFromBacking(sourcefile, nil, false)
 		require.NoError(t, err)

@@ -4,80 +4,79 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 )
 
 const (
-	WEBSOCKET_EVENT_TYPING                                   = "typing"
-	WEBSOCKET_EVENT_POSTED                                   = "posted"
-	WEBSOCKET_EVENT_POST_EDITED                              = "post_edited"
-	WEBSOCKET_EVENT_POST_DELETED                             = "post_deleted"
-	WEBSOCKET_EVENT_POST_UNREAD                              = "post_unread"
-	WEBSOCKET_EVENT_CHANNEL_CONVERTED                        = "channel_converted"
-	WEBSOCKET_EVENT_CHANNEL_CREATED                          = "channel_created"
-	WEBSOCKET_EVENT_CHANNEL_DELETED                          = "channel_deleted"
-	WEBSOCKET_EVENT_CHANNEL_RESTORED                         = "channel_restored"
-	WEBSOCKET_EVENT_CHANNEL_UPDATED                          = "channel_updated"
-	WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED                   = "channel_member_updated"
-	WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED                   = "channel_scheme_updated"
-	WEBSOCKET_EVENT_DIRECT_ADDED                             = "direct_added"
-	WEBSOCKET_EVENT_GROUP_ADDED                              = "group_added"
-	WEBSOCKET_EVENT_NEW_USER                                 = "new_user"
-	WEBSOCKET_EVENT_ADDED_TO_TEAM                            = "added_to_team"
-	WEBSOCKET_EVENT_LEAVE_TEAM                               = "leave_team"
-	WEBSOCKET_EVENT_UPDATE_TEAM                              = "update_team"
-	WEBSOCKET_EVENT_DELETE_TEAM                              = "delete_team"
-	WEBSOCKET_EVENT_RESTORE_TEAM                             = "restore_team"
-	WEBSOCKET_EVENT_UPDATE_TEAM_SCHEME                       = "update_team_scheme"
-	WEBSOCKET_EVENT_USER_ADDED                               = "user_added"
-	WEBSOCKET_EVENT_USER_UPDATED                             = "user_updated"
-	WEBSOCKET_EVENT_USER_ROLE_UPDATED                        = "user_role_updated"
-	WEBSOCKET_EVENT_MEMBERROLE_UPDATED                       = "memberrole_updated"
-	WEBSOCKET_EVENT_USER_REMOVED                             = "user_removed"
-	WEBSOCKET_EVENT_PREFERENCE_CHANGED                       = "preference_changed"
-	WEBSOCKET_EVENT_PREFERENCES_CHANGED                      = "preferences_changed"
-	WEBSOCKET_EVENT_PREFERENCES_DELETED                      = "preferences_deleted"
-	WEBSOCKET_EVENT_EPHEMERAL_MESSAGE                        = "ephemeral_message"
-	WEBSOCKET_EVENT_STATUS_CHANGE                            = "status_change"
-	WEBSOCKET_EVENT_HELLO                                    = "hello"
-	WEBSOCKET_AUTHENTICATION_CHALLENGE                       = "authentication_challenge"
-	WEBSOCKET_EVENT_REACTION_ADDED                           = "reaction_added"
-	WEBSOCKET_EVENT_REACTION_REMOVED                         = "reaction_removed"
-	WEBSOCKET_EVENT_RESPONSE                                 = "response"
-	WEBSOCKET_EVENT_EMOJI_ADDED                              = "emoji_added"
-	WEBSOCKET_EVENT_CHANNEL_VIEWED                           = "channel_viewed"
-	WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED                  = "plugin_statuses_changed"
-	WEBSOCKET_EVENT_PLUGIN_ENABLED                           = "plugin_enabled"
-	WEBSOCKET_EVENT_PLUGIN_DISABLED                          = "plugin_disabled"
-	WEBSOCKET_EVENT_ROLE_UPDATED                             = "role_updated"
-	WEBSOCKET_EVENT_LICENSE_CHANGED                          = "license_changed"
-	WEBSOCKET_EVENT_CONFIG_CHANGED                           = "config_changed"
-	WEBSOCKET_EVENT_OPEN_DIALOG                              = "open_dialog"
-	WEBSOCKET_EVENT_GUESTS_DEACTIVATED                       = "guests_deactivated"
-	WEBSOCKET_EVENT_USER_ACTIVATION_STATUS_CHANGE            = "user_activation_status_change"
-	WEBSOCKET_EVENT_RECEIVED_GROUP                           = "received_group"
-	WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_TEAM        = "received_group_associated_to_team"
-	WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM    = "received_group_not_associated_to_team"
-	WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL     = "received_group_associated_to_channel"
-	WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL = "received_group_not_associated_to_channel"
-	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_CREATED                 = "sidebar_category_created"
-	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED                 = "sidebar_category_updated"
-	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_DELETED                 = "sidebar_category_deleted"
-	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_ORDER_UPDATED           = "sidebar_category_order_updated"
-	WEBSOCKET_WARN_METRIC_STATUS_RECEIVED                    = "warn_metric_status_received"
-	WEBSOCKET_WARN_METRIC_STATUS_REMOVED                     = "warn_metric_status_removed"
-	WEBSOCKET_EVENT_CLOUD_PAYMENT_STATUS_UPDATED             = "cloud_payment_status_updated"
-	WEBSOCKET_EVENT_THREAD_UPDATED                           = "thread_updated"
-	WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED                    = "thread_follow_changed"
-	WEBSOCKET_EVENT_THREAD_READ_CHANGED                      = "thread_read_changed"
-	WEBSOCKET_FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED  = "first_admin_visit_marketplace_status_received"
+	WebsocketEventTyping                              = "typing"
+	WebsocketEventPosted                              = "posted"
+	WebsocketEventPostEdited                          = "post_edited"
+	WebsocketEventPostDeleted                         = "post_deleted"
+	WebsocketEventPostUnread                          = "post_unread"
+	WebsocketEventChannelConverted                    = "channel_converted"
+	WebsocketEventChannelCreated                      = "channel_created"
+	WebsocketEventChannelDeleted                      = "channel_deleted"
+	WebsocketEventChannelRestored                     = "channel_restored"
+	WebsocketEventChannelUpdated                      = "channel_updated"
+	WebsocketEventChannelMemberUpdated                = "channel_member_updated"
+	WebsocketEventChannelSchemeUpdated                = "channel_scheme_updated"
+	WebsocketEventDirectAdded                         = "direct_added"
+	WebsocketEventGroupAdded                          = "group_added"
+	WebsocketEventNewUser                             = "new_user"
+	WebsocketEventAddedToTeam                         = "added_to_team"
+	WebsocketEventLeaveTeam                           = "leave_team"
+	WebsocketEventUpdateTeam                          = "update_team"
+	WebsocketEventDeleteTeam                          = "delete_team"
+	WebsocketEventRestoreTeam                         = "restore_team"
+	WebsocketEventUpdateTeamScheme                    = "update_team_scheme"
+	WebsocketEventUserAdded                           = "user_added"
+	WebsocketEventUserUpdated                         = "user_updated"
+	WebsocketEventUserRoleUpdated                     = "user_role_updated"
+	WebsocketEventMemberroleUpdated                   = "memberrole_updated"
+	WebsocketEventUserRemoved                         = "user_removed"
+	WebsocketEventPreferenceChanged                   = "preference_changed"
+	WebsocketEventPreferencesChanged                  = "preferences_changed"
+	WebsocketEventPreferencesDeleted                  = "preferences_deleted"
+	WebsocketEventEphemeralMessage                    = "ephemeral_message"
+	WebsocketEventStatusChange                        = "status_change"
+	WebsocketEventHello                               = "hello"
+	WebsocketAuthenticationChallenge                  = "authentication_challenge"
+	WebsocketEventReactionAdded                       = "reaction_added"
+	WebsocketEventReactionRemoved                     = "reaction_removed"
+	WebsocketEventResponse                            = "response"
+	WebsocketEventEmojiAdded                          = "emoji_added"
+	WebsocketEventChannelViewed                       = "channel_viewed"
+	WebsocketEventPluginStatusesChanged               = "plugin_statuses_changed"
+	WebsocketEventPluginEnabled                       = "plugin_enabled"
+	WebsocketEventPluginDisabled                      = "plugin_disabled"
+	WebsocketEventRoleUpdated                         = "role_updated"
+	WebsocketEventLicenseChanged                      = "license_changed"
+	WebsocketEventConfigChanged                       = "config_changed"
+	WebsocketEventOpenDialog                          = "open_dialog"
+	WebsocketEventGuestsDeactivated                   = "guests_deactivated"
+	WebsocketEventUserActivationStatusChange          = "user_activation_status_change"
+	WebsocketEventReceivedGroup                       = "received_group"
+	WebsocketEventReceivedGroupAssociatedToTeam       = "received_group_associated_to_team"
+	WebsocketEventReceivedGroupNotAssociatedToTeam    = "received_group_not_associated_to_team"
+	WebsocketEventReceivedGroupAssociatedToChannel    = "received_group_associated_to_channel"
+	WebsocketEventReceivedGroupNotAssociatedToChannel = "received_group_not_associated_to_channel"
+	WebsocketEventSidebarCategoryCreated              = "sidebar_category_created"
+	WebsocketEventSidebarCategoryUpdated              = "sidebar_category_updated"
+	WebsocketEventSidebarCategoryDeleted              = "sidebar_category_deleted"
+	WebsocketEventSidebarCategoryOrderUpdated         = "sidebar_category_order_updated"
+	WebsocketWarnMetricStatusReceived                 = "warn_metric_status_received"
+	WebsocketWarnMetricStatusRemoved                  = "warn_metric_status_removed"
+	WebsocketEventCloudPaymentStatusUpdated           = "cloud_payment_status_updated"
+	WebsocketEventThreadUpdated                       = "thread_updated"
+	WebsocketEventThreadFollowChanged                 = "thread_follow_changed"
+	WebsocketEventThreadReadChanged                   = "thread_read_changed"
+	WebsocketFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
 )
 
 type WebSocketMessage interface {
-	ToJson() string
+	ToJSON() ([]byte, error)
 	IsValid() bool
 	EventType() string
 }
@@ -105,23 +104,21 @@ type webSocketEventJSON struct {
 	Sequence  int64                  `json:"seq"`
 }
 
-// **NOTE**: Direct access to WebSocketEvent fields is deprecated. They will be
-// made unexported in next major version release. Provided getter functions should be used instead.
 type WebSocketEvent struct {
-	Event           string                 // Deprecated: use EventType()
-	Data            map[string]interface{} // Deprecated: use GetData()
-	Broadcast       *WebsocketBroadcast    // Deprecated: use GetBroadcast()
-	Sequence        int64                  // Deprecated: use GetSequence()
+	event           string
+	data            map[string]interface{}
+	broadcast       *WebsocketBroadcast
+	sequence        int64
 	precomputedJSON *precomputedWebSocketEventJSON
 }
 
 // PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
-// This makes ToJson much more efficient when sending the same event to multiple connections.
+// This makes ToJSON much more efficient when sending the same event to multiple connections.
 func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 	copy := ev.Copy()
-	event, _ := json.Marshal(copy.Event)
-	data, _ := json.Marshal(copy.Data)
-	broadcast, _ := json.Marshal(copy.Broadcast)
+	event, _ := json.Marshal(copy.event)
+	data, _ := json.Marshal(copy.data)
+	broadcast, _ := json.Marshal(copy.broadcast)
 	copy.precomputedJSON = &precomputedWebSocketEventJSON{
 		Event:     json.RawMessage(event),
 		Data:      json.RawMessage(data),
@@ -131,118 +128,129 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 }
 
 func (ev *WebSocketEvent) Add(key string, value interface{}) {
-	ev.Data[key] = value
+	ev.data[key] = value
 }
 
 func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[string]bool) *WebSocketEvent {
-	return &WebSocketEvent{Event: event, Data: make(map[string]interface{}),
-		Broadcast: &WebsocketBroadcast{TeamId: teamId, ChannelId: channelId, UserId: userId, OmitUsers: omitUsers}}
+	return &WebSocketEvent{
+		event: event,
+		data:  make(map[string]interface{}),
+		broadcast: &WebsocketBroadcast{
+			TeamId:    teamId,
+			ChannelId: channelId,
+			UserId:    userId,
+			OmitUsers: omitUsers},
+	}
 }
 
 func (ev *WebSocketEvent) Copy() *WebSocketEvent {
 	copy := &WebSocketEvent{
-		Event:           ev.Event,
-		Data:            ev.Data,
-		Broadcast:       ev.Broadcast,
-		Sequence:        ev.Sequence,
+		event:           ev.event,
+		data:            ev.data,
+		broadcast:       ev.broadcast,
+		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON,
 	}
 	return copy
 }
 
 func (ev *WebSocketEvent) GetData() map[string]interface{} {
-	return ev.Data
+	return ev.data
 }
 
 func (ev *WebSocketEvent) GetBroadcast() *WebsocketBroadcast {
-	return ev.Broadcast
+	return ev.broadcast
 }
 
 func (ev *WebSocketEvent) GetSequence() int64 {
-	return ev.Sequence
+	return ev.sequence
 }
 
 func (ev *WebSocketEvent) SetEvent(event string) *WebSocketEvent {
 	copy := ev.Copy()
-	copy.Event = event
+	copy.event = event
 	return copy
 }
 
 func (ev *WebSocketEvent) SetData(data map[string]interface{}) *WebSocketEvent {
 	copy := ev.Copy()
-	copy.Data = data
+	copy.data = data
 	return copy
 }
 
 func (ev *WebSocketEvent) SetBroadcast(broadcast *WebsocketBroadcast) *WebSocketEvent {
 	copy := ev.Copy()
-	copy.Broadcast = broadcast
+	copy.broadcast = broadcast
 	return copy
 }
 
 func (ev *WebSocketEvent) SetSequence(seq int64) *WebSocketEvent {
 	copy := ev.Copy()
-	copy.Sequence = seq
+	copy.sequence = seq
 	return copy
 }
 
 func (ev *WebSocketEvent) IsValid() bool {
-	return ev.Event != ""
+	return ev.event != ""
 }
 
 func (ev *WebSocketEvent) EventType() string {
-	return ev.Event
+	return ev.event
 }
 
-func (ev *WebSocketEvent) ToJson() string {
+func (ev *WebSocketEvent) ToJSON() ([]byte, error) {
 	if ev.precomputedJSON != nil {
-		return fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.Sequence)
+		return []byte(fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.GetSequence())), nil
 	}
-	b, _ := json.Marshal(webSocketEventJSON{
-		ev.Event,
-		ev.Data,
-		ev.Broadcast,
-		ev.Sequence,
+	return json.Marshal(webSocketEventJSON{
+		ev.event,
+		ev.data,
+		ev.broadcast,
+		ev.sequence,
 	})
-	return string(b)
 }
 
 // Encode encodes the event to the given encoder.
 func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
 	if ev.precomputedJSON != nil {
 		return enc.Encode(json.RawMessage(
-			fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.Sequence),
+			fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.sequence),
 		))
 	}
 
 	return enc.Encode(webSocketEventJSON{
-		ev.Event,
-		ev.Data,
-		ev.Broadcast,
-		ev.Sequence,
+		ev.event,
+		ev.data,
+		ev.broadcast,
+		ev.sequence,
 	})
 }
 
-func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
+func WebSocketEventFromJSON(data io.Reader) (*WebSocketEvent, error) {
 	var ev WebSocketEvent
 	var o webSocketEventJSON
 	if err := json.NewDecoder(data).Decode(&o); err != nil {
-		return nil
+		return nil, err
 	}
-	ev.Event = o.Event
+	ev.event = o.Event
 	if u, ok := o.Data["user"]; ok {
 		// We need to convert to and from JSON again
 		// because the user is in the form of a map[string]interface{}.
 		buf, err := json.Marshal(u)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		o.Data["user"] = UserFromJson(bytes.NewReader(buf))
+
+		var user User
+		if err = json.Unmarshal(buf, &user); err != nil {
+			return nil, err
+		}
+		o.Data["user"] = &user
 	}
-	ev.Data = o.Data
-	ev.Broadcast = o.Broadcast
-	ev.Sequence = o.Sequence
-	return &ev
+	ev.data = o.Data
+	ev.broadcast = o.Broadcast
+	ev.sequence = o.Sequence
+	return &ev, nil
 }
 
 // WebSocketResponse represents a response received through the WebSocket
@@ -264,7 +272,7 @@ func NewWebSocketResponse(status string, seqReply int64, data map[string]interfa
 }
 
 func NewWebSocketError(seqReply int64, err *AppError) *WebSocketResponse {
-	return &WebSocketResponse{Status: STATUS_FAIL, SeqReply: seqReply, Error: err}
+	return &WebSocketResponse{Status: StatusFail, SeqReply: seqReply, Error: err}
 }
 
 func (m *WebSocketResponse) IsValid() bool {
@@ -272,16 +280,14 @@ func (m *WebSocketResponse) IsValid() bool {
 }
 
 func (m *WebSocketResponse) EventType() string {
-	return WEBSOCKET_EVENT_RESPONSE
+	return WebsocketEventResponse
 }
 
-func (m *WebSocketResponse) ToJson() string {
-	b, _ := json.Marshal(m)
-	return string(b)
+func (m *WebSocketResponse) ToJSON() ([]byte, error) {
+	return json.Marshal(m)
 }
 
-func WebSocketResponseFromJson(data io.Reader) *WebSocketResponse {
+func WebSocketResponseFromJSON(data io.Reader) (*WebSocketResponse, error) {
 	var o *WebSocketResponse
-	json.NewDecoder(data).Decode(&o)
-	return o
+	return o, json.NewDecoder(data).Decode(&o)
 }

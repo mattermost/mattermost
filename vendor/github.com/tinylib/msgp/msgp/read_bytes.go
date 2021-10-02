@@ -253,6 +253,46 @@ func ReadArrayHeaderBytes(b []byte) (sz uint32, o []byte, err error) {
 	}
 }
 
+// ReadBytesHeader reads the 'bin' header size
+// off of 'b' and returns the size and remaining bytes.
+// Possible errors:
+// - ErrShortBytes (too few bytes)
+// - TypeError{} (not a bin object)
+func ReadBytesHeader(b []byte) (sz uint32, o []byte, err error) {
+	if len(b) < 1 {
+		return 0, nil, ErrShortBytes
+	}
+	switch b[0] {
+	case mbin8:
+		if len(b) < 2 {
+			err = ErrShortBytes
+			return
+		}
+		sz = uint32(b[1])
+		o = b[2:]
+		return
+	case mbin16:
+		if len(b) < 3 {
+			err = ErrShortBytes
+			return
+		}
+		sz = uint32(big.Uint16(b[1:]))
+		o = b[3:]
+		return
+	case mbin32:
+		if len(b) < 5 {
+			err = ErrShortBytes
+			return
+		}
+		sz = big.Uint32(b[1:])
+		o = b[5:]
+		return
+	default:
+		err = badPrefix(BinType, b[0])
+		return
+	}
+}
+
 // ReadNilBytes tries to read a "nil" byte
 // off of 'b' and return the remaining bytes.
 // Possible errors:

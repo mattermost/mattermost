@@ -148,14 +148,6 @@
     "translation": "Ten kanał został przekonwertowany do kanału prywatnego."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Ten kanał domyślny nie może zostać przekonwertowany do kanału prywatnego."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Kanał, którego żądasz do przekonwertowania jest już kanałem prywatnym."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Do tworzenia kanału wiadomości bezpośrednich należy użyć usługi API createDirectChannel"
   },
@@ -429,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Błąd aktualizacji bieżącego kanału."
+    "translation": "Błąd aktualizacji nagłówka kanału."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +453,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Błąd aktualizacji bieżącego kanału."
+    "translation": "Błąd aktualizacji opisu kanału."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -1185,7 +1177,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "błąd sędziego"
+    "translation": "Nie udało się zorganizować."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1318,10 +1310,6 @@
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Nieprawidłowy ChannelId dla parametru RootId"
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Nieprawidłowy parametr ParentId"
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -1720,10 +1708,6 @@
     "translation": "Nie udało się zdekodować ikony zespołu"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Nie można odszyfrować metadanych ikon zespołu"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Nie można zakodować ikony zespołu"
   },
@@ -1845,11 +1829,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Dołącz zespół"
+    "translation": "Dołącz teraz"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Jesteś już zaproszony"
+    "translation": "{{ .SenderName }} zaprosił cię do zespołu {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1889,7 +1873,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Przejdź do postu"
+    "translation": "Zobacz post"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1897,7 +1881,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Zażądano zmiany hasła"
+    "translation": "Zmień swoje hasło"
   },
   {
     "id": "api.templates.reset_subject",
@@ -1949,11 +1933,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Zweryfikuj swój adres email klikając poniżej."
+    "translation": "Ten adres email został wykorzystany do utworzenia konta w Mattermost."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Dołączyłeś do {{ .ServerURL }}"
+    "translation": "Zweryfikuj swój adres email"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1961,7 +1945,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "W celu wygodniejszego użytkowania pobierz aplikacje dla PC, Mac, iOS i Android z:"
+    "translation": "W celu wygodniejszego użytkowania pobierz aplikacje dla PC, Mac, iOS i Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1969,11 +1953,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Zweryfikuj swój adres email klikając poniżej."
+    "translation": "Ten adres email został wykorzystany do utworzenia konta w Mattermost."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Dołączyłeś do {{ .ServerURL }}"
+    "translation": "Witaj w zespole"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -2017,7 +2001,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Niewspierany usługodawca OAuth"
+    "translation": "{{.Service}} SSO poprzerz OAuth 2.0 jest niedostępny na tym serwerze."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2188,24 +2172,8 @@
     "translation": "Nie udało się wysłać e-maila z dezaktywacją konta"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila z powiadomieniem o zmianie adresu email"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila z powiadomieniem o zmianie nazwy użytkownika"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Nie udało się pomyślnie wysłać emaila z weryfikacją zmiany adresu email"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Nie można wysłać powiadomienia e-mail o zmianie MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila ze zmianą hasła"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2220,16 +2188,8 @@
     "translation": "Nie udało się pomyślnie wysłać emaila ze zmianą hasła"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Nie udało się wysłać maila \"Osobisty token dostępu został dodany\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Nie udało się pomyślnie wysłać emaila weryfikacyjnego"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Nie udało się pomyślnie wysłać emaila powitalnego"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2274,10 +2234,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Nie można było zdekodować obrazu profilu"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Nie można zapisać obrazka profilowego. Plik nie jest obrazem."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3044,10 +3000,6 @@
     "translation": "Nie można zdekodować danych obrazu."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Nie można pobrać metadanych obrazka."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Nie można przekonwertować danych obrazu na format PNG. Proszę spróbuj ponownie."
   },
@@ -3058,14 +3010,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Nie można zapisać pliku obrazu do magazynu plików. Proszę sprawdź swoje połączenie i spróbuj ponownie."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Nie można odczytać pliku obrazu. Upewnij się, że rozmiar obrazu jest mniejszy niż 2 MB i spróbuj ponownie."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Funkcja wymaga aktualizacji do wersji Enterprise Edition i dołączenia klucza licencyjnego. Skontaktuj się z Administratorem Systemu."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3764,10 +3708,6 @@
     "translation": "Nieprawidłowa komenda identyfikatora"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Nieprawidłowe id rodzica"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Nieprawidłowy root id"
   },
@@ -4429,7 +4369,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 5 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
+    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 10 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4452,20 +4392,12 @@
     "translation": "Nieprawidłowe id oryginału"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Nieprawidłowe id rodzica"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Nieprawidłowa wartość"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Nieprawidłowy root id"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Nieprawidłowe root ID, musi być ustawione jeśli parent ID jest ustawione"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4865,7 +4797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4873,7 +4805,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 60+"
+    "translation": "Wersja 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4881,7 +4813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 61+"
+    "translation": "Wersja 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5174,10 +5106,6 @@
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "Nie można utworzyć pliku eml."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5677,11 +5605,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Twoja licencja Enterprise Edition wygasła i niektóre funkcjonalności mogą być niedostępne. Proszę odnowić swoją licencję."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Odśwież licencję"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -5794,10 +5722,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Podczas pobierania wtyczki wystąpił błąd."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Wystąpił błąd podczas otwierania pliku klucza publicznego."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -5920,38 +5844,6 @@
     "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub aplikacji Mattermost."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony. Plik jest zbyt duży."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nie udało się przetworzyć wieloczęściowego formularza"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Nie można otworzyć pliku obrazu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Brak pliku w polu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Pusta tablica w kluczu 'image' w żądaniu"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nie udało się wgrać obrazu ikony"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Nie można odczytać obrazu ikony"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nie można usunąć obrazu ikony"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Tworzenie botów zostało wyłączone."
   },
@@ -6010,10 +5902,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6228,10 +6116,6 @@
     "translation": "Nie udało się pobrać użytkowników na kanale w określonym przedziale czasowym"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Nie można wyczyścić rekordów"
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Nie można zapisać emoji"
   },
@@ -6292,16 +6176,12 @@
     "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas czyszczenia partii flag"
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Wystąpił błąd w trakcie aktualizacji ustawień"
   },
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Wystąpił błąd w trakcie kasowania ustawień"
+    "translation": "Wystąpił błąd w trakcie kasowania ustawień."
   },
   {
     "id": "app.preference.get_category.app_error",
@@ -6321,15 +6201,15 @@
   },
   {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL strony:"
+    "translation": "URL strony: "
   },
   {
     "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Ogólnie aktywnych użytkowników"
+    "translation": "Ogólnie aktywnych użytkowników: "
   },
   {
     "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "E-Mail:"
+    "translation": "E-Mail: "
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6576,10 +6456,6 @@
     "translation": "Nie można uzyskać zadania"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania informacji o wielu plikach"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Nie można zapisać informacji o pliku"
   },
@@ -6601,7 +6477,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Nie można uzyskać wielu kanałów do indeksowania"
+    "translation": "Nie można uzyskać wielu kanałów do indeksowania."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -6661,15 +6537,11 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Wymuszaj uwierzytelnianie wieloskładnikowe:"
+    "translation": "Wymuszaj uwierzytelnianie wieloskładnikowe"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania partii wpisów"
+    "translation": "Nie można uzyskać wielu wpisów do indeksowania."
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -6970,5 +6842,9 @@
   {
     "id": "api.user.login_cws.license.error",
     "translation": "Logowanie bota jest zabronione"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP jest niedostępne."
   }
 ]

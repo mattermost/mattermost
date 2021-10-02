@@ -11,13 +11,12 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
-	SessionsCleanupDelayMilliseconds = 100
+	sessionsCleanupDelay = 100 * time.Millisecond
 )
 
 type SqlSessionStore struct {
@@ -33,8 +32,8 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 		table.ColMap("Token").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("DeviceId").SetMaxSize(512)
-		table.ColMap("Roles").SetMaxSize(64)
-		table.ColMap("Props").SetMaxSize(1000)
+		table.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
+		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return us
@@ -52,7 +51,12 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
+
 	session.PreSave()
+
+	if err := session.IsValid(); err != nil {
+		return nil, err
+	}
 
 	if err := me.GetMaster().Insert(session); err != nil {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
@@ -229,6 +233,10 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) err
 }
 
 func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, error) {
+	if len(roles) > model.UserRolesMaxLength {
+		return "", fmt.Errorf("Given session roles length (%d) exceeds max storage limit (%d)", len(roles), model.UserRolesMaxLength)
+	}
+
 	query := "UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId"
 
 	_, err := me.GetMaster().Exec(query, map[string]interface{}{"Roles": roles, "UserId": userId})
@@ -249,18 +257,14 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, err := me.Get(context.Background(), session.Id)
-	if err != nil {
-		return err
-	}
-	oldSession.Props = session.Props
-
-	count, err := me.GetMaster().Update(oldSession)
+	_, err := me.GetMaster().Exec(`UPDATE Sessions
+		SET Props=:Props
+		WHERE Id=:Id`, map[string]interface{}{
+		"Props": model.MapToJSON(session.Props),
+		"Id":    session.Id,
+	})
 	if err != nil {
 		return errors.Wrap(err, "failed to update Session")
-	}
-	if count != 1 {
-		return fmt.Errorf("updated Sessions were %d, expected 1", count)
 	}
 	return nil
 }
@@ -279,12 +283,10 @@ func (me SqlSessionStore) AnalyticsSessionCount() (int64, error) {
 	return count, nil
 }
 
-func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
-	mlog.Debug("Cleaning up session store.")
-
+func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 	var query string
-	if me.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
+	if me.DriverName() == model.DatabaseDriverPostgres {
+		query = "DELETE FROM Sessions WHERE Id IN (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit)"
 	} else {
 		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit"
 	}
@@ -294,16 +296,16 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	for rowsAffected > 0 {
 		sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize})
 		if err != nil {
-			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
-			return
+			return errors.Wrap(err, "unable to delete sessions")
 		}
 		var rowErr error
 		rowsAffected, rowErr = sqlResult.RowsAffected()
 		if rowErr != nil {
-			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
-			return
+			return errors.Wrap(err, "unable to delete sessions")
 		}
 
-		time.Sleep(SessionsCleanupDelayMilliseconds * time.Millisecond)
+		time.Sleep(sessionsCleanupDelay)
 	}
+
+	return nil
 }

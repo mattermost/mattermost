@@ -4,23 +4,24 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitJob() {
-	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(getJobs)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(createJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.ApiSessionRequiredTrustRequester(downloadJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.ApiSessionRequired(cancelJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.ApiSessionRequired(getJobsByType)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods("POST")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods("POST")
+	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods("GET")
 }
 
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -45,7 +46,9 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(job.ToJson()))
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -71,10 +74,10 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently, this endpoint only supports downloading the compliance report.
 	// If you need to download another job type, you will need to alter this section of the code to accommodate it.
-	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
-		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
+	if job.Type == model.JobTypeMessageExport && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
+		c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
 		return
-	} else if job.Type != model.JOB_TYPE_MESSAGE_EXPORT {
+	} else if job.Type != model.JobTypeMessageExport {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -101,8 +104,8 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
-	job := model.JobFromJson(r.Body)
-	if job == nil {
+	var job model.Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
 		c.SetInvalidParam("job")
 		return
 	}
@@ -111,7 +114,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("job", job)
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
@@ -122,17 +125,19 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := c.App.CreateJob(job)
+	rjob, err := c.App.CreateJob(&job)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("job", job) // overwrite meta
+	auditRec.AddMeta("job", rjob) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(job.ToJson()))
+	if err := json.NewEncoder(w).Encode(rjob); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -141,7 +146,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var validJobTypes []string
-	for _, jobType := range model.ALL_JOB_TYPES {
+	for _, jobType := range model.AllJobTypes {
 		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jobType)
 		if permissionRequired == nil {
 			mlog.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jobType))
@@ -162,7 +167,12 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.JobsToJson(jobs)))
+	js, jsonErr := json.Marshal(jobs)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -187,7 +197,12 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.JobsToJson(jobs)))
+	js, jsonErr := json.Marshal(jobs)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getJobsByType", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -176,9 +175,6 @@ type Manifest struct {
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
-	// Backend is a deprecated flag for defining the server-side portion of your plugin. Going forward, use Server instead.
-	Backend *ManifestServer `json:"backend,omitempty" yaml:"backend,omitempty"`
-
 	// If your plugin extends the web app, you'll need to define webapp.
 	Webapp *ManifestWebapp `json:"webapp,omitempty" yaml:"webapp,omitempty"`
 
@@ -191,26 +187,14 @@ type Manifest struct {
 
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//
-	// Use the plugin helpers CheckRequiredServerConfiguration method to enforce this.
+	// Use the pluginapi.Configuration.CheckRequiredServerConfiguration method to enforce this.
 	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
 type ManifestServer struct {
-	// AllExecutables are the paths to your executable binaries, specifying multiple entry
+	// Executables are the paths to your executable binaries, specifying multiple entry
 	// points for different platforms when bundled together in a single plugin.
-	AllExecutables map[string]string `json:"executables,omitempty" yaml:"executables,omitempty"`
-
-	// Executables is a legacy field populated with a subset of supported platform executables.
-	// When unmarshalling, Executables is authoritative for the platform executable paths it
-	// contains, overriding any values in AllExecutables. When marshalling, AllExecutables
-	// is authoritative.
-	//
-	// Code duplication is avoided when (un)marshalling by leveraging type aliases in the
-	// various (Un)Marshal(JSON|YAML) methods, since aliases don't inherit the aliased type's
-	// methods.
-	//
-	// In v6.0, we should remove this field and rename AllExecutables back to Executables.
-	Executables *ManifestExecutables `json:"-" yaml:"-"`
+	Executables map[string]string `json:"executables,omitempty" yaml:"executables,omitempty"`
 
 	// Executable is the path to your executable binary. This should be relative to the root
 	// of your bundle and the location of the manifest file.
@@ -220,78 +204,6 @@ type ManifestServer struct {
 	// If your plugin is compiled for multiple platforms, consider bundling them together
 	// and using the Executables field instead.
 	Executable string `json:"executable" yaml:"executable"`
-}
-
-func (ms *ManifestServer) MarshalJSON() ([]byte, error) {
-	type auxManifestServer ManifestServer
-
-	// Populate AllExecutables from Executables, if it exists.
-	if ms.Executables != nil {
-		if ms.AllExecutables == nil {
-			ms.AllExecutables = make(map[string]string)
-		}
-
-		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
-		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
-		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
-	}
-
-	return json.Marshal((*auxManifestServer)(ms))
-}
-
-func (ms *ManifestServer) UnmarshalJSON(data []byte) error {
-	type auxManifestServer ManifestServer
-
-	aux := (*auxManifestServer)(ms)
-	if err := json.Unmarshal(data, aux); err != nil {
-		return err
-	}
-
-	if len(aux.AllExecutables) > 0 {
-		ms.Executables = &ManifestExecutables{
-			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
-			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
-			WindowsAmd64: aux.AllExecutables["windows-amd64"],
-		}
-	}
-
-	return nil
-}
-
-func (ms *ManifestServer) MarshalYAML() ([]byte, error) {
-	type auxManifestServer ManifestServer
-
-	// Populate AllExecutables from Executables, if it exists.
-	if ms.Executables != nil {
-		if ms.AllExecutables == nil {
-			ms.AllExecutables = make(map[string]string)
-		}
-
-		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
-		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
-		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
-	}
-
-	return yaml.Marshal((*auxManifestServer)(ms))
-}
-
-func (ms *ManifestServer) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type auxManifestServer ManifestServer
-
-	aux := (*auxManifestServer)(ms)
-	if err := unmarshal(&aux); err != nil {
-		return err
-	}
-
-	if len(aux.AllExecutables) > 0 {
-		ms.Executables = &ManifestExecutables{
-			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
-			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
-			WindowsAmd64: aux.AllExecutables["windows-amd64"],
-		}
-	}
-
-	return nil
 }
 
 // ManifestExecutables is a legacy structure capturing a subet of the known platform executables.
@@ -312,28 +224,6 @@ type ManifestWebapp struct {
 
 	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
 	BundleHash []byte `json:"-"`
-}
-
-func (m *Manifest) ToJson() string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestListToJson(m []*Manifest) string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestFromJson(data io.Reader) *Manifest {
-	var m *Manifest
-	json.NewDecoder(data).Decode(&m)
-	return m
-}
-
-func ManifestListFromJson(data io.Reader) []*Manifest {
-	var manifests []*Manifest
-	json.NewDecoder(data).Decode(&manifests)
-	return manifests
 }
 
 func (m *Manifest) HasClient() bool {
@@ -362,19 +252,14 @@ func (m *Manifest) ClientManifest() *Manifest {
 func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 	server := m.Server
 
-	// Support the deprecated backend parameter.
-	if server == nil {
-		server = m.Backend
-	}
-
 	if server == nil {
 		return ""
 	}
 
 	var executable string
-	if len(server.AllExecutables) > 0 {
+	if len(server.Executables) > 0 {
 		osArch := fmt.Sprintf("%s-%s", goOs, goArch)
-		executable = server.AllExecutables[osArch]
+		executable = server.Executables[osArch]
 	}
 
 	if executable == "" {
@@ -385,7 +270,7 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 }
 
 func (m *Manifest) HasServer() bool {
-	return m.Server != nil || m.Backend != nil
+	return m.Server != nil
 }
 
 func (m *Manifest) HasWebapp() bool {
@@ -413,15 +298,15 @@ func (m *Manifest) IsValid() error {
 		return errors.New("a plugin name is needed")
 	}
 
-	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
+	if m.HomepageURL != "" && !IsValidHTTPURL(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHTTPURL(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
-	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+	if m.ReleaseNotesURL != "" && !IsValidHTTPURL(m.ReleaseNotesURL) {
 		return errors.New("invalid ReleaseNotesURL")
 	}
 

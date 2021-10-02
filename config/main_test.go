@@ -11,9 +11,8 @@ import (
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 var mainHelper *testlib.MainHelper
@@ -22,8 +21,6 @@ func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
 		EnableStore: true,
 	}
-
-	mlog.DisableZap()
 
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
@@ -38,7 +35,7 @@ func truncateTable(t *testing.T, table string) {
 	sqlStore := mainHelper.GetSQLStore()
 
 	switch *sqlSetting.DriverName {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		_, err := sqlStore.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*mysql.MySQLError); ok {
@@ -50,7 +47,7 @@ func truncateTable(t *testing.T, table string) {
 		}
 		require.NoError(t, err)
 
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		_, err := sqlStore.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*pq.Error); ok {

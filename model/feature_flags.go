@@ -25,31 +25,47 @@ type FeatureFlags struct {
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
-	// Toggle on and off support for Custom User Statuses
-	CustomUserStatuses bool
-
 	// AppsEnabled toggle the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
 	// Feature flags to control plugin versions
-	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
-	PluginApps               string `plugin_id:"com.mattermost.apps"`
+	PluginPlaybooks  string `plugin_id:"playbooks"`
+	PluginApps       string `plugin_id:"com.mattermost.apps"`
+	PluginFocalboard string `plugin_id:"focalboard"`
 
-	// Control support for custom data retention policies
-	CustomDataRetentionEnabled bool
+	// Enable timed dnd support for user status
+	TimedDND bool
+
+	PermalinkPreviews bool
+
+	// Enable the Global Header
+	GlobalHeader bool
+
+	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
+	AddChannelButton string
+
+	// Enable different treatments for first time users, possible values = ("none", "tour_point", "around_input")
+	PrewrittenMessages string
+
+	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
+	DownloadAppsCTA string
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
-	f.CollapsedThreads = false
+	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
-
-	f.PluginIncidentManagement = "1.9.3"
 	f.PluginApps = ""
-	f.CustomDataRetentionEnabled = false
+	f.PluginFocalboard = ""
+	f.TimedDND = false
+	f.PermalinkPreviews = true
+	f.GlobalHeader = true
+	f.AddChannelButton = "by_team_name"
+	f.PrewrittenMessages = "none"
+	f.DownloadAppsCTA = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

@@ -148,14 +148,6 @@
     "translation": "此頻道已轉為私人頻道。"
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "預設頻道不能轉換為私人頻道。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "要求轉換的頻道已為私人頻道。"
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "必須使用 createDirectChannel API 服務來建立直接訊息頻道"
   },
@@ -1316,10 +1308,6 @@
     "translation": "RootId 參數的 ChannelId 無效"
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "無效的 ParentId 參數"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "無效的 RootId 參數"
   },
@@ -1710,10 +1698,6 @@
   {
     "id": "api.team.set_team_icon.decode.app_error",
     "translation": "無法解碼團隊標誌"
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "無法解碼團隊標誌資料"
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -2180,24 +2164,8 @@
     "translation": "發送停用帳號郵件時失敗"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "更改通知電子郵件傳送失敗"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "使用者名稱變更通知電子郵件以傳送失敗"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "更改驗證電子郵件傳送失敗"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "無法發送多重要素驗證變更的電子郵件通知。"
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "更新密碼電子郵件傳送失敗"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2212,16 +2180,8 @@
     "translation": "更新密碼電子郵件傳送失敗"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "寄送成功新增個人存取 Token 至帳號的通知郵件時失敗"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "認證電子郵件傳送失敗"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "歡迎電子郵件傳送失敗"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2266,10 +2226,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "無法解碼個人頭像"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "無法儲存個人資訊圖片。檔案不是有效圖片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3036,10 +2992,6 @@
     "translation": "無法解碼圖片資料。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "無法取得圖片的中繼資料。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "無法轉換圖片至 PNG 格式。請重新嘗試。"
   },
@@ -3050,14 +3002,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "無法寫入圖片檔案至儲存空間。請檢查連線並重新嘗試。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "無法讀取圖片檔案。請確定圖片大小小於 2MB 並重新嘗試。"
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "功能需要升級至企業版並加入授權碼。請聯絡系統管理員。"
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3756,10 +3700,6 @@
     "translation": "無效的命令 Hook ID"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "無效的上層 ID"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "無效的根 ID"
   },
@@ -4444,20 +4384,12 @@
     "translation": "無效的原始 ID"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "無效的上層 ID"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "無效的屬性"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "無效的根 ID"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "若上層 ID 已設定則根 ID 也必須設定否則無效"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5168,10 +5100,6 @@
     "translation": "無法建立 zip 檔案。"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "該外寄 Webhook 已被刪除，但建立新的 Webhook 時發生錯誤。"
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "關閉使用者索引失敗。"
   },
@@ -5792,10 +5720,6 @@
     "translation": "下載模組時錯誤。"
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "開啟公鑰檔案時發生錯誤"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "發送停用帳號郵件時失敗"
   },
@@ -5916,38 +5840,6 @@
     "translation": "請將我加入想要互動的團隊與頻道。請用瀏覽器或是桌面應用程式加入。"
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "無法上傳個人資訊圖片。檔案太大。"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "無法解析 multipart 表單"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "無法開啟圖片檔案"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "要求的 'image' 欄位沒有檔案"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "要求的 'image' 欄位為空陣列"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "無法上傳個人頭像"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "無法讀取頭像檔案"
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "無法刪除個人頭像"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "建立機器人已被停用。"
   },
@@ -5990,10 +5882,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "無法刪除品牌圖片，沒有找到檔案。"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "永久批次刪除回應時遇到錯誤"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6210,10 +6098,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "刪除頻道訊息失敗"
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "清除紀錄失敗。"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6454,10 +6338,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "取得規範報告時遇到錯誤"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "永久批次清除標記時遇到錯誤"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6786,10 +6666,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "無法取得工作"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "永久批次刪除檔案資訊時遇到錯誤"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7430,10 +7306,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "無法取得文章以建立索引"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "永久批次刪除訊息時遇到錯誤"
   },
   {
     "id": "app.post.search.app_error",

@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func TestSharedChannelSyncForReactionActions(t *testing.T) {
@@ -44,9 +44,9 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
 
-		assert.Len(t, sharedChannelService.notifications, 2)
-		assert.Equal(t, channel.Id, sharedChannelService.notifications[0])
-		assert.Equal(t, channel.Id, sharedChannelService.notifications[1])
+		assert.Len(t, sharedChannelService.channelNotifications, 2)
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
 	})
 
 	t.Run("removing a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
@@ -79,8 +79,8 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
 
-		assert.Len(t, sharedChannelService.notifications, 2)
-		assert.Equal(t, channel.Id, sharedChannelService.notifications[0])
-		assert.Equal(t, channel.Id, sharedChannelService.notifications[1])
+		assert.Len(t, sharedChannelService.channelNotifications, 2)
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
 	})
 }

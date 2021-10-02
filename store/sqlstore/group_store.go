@@ -11,8 +11,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type selectType int
@@ -394,6 +394,7 @@ func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.Grou
 		GroupId:  groupID,
 		UserId:   userID,
 		CreateAt: model.GetMillis(),
+		DeleteAt: 0,
 	}
 
 	if err := member.IsValid(); err != nil {
@@ -405,32 +406,25 @@ func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.Grou
 		return nil, errors.Wrapf(err, "failed to get UserGroup with groupId=%s and userId=%s", groupID, userID)
 	}
 
-	var retrievedMember *model.GroupMember
-	if err := s.GetReplica().SelectOne(&retrievedMember, "SELECT * FROM GroupMembers WHERE GroupId = :GroupId AND UserId = :UserId", map[string]interface{}{"GroupId": member.GroupId, "UserId": member.UserId}); err != nil {
-		if err != sql.ErrNoRows {
-			return nil, errors.Wrapf(err, "failed to get GroupMember with groupId=%s and userId=%s", groupID, userID)
-		}
+	query := s.getQueryBuilder().
+		Insert("GroupMembers").
+		Columns("GroupId", "UserId", "CreateAt", "DeleteAt").
+		Values(member.GroupId, member.UserId, member.CreateAt, member.DeleteAt)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE CreateAt = ?, DeleteAt = ?", member.CreateAt, member.DeleteAt))
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", member.CreateAt, member.DeleteAt))
 	}
 
-	if retrievedMember == nil {
-		if err := s.GetMaster().Insert(member); err != nil {
-			if IsUniqueConstraintError(err, []string{"GroupId", "UserId", "groupmembers_pkey", "PRIMARY"}) {
-				return nil, store.NewErrInvalidInput("Member", "<groupId, userId>", fmt.Sprintf("<%s, %s>", groupID, userID))
-			}
-			return nil, errors.Wrap(err, "failed to save Member")
-		}
-	} else {
-		member.DeleteAt = 0
-		var rowsChanged int64
-		var err error
-		if rowsChanged, err = s.GetMaster().Update(member); err != nil {
-			return nil, errors.Wrapf(err, "failed to update GroupMember with groupId=%s and userId=%s", groupID, userID)
-		}
-		if rowsChanged > 1 {
-			return nil, errors.Wrapf(err, "multiple GroupMembers were updated: %d", rowsChanged)
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate sqlquery")
 	}
 
+	if _, err = s.GetMaster().Exec(queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to save GroupMember")
+	}
 	return member, nil
 }
 
@@ -479,11 +473,13 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		if _, err := s.Channel().Get(groupSyncable.SyncableId, false); err != nil {
+		var channel *model.Channel
+		channel, err := s.Channel().Get(groupSyncable.SyncableId, false)
+		if err != nil {
 			return nil, err
 		}
-
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
+		groupSyncable.TeamID = channel.TeamId
 	default:
 		return nil, fmt.Errorf("invalid GroupSyncableType: %s", groupSyncable.Type)
 	}
@@ -661,7 +657,16 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	case model.GroupSyncableTypeTeam:
 		_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
+		// We need to get the TeamId so redux can manage channels when teams are unlinked
+		var channel *model.Channel
+		channel, channelErr := s.Channel().Get(groupSyncable.SyncableId, false)
+		if channelErr != nil {
+			return nil, channelErr
+		}
+
 		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
+
+		groupSyncable.TeamID = channel.TeamId
 	default:
 		return nil, fmt.Errorf("invalid GroupSyncableType: %s", groupSyncable.Type)
 	}
@@ -1005,7 +1010,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
-		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if s.DriverName() == model.DatabaseDriverMysql {
 			operatorKeyword = "LIKE"
 		}
 		query = query.Where(fmt.Sprintf("(ug.Name %[1]s ? OR ug.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
@@ -1070,7 +1075,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts 
 	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
-		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if s.DriverName() == model.DatabaseDriverMysql {
 			operatorKeyword = "LIKE"
 		}
 		query = query.Where(fmt.Sprintf("(ug.Name %[1]s ? OR ug.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
@@ -1190,7 +1195,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
-		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if s.DriverName() == model.DatabaseDriverMysql {
 			operatorKeyword = "LIKE"
 		}
 		groupsQuery = groupsQuery.Where(fmt.Sprintf("(g.Name %[1]s ? OR g.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
@@ -1279,7 +1284,7 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 		selectStr = "count(DISTINCT Users.Id)"
 	} else {
 		tmpl := "Users.*, coalesce(TeamMembers.SchemeGuest, false), TeamMembers.SchemeAdmin, TeamMembers.SchemeUser, %s AS GroupIDs"
-		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if s.DriverName() == model.DatabaseDriverMysql {
 			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
 		} else {
 			selectStr = fmt.Sprintf(tmpl, "string_agg(UserGroups.Id, ',')")
@@ -1357,7 +1362,7 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 		selectStr = "count(DISTINCT Users.Id)"
 	} else {
 		tmpl := "Users.*, coalesce(ChannelMembers.SchemeGuest, false), ChannelMembers.SchemeAdmin, ChannelMembers.SchemeUser, %s AS GroupIDs"
-		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if s.DriverName() == model.DatabaseDriverMysql {
 			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
 		} else {
 			selectStr = fmt.Sprintf(tmpl, "string_agg(UserGroups.Id, ',')")

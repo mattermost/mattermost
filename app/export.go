@@ -15,9 +15,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type BulkExportOpts struct {
@@ -32,35 +32,35 @@ const ExportDataDir = "data"
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
 var exportablePreferences = map[ComparablePreference]string{{
-	Category: model.PREFERENCE_CATEGORY_THEME,
+	Category: model.PreferenceCategoryTheme,
 	Name:     "",
 }: "Theme", {
-	Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+	Category: model.PreferenceCategoryAdvancedSettings,
 	Name:     "feature_enabled_markdown_preview",
 }: "UseMarkdownPreview", {
-	Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+	Category: model.PreferenceCategoryAdvancedSettings,
 	Name:     "formatting",
 }: "UseFormatting", {
-	Category: model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS,
+	Category: model.PreferenceCategorySidebarSettings,
 	Name:     "show_unread_section",
 }: "ShowUnreadSection", {
-	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-	Name:     model.PREFERENCE_NAME_USE_MILITARY_TIME,
+	Category: model.PreferenceCategoryDisplaySettings,
+	Name:     model.PreferenceNameUseMilitaryTime,
 }: "UseMilitaryTime", {
-	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-	Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
+	Category: model.PreferenceCategoryDisplaySettings,
+	Name:     model.PreferenceNameCollapseSetting,
 }: "CollapsePreviews", {
-	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-	Name:     model.PREFERENCE_NAME_MESSAGE_DISPLAY,
+	Category: model.PreferenceCategoryDisplaySettings,
+	Name:     model.PreferenceNameMessageDisplay,
 }: "MessageDisplay", {
-	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+	Category: model.PreferenceCategoryDisplaySettings,
 	Name:     "channel_display_mode",
 }: "ChannelDisplayMode", {
-	Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
+	Category: model.PreferenceCategoryTutorialSteps,
 	Name:     "",
 }: "TutorialStep", {
-	Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
-	Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+	Category: model.PreferenceCategoryNotifications,
+	Name:     model.PreferenceNameEmailInterval,
 }: "EmailInterval",
 }
 
@@ -251,17 +251,17 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 			for _, pref := range allPrefs {
 				// We need to manage the special cases
 				// Here we manage Tutorial steps
-				if pref.Category == model.PREFERENCE_CATEGORY_TUTORIAL_STEPS {
+				if pref.Category == model.PreferenceCategoryTutorialSteps {
 					pref.Name = ""
 					// Then the email interval
-				} else if pref.Category == model.PREFERENCE_CATEGORY_NOTIFICATIONS && pref.Name == model.PREFERENCE_NAME_EMAIL_INTERVAL {
+				} else if pref.Category == model.PreferenceCategoryNotifications && pref.Name == model.PreferenceNameEmailInterval {
 					switch pref.Value {
-					case model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS:
-						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY
-					case model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN_AS_SECONDS:
-						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN
-					case model.PREFERENCE_EMAIL_INTERVAL_HOUR_AS_SECONDS:
-						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_HOUR
+					case model.PreferenceEmailIntervalNoBatchingSeconds:
+						pref.Value = model.PreferenceEmailIntervalImmediately
+					case model.PreferenceEmailIntervalFifteenAsSeconds:
+						pref.Value = model.PreferenceEmailIntervalFifteen
+					case model.PreferenceEmailIntervalHourAsSeconds:
+						pref.Value = model.PreferenceEmailIntervalHour
 					case "0":
 						pref.Value = ""
 					}
@@ -325,7 +325,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImpo
 		}
 
 		// Get the user theme
-		themePreference, nErr := a.Srv().Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_THEME, member.TeamId)
+		themePreference, nErr := a.Srv().Store.Preference().Get(member.UserId, model.PreferenceCategoryTheme, member.TeamId)
 		if nErr == nil {
 			memberData.Theme = &themePreference.Value
 		}
@@ -346,7 +346,7 @@ func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]User
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
+	category := model.PreferenceCategoryFavoriteChannel
 	preferences, err := a.GetPreferenceByCategoryForUser(userID, category)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		return nil, err
@@ -368,14 +368,14 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 	}
 
 	return &UserNotifyPropsImportData{
-		Desktop:          getProp(model.DESKTOP_NOTIFY_PROP),
-		DesktopSound:     getProp(model.DESKTOP_SOUND_NOTIFY_PROP),
-		Email:            getProp(model.EMAIL_NOTIFY_PROP),
-		Mobile:           getProp(model.PUSH_NOTIFY_PROP),
-		MobilePushStatus: getProp(model.PUSH_STATUS_NOTIFY_PROP),
-		ChannelTrigger:   getProp(model.CHANNEL_MENTIONS_NOTIFY_PROP),
-		CommentsTrigger:  getProp(model.COMMENTS_NOTIFY_PROP),
-		MentionKeys:      getProp(model.MENTION_KEYS_NOTIFY_PROP),
+		Desktop:          getProp(model.DesktopNotifyProp),
+		DesktopSound:     getProp(model.DesktopSoundNotifyProp),
+		Email:            getProp(model.EmailNotifyProp),
+		Mobile:           getProp(model.PushNotifyProp),
+		MobilePushStatus: getProp(model.PushStatusNotifyProp),
+		ChannelTrigger:   getProp(model.ChannelMentionsNotifyProp),
+		CommentsTrigger:  getProp(model.CommentsNotifyProp),
+		MentionKeys:      getProp(model.MentionKeysNotifyProp),
 	}
 }
 
@@ -463,7 +463,7 @@ func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImpo
 			if appErr != nil {
 				return nil, nil, appErr
 			}
-			replyImportObject.Attachments = &attachments
+			replyImportObject.Attachments = &postAttachments
 			if withAttachments && len(postAttachments) > 0 {
 				attachments = append(attachments, postAttachments...)
 			}
@@ -518,7 +518,7 @@ func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exp
 	var emojiPaths []string
 	pageNumber := 0
 	for {
-		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EMOJI_SORT_BY_NAME)
+		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EmojiSortByName)
 
 		if err != nil {
 			return nil, err

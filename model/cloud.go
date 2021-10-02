@@ -17,13 +17,39 @@ const (
 
 var MockCWS string
 
+type BillingScheme string
+
+const (
+	BillingSchemePerSeat = BillingScheme("per_seat")
+	BillingSchemeFlatFee = BillingScheme("flat_fee")
+)
+
+type RecurringInterval string
+
+const (
+	RecurringIntervalYearly  = RecurringInterval("year")
+	RecurringIntervalMonthly = RecurringInterval("month")
+)
+
+type SubscriptionFamily string
+
+const (
+	SubscriptionFamilyCloud  = SubscriptionFamily("cloud")
+	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
+)
+
 // Product model represents a product on the cloud system.
 type Product struct {
-	ID           string   `json:"id"`
-	Name         string   `json:"name"`
-	Description  string   `json:"description"`
-	PricePerSeat float64  `json:"price_per_seat"`
-	AddOns       []*AddOn `json:"add_ons"`
+	ID                string             `json:"id"`
+	Name              string             `json:"name"`
+	Description       string             `json:"description"`
+	PricePerSeat      float64            `json:"price_per_seat"`
+	AddOns            []*AddOn           `json:"add_ons"`
+	SKU               string             `json:"sku"`
+	PriceID           string             `json:"price_id"`
+	Family            SubscriptionFamily `json:"product_family"`
+	RecurringInterval RecurringInterval  `json:"recurring_interval"`
+	BillingScheme     BillingScheme      `json:"billing_scheme"`
 }
 
 // AddOn represents an addon to a product.
@@ -78,7 +104,7 @@ type Address struct {
 // PaymentMethod represents methods of payment for a customer.
 type PaymentMethod struct {
 	Type      string `json:"type"`
-	LastFour  int    `json:"last_four"`
+	LastFour  string `json:"last_four"`
 	ExpMonth  int    `json:"exp_month"`
 	ExpYear   int    `json:"exp_year"`
 	CardBrand string `json:"card_brand"`
@@ -143,7 +169,7 @@ type CWSWebhookPayload struct {
 
 type FailedPayment struct {
 	CardBrand      string `json:"card_brand"`
-	LastFour       int    `json:"last_four"`
+	LastFour       string `json:"last_four"`
 	FailureMessage string `json:"failure_message"`
 }
 
@@ -155,4 +181,8 @@ type SubscriptionStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
 	IsPaidTier     string `json:"is_paid_tier"`
 	IsFreeTrial    string `json:"is_free_trial"`
+}
+
+type SubscriptionChange struct {
+	ProductID string `json:"product_id"`
 }

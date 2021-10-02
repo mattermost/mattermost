@@ -4,19 +4,21 @@
 package api4
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitUpload() {
-	api.BaseRoutes.Uploads.Handle("", api.ApiSessionRequired(createUpload)).Methods("POST")
-	api.BaseRoutes.Upload.Handle("", api.ApiSessionRequired(getUpload)).Methods("GET")
-	api.BaseRoutes.Upload.Handle("", api.ApiSessionRequired(uploadData)).Methods("POST")
+	api.BaseRoutes.Uploads.Handle("", api.APISessionRequired(createUpload)).Methods("POST")
+	api.BaseRoutes.Upload.Handle("", api.APISessionRequired(getUpload)).Methods("GET")
+	api.BaseRoutes.Upload.Handle("", api.APISessionRequired(uploadData)).Methods("POST")
 }
 
 func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -27,8 +29,8 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	us := model.UploadSessionFromJson(r.Body)
-	if us == nil {
+	var us model.UploadSession
+	if jsonErr := json.NewDecoder(r.Body).Decode(&us); jsonErr != nil {
 		c.SetInvalidParam("upload")
 		return
 	}
@@ -43,12 +45,12 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
-			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
 		us.Type = model.UploadTypeAttachment
@@ -58,7 +60,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().UserId != "" {
 		us.UserId = c.AppContext.Session().UserId
 	}
-	us, err := c.App.CreateUploadSession(us)
+	rus, err := c.App.CreateUploadSession(&us)
 	if err != nil {
 		c.Err = err
 		return
@@ -66,7 +68,9 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(us.ToJson()))
+	if err := json.NewEncoder(w).Encode(rus); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUpload(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -86,7 +90,9 @@ func getUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(us.ToJson()))
+	if err := json.NewEncoder(w).Encode(us); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -113,12 +119,12 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
 	} else {
-		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
-			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
+		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
 	}
@@ -136,7 +142,9 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(info.ToJson()))
+	if err := json.NewEncoder(w).Encode(info); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func doUploadData(c *Context, us *model.UploadSession, r *http.Request) (*model.FileInfo, *model.AppError) {

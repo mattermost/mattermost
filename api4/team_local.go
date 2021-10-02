@@ -4,32 +4,36 @@
 package api4
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/email"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (api *API) InitTeamLocal() {
-	api.BaseRoutes.Teams.Handle("", api.ApiLocal(localCreateTeam)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("", api.ApiLocal(getAllTeams)).Methods("GET")
-	api.BaseRoutes.Teams.Handle("/search", api.ApiLocal(searchTeams)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("", api.APILocal(localCreateTeam)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("", api.APILocal(getAllTeams)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/search", api.APILocal(searchTeams)).Methods("POST")
 
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(getTeam)).Methods("GET")
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(updateTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(localDeleteTeam)).Methods("DELETE")
-	api.BaseRoutes.Team.Handle("/invite/email", api.ApiLocal(localInviteUsersToTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/patch", api.ApiLocal(patchTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/privacy", api.ApiLocal(updateTeamPrivacy)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/restore", api.ApiLocal(restoreTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("", api.APILocal(getTeam)).Methods("GET")
+	api.BaseRoutes.Team.Handle("", api.APILocal(updateTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("", api.APILocal(localDeleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/invite/email", api.APILocal(localInviteUsersToTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/patch", api.APILocal(patchTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/privacy", api.APILocal(updateTeamPrivacy)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/restore", api.APILocal(restoreTeam)).Methods("POST")
 
-	api.BaseRoutes.TeamByName.Handle("", api.ApiLocal(getTeamByName)).Methods("GET")
-	api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")
-	api.BaseRoutes.TeamMember.Handle("", api.ApiLocal(removeTeamMember)).Methods("DELETE")
+	api.BaseRoutes.TeamByName.Handle("", api.APILocal(getTeamByName)).Methods("GET")
+	api.BaseRoutes.TeamMembers.Handle("", api.APILocal(addTeamMember)).Methods("POST")
+	api.BaseRoutes.TeamMember.Handle("", api.APILocal(removeTeamMember)).Methods("DELETE")
 }
 
 func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -72,7 +76,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	emailList := model.ArrayFromJson(r.Body)
+	emailList := model.ArrayFromJSON(r.Body)
 	if len(emailList) == 0 {
 		c.SetInvalidParam("user_email")
 		return
@@ -126,12 +130,24 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		if len(goodEmails) > 0 {
 			err := c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), goodEmails, *c.App.Config().ServiceSettings.SiteURL)
 			if err != nil {
-				c.Err = err
+				switch {
+				case errors.Is(err, email.NoRateLimiterError):
+					c.Err = model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s", team.Id), http.StatusInternalServerError)
+				case errors.Is(err, email.SetupRateLimiterError):
+					c.Err = model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusInternalServerError)
+				default:
+					c.Err = model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusRequestEntityTooLarge)
+				}
 				return
 			}
 		}
 		// in graceful mode we return both the successful ones and the failed ones
-		w.Write([]byte(model.EmailInviteWithErrorToJson(invitesWithErrors)))
+		js, jsonErr := json.Marshal(invitesWithErrors)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 	} else {
 		var invalidEmailList []string
 
@@ -147,7 +163,14 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		err := c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL)
 		if err != nil {
-			c.Err = err
+			switch {
+			case errors.Is(err, email.NoRateLimiterError):
+				c.Err = model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s", team.Id), http.StatusInternalServerError)
+			case errors.Is(err, email.SetupRateLimiterError):
+				c.Err = model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusInternalServerError)
+			default:
+				c.Err = model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusRequestEntityTooLarge)
+			}
 			return
 		}
 		ReturnStatusOK(w)
@@ -182,18 +205,19 @@ func normalizeDomains(domains string) []string {
 }
 
 func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	team := model.TeamFromJson(r.Body)
-	if team == nil {
+	var team model.Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
 		c.SetInvalidParam("team")
 		return
 	}
+
 	team.Email = strings.ToLower(team.Email)
 
 	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("team", team)
 
-	rteam, err := c.App.CreateTeam(c.AppContext, team)
+	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {
 		c.Err = err
 		return
@@ -204,5 +228,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team", team) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rteam.ToJson()))
+	if err := json.NewEncoder(w).Encode(rteam); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

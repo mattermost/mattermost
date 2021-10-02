@@ -20,13 +20,13 @@ import (
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/marketplace"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/services/marketplace"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 const prepackagedPluginsDir = "prepackaged_plugins"
@@ -127,7 +127,7 @@ func (s *Server) syncPluginsActiveState() {
 
 				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
+					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					s.Publish(message)
 				}
@@ -195,11 +195,11 @@ func (s *Server) initPlugins(c *request.Context, pluginDir, webappPluginDir stri
 		return
 	}
 
-	newApiFunc := func(manifest *model.Manifest) plugin.API {
+	newAPIFunc := func(manifest *model.Manifest) plugin.API {
 		return New(ServerConnector(s)).NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newApiFunc, pluginDir, webappPluginDir, s.Log, s.Metrics)
+	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(s), pluginDir, webappPluginDir, s.Log, s.Metrics)
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
@@ -402,7 +402,7 @@ func (s *Server) enablePlugin(id string) *model.AppError {
 	})
 
 	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
-	if err := s.SaveConfig(s.Config(), true); err != nil {
+	if _, _, err := s.SaveConfig(s.Config(), true); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -449,7 +449,7 @@ func (s *Server) disablePlugin(id string) *model.AppError {
 	s.unregisterPluginCommands(id)
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
-	if err := s.SaveConfig(s.Config(), true); err != nil {
+	if _, _, err := s.SaveConfig(s.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -553,8 +553,8 @@ func (s *Server) getPrepackagedPlugin(pluginID, version string) (*plugin.Prepack
 // getRemoteMarketplacePlugin returns plugin from marketplace-server.
 func (s *Server) getRemoteMarketplacePlugin(pluginID, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
 	marketplaceClient, err := marketplace.NewClient(
-		*s.Config().PluginSettings.MarketplaceUrl,
-		s.HTTPService,
+		*s.Config().PluginSettings.MarketplaceURL,
+		s.HTTPService(),
 	)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -581,7 +581,7 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 	}
 
 	marketplaceClient, err := marketplace.NewClient(
-		*a.Config().PluginSettings.MarketplaceUrl,
+		*a.Config().PluginSettings.MarketplaceURL,
 		a.HTTPService(),
 	)
 	if err != nil {
@@ -720,7 +720,7 @@ func (s *Server) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 	}
 
 	license := s.License()
-	if license != nil && *license.Features.EnterprisePlugins {
+	if license != nil && license.HasEnterpriseMarketplacePlugins() {
 		filter.EnterprisePlugins = true
 	}
 
@@ -803,7 +803,7 @@ func (s *Server) notifyPluginEnabled(manifest *model.Manifest) error {
 	}
 
 	// Notify all cluster peer clients.
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil)
 	message.Add("manifest", manifest.ClientManifest())
 	s.Publish(message)
 
@@ -823,7 +823,7 @@ func (s *Server) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pl
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 
 	fsPrefix := ""
-	if *s.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *s.Config().FileSettings.DriverName == model.ImageDriverS3 {
 		ptr := s.Config().FileSettings.AmazonS3PathPrefix
 		if ptr != nil && *ptr != "" {
 			fsPrefix = *ptr + "/"

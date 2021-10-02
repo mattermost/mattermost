@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 var emptyConfig, readOnlyConfig, minimalConfig, minimalConfigNoFF, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig, customConfigDefaults *model.Config
@@ -57,7 +57,7 @@ func init() {
 			AtRestEncryptKey: model.NewString("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		FileSettings: model.FileSettings{
-			DriverName:     model.NewString(model.IMAGE_DRIVER_LOCAL),
+			DriverName:     model.NewString(model.ImageDriverLocal),
 			Directory:      model.NewString("/path/to/directory"),
 			PublicLinkSalt: model.NewString("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
@@ -160,7 +160,7 @@ func TestConfigEnvironmentOverrides(t *testing.T) {
 	})
 
 	t.Run("setting config should respect environment variable overrides", func(t *testing.T) {
-		_, err := base.Set(originalConfig)
+		_, _, err := base.Set(originalConfig)
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://overridden.ca", *base.Get().ServiceSettings.SiteURL)

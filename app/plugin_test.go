@@ -20,11 +20,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/testlib"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/testlib"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func getHashedKey(key string) string {
@@ -342,7 +342,7 @@ func TestServePluginRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ServePluginRequest(w, r)
+	th.App.srv.ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
 }
 
@@ -386,7 +386,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 
 			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
 
-			th.App.servePluginRequest(recorder, request, handler)
+			th.App.srv.servePluginRequest(recorder, request, handler)
 		})
 	}
 
@@ -409,7 +409,7 @@ func TestHandlePluginRequest(t *testing.T) {
 	var assertions func(*http.Request)
 	router := mux.NewRouter()
 	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
+		th.App.srv.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
 			assertions(r)
 		})
 	})
@@ -476,7 +476,7 @@ func TestPluginSync(t *testing.T) {
 		{
 			"local",
 			func(cfg *model.Config) {
-				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_LOCAL)
+				cfg.FileSettings.DriverName = model.NewString(model.ImageDriverLocal)
 			},
 		},
 		{
@@ -493,10 +493,10 @@ func TestPluginSync(t *testing.T) {
 				}
 
 				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
-				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_S3)
-				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MINIO_ACCESS_KEY)
-				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MINIO_SECRET_KEY)
-				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MINIO_BUCKET)
+				cfg.FileSettings.DriverName = model.NewString(model.ImageDriverS3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MinioAccessKey)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MinioSecretKey)
+				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MinioBucket)
 				cfg.FileSettings.AmazonS3PathPrefix = model.NewString("")
 				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
 				cfg.FileSettings.AmazonS3Region = model.NewString("")
@@ -697,8 +697,8 @@ func TestPluginPanicLogs(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 		)
 
 		type MyPlugin struct {
@@ -724,11 +724,14 @@ func TestPluginPanicLogs(t *testing.T) {
 		}
 		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
 		assert.Nil(t, err)
+
+		th.TestLogger.Flush()
+
 		// We shutdown plugins first so that the read on the log buffer is race-free.
 		th.App.Srv().ShutDownPlugins()
 		tearDown()
 
-		testlib.AssertLog(t, th.LogBuffer, mlog.LevelDebug, "panic: some text from panic")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "panic: some text from panic")
 	})
 }
 

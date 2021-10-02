@@ -15,6 +15,7 @@ const (
 	defaultEventsURL              = "https://events.split.io/api"
 	defaultSdkURL                 = "https://sdk.split.io/api"
 	defaultStreamingServiceURL    = "https://streaming.split.io/sse"
+	defaultTelemetryServiceURL    = "https://telemetry.split.io/api/v1"
 )
 
 const (
@@ -48,5 +49,6 @@ func GetDefaultAdvancedConfig() AdvancedConfig {
 		EventsURL:              defaultEventsURL,
 		SdkURL:                 defaultSdkURL,
 		StreamingServiceURL:    defaultStreamingServiceURL,
+		TelemetryServiceURL:    defaultTelemetryServiceURL,
 	}
 }

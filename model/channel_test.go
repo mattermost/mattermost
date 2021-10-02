@@ -10,21 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestChannelJson(t *testing.T) {
-	o := Channel{Id: NewId(), Name: NewId()}
-	json := o.ToJson()
-	ro := ChannelFromJson(strings.NewReader(json))
-
-	require.Equal(t, o.Id, ro.Id)
-
-	p := ChannelPatch{Name: new(string)}
-	*p.Name = NewId()
-	json = p.ToJson()
-	rp := ChannelPatchFromJson(strings.NewReader(json))
-
-	require.Equal(t, *p.Name, *rp.Name)
-}
-
 func TestChannelCopy(t *testing.T) {
 	o := Channel{Id: NewId(), Name: NewId()}
 	ro := o.DeepCopy()
@@ -115,11 +100,11 @@ func TestGetGroupDisplayNameFromUsers(t *testing.T) {
 	users[3] = &User{Username: NewId()}
 
 	name := GetGroupDisplayNameFromUsers(users, true)
-	require.LessOrEqual(t, len(name), CHANNEL_NAME_MAX_LENGTH)
+	require.LessOrEqual(t, len(name), ChannelNameMaxLength)
 }
 
 func TestGetGroupNameFromUserIds(t *testing.T) {
 	name := GetGroupNameFromUserIds([]string{NewId(), NewId(), NewId(), NewId(), NewId()})
 
-	require.LessOrEqual(t, len(name), CHANNEL_NAME_MAX_LENGTH)
+	require.LessOrEqual(t, len(name), ChannelNameMaxLength)
 }

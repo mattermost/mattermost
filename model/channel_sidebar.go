@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"regexp"
 )
 
@@ -73,45 +71,6 @@ type SidebarChannel struct {
 
 type SidebarChannels []*SidebarChannel
 type SidebarCategoriesWithChannels []*SidebarCategoryWithChannels
-
-func SidebarCategoryFromJson(data io.Reader) (*SidebarCategoryWithChannels, error) {
-	var o *SidebarCategoryWithChannels
-	err := json.NewDecoder(data).Decode(&o)
-	return o, err
-}
-
-func SidebarCategoriesFromJson(data io.Reader) ([]*SidebarCategoryWithChannels, error) {
-	var o []*SidebarCategoryWithChannels
-	err := json.NewDecoder(data).Decode(&o)
-	return o, err
-}
-
-func OrderedSidebarCategoriesFromJson(data io.Reader) (*OrderedSidebarCategories, error) {
-	var o *OrderedSidebarCategories
-	err := json.NewDecoder(data).Decode(&o)
-	return o, err
-}
-
-func (o SidebarCategoryWithChannels) ToJson() []byte {
-	b, _ := json.Marshal(o)
-	return b
-}
-
-func SidebarCategoriesWithChannelsToJson(o []*SidebarCategoryWithChannels) []byte {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return []byte("[]")
-	}
-	return b
-}
-
-func (o OrderedSidebarCategories) ToJson() []byte {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return []byte("[]")
-	}
-	return b
-}
 
 var categoryIdPattern = regexp.MustCompile("(favorites|channels|direct_messages)_[a-z0-9]{26}_[a-z0-9]{26}")
 

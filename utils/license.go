@@ -9,16 +9,17 @@ import (
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
@@ -31,7 +32,37 @@ lxd7LBKSh7BTjbRtG9DEt1dyMnYQDgRVAdpururuK/otowCowr6X/Etnk2NNeXcZ
 4QIDAQAB
 -----END PUBLIC KEY-----`)
 
-func ValidateLicense(signed []byte) (bool, string) {
+var LicenseValidator LicenseValidatorIface
+
+func init() {
+	if LicenseValidator == nil {
+		LicenseValidator = &LicenseValidatorImpl{}
+	}
+}
+
+type LicenseValidatorIface interface {
+	LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError)
+	ValidateLicense(signed []byte) (bool, string)
+}
+
+type LicenseValidatorImpl struct {
+}
+
+func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
+	success, licenseStr := l.ValidateLicense(licenseBytes)
+	if !success {
+		return nil, model.NewAppError("LicenseFromBytes", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
+	}
+
+	var license model.License
+	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+
+	return &license, nil
+}
+
+func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
@@ -40,14 +71,14 @@ func ValidateLicense(signed []byte) (bool, string) {
 		return false, ""
 	}
 
+	// remove null terminator
+	for len(decoded) > 0 && decoded[len(decoded)-1] == byte(0) {
+		decoded = decoded[:len(decoded)-1]
+	}
+
 	if len(decoded) <= 256 {
 		mlog.Error("Signed license not long enough")
 		return false, ""
-	}
-
-	// remove null terminator
-	for decoded[len(decoded)-1] == byte(0) {
-		decoded = decoded[:len(decoded)-1]
 	}
 
 	plaintext := decoded[:len(decoded)-256]
@@ -87,12 +118,19 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 	mlog.Info("License key has not been uploaded.  Loading license key from disk at", mlog.String("filename", fileName))
 	licenseBytes := GetLicenseFileFromDisk(fileName)
 
-	success, licenseStr := ValidateLicense(licenseBytes)
+	success, licenseStr := LicenseValidator.ValidateLicense(licenseBytes)
 	if !success {
 		mlog.Error("Found license key at %v but it appears to be invalid.", mlog.String("filename", fileName))
 		return nil, nil
 	}
-	return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
+
+	var license model.License
+	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+		mlog.Error("Failed to decode license from JSON", mlog.Err(jsonErr))
+		return nil, nil
+	}
+
+	return &license, licenseBytes
 }
 
 func GetLicenseFileFromDisk(fileName string) []byte {
@@ -161,7 +199,27 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["Cloud"] = strconv.FormatBool(*l.Features.Cloud)
 		props["SharedChannels"] = strconv.FormatBool(*l.Features.SharedChannels)
 		props["RemoteClusterService"] = strconv.FormatBool(*l.Features.RemoteClusterService)
+		props["IsTrial"] = strconv.FormatBool(l.IsTrial)
 	}
 
 	return props
+}
+
+func GetSanitizedClientLicense(l map[string]string) map[string]string {
+	sanitizedLicense := make(map[string]string)
+
+	for k, v := range l {
+		sanitizedLicense[k] = v
+	}
+
+	delete(sanitizedLicense, "Id")
+	delete(sanitizedLicense, "Name")
+	delete(sanitizedLicense, "Email")
+	delete(sanitizedLicense, "IssuedAt")
+	delete(sanitizedLicense, "StartsAt")
+	delete(sanitizedLicense, "ExpiresAt")
+	delete(sanitizedLicense, "SkuName")
+	delete(sanitizedLicense, "SkuShortName")
+
+	return sanitizedLicense
 }

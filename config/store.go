@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
 )
 
 var (
@@ -61,8 +61,6 @@ type BackingStore interface {
 	// String describes the backing store for the config.
 	String() string
 
-	Watch(callback func()) error
-
 	// Close cleans up resources associated with the store.
 	Close() error
 }
@@ -80,24 +78,18 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 		return nil, errors.Wrap(err, "unable to load on store creation")
 	}
 
-	if err := backingStore.Watch(func() {
-		store.Load()
-	}); err != nil {
-		return nil, errors.Wrap(err, "failed to watch backing store")
-	}
-
 	return store, nil
 }
 
 // NewStoreFromDSN creates and returns a new config store backed by either a database or file store
 // depending on the value of the given data source name string.
-func NewStoreFromDSN(dsn string, watch, readOnly bool, customDefaults *model.Config) (*Store, error) {
+func NewStoreFromDSN(dsn string, readOnly bool, customDefaults *model.Config) (*Store, error) {
 	var err error
 	var backingStore BackingStore
 	if IsDatabaseDSN(dsn) {
 		backingStore, err = NewDatabaseStore(dsn)
 	} else {
-		backingStore, err = NewFileStore(dsn, watch)
+		backingStore, err = NewFileStore(dsn)
 	}
 	if err != nil {
 		return nil, err
@@ -170,12 +162,13 @@ func (s *Store) SetReadOnlyFF(readOnly bool) {
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
-func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
+// It returns both old and new versions of the config.
+func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) {
 	s.configLock.Lock()
 	defer s.configLock.Unlock()
 
 	if s.readOnly {
-		return nil, ErrReadOnlyStore
+		return nil, nil, ErrReadOnlyStore
 	}
 
 	newCfg = newCfg.Clone()
@@ -190,7 +183,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	desanitize(oldCfg, newCfg)
 
 	if err := newCfg.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "new configuration is invalid")
+		return nil, nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
 	// We attempt to remove any environment override that may be present in the input config.
@@ -211,7 +204,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	}
 
 	if err := s.backingStore.Set(newCfgNoEnv); err != nil {
-		return nil, errors.Wrap(err, "failed to persist")
+		return nil, nil, errors.Wrap(err, "failed to persist")
 	}
 
 	// We apply back environment overrides since the input config may or
@@ -219,12 +212,12 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	newCfg = applyEnvironmentMap(newCfgNoEnv, GetEnvironment())
 	fixConfig(newCfg)
 	if err := newCfg.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "new configuration is invalid")
+		return nil, nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
 	hasChanged, err := equal(oldCfg, newCfg)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to compare configs")
+		return nil, nil, errors.Wrap(err, "failed to compare configs")
 	}
 
 	// We restore the previously cleared feature flags sections back.
@@ -237,13 +230,15 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	s.configNoEnv = newCfgNoEnv
 	s.config = newCfg
 
+	newCfgCopy := newCfg.Clone()
+
 	if hasChanged {
 		s.configLock.Unlock()
-		s.invokeConfigListeners(oldCfg, newCfg.Clone())
+		s.invokeConfigListeners(oldCfg, newCfgCopy.Clone())
 		s.configLock.Lock()
 	}
 
-	return oldCfg, nil
+	return oldCfg, newCfgCopy, nil
 }
 
 // Load updates the current configuration from the backing store, possibly initializing.
@@ -337,9 +332,11 @@ func (s *Store) Load() error {
 	s.config = loadedCfg
 	s.configNoEnv = loadedCfgNoEnv
 
+	loadedCfgCopy := loadedCfg.Clone()
+
 	if hasChanged {
 		s.configLock.Unlock()
-		s.invokeConfigListeners(oldCfg, loadedCfg.Clone())
+		s.invokeConfigListeners(oldCfg, loadedCfgCopy)
 		s.configLock.Lock()
 	}
 
