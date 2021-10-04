@@ -9225,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Ek dosyalar toplu olarak içe aktarılırken sorun çıktı."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Kullanıcı rolleri geçersiz {{.Limit}} karakterden uzun."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Takım üyesi rolleri geçersiz {{.Limit}} karakterden uzun."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Oturumun kullanıcı kodu alanı geçersiz."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Oturum rolleri geçersiz {{.Limit}} karakterden uzun."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Oturumun kod alanı geçersiz."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Oturumun oluşturulma alanı geçersiz."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Kanal üyesi rolleri geçersiz {{.Limit}} karakterden uzun."
   }
 ]
