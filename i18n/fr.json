@@ -6837,7 +6837,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "Vous devez accepter la contrat d'évaluation du logiciel Mattermost et la politique de confidentialité pour demander une licence."
+    "translation": "Vous devez accepter le contrat d'évaluation du logiciel Mattermost et la politique de confidentialité pour demander une licence."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -8809,5 +8809,17 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Échec lors du rechargement de la configuration."
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "Impossible de récupérer le nombre de messages non-lus pour cet utilisateur."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "L'appartenance à des fils de cet utilisateur n'existe pas"
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Impossible de préparer le message."
   }
 ]
