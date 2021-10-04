@@ -156,6 +156,26 @@ func IsIgnoreChannelMentionsValid(ignoreChannelMentions string) bool {
 	return ignoreChannelMentions == IgnoreChannelMentionsOn || ignoreChannelMentions == IgnoreChannelMentionsOff || ignoreChannelMentions == IgnoreChannelMentionsDefault
 }
 
+func ShouldChannelMemberNotifyCRT(notifyProps StringMap, isMentioned bool) (bool, bool) {
+	notifyDesktop := false
+	notifyPush := false
+
+	desktop := notifyProps[DesktopNotifyProp]
+	push := notifyProps[PushNotifyProp]
+
+	desktopThreads := notifyProps[DesktopThreadsNotifyProp]
+	pushThreads := notifyProps[PushThreadsNotifyProp]
+
+	if desktop != ChannelNotifyNone && (isMentioned || desktopThreads == ChannelNotifyAll || desktop == ChannelNotifyAll) {
+	}
+
+	if push != ChannelNotifyNone && (isMentioned || pushThreads == ChannelNotifyAll || push == ChannelNotifyAll) {
+		notifyPush = true
+	}
+
+	return notifyDesktop, notifyPush
+}
+
 func GetDefaultChannelNotifyProps() StringMap {
 	return StringMap{
 		DesktopNotifyProp:               ChannelNotifyDefault,

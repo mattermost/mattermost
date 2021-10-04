@@ -329,7 +329,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			// add user id to notificationsForCRT depending on threads notify props
-			notificationsForCRT.addUserToNotify(profile, mentions)
+			notificationsForCRT.addFollowerToNotify(profile, mentions, channelMemberNotifyPropsMap[profile.Id], channel)
 		}
 	}
 
@@ -1338,28 +1338,31 @@ type CRTNotifiers struct {
 	Push model.StringArray
 }
 
-func (c *CRTNotifiers) addUserToNotify(user *model.User, mentions *ExplicitMentions) {
+func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitMentions, channelMemberNotificationProps model.StringMap, channel *model.Channel) {
 	// user notify props
-	desktop := user.NotifyProps[model.DesktopNotifyProp]
-	push := user.NotifyProps[model.PushNotifyProp]
-	shouldEmail := user.NotifyProps[model.EmailNotifyProp] == "true"
-
-	// user thread notify props
-	desktopThreads := user.NotifyProps[model.DesktopThreadsNotifyProp]
-	emailThreads := user.NotifyProps[model.EmailThreadsNotifyProp]
-	pushThreads := user.NotifyProps[model.PushThreadsNotifyProp]
-
 	_, userWasMentioned := mentions.Mentions[user.Id]
 
-	if desktop != model.UserNotifyNone && (userWasMentioned || desktopThreads == model.UserNotifyAll || desktop == model.UserNotifyAll) {
+	notifyDesktop, notifyPush, notifyEmail := user.ShouldNotifyCRT(userWasMentioned)
+
+	notifyChannelDesktop, notifyChannelPush := model.ShouldChannelMemberNotifyCRT(channelMemberNotificationProps, userWasMentioned)
+
+	if channelMemberNotificationProps[model.DesktopNotifyProp] == model.ChannelNotifyDefault {
+		if notifyDesktop {
+			c.Desktop = append(c.Desktop, user.Id)
+		}
+	} else if notifyChannelDesktop {
 		c.Desktop = append(c.Desktop, user.Id)
 	}
 
-	if shouldEmail && (userWasMentioned || emailThreads == model.UserNotifyAll) {
+	if notifyEmail {
 		c.Email = append(c.Email, user.Id)
 	}
 
-	if push != model.UserNotifyNone && (userWasMentioned || pushThreads == model.UserNotifyAll || push == model.UserNotifyAll) {
-		c.Push = append(c.Push, user.Id)
+	if channelMemberNotificationProps[model.PushNotifyProp] == model.ChannelNotifyDefault {
+		if notifyPush {
+			c.Push = append(c.Push, user.Id)
+		}
+	} else if notifyChannelPush {
+		c.Email = append(c.Email, user.Id)
 	}
 }

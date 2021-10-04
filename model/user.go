@@ -802,6 +802,33 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 	}
 }
 
+func (u *User) ShouldNotifyCRT(isMentioned bool) (bool, bool, bool) {
+	notifyDesktop := false
+	notifyPush := false
+	notifyEmail := false
+
+	desktop := u.NotifyProps[DesktopNotifyProp]
+	push := u.NotifyProps[PushNotifyProp]
+	shouldEmail := u.NotifyProps[EmailNotifyProp] == "true"
+
+	desktopThreads := u.NotifyProps[DesktopThreadsNotifyProp]
+	emailThreads := u.NotifyProps[EmailThreadsNotifyProp]
+	pushThreads := u.NotifyProps[PushThreadsNotifyProp]
+
+	if desktop != UserNotifyNone && (isMentioned || desktopThreads == UserNotifyAll || desktop == UserNotifyAll) {
+	}
+
+	if shouldEmail && (isMentioned || emailThreads == UserNotifyAll) {
+		notifyEmail = true
+	}
+
+	if push != UserNotifyNone && (isMentioned || pushThreads == UserNotifyAll || push == UserNotifyAll) {
+		notifyPush = true
+	}
+
+	return notifyDesktop, notifyPush, notifyEmail
+}
+
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
 func HashPassword(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)

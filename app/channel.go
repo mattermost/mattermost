@@ -1222,12 +1222,20 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID s
 		filteredProps[model.DesktopNotifyProp] = desktop
 	}
 
+	if desktop_threads, exists := data[model.DesktopThreadsNotifyProp]; exists {
+		filteredProps[model.DesktopThreadsNotifyProp] = desktop_threads
+	}
+
 	if email, exists := data[model.EmailNotifyProp]; exists {
 		filteredProps[model.EmailNotifyProp] = email
 	}
 
 	if push, exists := data[model.PushNotifyProp]; exists {
 		filteredProps[model.PushNotifyProp] = push
+	}
+
+	if push_threads, exists := data[model.PushThreadsNotifyProp]; exists {
+		filteredProps[model.PushThreadsNotifyProp] = push_threads
 	}
 
 	if ignoreChannelMentions, exists := data[model.IgnoreChannelMentionsNotifyProp]; exists {
