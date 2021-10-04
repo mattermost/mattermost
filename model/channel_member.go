@@ -167,6 +167,7 @@ func ShouldChannelMemberNotifyCRT(notifyProps StringMap, isMentioned bool) (bool
 	pushThreads := notifyProps[PushThreadsNotifyProp]
 
 	if desktop != ChannelNotifyNone && (isMentioned || desktopThreads == ChannelNotifyAll || desktop == ChannelNotifyAll) {
+		notifyDesktop = true
 	}
 
 	if push != ChannelNotifyNone && (isMentioned || pushThreads == ChannelNotifyAll || push == ChannelNotifyAll) {

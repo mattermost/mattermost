@@ -816,6 +816,7 @@ func (u *User) ShouldNotifyCRT(isMentioned bool) (bool, bool, bool) {
 	pushThreads := u.NotifyProps[PushThreadsNotifyProp]
 
 	if desktop != UserNotifyNone && (isMentioned || desktopThreads == UserNotifyAll || desktop == UserNotifyAll) {
+		notifyDesktop = true
 	}
 
 	if shouldEmail && (isMentioned || emailThreads == UserNotifyAll) {
