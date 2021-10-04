@@ -1314,10 +1314,6 @@
     "translation": "RootID parametresi geçersiz."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Kanal salt okunur. Yalnız izni olan üyeler buraya ileti gönderebilir."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "İleti eklenirken sorun çıktı."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Silinmiş bir kanaldaki ileti güncellenemez."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Bu kanal salt okunur. Burada yalnız izni olan üyeler iletileri sabitleme ya da sabitlemeyi kaldırma işlemi yapabilir."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Başka bir kullanıcı için tepki kaydedemezsiniz."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Salt okunur kanallarda iletilere tepki verilemez."
   },
   {
     "id": "api.restricted_system_admin",

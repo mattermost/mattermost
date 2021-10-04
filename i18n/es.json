@@ -1314,10 +1314,6 @@
     "translation": "Parámetro RootId inválido."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Este canal es de sólo lectura. Sólo los miembros con permiso pueden publicar aquí."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creando el mensaje."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "No se puede actualizar un mensaje en un canal que ha sido eliminado."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Este canal es de sólo lectura. Sólo los miembros con permiso pueden anclar y desprender mensajes aquí."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "No puedes guardar una reacción de otro usuario."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "No se puede reaccionar a mensajes en canales de sólo lectura."
   },
   {
     "id": "api.restricted_system_admin",

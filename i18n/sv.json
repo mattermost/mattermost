@@ -5884,10 +5884,6 @@
     "translation": "Fel vid skapande av meddelande."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Kanalen är read-only. Användare med behörighet kan posta."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Ogiltig RootId-parameter."
   },
@@ -7378,10 +7374,6 @@
     "translation": "Denna åtgärd är förbjuden för en begränsad systemadministratör."
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Det går inte att kommentera meddelanden i en read-only kanal."
-  },
-  {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Du kan inte spara en kommentar för en annan användare."
   },
@@ -7500,10 +7492,6 @@
   {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Kunde inte tolka förfrågan."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Kanalen är endast läsbar. Bara användare med behörighet kan posta."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",

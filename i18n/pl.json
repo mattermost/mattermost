@@ -1316,10 +1316,6 @@
     "translation": "Nieprawidłowy parametr RootId"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Ten kanał jest tylko do odczytu. Mogą tutaj pisać tylko użytkownicy z uprawnieniami."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Błąd podczas tworzenia postu"
   },
@@ -1378,10 +1374,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nie można zaktualizować wiadomości w usuniętym kanale"
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Ten kanał jest tylko do odczytu. Tylko użytkownicy z uprawnieniami mogą tutaj przypinać lub odpinać posty."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1462,10 +1454,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Nie możesz zapisać reakcji dla innego użytkownika."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reakcje na wiadomości nie są możliwe na kanałach w trybie tylko do odczytu."
   },
   {
     "id": "api.restricted_system_admin",
