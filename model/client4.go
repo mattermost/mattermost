@@ -6426,13 +6426,17 @@ func (c *Client4) DownloadJob(jobId string) ([]byte, *Response, error) {
 // Roles Section
 
 // GetAllRoles returns a list of all the roles.
-func (c *Client4) GetAllRoles() ([]*Role, *Response) {
-	r, err := c.DoApiGet(c.GetRolesRoute(), "")
+func (c *Client4) GetAllRoles() ([]*Role, *Response, error) {
+	r, err := c.DoAPIGet(c.rolesRoute(), "")
 	if err != nil {
-		return nil, BuildErrorResponse(r, err)
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return RoleListFromJson(r.Body), BuildResponse(r)
+	var list []*Role
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetAllRoles", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetRole gets a single role by ID.

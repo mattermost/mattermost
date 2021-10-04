@@ -38,7 +38,13 @@ func getAllRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.RoleListToJson(roles)))
+	js, jsonErr := json.Marshal(roles)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getAllRoles", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
