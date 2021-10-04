@@ -92,4 +92,3 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 Please see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!
-
