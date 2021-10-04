@@ -18,6 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version600
+	Version610             = "6.1.0"
 	Version600             = "6.0.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
@@ -212,6 +213,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
+	upgradeDatabaseToVersion610(sqlStore)
 
 	return nil
 }
@@ -1678,6 +1680,58 @@ func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
 	}
 
 	if !sqlStore.DoesIndexExist("idx_status_status_dndendtime", "Status") {
+		return true
+	}
+
+	return false
+}
+
+func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
+	if hasMissingMigrationsVersion610(sqlStore) {
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
+		sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
+	}
+
+	// if shouldPerformUpgrade(sqlStore, Version600, Version610) {
+	// 	saveSchemaVersion(sqlStore, Version610)
+	// }
+}
+
+func hasMissingMigrationsVersion610(sqlStore *SqlStore) bool {
+	textFn := func(table, column string) bool {
+		info, err := sqlStore.GetColumnInfo(table, column)
+		if err != nil {
+			mlog.Error("Error getting column info for migration check",
+				mlog.String("table", table),
+				mlog.String("column", column),
+				mlog.Err(err),
+			)
+			return true
+		}
+
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+			if !sqlStore.IsVarchar(info.DataType) || info.CharMaximumLength != 256 {
+				return true
+			}
+		} else if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			if info.DataType != "text" {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if textFn("Sessions", "Roles") {
+		return true
+	}
+
+	if textFn("ChannelMembers", "Roles") {
+		return true
+	}
+
+	if textFn("TeamMembers", "Roles") {
 		return true
 	}
 

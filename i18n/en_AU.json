@@ -6766,8 +6766,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} sent you new message",
-      "other": "{{ .SenderName }} and {{.Count}} others sent you new messages"
+      "one": "You have new messages",
+      "other": "You have new messages"
     }
   },
   {
