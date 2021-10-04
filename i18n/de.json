@@ -9225,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Fehler bei der Verarbeitung von Anhängen beim Massenimport."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Benutzerrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Rollen von Teammitgliedern mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ungültiges Feld UserId für Sitzung."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Sitzungsrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ungültiges ID-Feld für Sitzung."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ungültiges CreateAt-Feld für Sitzung."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Kanalmitgliederrollen mit mehr als {{.Limit}} Zeichen."
   }
 ]
