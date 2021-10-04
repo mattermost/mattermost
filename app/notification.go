@@ -1363,6 +1363,6 @@ func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitM
 			c.Push = append(c.Push, user.Id)
 		}
 	} else if notifyChannelPush {
-		c.Email = append(c.Email, user.Id)
+		c.Push = append(c.Push, user.Id)
 	}
 }
