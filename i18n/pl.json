@@ -1316,10 +1316,6 @@
     "translation": "Nieprawidłowy parametr RootId"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Ten kanał jest tylko do odczytu. Mogą tutaj pisać tylko użytkownicy z uprawnieniami."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Błąd podczas tworzenia postu"
   },
@@ -1378,10 +1374,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nie można zaktualizować wiadomości w usuniętym kanale"
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Ten kanał jest tylko do odczytu. Tylko użytkownicy z uprawnieniami mogą tutaj przypinać lub odpinać posty."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1462,10 +1454,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Nie możesz zapisać reakcji dla innego użytkownika."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reakcje na wiadomości nie są możliwe na kanałach w trybie tylko do odczytu."
   },
   {
     "id": "api.restricted_system_admin",
@@ -6846,5 +6834,509 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP jest niedostępne."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Wprowadzony tekst przekracza limit znaków. Cel kanału jest ograniczony do {{.MaxLength}} znaków."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Wprowadzony tekst przekracza limit znaków. Nagłówek kanału jest ograniczony do {{.MaxLength}} znaków."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Błąd przetwarzania żądania do CWS."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Twoja licencja nie wspiera żądań chmurowych."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Błąd pobierania subskrypcji chmurowej."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Błąd pobierania wiadomości email od administratorów systemu."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Zdarzenie Webhook nie zostało obsłużone. Albo go brakuje, albo nie jest poprawne."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Błąd wewnętrzny podczas żądania chmury api."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Błąd przy unieważnianiu pamięci podręcznej"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Między tymi użytkownikami nie można utworzyć kanału bezpośredniego, ponieważ nie mają wspólnego zespołu."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Wróć do {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Nie udało się zresetować pola AuthData do Email."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Błąd przetwarzania żądania wielopostaciowego"
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Nie można uzyskać czasu ostatniej modyfikacji dla pliku."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Nie można sprawdzić czy plik istnieje."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Nie można dołączyć danych do pliku."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Nie można znaleźć eksportowanego pliku."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Błąd przy próbie zapisania pierwszego statusu wizyty administratora w sklepie."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Błąd przy próbie pobrania statusu pierwszej wizyty administratora w sklepie."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "Masz nowe wiadomości"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Poniżej znajduje się podsumowanie Twoich nowych wiadomości."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Wyświetl tę wiadomość"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Otwórz Mattermost"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+    "translation": "Nie można znaleźć metryki ostrzeżenia."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
+    "translation": "Niepowodzenie wysłania wiadomości e-mail z potwierdzeniem dla administratora"
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Nie udało się usunąć ostatniego statusu. Spróbuj najpierw dodać ten status lub skontaktuj się z administratorem systemu, aby uzyskać szczegółowe informacje."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Funkcja statusu niestandardowego została wyłączona. Aby uzyskać szczegółowe informacje, należy skontaktować się z administratorem systemu."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Brak identyfikatora bezpiecznego połączenia."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Niedopasowanie identyfikatora bezpiecznego połączenia."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Nie można znaleźć bezpiecznego identyfikatora połączenia {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Błąd kodowania JSON."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Zaproszenie wygasło."
+  },
+  {
+    "id": "api.context.get_user.app_error",
+    "translation": "Nie można pobrać użytkownika z sesji UserID."
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Zmiana {{.Name}} nie jest dozwolona ze względów bezpieczeństwa."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Nie udało się rozróżnić konfiguracji"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Nie udało się przeładować konfiguracji."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Nie udało się połączyć podanego pliku konfiguracyjnego."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Nie udało się rozróżnić konfiguracji"
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Nie udało się zmigrować sklepu z konfiguracją."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Nie udało się połączyć podanego pliku konfiguracyjnego."
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Cofa udostępnienie bieżącego kanału"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Nieznana akcja `{{.Akcja}}`. Dostępne akcje: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Identyfikator bezpiecznego połączenia do odłączenia."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Odwrócenie bezpiecznego połączenia z tego kanału udostępnianego"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Nie można wyłączyć udostępniania tego kanału: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Ten kanał nie jest już udostępniany."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' lub 'N'.  Domyślnie 'N'"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Kanał będzie udostępniony w trybie tylko do odczytu"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Nie można udostępnić tego kanału: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Usługa udostępnionych kanałów jest wyłączona."
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Bezpieczne połączenie `{{.RemoteId}}` odłączone."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Bezpieczne połączenie | Adres URL witryny | Tylko do odczytu | Zaproszenie zaakceptowane | Online | Ostatnia synchronizacja |"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Należy określić prawidłowy identyfikator bezpiecznego połączenia do zaproszenia"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "Identyfikator bezpiecznego połączenia jest nieprawidłowy: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "ID istniejącego bezpiecznego połączenia. Zobacz komendę `secure-connection` aby dodać bezpieczne połączenie."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Bezpieczne połączenie zostało już utworzone."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Potrzebujesz uprawnienia `{{.Permission}}` do zarządzania udostępnionymi kanałami."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Nie można wyłączyć udostępniania kanału, który nie jest udostępniany."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Do tego kanału nie zostały dodane żadne bezpieczne połączenia."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "kanał-udostępniony"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Należy określić prawidłowy identyfikator bezpiecznego połączenia do zaproszenia."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Brakujące działanie. Dostępne akcje: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Zaprasza zewnętrzną instancję Mattermost do bieżącego udostępnionego kanału"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Zaproszenie na udostępniony kanał zostało wysłane do `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Nieprawidłowa wartość dla '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[akcja]"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Nie można pobrać statusu dla bezpiecznych połączeń: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Błąd pobierania bezpiecznych połączeń: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Udostępnienie bieżącego kanału z zewnętrzną instancją Mattermost."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Nie można cofnąć zaproszenia `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Błąd podczas sprawdzania, czy istnieje udostępniony kanał: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Status dla ID kanału `{{.ChannelId}}``"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Wyświetla status dla tego kanału udostępnionego"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Ten kanał jest teraz udostępniony."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Bezpieczne połączenie kanału udostępnionego `{.RemoteId}}` nie istnieje dla tego kanału."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Nie można utworzyć bezpiecznego połączenia do współdzielonego kanału pochodzącego z innego miejsca."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Błąd przy zapraszaniu `{{.Name}}` do tego kanału: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Dostępne akcje: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Nieznana akcja `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Wyświetla stan wszystkich bezpiecznych połączeń"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "Nie ustawiono adresu URL witryny. Proszę ustawić go w Konsoli systemowej > Środowisko > Serwer WWW."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Usługa Secure Connection Service nie jest włączona."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Usługa Secure Connection Service jest wyłączona."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "ID bezpiecznego połączenia do usunięcia."
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Nie można usunąć bezpiecznego połączenia: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Usuwa bezpieczne połączenie"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Nie znaleziono bezpiecznych połączeń."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Bezpieczne połączenie | Wyświetlana nazwa | ID połączenia | Adres URL | Zaproszenie zaakceptowane | Online | Ostatni ping |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Dodaj/usuń bezpieczne połączenia. Dostępne akcje: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Potrzebujesz uprawnienia `{{.Permission}}` do zarządzania bezpiecznymi połączeniami."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Unikalna nazwa dla bezpiecznego połączenia"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Nazwa bezpiecznego połączenia"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "bezpieczne-połączenie"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Brakujące lub puste `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Brakujące polecenie. Dostępne akcje: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Wyślij poniższe zaproszenie zaszyfrowane algorytmem AES 256-bit do zewnętrznego administratora systemu Mattermost wraz z hasłem. Do zaakceptowania zaproszenia użyją oni polecenia z ukośnikiem `{{.Command}}`.\n\n```\n{{.Invitation}}\n```\n\n**Upewnij się, że bezpieczne połączenie może uzyskać dostęp do instancji Mattermost przez** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Hasło używane do szyfrowania zaproszenia"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Hasło do zaproszenia"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Zaproś do bezpiecznego połączenia"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Zaproszenie stworzone."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Zaszyfrowane zaproszenie z bezpiecznego połączenia"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Zaproszenie z bezpiecznego połączenia"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Nie można odszyfrować zaproszenia. Nieprawidłowe hasło lub uszkodzone zaproszenie: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[akcja]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Nie można stworzyć bezpiecznych połączeń: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Nie można odszyfrować zaproszenia: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Nazwa wyświetlana dla bezpiecznego połączenia"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Nazwa wyświetlana bezpiecznego połączenia"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Bezpieczne połączenia zaproszeń do komunikacji między instancjami Mattermost."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Nie można odszyfrować zaproszenia: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Bezpieczne połączenie {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Nie można dodać bezpiecznego połączenia: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Nie można przyjąć zaproszenia: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Zaproszenie przyjęte i potwierdzone.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Zaakceptuj zaproszenie z zewnętrznej instancji Mattermost"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Twój status jest ustawiony na \"{{.EmojiName}} {{.StatusMessage}}\". Możesz zmienić swój status za pomocą okienka statusu w nagłówku paska bocznego kanału."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] lub wyczyść"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Ustaw lub wyczyść swój status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Twój status został usunięty."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Błąd wyczyszczenia statusu."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Błąd ustawienia statusu."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Nie można wyświetlić zawartości katalogu."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Nie można przenieść pliku."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Nie można pobrać rozmiaru pliku."
   }
 ]
