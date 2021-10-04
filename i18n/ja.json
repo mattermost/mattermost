@@ -9218,5 +9218,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "添付ファイルの一括インポート中にエラーが発生しました。"
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}}文字以上の不正なユーザーの役割です。"
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}} 文字より長い不正なチームメンバーの役割です。"
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "セッションのUserIdフィールドが無効です。"
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}} 文字より長い不正なチャンネルメンバーの役割です。"
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}}文字以上の不正なセッションロールです。"
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "セッションのIdフィールドが無効です。"
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "セッションのCreateAtフィールドが無効です。"
   }
 ]
