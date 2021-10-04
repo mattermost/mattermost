@@ -7326,5 +7326,17 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Błąd ustawienia statusu."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Nie można wyświetlić zawartości katalogu."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Nie można przenieść pliku."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Nie można pobrać rozmiaru pliku."
   }
 ]
