@@ -9225,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Error while processing bulk import attachments."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Invalid user roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid team member roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Invalid session UserID field."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Invalid session roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Invalid session ID field."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Invalid CreateAt field for session."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid channel member roles longer than {{.Limit}} characters."
   }
 ]
