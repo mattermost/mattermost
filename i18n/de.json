@@ -7333,7 +7333,7 @@
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
-    "translation": "Der Job-Typ, den Sie versuchen runterzuladen, wird momentan nicht unterstützt"
+    "translation": "Der Job-Typ, den Sie versuchen herunterzuladen, wird momentan nicht unterstützt"
   },
   {
     "id": "api.job.unable_to_download_job",
@@ -7345,7 +7345,7 @@
   },
   {
     "id": "api.job.retrieve.nopermissions",
-    "translation": "Die Job Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
+    "translation": "Die Job-Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
   },
   {
     "id": "api.invalid_custom_url_scheme",
