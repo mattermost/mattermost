@@ -137,7 +137,7 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "この種類のチャンネルにはユーザーを追加することはできません。"
+    "translation": "この種別のチャンネルにはユーザーを追加することはできません。"
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -2529,7 +2529,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "チャンネルの種類が不正です。"
+    "translation": "チャンネル種別が不正です。"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -5797,7 +5797,7 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "この種類のチャンネルからユーザーを削除することはできません。"
+    "translation": "この種別のチャンネルからユーザーを削除することはできません。"
   },
   {
     "id": "api.channel.remove_members.denied",
@@ -6861,7 +6861,7 @@
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": "チャンネル形式数を取得できませんでした。"
+    "translation": "チャンネル種別数を取得できませんでした。"
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
@@ -9226,5 +9226,9 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " がスレッドへ返信しました。"
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "添付ファイルの一括インポート中にエラーが発生しました。"
   }
 ]

@@ -12242,6 +12242,23 @@ func (a *OpenTracingAppLayer) PreparePostForClient(originalPost *model.Post, isN
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) PreparePostForClientWithEmbedsAndImages(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PreparePostForClientWithEmbedsAndImages")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.PreparePostForClientWithEmbedsAndImages(originalPost, isNewPost, isEditPost)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) PreparePostListForClient(originalList *model.PostList) *model.PostList {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PreparePostListForClient")

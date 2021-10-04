@@ -18,6 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version5380
+	Version610             = "6.1.0"
 	Version600             = "6.0.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
@@ -212,6 +213,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
+	upgradeDatabaseToVersion610(sqlStore)
 
 	return nil
 }
@@ -1342,5 +1344,16 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	}
 
 	// saveSchemaVersion(sqlStore, Version600)
+	// }
+}
+
+func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version600, Version610) {
+
+	sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
+	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
+	sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
+
+	// saveSchemaVersion(sqlStore, Version610)
 	// }
 }

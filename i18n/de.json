@@ -9233,5 +9233,9 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " antwortete auf eine Unterhaltung."
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Fehler bei der Verarbeitung von Anhängen beim Massenimport."
   }
 ]
