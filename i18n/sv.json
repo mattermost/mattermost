@@ -1613,7 +1613,7 @@
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": "Ogiltigt inbjudans-id."
+    "translation": "Ogiltigt inbjudnings-id."
   },
   {
     "id": "model.team.is_valid.id.app_error",
@@ -8974,8 +8974,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} skickade ett nytt meddelande",
-      "other": "{{ .SenderName }} och {{.Count}} andra har skickat nya meddelanden"
+      "one": "Du har ett nytt meddelande",
+      "other": "Du har nya meddelanden"
     }
   },
   {
@@ -9192,7 +9192,7 @@
   },
   {
     "id": "app.post.marshal.app_error",
-    "translation": "Misslyckades att arrangera posten."
+    "translation": "Misslyckades att arrangera meddelandet."
   },
   {
     "id": "api.unmarshal_error",
@@ -9221,5 +9221,9 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " svarade i en tråd."
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Fel vid bulkimport av bifogade filer."
   }
 ]
