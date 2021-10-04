@@ -1693,7 +1693,7 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
 	}
 
-	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+	// if shouldPerformUpgrade(sqlStore, Version600, Version610) {
 	// 	saveSchemaVersion(sqlStore, Version610)
 	// }
 }
