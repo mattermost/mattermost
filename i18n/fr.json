@@ -1314,10 +1314,6 @@
     "translation": "Paramètre RootId invalide"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Le canal est en lecture seule. Seuls les membres disposant de la permission peuvent poster ici."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Une erreur s'est produite lors de la création du message"
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Le canal est en lecture seule. Seuls les membres disposant de la permission peuvent épingler ou désépingler des messages au canal."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Vous ne pouvez pas sauvegarder la réaction pour l'autre utilisateur."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Réagir aux messages n'est pas possible dans les canaux en lecture seule."
   },
   {
     "id": "api.restricted_system_admin",
@@ -6849,7 +6837,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "Vous devez accepter la contrat d'évaluation du logiciel Mattermost et la politique de confidentialité pour demander une licence."
+    "translation": "Vous devez accepter le contrat d'évaluation du logiciel Mattermost et la politique de confidentialité pour demander une licence."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -8821,5 +8809,17 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Échec lors du rechargement de la configuration."
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "Impossible de récupérer le nombre de messages non-lus pour cet utilisateur."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "L'appartenance à des fils de cet utilisateur n'existe pas"
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Impossible de préparer le message."
   }
 ]
