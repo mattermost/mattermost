@@ -9225,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Hiba a mellékletek tömeges importálása közben."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen beszélgetés tagság jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen munkamenet jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen csapat tagság jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen felhasználói jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Érvénytelen UserId mező a munkamenethez."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Érvénytelen Id mező a munkamenethez."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Érvénytelen CreateAt mező a munkamenethez."
   }
 ]
