@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	GroupSourceLdap GroupSource = "ldap"
+	GroupSourceLdap   GroupSource = "ldap"
+	GroupSourceCustom GroupSource = "custom"
 
 	GroupNameMaxLength        = 64
 	GroupSourceMaxLength      = 64
@@ -22,6 +23,7 @@ type GroupSource string
 
 var allGroupSources = []GroupSource{
 	GroupSourceLdap,
+	GroupSourceCustom,
 }
 
 var groupSourcesRequiringRemoteID = []GroupSource{

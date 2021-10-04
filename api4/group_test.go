@@ -65,7 +65,53 @@ func TestGetGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
+func TestCreateGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
 
+	id := model.NewId()
+	g := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+	}
+
+	_, response, err := th.Client.CreateGroup(g)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
+
+	_, response, err = th.SystemAdminClient.CreateGroup(g)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	group, _, err := th.SystemAdminClient.CreateGroup(g)
+	require.NoError(t, err)
+
+	assert.Equal(t, g.DisplayName, group.DisplayName)
+	assert.Equal(t, g.Name, group.Name)
+	assert.Equal(t, g.Source, group.Source)
+	assert.Equal(t, g.Description, group.Description)
+	assert.Equal(t, g.RemoteId, group.RemoteId)
+
+	gbroken := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      "rrrr",
+		Description: "description_" + id,
+	}
+
+	_, response, err = th.SystemAdminClient.CreateGroup(gbroken)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	th.SystemAdminClient.Logout()
+	_, response, err = th.SystemAdminClient.CreateGroup(g)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, response)
+}
 func TestPatchGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

@@ -19,6 +19,8 @@ func (api *API) InitGroup() {
 	// GET /api/v4/groups
 	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(getGroups)).Methods("GET")
 
+	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(createGroup)).Methods("POST")
+
 	// GET /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
 		api.APISessionRequired(getGroup)).Methods("GET")
@@ -106,6 +108,44 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(b)
+}
+
+func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	var group *model.Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&group); jsonErr != nil {
+		c.SetInvalidParam("createGroup")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("createGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group", group)
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateCustomGroup) {
+		c.SetPermissionError(model.PermissionCreateCustomGroup)
+		return
+	}
+
+	newGroup, err := c.App.CreateGroup(group)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddMeta("group", newGroup)
+	js, jsonErr := json.Marshal(newGroup)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("createGroup", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	auditRec.Success()
+	w.WriteHeader(http.StatusCreated)
+	w.Write(js)
 }
 
 func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
