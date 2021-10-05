@@ -1345,11 +1345,7 @@ func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitM
 
 	// respect the user global notify props when there are no channel specific ones (default)
 	// otherwise respect the channel member's notify props
-	if channelMemberNotificationProps[model.DesktopNotifyProp] == model.ChannelNotifyDefault {
-		if notifyDesktop {
-			c.Desktop = append(c.Desktop, user.Id)
-		}
-	} else if notifyChannelDesktop {
+	if (channelMemberNotificationProps[model.DesktopNotifyProp] == model.ChannelNotifyDefault && notifyDesktop) || notifyChannelDesktop {
 		c.Desktop = append(c.Desktop, user.Id)
 	}
 
@@ -1359,11 +1355,7 @@ func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitM
 
 	// respect the user global notify props when there are no channel specific ones (default)
 	// otherwise respect the channel member's notify props
-	if channelMemberNotificationProps[model.PushNotifyProp] == model.ChannelNotifyDefault {
-		if notifyPush {
-			c.Push = append(c.Push, user.Id)
-		}
-	} else if notifyChannelPush {
+	if (channelMemberNotificationProps[model.PushNotifyProp] == model.ChannelNotifyDefault && notifyPush) || notifyChannelPush {
 		c.Push = append(c.Push, user.Id)
 	}
 }
@@ -1414,15 +1406,15 @@ func shouldChannelMemberNotifyCRT(notifyProps model.StringMap, isMentioned bool)
 	desktopThreads := notifyProps[model.DesktopThreadsNotifyProp]
 	pushThreads := notifyProps[model.PushThreadsNotifyProp]
 
-	// user should be notified via desktop notification in the case the notify prop is not set as no notify
+	// user should be notified via desktop notification in the case the notify prop is not set as no notify or default
 	// and either the user was mentioned or the CRT notify prop for desktop is set to all
-	if desktop != model.ChannelNotifyNone && (isMentioned || desktopThreads == model.ChannelNotifyAll || desktop == model.ChannelNotifyAll) {
+	if desktop != model.ChannelNotifyDefault && desktop != model.ChannelNotifyNone && (isMentioned || desktopThreads == model.ChannelNotifyAll || desktop == model.ChannelNotifyAll) {
 		notifyDesktop = true
 	}
 
-	// user should be notified via push in the case the notify prop is not set as no notify
+	// user should be notified via push in the case the notify prop is not set as no notify or default
 	// and either the user was mentioned or the CRT push notify prop is set to all
-	if push != model.ChannelNotifyNone && (isMentioned || pushThreads == model.ChannelNotifyAll || push == model.ChannelNotifyAll) {
+	if push != model.ChannelNotifyDefault && push != model.ChannelNotifyNone && (isMentioned || pushThreads == model.ChannelNotifyAll || push == model.ChannelNotifyAll) {
 		notifyPush = true
 	}
 
