@@ -1311,6 +1311,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"com.mattermost.nps",
 		"com.mattermost.plugin-channel-export",
 		"com.mattermost.plugin-incident-management",
+		"playbooks",
 		"com.mattermost.plugin-todo",
 		"com.mattermost.webex",
 		"com.mattermost.welcomebot",

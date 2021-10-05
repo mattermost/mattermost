@@ -109,6 +109,5 @@ type AppOptionCreator func() []AppOption
 func ServerConnector(s *Server) AppOption {
 	return func(a *App) {
 		a.srv = s
-		a.searchEngine = s.SearchEngine
 	}
 }
