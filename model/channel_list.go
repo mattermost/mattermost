@@ -3,19 +3,7 @@
 
 package model
 
-import (
-	"encoding/json"
-)
-
 type ChannelList []*Channel
-
-func (o *ChannelList) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
 
 func (o *ChannelList) Etag() string {
 
@@ -40,14 +28,6 @@ func (o *ChannelList) Etag() string {
 }
 
 type ChannelListWithTeamData []*ChannelWithTeamData
-
-func (o *ChannelListWithTeamData) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
 
 func (o *ChannelListWithTeamData) Etag() string {
 

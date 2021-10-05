@@ -54,7 +54,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		o := model.Post{}
 		o.ChannelId = c.Id
 		o.UserId = u.Id
-		o.Message = "zz" + model.NewId() + "b"
+		o.Message = NewTestId()
 
 		otmp, err3 := ss.Post().Save(&o)
 		require.NoError(t, err3)
@@ -62,18 +62,18 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		o2.ChannelId = c.Id
 		o2.UserId = model.NewId()
 		o2.RootId = otmp.Id
-		o2.Message = "zz" + model.NewId() + "b"
+		o2.Message = NewTestId()
 
 		o3 := model.Post{}
 		o3.ChannelId = c.Id
 		o3.UserId = u.Id
 		o3.RootId = otmp.Id
-		o3.Message = "zz" + model.NewId() + "b"
+		o3.Message = NewTestId()
 
 		o4 := model.Post{}
 		o4.ChannelId = c.Id
 		o4.UserId = model.NewId()
-		o4.Message = "zz" + model.NewId() + "b"
+		o4.Message = NewTestId()
 
 		newPosts, errIdx, err3 := ss.Post().SaveMultiple([]*model.Post{&o2, &o3, &o4})
 
@@ -103,7 +103,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		o5.ChannelId = model.NewId()
 		o5.UserId = model.NewId()
 		o5.RootId = newPosts[0].Id
-		o5.Message = "zz" + model.NewId() + "b"
+		o5.Message = NewTestId()
 
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&o5})
 		require.NoError(t, err, "couldn't save item")
@@ -138,12 +138,12 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		rootPost.RootId = model.NewId()
 		rootPost.ChannelId = model.NewId()
 		rootPost.UserId = model.NewId()
-		rootPost.Message = "zz" + model.NewId() + "b"
+		rootPost.Message = NewTestId()
 
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
 		replyPost.UserId = model.NewId()
-		replyPost.Message = "zz" + model.NewId() + "b"
+		replyPost.Message = NewTestId()
 		replyPost.RootId = rootPost.RootId
 
 		newPosts, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
@@ -159,13 +159,13 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		replyPost2 := model.Post{}
 		replyPost2.ChannelId = rootPost.ChannelId
 		replyPost2.UserId = model.NewId()
-		replyPost2.Message = "zz" + model.NewId() + "b"
+		replyPost2.Message = NewTestId()
 		replyPost2.RootId = rootPost.Id
 
 		replyPost3 := model.Post{}
 		replyPost3.ChannelId = rootPost.ChannelId
 		replyPost3.UserId = model.NewId()
-		replyPost3.Message = "zz" + model.NewId() + "b"
+		replyPost3.Message = NewTestId()
 		replyPost3.RootId = rootPost.Id
 
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
@@ -185,12 +185,12 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		rootPost.RootId = model.NewId()
 		rootPost.ChannelId = model.NewId()
 		rootPost.UserId = model.NewId()
-		rootPost.Message = "zz" + model.NewId() + "b"
+		rootPost.Message = NewTestId()
 
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
 		replyPost.UserId = model.NewId()
-		replyPost.Message = "zz" + model.NewId() + "b"
+		replyPost.Message = NewTestId()
 		replyPost.RootId = rootPost.RootId
 
 		newPosts, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
@@ -214,7 +214,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		rootPost := model.Post{}
 		rootPost.ChannelId = model.NewId()
 		rootPost.UserId = model.NewId()
-		rootPost.Message = "zz" + model.NewId() + "b"
+		rootPost.Message = NewTestId()
 
 		newPosts1, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost})
 		require.NoError(t, err)
@@ -222,7 +222,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
 		replyPost.UserId = model.NewId()
-		replyPost.Message = "zz" + model.NewId() + "b"
+		replyPost.Message = NewTestId()
 		replyPost.RootId = newPosts1[0].Id
 
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost})
@@ -231,7 +231,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		thread1, err := ss.Thread().Get(newPosts1[0].Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread1.ReplyCount, 1)
-		require.Len(t, thread1.Participants, 2)
+		require.Len(t, thread1.Participants, 1)
 
 		err = ss.Post().PermanentDeleteByUser(rootPost.UserId)
 		require.NoError(t, err)

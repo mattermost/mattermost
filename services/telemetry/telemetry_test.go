@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
@@ -40,6 +41,7 @@ func (fcs *FakeConfigService) AsymmetricSigningKey() *ecdsa.PrivateKey          
 
 func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, func(t *testing.T), func()) {
 	serverIfaceMock := &mocks.ServerIface{}
+	logger, _ := mlog.NewLogger()
 
 	configService := &FakeConfigService{cfg}
 	serverIfaceMock.On("Config").Return(cfg)
@@ -56,7 +58,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 		func(m *model.Manifest) plugin.API { return pluginsAPIMock },
 		nil,
 		pluginDir, webappPluginDir,
-		mlog.NewLogger(&mlog.LoggerConfiguration{}),
+		logger,
 		nil)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
 
@@ -270,7 +272,14 @@ func TestRudderTelemetry(t *testing.T) {
 	defer cleanUp()
 	defer deferredAssertions(t)
 
-	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
+	testLogger, _ := mlog.NewLogger()
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(&cfg.LogSettings, nil, config.GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
+		panic("failed to configure test logger: " + errCfg.Error())
+	}
+	defer testLogger.Shutdown()
+
+	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
 	telemetryService.TelemetryID = telemetryID
 	telemetryService.rudderClient = nil
 	telemetryService.initRudder(server.URL, RudderKey)

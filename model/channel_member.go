@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 )
@@ -69,13 +68,7 @@ type ChannelMemberForExport struct {
 	Username    string
 }
 
-func (o *ChannelMember) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
 func (o *ChannelMember) IsValid() *AppError {
-
 	if !IsValidId(o.ChannelId) {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -110,6 +103,11 @@ func (o *ChannelMember) IsValid() *AppError {
 		if len(ignoreChannelMentions) > 40 || !IsIgnoreChannelMentionsValid(ignoreChannelMentions) {
 			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.ignore_channel_mentions_value.app_error", nil, "ignore_channel_mentions="+ignoreChannelMentions, http.StatusBadRequest)
 		}
+	}
+
+	if len(o.Roles) > UserRolesMaxLength {
+		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
+			map[string]interface{}{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil

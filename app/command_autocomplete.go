@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -259,7 +260,7 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 	pluginContext := pluginContext(c)
 	params.Add("request_id", pluginContext.RequestId)
 	params.Add("session_id", pluginContext.SessionId)
-	params.Add("ip_address", pluginContext.IpAddress)
+	params.Add("ip_address", pluginContext.IPAddress)
 	params.Add("accept_language", pluginContext.AcceptLanguage)
 	params.Add("user_agent", pluginContext.UserAgent)
 
@@ -277,7 +278,10 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 		return false, parsed, toBeParsed, []model.AutocompleteSuggestion{}
 	}
 
-	listItems := model.AutocompleteStaticListItemsFromJSON(resp.Body)
+	var listItems []model.AutocompleteListItem
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&listItems); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
 
 	return parseListItems(listItems, parsed, toBeParsed)
 }

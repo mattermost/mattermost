@@ -24,6 +24,7 @@ BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 # If we don't set the build number it defaults to dev
 ifeq ($(BUILD_NUMBER),)
+	BUILD_DATE := n/a
 	BUILD_NUMBER := dev
 endif
 BUILD_ENTERPRISE_DIR ?= ../enterprise
@@ -89,7 +90,7 @@ GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update t
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
 
-PLATFORM_FILES="./cmd/mattermost/main.go"
+PLATFORM_FILES="./cmd/mattermost"
 
 # Output paths
 DIST_ROOT=dist
@@ -110,11 +111,11 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
+PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.16.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.20.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
@@ -350,8 +351,12 @@ test-compile: ## Compile tests.
 	done
 
 test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh
-	./scripts/psql-migration-test.sh
+	./scripts/mysql-migration-test.sh 6.0
+	./scripts/psql-migration-test.sh 6.0
+
+test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schemas.
+	./scripts/mysql-migration-v5-test.sh 5.0
+	./scripts/psql-migration-v5-test.sh 5.0
 
 gomodtidy:
 	@cp go.mod go.mod.orig
@@ -425,9 +430,15 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: start-docker ## Add test data to the local instance.
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) config set TeamSettings.MaxUsersPerTeam 100
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 4 -u 60
+test-data: run-server ## Add test data to the local instance.
+	@if ! ./scripts/wait-for-system-start.sh; then \
+		make stop; \
+	fi
+
+	@echo ServiceSettings.EnableLocalMode must be set to true.
+
+	bin/mmctl config set TeamSettings.MaxUsersPerTeam 100 --local
+	bin/mmctl sampledata -u 60 --local
 
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
@@ -453,8 +464,7 @@ run-server: prepackaged-binaries validate-go-version start-docker ## Starts the 
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) 2>&1 | \
-	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -502,11 +512,11 @@ ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	wmic process where "Caption='go.exe' and CommandLine like '%go.exe run%'" call terminate
 	wmic process where "Caption='mattermost.exe' and CommandLine like '%go-build%'" call terminate
 else
-	@for PID in $$(ps -ef | grep "[g]o run" | awk '{ print $$2 }'); do \
+	@for PID in $$(ps -ef | grep "[g]o run" | grep "mattermost" | awk '{ print $$2 }'); do \
 		echo stopping go $$PID; \
 		kill $$PID; \
 	done
-	@for PID in $$(ps -ef | grep "[g]o-build" | awk '{ print $$2 }'); do \
+	@for PID in $$(ps -ef | grep "[g]o-build" | grep "mattermost" | awk '{ print $$2 }'); do \
 		echo stopping mattermost $$PID; \
 		kill $$PID; \
 	done
@@ -609,10 +619,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	$(GO) mod tidy
 
 vet: ## Run mattermost go vet specific checks
-	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
-		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
-		exit 1; \
-	fi;
+	$(GO) install github.com/mattermost/mattermost-govet/v2@new
 	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \

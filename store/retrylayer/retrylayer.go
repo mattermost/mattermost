@@ -2348,6 +2348,26 @@ func (s *RetryLayerChannelStore) UpdateMember(member *model.ChannelMember) (*mod
 
 }
 
+func (s *RetryLayerChannelStore) UpdateMemberNotifyProps(channelID string, userID string, props map[string]string) (*model.ChannelMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.UpdateMemberNotifyProps(channelID, userID, props)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
 
 	tries := 0
@@ -6170,11 +6190,11 @@ func (s *RetryLayerPostStore) Search(teamID string, userID string, params *model
 
 }
 
-func (s *RetryLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+func (s *RetryLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.SearchPostsInTeamForUser(paramsList, userID, teamID, page, perPage)
+		result, err := s.PostStore.SearchPostsForUser(paramsList, userID, teamID, page, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -9842,11 +9862,11 @@ func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadFollowers(threadID)
+		result, err := s.ThreadStore.GetThreadFollowers(threadID, fetchOnlyActive)
 		if err == nil {
 			return result, nil
 		}

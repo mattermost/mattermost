@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"crypto/rand"
+	"database/sql/driver"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
@@ -24,6 +25,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/pborman/uuid"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -72,6 +74,30 @@ func (sa StringArray) Equals(input StringArray) bool {
 	return true
 }
 
+// Value converts StringArray to database value
+func (sa StringArray) Value() (driver.Value, error) {
+	return json.Marshal(sa)
+}
+
+// Scan converts database column value to StringArray
+func (sa *StringArray) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, sa)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), sa)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
 var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 
@@ -116,13 +142,13 @@ func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 	return T(er.Id, er.params)
 }
 
-func (er *AppError) ToJson() string {
+func (er *AppError) ToJSON() string {
 	b, _ := json.Marshal(er)
 	return string(b)
 }
 
-// AppErrorFromJson will decode the input and return an AppError
-func AppErrorFromJson(data io.Reader) *AppError {
+// AppErrorFromJSON will decode the input and return an AppError
+func AppErrorFromJSON(data io.Reader) *AppError {
 	str := ""
 	bytes, rerr := ioutil.ReadAll(data)
 	if rerr != nil {
@@ -135,7 +161,7 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	var er AppError
 	err := decoder.Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
+		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
 	}
 	return &er
 }
@@ -233,20 +259,20 @@ func CopyStringMap(originalMap map[string]string) map[string]string {
 	return copyMap
 }
 
-// MapToJson converts a map to a json string
-func MapToJson(objmap map[string]string) string {
+// MapToJSON converts a map to a json string
+func MapToJSON(objmap map[string]string) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-// MapBoolToJson converts a map to a json string
-func MapBoolToJson(objmap map[string]bool) string {
+// MapBoolToJSON converts a map to a json string
+func MapBoolToJSON(objmap map[string]bool) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-// MapFromJson will decode the key/value pair map
-func MapFromJson(data io.Reader) map[string]string {
+// MapFromJSON will decode the key/value pair map
+func MapFromJSON(data io.Reader) map[string]string {
 	decoder := json.NewDecoder(data)
 
 	var objmap map[string]string
@@ -256,8 +282,8 @@ func MapFromJson(data io.Reader) map[string]string {
 	return objmap
 }
 
-// MapFromJson will decode the key/value pair map
-func MapBoolFromJson(data io.Reader) map[string]bool {
+// MapFromJSON will decode the key/value pair map
+func MapBoolFromJSON(data io.Reader) map[string]bool {
 	decoder := json.NewDecoder(data)
 
 	var objmap map[string]bool
@@ -267,12 +293,12 @@ func MapBoolFromJson(data io.Reader) map[string]bool {
 	return objmap
 }
 
-func ArrayToJson(objmap []string) string {
+func ArrayToJSON(objmap []string) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func ArrayFromJson(data io.Reader) []string {
+func ArrayFromJSON(data io.Reader) []string {
 	decoder := json.NewDecoder(data)
 
 	var objmap []string
@@ -299,12 +325,12 @@ func ArrayFromInterface(data interface{}) []string {
 	return stringArray
 }
 
-func StringInterfaceToJson(objmap map[string]interface{}) string {
+func StringInterfaceToJSON(objmap map[string]interface{}) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
+func StringInterfaceFromJSON(data io.Reader) map[string]interface{} {
 	decoder := json.NewDecoder(data)
 
 	var objmap map[string]interface{}
@@ -314,13 +340,13 @@ func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
 	return objmap
 }
 
-// ToJson serializes an arbitrary data type to JSON, discarding the error.
-func ToJson(v interface{}) []byte {
+// ToJSON serializes an arbitrary data type to JSON, discarding the error.
+func ToJSON(v interface{}) []byte {
 	b, _ := json.Marshal(v)
 	return b
 }
 
-func GetServerIpAddress(iface string) string {
+func GetServerIPAddress(iface string) string {
 	var addrs []net.Addr
 	if iface == "" {
 		var err error

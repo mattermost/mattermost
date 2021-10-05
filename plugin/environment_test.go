@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -38,7 +39,9 @@ func TestAvaliablePlugins(t *testing.T) {
 		defer os.RemoveAll(filepath.Join(dir, "plugin1"))
 
 		path := filepath.Join(dir, "plugin1", "plugin.json")
-		err = ioutil.WriteFile(path, []byte(bundle1.Manifest.ToJson()), 0644)
+		manifestJSON, jsonErr := json.Marshal(bundle1.Manifest)
+		require.NoError(t, jsonErr)
+		err = ioutil.WriteFile(path, manifestJSON, 0644)
 		require.NoError(t, err)
 
 		bundles, err := env.Available()

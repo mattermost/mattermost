@@ -984,10 +984,6 @@
     "translation": "Невалиден root id."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Невалиден родителски id."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Невалиден hook id на командата."
   },
@@ -1552,20 +1548,12 @@
     "translation": "Невалиден тип."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Невалиден идентификатор на корена, трябва да бъде зададен, ако родителският идентификатор е зададен."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Невалиден id на корена."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Невалидни свойства."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Невалиден родителски id."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -2246,14 +2234,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Не могат да се получат потребители."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Изходящия webhook се изтрива, но не може да създаде нов поради някаква грешка."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Функцията изисква надграждане до Enterprise Edition и включване на лицензен ключ. Моля, свържете се със системния си администратор."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
@@ -4596,10 +4576,6 @@
     "translation": "Не може да се анализира тялото на заявката."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Този канал е само за четене. Само членове с разрешение могат да закачат или откачат публикации тук."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Не може да се обнови публикация в изтрит канал."
   },
@@ -4662,16 +4638,8 @@
     "translation": "Грешка при създаване на публикация."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Този канал е само за четене. Тук могат да публикуват само членове с разрешение."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Невалиден RootId параметър."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Невалиден ParentId параметър."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -4720,10 +4688,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "При изтеглянето на приставката възникна грешка."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Възникна грешка при отварянето на файла с публичния ключ."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -7220,10 +7184,6 @@
     "translation": "Това действие е забранено за ограничен системен администратор."
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Реагирането на публикации не е възможно в канали само за четене."
-  },
-  {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Не можете да запазите реакцията за друг потребител."
   },
@@ -7854,14 +7814,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Трябва да използвате услугата на API createDirectChannel за създаването на канал за директни съобщения."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Каналът, който се опитахте да преобразувате е вече частен."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Този канал по подразбиране не може да бъде преобразуван в частен."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",

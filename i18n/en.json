@@ -1463,6 +1463,10 @@
     "translation": "Failed to merge given config."
   },
   {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Failed to reload config."
+  },
+  {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "Site URL cannot be cleared."
   },
@@ -1607,10 +1611,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "{{ .SenderName }} sent you new message",
-      "other": "{{ .SenderName }} and {{.Count}} others sent you new messages"
-    }
+    "translation": "You have new messages"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1966,7 +1967,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Failed to marshal."
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -2097,10 +2098,6 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "An error occurred while opening the public key file."
-  },
-  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -2151,10 +2148,6 @@
   {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Invalid RootId parameter."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -2219,10 +2212,6 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -2233,6 +2222,14 @@
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " notified the channel."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " replied to a thread you're following."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " replied to a thread."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
@@ -2315,6 +2312,14 @@
     "translation": "An error occurred fetching the ID-loaded push notification."
   },
   {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Reply in {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Reply in Direct Message"
+  },
+  {
     "id": "api.push_notifications.message.parse.app_error",
     "translation": "An error occurred building the push notification message."
   },
@@ -2345,10 +2350,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "You cannot save reaction for the other user."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
@@ -3715,6 +3716,10 @@
     "translation": "Error reading file from backend"
   },
   {
+    "id": "api.unmarshal_error",
+    "translation": "Failed to unmarshal."
+  },
+  {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
   },
@@ -4851,6 +4856,10 @@
     "translation": "JSON decode of line failed."
   },
   {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Error while processing bulk import attachments."
+  },
+  {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
@@ -5475,6 +5484,26 @@
     "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} replied to a thread"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread you're following in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your Direct Message."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "While you were away, {{.SenderName}} replied to a thread in your group."
+  },
+  {
     "id": "app.notification.footer.info",
     "translation": " and go to Account Settings > Notifications"
   },
@@ -5793,6 +5822,10 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Failed to marshal post."
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -6767,14 +6800,6 @@
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
@@ -7715,6 +7740,10 @@
     "translation": "Invalid push notification level."
   },
   {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid channel member roles longer than {{.Limit}} characters."
+  },
+  {
     "id": "model.channel_member.is_valid.unread_level.app_error",
     "translation": "Invalid mark unread level."
   },
@@ -7885,6 +7914,10 @@
   {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
@@ -8588,7 +8621,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -8675,6 +8708,22 @@
     "translation": "All IncludeDeletedChannels params should have the same value."
   },
   {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Invalid CreateAt field for session."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Invalid Id field for session."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Invalid session roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Invalid UserId field for session."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
@@ -8725,6 +8774,10 @@
   {
     "id": "model.team.is_valid.url.app_error",
     "translation": "Invalid URL Identifier."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid team member roles longer than {{.Limit}} characters."
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
@@ -8893,6 +8946,10 @@
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Invalid user roles longer than {{.Limit}} characters."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -9112,7 +9169,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9120,7 +9177,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9128,7 +9185,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

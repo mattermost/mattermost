@@ -427,17 +427,17 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	result, err := th.App.CreatePostAsUser(th.Context, post, "", true)
+	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
-	}, result.GetProp("channel_mentions"))
+	}, post.GetProp("channel_mentions"))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
-	result, err = th.App.UpdatePost(th.Context, post, false)
+	result, err := th.App.UpdatePost(th.Context, post, false)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
@@ -786,6 +786,44 @@ func TestCreatePost(t *testing.T) {
 
 		assert.Equal(t, previewPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
 	})
+
+	t.Run("creates a single record for a permalink preview post", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channelForPreview := th.CreateChannel(th.BasicTeam)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://foobar.com"
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+		})
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost := &model.Post{
+			ChannelId: channelForPreview.Id,
+			Message:   permalink,
+			UserId:    th.BasicUser.Id,
+		}
+
+		previewPost, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, false, false)
+		require.Nil(t, err)
+
+		sqlStore := th.GetSqlStore()
+		sql := fmt.Sprintf("select count(*) from Posts where Id = '%[1]s' or OriginalId = '%[1]s';", previewPost.Id)
+		val, err2 := sqlStore.GetMaster().SelectInt(sql)
+		require.NoError(t, err2)
+
+		require.EqualValues(t, int64(1), val)
+	})
 }
 
 func TestPatchPost(t *testing.T) {
@@ -970,7 +1008,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		testlib.AssertLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
 
 	t.Run("does not log warning for bot user not in channel", func(t *testing.T) {
@@ -993,7 +1031,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		testlib.AssertNoLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
 
 	t.Run("marks channel as viewed for reply post when CRT is off", func(t *testing.T) {
@@ -1157,7 +1195,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
-func TestSearchPostsInTeamForUser(t *testing.T) {
+func TestSearchPostsForUser(t *testing.T) {
 	perPage := 5
 	searchTerm := "searchTerm"
 
@@ -1199,7 +1237,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1219,7 +1257,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -1249,7 +1287,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1277,7 +1315,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1301,7 +1339,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1333,7 +1371,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)

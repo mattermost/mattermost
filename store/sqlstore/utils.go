@@ -55,6 +55,14 @@ func finalizeTransaction(transaction *gorp.Transaction) {
 	}
 }
 
+// finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
+func finalizeTransactionX(transaction *sqlxTxWrapper) {
+	// Rollback returns sql.ErrTxDone if the transaction was already closed.
+	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
+		mlog.Error("Failed to rollback transaction", mlog.Err(err))
+	}
+}
+
 // removeNonAlphaNumericUnquotedTerms removes all unquoted words that only contain
 // non-alphanumeric chars from given line
 func removeNonAlphaNumericUnquotedTerms(line, separator string) string {
@@ -88,4 +96,39 @@ func isQuotedWord(s string) bool {
 	}
 
 	return s[0] == '"' && s[len(s)-1] == '"'
+}
+
+// constructMySQLJSONArgs returns the arg list to pass to a query along with
+// the string of placeholders which is needed to be to the JSON_SET function.
+// Use this function in this way:
+// UPDATE Table
+// SET Col = JSON_SET(Col, `+argString+`)
+// WHERE Id=?`, args...)
+// after appending the Id param to the args slice.
+func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
+	if len(props) == 0 {
+		return nil, ""
+	}
+
+	// Unpack the keys and values to pass to MySQL.
+	args := make([]interface{}, 0, len(props))
+	for k, v := range props {
+		args = append(args, "$."+k)
+		args = append(args, v)
+	}
+
+	// We calculate the number of ? to set in the query string.
+	argString := strings.Repeat("?, ", len(props)*2)
+	// Strip off the trailing comma.
+	argString = strings.TrimSuffix(strings.TrimSpace(argString), ",")
+
+	return args, argString
+}
+
+func makeStringArgs(params []string) []interface{} {
+	args := make([]interface{}, len(params))
+	for i, name := range params {
+		args[i] = name
+	}
+	return args
 }

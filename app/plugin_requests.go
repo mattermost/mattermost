@@ -27,7 +27,7 @@ func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		s.Log.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJson()))
+		w.Write([]byte(err.ToJSON()))
 		return
 	}
 
@@ -52,7 +52,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		a.Log().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJson()))
+		w.Write([]byte(err.ToJSON()))
 		return
 	}
 
@@ -118,7 +118,7 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
-		IpAddress:      utils.GetIPAddress(r, s.Config().ServiceSettings.TrustedProxyIPHeader),
+		IPAddress:      utils.GetIPAddress(r, s.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}

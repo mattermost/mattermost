@@ -53,7 +53,7 @@ func threadToSlice(thread *model.Thread) []interface{} {
 		thread.ChannelId,
 		thread.LastReplyAt,
 		thread.ReplyCount,
-		model.ArrayToJson(thread.Participants),
+		model.ArrayToJSON(thread.Participants),
 	}
 }
 
@@ -61,7 +61,7 @@ func (s *SqlThreadStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_update_at", "ThreadMemberships", "LastUpdated")
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_view_at", "ThreadMemberships", "LastViewed")
 	s.CreateIndexIfNotExists("idx_thread_memberships_user_id", "ThreadMemberships", "UserId")
-	s.CreateIndexIfNotExists("idx_threads_channel_id", "Threads", "ChannelId")
+	s.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
 }
 
 func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {
@@ -359,12 +359,24 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	return result, nil
 }
 
-func (s *SqlThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	var users []string
+
+	fetchConditions := sq.And{
+		sq.Eq{"PostId": threadID},
+	}
+
+	if fetchOnlyActive {
+		fetchConditions = sq.And{
+			sq.Eq{"Following": true},
+			fetchConditions,
+		}
+	}
+
 	query, args, _ := s.getQueryBuilder().
 		Select("ThreadMemberships.UserId").
 		From("ThreadMemberships").
-		Where(sq.Eq{"PostId": threadID}).ToSql()
+		Where(fetchConditions).ToSql()
 	_, err := s.GetReplica().Select(&users, query, args...)
 
 	if err != nil {
@@ -436,6 +448,18 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		}
 	}
 
+	var participants []*model.User
+	for _, participantId := range thread.Participants {
+		var participant *model.User
+		for _, u := range users {
+			if u.Id == participantId {
+				participant = u
+				break
+			}
+		}
+		participants = append(participants, participant)
+	}
+
 	result := &model.ThreadResponse{
 		PostId:         thread.PostId,
 		ReplyCount:     thread.ReplyCount,
@@ -443,7 +467,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		LastViewedAt:   thread.LastViewedAt,
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
-		Participants:   users,
+		Participants:   participants,
 		Post:           thread.Post.ToNilIfInvalid(),
 	}
 

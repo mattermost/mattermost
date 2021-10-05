@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -127,10 +126,10 @@ func TestReloadConfig(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		_, err := th.SystemAdminClient.ReloadConfig()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, err := client.ReloadConfig()
 		require.NoError(t, err)
-	})
+	}, "as system admin and local mode")
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
@@ -468,7 +467,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
 
 	// Forcing a flush before attempting to read log's content.
-	err = th.Server.Log.Flush(context.Background())
+	err = th.Server.Audit.Flush()
 	require.NoError(t, err)
 
 	require.NoError(t, logFile.Sync())

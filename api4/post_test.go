@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -341,7 +342,9 @@ func testCreatePostWithOutgoingHook(
 			ResponseType: respPostType,
 		}
 
-		fmt.Fprint(w, outGoingHookResponse.ToJson())
+		hookJSON, jsonErr := json.Marshal(outGoingHookResponse)
+		require.NoError(t, jsonErr)
+		w.Write(hookJSON)
 		success <- true
 	}))
 	defer ts.Close()
@@ -578,7 +581,9 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 				continue
 			}
 
-			wpost := model.PostFromJson(strings.NewReader(event.GetData()["post"].(string)))
+			var wpost model.Post
+			err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
+			require.NoError(t, err)
 
 			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]interface{})
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
@@ -634,7 +639,9 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 		Message:   "some message",
 	}
 
-	req := httptest.NewRequest("POST", "/api/v4/posts?set_online=false", strings.NewReader(post.ToJson()))
+	postJSON, jsonErr := json.Marshal(post)
+	require.NoError(t, jsonErr)
+	req := httptest.NewRequest("POST", "/api/v4/posts?set_online=false", bytes.NewReader(postJSON))
 	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)
@@ -645,7 +652,9 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.status.get.missing.app_error", appErr.Id)
 
-	req = httptest.NewRequest("POST", "/api/v4/posts", strings.NewReader(post.ToJson()))
+	postJSON, jsonErr = json.Marshal(post)
+	require.NoError(t, jsonErr)
+	req = httptest.NewRequest("POST", "/api/v4/posts", bytes.NewReader(postJSON))
 	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)
@@ -996,23 +1005,6 @@ func TestPinPost(t *testing.T) {
 	resp, err = client.PinPost(GenerateTestId())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
-
-	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
-		townSquareIsReadOnly := *th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
-		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-
-		defer th.App.Srv().RemoveLicense()
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly })
-
-		channel, appErr := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
-		assert.Nil(t, appErr)
-		adminPost := th.CreatePostWithClient(th.SystemAdminClient, channel)
-
-		resp, err = client.PinPost(adminPost.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
 
 	client.Logout()
 	resp, err = client.PinPost(post.Id)
@@ -1945,7 +1937,8 @@ func TestGetPost(t *testing.T) {
 
 		require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
 
-		post, resp, _ = c.GetPost(th.BasicPost.Id, resp.Etag)
+		post, resp, err = c.GetPost(th.BasicPost.Id, resp.Etag)
+		require.NoError(t, err)
 		CheckEtag(t, post, resp)
 
 		_, resp, err = c.GetPost("", "")
@@ -2033,6 +2026,41 @@ func TestDeletePost(t *testing.T) {
 
 	_, err = th.SystemAdminClient.DeletePost(post.Id)
 	require.NoError(t, err)
+}
+
+func TestDeletePostEvent(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	WebSocketClient.Listen()
+	defer WebSocketClient.Close()
+
+	_, err = th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+	require.NoError(t, err)
+
+	var received bool
+
+	for {
+		var exit bool
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			if event.EventType() == model.WebsocketEventPostDeleted {
+				var post model.Post
+				err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &post)
+				require.NoError(t, err)
+				received = true
+			}
+		case <-time.After(500 * time.Millisecond):
+			exit = true
+		}
+		if exit {
+			break
+		}
+	}
+
+	require.True(t, received)
 }
 
 func TestDeletePostMessage(t *testing.T) {
@@ -2173,10 +2201,27 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
+	otherTeam := th.CreateTeam()
+	channelInOtherTeam := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, otherTeam.Id)
+	_ = th.AddUserToChannel(th.BasicUser, channelInOtherTeam)
+	_ = th.CreateMessagePostWithClient(th.Client, channelInOtherTeam, "search for post 5")
+
 	terms := "search"
 	isOrSearch := false
 	timezoneOffset := 5
 	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	allTeamsPosts, _, err := client.SearchPostsWithParams("", &searchParams)
+	require.NoError(t, err)
+	require.Len(t, allTeamsPosts.Order, 4, "wrong search along multiple teams")
+
+	terms = "search"
+	isOrSearch = false
+	timezoneOffset = 5
+	searchParams = model.SearchParameter{
 		Terms:          &terms,
 		IsOrSearch:     &isOrSearch,
 		TimeZoneOffset: &timezoneOffset,

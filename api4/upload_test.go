@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -326,8 +327,10 @@ func TestUploadDataMultipart(t *testing.T) {
 		req.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 		res, err := th.Client.HTTPClient.Do(req)
 		require.NoError(t, err)
-		info := model.FileInfoFromJson(res.Body)
+		var info model.FileInfo
+		err = json.NewDecoder(res.Body).Decode(&info)
 		res.Body.Close()
+		require.NoError(t, err)
 		require.NotEmpty(t, info)
 		require.Equal(t, us.Filename, info.Name)
 
@@ -361,8 +364,10 @@ func TestUploadDataMultipart(t *testing.T) {
 		req.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 		res, err = th.Client.HTTPClient.Do(req)
 		require.NoError(t, err)
-		info := model.FileInfoFromJson(res.Body)
+		var info model.FileInfo
+		err = json.NewDecoder(res.Body).Decode(&info)
 		res.Body.Close()
+		require.NoError(t, err)
 		require.NotEmpty(t, info)
 		require.Equal(t, u.Filename, info.Name)
 

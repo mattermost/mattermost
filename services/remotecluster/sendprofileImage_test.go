@@ -41,7 +41,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 			w.WriteHeader(http.StatusInternalServerError)
 			resp := make(map[string]string)
 			resp[model.STATUS] = model.StatusFail
-			w.Write([]byte(model.MapToJson(resp)))
+			w.Write([]byte(model.MapToJSON(resp)))
 			return
 		}
 
@@ -52,7 +52,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 			}
 			resp := make(map[string]string)
 			resp[model.STATUS] = *s
-			w.Write([]byte(model.MapToJson(resp)))
+			w.Write([]byte(model.MapToJSON(resp)))
 		}(&status)
 
 		if err := r.ParseMultipartForm(1024 * 1024); err != nil {
@@ -101,7 +101,8 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	provider := testImageProvider{}
 
-	mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+	mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
+	defer mockServer.Shutdown()
 	mockServer.SetUser(user)
 	service, err := NewRemoteClusterService(mockServer)
 	require.NoError(t, err)

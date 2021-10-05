@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 )
@@ -16,6 +15,11 @@ const (
 	InvalidLicenseError = "api.license.add_license.invalid.app_error"
 	LicenseGracePeriod  = 1000 * 60 * 60 * 24 * 10 //10 days
 	LicenseRenewalLink  = "https://mattermost.com/renew/"
+
+	LicenseShortSkuE10          = "E10"
+	LicenseShortSkuE20          = "E20"
+	LicenseShortSkuProfessional = "professional"
+	LicenseShortSkuEnterprise   = "enterprise"
 )
 
 const (
@@ -66,11 +70,6 @@ type TrialLicenseRequest struct {
 	Users                 int    `json:"users"`
 	TermsAccepted         bool   `json:"terms_accepted"`
 	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
-}
-
-func (tlr *TrialLicenseRequest) ToJson() string {
-	b, _ := json.Marshal(tlr)
-	return string(b)
 }
 
 type Features struct {
@@ -286,11 +285,6 @@ func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
-func (l *License) ToJson() string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
 func (l *License) IsTrialLicense() bool {
 	return l.IsTrial || (l.ExpiresAt-l.StartsAt) == trialDuration.Milliseconds() || (l.ExpiresAt-l.StartsAt) == adminTrialDuration.Milliseconds()
 }
@@ -300,6 +294,13 @@ func (l *License) IsSanctionedTrial() bool {
 
 	return l.IsTrialLicense() &&
 		(duration >= sanctionedTrialDurationLowerBound.Milliseconds() || duration <= sanctionedTrialDurationUpperBound.Milliseconds())
+}
+
+func (l *License) HasEnterpriseMarketplacePlugins() bool {
+	return *l.Features.EnterprisePlugins ||
+		l.SkuShortName == LicenseShortSkuE20 ||
+		l.SkuShortName == LicenseShortSkuProfessional ||
+		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.
@@ -319,12 +320,6 @@ func NewTestLicense(features ...string) *License {
 	json.Unmarshal(featureJson, &ret.Features)
 
 	return ret
-}
-
-func LicenseFromJson(data io.Reader) *License {
-	var o *License
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (lr *LicenseRecord) IsValid() *AppError {

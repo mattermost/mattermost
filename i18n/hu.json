@@ -228,10 +228,6 @@
     "translation": "Érvénytelen gyökér azonosító."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Érvénytelen szülő azonosító."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Érvénytelen parancs hook azonosító."
   },
@@ -613,31 +609,31 @@
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Hiba történt az identitás szolgáltató válaszának ellenőrzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) válaszának ellenőrzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Hiba történt az identitás szolgáltató válaszának elemzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) válaszának értelmezése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "Érvénytelen időt kaptunk az identitás szolgáltató válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Érvénytelen időt kaptunk a Személyazonosság szolgáltató (IdP) válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "Érvénytelen aláírást kaptunk az identitás szolgáltató válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Érvénytelen aláírást kaptunk a Személyazonosság szolgáltató (IdP) válaszában. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "Üres választ kaptunk az identitás szolgáltatótól."
+    "translation": "Üres választ kaptunk a Személyazonosság szolgáltatótól (IdP)."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "A SAML bejelentkezés sikertelen volt, mert hiba történt az Identitás szolgáltató válaszának visszafejtése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A SAML bejelentkezés sikertelen volt, mert hiba történt a Személyazonosság szolgáltató (IdP) válaszának visszafejtése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "A SAML bejelentkezés sikertelen volt, mivel az identitás szolgáltató válasza nincs titkosítva. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A SAML bejelentkezés sikertelen volt, mivel a Személyazonosság szolgáltató (IdP) válasza nincs titkosítva. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -645,7 +641,7 @@
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "A identitás szolgáltató nyilvános tanúsítvány fájlja nem található. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "A Személyazonosság szolgáltató (IdP) nyilvános tanúsítvány fájlja nem található. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -653,11 +649,11 @@
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Hiba történt az identitás szolgáltató iránti kérelem kódolása közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) kérelem kódolása közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "Hiba történt az identitás szolgáltatóhoz intézett kérés kezdeményezése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
+    "translation": "Hiba történt a Személyazonosság szolgáltatóhoz (IdP) intézett kérés kezdeményezése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -1520,20 +1516,12 @@
     "translation": "Érvénytelen típus."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Érvénytelen gyökér azonosító, be kell állítani ha a szülő azonosító be van állítva."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Érvénytelen gyökér azonosító."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Érvénytelen tulajdonságok."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Érvénytelen szülő azonosító."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -1557,7 +1545,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Érvénytelen fájl azonosítók. Ne feledje, hogy a feltöltések legfeljebb 5 fájlra korlátozódnak. Kérjük, további fájlokhoz használjon további bejegyzéseket."
+    "translation": "Érvénytelen fájl azonosítók. Ne feledje, hogy a feltöltések legfeljebb 10 fájlra korlátozódnak. Kérjük, további fájlokhoz használjon további bejegyzéseket."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -2001,11 +1989,11 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Az identitás szolgáltató kibocsátó URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
+    "translation": "A Személyazonosság szolgáltató (IdP) kibocsátó URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Hiányzik az identitás szolgáltató nyilvános tanúsítványa. Elfelejtette feltölteni?"
+    "translation": "Hiányzik a Személyazonosság szolgáltató (IdP) nyilvános tanúsítványa. Elfelejtette feltölteni?"
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
@@ -2973,7 +2961,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -2981,7 +2969,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verzió 60+"
+    "translation": "Verzió 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -2989,7 +2977,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 61+"
+    "translation": "Verzió 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3650,14 +3638,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Nem sikerült lekérni a felhasználókat."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "A kimenő webhook törölve lett, de valamilyen hiba miatt nem tud újat létrehozni."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "A funkcióhoz frissíteni kell az Enterprise Edition-re és meg kell adni egy licenckulcsot. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
@@ -4537,15 +4517,15 @@
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Nem sikerült beolvasni a Személyazonossági szolgáltatótól kapott választ."
+    "translation": "Nem sikerült beolvasni a Személyazonosság szolgáltatótól (IdP) kapott választ."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Hiba történt az Személyazonossági szolgáltatótól kapott válasz beolvasásakor."
+    "translation": "Hiba történt a Személyazonosság szolgáltatótól (IdP) kapott válasz beolvasásakor."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Nem sikerült dekódolni az Személyazonossági szolgáltatótól kapott XML-metaadatokat."
+    "translation": "Nem sikerült dekódolni a Személyazonosság szolgáltatótól (IdP) kapott XML-metaadatokat."
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
@@ -4965,11 +4945,11 @@
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Nem sikerült felhasználót létrehozni a(z) {{.Service}} felhasználói objektumból."
+    "translation": "Nem sikerült felhasználót létrehozni a {{.Service}} felhasználói objektumból."
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Az e-mail címmel már van társítva egy fiók, a(z) {{.Service}} eltérő bejelentkezési módszerrel. Kérjük, jelentkezzen be az {{.Auth}} használatával."
+    "translation": "Az adott e-mail címmel már létezik fiók, de a {{.Service}} -től eltérő bejelentkezési módszerrel. Kérjük, jelentkezzen be a {{.Auth}} használatával."
   },
   {
     "id": "api.user.create_email_token.error",
@@ -5217,7 +5197,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "A(z) {{.TeamDisplayName}} csapatban az Ön felhasználóneve {{.NewUsername}} névre változott."
+    "translation": "A {{.TeamDisplayName}} csapatban az Ön felhasználóneve {{.NewUsername}} névre változott."
   },
   {
     "id": "api.templates.user_access_token_subject",
@@ -5461,7 +5441,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Személyes hozzáférési tokent adtunk a fiókjához a(z) {{.SiteURL}} webhelyen. Ezek felhasználhatók a(z) {{.SiteName}} fiókhoz való hozzáférésére."
+    "translation": "Személyes hozzáférési tokent adtunk a fiókjához a {{ .SiteURL }} rendszerben. Ezek arra használhatóak, hogy a {{.SiteName}} rendszert a fiókjával elérje."
   },
   {
     "id": "api.templates.upgrade_request_title2",
@@ -5501,7 +5481,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Frissítette bejelentkezési módszerét a(z) {{.SiteName}} webhelyen a következőre: {{.Method}}."
+    "translation": "Frissítette bejelentkezési módszerét a {{ .SiteName }} rendszerban a következőre: {{.Method}}."
   },
   {
     "id": "api.templates.reset_subject",
@@ -5741,7 +5721,7 @@
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} meghívta Önt, hogy csatlakozzon a(z) {{.TeamDisplayName}} csapathoz vendégként"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} meghívta Önt, hogy csatlakozzon a {{ .TeamDisplayName }} csapathoz vendégként"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -6596,10 +6576,6 @@
     "translation": "Hiba történt a biztonságos kapcsolat törlésekor."
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "A bejegyzésekre való reakció nem lehetséges írásvédett csatornákban."
-  },
-  {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Nem lehet elmenteni a reakciót egy másik felhasználóhoz."
   },
@@ -7056,7 +7032,7 @@
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Visszavonja a biztonságos kapcsolat meghívását erről a megosztott csatornáról"
+    "translation": "Visszavonja a biztonságos kapcsolat meghívását erről a megosztott beszélgetésről"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -7092,7 +7068,7 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Meg kell adnia egy érvényes biztonságos kapcsolatot a meghívás visszavonásához"
+    "translation": "Meg kell adnia egy érvényes biztonságos kapcsolat azonosítót a meghívás visszavonásához"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
@@ -7116,7 +7092,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Erre a csatornára nem hívtak meg biztonságos kapcsolatokat."
+    "translation": "Erre a beszélgetésre nem hívtak meg biztonságos kapcsolatokat."
   },
   {
     "id": "api.command_share.name",
@@ -7212,7 +7188,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "A `{{.ChannelId}}` csatorna azonosító állapota"
+    "translation": "A `{{.ChannelId}}` beszélgetés állapota"
   },
   {
     "id": "api.command_share.channel_status.help",
@@ -7228,7 +7204,7 @@
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Nem lehet meghívni a biztonságos kapcsolatot máshonnan származó megosztott csatornára."
+    "translation": "Nem lehet meghívni biztonságos kapcsolatot egy máshonnan eredő megosztott beszélgetésre."
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -7284,7 +7260,7 @@
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "Az üzenetet el kell látni /eltávolítás, vagy /kick paranccsal."
+    "translation": "A /remove vagy /kick parancsokhoz üzenetet kell megadni."
   },
   {
     "id": "api.command_remove.hint",
@@ -7372,7 +7348,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Mattermost rendszergazdának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n```\n{{.Invitation}}\n```\n\n**Győződjön meg róla, hogy a biztonságos kapcsolat a** {{.SiteURL}} **cím segítségével érheti el az Ön Mattermost példányát.**"
+    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Mattermost rendszer rendszergazdának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n```\n{{.Invitation}}\n```\n\n**Győződjön meg róla, hogy a biztonságos kapcsolat a** {{.SiteURL}} **cím segítségével érheti el az Ön Mattermost példányát.**"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -7903,14 +7879,6 @@
     "translation": "A közvetlen üzenet küldési csatorna létrehozásához használja a createDirectChannel API szolgáltatást."
   },
   {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Az átalakítani kívánt csatorna már privát."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Ez az alapértelmezett csatorna nem alakítható át privát csatornává."
-  },
-  {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Az Ön licence nem támogatja a csoportokat"
   },
@@ -8011,10 +7979,6 @@
     "translation": "Nem lehet értelmezni a kérés törzsét."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Itt csak a jogosultággal rendelkező tagok tűzhetnek ki/szedhetnek le bejegyzéseket."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nem lehet bejegyzést frissíteni egy törölt csatornában."
   },
@@ -8077,16 +8041,8 @@
     "translation": "Hiba a bejegyzés létrehozásakor."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Csak a jogosultsággal rendelkező tagok írhatnak ide."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Érvénytelen RootId paraméter."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Érvénytelen ParentId paraméter."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -8135,10 +8091,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Hiba történt a plugin letöltése közben."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Hiba történt a publikus kulcsfájl megnyitása közben."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -8266,7 +8218,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "értelmezési hiba"
+    "translation": "Adatkonverzió nem sikerült."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -8286,7 +8238,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "A licenc igényléséhez el kell fogadnia a Mattermost szoftverértékelési megállapodását és az adatvédelmi irányelveit."
+    "translation": "A licenc igényléséhez el kell fogadnia a Mattermost szoftver használati megállapodását és az adatvédelmi irányelveit."
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -8626,7 +8578,7 @@
   },
   {
     "id": "api.command_invite.permission.app_error",
-    "translation": "Nincs elegendő jogosultsága, hogy hozzáadja a(z) {{.User}} felhasználót a(z) {{.Channel}} csatornához."
+    "translation": "Nincs elegendő jogosultsága, hogy hozzáadja a {{.User}} felhasználót a {{.Channel}} beszélgetéshez."
   },
   {
     "id": "api.command_invite.name",
@@ -8829,15 +8781,15 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Hiányzó Személyazonossági Szolgáltató SSO szolgáltatások csomópont az XML-ben."
+    "translation": "Hiányzó Személyazonosság szolgáltató (IdP) SSO szolgáltatások csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Hiányzó Személyazonossági Szolgáltató kulcs infó csomópont az XML-ben."
+    "translation": "Hiányzó Személyazonosság szolgáltató (IdP) kulcs infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Hiányzó Személyazonossági Szolgáltató SSO infó csomópont az XML-ben."
+    "translation": "Hiányzó Személyazonosság szolgáltató (IdP) SSO infó csomópont az XML-ben."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -8849,11 +8801,11 @@
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Hiba történt a Személyazonossági Szolgáltatótól kapott metaadat-adatok tanúsítványként történő elemzése során."
+    "translation": "Hiba történt a Személyazonosság szolgáltatótól (IdP) kapott meta-adatok tanúsítványként történő értelmezése során."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Metaadat beszerzése sikertelen a Személyazonossági Szolgáltató URL-ből."
+    "translation": "Metaadat beszerzése sikertelen a Személyazonosság szolgáltató (IdP) URL-ből."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -9006,8 +8958,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} új üzenetet küldött neked",
-      "other": "{{ .SenderName }} és {{.Count}} mások új üzeneteket kültek neked"
+      "one": "Önnek új üzenetei vannak",
+      "other": "{{ .SenderName }} és {{.Count}} másvalaki új üzenetet kültek Önnek"
     }
   },
   {
@@ -9148,7 +9100,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Ez a próba időszak kulcs a Mattermost Enterprise kiadáshoz lejárt és már nem érvényes. Ha szeretné meghosszabbítani a próbaidőszakot, kérjük [vegye fel a kapcsolatot értékesítési csapatunkkal](https://mattermost.com/contact-us/)."
+    "translation": "Ez a teszt kulcs a Mattermost Enterprise kiadáshoz lejárt és már nem érvényes. Ha szeretné meghosszabbítani a próba időszakot, kérjük [vegye fel a kapcsolatot értékesítési csapatunkkal](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9217,5 +9169,89 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Nem sikerült leellenőrizni, hogy a felhasználói tár üres-e."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} válaszolt egy üzenetszálra"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Válasz a {{.channelName}} beszélgetésben"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " válaszolt egy üzenetszálra amit követ."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "A CollapsedThreads engedélyezéséhez a ThreadAutoFollow beállításnak igaznak kell lennie"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Nem sikerült a beállítások újratöltése."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "A bejegyzés adatkonverziója nem sikerült."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Adatkonverzió nem sikerült."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " válaszolt egy üzenetszálra."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a {{.ChannelName}} beszélgetésben amit követ."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a közvetlen üzenetében."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a csoportjában."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra amit követ."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Válasz a közvetlen üzenetben"
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Hiba a mellékletek tömeges importálása közben."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen beszélgetés tagság jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen munkamenet jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen csapat tagság jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen felhasználói jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Érvénytelen UserId mező a munkamenethez."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Érvénytelen Id mező a munkamenethez."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Érvénytelen CreateAt mező a munkamenethez."
   }
 ]
