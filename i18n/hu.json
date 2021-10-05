@@ -6576,10 +6576,6 @@
     "translation": "Hiba történt a biztonságos kapcsolat törlésekor."
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "A bejegyzésekre való reakció nem lehetséges írásvédett csatornákban."
-  },
-  {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Nem lehet elmenteni a reakciót egy másik felhasználóhoz."
   },
@@ -7983,10 +7979,6 @@
     "translation": "Nem lehet értelmezni a kérés törzsét."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Itt csak a jogosultággal rendelkező tagok tűzhetnek ki/szedhetnek le bejegyzéseket."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nem lehet bejegyzést frissíteni egy törölt csatornában."
   },
@@ -8047,10 +8039,6 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Hiba a bejegyzés létrehozásakor."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Csak a jogosultsággal rendelkező tagok írhatnak ide."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -9237,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Hiba a mellékletek tömeges importálása közben."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen beszélgetés tagság jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen munkamenet jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen csapat tagság jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen felhasználói jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Érvénytelen UserId mező a munkamenethez."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Érvénytelen Id mező a munkamenethez."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Érvénytelen CreateAt mező a munkamenethez."
   }
 ]

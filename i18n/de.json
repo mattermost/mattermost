@@ -1314,10 +1314,6 @@
     "translation": "Ungültiger RootId Parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier schreiben."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Fehler beim Erstellen des Eintrages."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier Nachrichten an- oder abheften."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Sie können keine Reaktion für den anderen Benutzer sichern."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reaktionen auf Nachrichte sind in Nur-Lesen-Kanälen nicht möglich."
   },
   {
     "id": "api.restricted_system_admin",
@@ -7345,7 +7333,7 @@
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
-    "translation": "Der Job-Typ, den Sie versuchen runterzuladen, wird momentan nicht unterstützt"
+    "translation": "Der Job-Typ, den Sie versuchen herunterzuladen, wird momentan nicht unterstützt"
   },
   {
     "id": "api.job.unable_to_download_job",
@@ -7357,7 +7345,7 @@
   },
   {
     "id": "api.job.retrieve.nopermissions",
-    "translation": "Die Job Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
+    "translation": "Die Job-Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
   },
   {
     "id": "api.invalid_custom_url_scheme",
@@ -9237,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Fehler bei der Verarbeitung von Anhängen beim Massenimport."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Benutzerrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Rollen von Teammitgliedern mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ungültiges Feld UserId für Sitzung."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Sitzungsrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ungültiges ID-Feld für Sitzung."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ungültiges CreateAt-Feld für Sitzung."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Kanalmitgliederrollen mit mehr als {{.Limit}} Zeichen."
   }
 ]

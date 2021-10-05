@@ -8005,10 +8005,6 @@
     "translation": "An error occurred while deleting the secure connection."
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
-  },
-  {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "You cannot save reaction for the other user."
   },
@@ -8133,10 +8129,6 @@
     "translation": "Unable to parse the request body."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -8197,10 +8189,6 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -9237,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Error while processing bulk import attachments."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Invalid user roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid team member roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Invalid session UserID field."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Invalid session roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Invalid session ID field."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Invalid CreateAt field for session."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid channel member roles longer than {{.Limit}} characters."
   }
 ]

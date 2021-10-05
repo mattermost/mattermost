@@ -1312,10 +1312,6 @@
     "translation": "RootIdパラメーターが不正です。"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "このチャンネルは読み取り専用です。権限のあるメンバーのみがここに投稿できます。"
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "投稿を作成できません。"
   },
@@ -1370,10 +1366,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "削除されたチャンネルの投稿は更新できません。"
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "このチャンネルは読み取り専用です。権限のあるメンバーのみがこのチャンネルの投稿をピン留めできます。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1454,10 +1446,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "他のユーザーのリアクションを保存することはできません。"
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "読み取り専用チャンネルで投稿へリアクションすることはできません。"
   },
   {
     "id": "api.restricted_system_admin",
@@ -9232,5 +9220,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "添付ファイルの一括インポート中にエラーが発生しました。"
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}}文字以上の不正なユーザーの役割です。"
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}} 文字より長い不正なチームメンバーの役割です。"
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "セッションのUserIdフィールドが無効です。"
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}} 文字より長い不正なチャンネルメンバーの役割です。"
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}}文字以上の不正なセッションロールです。"
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "セッションのIdフィールドが無効です。"
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "セッションのCreateAtフィールドが無効です。"
   }
 ]

@@ -1314,10 +1314,6 @@
     "translation": "RootID parametresi geçersiz."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Kanal salt okunur. Yalnız izni olan üyeler buraya ileti gönderebilir."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "İleti eklenirken sorun çıktı."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Silinmiş bir kanaldaki ileti güncellenemez."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Bu kanal salt okunur. Burada yalnız izni olan üyeler iletileri sabitleme ya da sabitlemeyi kaldırma işlemi yapabilir."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Başka bir kullanıcı için tepki kaydedemezsiniz."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Salt okunur kanallarda iletilere tepki verilemez."
   },
   {
     "id": "api.restricted_system_admin",
@@ -9237,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Ek dosyalar toplu olarak içe aktarılırken sorun çıktı."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Kullanıcı rolleri geçersiz {{.Limit}} karakterden uzun."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Takım üyesi rolleri geçersiz {{.Limit}} karakterden uzun."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Oturumun kullanıcı kodu alanı geçersiz."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Oturum rolleri geçersiz {{.Limit}} karakterden uzun."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Oturumun kod alanı geçersiz."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Oturumun oluşturulma alanı geçersiz."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Kanal üyesi rolleri geçersiz {{.Limit}} karakterden uzun."
   }
 ]
