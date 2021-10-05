@@ -3097,7 +3097,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days. To continue enjoying the benefits of Mattermost Cloud, please add payment information to your account before {{.TrialEnd}}."
+    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
