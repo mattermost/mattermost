@@ -9225,5 +9225,17 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Fel vid bulkimport av bifogade filer."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ogiltigt UserId-fält för sessionen."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ogiltigt Id-fält för sessionen."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ogiltigt CreateAt-fält för sessionen."
   }
 ]
