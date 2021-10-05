@@ -47,10 +47,10 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 		return nil, err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO WebHook
-		(Id,CreatedAt,CommandId,UserId,ChannelId,RootId,UseCount)
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO CommandWebhooks
+		(Id,CreateAt,CommandId,UserId,ChannelId,RootId,UseCount)
 		Values
-		(:Id, :CreatedAt, :CommandId, :UserId, :ChannelId, :RootId, :UseCount)`, webhook); err != nil {
+		(:Id, :CreateAt, :CommandId, :UserId, :ChannelId, :RootId, :UseCount)`, webhook); err != nil {
 		return nil, errors.Wrapf(err, "save: id=%s", webhook.Id)
 	}
 
@@ -73,7 +73,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 		return nil, errors.Wrap(err, "get_tosql")
 	}
 
-	if err := s.GetReplicaX().Select(&webhook, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Get(&webhook, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("CommandWebhook", id)
 		}
