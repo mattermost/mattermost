@@ -5861,7 +5861,7 @@
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
-    "translation": "Nie można zapisać pliku certyfikatu"
+    "translation": "Nie można zapisać pliku certyfikatu."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
@@ -7338,5 +7338,421 @@
   {
     "id": "api.file.file_size.app_error",
     "translation": "Nie można pobrać rozmiaru pliku."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "Używanie zaawansowanych uprawnień"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+    "translation": "Skalowanie z Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
+    "translation": "Twoja wersja próbna Enterprise jest teraz aktywna. Utwórz kanał i przejdź do **Konsola systemowa > Zarządzanie użytkownikami > Kanały**, aby ograniczyć wysyłanie postów do administratorów kanału."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+    "translation": "Kontakt: {{.Kontakt}}"
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Nieprawidłowy temat."
+  },
+  {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Sesja wygasła: Zaloguj się, aby kontynuować otrzymywanie powiadomień. Sesje dla {{.siteName}} są skonfigurowane przez Administratora Systemu tak, aby wygasały co {{.daysCount}} dni."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Odpowiedz w Bezpośredniej Wiadomości"
+  },
+  {
+    "id": "api.preference.delete_preferences.update_sidebar.app_error",
+    "translation": "Nie można zaktualizować paska bocznego, aby dopasować go do usuniętych preferencji"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " odpowiedział w wątku."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Licencja E10 lub E20 jest wymagana do korzystania z tego punktu końcowego."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Nie można zmigrować SAML."
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Funkcja wymaga aktualizacji do wersji Enterprise Edition."
+  },
+  {
+    "id": "api.license.request_trial_license.no-site-url.app_error",
+    "translation": "Nie można zamówić licencji próbnej. Proszę skonfigurować adres URL witryny w sekcji serwera WWW w konsoli systemowej Mattermost."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Nie można uzyskać licencji próbnej, proszę spróbować ponownie lub skontaktować się z support@mattermost.com. Nie można uzyskać informacji o liczbie zarejestrowanych użytkowników."
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": "Nie można uzyskać licencji próbnej, proszę spróbować ponownie lub skontaktować się z support@mattermost.com."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Błąd pobierania linku do odnowienia licencji"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Ten klucz licencji próbnej dla Mattermost Enterprise Edition wygasł i nie jest już ważny. Jeśli chcesz przedłużyć okres próbny, prosimy o [kontakt z naszym zespołem sprzedaży](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Nie można sprawdzić, czy można uruchomić proces"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "Aby złożyć wniosek o licencję, należy zaakceptować Umowę dotyczącą oprogramowania Mattermost oraz Politykę prywatności."
+  },
+  {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "Podana liczba użytkowników jest nieprawidłowa."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Typ zadania, który próbujesz pobrać, nie jest obecnie obsługiwany"
+  },
+  {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Nie można pobrać tego zadania"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Typ pracy, którą próbujesz utworzyć jest nieprawidłowy"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Typy zadań, które próbujesz odzyskać nie zawierają uprawnień"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Podano nieprawidłowy adres URL przekierowania"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Podano nieprawidłowy niestandardowy schemat url"
+  },
+  {
+    "id": "api.invalid_channel",
+    "translation": "Kanał wymieniony w zapytaniu nie należy do użytkownika"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Parametry Before i After dla getThreadsForUser wzajemnie się wykluczają"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Nie można zapisać pliku."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Upewnij się, że twoje Amazon S3 jest dostępne oraz sprawdź uprawnienia do niego."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Nie można połączyć się z S3. Sprawdź parametry autoryzacji połączenia Amazon S3 i ustawienia uwierzytelniania."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Nie można uzyskać dostępu do magazynu plików."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Nie można usunąć pliku."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Nie można usunąć katalogu."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Nie można odczytać pliku."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Nie można otworzyć czytnik plików."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "Poprawa wydajności"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "Twój system Mattermost ma dużą liczbę wiadomości. Domyślne wyszukiwanie w bazie danych Mattermost zaczyna wykazywać spadek wydajności przy około 2,5 miliona postów. Przy ponad 5 milionach postów, Elasticsearch może pomóc uniknąć znaczących problemów z wydajnością, takich jak timeout, z wyszukiwaniem i wzmiankami. Skontaktuj się z nami, aby dowiedzieć się więcej i daj nam znać, jak możemy pomóc.\n\n[Dowiedz się więcej o poprawie wydajności](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nKlikając przycisk Skontaktuj się z nami, udostępniasz swoje dane firmie Mattermost, Inc. [Dowiedz się więcej](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
+    "translation": "Prośba o kontakt z Mattermost. Jestem zainteresowany aby dowiedzieć się więcej na temat poprawy wydajności za pomocą Elasticsearch.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
+    "translation": "Państwa wersja próbna Enterprise jest teraz aktywna. Przejdź do **Konsoli systemowej > Zarządzania użytkownikami > Uprawnień**, aby włączyć Zaawansowane uprawnienia."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
+    "translation": "Kanały pomagają usprawnić komunikację, ale wraz z dołączaniem i tworzeniem kanałów przez użytkowników Mattermost rośnie wyzwanie związane z utrzymaniem porządku w systemie. Zaawansowane uprawnienia umożliwiają określenie, którzy użytkownicy lub role mogą wykonywać określone czynności, w tym zarządzać ustawieniami kanału i jego członkami, używać @channel lub @here do oznaczania szerokich grup użytkowników oraz tworzyć nowe webhooki.\n\n[Dowiedz się więcej o korzystaniu z uprawnień zaawansowanych](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "Kanały pomagają usprawnić komunikację, ale wraz z dołączaniem i tworzeniem kanałów przez użytkowników Mattermost rośnie wyzwanie związane z utrzymaniem porządku w systemie. Zaawansowane uprawnienia umożliwiają określenie, którzy użytkownicy lub role mogą wykonywać określone czynności, w tym zarządzać ustawieniami kanału i jego członkami, używać @channel lub @here do oznaczania szerokich grup użytkowników oraz tworzyć nowe webhooki.\n\n[Dowiedz się więcej o korzystaniu z uprawnień zaawansowanych](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nKlikając przycisk Skontaktuj się z nami, użytkownik udostępnia swoje dane firmie Mattermost, Inc. [Dowiedz się więcej](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
+    "translation": "Prośba o kontakt z Mattermost. Jestem zainteresowany aby dowiedzieć się więcej na temat używania zaawansowanych uprawnień z systemowymi schematami.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
+    "translation": "Wersja próbna Enterprise jest teraz aktywna. Przejdź do Konsoli systemowej, aby włączyć zaawansowane funkcje."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
+    "translation": "Mattermost zdecydowanie zaleca, aby wdrożenia obejmujące ponad 500 użytkowników korzystały z funkcji takich jak zarządzanie użytkownikami, klastrowanie serwerów i monitorowanie wydajności. Skontaktuj się z nami, aby dowiedzieć się więcej i daj nam znać, jak możemy pomóc.\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+    "translation": "Mattermost zdecydowanie zaleca, aby wdrożenia obejmujące ponad 500 użytkowników korzystały z funkcji takich jak zarządzanie użytkownikami, klastrowanie serwerów i monitorowanie wydajności. Skontaktuj się z nami, aby dowiedzieć się więcej i daj nam znać, jak możemy pomóc.\n\nKlikając przycisk Skontaktuj się z nami, udostępniasz swoje dane firmie Mattermost, Inc. [Dowiedz się więcej](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Prośba o kontakt z firmą Mattermost. Mój zespół ma teraz 500 użytkowników i rozważam Mattermost Enterprise Edition.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Kanały ogłoszeń tylko do odczytu"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
+    "translation": "Przy tak wielu rozmowach toczących się w Mattermost, poszukiwanie ważnych informacji może być trudne. Jeśli chcesz nadać wiadomość do dużej grupy odbiorców, możesz ustawić kanały ogłoszeń tylko do odczytu, gdzie każdy może dołączyć, ale tylko administratorzy kanału mogą publikować wiadomości.\n\n[Dowiedz się więcej o tworzeniu Kanałów ogłoszeń tylko do odczytu](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
+    "translation": "Przy tak wielu rozmowach toczących się w Mattermost, znalezienie ważnych informacji może być trudne. Jeśli chcesz nadać wiadomość do dużej grupy odbiorców, możesz utworzyć kanały ogłoszeń tylko do odczytu, do których każdy może dołączyć, ale tylko administratorzy kanału mogą publikować wiadomości.\n\n[Dowiedz się więcej o tworzeniu Kanałów ogłoszeń tylko do odczytu](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nKlikając przycisk Skontaktuj się z nami, użytkownik udostępnia swoje dane firmie Mattermost, Inc. [Dowiedz się więcej](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
+    "translation": "Prośba o kontakt z firmą Mattermost. Chcę dowiedzieć się więcej o tworzeniu kanałów ogłoszeń tylko do odczytu.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
+    "translation": "Twoja wersja próbna Enterprise jest teraz aktywna. Przejdź do **System Console > Authentication > SAML 2.0**, aby zintegrować się z dostawcą SAML 2.0."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "Twój system Mattermost ma teraz 200 użytkowników. Po połączeniu Mattermost z dostawcą pojedynczego logowania w organizacji, użytkownicy mogą uzyskać dostęp do Mattermost bez konieczności ponownego wprowadzania swoich danych uwierzytelniających. Zalecamy zintegrowanie dostawcy SAML 2.0 z serwerem Mattermost.[Dowiedz się więcej o integracji z SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+    "translation": "Skalowanie z Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+    "translation": "Twój system Mattermost ma teraz 200 użytkowników. Po połączeniu Mattermost z dostawcą pojedynczego logowania w organizacji, użytkownicy mogą uzyskać dostęp do Mattermost bez konieczności ponownego wprowadzania swoich danych uwierzytelniających. Zalecamy zintegrowanie dostawcy SAML 2.0 z serwerem Mattermost.[Dowiedz się więcej o integracji z SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nKlikając przycisk Skontaktuj się z nami, użytkownik udostępnia swoje dane firmie Mattermost, Inc. [Dowiedz się więcej](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermost prośba o kontakt. Mój zespół ma teraz 100 użytkowników i rozważam Mattermost Enterprise Edition.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
+    "translation": "Wersja próbna Enterprise jest teraz aktywna. Przejdź do **Konsola systemowa > Uwierzytelnianie > AD/LDAP**, aby zintegrować usługę AD/LDAP."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
+    "translation": "Twój system Mattermost ma ponad 100 użytkowników. Wraz ze wzrostem bazy użytkowników, dodawanie nowych kont może stać się czasochłonne. Zalecamy zintegrowanie Active Directory/LDAP organizacji, co pozwoli każdemu, kto ma konto, uzyskać dostęp do Mattermost.\n\n[Dowiedz się więcej o integracji z AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Skalowanie z Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Twój system Mattermost ma ponad 100 użytkowników. Wraz ze wzrostem liczby użytkowników, dodawanie nowych kont może stać się czasochłonne. Zalecamy zintegrowanie z Active Directory/LDAP w twojej organizacji, co pozwoli każdemu, kto ma konto, uzyskać dostęp do Mattermost.\n\n[Dowiedz się więcej o integracji z AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nKlikając przycisk Skontaktuj się z nami, udostępnisz swoje dane firmie Mattermost, Inc. [Dowiedz się więcej](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermost prośba o kontakt. Mój zespół ma teraz 100 użytkowników i rozważam Mattermost Enterprise Edition.\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "Wersja próbna Enterprise jest teraz aktywna. Przejdź do **Konsola systemowa > Uwierzytelnianie > MFA**, aby wymusić uwierzytelnianie wieloskładnikowe."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "System Mattermost ma włączone uwierzytelnianie wieloskładnikowe, co daje użytkownikom możliwość zabezpieczenia konta dodatkowymi sposobami uwierzytelniania poza hasłem. Aby poprawić bezpieczeństwo w całym systemie, możesz wymagać, aby wszystkie konta Mattermost korzystały z uwierzytelniania wieloskładnikowego.\n\n[Dowiedz się więcej o wymuszaniu uwierzytelniania wieloskładnikowego] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "System Mattermost ma włączone uwierzytelnianie wieloskładnikowe, co daje użytkownikom możliwość zabezpieczenia konta dodatkowymi sposobami uwierzytelniania poza hasłem. Aby poprawić bezpieczeństwo w całym systemie, możesz wymagać, aby wszystkie konta Mattermost korzystały z uwierzytelniania wieloskładnikowego.\n\n[Dowiedz się więcej o egzekwowaniu uwierzytelniania wieloskładnikowego] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nKlikając przycisk Skontaktuj się z nami, użytkownik udostępnia swoje dane firmie Mattermost, Inc. [Dowiedz się więcej](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Prośba o kontakt z firmą Mattermost. Chcę dowiedzieć się więcej o egzekwowaniu uwierzytelniania wieloskładnikowego.\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_us",
+    "translation": "Wyślij do nas e-mail"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Wersja próbna Enterprise jest teraz aktywna. Przejdź do **Konsoli systemowej > Uwierzytelnianie > Dostęp dla gości**, aby włączyć Konta Gości."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "Projekty często angażują ludzi zarówno wewnątrz, jak i na zewnątrz organizacji. Dzięki Kontom Gości możesz wprowadzić zewnętrznych partnerów do swojego systemu Mattermost i określić, z kim mogą pracować i co mogą zobaczyć.\n\n[Dowiedz się więcej o włączaniu kont gości](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Tworzenie Kont Gości"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Projekty często angażują ludzi zarówno wewnątrz, jak i na zewnątrz organizacji. Dzięki Kontom Gości możesz wprowadzić zewnętrznych partnerów do swojego systemu Mattermost i określić, z kim mogą pracować i co mogą zobaczyć.\n\n[Dowiedz się więcej o włączaniu kont gości](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nKlikając przycisk Skontaktuj się z nami, udostępniasz swoje dane firmie Mattermost, Inc. [Dowiedz się więcej](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Prośba o kontakt z firmą Mattermost. Chcę dowiedzieć się więcej na temat korzystania z Kont Gości.\n"
+  },
+  {
+    "id": "api.server.warn_metric.contacting_us",
+    "translation": "Kontakt z nami"
+  },
+  {
+    "id": "api.server.warn_metric.contact_us",
+    "translation": "Skontaktuj się z nami"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Nie można pobrać licencji próbnej. Odwiedź stronę https://mattermost.com/trial/, aby poprosić o licencję."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_success.message",
+    "translation": "Dziękujemy za skontaktowanie się z firmą Mattermost. Wkrótce skontaktujemy się z tobą."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_failure.message",
+    "translation": "Wiadomość nie mogła zostać wysłana."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_failure.body",
+    "translation": "Prosimy o kontakt mailowy."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_subject",
+    "translation": "Wniosek o kontakt z firmą Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+    "translation": "Adres URL strony: {{.SiteUrl}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+    "translation": "Aktywni Użytkownicy: {{.NoRegisteredUsers}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_footer",
+    "translation": "W razie dodatkowych pytań prosimy o kontakt pod adresem support@mattermost.com"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_email_header",
+    "translation": "Email: {{.Email}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+    "translation": "Id diagnozy: {{.DiagnosticId}}"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Nie udało się wysłać wiadomości e-mail z prośbą o przedłużenie licencji"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Nie udało się wygenerować linku odnowienia licencji"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Jedno lub więcej z poniższych uprawnień, które próbujesz dodać lub usunąć jest niedozwolone"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Bezpieczne połączenie o tym samym adresie url już istnieje."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Napotkaliśmy błąd podczas aktualizacji bezpiecznego połączenia."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Usługa zdalnego klastra nie jest włączona."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Bezpieczne połączenie zostało już dodane."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Napotkaliśmy błąd podczas zapisywania bezpiecznego połączenia."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Nieprawidłowy identyfikator."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Napotkaliśmy błąd podczas odzyskiwania bezpiecznego połączenia."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Napotkaliśmy błąd przy usuwaniu bezpiecznego połączenia."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Odpowiedz na {{.channelName}}"
+  },
+  {
+    "id": "api.preference.update_preferences.update_sidebar.app_error",
+    "translation": "Nie można zaktualizować paska bocznego, aby dopasować go do usuniętych preferencji"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " odpowiedział na wątek, który śledzisz."
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Nie można przetworzyć treści żądania."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Nie można przetworzyć treści żądania."
+  },
+  {
+    "id": "api.post.error_get_post_id.pending",
+    "translation": "Nie można uzyskać oczekującego postu."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Przekierowanie użytkownika z powrotem do aplikacji."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Możesz teraz zamknąć tę kartę przeglądarki."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Jeśli nie zostaniesz przekierowany automatycznie, kliknij link <a href='{{.Link}}'></a>"
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Uwierzytelnianie zakończone"
   }
 ]
