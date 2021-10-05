@@ -390,7 +390,7 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		tablem := db.AddTableWithName(channelMember{}, "ChannelMembers").SetKeys(false, "ChannelId", "UserId")
 		tablem.ColMap("ChannelId").SetMaxSize(26)
 		tablem.ColMap("UserId").SetMaxSize(26)
-		tablem.ColMap("Roles").SetMaxSize(64)
+		tablem.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
 		tablem.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 
 		tablePublicChannels := db.AddTableWithName(publicChannel{}, "PublicChannels").SetKeys(false, "Id")
@@ -955,13 +955,16 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 			sq.And{
 				sq.Expr("Id = ChannelId"),
 				sq.Eq{"UserId": userId},
-				sq.Or{
-					sq.Eq{"TeamId": teamId},
-					sq.Eq{"TeamId": ""},
-				},
 			},
 		).
 		OrderBy("DisplayName")
+
+	if teamId != "" {
+		query = query.Where(sq.Or{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"TeamId": ""},
+		})
+	}
 
 	if includeDeleted {
 		if lastDeleteAt != 0 {
