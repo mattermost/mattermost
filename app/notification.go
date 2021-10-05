@@ -1339,13 +1339,12 @@ type CRTNotifiers struct {
 }
 
 func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitMentions, channelMemberNotificationProps model.StringMap, channel *model.Channel) {
-	// user notify props
 	_, userWasMentioned := mentions.Mentions[user.Id]
+	notifyDesktop, notifyPush, notifyEmail := shouldUserNotifyCRT(user, userWasMentioned)
+	notifyChannelDesktop, notifyChannelPush := shouldChannelMemberNotifyCRT(channelMemberNotificationProps, userWasMentioned)
 
-	notifyDesktop, notifyPush, notifyEmail := user.ShouldNotifyCRT(userWasMentioned)
-
-	notifyChannelDesktop, notifyChannelPush := model.ShouldChannelMemberNotifyCRT(channelMemberNotificationProps, userWasMentioned)
-
+	// respect the user global notify props when there are no channel specific ones (default)
+	// otherwise respect the channel member's notify props
 	if channelMemberNotificationProps[model.DesktopNotifyProp] == model.ChannelNotifyDefault {
 		if notifyDesktop {
 			c.Desktop = append(c.Desktop, user.Id)
@@ -1358,6 +1357,8 @@ func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitM
 		c.Email = append(c.Email, user.Id)
 	}
 
+	// respect the user global notify props when there are no channel specific ones (default)
+	// otherwise respect the channel member's notify props
 	if channelMemberNotificationProps[model.PushNotifyProp] == model.ChannelNotifyDefault {
 		if notifyPush {
 			c.Push = append(c.Push, user.Id)
@@ -1365,4 +1366,65 @@ func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitM
 	} else if notifyChannelPush {
 		c.Push = append(c.Push, user.Id)
 	}
+}
+
+// user global settings check for desktop, email, and push notifications
+func shouldUserNotifyCRT(user *model.User, isMentioned bool) (notifyDesktop, notifyPush, notifyEmail bool) {
+	notifyDesktop = false
+	notifyPush = false
+	notifyEmail = false
+
+	desktop := user.NotifyProps[model.DesktopNotifyProp]
+	push := user.NotifyProps[model.PushNotifyProp]
+	shouldEmail := user.NotifyProps[model.EmailNotifyProp] == "true"
+
+	desktopThreads := user.NotifyProps[model.DesktopThreadsNotifyProp]
+	emailThreads := user.NotifyProps[model.EmailThreadsNotifyProp]
+	pushThreads := user.NotifyProps[model.PushThreadsNotifyProp]
+
+	// user should be notified via desktop notification in the case the notify prop is not set as no notify
+	// and either the user was mentioned or the CRT notify prop for desktop is set to all
+	if desktop != model.UserNotifyNone && (isMentioned || desktopThreads == model.UserNotifyAll || desktop == model.UserNotifyAll) {
+		notifyDesktop = true
+	}
+
+	// user should be notified via email when emailing is enabled and
+	// either the user was mentioned, or the CRT notify prop for email is set to all
+	if shouldEmail && (isMentioned || emailThreads == model.UserNotifyAll) {
+		notifyEmail = true
+	}
+
+	// user should be notified via push in the case the notify prop is not set as no notify
+	// and either the user was mentioned or the CRT push notify prop is set to all
+	if push != model.UserNotifyNone && (isMentioned || pushThreads == model.UserNotifyAll || push == model.UserNotifyAll) {
+		notifyPush = true
+	}
+
+	return
+}
+
+// channel specific settings check for desktop and push notifications
+func shouldChannelMemberNotifyCRT(notifyProps model.StringMap, isMentioned bool) (notifyDesktop, notifyPush bool) {
+	notifyDesktop = false
+	notifyPush = false
+
+	desktop := notifyProps[model.DesktopNotifyProp]
+	push := notifyProps[model.PushNotifyProp]
+
+	desktopThreads := notifyProps[model.DesktopThreadsNotifyProp]
+	pushThreads := notifyProps[model.PushThreadsNotifyProp]
+
+	// user should be notified via desktop notification in the case the notify prop is not set as no notify
+	// and either the user was mentioned or the CRT notify prop for desktop is set to all
+	if desktop != model.ChannelNotifyNone && (isMentioned || desktopThreads == model.ChannelNotifyAll || desktop == model.ChannelNotifyAll) {
+		notifyDesktop = true
+	}
+
+	// user should be notified via push in the case the notify prop is not set as no notify
+	// and either the user was mentioned or the CRT push notify prop is set to all
+	if push != model.ChannelNotifyNone && (isMentioned || pushThreads == model.ChannelNotifyAll || push == model.ChannelNotifyAll) {
+		notifyPush = true
+	}
+
+	return
 }
