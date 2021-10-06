@@ -3221,6 +3221,17 @@ func TestRemoveChannelMember(t *testing.T) {
 	resp, err = th.SystemAdminClient.RemoveUserFromChannel(directChannel.Id, user1.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+
+	// Test on preventing removal of user from a group channel
+	user3 := th.CreateUser()
+	groupChannel, _, err := client.CreateGroupChannel([]string{user1.Id, user2.Id, user3.Id})
+	require.NoError(t, err)
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		resp, err = client.RemoveUserFromChannel(groupChannel.Id, user1.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestAutocompleteChannels(t *testing.T) {
