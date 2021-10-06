@@ -136,7 +136,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_member_history_to_sql")
 	}
-	var histories []*model.ChannelMemberHistoryResult
+	histories := []*model.ChannelMemberHistoryResult{}
 	if err := s.GetReplicaX().Select(&histories, query, args...); err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 		return nil, errors.Wrap(err, "channel_member_history_to_sql")
 	}
 
-	var histories []*model.ChannelMemberHistoryResult
+	histories := []*model.ChannelMemberHistoryResult{}
 	if err := s.GetReplicaX().Select(&histories, query, args...); err != nil {
 		return nil, err
 	}
