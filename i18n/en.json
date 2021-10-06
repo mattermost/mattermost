@@ -2150,10 +2150,6 @@
     "translation": "Invalid RootId parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
   },
@@ -2214,10 +2210,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -2358,10 +2350,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "You cannot save reaction for the other user."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
@@ -7760,6 +7748,10 @@
     "translation": "Invalid push notification level."
   },
   {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid channel member roles longer than {{.Limit}} characters."
+  },
+  {
     "id": "model.channel_member.is_valid.unread_level.app_error",
     "translation": "Invalid mark unread level."
   },
@@ -8724,6 +8716,22 @@
     "translation": "All IncludeDeletedChannels params should have the same value."
   },
   {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Invalid CreateAt field for session."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Invalid Id field for session."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Invalid session roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Invalid UserId field for session."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
@@ -8774,6 +8782,10 @@
   {
     "id": "model.team.is_valid.url.app_error",
     "translation": "Invalid URL Identifier."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid team member roles longer than {{.Limit}} characters."
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
@@ -8942,6 +8954,10 @@
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Invalid user roles longer than {{.Limit}} characters."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",

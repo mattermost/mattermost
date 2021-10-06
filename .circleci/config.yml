@@ -444,19 +444,23 @@ jobs:
   build-docker:
     working_directory: ~/
     docker:
-      - image: circleci/buildpack-deps:stretch
+      - image: cimg/base:stable
     steps:
       - attach_workspace:
           at: .
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.7
       - run:
           command: |
             export TAG="${CIRCLE_SHA1:0:7}"
+
             cd mattermost-server
-            export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
-            docker build --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} build
+
+            export DOCKER_CLI_EXPERIMENTAL=enabled
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-            docker push mattermost/mattermost-team-edition:${TAG}
+            export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
+            # Pushing the images to two places to not break anything, but the `mattermost/mattermost-team-edition` will be removed soon.
+            docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} -t mattermost/mm-te-test:${TAG} build
 
 workflows:
   version: 2

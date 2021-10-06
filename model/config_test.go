@@ -308,7 +308,7 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	})
 }
 
-func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
+func TestConfigDefaultPlaybooksPluginState(t *testing.T) {
 	t.Run("should enable Playbooks plugin by default on enterprise-ready builds", func(t *testing.T) {
 		BuildEnterpriseReady = "true"
 		c1 := Config{}
@@ -317,15 +317,15 @@ func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
 		assert.True(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
 	})
 
-	t.Run("should not enable Playbooks plugin by default on non-enterprise-ready builds", func(t *testing.T) {
+	t.Run("should enable Playbooks plugin by default on non-enterprise-ready builds", func(t *testing.T) {
 		BuildEnterpriseReady = ""
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.Nil(t, c1.PluginSettings.PluginStates["playbooks"])
+		assert.True(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
 	})
 
-	t.Run("should not re-enable IncidentManagement plugin after it has been disabled", func(t *testing.T) {
+	t.Run("should not re-enable Playbooks plugin after it has been disabled", func(t *testing.T) {
 		BuildEnterpriseReady = ""
 		c1 := Config{
 			PluginSettings: PluginSettings{

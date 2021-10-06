@@ -29,10 +29,9 @@ type FeatureFlags struct {
 	AppsEnabled bool
 
 	// Feature flags to control plugin versions
-	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
-	PluginPlaybooks          string `plugin_id:"playbooks"`
-	PluginApps               string `plugin_id:"com.mattermost.apps"`
-	PluginFocalboard         string `plugin_id:"focalboard"`
+	PluginPlaybooks  string `plugin_id:"playbooks"`
+	PluginApps       string `plugin_id:"com.mattermost.apps"`
+	PluginFocalboard string `plugin_id:"focalboard"`
 
 	// Enable timed dnd support for user status
 	TimedDND bool
@@ -59,12 +58,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
-	f.PluginIncidentManagement = "1.16.1"
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.TimedDND = false
 	f.PermalinkPreviews = true
-	f.GlobalHeader = false
+	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "none"
 	f.DownloadAppsCTA = "none"

@@ -1312,10 +1312,6 @@
     "translation": "잘못된 RootId 매개변수입니다"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "이 채널은 읽기 전용입니다. 권한을 가진 사용자들만 게시할 수 있습니다."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "포스트 만드는 중 오류"
   },
@@ -1370,10 +1366,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "이 채널은 읽기 전용입니다. 권한을 가진 사용자들만 게시할 수 있습니다."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1454,10 +1446,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "타 사용자에 대한 리액션 저장을 할 수 없습니다."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "읽기 전용 채널에서는 메시지에 응답할 수 없습니다."
   },
   {
     "id": "api.restricted_system_admin",
