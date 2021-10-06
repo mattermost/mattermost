@@ -185,7 +185,7 @@ jobs:
       - run:
           command: |
             cd mattermost-server
-            sudo npm install -g mjml
+            sudo npm install -g mjml@4.9.0
             make build-templates
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
 
