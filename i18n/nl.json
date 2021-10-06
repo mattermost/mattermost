@@ -1314,10 +1314,6 @@
     "translation": "Ongeldig RootId parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Dit kanaal is alleen-lezen. Alleen leden met toestemming kunnen hier posten."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Fout bij het aanmaken van bericht."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Dit kanaal is alleen-lezen. Enkel leden met voldoende rechten kunnen berichten vast- of losmaken hier."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Je kan de reactie voor de andere gebruiker niet bewaren."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reageren op berichten is niet mogelijk in alleen-lezen kanalen."
   },
   {
     "id": "api.restricted_system_admin",

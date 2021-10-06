@@ -1353,6 +1353,25 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 	return rtoken, nil
 }
 
+func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
+	rtoken, err := a.Srv().Store.Token().GetByToken(token)
+
+	if err != nil {
+		var status int
+
+		switch err.(type) {
+		case *store.ErrNotFound:
+			status = http.StatusNotFound
+		default:
+			status = http.StatusInternalServerError
+		}
+
+		return nil, model.NewAppError("GetTokenById", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), status)
+	}
+
+	return rtoken, nil
+}
+
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
 	err := a.Srv().Store.Token().Delete(token.Token)
 	if err != nil {

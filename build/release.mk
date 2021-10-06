@@ -87,6 +87,7 @@ package-prep:
 	sed -i'' -e 's|"ReplyToAddress": "test@example.com",|"ReplyToAddress": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPServer": "localhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
+	chmod 600 $(DIST_PATH)/config/config.json
 
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/client
