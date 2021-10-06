@@ -542,9 +542,9 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
 	t1 := &model.Team{
 		DisplayName: "DisplayName",
-		Name: NewTestId(),
-		Email: MakeEmail(),
-		Type: model.TeamOpen,
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
 	}
 
 	t1, err := ss.Team().Save(t1)
