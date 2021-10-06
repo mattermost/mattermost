@@ -1314,10 +1314,6 @@
     "translation": "Ongeldig RootId parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Dit kanaal is alleen-lezen. Alleen leden met toestemming kunnen hier posten."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Fout bij het aanmaken van bericht."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Dit kanaal is alleen-lezen. Enkel leden met voldoende rechten kunnen berichten vast- of losmaken hier."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Je kan de reactie voor de andere gebruiker niet bewaren."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reageren op berichten is niet mogelijk in alleen-lezen kanalen."
   },
   {
     "id": "api.restricted_system_admin",
@@ -9030,8 +9018,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} stuurde je een nieuw bericht",
-      "other": "{{ .SenderName }} and {{.Count}} anderen stuurde je een nieuw bericht"
+      "one": "Je hebt een nieuwe bericht",
+      "other": "Je hebt nieuwe berichten"
     }
   },
   {
@@ -9184,7 +9172,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " commentaar gegeven op een draadje dat je volgt."
+    "translation": " antwoordde op een draadje dat je volgt."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9196,7 +9184,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Reageer op draadje"
+    "translation": "Antwoord in {{.channelName}}"
   },
   {
     "id": "api.config.reload_config.app_error",
@@ -9209,5 +9197,33 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Fout bij unmarshaling."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} een bericht beantwoord in jouw groep."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Antwoord in privé-bericht"
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.Afzendernaam}} op een draadje in je privé-berichten geantwoord."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt in {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} geantwoord op een draadje dat je volgt."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " antwoordde op een draadje."
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
   }
 ]
