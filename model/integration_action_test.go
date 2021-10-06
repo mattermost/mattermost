@@ -145,8 +145,7 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 
 	t.Run("nil check", func(t *testing.T) {
 		pa1 := &PostAction{
-			Integration: &PostActionIntegration{
-			},
+			Integration: &PostActionIntegration{},
 		}
 
 		pa2 := &PostAction{
