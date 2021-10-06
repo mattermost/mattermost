@@ -3501,8 +3501,8 @@ func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID 
 	getUnfixedCMQuery := `
 			SELECT ChannelMembers.*
 			FROM ChannelMembers, Channels
-			WHERE ChannelId = Id AND (ChannelMembers.ChannelId, ChannelMembers.UserId) > (:channelId, :userId) AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
-			ORDER BY ChannelId, UserId
+			WHERE ChannelId = Id AND (ChannelMembers.UserId, ChannelMembers.ChannelId) > (:userId, :channelId) AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
+			ORDER BY UserId, ChannelId
 			LIMIT :count;
 	`
 	if userID == "" && channelID == "" {
@@ -3510,7 +3510,7 @@ func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID 
 			SELECT ChannelMembers.*
 			FROM ChannelMembers, Channels
 			WHERE ChannelId = Id AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
-			ORDER BY ChannelId, UserId
+			ORDER BY UserId, ChannelId
 			LIMIT :count;
 		`
 	}

@@ -159,6 +159,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 		userID = lastCM.UserId
 
 		prevErr = false
+		cmToFix := make(map[string][]string)
 		for _, cm := range cms {
 			postTypes, err := w.app.Srv().Store.Post().GetUniquePostTypesSince(cm.ChannelId, cm.LastViewedAt)
 			if err != nil {
@@ -175,22 +176,25 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 				continue
 			}
 			if !containsNormalPost(postTypes) {
-				_, err := w.app.Srv().Store.Channel().UpdateLastViewedAt([]string{cm.ChannelId}, cm.UserId, false)
-				if err != nil {
-					mlog.Warn("Worker experienced an error while trying to mark channel as read",
-						mlog.String("worker", w.name),
-						mlog.String("job_id", job.Id),
-						mlog.String("error", err.Error()))
-					if prevErr {
-						w.updateProgress(job, cm.ChannelId, cm.UserId)
-						w.setJobError(job, model.NewAppError(w.name, "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read", nil, err.Error(), http.StatusInternalServerError))
-						return
-					}
-					prevErr = true
-					continue
-				}
-				fixedBadCM++
+				cmToFix[cm.UserId] = append(cmToFix[cm.UserId], cm.ChannelId)
 			}
+		}
+		for uID, cIDs := range cmToFix {
+			_, err := w.app.Srv().Store.Channel().UpdateLastViewedAt(cIDs, uID, false)
+			if err != nil {
+				mlog.Warn("Worker experienced an error while trying to mark channel as read",
+					mlog.String("worker", w.name),
+					mlog.String("job_id", job.Id),
+					mlog.String("error", err.Error()))
+				if prevErr {
+					w.updateProgress(job, channelID, userID)
+					w.setJobError(job, model.NewAppError(w.name, "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read", nil, err.Error(), http.StatusInternalServerError))
+					return
+				}
+				prevErr = true
+				continue
+			}
+			fixedBadCM = fixedBadCM + len(cIDs)
 		}
 		w.updateProgress(job, channelID, userID)
 		prevErr = false
