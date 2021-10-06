@@ -153,7 +153,7 @@ func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *mo
 
 func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
 	channel, err := c.ChannelStore.SaveDirectChannel(directchannel, member1, member2)
-	if err != nil {
+	if err == nil {
 		c.rootStore.indexUserFromID(member1.UserId)
 		c.rootStore.indexUserFromID(member2.UserId)
 		c.indexChannel(channel)
@@ -270,10 +270,12 @@ func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) error {
 	}
 
 	err := c.ChannelStore.PermanentDeleteMembersByUser(userId)
-	if err == nil && errGetChannels == nil {
+	if err == nil {
 		c.rootStore.indexUserFromID(userId)
-		for _, ch := range channels {
-			c.indexChannel(ch)
+		if errGetChannels == nil {
+			for _, ch := range channels {
+				c.indexChannel(ch)
+			}
 		}
 	}
 

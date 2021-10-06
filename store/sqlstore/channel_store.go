@@ -1050,26 +1050,16 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
-	perPage := 500
-	page := 0
+func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
+	var dbMembers channelMemberWithSchemeRolesList
+	_, err := s.GetReplica().Select(&dbMembers, ChannelMembersWithSchemeSelectQuery+"WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelID})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelID=%s", channelID)
+	}
 
-	var res []string
-	for {
-		channelMembers, err := s.GetMembers(id, page*perPage, perPage)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, member := range channelMembers {
-			res = append(res, member.UserId)
-		}
-
-		if len(channelMembers) < perPage {
-			break
-		}
-
-		page++
+	res := make([]string, 0, len(dbMembers.ToModel()))
+	for _, member := range dbMembers.ToModel() {
+		res = append(res, member.UserId)
 	}
 
 	return res, nil
@@ -2473,28 +2463,28 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bo
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
-	keys, params := MapStringsToQueryParams(channelIds, "Channel")
-	query := `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
-	 FROM Channels c, Teams t
-	 WHERE
-		c.TeamId=t.Id
-		AND
-	  c.Id IN ` + keys + ` ORDER BY c.Name`
+func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIDs []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
+	query := s.getQueryBuilder().
+		Select("c.*",
+			"COALESCE(t.DisplayName, '') As TeamDisplayName",
+			"COALESCE(t.Name, '') AS TeamName",
+			"COALESCE(t.UpdateAt, 0) AS TeamUpdateAt").
+		From("Channels c").
+		LeftJoin("Teams t ON c.TeamId = t.Id").
+		Where(sq.Eq{"c.Id": channelIDs}).
+		OrderBy("c.Name")
+
 	if !includeDeleted {
-		query = `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
-			 FROM Channels c, Teams t
-			 WHERE
-				c.TeamId=t.Id
-				AND
-				c.DeleteAt = 0
-				AND
-			  c.Id IN ` + keys + ` ORDER BY c.Name`
+		query = query.Where(sq.Eq{"c.DeleteAt": 0})
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getChannelsWithTeamData_tosql")
 	}
 
 	var channels []*model.ChannelWithTeamData
-	_, err := s.GetReplica().Select(&channels, query, params)
-
+	_, err = s.GetReplica().Select(&channels, sql, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels")
 	}

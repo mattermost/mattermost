@@ -61,6 +61,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetChannelUnread", func(t *testing.T) { testGetChannelUnread(t, ss) })
 	t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, ss, s) })
 	t.Run("GetChannelsByIds", func(t *testing.T) { testChannelStoreGetChannelsByIds(t, ss) })
+	t.Run("GetChannelsWithTeamDataByIds", func(t *testing.T) { testGetChannelsWithTeamDataByIds(t, ss) })
 	t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, ss) })
 	t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testChannelStoreDelete(t, ss) })
@@ -536,6 +537,81 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 		require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, r1[1]))
 		require.Equal(t, channelToJSON(t, &o3), channelToJSON(t, r1[2]))
 	})
+}
+
+func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
+	t1 := &model.Team{
+		DisplayName: "DisplayName",
+		Name: NewTestId(),
+		Email: MakeEmail(),
+		Type: model.TeamOpen,
+	}
+
+	t1, err := ss.Team().Save(t1)
+	require.NoError(t, err, "couldn't save item")
+
+	c1 := model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Name"
+	c1.Name = "aa" + model.NewId()
+	c1.Type = model.ChannelTypeOpen
+	_, nErr := ss.Channel().Save(&c1, -1)
+	require.NoError(t, nErr)
+
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	_, err = ss.User().Save(u1)
+	require.NoError(t, err)
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	u2 := model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	_, err = ss.User().Save(&u2)
+	require.NoError(t, err)
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
+	require.NoError(t, nErr)
+
+	c2 := model.Channel{}
+	c2.TeamId = t1.Id
+	c2.DisplayName = "Direct Name"
+	c2.Name = "bb" + model.NewId()
+	c2.Type = model.ChannelTypeDirect
+
+	c3 := model.Channel{}
+	c3.TeamId = t1.Id
+	c3.DisplayName = "Deleted channel"
+	c3.Name = "cc" + model.NewId()
+	c3.Type = model.ChannelTypeOpen
+	_, nErr = ss.Channel().Save(&c3, -1)
+	require.NoError(t, nErr)
+	nErr = ss.Channel().Delete(c3.Id, 123)
+	require.NoError(t, nErr)
+	c3.DeleteAt = 123
+	c3.UpdateAt = 123
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = c2.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = c2.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	_, nErr = ss.Channel().SaveDirectChannel(&c2, &m1, &m2)
+	require.NoError(t, nErr)
+
+	res, err := ss.Channel().GetChannelsWithTeamDataByIds([]string{c1.Id, c2.Id}, false)
+	require.NoError(t, err)
+	require.Len(t, res, 2)
+	assert.Equal(t, res[0].Id, c1.Id)
+	assert.Equal(t, res[0].TeamName, t1.Name)
+	assert.Equal(t, res[1].Id, c2.Id)
+	assert.Equal(t, res[1].TeamName, "")
 }
 
 func testChannelStoreGetForPost(t *testing.T, ss store.Store) {

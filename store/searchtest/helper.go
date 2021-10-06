@@ -251,7 +251,7 @@ func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose str
 		return nil, err
 	}
 
-	if channelType == model.ChannelTypePrivate && user != nil {
+	if user != nil {
 		err = th.addUserToChannels(user, []string{channel.Id})
 		if err != nil {
 			return nil, err
