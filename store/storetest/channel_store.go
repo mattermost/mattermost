@@ -5436,7 +5436,6 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		ExpectedResults model.ChannelList
 	}{
 		{"Channel A", teamID, m4.UserId, "Channel ", false, model.ChannelList{&o4, &o1, &o3, &o12}},
-		{"Channel B (private)", teamID, m4.UserId, "Channel B", false, model.ChannelList{&o4}},
 		{"off limit (private)", teamID, m5.UserId, "off limit", false, model.ChannelList{&o8}},
 	}...,
 	)
