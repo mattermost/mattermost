@@ -69,6 +69,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "none"
 	f.DownloadAppsCTA = "none"
+	f.InviteToTeam = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
