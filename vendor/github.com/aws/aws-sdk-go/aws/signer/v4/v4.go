@@ -418,7 +418,7 @@ var SignRequestHandler = request.NamedHandler{
 // request handler should only be used with the SDK's built in service client's
 // API operation requests.
 //
-// This function should not be used on its on its own, but in conjunction with
+// This function should not be used on its own, but in conjunction with
 // an AWS service client's API operation call. To sign a standalone request
 // not created by a service client's API operation method use the "Sign" or
 // "Presign" functions of the "Signer" type.

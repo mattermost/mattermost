@@ -1,6 +1,6 @@
 run:
   # timeout for analysis, e.g. 30s, 5m, default is 1m
-  timeout: 2m
+  timeout: 5m
 linters:
   enable:
     #- golint
@@ -10,7 +10,6 @@ linters:
     - goconst
     - gofmt
     - misspell
-    - maligned
     - unparam
     - nakedret
     - prealloc
@@ -19,8 +18,8 @@ linters-settings:
   misspell:
     locale: US
 issues:
-  max-same: 0
-  max-per-linter: 0
+  max-same-issues: 0
+  max-issues-per-linter: 0
   exclude-use-default: false
   exclude:
     # gosec: Duplicated errcheck checks

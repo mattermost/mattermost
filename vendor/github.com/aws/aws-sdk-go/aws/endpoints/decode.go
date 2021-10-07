@@ -81,7 +81,6 @@ func decodeV3Endpoints(modelDef modelDefinition, opts DecodeModelOptions) (Resol
 	// Customization
 	for i := 0; i < len(ps); i++ {
 		p := &ps[i]
-		custAddEC2Metadata(p)
 		custAddS3DualStack(p)
 		custRegionalS3(p)
 		custRmIotDataService(p)
@@ -138,19 +137,6 @@ func custAddDualstack(p *partition, svcName string) {
 	s.Defaults.DualStackHostname = "{service}.dualstack.{region}.{dnsSuffix}"
 
 	p.Services[svcName] = s
-}
-
-func custAddEC2Metadata(p *partition) {
-	p.Services["ec2metadata"] = service{
-		IsRegionalized:    boxedFalse,
-		PartitionEndpoint: "aws-global",
-		Endpoints: endpoints{
-			"aws-global": endpoint{
-				Hostname:  "169.254.169.254/latest",
-				Protocols: []string{"http"},
-			},
-		},
-	}
 }
 
 func custRmIotDataService(p *partition) {
