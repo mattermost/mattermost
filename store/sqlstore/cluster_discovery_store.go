@@ -97,7 +97,7 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 		FROM 
 			ClusterDiscovery
 		WHERE
-			Type=? AND ClusterName=? AND LastPingAt=? 
+			Type=? AND ClusterName=? AND LastPingAt>? 
 	`, ClusterDiscoveryType, clusterName, model.GetMillis()-model.CDSOfflineAfterMillis)
 
 	if err != nil {
