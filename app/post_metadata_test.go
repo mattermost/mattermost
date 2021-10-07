@@ -421,7 +421,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 
 		// Reminder that only the first link gets an embed and dimensions
 
@@ -499,7 +499,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
@@ -579,7 +579,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 		previewPost.Metadata.Embeds = nil
-		clientPost := th.App.PreparePostForClient(previewPost, false, false)
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(previewPost, false, false)
 		firstEmbed := clientPost.Metadata.Embeds[0]
 		preview := firstEmbed.Data.(*model.PreviewPost)
 		require.Equal(t, referencedPost.Id, preview.PostID)
@@ -726,7 +726,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	require.Nil(t, err)
 
 	post.Metadata.Embeds = nil
-	embeds := th.App.PreparePostForClient(post, false, false).Metadata.Embeds
+	embeds := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false).Metadata.Embeds
 	require.Len(t, embeds, 1, "should have one embed")
 
 	embed := embeds[0]
