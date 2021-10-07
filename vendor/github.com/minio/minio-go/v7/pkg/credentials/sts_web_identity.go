@@ -54,8 +54,9 @@ type WebIdentityResult struct {
 
 // WebIdentityToken - web identity token with expiry.
 type WebIdentityToken struct {
-	Token  string
-	Expiry int
+	Token       string
+	AccessToken string
+	Expiry      int
 }
 
 // A STSWebIdentity retrieves credentials from MinIO service, and keeps track if
@@ -121,6 +122,10 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSession
 		v.Set("RoleSessionName", roleSessionName)
 	}
 	v.Set("WebIdentityToken", idToken.Token)
+	if idToken.AccessToken != "" {
+		// Usually set when server is using extended userInfo endpoint.
+		v.Set("WebIdentityAccessToken", idToken.AccessToken)
+	}
 	if idToken.Expiry > 0 {
 		v.Set("DurationSeconds", fmt.Sprintf("%d", idToken.Expiry))
 	}

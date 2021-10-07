@@ -29,7 +29,8 @@ const (
 	RFC822OutputTimeFormat = "Mon, 02 Jan 2006 15:04:05 GMT"
 
 	// RFC3339 a subset of the ISO8601 timestamp format. e.g 2014-04-29T18:30:38Z
-	ISO8601TimeFormat = "2006-01-02T15:04:05.999999999Z"
+	ISO8601TimeFormat    = "2006-01-02T15:04:05.999999999Z"
+	iso8601TimeFormatNoZ = "2006-01-02T15:04:05.999999999"
 
 	// This format is used for output time with fractional second precision up to milliseconds
 	ISO8601OutputTimeFormat = "2006-01-02T15:04:05.999999999Z"
@@ -82,6 +83,7 @@ func ParseTime(formatName, value string) (time.Time, error) {
 	case ISO8601TimeFormatName: // Smithy DateTime format
 		return tryParse(value,
 			ISO8601TimeFormat,
+			iso8601TimeFormatNoZ,
 			time.RFC3339Nano,
 			time.RFC3339,
 		)

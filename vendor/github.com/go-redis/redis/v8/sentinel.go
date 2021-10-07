@@ -23,7 +23,13 @@ type FailoverOptions struct {
 	MasterName string
 	// A seed list of host:port addresses of sentinel nodes.
 	SentinelAddrs []string
-	// Sentinel password from "requirepass <password>" (if enabled) in Sentinel configuration
+
+	// If specified with SentinelPassword, enables ACL-based authentication (via
+	// AUTH <user> <pass>).
+	SentinelUsername string
+	// Sentinel password from "requirepass <password>" (if enabled) in Sentinel
+	// configuration, or, if SentinelUsername is also supplied, used for ACL-based
+	// authentication.
 	SentinelPassword string
 
 	// Allows routing read-only commands to the closest master or slave node.
@@ -57,6 +63,9 @@ type FailoverOptions struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 
+	// PoolFIFO uses FIFO mode for each node connection pool GET/PUT (default LIFO).
+	PoolFIFO bool
+
 	PoolSize           int
 	MinIdleConns       int
 	MaxConnAge         time.Duration
@@ -86,6 +95,7 @@ func (opt *FailoverOptions) clientOptions() *Options {
 		ReadTimeout:  opt.ReadTimeout,
 		WriteTimeout: opt.WriteTimeout,
 
+		PoolFIFO:           opt.PoolFIFO,
 		PoolSize:           opt.PoolSize,
 		PoolTimeout:        opt.PoolTimeout,
 		IdleTimeout:        opt.IdleTimeout,
@@ -105,6 +115,7 @@ func (opt *FailoverOptions) sentinelOptions(addr string) *Options {
 		OnConnect: opt.OnConnect,
 
 		DB:       0,
+		Username: opt.SentinelUsername,
 		Password: opt.SentinelPassword,
 
 		MaxRetries:      opt.MaxRetries,
@@ -115,6 +126,7 @@ func (opt *FailoverOptions) sentinelOptions(addr string) *Options {
 		ReadTimeout:  opt.ReadTimeout,
 		WriteTimeout: opt.WriteTimeout,
 
+		PoolFIFO:           opt.PoolFIFO,
 		PoolSize:           opt.PoolSize,
 		PoolTimeout:        opt.PoolTimeout,
 		IdleTimeout:        opt.IdleTimeout,
@@ -146,6 +158,7 @@ func (opt *FailoverOptions) clusterOptions() *ClusterOptions {
 		ReadTimeout:  opt.ReadTimeout,
 		WriteTimeout: opt.WriteTimeout,
 
+		PoolFIFO:           opt.PoolFIFO,
 		PoolSize:           opt.PoolSize,
 		PoolTimeout:        opt.PoolTimeout,
 		IdleTimeout:        opt.IdleTimeout,

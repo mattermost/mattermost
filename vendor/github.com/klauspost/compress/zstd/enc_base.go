@@ -38,8 +38,8 @@ func (e *fastBase) AppendCRC(dst []byte) []byte {
 
 // WindowSize returns the window size of the encoder,
 // or a window size small enough to contain the input size, if > 0.
-func (e *fastBase) WindowSize(size int) int32 {
-	if size > 0 && size < int(e.maxMatchOff) {
+func (e *fastBase) WindowSize(size int64) int32 {
+	if size > 0 && size < int64(e.maxMatchOff) {
 		b := int32(1) << uint(bits.Len(uint(size)))
 		// Keep minimum window.
 		if b < 1024 {
