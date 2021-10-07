@@ -49,6 +49,9 @@ type FeatureFlags struct {
 
 	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
 	DownloadAppsCTA string
+
+	// Enable different treatments for first time users, possible values = ("none", "lightbox" "lightbox_slider")
+	InviteToTeam string
 }
 
 func (f *FeatureFlags) SetDefaults() {
