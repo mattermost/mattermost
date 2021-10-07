@@ -2416,7 +2416,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 			if participants.Contains(userId) {
 				participants = participants.Remove(userId)
-				updateQuery = updateQuery.Set("Participants", participants)
+				updateQuery = updateQuery.Set("Participants", model.ArrayToJSON(participants))
 			}
 		}
 
