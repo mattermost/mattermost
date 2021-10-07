@@ -156,10 +156,8 @@ func (a *App) getEmbedsAndImages(post *model.Post, isNewPost bool) *model.Post {
 			mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 	} else if embed != nil {
-		post.Metadata.Embeds = []*model.PostEmbed{}
-	} else {
+		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
 	}
-
 	post.Metadata.Images = a.getImagesForPost(post, images, isNewPost)
 	return post
 }
