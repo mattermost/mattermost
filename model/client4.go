@@ -3185,7 +3185,7 @@ func (c *Client4) SearchAllChannelsForUser(term string) (ChannelListWithTeamData
 	}
 	searchJSON, jsonErr := json.Marshal(search)
 	if jsonErr != nil {
-		return nil, nil, NewAppError("SearchAllChannels", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, nil, NewAppError("SearchAllChannelsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	r, err := c.DoAPIPost(c.channelsRoute()+"/search?system_console=false", string(searchJSON))
 	if err != nil {
@@ -3196,7 +3196,7 @@ func (c *Client4) SearchAllChannelsForUser(term string) (ChannelListWithTeamData
 	var ch ChannelListWithTeamData
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("SearchAllChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildResponse(r), NewAppError("SearchAllChannelsForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return ch, BuildResponse(r), nil
 }

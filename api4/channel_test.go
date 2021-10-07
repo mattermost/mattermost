@@ -1069,10 +1069,21 @@ func TestGetChannelsForUser(t *testing.T) {
 		}
 	}
 
+	assert.Len(t, channels, 9)
 	assert.Equal(t, 2, numPrivate)
 	assert.Equal(t, 7, numPublic)
 	assert.Equal(t, 2, numOffTopic)
 	assert.Equal(t, 2, numTownSquare)
+
+	// Creating some more channels to be exactly 100 to test page size boundaries.
+	for i := 0; i < 91; i++ {
+		ch1 = th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, myTeam.Id)
+		th.App.AddUserToChannel(th.BasicUser, ch1, false)
+	}
+
+	channels, _, err = client.GetChannelsForUserWithLastDeleteAt(th.BasicUser.Id, 0)
+	require.NoError(t, err)
+	assert.Len(t, channels, 100)
 }
 
 func TestGetAllChannels(t *testing.T) {

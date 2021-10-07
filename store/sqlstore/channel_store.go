@@ -1057,7 +1057,7 @@ func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, e
 		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelID=%s", channelID)
 	}
 
-	res := make([]string, 0, len(dbMembers.ToModel()))
+	res := make([]string, 0, len(dbMembers))
 	for _, member := range dbMembers.ToModel() {
 		res = append(res, member.UserId)
 	}
