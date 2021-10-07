@@ -39,12 +39,12 @@ func (s *structSpec) set(tag string, sf *structField) {
 }
 
 func newStructSpec(t reflect.Type, fieldTag string) *structSpec {
+	numField := t.NumField()
 	out := &structSpec{
-		m: make(map[string]*structField),
+		m: make(map[string]*structField, numField),
 	}
 
-	num := t.NumField()
-	for i := 0; i < num; i++ {
+	for i := 0; i < numField; i++ {
 		f := t.Field(i)
 
 		tag := f.Tag.Get(fieldTag)

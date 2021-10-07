@@ -41,7 +41,7 @@ type Options struct {
 	// as argument and returns true if allowed or false otherwise. If this option is
 	// set, the content of AllowedOrigins is ignored.
 	AllowOriginFunc func(origin string) bool
-	// AllowOriginFunc is a custom function to validate the origin. It takes the HTTP Request object and the origin as
+	// AllowOriginRequestFunc is a custom function to validate the origin. It takes the HTTP Request object and the origin as
 	// argument and returns true if allowed or false otherwise. If this option is set, the content of `AllowedOrigins`
 	// and `AllowOriginFunc` is ignored.
 	AllowOriginRequestFunc func(r *http.Request, origin string) bool
@@ -211,7 +211,7 @@ func (c *Cors) Handler(h http.Handler) http.Handler {
 			if c.optionPassthrough {
 				h.ServeHTTP(w, r)
 			} else {
-				w.WriteHeader(http.StatusOK)
+				w.WriteHeader(http.StatusNoContent)
 			}
 		} else {
 			c.logf("Handler: Actual request")
@@ -244,7 +244,7 @@ func (c *Cors) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.Handl
 		if c.optionPassthrough {
 			next(w, r)
 		} else {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusNoContent)
 		}
 	} else {
 		c.logf("ServeHTTP: Actual request")
@@ -357,6 +357,12 @@ func (c *Cors) logf(format string, a ...interface{}) {
 	}
 }
 
+// check the Origin of a request. No origin at all is also allowed.
+func (c *Cors) OriginAllowed(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	return c.isOriginAllowed(r, origin)
+}
+
 // isOriginAllowed checks if a given origin is allowed to perform cross-domain requests
 // on the endpoint
 func (c *Cors) isOriginAllowed(r *http.Request, origin string) bool {
@@ -384,7 +390,7 @@ func (c *Cors) isOriginAllowed(r *http.Request, origin string) bool {
 }
 
 // isMethodAllowed checks if a given method can be used as part of a cross-domain request
-// on the endpoing
+// on the endpoint
 func (c *Cors) isMethodAllowed(method string) bool {
 	if len(c.allowedMethods) == 0 {
 		// If no method allowed, always return false, even for preflight request
@@ -415,6 +421,7 @@ func (c *Cors) areHeadersAllowed(requestedHeaders []string) bool {
 		for _, h := range c.allowedHeaders {
 			if h == header {
 				found = true
+				break
 			}
 		}
 		if !found {

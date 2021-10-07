@@ -1,5 +1,3 @@
-// +build go1.6
-
 // Copyright 2014 Unknwon
 //
 // Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -125,6 +123,8 @@ type LoadOptions struct {
 	ReaderBufferSize int
 	// AllowNonUniqueSections indicates whether to allow sections with the same name multiple times.
 	AllowNonUniqueSections bool
+	// AllowDuplicateShadowValues indicates whether values for shadowed keys should be deduplicated.
+	AllowDuplicateShadowValues bool
 }
 
 // DebugFunc is the type of function called to log parse events.

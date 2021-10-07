@@ -70,6 +70,28 @@ type Reader interface {
 
 	// Match performs regular expression searching to current line.
 	FindSubMatch(reg *regexp.Regexp) [][]byte
+
+	// FindClosure finds corresponding closure.
+	FindClosure(opener, closer byte, options FindClosureOptions) (*Segments, bool)
+}
+
+// FindClosureOptions is options for Reader.FindClosure
+type FindClosureOptions struct {
+	// CodeSpan is a flag for the FindClosure. If this is set to true,
+	// FindClosure ignores closers in codespans.
+	CodeSpan bool
+
+	// Nesting is a flag for the FindClosure. If this is set to true,
+	// FindClosure allows nesting.
+	Nesting bool
+
+	// Newline is a flag for the FindClosure. If this is set to true,
+	// FindClosure searches for a closer over multiple lines.
+	Newline bool
+
+	// Advance is a flag for the FindClosure. If this is set to true,
+	// FindClosure advances pointers when closer is found.
+	Advance bool
 }
 
 type reader struct {
@@ -90,6 +112,10 @@ func NewReader(source []byte) Reader {
 	}
 	r.ResetPosition()
 	return r
+}
+
+func (r *reader) FindClosure(opener, closer byte, options FindClosureOptions) (*Segments, bool) {
+	return findClosureReader(r, opener, closer, options)
 }
 
 func (r *reader) ResetPosition() {
@@ -270,6 +296,10 @@ func NewBlockReader(source []byte, segments *Segments) BlockReader {
 		r.Reset(segments)
 	}
 	return r
+}
+
+func (r *blockReader) FindClosure(opener, closer byte, options FindClosureOptions) (*Segments, bool) {
+	return findClosureReader(r, opener, closer, options)
 }
 
 func (r *blockReader) ResetPosition() {
@@ -540,4 +570,84 @@ func readRuneReader(r Reader) (rune, int, error) {
 	}
 	r.Advance(size)
 	return rn, size, nil
+}
+
+func findClosureReader(r Reader, opener, closer byte, opts FindClosureOptions) (*Segments, bool) {
+	opened := 1
+	codeSpanOpener := 0
+	closed := false
+	orgline, orgpos := r.Position()
+	var ret *Segments
+
+	for {
+		bs, seg := r.PeekLine()
+		if bs == nil {
+			goto end
+		}
+		i := 0
+		for i < len(bs) {
+			c := bs[i]
+			if opts.CodeSpan && codeSpanOpener != 0 && c == '`' {
+				codeSpanCloser := 0
+				for ; i < len(bs); i++ {
+					if bs[i] == '`' {
+						codeSpanCloser++
+					} else {
+						i--
+						break
+					}
+				}
+				if codeSpanCloser == codeSpanOpener {
+					codeSpanOpener = 0
+				}
+			} else if codeSpanOpener == 0 && c == '\\' && i < len(bs)-1 && util.IsPunct(bs[i+1]) {
+				i += 2
+				continue
+			} else if opts.CodeSpan && codeSpanOpener == 0 && c == '`' {
+				for ; i < len(bs); i++ {
+					if bs[i] == '`' {
+						codeSpanOpener++
+					} else {
+						i--
+						break
+					}
+				}
+			} else if (opts.CodeSpan && codeSpanOpener == 0) || !opts.CodeSpan {
+				if c == closer {
+					opened--
+					if opened == 0 {
+						if ret == nil {
+							ret = NewSegments()
+						}
+						ret.Append(seg.WithStop(seg.Start + i))
+						r.Advance(i + 1)
+						closed = true
+						goto end
+					}
+				} else if c == opener {
+					if !opts.Nesting {
+						goto end
+					}
+					opened++
+				}
+			}
+			i++
+		}
+		if !opts.Newline {
+			goto end
+		}
+		r.AdvanceLine()
+		if ret == nil {
+			ret = NewSegments()
+		}
+		ret.Append(seg)
+	}
+end:
+	if !opts.Advance {
+		r.SetPosition(orgline, orgpos)
+	}
+	if closed {
+		return ret, true
+	}
+	return nil, false
 }
