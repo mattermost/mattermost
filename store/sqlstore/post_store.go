@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -2416,7 +2417,12 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 			if participants.Contains(userId) {
 				participants = participants.Remove(userId)
-				updateQuery = updateQuery.Set("Participants", model.ArrayToJSON(participants))
+				participantsJSON, err := json.Marshal(participants)
+				if err != nil {
+					mlog.Warn("Error marshalling thread participants", mlog.Err(err))
+				} else {
+					updateQuery = updateQuery.Set("Participants", string(participantsJSON))
+				}
 			}
 		}
 
