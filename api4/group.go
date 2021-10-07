@@ -25,6 +25,10 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
 		api.APISessionRequired(getGroup)).Methods("GET")
 
+	// GET /api/v4/groups/:group_source/source?page=0&per_page=100
+	api.BaseRoutes.Groups.Handle("/{group_source:[A-Za-z0-9]+}/source",
+		api.APISessionRequired(getGroupsBySource)).Methods("GET")
+
 	// PUT /api/v4/groups/:group_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/patch",
 		api.APISessionRequired(patchGroup)).Methods("PUT")
@@ -842,6 +846,27 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	groups, err := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(groups)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupsBySource(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	groups, err := c.App.GetGroupsBySourcePaginated(c.Params.GroupSource, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return

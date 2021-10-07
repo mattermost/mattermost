@@ -67,6 +67,15 @@ func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, 
 	return groups, nil
 }
 
+func (a *App) GetGroupsBySourcePaginated(groupSource model.GroupSource, page int, perPage int) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetBySource(groupSource, page, perPage)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsBySource", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
+}
+
 func (a *App) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError) {
 	groups, err := a.Srv().Store.Group().GetByUser(userID)
 	if err != nil {

@@ -4026,6 +4026,26 @@ func (s *RetryLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.
 
 }
 
+func (s *RetryLayerGroupStore) GetBySource(groupSource model.GroupSource, page int, perPage int) ([]*model.Group, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.GetBySource(groupSource, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerGroupStore) GetByUser(userID string) ([]*model.Group, error) {
 
 	tries := 0

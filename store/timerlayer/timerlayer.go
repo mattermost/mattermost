@@ -3419,6 +3419,22 @@ func (s *TimerLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) GetBySource(groupSource model.GroupSource, page int, perPage int) ([]*model.Group, error) {
+	start := timemodule.Now()
+
+	result, err := s.GroupStore.GetBySource(groupSource, page, perPage)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetBySource", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) GetByUser(userID string) ([]*model.Group, error) {
 	start := timemodule.Now()
 

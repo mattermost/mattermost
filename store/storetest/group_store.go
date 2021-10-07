@@ -27,6 +27,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetByIDs", func(t *testing.T) { testGroupStoreGetByIDs(t, ss) })
 	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, ss) })
 	t.Run("GetAllBySource", func(t *testing.T) { testGroupStoreGetAllByType(t, ss) })
+	t.Run("GetBySource", func(t *testing.T) { testGroupStoreGetBySource(t, ss) })
 	t.Run("GetByUser", func(t *testing.T) { testGroupStoreGetByUser(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
@@ -353,6 +354,32 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 		}
 		require.True(t, present)
 	}
+}
+
+func testGroupStoreGetBySource(t *testing.T, ss store.Store) {
+	numGroups := 3
+
+	groups := []*model.Group{}
+
+	// Create groups
+	for i := 0; i < numGroups; i++ {
+		g := &model.Group{
+			Name:        model.NewString(model.NewId()),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Source:      model.GroupSourceCustom,
+			RemoteId:    model.NewId(),
+		}
+		groups = append(groups, g)
+		_, err := ss.Group().Create(g)
+		require.NoError(t, err)
+	}
+
+	// Returns all the groups
+	d1, err := ss.Group().GetBySource(model.GroupSourceCustom, 0, 1)
+	require.NoError(t, err)
+	require.Condition(t, func() bool { return len(d1) == 1 })
+	require.Condition(t, func() bool { return groups[2].Id == d1[0].Id })
 }
 
 func testGroupStoreGetByUser(t *testing.T, ss store.Store) {

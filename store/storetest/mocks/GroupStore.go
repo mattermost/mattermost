@@ -464,6 +464,29 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 	return r0, r1
 }
 
+// GetBySource provides a mock function with given fields: groupSource, page, perPage
+func (_m *GroupStore) GetBySource(groupSource model.GroupSource, page int, perPage int) ([]*model.Group, error) {
+	ret := _m.Called(groupSource, page, perPage)
+
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(model.GroupSource, int, int) []*model.Group); ok {
+		r0 = rf(groupSource, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GroupSource, int, int) error); ok {
+		r1 = rf(groupSource, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByUser provides a mock function with given fields: userID
 func (_m *GroupStore) GetByUser(userID string) ([]*model.Group, error) {
 	ret := _m.Called(userID)

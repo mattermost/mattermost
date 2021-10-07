@@ -182,6 +182,31 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 	return groups, nil
 }
 
+func (s *SqlGroupStore) GetBySource(groupSource model.GroupSource, page int, perPage int) ([]*model.Group, error) {
+	var groups []*model.Group
+
+	query := `
+		SELECT 
+			* 
+		FROM 
+			UserGroups 
+		WHERE 
+			DeleteAt = 0 
+			AND Source = :Source
+		ORDER BY
+			CreateAt DESC
+		LIMIT
+			:Limit
+		OFFSET
+			:Offset`
+
+	if _, err := s.GetReplica().Select(&groups, query, map[string]interface{}{"Source": groupSource, "Limit": perPage, "Offset": page * perPage}); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Groups by groupSource=%v", groupSource)
+	}
+
+	return groups, nil
+}
+
 func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 	var groups []*model.Group
 

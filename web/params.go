@@ -87,6 +87,7 @@ type Params struct {
 	WarnMetricId              string
 	ExportName                string
 	ExcludePolicyConstrained  bool
+	GroupSource               model.GroupSource
 
 	// Cloud
 	InvoiceId string
@@ -353,6 +354,15 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("exclude_policy_constrained")); err == nil {
 		params.ExcludePolicyConstrained = val
+	}
+
+	if val, ok := props["group_source"]; ok {
+		switch val {
+		case "custom":
+			params.GroupSource = model.GroupSourceCustom
+		case "ldap":
+			params.GroupSource = model.GroupSourceLdap
+		}
 	}
 
 	return params
