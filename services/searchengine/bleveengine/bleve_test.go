@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -124,7 +124,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 		require.NoError(s.T(), err)
-		require.Equal(s.T(), postToAvoid.Id, doc.ID)
+		require.Equal(s.T(), postToAvoid.Id, doc.ID())
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
@@ -170,7 +170,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 		require.NoError(s.T(), err)
-		require.Equal(s.T(), postToAvoid.Id, doc.ID)
+		require.Equal(s.T(), postToAvoid.Id, doc.ID())
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
@@ -220,7 +220,7 @@ func (s *BleveEngineTestSuite) TestDeletePosts() {
 
 	doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), postToAvoid.Id, doc.ID)
+	require.Equal(s.T(), postToAvoid.Id, doc.ID())
 	numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, int(numberDocs))

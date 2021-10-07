@@ -14,8 +14,15 @@
               {{end}}
               {{if .ChannelName}}
                 <div class="channelBg">
-                  <div class="channelLogo"><img src="{{$.Props.SiteURL}}/static/images/channel_icon.png" width=10px height=10px></img></div>
-                  <div class="channelName">{{.ChannelName}}</div>
+                {{if .ShowChannelIcon}}
+                <div class="channelLogo"><img src="{{$.Props.SiteURL}}/static/images/channel_icon.png" width=10px height=10px></img></div>
+                {{end}}
+                  <div class="channelName">
+                  {{if .OtherChannelMembersCount}}
+                  <span class="gmChannelCount">{{.OtherChannelMembersCount}}</span>
+                  {{end}}
+                  {{.ChannelName}}
+                  </div>
                 </div>
               {{end}}
             </div>
@@ -25,6 +32,8 @@
       <mj-text css-class="senderMessage" padding="0px">
         {{.Message}}
       </mj-text>
+    </mj-column>
+    <mj-column width=100%>
       <mj-raw>{{if .MessageURL}}</mj-raw>
         <mj-button href="{{.MessageURL}}" padding="16px 0px 0px 0px" css-class="messageButton">{{$.Props.MessageButton}}</mj-button>
       <mj-raw>{{end}}</mj-raw>

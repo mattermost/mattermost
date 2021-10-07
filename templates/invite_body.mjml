@@ -7,9 +7,9 @@
       <mj-include path="./partials/logo.mjml" />
       <mj-include path="./partials/header.mjml" />
       <mj-raw>{{if .Props.Message}}</mj-raw>
-        <mj-raw><div class="postCard"></mj-raw>
-        <mj-include path="./partials/card.mjml" />
-        <mj-raw></div></mj-raw>
+          <mj-raw>{{range .Props.Posts}}<div class="postCard"></mj-raw>
+            <mj-include path="./partials/card.mjml" />
+          <mj-raw></div>{{end}}</mj-raw>
       <mj-raw>{{else}}</mj-raw>
       <mj-section padding="0px 0px 40px 0px">
         <mj-column>
