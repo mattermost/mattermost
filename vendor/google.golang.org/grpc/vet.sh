@@ -32,26 +32,14 @@ PATH="${HOME}/go/bin:${GOROOT}/bin:${PATH}"
 go version
 
 if [[ "$1" = "-install" ]]; then
-  # Check for module support
-  if go help mod >& /dev/null; then
-    # Install the pinned versions as defined in module tools.
-    pushd ./test/tools
-    go install \
-      golang.org/x/lint/golint \
-      golang.org/x/tools/cmd/goimports \
-      honnef.co/go/tools/cmd/staticcheck \
-      github.com/client9/misspell/cmd/misspell
-    popd
-  else
-    # Ye olde `go get` incantation.
-    # Note: this gets the latest version of all tools (vs. the pinned versions
-    # with Go modules).
-    go get -u \
-      golang.org/x/lint/golint \
-      golang.org/x/tools/cmd/goimports \
-      honnef.co/go/tools/cmd/staticcheck \
-      github.com/client9/misspell/cmd/misspell
-  fi
+  # Install the pinned versions as defined in module tools.
+  pushd ./test/tools
+  go install \
+    golang.org/x/lint/golint \
+    golang.org/x/tools/cmd/goimports \
+    honnef.co/go/tools/cmd/staticcheck \
+    github.com/client9/misspell/cmd/misspell
+  popd
   if [[ -z "${VET_SKIP_PROTO}" ]]; then
     if [[ "${TRAVIS}" = "true" ]]; then
       PROTOBUF_VERSION=3.14.0
@@ -100,10 +88,6 @@ not git grep "\(import \|^\s*\)\"github.com/golang/protobuf/ptypes/" -- "*.go"
 
 # - Ensure all xds proto imports are renamed to *pb or *grpc.
 git grep '"github.com/envoyproxy/go-control-plane/envoy' -- '*.go' ':(exclude)*.pb.go' | not grep -v 'pb "\|grpc "'
-
-# - Check imports that are illegal in appengine (until Go 1.11).
-# TODO: Remove when we drop Go 1.10 support
-go list -f {{.Dir}} ./... | xargs go run test/go_vet/vet.go
 
 misspell -error .
 
