@@ -2417,7 +2417,8 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 			if participants.Contains(userId) {
 				participants = participants.Remove(userId)
-				participantsJSON, err := json.Marshal(participants)
+				var participantsJSON []byte
+				participantsJSON, err = json.Marshal(participants)
 				if err != nil {
 					mlog.Warn("Error marshalling thread participants", mlog.Err(err))
 				} else {
