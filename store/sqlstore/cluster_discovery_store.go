@@ -44,7 +44,6 @@ func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery)
 	`, ClusterDiscovery); err != nil {
 		return errors.Wrap(err, "failed to save ClusterDiscovery")
 	}
-
 	return nil
 }
 
@@ -116,7 +115,6 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 	if err := s.GetMasterX().Select(&list, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find ClusterDiscovery")
 	}
-
 	return list, nil
 }
 
@@ -136,7 +134,6 @@ func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterD
 	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to update ClusterDiscovery")
 	}
-
 	return nil
 }
 
@@ -153,6 +150,5 @@ func (s sqlClusterDiscoveryStore) Cleanup() error {
 	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to delete ClusterDiscoveries")
 	}
-
 	return nil
 }
