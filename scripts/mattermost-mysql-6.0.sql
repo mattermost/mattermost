@@ -71,7 +71,7 @@ CREATE TABLE `ChannelMemberHistory` (
 CREATE TABLE `ChannelMembers` (
   `ChannelId` varchar(26) NOT NULL,
   `UserId` varchar(26) NOT NULL,
-  `Roles` varchar(64) DEFAULT NULL,
+  `Roles` text DEFAULT NULL,
   `LastViewedAt` bigint(20) DEFAULT NULL,
   `MsgCount` bigint(20) DEFAULT NULL,
   `MentionCount` bigint(20) DEFAULT NULL,
@@ -768,7 +768,7 @@ CREATE TABLE `Sessions` (
   `LastActivityAt` bigint(20) DEFAULT NULL,
   `UserId` varchar(26) DEFAULT NULL,
   `DeviceId` text,
-  `Roles` varchar(64) DEFAULT NULL,
+  `Roles` text DEFAULT NULL,
   `IsOAuth` tinyint(1) DEFAULT NULL,
   `ExpiredNotify` tinyint(1) DEFAULT NULL,
   `Props` json DEFAULT NULL,
@@ -938,7 +938,7 @@ CREATE TABLE `Systems` (
 CREATE TABLE `TeamMembers` (
   `TeamId` varchar(26) NOT NULL,
   `UserId` varchar(26) NOT NULL,
-  `Roles` varchar(64) DEFAULT NULL,
+  `Roles` text DEFAULT NULL,
   `DeleteAt` bigint(20) DEFAULT NULL,
   `SchemeUser` tinyint(4) DEFAULT NULL,
   `SchemeAdmin` tinyint(4) DEFAULT NULL,

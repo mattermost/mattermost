@@ -34,6 +34,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	md5simd "github.com/minio/md5-simd"
@@ -90,6 +91,10 @@ type Client struct {
 	// Factory for MD5 hash functions.
 	md5Hasher    func() md5simd.Hasher
 	sha256Hasher func() md5simd.Hasher
+
+	healthCheckCh chan struct{}
+	healthCheck   int32
+	lastOnline    time.Time
 }
 
 // Options for New method
@@ -108,7 +113,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v7.0.11"
+	libraryVersion = "v7.0.14"
 )
 
 // User Agent should always following the below style.
@@ -305,6 +310,10 @@ func privateNew(endpoint string, opts *Options) (*Client, error) {
 	// Sets bucket lookup style, whether server accepts DNS or Path lookup. Default is Auto - determined
 	// by the SDK. When Auto is specified, DNS lookup is used for Amazon/Google cloud endpoints and Path for all other endpoints.
 	clnt.lookup = opts.BucketLookup
+
+	// healthcheck is not initialized
+	clnt.healthCheck = unknown
+
 	// Return.
 	return clnt, nil
 }
@@ -385,6 +394,72 @@ func (c *Client) hashMaterials(isMd5Requested bool) (hashAlgos map[string]md5sim
 		hashAlgos["md5"] = c.md5Hasher()
 	}
 	return hashAlgos, hashSums
+}
+
+const (
+	unknown = -1
+	offline = 0
+	online  = 1
+)
+
+// IsOnline returns true if healthcheck enabled and client is online
+func (c *Client) IsOnline() bool {
+	switch atomic.LoadInt32(&c.healthCheck) {
+	case online, unknown:
+		return true
+	}
+	return false
+}
+
+// IsOffline returns true if healthcheck enabled and client is offline
+func (c *Client) IsOffline() bool {
+	return !c.IsOnline()
+}
+
+// HealthCheck starts a healthcheck to see if endpoint is up. Returns a context cancellation function
+// and and error if health check is already started
+func (c *Client) HealthCheck(hcDuration time.Duration) (context.CancelFunc, error) {
+	if atomic.LoadInt32(&c.healthCheck) == online {
+		return nil, fmt.Errorf("health check running already")
+	}
+	if hcDuration < 1*time.Second {
+		return nil, fmt.Errorf("health check duration should be atleast 1 second")
+	}
+	ctx, cancelFn := context.WithCancel(context.Background())
+	c.healthCheckCh = make(chan struct{})
+	atomic.StoreInt32(&c.healthCheck, online)
+	probeBucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "probe-health-")
+	go func(duration time.Duration) {
+		timer := time.NewTimer(duration)
+		defer timer.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				close(c.healthCheckCh)
+				atomic.StoreInt32(&c.healthCheck, unknown)
+				return
+			case <-timer.C:
+
+				timer.Reset(duration)
+				// Do health check the first time and ONLY if the connection is marked offline
+				if c.IsOffline() || c.lastOnline.IsZero() {
+					_, err := c.getBucketLocation(context.Background(), probeBucketName)
+					if err != nil && IsNetworkOrHostDown(err, false) {
+						atomic.StoreInt32(&c.healthCheck, offline)
+					}
+					switch ToErrorResponse(err).Code {
+					case "NoSuchBucket", "AccessDenied", "":
+						c.lastOnline = time.Now()
+						atomic.StoreInt32(&c.healthCheck, online)
+					}
+				}
+			case <-c.healthCheckCh:
+				// set offline if client saw a network error
+				atomic.StoreInt32(&c.healthCheck, offline)
+			}
+		}
+	}(hcDuration)
+	return cancelFn, nil
 }
 
 // requestMetadata - is container for all the values to make a request.
@@ -565,12 +640,25 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 			if isS3CodeRetryable(errResponse.Code) {
 				continue // Retry.
 			}
+
+			if atomic.LoadInt32(&c.healthCheck) != unknown && IsNetworkOrHostDown(err, false) {
+				select {
+				case c.healthCheckCh <- struct{}{}:
+				default:
+				}
+			}
 			return nil, err
 		}
-
 		// Initiate the request.
 		res, err = c.do(req)
 		if err != nil {
+			if atomic.LoadInt32(&c.healthCheck) != unknown && IsNetworkOrHostDown(err, false) {
+				select {
+				case c.healthCheckCh <- struct{}{}:
+				default:
+				}
+			}
+
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return nil, err
 			}
