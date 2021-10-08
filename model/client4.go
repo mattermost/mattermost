@@ -3899,7 +3899,13 @@ func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) 
 	if jsonErr != nil {
 		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/posts/search", string(js))
+	var route string
+	if teamId == "" {
+		route = c.postsRoute() + "/search"
+	} else {
+		route = c.teamRoute(teamId) + "/posts/search"
+	}
+	r, err := c.DoAPIPost(route, string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3917,7 +3923,13 @@ func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) 
 // SearchPostsWithMatches returns any posts with matching terms string, including.
 func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response, error) {
 	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/posts/search", StringInterfaceToJSON(requestBody))
+	var route string
+	if teamId == "" {
+		route = c.postsRoute() + "/search"
+	} else {
+		route = c.teamRoute(teamId) + "/posts/search"
+	}
+	r, err := c.DoAPIPost(route, StringInterfaceToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

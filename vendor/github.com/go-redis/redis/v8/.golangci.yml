@@ -24,3 +24,4 @@ linters:
     - errorlint
     - cyclop
     - forcetypeassert
+    - forbidigo

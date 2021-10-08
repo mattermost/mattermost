@@ -9,10 +9,10 @@ package flate
 
 import (
 	"bufio"
+	"compress/flate"
 	"fmt"
 	"io"
 	"math/bits"
-	"strconv"
 	"sync"
 )
 
@@ -41,11 +41,7 @@ var fixedOnce sync.Once
 var fixedHuffmanDecoder huffmanDecoder
 
 // A CorruptInputError reports the presence of corrupt input at a given offset.
-type CorruptInputError int64
-
-func (e CorruptInputError) Error() string {
-	return "flate: corrupt input before offset " + strconv.FormatInt(int64(e), 10)
-}
+type CorruptInputError = flate.CorruptInputError
 
 // An InternalError reports an error in the flate code itself.
 type InternalError string
@@ -55,26 +51,12 @@ func (e InternalError) Error() string { return "flate: internal error: " + strin
 // A ReadError reports an error encountered while reading input.
 //
 // Deprecated: No longer returned.
-type ReadError struct {
-	Offset int64 // byte offset where error occurred
-	Err    error // error returned by underlying Read
-}
-
-func (e *ReadError) Error() string {
-	return "flate: read error at offset " + strconv.FormatInt(e.Offset, 10) + ": " + e.Err.Error()
-}
+type ReadError = flate.ReadError
 
 // A WriteError reports an error encountered while writing output.
 //
 // Deprecated: No longer returned.
-type WriteError struct {
-	Offset int64 // byte offset where error occurred
-	Err    error // error returned by underlying Write
-}
-
-func (e *WriteError) Error() string {
-	return "flate: write error at offset " + strconv.FormatInt(e.Offset, 10) + ": " + e.Err.Error()
-}
+type WriteError = flate.WriteError
 
 // Resetter resets a ReadCloser returned by NewReader or NewReaderDict to
 // to switch to a new underlying Reader. This permits reusing a ReadCloser
