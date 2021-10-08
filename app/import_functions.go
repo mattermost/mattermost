@@ -485,7 +485,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
-		if savedUser, err = a.srv.userService.CreateUser(user, users.UserCreateOptions{FromImport: true}); err != nil {
+		if savedUser, err = a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			switch {

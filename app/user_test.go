@@ -1554,12 +1554,12 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		mockThreadStore.On("MaintainMembership", "user1", "postid", mock.Anything).Return(nil, errors.New("error"))
 
 		var err error
-		th.App.srv.userService, err = users.New(users.ServiceConfig{
+		th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
 			UserStore:    &mockUserStore,
 			SessionStore: &storemocks.SessionStore{},
 			OAuthStore:   &storemocks.OAuthStore{},
-			ConfigFn:     th.App.srv.Config,
-			LicenseFn:    th.App.srv.License,
+			ConfigFn:     th.App.ch.srv.Config,
+			LicenseFn:    th.App.ch.srv.License,
 		})
 		require.NoError(t, err)
 		mockStore.On("User").Return(&mockUserStore)

@@ -1381,7 +1381,7 @@ func TestPushNotificationRace(t *testing.T) {
 		configStore: memoryStore,
 		Store:       mockStore,
 	}
-	app := New(ServerConnector(s))
+	app := New(ServerConnector(s.Channels()))
 	require.NotPanics(t, func() {
 		s.createPushNotificationsHub()
 
