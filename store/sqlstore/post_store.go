@@ -2405,7 +2405,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 		updateQuery := s.getQueryBuilder().Update("Threads")
 
-		if count == 0 && err == nil {
+		if count == 0 {
 			var participants model.StringArray
 			err = s.getQueryBuilder().
 				Select("Participants").
