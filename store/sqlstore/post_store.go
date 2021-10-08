@@ -2383,7 +2383,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 		return nil
 	}
 	if rootId != "" {
-		queryString, args, _ := s.getQueryBuilder().
+		queryString, args, err := s.getQueryBuilder().
 			Select("COUNT(Id)").
 			From("Posts").
 			Where(sq.And{
@@ -2393,10 +2393,14 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 			}).
 			ToSql()
 
+		if err != nil {
+			return errors.Wrap(err, "failed to create SQL query to count user's posts")
+		}
+
 		count, err := s.GetReplica().SelectInt(queryString, args...)
 
 		if err != nil {
-			mlog.Warn("Error counting user's posts in thread", mlog.Err(err))
+			return errors.Wrap(err, "failed to count user's posts in thread")
 		}
 
 		updateQuery := s.getQueryBuilder().Update("Threads")
@@ -2412,7 +2416,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 				Scan(&participants)
 
 			if err != nil {
-				mlog.Warn("Error getting thread participants", mlog.Err(err))
+				return errors.Wrap(err, "failed getting thread participants")
 			}
 
 			if participants.Contains(userId) {
@@ -2420,20 +2424,23 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 				var participantsJSON []byte
 				participantsJSON, err = json.Marshal(participants)
 				if err != nil {
-					mlog.Warn("Error marshalling thread participants", mlog.Err(err))
-				} else {
-					updateQuery = updateQuery.Set("Participants", string(participantsJSON))
+					return errors.Wrap(err, "failed marshalling thread participants")
 				}
+				updateQuery = updateQuery.Set("Participants", string(participantsJSON))
 			}
 		}
 
-		updateQueryString, updateArgs, _ := updateQuery.
+		updateQueryString, updateArgs, err := updateQuery.
 			Set("ReplyCount", sq.Expr("ReplyCount - 1")).
 			Where(sq.And{
 				sq.Eq{"PostId": rootId},
 				sq.Gt{"ReplyCount": 0},
 			}).
 			ToSql()
+
+		if err != nil {
+			return errors.Wrap(err, "failed to create SQL query to update thread")
+		}
 
 		_, err = s.GetMaster().Exec(updateQueryString, updateArgs...)
 
