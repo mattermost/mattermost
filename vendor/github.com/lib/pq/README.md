@@ -27,4 +27,10 @@
 
 ## Status
 
-This package is effectively in maintenance mode and is not actively developed. Small patches and features are only rarely reviewed and merged. We recommend using [pgx](https://github.com/jackc/pgx) which is actively maintained.
+This package is currently in maintenance mode, which means:
+1.   It generally does not accept new features.
+2.   It does accept bug fixes and version compatability changes provided by the community.
+3.   Maintainers usually do not resolve reported issues.
+4.   Community members are encouraged to help each other with reported issues.
+
+For users that require new features or reliable resolution of reported bugs, we recommend using [pgx](https://github.com/jackc/pgx) which is under active development.

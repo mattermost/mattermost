@@ -83,7 +83,16 @@ type persisterOptions struct {
 type notificationChan chan struct{}
 
 func (s *Scorch) persisterLoop() {
-	defer s.asyncTasks.Done()
+	defer func() {
+		if r := recover(); r != nil {
+			s.fireAsyncError(&AsyncPanicError{
+				Source: "persister",
+				Path:   s.path,
+			})
+		}
+
+		s.asyncTasks.Done()
+	}()
 
 	var persistWatchers []*epochWatcher
 	var lastPersistedEpoch, lastMergedEpoch uint64

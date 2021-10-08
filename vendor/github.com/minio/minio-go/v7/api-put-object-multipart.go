@@ -176,7 +176,7 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 	// Sort all completed parts.
 	sort.Sort(completedParts(complMultipartUpload.Parts))
 
-	uploadInfo, err := c.completeMultipartUpload(ctx, bucketName, objectName, uploadID, complMultipartUpload)
+	uploadInfo, err := c.completeMultipartUpload(ctx, bucketName, objectName, uploadID, complMultipartUpload, PutObjectOptions{})
 	if err != nil {
 		return UploadInfo{}, err
 	}
@@ -309,7 +309,7 @@ func (c Client) uploadPart(ctx context.Context, bucketName, objectName, uploadID
 
 // completeMultipartUpload - Completes a multipart upload by assembling previously uploaded parts.
 func (c Client) completeMultipartUpload(ctx context.Context, bucketName, objectName, uploadID string,
-	complete completeMultipartUpload) (UploadInfo, error) {
+	complete completeMultipartUpload, opts PutObjectOptions) (UploadInfo, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return UploadInfo{}, err
@@ -336,6 +336,7 @@ func (c Client) completeMultipartUpload(ctx context.Context, bucketName, objectN
 		contentBody:      completeMultipartUploadBuffer,
 		contentLength:    int64(len(completeMultipartUploadBytes)),
 		contentSHA256Hex: sum256Hex(completeMultipartUploadBytes),
+		customHeader:     opts.Header(),
 	}
 
 	// Execute POST to complete multipart upload for an objectName.

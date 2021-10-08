@@ -344,35 +344,241 @@ func (d *Decoder) decompress1X8Bit(dst, src []byte) ([]byte, error) {
 	var buf [256]byte
 	var off uint8
 
-	shift := (8 - d.actualTableLog) & 7
+	switch d.actualTableLog {
+	case 8:
+		const shift = 8 - 8
+		for br.off >= 4 {
+			br.fillFast()
+			v := dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+0] = uint8(v.entry >> 8)
 
-	//fmt.Printf("mask: %b, tl:%d\n", mask, d.actualTableLog)
-	for br.off >= 4 {
-		br.fillFast()
-		v := dt[br.peekByteFast()>>shift]
-		br.advance(uint8(v.entry))
-		buf[off+0] = uint8(v.entry >> 8)
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+1] = uint8(v.entry >> 8)
 
-		v = dt[br.peekByteFast()>>shift]
-		br.advance(uint8(v.entry))
-		buf[off+1] = uint8(v.entry >> 8)
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+2] = uint8(v.entry >> 8)
 
-		v = dt[br.peekByteFast()>>shift]
-		br.advance(uint8(v.entry))
-		buf[off+2] = uint8(v.entry >> 8)
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+3] = uint8(v.entry >> 8)
 
-		v = dt[br.peekByteFast()>>shift]
-		br.advance(uint8(v.entry))
-		buf[off+3] = uint8(v.entry >> 8)
-
-		off += 4
-		if off == 0 {
-			if len(dst)+256 > maxDecodedSize {
-				br.close()
-				return nil, ErrMaxDecodedSizeExceeded
+			off += 4
+			if off == 0 {
+				if len(dst)+256 > maxDecodedSize {
+					br.close()
+					return nil, ErrMaxDecodedSizeExceeded
+				}
+				dst = append(dst, buf[:]...)
 			}
-			dst = append(dst, buf[:]...)
 		}
+	case 7:
+		const shift = 8 - 7
+		for br.off >= 4 {
+			br.fillFast()
+			v := dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+0] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+1] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+2] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+3] = uint8(v.entry >> 8)
+
+			off += 4
+			if off == 0 {
+				if len(dst)+256 > maxDecodedSize {
+					br.close()
+					return nil, ErrMaxDecodedSizeExceeded
+				}
+				dst = append(dst, buf[:]...)
+			}
+		}
+	case 6:
+		const shift = 8 - 6
+		for br.off >= 4 {
+			br.fillFast()
+			v := dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+0] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+1] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+2] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+3] = uint8(v.entry >> 8)
+
+			off += 4
+			if off == 0 {
+				if len(dst)+256 > maxDecodedSize {
+					br.close()
+					return nil, ErrMaxDecodedSizeExceeded
+				}
+				dst = append(dst, buf[:]...)
+			}
+		}
+	case 5:
+		const shift = 8 - 5
+		for br.off >= 4 {
+			br.fillFast()
+			v := dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+0] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+1] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+2] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+3] = uint8(v.entry >> 8)
+
+			off += 4
+			if off == 0 {
+				if len(dst)+256 > maxDecodedSize {
+					br.close()
+					return nil, ErrMaxDecodedSizeExceeded
+				}
+				dst = append(dst, buf[:]...)
+			}
+		}
+	case 4:
+		const shift = 8 - 4
+		for br.off >= 4 {
+			br.fillFast()
+			v := dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+0] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+1] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+2] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+3] = uint8(v.entry >> 8)
+
+			off += 4
+			if off == 0 {
+				if len(dst)+256 > maxDecodedSize {
+					br.close()
+					return nil, ErrMaxDecodedSizeExceeded
+				}
+				dst = append(dst, buf[:]...)
+			}
+		}
+	case 3:
+		const shift = 8 - 3
+		for br.off >= 4 {
+			br.fillFast()
+			v := dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+0] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+1] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+2] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+3] = uint8(v.entry >> 8)
+
+			off += 4
+			if off == 0 {
+				if len(dst)+256 > maxDecodedSize {
+					br.close()
+					return nil, ErrMaxDecodedSizeExceeded
+				}
+				dst = append(dst, buf[:]...)
+			}
+		}
+	case 2:
+		const shift = 8 - 2
+		for br.off >= 4 {
+			br.fillFast()
+			v := dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+0] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+1] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+2] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+3] = uint8(v.entry >> 8)
+
+			off += 4
+			if off == 0 {
+				if len(dst)+256 > maxDecodedSize {
+					br.close()
+					return nil, ErrMaxDecodedSizeExceeded
+				}
+				dst = append(dst, buf[:]...)
+			}
+		}
+	case 1:
+		const shift = 8 - 1
+		for br.off >= 4 {
+			br.fillFast()
+			v := dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+0] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+1] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+2] = uint8(v.entry >> 8)
+
+			v = dt[uint8(br.value>>(56+shift))]
+			br.advance(uint8(v.entry))
+			buf[off+3] = uint8(v.entry >> 8)
+
+			off += 4
+			if off == 0 {
+				if len(dst)+256 > maxDecodedSize {
+					br.close()
+					return nil, ErrMaxDecodedSizeExceeded
+				}
+				dst = append(dst, buf[:]...)
+			}
+		}
+	default:
+		return nil, fmt.Errorf("invalid tablelog: %d", d.actualTableLog)
 	}
 
 	if len(dst)+int(off) > maxDecodedSize {
@@ -383,6 +589,8 @@ func (d *Decoder) decompress1X8Bit(dst, src []byte) ([]byte, error) {
 
 	// br < 4, so uint8 is fine
 	bitsLeft := int8(uint8(br.off)*8 + (64 - br.bitsRead))
+	shift := (8 - d.actualTableLog) & 7
+
 	for bitsLeft > 0 {
 		if br.bitsRead >= 64-8 {
 			for br.off > 0 {
@@ -423,24 +631,24 @@ func (d *Decoder) decompress1X8BitExactly(dst, src []byte) ([]byte, error) {
 	var buf [256]byte
 	var off uint8
 
-	const shift = 0
+	const shift = 56
 
 	//fmt.Printf("mask: %b, tl:%d\n", mask, d.actualTableLog)
 	for br.off >= 4 {
 		br.fillFast()
-		v := dt[br.peekByteFast()>>shift]
+		v := dt[uint8(br.value>>shift)]
 		br.advance(uint8(v.entry))
 		buf[off+0] = uint8(v.entry >> 8)
 
-		v = dt[br.peekByteFast()>>shift]
+		v = dt[uint8(br.value>>shift)]
 		br.advance(uint8(v.entry))
 		buf[off+1] = uint8(v.entry >> 8)
 
-		v = dt[br.peekByteFast()>>shift]
+		v = dt[uint8(br.value>>shift)]
 		br.advance(uint8(v.entry))
 		buf[off+2] = uint8(v.entry >> 8)
 
-		v = dt[br.peekByteFast()>>shift]
+		v = dt[uint8(br.value>>shift)]
 		br.advance(uint8(v.entry))
 		buf[off+3] = uint8(v.entry >> 8)
 
@@ -474,7 +682,7 @@ func (d *Decoder) decompress1X8BitExactly(dst, src []byte) ([]byte, error) {
 			br.close()
 			return nil, ErrMaxDecodedSizeExceeded
 		}
-		v := dt[br.peekByteFast()>>shift]
+		v := dt[br.peekByteFast()]
 		nBits := uint8(v.entry)
 		br.advance(nBits)
 		bitsLeft -= int8(nBits)
@@ -709,7 +917,6 @@ func (d *Decoder) decompress4X8bit(dst, src []byte) ([]byte, error) {
 	shift := (8 - d.actualTableLog) & 7
 
 	const tlSize = 1 << 8
-	const tlMask = tlSize - 1
 	single := d.dt.single[:tlSize]
 
 	// Use temp table to avoid bound checks/append penalty.
