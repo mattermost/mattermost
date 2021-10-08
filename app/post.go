@@ -292,6 +292,14 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	// We make a copy of the post for the plugin hook to avoid a race condition.
 	rPostCopy := rpost.Clone()
+
+	// FIXME: Removes PreviewPost from the post payload sent to the MessageHasBeenPosted hook so that plugins compiled with older versions of
+	// Mattermost—without the gob registeration of the PreviewPost struct—won't crash.
+	if rPostCopy.Metadata != nil {
+		rPostCopy.Metadata = rPostCopy.Metadata.Copy()
+	}
+	rPostCopy.RemovePreviewPost()
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
