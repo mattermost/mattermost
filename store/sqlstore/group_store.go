@@ -104,7 +104,7 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	group.CreateAt = model.GetMillis()
 	group.UpdateAt = group.CreateAt
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO group
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO UserGroups
 		(Id, Name, DisplayName, Description, Source, RemoteId, CreateAt, UpdateAt, DeleteAt, HasSyncables, MemberCount, AllowReference)
 		VALUES
 		(:Id, :Name, :DisplayName, :Description, :Source, :RemoteId, :CreateAt, :UpdateAt, :DeleteAt, :HasSyncables, :MemberCount, :AllowReference)`, group); err != nil {
@@ -229,7 +229,7 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 
 	sqlResult, err := s.GetMasterX().NamedExec(
 		`Update 
-			Group
+			UserGroups
 		Set
 			Name = :Name,
 			DisplayName = :DisplayName,
@@ -269,7 +269,7 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 
 	_, err := s.GetMasterX().NamedExec(
 		`Update 
-			Group
+			UserGroups
 		Set
 			UpdateAt = :UpdateAt,
 			DeleteAt = :DeleteAt,
@@ -467,7 +467,7 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 
 	_, err := s.GetMasterX().NamedExec(
 		`Update 
-			GroupMember
+			GroupMembers
 		Set
 			DeleteAt = :DeleteAt,
 		Where
@@ -505,7 +505,7 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 			return nil, err
 		}
 
-		_, insertErr = s.GetMasterX().NamedExec(`INSERT INTO GroupTeam
+		_, insertErr = s.GetMasterX().NamedExec(`INSERT INTO GroupTeams
 			(TeamId, GroupId, AutoAdd, SchemeAdmin, CreateAt, DeleteAt, UpdateAt)
 			Values
 			(:TeamId, :GroupId, :AutoAdd, :SchemeAdmin, :CreateAt, :DeleteAt, :UpdateAt)`, groupSyncableToGroupTeam(groupSyncable))
@@ -515,7 +515,7 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 		if err != nil {
 			return nil, err
 		}
-		_, insertErr = s.GetMasterX().NamedExec(`INSERT INTO GroupChannel
+		_, insertErr = s.GetMasterX().NamedExec(`INSERT INTO GroupChannels
 			(ChannelId, GroupId, AutoAdd, SchemeAdmin, CreateAt, DeleteAt, UpdateAt)
 			Values
 			(:ChannelId, :GroupId, :AutoAdd, :SchemeAdmin, :CreateAt, :DeleteAt, :UpdateAt)`, groupSyncableToGroupChannel(groupSyncable))
@@ -549,9 +549,9 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		err = s.GetReplicaX().Get(&result, "SELECT * FROM GroupTeam WHERE GroupId = :GroupId AND SyncableId = :SyncableId AND DeleteAt = 0", map[string]interface{}{"GroupId": groupID, "SyncableId": syncableID})
+		err = s.GetReplicaX().Get(&result, "SELECT * FROM GroupTeams WHERE GroupId = :GroupId AND SyncableId = :SyncableId AND DeleteAt = 0", map[string]interface{}{"GroupId": groupID, "SyncableId": syncableID})
 	case model.GroupSyncableTypeChannel:
-		err = s.GetReplicaX().Get(&result, "SELECT * FROM GroupChannel WHERE GroupId = :GroupId AND SyncableId = :SyncableId AND DeleteAt = 0", map[string]interface{}{"GroupId": groupID, "SyncableId": syncableID})
+		err = s.GetReplicaX().Get(&result, "SELECT * FROM GroupChannels WHERE GroupId = :GroupId AND SyncableId = :SyncableId AND DeleteAt = 0", map[string]interface{}{"GroupId": groupID, "SyncableId": syncableID})
 	}
 
 	if err != nil {
@@ -697,7 +697,7 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	case model.GroupSyncableTypeTeam:
 		_, err = s.GetMasterX().NamedExec(
 			`Update 
-				GroupTeam
+				GroupTeams
 			Set
 				AutoAdd = :AutoAdd,
 				TeamId = :TeamId,
@@ -717,7 +717,7 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 
 		_, err = s.GetMasterX().NamedExec(
 			`Update 
-				GroupChannel
+				GroupChannels
 			Set
 				AutoAdd = :AutoAdd,
 				TeamId = :TeamId,
@@ -761,7 +761,7 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 	case model.GroupSyncableTypeTeam:
 		_, err = s.GetMasterX().NamedExec(
 			`Update 
-				GroupTeam
+				GroupTeams
 			Set
 				UpdateAt = :UpdateAt,
 				DeleteAt = :DeleteAt,
@@ -771,7 +771,7 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 	case model.GroupSyncableTypeChannel:
 		_, err = s.GetMasterX().NamedExec(
 			`Update 
-				GroupChannel
+				GroupChannels
 			Set
 				UpdateAt = :UpdateAt,
 				DeleteAt = :DeleteAt,
