@@ -19,6 +19,54 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
+type fileInfo struct {
+	Id              string
+	CreatorId       string
+	PostId          string
+	ChannelId       string
+	CreateAt        int64
+	UpdateAt        int64
+	DeleteAt        int64
+	Path            string
+	ThumbnailPath   string
+	PreviewPath     string
+	Name            string
+	Extension       string
+	Size            int64
+	MimeType        string
+	Width           int
+	Height          int
+	HasPreviewImage bool
+	MiniPreview     *[]byte
+	Content         string
+	RemoteId        *string
+}
+
+func (fi fileInfo) ToModel() *model.FileInfo {
+	return &model.FileInfo{
+		Id:              fi.Id,
+		CreatorId:       fi.CreatorId,
+		PostId:          fi.PostId,
+		ChannelId:       fi.ChannelId,
+		CreateAt:        fi.CreateAt,
+		UpdateAt:        fi.UpdateAt,
+		DeleteAt:        fi.DeleteAt,
+		Path:            fi.Path,
+		ThumbnailPath:   fi.ThumbnailPath,
+		PreviewPath:     fi.PreviewPath,
+		Name:            fi.Name,
+		Extension:       fi.Extension,
+		Size:            fi.Size,
+		MimeType:        fi.MimeType,
+		Width:           fi.Width,
+		Height:          fi.Height,
+		HasPreviewImage: fi.HasPreviewImage,
+		MiniPreview:     fi.MiniPreview,
+		Content:         fi.Content,
+		RemoteId:        fi.RemoteId,
+	}
+}
+
 type SqlFileInfoStore struct {
 	*SqlStore
 	metrics     einterfaces.MetricsInterface
@@ -122,9 +170,17 @@ func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 		return nil, errors.Wrap(err, "file_info_tosql")
 	}
 
-	var infos []*model.FileInfo
-	if err := fs.GetReplicaX().Select(&infos, queryString, args...); err != nil {
+	var items []fileInfo
+	if err := fs.GetReplicaX().Select(&items, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find FileInfos")
+	}
+	if len(items) == 0 {
+		return nil, nil
+	}
+
+	infos := make([]*model.FileInfo, 0, len(items))
+	for _, item := range items {
+		infos = append(infos, item.ToModel())
 	}
 	return infos, nil
 }
@@ -622,15 +678,17 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 	}
 
 	list := model.NewFileInfoList()
-	fileInfos := []*model.FileInfo{}
-	err = fs.GetSearchReplicaX().Select(&fileInfos, queryString, args...)
+
+	var items []fileInfo
+	err = fs.GetSearchReplicaX().Select(&items, queryString, args...)
 	if err != nil {
 		mlog.Warn("Query error searching files.", mlog.Err(err))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
-		for _, f := range fileInfos {
-			list.AddFileInfo(f)
-			list.AddOrder(f.Id)
+		for _, item := range items {
+			info := item.ToModel()
+			list.AddFileInfo(info)
+			list.AddOrder(info.Id)
 		}
 	}
 	list.MakeNonNil()
