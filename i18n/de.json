@@ -7369,7 +7369,7 @@
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht holen."
+    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht ermitteln."
   },
   {
     "id": "api.file.file_exists.app_error",
