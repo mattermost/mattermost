@@ -209,6 +209,8 @@ type Server struct {
 
 	dndTaskMut sync.Mutex
 	dndTask    *model.ScheduledTask
+
+	products map[string]Product
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -222,6 +224,7 @@ func NewServer(options ...Option) (*Server, error) {
 		licenseListeners:    map[string]func(*model.License, *model.License){},
 		hashSeed:            maphash.MakeSeed(),
 		uploadLockMap:       map[string]bool{},
+		products:            make(map[string]Product),
 	}
 
 	for _, option := range options {
@@ -691,6 +694,17 @@ func NewServer(options ...Option) (*Server, error) {
 			s.ShutDownPlugins()
 		}
 	})
+
+	// Initialize products
+	for name, initializer := range products {
+		prod, err := initializer(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error initializing product: %s", name)
+		}
+
+		s.products[name] = prod
+	}
+
 	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
 			runDNDStatusExpireJob(app)
@@ -984,6 +998,15 @@ func (s *Server) Shutdown() {
 	mlog.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
+
+	// Stop products.
+	// This needs to happen before because products are dependent
+	// on parent services.
+	for name, product := range s.products {
+		if err := product.Stop(); err != nil {
+			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err))
+		}
+	}
 
 	s.HubStop()
 	s.ShutDownPlugins()
@@ -1378,6 +1401,14 @@ func (s *Server) Start() error {
 
 	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
 		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	}
+
+	// Start products.
+	// This needs to happen after the server has started.
+	for name, product := range s.products {
+		if err := product.Start(); err != nil {
+			return errors.Wrapf(err, "Unable to start %s", name)
+		}
 	}
 
 	return nil
