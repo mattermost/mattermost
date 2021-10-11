@@ -45,7 +45,7 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	}
 
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Compliances
-	Id, CreateAt, UserId, Status, Count, Desc, Type, StartAt, EndAt, Keywords, Emails)
+	(Id, CreateAt, UserId, Status, Count, Desc, Type, StartAt, EndAt, Keywords, Emails)
 	VALUES
 	(:Id, :CreateAt, :UserId, :Status, :Count, :Desc, :Type, :StartAt, :EndAt, :Keywords, :Emails)`, compliance); err != nil {
 		return nil, errors.Wrap(err, "failed to save Compliance")
