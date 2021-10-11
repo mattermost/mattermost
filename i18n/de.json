@@ -6133,7 +6133,7 @@
   },
   {
     "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP-Server wird benötigt"
+    "translation": "SMTP-Server benötigt"
   },
   {
     "id": "api.emoji.create.internal_error",
