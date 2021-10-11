@@ -43,11 +43,8 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
 	}
-
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Compliances
-		(Id, CreateAt, UserId, Status, Count, Desc, Type, StartAt, EndAt, Keywords, Emails)
-		VALUES
-		(:Id, :CreateAt, :UserId, :Status, :Count, :Desc, :Type, :StartAt, :EndAt, :Keywords, :Emails)`, compliance); err != nil {
+	query := "INSERT INTO Compliances (Id, CreateAt, UserId, `Status`, Count, `Desc`, `Type`, StartAt, EndAt, Keywords, Emails) VALUES (:Id, :CreateAt, :UserId, :Status, :Count, :Desc, :Type, :StartAt, :EndAt, :Keywords, :Emails)"
+	if _, err := s.GetMasterX().NamedExec(query, compliance); err != nil {
 		return nil, errors.Wrap(err, "failed to save Compliance")
 	}
 	return compliance, nil
@@ -57,11 +54,8 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
 	}
-
-	res, err := s.GetMasterX().NamedExec(`UPDATE Compliances
-		SET CreateAt=:CreateAt, UserId=:UserId, Status=:Status, Count=:Count, Desc=:Desc, Type=:Type,
-			StartAt=:StartAt, EndAt=:EndAt, Keywords=:Keywords, Emails=:Emails
-		WHERE Id=:Id`, compliance)
+	query := "UPDATE Compliances SET CreateAt=:CreateAt, UserId=:UserId, `Status`=:Status, Count=:Count, `Desc`=:Desc, `Type`=:Type, StartAt=:StartAt, EndAt=:EndAt, Keywords=:Keywords, Emails=:Emails WHERE Id=:Id"
+	res, err := s.GetMasterX().NamedExec(query, compliance)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update Compliance")
 	}
