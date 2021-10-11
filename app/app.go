@@ -20,6 +20,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+// App is a pure functional component that does not have any fields, except Server.
+// It is a request-scoped struct constructed every time a request hits the server,
+// and its only purpose is to provide business logic to Server via its methods.
 type App struct {
 	srv *Server
 }
