@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -757,6 +758,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runSessionCleanupJob(s)
+	})
+	s.Go(func() {
+		runJobsCleanupJob(s)
 	})
 	s.Go(func() {
 		runTokenCleanupJob(s)
@@ -1497,6 +1501,13 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runJobsCleanupJob(s *Server) {
+	doJobsCleanup(s)
+	model.CreateRecurringTask("Job Cleanup", func() {
+		doJobsCleanup(s)
+	}, time.Hour*24)
+}
+
 func (s *Server) runLicenseExpirationCheckJob() {
 	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
@@ -1542,11 +1553,31 @@ func doCommandWebhookCleanup(s *Server) {
 
 const (
 	sessionsCleanupBatchSize = 1000
+	jobsCleanupBatchSize     = 1000
 )
 
 func doSessionCleanup(s *Server) {
 	mlog.Debug("Cleaning up session store.")
 	err := s.Store.Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
+	if err != nil {
+		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
+	}
+}
+
+func doJobsCleanup(s *Server) {
+	mlog.Debug("Cleaning up jobs store.")
+	if !*s.Config().JobSettings.CleanupOldJobs {
+		return
+	}
+
+	threshold := *s.Config().JobSettings.CleanupJobsThresholdHours
+	dur, err := time.ParseDuration(strconv.Itoa(threshold) + "h")
+	if err != nil {
+		mlog.Error("Error parsing CleanupJobsThresholdHours. Skipping jobs cleanup", mlog.Err(err))
+		return
+	}
+	expiry := model.GetMillisForTime(time.Now().Add(-dur))
+	err = s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
 	}
