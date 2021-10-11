@@ -453,6 +453,22 @@ func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
 	return ss.searchReplicas[rrNum]
 }
 
+func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if license == nil {
+		return ss.GetMasterX()
+	}
+
+	if len(ss.settings.DataSourceSearchReplicas) == 0 {
+		return ss.GetReplicaX()
+	}
+
+	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
+	return ss.searchReplicaXs[rrNum]
+}
+
 func (ss *SqlStore) GetReplica() *gorp.DbMap {
 	ss.licenseMutex.RLock()
 	license := ss.license
