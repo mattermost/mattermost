@@ -146,150 +146,75 @@ endif
 		done; \
 	done
 
-package-osx-amd64: package-prep
+package-general:
 	@# Create needed directories
-	mkdir -p $(DIST_PATH_OSX_AMD64)/bin
-	mkdir -p $(DIST_PATH_OSX_AMD64)/logs
-	mkdir -p $(DIST_PATH_OSX_AMD64)/prepackaged_plugins
+	mkdir -p $(DIST_PATH_GENERIC)/bin
+	mkdir -p $(DIST_PATH_GENERIC)/logs
+	mkdir -p $(DIST_PATH_GENERIC)/prepackaged_plugins
 
 	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
-	cp $(GOBIN)/mattermost $(DIST_PATH_OSX_AMD64)/bin # from native bin dir, not cross-compiled
+ifeq ($(BUILDER_GOOS_GOARCH),"$(CURRENT_PACKAGE_ARCH)")
+	cp $(GOBIN)/$(MM_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
 else
-	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH_OSX_AMD64)/bin # from cross-compiled bin dir
+	cp $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MM_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from cross-compiled bin dir
 endif
-	#Download MMCTL for OSX
-	scripts/download_mmctl_release.sh "Darwin" $(DIST_PATH_OSX_AMD64)/bin
+
+ifeq ("darwin_arm64","$(CURRENT_PACKAGE_ARCH)")
+	echo "No plugins or mmctl yet for $(CURRENT_PACKAGE_ARCH) platform, skipping..."
+else ifeq ("linux_arm64","$(CURRENT_PACKAGE_ARCH)")
+	echo "No plugins or mmctl yet for $(CURRENT_PACKAGE_ARCH) platform, skipping..."
+else
+	#Download MMCTL for $(MMCTL_PLATFORM)
+	scripts/download_mmctl_release.sh $(MMCTL_PLATFORM) $(DIST_PATH_GENERIC)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		ARCH="osx-amd64"; \
-		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_OSX_AMD64)/prepackaged_plugins; \
-		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_OSX_AMD64)/prepackaged_plugins; \
-		HAS_ARCH=`tar -tf $(DIST_PATH_OSX_AMD64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
-		if [ "$$HAS_ARCH" != "dist/plugin-darwin-amd64" ]; then \
-			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-darwin-amd64"; \
+		ARCH=$(PLUGIN_ARCH); \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_GENERIC)/prepackaged_plugins; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_GENERIC)/prepackaged_plugins; \
+		HAS_ARCH=`tar -tf $(DIST_PATH_GENERIC)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+		if [ "$$HAS_ARCH" != "dist/plugin-$(subst _,-,$(CURRENT_PACKAGE_ARCH))" ]; then \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-$(subst _,-,$(CURRENT_PACKAGE_ARCH))"; \
 			exit 1; \
 		fi; \
-		gpg --verify $(DIST_PATH_OSX_AMD64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_OSX_AMD64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+		gpg --verify $(DIST_PATH_GENERIC)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_GENERIC)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
 		if [ $$? -ne 0 ]; then \
 			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
 			exit 1; \
 		fi; \
 	done
+endif
+
+package-osx-amd64: package-prep
+	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_OSX_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/osx_amd64
 
-package-osx-arm64: #package-prep
-	@# Create needed directories
-	mkdir -p $(DIST_PATH_OSX_ARM64)/bin
-	mkdir -p $(DIST_PATH_OSX_ARM64)/logs
-	mkdir -p $(DIST_PATH_OSX_ARM64)/prepackaged_plugins
-
-	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"darwin_arm64")
-	cp $(GOBIN)/mattermost $(DIST_PATH_OSX_ARM64)/bin # from native bin dir, not cross-compiled
-else
-	cp $(GOBIN)/darwin_arm64/mattermost $(DIST_PATH_OSX_ARM64)/bin # from cross-compiled bin dir
-endif
-	@# Prepackage plugins
-	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		ARCH="osx-arm64"; \
-		if test -f "tmpprepackaged/$$plugin_package-$$ARCH.tar.gz"; then \
-			cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_OSX_ARM64)/prepackaged_plugins; \
-			cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_OSX_ARM64)/prepackaged_plugins; \
-			HAS_ARCH=`tar -tf $(DIST_PATH_OSX_ARM64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
-			if [ "$$HAS_ARCH" != "dist/plugin-darwin-arm64" ]; then \
-				echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-darwin-arm64"; \
-				exit 1; \
-			fi; \
-			gpg --verify $(DIST_PATH_OSX_ARM64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_OSX_ARM64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
-			if [ $$? -ne 0 ]; then \
-				echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
-				exit 1; \
-			fi; \
-		fi; \
-	done
+package-osx-arm64: package-prep
+	DIST_PATH_GENERIC=$(DIST_PATH_OSX_ARM64) CURRENT_PACKAGE_ARCH=darwin_arm64 PLUGIN_ARCH=osx-arm64 MMCTL_PLATFORM="Darwin" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_OSX_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-arm64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/osx_arm64
 
-package-linux-amd64: package-prep
-	@# Create needed directories
-	mkdir -p $(DIST_PATH_LIN_AMD64)/bin
-	mkdir -p $(DIST_PATH_LIN_AMD64)/logs
-	mkdir -p $(DIST_PATH_LIN_AMD64)/prepackaged_plugins
+package-osx: package-osx-amd64 package-osx-arm64
 
-	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	cp $(GOBIN)/mattermost $(DIST_PATH_LIN_AMD64)/bin # from native bin dir, not cross-compiled
-else
-	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH_LIN_AMD64)/bin # from cross-compiled bin dir
-endif
-	#Download MMCTL for Linux
-	scripts/download_mmctl_release.sh "Linux" $(DIST_PATH_LIN_AMD64)/bin
-	@# Prepackage plugins
-	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		ARCH="linux-amd64"; \
-		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_LIN_AMD64)/prepackaged_plugins; \
-		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_LIN_AMD64)/prepackaged_plugins; \
-		HAS_ARCH=`tar -tf $(DIST_PATH_LIN_AMD64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
-		if [ "$$HAS_ARCH" != "dist/plugin-linux-amd64" ]; then \
-			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-linux-amd64"; \
-			exit 1; \
-		fi; \
-		gpg --verify $(DIST_PATH_LIN_AMD64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_LIN_AMD64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
-		if [ $$? -ne 0 ]; then \
-			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
-			exit 1; \
-		fi; \
-	done
+package-linux-amd64: package-prep
+	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 PLUGIN_ARCH=linux-amd64 MMCTL_PLATFORM="Linux" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_LIN_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost ../mattermost
-	@# Preserve native package so dev machines will have an unzipped package available
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/linux_amd64
 
 package-linux-arm64: package-prep
-	@# Create needed directories
-	mkdir -p $(DIST_PATH_LIN_ARM64)/bin
-	mkdir -p $(DIST_PATH_LIN_ARM64)/logs
-	mkdir -p $(DIST_PATH_LIN_ARM64)/prepackaged_plugins
-
-	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
-	cp $(GOBIN)/mattermost $(DIST_PATH_LIN_ARM64)/bin # from native bin dir, not cross-compiled
-else
-	cp $(GOBIN)/linux_arm64/mattermost $(DIST_PATH_LIN_ARM64)/bin # from cross-compiled bin dir
-endif
-	#Download MMCTL for Linux
-	# TODO: add mmctl back once we build arm64
-	# scripts/download_mmctl_release.sh "Linux" $(DIST_PATH_LIN_ARM64)/bin
-	@# Prepackage plugins
-	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		ARCH="linux-arm64"; \
-		if test -f "tmpprepackaged/$$plugin_package-$$ARCH.tar.gz"; then \
-			cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_LIN_ARM64)/prepackaged_plugins; \
-			cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_LIN_ARM64)/prepackaged_plugins; \
-			HAS_ARCH=`tar -tf $(DIST_PATH_LIN_ARM64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
-			if [ "$$HAS_ARCH" != "dist/plugin-linux-arm64" ]; then \
-				echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-linux-arm64"; \
-				exit 1; \
-			fi; \
-			gpg --verify $(DIST_PATH_LIN_ARM64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_LIN_ARM64)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
-			if [ $$? -ne 0 ]; then \
-				echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
-				exit 1; \
-			fi; \
-		fi; \
-	done
+	DIST_PATH_GENERIC=$(DIST_PATH_LIN_ARM64) CURRENT_PACKAGE_ARCH=linux_arm64 PLUGIN_ARCH=linux-arm64 MMCTL_PLATFORM="Linux" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
-	tar -C $(DIST_PATH_LIN_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-arm64.tar.gz mattermost ../mattermost
-	@# Preserve native package so dev machines will have an unzipped package available
+	tar -C $(DIST_PATH_LIN_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/linux_arm64
+
+package-linux: package-linux-amd64 package-linux-arm64
 
 package-windows: package-prep
 	@# Create needed directories
@@ -326,6 +251,6 @@ endif
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/windows
 
-package: package-osx-amd64 package-osx-arm64 package-linux-amd64 package-linux-arm64 package-windows
+package: package-osx package-linux package-windows
 	rm -rf tmpprepackaged
 	rm -rf $(DIST_PATH)
