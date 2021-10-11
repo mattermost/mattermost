@@ -8032,7 +8032,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Professional endet in 3 Tagen, am {{.TrialEnd}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
+    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
