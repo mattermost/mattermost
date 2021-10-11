@@ -156,6 +156,10 @@ func (a *App) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return a.Srv().Store.CheckIntegrity()
 }
 
+func (a *App) SetChannels(ch *Channels) {
+	a.ch = ch
+}
+
 func (a *App) SetServer(srv *Server) {
 	a.ch.srv = srv
 }
