@@ -743,6 +743,18 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.NotNil(t, err, "Should fail on bad token type")
 	})
 
+	t.Run("token extra email does not match provided user data email", func(t *testing.T) {
+		invitationEmail := "attacker@test.com"
+		token := model.NewToken(
+			TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
+		)
+
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		_, err := th.App.CreateUserWithToken(th.Context, &user, token)
+		require.NotNil(t, err)
+	})
+
 	t.Run("expired token", func(t *testing.T) {
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
@@ -767,13 +779,14 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("valid regular user request", func(t *testing.T) {
-		invitationEmail := model.NewId() + "other-email@test.com"
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		u := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		newUser, err := th.App.CreateUserWithToken(th.Context, &user, token)
+		newUser, err := th.App.CreateUserWithToken(th.Context, &u, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 		assert.False(t, newUser.IsGuest())
 		require.Equal(t, invitationEmail, newUser.Email, "The user email must be the invitation one")
@@ -787,13 +800,14 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("valid guest request", func(t *testing.T) {
-		invitationEmail := model.NewId() + "other-email@test.com"
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
+
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 
@@ -816,8 +830,8 @@ func TestCreateUserWithToken(t *testing.T) {
 			})
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
-		forbiddenInvitationEmail := model.NewId() + "other-email@test.com"
-		grantedInvitationEmail := model.NewId() + "other-email@restricted.com"
+		forbiddenInvitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		grantedInvitationEmail := strings.ToLower(model.NewId()) + "other-email@restricted.com"
 		forbiddenDomainToken := model.NewToken(
 			TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
@@ -829,7 +843,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store.Token().Save(forbiddenDomainToken))
 		require.NoError(t, th.App.Srv().Store.Token().Save(grantedDomainToken))
 		guest := model.User{
-			Email:       strings.ToLower(model.NewId()) + "+test@example.com",
+			Email:       forbiddenInvitationEmail,
 			Nickname:    "Darth Vader",
 			Username:    "vader" + model.NewId(),
 			Password:    "passwd1",
@@ -840,6 +854,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Nil(t, newGuest)
 		assert.Equal(t, "api.user.create_user.accepted_domain.app_error", err.Id)
 
+		guest.Email = grantedInvitationEmail
 		newGuest, err = th.App.CreateUserWithToken(th.Context, &guest, grantedDomainToken)
 		require.Nil(t, err)
 		assert.True(t, newGuest.IsGuest())
@@ -864,14 +879,14 @@ func TestCreateUserWithToken(t *testing.T) {
 			})
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
-		invitationEmail := model.NewId() + "other-email@test.com"
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		guest := model.User{
-			Email:       strings.ToLower(model.NewId()) + "+test@example.com",
+			Email:       invitationEmail,
 			Nickname:    "Darth Vader",
 			Username:    "vader" + model.NewId(),
 			Password:    "passwd1",
