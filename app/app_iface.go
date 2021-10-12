@@ -990,6 +990,7 @@ type AppIface interface {
 	SessionHasPermissionToUserOrBot(session model.Session, userID string) bool
 	SetActiveChannel(userID string, channelID string) *model.AppError
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
+	SetChannels(ch *Channels)
 	SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError
 	SetDefaultProfileImage(user *model.User) *model.AppError
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error

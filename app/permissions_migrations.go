@@ -921,7 +921,7 @@ func (a *App) DoPermissionsMigrations() error {
 }
 
 func (s *Server) doPermissionsMigrations() error {
-	a := New(ServerConnector(s))
+	a := New(ServerConnector(s.Channels()))
 	PermissionsMigrations := []struct {
 		Key       string
 		Migration func() (permissionsMap, error)

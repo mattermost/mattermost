@@ -162,9 +162,6 @@ func (d *decodeReader) queueFilter(f *filterBlock) error {
 	if len(d.filters) >= maxQueuedFilters {
 		return errTooManyFilters
 	}
-	// offset & length must be < window size
-	f.offset &= d.win.mask
-	f.length &= d.win.mask
 	// make offset relative to previous filter in list
 	for _, fb := range d.filters {
 		if f.offset < fb.offset {
@@ -173,6 +170,9 @@ func (d *decodeReader) queueFilter(f *filterBlock) error {
 		}
 		f.offset -= fb.offset
 	}
+	// offset & length must be < window size
+	f.offset &= d.win.mask
+	f.length &= d.win.mask
 	d.filters = append(d.filters, f)
 	return nil
 }

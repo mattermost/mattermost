@@ -606,8 +606,10 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
-				srv: &Server{
-					Store: mockStore,
+				ch: &Channels{
+					srv: &Server{
+						Store: mockStore,
+					},
 				},
 			}
 
@@ -2360,7 +2362,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -2384,7 +2386,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -2412,7 +2414,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
