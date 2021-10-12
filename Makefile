@@ -95,8 +95,10 @@ PLATFORM_FILES="./cmd/mattermost"
 # Output paths
 DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
-DIST_PATH_LIN=$(DIST_ROOT)/linux/mattermost
-DIST_PATH_OSX=$(DIST_ROOT)/osx/mattermost
+DIST_PATH_LIN_AMD64=$(DIST_ROOT)/linux_amd64/mattermost
+DIST_PATH_LIN_ARM64=$(DIST_ROOT)/linux_arm64/mattermost
+DIST_PATH_OSX_AMD64=$(DIST_ROOT)/osx_amd64/mattermost
+DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Tests
