@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -43,7 +44,18 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
 	}
-	query := "INSERT INTO Compliances (Id, CreateAt, UserId, Status, Count, Desc, Type, StartAt, EndAt, Keywords, Emails) VALUES (:Id, :CreateAt, :UserId, :Status, :Count, :Desc, :Type, :StartAt, :EndAt, :Keywords, :Emails)"
+
+	// DESC is a keyword
+	var desc string
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		desc = `"desc"`
+	} else {
+		desc = "`Desc`"
+	}
+
+	query := `INSERT INTO Compliances (Id, CreateAt, UserId, Status, Count, ` + desc + `, Type, StartAt, EndAt, Keywords, Emails)
+	VALUES
+	(:Id, :CreateAt, :UserId, :Status, :Count, :Desc, :Type, :StartAt, :EndAt, :Keywords, :Emails)`
 	if _, err := s.GetMasterX().NamedExec(query, compliance); err != nil {
 		return nil, errors.Wrap(err, "failed to save Compliance")
 	}
@@ -54,8 +66,33 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
 	}
-	query := "UPDATE Compliances SET CreateAt=:CreateAt, UserId=:UserId, Status=:Status, Count=:Count, Desc=:Desc, Type=:Type, StartAt=:StartAt, EndAt=:EndAt, Keywords=:Keywords, Emails=:Emails WHERE Id=:Id"
-	res, err := s.GetMasterX().NamedExec(query, compliance)
+
+	query := s.getQueryBuilder().
+		Update("Compliances").
+		Set("CreateAt", compliance.CreateAt).
+		Set("UserId", compliance.UserId).
+		Set("Status", compliance.Status).
+		Set("Count", compliance.Count).
+		Set("Type", compliance.Type).
+		Set("StartAt", compliance.StartAt).
+		Set("EndAt", compliance.EndAt).
+		Set("Keywords", compliance.Keywords).
+		Set("Emails", compliance.Emails).
+		Where(sq.Eq{"Id": compliance.Id})
+
+	// DESC is a keyword
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.Set(`"desc"`, compliance.Desc)
+	} else {
+		query = query.Set("`Desc`", compliance.Desc)
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "compliances_tosql")
+	}
+
+	res, err := s.GetMasterX().Exec(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update Compliance")
 	}
@@ -70,8 +107,8 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 }
 
 func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error) {
-	query := "SELECT * FROM Compliances ORDER BY CreateAt DESC LIMIT = ? OFFSET = ?"
-	var compliances model.Compliances
+	query := "SELECT * FROM Compliances ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
+	compliances := model.Compliances{}
 	if err := s.GetReplicaX().Select(&compliances, query, limit, offset); err != nil {
 		return nil, errors.Wrap(err, "failed to find all Compliances")
 	}
@@ -125,7 +162,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 	// The idea is to first iterate over the channel posts, and then when we run out of those,
 	// start iterating over the direct message posts.
 
-	var channelPosts []*model.CompliancePost
+	channelPosts := []*model.CompliancePost{}
 	channelsQuery := ""
 	var argsChannelsQuery []interface{}
 	if !cursor.ChannelsQueryCompleted {
@@ -190,7 +227,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 		}
 	}
 
-	var directMessagePosts []*model.CompliancePost
+	directMessagePosts := []*model.CompliancePost{}
 	directMessagesQuery := ""
 	var argsDirectMessagesQuery []interface{}
 	if !cursor.DirectMessagesQueryCompleted && len(channelPosts) < limit {
@@ -304,7 +341,7 @@ func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limi
 		ORDER BY PostUpdateAt, PostId
 		LIMIT ?`
 
-	var cposts []*model.MessageExport
+	cposts := []*model.MessageExport{}
 	if err := s.GetReplicaX().Select(&cposts, query, args...); err != nil {
 		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}
