@@ -142,4 +142,16 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 		}
 		require.False(t, pa1.Equals(pa2))
 	})
+
+	t.Run("nil check", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: &PostActionIntegration{},
+		}
+
+		pa2 := &PostAction{
+			Integration: nil,
+		}
+
+		require.False(t, pa1.Equals(pa2))
+	})
 }

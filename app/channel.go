@@ -2336,7 +2336,7 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 			message.Add("team_id", teamMember.TeamId)
 			a.Publish(message)
 
-			if err := a.srv.teamService.RemoveTeamMember(teamMember); err != nil {
+			if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 

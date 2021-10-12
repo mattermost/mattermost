@@ -57,30 +57,6 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 			err.StatusCode = http.StatusBadRequest
 		}
 
-		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, nErr := a.Srv().Store.User().Get(context.Background(), post.UserId)
-			if nErr != nil {
-				var nfErr *store.ErrNotFound
-				switch {
-				case errors.As(nErr, &nfErr):
-					return nil, model.NewAppError("CreatePostAsUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-				default:
-					return nil, model.NewAppError("CreatePostAsUser", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				}
-			}
-
-			T := i18n.GetUserTranslations(user.Locale)
-			a.SendEphemeralPost(
-				post.UserId,
-				&model.Post{
-					ChannelId: channel.Id,
-					RootId:    post.RootId,
-					UserId:    post.UserId,
-					Message:   T("api.post.create_post.town_square_read_only"),
-					CreateAt:  model.GetMillis() + 1,
-				},
-			)
-		}
 		return nil, err
 	}
 
@@ -213,13 +189,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		post.AddProp("from_bot", "true")
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		!post.IsSystemMessage() &&
-		channel.Name == model.DefaultChannelName &&
-		!a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
-		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
-	}
-
 	var ephemeralPost *model.Post
 	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PermissionUseChannelMentions) {
 		mention := post.DisableMentionHighlights()
@@ -297,6 +266,12 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		}
 	}
 
+	post = a.getEmbedsAndImages(post, true)
+	previewPost := post.GetPreviewPost()
+	if previewPost != nil {
+		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
+	}
+
 	rpost, nErr := a.Srv().Store.Post().Save(post)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -317,6 +292,14 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	// We make a copy of the post for the plugin hook to avoid a race condition.
 	rPostCopy := rpost.Clone()
+
+	// FIXME: Removes PreviewPost from the post payload sent to the MessageHasBeenPosted hook so that plugins compiled with older versions of
+	// Mattermost—without the gob registeration of the PreviewPost struct—won't crash.
+	if rPostCopy.Metadata != nil {
+		rPostCopy.Metadata = rPostCopy.Metadata.Copy()
+	}
+	rPostCopy.RemovePreviewPost()
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
@@ -344,11 +327,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
 	rpost = a.PreparePostForClient(rpost, true, false)
-
-	rpost, nErr = a.addPostPreviewProp(rpost)
-	if nErr != nil {
-		return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -520,7 +498,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false)
+	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	postJSON, jsonErr := post.ToJSON()
@@ -543,7 +521,7 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false)
+	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
@@ -684,7 +662,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost, false, true)
+	rpost = a.PreparePostForClientWithEmbedsAndImages(rpost, false, true)
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
@@ -1306,13 +1284,13 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsInTeamForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userID), http.StatusNotImplemented)
+		return nil, model.NewAppError("SearchPostsForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userID), http.StatusNotImplemented)
 	}
 
 	finalParamsList := []*model.SearchParams{}
@@ -1339,14 +1317,14 @@ func (a *App) SearchPostsInTeamForUser(c *request.Context, terms string, userID 
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userID, teamID, page, perPage)
+	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsForUser(finalParamsList, userID, teamID, page, perPage)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SearchPostsInTeamForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 

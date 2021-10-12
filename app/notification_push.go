@@ -181,7 +181,17 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	}
 
 	if channelType == model.ChannelTypeDirect {
+		if replyToThreadType == model.CommentsNotifyCRT {
+			if contentsConfig == model.GenericNoChannelNotification {
+				return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread")
+			}
+			return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread_dm")
+		}
 		return userLocale("api.post.send_notifications_and_forget.push_message")
+	}
+
+	if replyToThreadType == model.CommentsNotifyCRT {
+		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_crt_thread")
 	}
 
 	if channelWideMention {
@@ -271,7 +281,7 @@ func (s *Server) createPushNotificationsHub() {
 	buffer := *s.Config().EmailSettings.PushNotificationBuffer
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, buffer),
-		app:               New(ServerConnector(s)),
+		app:               New(ServerConnector(s.Channels())),
 		wg:                new(sync.WaitGroup),
 		semaWg:            new(sync.WaitGroup),
 		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
@@ -582,8 +592,16 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	cfg := a.Config()
 	if contentsConfig != model.GenericNoChannelNotification || channel.Type == model.ChannelTypeDirect {
 		msg.ChannelName = channelName
-		if a.isCRTEnabledForUser(user.Id) && post.RootId != "" {
-			msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads")
+	}
+
+	if a.isCRTEnabledForUser(user.Id) && post.RootId != "" {
+		if contentsConfig != model.GenericNoChannelNotification {
+			props := map[string]interface{}{"channelName": channelName}
+			msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads", props)
+
+			if channel.Type == model.ChannelTypeDirect {
+				msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads_dm")
+			}
 		}
 	}
 

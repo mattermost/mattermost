@@ -2769,7 +2769,6 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
-		*c.ServiceSettings.DisableLegacyMFA = true
 		*c.ServiceSettings.EnableMultifactorAuthentication = true
 	})
 
@@ -5870,6 +5869,31 @@ func TestFollowThreads(t *testing.T) {
 		require.Len(t, uss.Threads, 1)
 		require.GreaterOrEqual(t, uss.Threads[0].LastViewedAt, uss.Threads[0].LastReplyAt)
 
+	})
+
+	t.Run("No permission to channel", func(t *testing.T) {
+		// Add user1 to private channel
+		_, appErr := th.App.AddUserToChannel(th.BasicUser, th.BasicPrivateChannel2, false)
+		require.Nil(t, appErr)
+		defer th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", th.BasicPrivateChannel2)
+
+		// create thread in private channel
+		rpost, resp, err := th.Client.CreatePost(&model.Post{ChannelId: th.BasicPrivateChannel2.Id, Message: "root post"})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		_, resp, err = th.Client.CreatePost(&model.Post{ChannelId: th.BasicPrivateChannel2.Id, Message: "testReply", RootId: rpost.Id})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// Try to follow thread as other user who is not in the private channel
+		resp, err = th.Client.UpdateThreadFollowForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, true)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Try to unfollow thread as other user who is not in the private channel
+		resp, err = th.Client.UpdateThreadFollowForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 

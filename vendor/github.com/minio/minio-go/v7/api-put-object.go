@@ -60,6 +60,9 @@ type AdvancedPutOptions struct {
 	ReplicationStatus  ReplicationStatus
 	SourceMTime        time.Time
 	ReplicationRequest bool
+	RetentionTimestamp time.Time
+	TaggingTimestamp   time.Time
+	LegalholdTimestamp time.Time
 }
 
 // PutObjectOptions represents options specified by user for PutObject call
@@ -156,6 +159,16 @@ func (opts PutObjectOptions) Header() (header http.Header) {
 	if opts.Internal.ReplicationRequest {
 		header.Set(minIOBucketReplicationRequest, "")
 	}
+	if !opts.Internal.LegalholdTimestamp.IsZero() {
+		header.Set(minIOBucketReplicationObjectLegalHoldTimestamp, opts.Internal.LegalholdTimestamp.Format(time.RFC3339Nano))
+	}
+	if !opts.Internal.RetentionTimestamp.IsZero() {
+		header.Set(minIOBucketReplicationObjectRetentionTimestamp, opts.Internal.RetentionTimestamp.Format(time.RFC3339Nano))
+	}
+	if !opts.Internal.TaggingTimestamp.IsZero() {
+		header.Set(minIOBucketReplicationTaggingTimestamp, opts.Internal.TaggingTimestamp.Format(time.RFC3339Nano))
+	}
+
 	if len(opts.UserTags) != 0 {
 		header.Set(amzTaggingHeader, s3utils.TagEncode(opts.UserTags))
 	}
@@ -360,7 +373,7 @@ func (c Client) putObjectMultipartStreamNoLength(ctx context.Context, bucketName
 	// Sort all completed parts.
 	sort.Sort(completedParts(complMultipartUpload.Parts))
 
-	uploadInfo, err := c.completeMultipartUpload(ctx, bucketName, objectName, uploadID, complMultipartUpload)
+	uploadInfo, err := c.completeMultipartUpload(ctx, bucketName, objectName, uploadID, complMultipartUpload, PutObjectOptions{})
 	if err != nil {
 		return UploadInfo{}, err
 	}

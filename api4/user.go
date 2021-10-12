@@ -57,7 +57,6 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/auth", api.APISessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
-	api.BaseRoutes.Users.Handle("/mfa", api.APIHandler(checkUserMfa)).Methods("POST")
 	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
@@ -124,16 +123,9 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if tokenId != "" {
-		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
-		if nErr != nil {
-			var status int
-			switch nErr.(type) {
-			case *store.ErrNotFound:
-				status = http.StatusNotFound
-			default:
-				status = http.StatusInternalServerError
-			}
-			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, nErr.Error(), status)
+		token, appErr := c.App.GetTokenById(tokenId)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 		auditRec.AddMeta("token_type", token.Type)
@@ -1508,40 +1500,6 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
-}
-
-// Deprecated: checkUserMfa is deprecated and should not be used anymore, starting with version 6.0 it will be disabled.
-//			   Clients should attempt a login without MFA and will receive a MFA error when it's required.
-func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	if *c.App.Config().ServiceSettings.DisableLegacyMFA {
-		http.NotFound(w, r)
-		return
-	}
-
-	props := model.MapFromJSON(r.Body)
-
-	loginId := props["login_id"]
-	if loginId == "" {
-		c.SetInvalidParam("login_id")
-		return
-	}
-
-	resp := map[string]interface{}{}
-	resp["mfa_required"] = false
-
-	if !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
-		w.Write([]byte(model.StringInterfaceToJSON(resp)))
-		return
-	}
-
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
-		resp["mfa_required"] = true
-	} else if user, err := c.App.GetUserForLogin("", loginId); err == nil {
-		resp["mfa_required"] = user.MfaActive
-	}
-
-	w.Write([]byte(model.StringInterfaceToJSON(resp)))
 }
 
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -3094,6 +3052,11 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
 	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, false)
 	if err != nil {
 		c.Err = err
@@ -3119,6 +3082,11 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 

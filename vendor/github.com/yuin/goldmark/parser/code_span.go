@@ -3,7 +3,6 @@ package parser
 import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
-	"github.com/yuin/goldmark/util"
 )
 
 type codeSpanParser struct {
@@ -52,9 +51,7 @@ func (s *codeSpanParser) Parse(parent ast.Node, block text.Reader, pc Context) a
 				}
 			}
 		}
-		if !util.IsBlank(line) {
-			node.AppendChild(node, ast.NewRawTextSegment(segment))
-		}
+		node.AppendChild(node, ast.NewRawTextSegment(segment))
 		block.AdvanceLine()
 	}
 end:
@@ -62,11 +59,11 @@ end:
 		// trim first halfspace and last halfspace
 		segment := node.FirstChild().(*ast.Text).Segment
 		shouldTrimmed := true
-		if !(!segment.IsEmpty() && block.Source()[segment.Start] == ' ') {
+		if !(!segment.IsEmpty() && isSpaceOrNewline(block.Source()[segment.Start])) {
 			shouldTrimmed = false
 		}
 		segment = node.LastChild().(*ast.Text).Segment
-		if !(!segment.IsEmpty() && block.Source()[segment.Stop-1] == ' ') {
+		if !(!segment.IsEmpty() && isSpaceOrNewline(block.Source()[segment.Stop-1])) {
 			shouldTrimmed = false
 		}
 		if shouldTrimmed {
@@ -80,4 +77,8 @@ end:
 
 	}
 	return node
+}
+
+func isSpaceOrNewline(c byte) bool {
+	return c == ' ' || c == '\n'
 }

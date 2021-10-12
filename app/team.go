@@ -30,7 +30,7 @@ import (
 )
 
 func (a *App) CreateTeam(c *request.Context, team *model.Team) (*model.Team, *model.AppError) {
-	rteam, err := a.srv.teamService.CreateTeam(team)
+	rteam, err := a.ch.srv.teamService.CreateTeam(team)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 
@@ -70,7 +70,7 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 	}
 	team.Email = user.Email
 
-	if !a.srv.teamService.IsTeamEmailAllowed(user, team) {
+	if !a.ch.srv.teamService.IsTeamEmailAllowed(user, team) {
 		return nil, model.NewAppError("CreateTeamWithUser", "api.team.is_team_creation_allowed.domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -93,7 +93,7 @@ func (a *App) normalizeDomains(domains string) []string {
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	oldTeam, err := a.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
+	oldTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -138,7 +138,7 @@ func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName st
 		team.DisplayName = newDisplayName
 	}
 
-	newTeam, err := a.srv.teamService.UpdateTeam(team, teams.UpdateOptions{})
+	newTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{})
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -224,7 +224,7 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 }
 
 func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
-	team, err := a.srv.teamService.PatchTeam(teamID, patch)
+	team, err := a.ch.srv.teamService.PatchTeam(teamID, patch)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -646,7 +646,7 @@ func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userI
 }
 
 func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
-	teamMember, alreadyAdded, err := a.srv.teamService.JoinUserToTeam(team, user)
+	teamMember, alreadyAdded, err := a.ch.srv.teamService.JoinUserToTeam(team, user)
 	if err != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
@@ -727,7 +727,7 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 }
 
 func (a *App) GetTeam(teamID string) (*model.Team, *model.AppError) {
-	team, err := a.srv.teamService.GetTeam(teamID)
+	team, err := a.ch.srv.teamService.GetTeam(teamID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1163,7 +1163,7 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 	message.Add("team_id", teamMember.TeamId)
 	a.Publish(message)
 
-	if err := a.srv.teamService.RemoveTeamMember(teamMember); err != nil {
+	if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
@@ -1305,7 +1305,7 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamID, senderI
 	if err != nil {
 		return nil, err
 	}
-	allowedDomains := a.srv.teamService.GetAllowedDomains(user, team)
+	allowedDomains := a.ch.srv.teamService.GetAllowedDomains(user, team)
 	var inviteListWithErrors []*model.EmailInviteWithError
 	var goodEmails []string
 	for _, email := range emailList {
@@ -1463,7 +1463,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamID, senderId string) 
 		return err
 	}
 
-	allowedDomains := a.srv.teamService.GetAllowedDomains(user, team)
+	allowedDomains := a.ch.srv.teamService.GetAllowedDomains(user, team)
 	var invalidEmailList []string
 
 	for _, email := range emailList {
@@ -1849,7 +1849,7 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 	img = imaging.FillCenter(img, teamIconWidthAndHeight, teamIconWidthAndHeight)
 
 	buf := new(bytes.Buffer)
-	err = a.srv.imgEncoder.EncodePNG(buf, img)
+	err = a.Srv().imgEncoder.EncodePNG(buf, img)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

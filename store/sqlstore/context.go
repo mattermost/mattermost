@@ -42,3 +42,11 @@ func (ss *SqlStore) DBFromContext(ctx context.Context) *gorp.DbMap {
 	}
 	return ss.GetReplica()
 }
+
+// DBXFromContext is a helper utility that returns the sqlx DB handle from a given context.
+func (ss *SqlStore) DBXFromContext(ctx context.Context) *sqlxDBWrapper {
+	if hasMaster(ctx) {
+		return ss.GetMasterX()
+	}
+	return ss.GetReplicaX()
+}

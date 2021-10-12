@@ -1859,7 +1859,7 @@ func TestImportUserChannels(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			user := th.CreateUser()
-			_, _, err := th.App.srv.teamService.JoinUserToTeam(th.BasicTeam, user)
+			_, _, err := th.App.ch.srv.teamService.JoinUserToTeam(th.BasicTeam, user)
 			require.NoError(t, err)
 
 			// Two times import must end with the same results

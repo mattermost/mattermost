@@ -515,11 +515,6 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 			data.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body_guest.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
-			data.Props["SenderName"] = senderName
-			data.Props["Message"] = ""
-			if message != "" {
-				data.Props["Message"] = message
-			}
 			data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
 			data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
 			data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
@@ -555,15 +550,24 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
 			}
 
+			senderPhoto := ""
 			embeddedFiles := make(map[string]io.Reader)
 			if message != "" {
 				if senderProfileImage != nil {
-					data.Props["SenderPhoto"] = "user-avatar.png"
+					senderPhoto = "user-avatar.png"
 					embeddedFiles = map[string]io.Reader{
-						"user-avatar.png": bytes.NewReader(senderProfileImage),
+						senderPhoto: bytes.NewReader(senderProfileImage),
 					}
 				}
 			}
+
+			pData := postData{
+				SenderName:  senderName,
+				Message:     template.HTML(message),
+				SenderPhoto: senderPhoto,
+			}
+
+			data.Props["Posts"] = []postData{pData}
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {

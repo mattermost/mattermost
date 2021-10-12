@@ -2,10 +2,11 @@
 OUTPUT_DIR=.
 MJML=mjml
 
+## Also update the circleCI file if you update this.
 check-prereq: ## check if mjml is installed
 	@if ! [ -x "$$(command -v mjml)" ]; then \
 		echo "mjml is not installed. Installing mjml"; \
-		npm install -g mjml; \
+		npm install -g mjml@4.9.0; \
 	fi;
 
 

@@ -536,7 +536,7 @@ func TestPanicLog(t *testing.T) {
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
 	require.NoError(t, err)
-	err = logger.ConfigureTargets(cfg)
+	err = logger.ConfigureTargets(cfg, nil)
 	require.NoError(t, err)
 	logger.LockConfiguration()
 
@@ -771,7 +771,7 @@ func TestAdminAdvisor(t *testing.T) {
 				AuthService: "",
 				Roles:       model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 			}
-			ruser, err := th.App.srv.userService.CreateUser(&user, users.UserCreateOptions{FromImport: true})
+			ruser, err := th.App.ch.srv.userService.CreateUser(&user, users.UserCreateOptions{FromImport: true})
 			assert.NoError(t, err, "User should be created")
 			userList = append(userList, ruser)
 			defer th.App.PermanentDeleteUser(th.Context, ruser)

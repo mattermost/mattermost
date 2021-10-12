@@ -91,6 +91,9 @@ func (b *atxHeadingParser) Open(parent ast.Node, reader text.Reader, pc Context)
 	if i == pos || level > 6 {
 		return nil, NoChildren
 	}
+	if i == len(line) { // alone '#' (without a new line character)
+		return ast.NewHeading(level), NoChildren
+	}
 	l := util.TrimLeftSpaceLength(line[i:])
 	if l == 0 {
 		return nil, NoChildren

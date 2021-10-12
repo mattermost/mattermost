@@ -31,8 +31,8 @@ type TargetFactory func(targetType string, options json.RawMessage) (logr.Target
 type FormatterFactory func(format string, options json.RawMessage) (logr.Formatter, error)
 
 type Factories struct {
-	targetFactory    TargetFactory    // can be nil
-	formatterFactory FormatterFactory // can be nil
+	TargetFactory    TargetFactory    // can be nil
+	FormatterFactory FormatterFactory // can be nil
 }
 
 var removeAll = func(ti logr.TargetInfo) bool { return true }
@@ -56,7 +56,7 @@ func ConfigureTargets(lgr *logr.Logr, config map[string]TargetCfg, factories *Fa
 	}
 
 	for name, tcfg := range config {
-		target, err := newTarget(tcfg.Type, tcfg.Options, factories.targetFactory)
+		target, err := newTarget(tcfg.Type, tcfg.Options, factories.TargetFactory)
 		if err != nil {
 			return fmt.Errorf("error creating log target %s: %w", name, err)
 		}
@@ -65,7 +65,7 @@ func ConfigureTargets(lgr *logr.Logr, config map[string]TargetCfg, factories *Fa
 			continue
 		}
 
-		formatter, err := newFormatter(tcfg.Format, tcfg.FormatOptions, factories.formatterFactory)
+		formatter, err := newFormatter(tcfg.Format, tcfg.FormatOptions, factories.FormatterFactory)
 		if err != nil {
 			return fmt.Errorf("error creating formatter for log target %s: %w", name, err)
 		}

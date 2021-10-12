@@ -13,6 +13,22 @@ type Canonicalizer interface {
 	Algorithm() AlgorithmID
 }
 
+type NullCanonicalizer struct {
+}
+
+func MakeNullCanonicalizer() Canonicalizer {
+	return &NullCanonicalizer{}
+}
+
+func (c *NullCanonicalizer) Algorithm() AlgorithmID {
+	return AlgorithmID("NULL")
+}
+
+func (c *NullCanonicalizer) Canonicalize(el *etree.Element) ([]byte, error) {
+	scope := make(map[string]struct{})
+	return canonicalSerialize(canonicalPrep(el, scope, false))
+}
+
 type c14N10ExclusiveCanonicalizer struct {
 	prefixList string
 }
@@ -49,7 +65,7 @@ func MakeC14N11Canonicalizer() Canonicalizer {
 // Canonicalize transforms the input Element into a serialized XML document in canonical form.
 func (c *c14N11Canonicalizer) Canonicalize(el *etree.Element) ([]byte, error) {
 	scope := make(map[string]struct{})
-	return canonicalSerialize(canonicalPrep(el, scope))
+	return canonicalSerialize(canonicalPrep(el, scope, true))
 }
 
 func (c *c14N11Canonicalizer) Algorithm() AlgorithmID {
@@ -66,7 +82,7 @@ func MakeC14N10RecCanonicalizer() Canonicalizer {
 // Canonicalize transforms the input Element into a serialized XML document in canonical form.
 func (c *c14N10RecCanonicalizer) Canonicalize(el *etree.Element) ([]byte, error) {
 	scope := make(map[string]struct{})
-	return canonicalSerialize(canonicalPrep(el, scope))
+	return canonicalSerialize(canonicalPrep(el, scope, true))
 }
 
 func (c *c14N10RecCanonicalizer) Algorithm() AlgorithmID {
@@ -83,7 +99,7 @@ func MakeC14N10CommentCanonicalizer() Canonicalizer {
 // Canonicalize transforms the input Element into a serialized XML document in canonical form.
 func (c *c14N10CommentCanonicalizer) Canonicalize(el *etree.Element) ([]byte, error) {
 	scope := make(map[string]struct{})
-	return canonicalSerialize(canonicalPrep(el, scope))
+	return canonicalSerialize(canonicalPrep(el, scope, true))
 }
 
 func (c *c14N10CommentCanonicalizer) Algorithm() AlgorithmID {
@@ -116,7 +132,7 @@ const nsSpace = "xmlns"
 //
 // TODO(russell_h): This is very similar to excCanonicalPrep - perhaps they should
 // be unified into one parameterized function?
-func canonicalPrep(el *etree.Element, seenSoFar map[string]struct{}) *etree.Element {
+func canonicalPrep(el *etree.Element, seenSoFar map[string]struct{}, strip bool) *etree.Element {
 	_seenSoFar := make(map[string]struct{})
 	for k, v := range seenSoFar {
 		_seenSoFar[k] = v
@@ -141,7 +157,7 @@ func canonicalPrep(el *etree.Element, seenSoFar map[string]struct{}) *etree.Elem
 	for i, token := range ne.Child {
 		childElement, ok := token.(*etree.Element)
 		if ok {
-			ne.Child[i] = canonicalPrep(childElement, _seenSoFar)
+			ne.Child[i] = canonicalPrep(childElement, _seenSoFar, strip)
 		}
 	}
 

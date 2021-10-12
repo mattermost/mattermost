@@ -308,29 +308,29 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	})
 }
 
-func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
-	t.Run("should enable IncidentManagement plugin by default on enterprise-ready builds", func(t *testing.T) {
+func TestConfigDefaultPlaybooksPluginState(t *testing.T) {
+	t.Run("should enable Playbooks plugin by default on enterprise-ready builds", func(t *testing.T) {
 		BuildEnterpriseReady = "true"
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
+		assert.True(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
 	})
 
-	t.Run("should not enable IncidentManagement plugin by default on non-enterprise-ready builds", func(t *testing.T) {
+	t.Run("should enable Playbooks plugin by default on non-enterprise-ready builds", func(t *testing.T) {
 		BuildEnterpriseReady = ""
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.Nil(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"])
+		assert.True(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
 	})
 
-	t.Run("should not re-enable IncidentManagement plugin after it has been disabled", func(t *testing.T) {
+	t.Run("should not re-enable Playbooks plugin after it has been disabled", func(t *testing.T) {
 		BuildEnterpriseReady = ""
 		c1 := Config{
 			PluginSettings: PluginSettings{
 				PluginStates: map[string]*PluginState{
-					"com.mattermost.plugin-incident-management": {
+					"playbooks": {
 						Enable: false,
 					},
 				},
@@ -339,7 +339,7 @@ func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
 
 		c1.SetDefaults()
 
-		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
+		assert.False(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
 	})
 }
 
@@ -375,6 +375,30 @@ func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 		c1.SetDefaults()
 
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
+	})
+}
+
+func TestConfigDefaultFocalboardPluginState(t *testing.T) {
+	t.Run("should enable Focalboard plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["focalboard"].Enable)
+	})
+
+	t.Run("should not re-enable focalboard plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"focalboard": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+		assert.False(t, c1.PluginSettings.PluginStates["focalboard"].Enable)
 	})
 }
 
@@ -814,48 +838,14 @@ func TestListenAddressIsValidated(t *testing.T) {
 }
 
 func TestImageProxySettingsSetDefaults(t *testing.T) {
-	ss := ServiceSettings{
-		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(ImageProxyTypeAtmosCamo),
-		DEPRECATED_DO_NOT_USE_ImageProxyURL:     NewString("http://images.example.com"),
-		DEPRECATED_DO_NOT_USE_ImageProxyOptions: NewString("1234abcd"),
-	}
-
-	t.Run("default, no old settings", func(t *testing.T) {
+	t.Run("default settings", func(t *testing.T) {
 		ips := ImageProxySettings{}
-		ips.SetDefaults(ServiceSettings{})
+		ips.SetDefaults()
 
 		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
 		assert.Equal(t, "", *ips.RemoteImageProxyURL)
 		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
-	})
-
-	t.Run("default, old settings", func(t *testing.T) {
-		ips := ImageProxySettings{}
-		ips.SetDefaults(ss)
-
-		assert.Equal(t, true, *ips.Enable)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyType, *ips.ImageProxyType)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyURL, *ips.RemoteImageProxyURL)
-		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions, *ips.RemoteImageProxyOptions)
-	})
-
-	t.Run("not default, old settings", func(t *testing.T) {
-		url := "http://images.mattermost.com"
-		options := "aaaaaaaa"
-
-		ips := ImageProxySettings{
-			Enable:                  NewBool(false),
-			ImageProxyType:          NewString(ImageProxyTypeLocal),
-			RemoteImageProxyURL:     &url,
-			RemoteImageProxyOptions: &options,
-		}
-		ips.SetDefaults(ss)
-
-		assert.Equal(t, false, *ips.Enable)
-		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
-		assert.Equal(t, url, *ips.RemoteImageProxyURL)
-		assert.Equal(t, options, *ips.RemoteImageProxyOptions)
 	})
 }
 

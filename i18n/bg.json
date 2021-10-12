@@ -4576,10 +4576,6 @@
     "translation": "Не може да се анализира тялото на заявката."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Този канал е само за четене. Само членове с разрешение могат да закачат или откачат публикации тук."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Не може да се обнови публикация в изтрит канал."
   },
@@ -4640,10 +4636,6 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Грешка при създаване на публикация."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Този канал е само за четене. Тук могат да публикуват само членове с разрешение."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -7190,10 +7182,6 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "Това действие е забранено за ограничен системен администратор."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Реагирането на публикации не е възможно в канали само за четене."
   },
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
