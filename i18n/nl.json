@@ -8917,7 +8917,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, je 14-daagse proefperiode van Mattermost Cloud Professional loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Cloud Professional."
+    "translation": "{{.Name}}, je 14-daagse proefperiode van Mattermost loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9225,5 +9225,13 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ongeldig CreateAt veld voor sessie."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige kanaallidrol langer dan {{.Limit}} karakters."
   }
 ]

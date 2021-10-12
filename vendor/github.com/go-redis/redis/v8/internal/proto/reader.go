@@ -19,7 +19,7 @@ const (
 
 //------------------------------------------------------------------------------
 
-const Nil = RedisError("redis: nil")
+const Nil = RedisError("redis: nil") // nolint:errname
 
 type RedisError string
 

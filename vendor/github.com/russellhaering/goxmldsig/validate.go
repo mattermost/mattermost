@@ -111,10 +111,6 @@ func (ctx *ValidationContext) transform(
 	ref *types.Reference) (*etree.Element, Canonicalizer, error) {
 	transforms := ref.Transforms.Transforms
 
-	if len(transforms) != 2 {
-		return nil, nil, errors.New("Expected Enveloped and C14N transforms")
-	}
-
 	// map the path to the passed signature relative to the passed root, in
 	// order to enable removal of the signature by an enveloped signature
 	// transform
@@ -157,7 +153,7 @@ func (ctx *ValidationContext) transform(
 	}
 
 	if canonicalizer == nil {
-		return nil, nil, errors.New("Expected canonicalization transform")
+		canonicalizer = MakeNullCanonicalizer()
 	}
 
 	return el, canonicalizer, nil
@@ -234,16 +230,17 @@ func (ctx *ValidationContext) verifySignedInfo(sig *types.Signature, canonicaliz
 }
 
 func (ctx *ValidationContext) validateSignature(el *etree.Element, sig *types.Signature, cert *x509.Certificate) (*etree.Element, error) {
-	idAttr := el.SelectAttr(ctx.IdAttribute)
-	if idAttr == nil || idAttr.Value == "" {
-		return nil, errors.New("Missing ID attribute")
+	idAttrEl := el.SelectAttr(ctx.IdAttribute)
+	idAttr := ""
+	if idAttrEl != nil {
+		idAttr = idAttrEl.Value
 	}
 
 	var ref *types.Reference
 
 	// Find the first reference which references the top-level element
 	for _, _ref := range sig.SignedInfo.References {
-		if _ref.URI == "" || _ref.URI[1:] == idAttr.Value {
+		if _ref.URI == "" || _ref.URI[1:] == idAttr {
 			ref = &_ref
 		}
 	}
@@ -269,6 +266,9 @@ func (ctx *ValidationContext) validateSignature(el *etree.Element, sig *types.Si
 	}
 
 	if !bytes.Equal(digest, decodedDigestValue) {
+		return nil, errors.New("Signature could not be verified")
+	}
+	if sig.SignatureValue == nil {
 		return nil, errors.New("Signature could not be verified")
 	}
 
@@ -318,9 +318,10 @@ func validateShape(signatureEl *etree.Element) error {
 
 // findSignature searches for a Signature element referencing the passed root element.
 func (ctx *ValidationContext) findSignature(root *etree.Element) (*types.Signature, error) {
-	idAttr := root.SelectAttr(ctx.IdAttribute)
-	if idAttr == nil || idAttr.Value == "" {
-		return nil, errors.New("Missing ID attribute")
+	idAttrEl := root.SelectAttr(ctx.IdAttribute)
+	idAttr := ""
+	if idAttrEl != nil {
+		idAttr = idAttrEl.Value
 	}
 
 	var sig *types.Signature
@@ -366,13 +367,13 @@ func (ctx *ValidationContext) findSignature(root *etree.Element) (*types.Signatu
 					canonicalSignedInfo = detachedSignedInfo
 
 				case CanonicalXML11AlgorithmId:
-					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{})
+					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{}, true)
 
 				case CanonicalXML10RecAlgorithmId:
-					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{})
+					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{}, true)
 
 				case CanonicalXML10CommentAlgorithmId:
-					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{})
+					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{}, true)
 
 				default:
 					return fmt.Errorf("invalid CanonicalizationMethod on Signature: %s", c14NAlgorithm)
@@ -403,7 +404,7 @@ func (ctx *ValidationContext) findSignature(root *etree.Element) (*types.Signatu
 		// Traverse references in the signature to determine whether it has at least
 		// one reference to the top level element. If so, conclude the search.
 		for _, ref := range _sig.SignedInfo.References {
-			if ref.URI == "" || ref.URI[1:] == idAttr.Value {
+			if ref.URI == "" || ref.URI[1:] == idAttr {
 				sig = _sig
 				return etreeutils.ErrTraversalHalted
 			}

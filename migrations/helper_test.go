@@ -67,7 +67,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App:        app.New(app.ServerConnector(s)),
+		App:        app.New(app.ServerConnector(s.Channels())),
 		Context:    &request.Context{},
 		Server:     s,
 		TestLogger: testLogger,

@@ -1,10 +1,11 @@
 package parser
 
 import (
+	"strconv"
+
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
-	"strconv"
 )
 
 type listItemType int
@@ -143,7 +144,7 @@ func (b *listParser) Open(parent ast.Node, reader text.Reader, pc Context) (ast.
 			return nil, NoChildren
 		}
 		//an empty list item cannot interrupt a paragraph:
-		if match[5]-match[4] == 1 {
+		if match[5]-match[4] <= 1 {
 			return nil, NoChildren
 		}
 	}
@@ -165,7 +166,7 @@ func (b *listParser) Continue(node ast.Node, reader text.Reader, pc Context) Sta
 			return Close
 		}
 
-		reader.Advance(len(line)-1)
+		reader.Advance(len(line) - 1)
 		return Continue | HasChildren
 	}
 
