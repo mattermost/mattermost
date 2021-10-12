@@ -1582,7 +1582,7 @@ func doJobsCleanup(s *Server) {
 	expiry := model.GetMillisForTime(time.Now().Add(-dur))
 	err = s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
-		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
+		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
 	}
 }
 

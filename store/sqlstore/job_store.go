@@ -305,12 +305,12 @@ func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
 	for rowsAffected > 0 {
 		sqlResult, err := jss.GetMasterX().Exec(query, expiryTime, batchSize)
 		if err != nil {
-			return errors.Wrap(err, "unable to delete sessions")
+			return errors.Wrap(err, "unable to delete jobs")
 		}
 		var rowErr error
 		rowsAffected, rowErr = sqlResult.RowsAffected()
 		if rowErr != nil {
-			return errors.Wrap(err, "unable to delete sessions")
+			return errors.Wrap(err, "unable to delete jobs")
 		}
 
 		time.Sleep(jobsCleanupDelay)
