@@ -165,13 +165,13 @@ func TestHubSessionRevokeRace(t *testing.T) {
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.srv.Config,
+		ConfigFn:     th.App.ch.srv.Config,
 		Metrics:      th.App.Metrics(),
 		Cluster:      th.App.Cluster(),
-		LicenseFn:    th.App.srv.License,
+		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)
-	th.App.srv.userService = userService
+	th.App.ch.srv.userService = userService
 
 	// This needs to be false for the condition to trigger
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -189,7 +189,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	time.Sleep(time.Second)
 	// We override the LastActivityAt which happens in NewWebConn.
 	// This is needed to call RevokeSessionById which triggers the race.
-	th.App.srv.userService.AddSessionToCache(sess1)
+	th.App.ch.srv.userService.AddSessionToCache(sess1)
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {

@@ -3,9 +3,13 @@
 
 package app
 
+import "github.com/mattermost/mattermost-server/v6/services/httpservice"
+
 // Channels contains all channels related state.
 type Channels struct {
-	s *Server
+	srv *Server
+
+	httpService httpservice.HTTPService
 }
 
 func init() {
@@ -16,7 +20,8 @@ func init() {
 
 func NewChannels(s *Server) (*Channels, error) {
 	return &Channels{
-		s: s,
+		srv:         s,
+		httpService: httpservice.MakeHTTPService(s),
 	}, nil
 }
 
@@ -26,4 +31,8 @@ func (c *Channels) Start() error {
 
 func (c *Channels) Stop() error {
 	return nil
+}
+
+func (c *Channels) HTTPService() httpservice.HTTPService {
+	return c.httpService
 }
