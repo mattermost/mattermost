@@ -49,7 +49,7 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 		return nil, err
 	}
 
-	a := app.New(app.ServerConnector(s))
+	a := app.New(app.ServerConnector(s.Channels()))
 
 	if model.BuildEnterpriseReady == "true" {
 		a.Srv().LoadLicense()

@@ -120,7 +120,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	})
 
 	ctx := &request.Context{}
-	a := app.New(app.ServerConnector(s))
+	a := app.New(app.ServerConnector(s.Channels()))
 
 	web := New(a, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
