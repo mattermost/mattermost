@@ -230,7 +230,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	if _, ok := post.GetProps()["boards"]; ok {
+	if _, ok := post.GetProps()["boards"]; ok && a.Config().FeatureFlags.BoardsUnfurl {
 		return &model.PostEmbed{
 			Type: model.PostEmbedBoards,
 			Data: post.GetProps()["boards"],
