@@ -396,10 +396,6 @@ func (u *User) PreSave() {
 		u.Props = make(map[string]string)
 	}
 
-	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
-		u.SetDefaultNotifications()
-	}
-
 	if u.Timezone == nil {
 		u.Timezone = timezones.DefaultUserTimezone()
 	}

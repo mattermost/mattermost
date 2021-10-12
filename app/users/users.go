@@ -63,6 +63,17 @@ func (us *UserService) createUser(user *model.User) (*model.User, error) {
 		return nil, err
 	}
 
+	if user.NotifyProps == nil || len(user.NotifyProps) == 0 {
+		user.SetDefaultNotifications()
+	}
+
+	if us.config().FeatureFlags.NewAccountNoisy {
+		user.NotifyProps[model.DesktopNotifyProp] = model.UserNotifyAll
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+		user.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
+		user.NotifyProps[model.MentionKeysNotifyProp] = user.Username
+	}
+
 	ruser, err := us.store.Save(user)
 	if err != nil {
 		return nil, err
