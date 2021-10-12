@@ -2330,12 +2330,6 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
-			// Send the websocket message before we actually do the remove so the user being removed gets it.
-			message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil)
-			message.Add("user_id", teamMember.UserId)
-			message.Add("team_id", teamMember.TeamId)
-			a.Publish(message)
-
 			if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 			}

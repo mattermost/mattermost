@@ -1157,12 +1157,6 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 		}
 	}
 
-	// Send the websocket message before we actually do the remove so the user being removed gets it.
-	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil)
-	message.Add("user_id", teamMember.UserId)
-	message.Add("team_id", teamMember.TeamId)
-	a.Publish(message)
-
 	if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

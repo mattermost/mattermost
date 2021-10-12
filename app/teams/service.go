@@ -15,6 +15,7 @@ type TeamService struct {
 	groupStore   store.GroupStore
 	channelStore store.ChannelStore // TODO: replace this with ChannelService in the future
 	users        Users
+	wh           WebHub
 	config       func() *model.Config
 	license      func() *model.License
 }
@@ -26,6 +27,7 @@ type ServiceConfig struct {
 	GroupStore   store.GroupStore
 	ChannelStore store.ChannelStore
 	Users        Users
+	WebHub       WebHub
 	ConfigFn     func() *model.Config
 	LicenseFn    func() *model.License
 }
@@ -33,6 +35,12 @@ type ServiceConfig struct {
 // Users is a subset of UserService interface
 type Users interface {
 	GetUser(userID string) (*model.User, error)
+}
+
+// WebHub is used to publish events, the name should be given appropriately
+// while developing the websocket or clustering service
+type WebHub interface {
+	Publish(message *model.WebSocketEvent)
 }
 
 func New(c ServiceConfig) (*TeamService, error) {
@@ -47,11 +55,12 @@ func New(c ServiceConfig) (*TeamService, error) {
 		users:        c.Users,
 		config:       c.ConfigFn,
 		license:      c.LicenseFn,
+		wh:           c.WebHub,
 	}, nil
 }
 
 func (c *ServiceConfig) validate() error {
-	if c.ConfigFn == nil || c.TeamStore == nil || c.LicenseFn == nil || c.Users == nil || c.ChannelStore == nil || c.GroupStore == nil {
+	if c.ConfigFn == nil || c.TeamStore == nil || c.LicenseFn == nil || c.Users == nil || c.ChannelStore == nil || c.GroupStore == nil || c.WebHub == nil {
 		return errors.New("required parameters are not provided")
 	}
 

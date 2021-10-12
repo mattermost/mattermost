@@ -26,6 +26,10 @@ type TestHelper struct {
 	LogBuffer *bytes.Buffer
 }
 
+type mockWebHub struct{}
+
+func (mockWebHub) Publish(*model.WebSocketEvent) {}
+
 func Setup(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
@@ -75,6 +79,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			license: func() *model.License {
 				return model.NewTestLicense()
 			},
+			wh: &mockWebHub{},
 		},
 		Context:     &request.Context{},
 		configStore: configStore,

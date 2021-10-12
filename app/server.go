@@ -435,6 +435,7 @@ func NewServer(options ...Option) (*Server, error) {
 		ChannelStore: s.Store.Channel(),
 		GroupStore:   s.Store.Group(),
 		Users:        s.userService,
+		WebHub:       s,
 		ConfigFn:     s.Config,
 		LicenseFn:    s.License,
 	})
