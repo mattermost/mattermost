@@ -99,11 +99,11 @@ func (c Client) statObject(ctx context.Context, bucketName, objectName string, o
 	if err != nil {
 		return ObjectInfo{}, err
 	}
-	deleteMarker := resp.Header.Get(amzDeleteMarker) == "true"
 
 	if resp != nil {
+		deleteMarker := resp.Header.Get(amzDeleteMarker) == "true"
 		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusPartialContent {
-			if resp.StatusCode == http.StatusBadRequest && opts.VersionID != "" && deleteMarker {
+			if resp.StatusCode == http.StatusMethodNotAllowed && opts.VersionID != "" && deleteMarker {
 				errResp := ErrorResponse{
 					StatusCode: resp.StatusCode,
 					Code:       "MethodNotAllowed",

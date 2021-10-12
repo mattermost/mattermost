@@ -17,8 +17,10 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5380
+	CurrentSchemaVersion   = Version600
+	Version610             = "6.1.0"
 	Version600             = "6.0.0"
+	Version5390            = "5.39.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -211,6 +213,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion539(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
 	upgradeDatabaseToVersion610(sqlStore)
 
@@ -1290,59 +1293,71 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	}
 }
 
+func upgradeDatabaseToVersion539(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5380, Version5390) {
+		saveSchemaVersion(sqlStore, Version5390)
+	}
+}
+
 func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+	if shouldPerformUpgrade(sqlStore, Version5390, Version600) {
 
-	if sqlStore.DriverName() == model.DatabaseDriverMysql {
-		if sqlStore.DoesColumnExist("Posts", "ParentId") {
-			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			if sqlStore.DoesColumnExist("Posts", "ParentId") {
+				sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId")
+			} else {
+				sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON")
+			}
 		} else {
-			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON")
+			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+			sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+			sqlStore.RemoveColumnIfExists("Posts", "ParentId")
 		}
+
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+		sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"})
+		sqlStore.RemoveIndexIfExists("idx_posts_root_id", "Posts")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_display_name", "Channels", []string{"TeamId", "DisplayName"})
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_type", "Channels", []string{"TeamId", "Type"})
+		sqlStore.RemoveIndexIfExists("idx_channels_team_id", "Channels")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
+		sqlStore.RemoveIndexIfExists("idx_threads_channel_id", "Threads")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_user_id_channel_id_last_viewed_at", "ChannelMembers", []string{"UserId", "ChannelId", "LastViewedAt"})
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers", []string{"ChannelId", "SchemeGuest", "UserId"})
+		sqlStore.RemoveIndexIfExists("idx_channelmembers_user_id", "ChannelMembers")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
+		sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
+
+		saveSchemaVersion(sqlStore, Version600)
 	}
+}
 
-	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version600, Version610) {
 
-	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
-		sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
-	}
-	sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+	sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
+	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
+	sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
+	sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
 
-	sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
-	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
-		sqlStore.RemoveColumnIfExists("Posts", "ParentId")
-	}
-	sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
-	sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
-
-	sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"})
-	sqlStore.RemoveIndexIfExists("idx_posts_root_id", "Posts")
-
-	sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_display_name", "Channels", []string{"TeamId", "DisplayName"})
-	sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_type", "Channels", []string{"TeamId", "Type"})
-	sqlStore.RemoveIndexIfExists("idx_channels_team_id", "Channels")
-
-	sqlStore.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
-	sqlStore.RemoveIndexIfExists("idx_threads_channel_id", "Threads")
-
-	sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_user_id_channel_id_last_viewed_at", "ChannelMembers", []string{"UserId", "ChannelId", "LastViewedAt"})
-	sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers", []string{"ChannelId", "SchemeGuest", "UserId"})
-	sqlStore.RemoveIndexIfExists("idx_channelmembers_user_id", "ChannelMembers")
-
-	sqlStore.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
-	sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
-
-	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
-		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-	}
-
-	// saveSchemaVersion(sqlStore, Version600)
+	// saveSchemaVersion(sqlStore, Version610)
 	// }
 }
 func upgradeDatabaseToVersion610(sqlStore *SqlStore) {

@@ -1316,10 +1316,6 @@
     "translation": "Ошибочный RouteId параметр."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Этот канал доступен только для чтения. Только участники с разрешениями могут писать сюда сообщения."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Ошибка создания сообщения."
   },
@@ -1378,10 +1374,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Нельзя обновить сообщение в удаленном канале."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Этот канал доступен только для чтения. Только участники с соответствующими правами могут прикреплять здесь сообщения."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1462,10 +1454,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Вы не можете сохранить реакцию для другого пользователя."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Невозможно реагировать на сообщения в каналах \"только для чтения\"."
   },
   {
     "id": "api.restricted_system_admin",

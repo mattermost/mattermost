@@ -31,6 +31,10 @@ func (b *codeBlockParser) Open(parent ast.Node, reader text.Reader, pc Context) 
 	node := ast.NewCodeBlock()
 	reader.AdvanceAndSetPadding(pos, padding)
 	_, segment = reader.PeekLine()
+	// if code block line starts with a tab, keep a tab as it is.
+	if segment.Padding != 0 {
+		preserveLeadingTabInCodeBlock(&segment, reader, 0)
+	}
 	node.Lines().Append(segment)
 	reader.Advance(segment.Len() - 1)
 	return node, NoChildren

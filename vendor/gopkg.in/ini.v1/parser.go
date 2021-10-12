@@ -131,7 +131,7 @@ func readKeyName(delimiters string, in []byte) (string, int, error) {
 	// Check if key name surrounded by quotes.
 	var keyQuote string
 	if line[0] == '"' {
-		if len(line) > 6 && string(line[0:3]) == `"""` {
+		if len(line) > 6 && line[0:3] == `"""` {
 			keyQuote = `"""`
 		} else {
 			keyQuote = `"`
@@ -232,7 +232,7 @@ func (p *parser) readValue(in []byte, bufferSize int) (string, error) {
 	}
 
 	var valQuote string
-	if len(line) > 3 && string(line[0:3]) == `"""` {
+	if len(line) > 3 && line[0:3] == `"""` {
 		valQuote = `"""`
 	} else if line[0] == '`' {
 		valQuote = "`"
@@ -289,12 +289,8 @@ func (p *parser) readValue(in []byte, bufferSize int) (string, error) {
 		hasSurroundedQuote(line, '"')) && !p.options.PreserveSurroundedQuote {
 		line = line[1 : len(line)-1]
 	} else if len(valQuote) == 0 && p.options.UnescapeValueCommentSymbols {
-		if strings.Contains(line, `\;`) {
-			line = strings.Replace(line, `\;`, ";", -1)
-		}
-		if strings.Contains(line, `\#`) {
-			line = strings.Replace(line, `\#`, "#", -1)
-		}
+		line = strings.ReplaceAll(line, `\;`, ";")
+		line = strings.ReplaceAll(line, `\#`, "#")
 	} else if p.options.AllowPythonMultilineValues && lastChar == '\n' {
 		return p.readPythonMultilines(line, bufferSize)
 	}
