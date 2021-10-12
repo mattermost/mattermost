@@ -43,6 +43,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 	if err := license.IsValid(); err != nil {
 		return nil, err
 	}
+
 	query := ls.getQueryBuilder().
 		Select("*").
 		From("Licenses").
@@ -52,9 +53,13 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 		return nil, errors.Wrap(err, "license_tosql")
 	}
 	var storedLicense model.LicenseRecord
-	if err := ls.GetReplica().SelectOne(&storedLicense, queryString, args...); err != nil {
+	if err := ls.GetReplicaX().Get(&storedLicense, queryString, args...); err != nil {
 		// Only insert if not exists
-		if err := ls.GetMaster().Insert(license); err != nil {
+		insertLicense, insertArgs, err := ls.getQueryBuilder().Insert("Licenses").Columns("Id", "CreateAt", "Bytes").Values(license).ToSql()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get licenseId=%s", license.Id)
+		}
+		if _, err = ls.GetMasterX().NamedExec(insertLicense, insertArgs); err != nil {
 			return nil, errors.Wrapf(err, "failed to get License with licenseId=%s", license.Id)
 		}
 		return license, nil
@@ -66,28 +71,38 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 // If the license doesn't exist it returns a model.AppError with
 // http.StatusNotFound in the StatusCode field.
 func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
-	obj, err := ls.GetReplica().Get(model.LicenseRecord{}, id)
+	var storedLicense model.LicenseRecord
+	queryString, args, err := ls.getQueryBuilder().
+		Select("Id", "CreateAt", "Bytes").
+		From("Licenses").
+		Where(sq.Eq{"Id": id}).ToSql()
+
 	if err != nil {
+		return nil, errors.Wrapf(err, "license_tosql with licenseId=%s", id)
+	}
+
+	if err := ls.GetReplicaX().Get(&storedLicense, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get License with licenseId=%s", id)
 	}
-	if obj == nil {
+
+	if &storedLicense == nil {
 		return nil, store.NewErrNotFound("License", id)
 	}
-	return obj.(*model.LicenseRecord), nil
+
+	return &storedLicense, nil
 }
 
 func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
-	query := ls.getQueryBuilder().
+	queryString, args, err := ls.getQueryBuilder().
 		Select("*").
-		From("Licenses")
+		From("Licenses").ToSql()
 
-	queryString, _, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "license_tosql")
 	}
 
 	var licenses []*model.LicenseRecord
-	if _, err := ls.GetReplica().Select(&licenses, queryString); err != nil {
+	if err := ls.GetReplicaX().Select(&licenses, queryString, args); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch licenses")
 	}
 
