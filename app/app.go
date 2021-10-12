@@ -128,7 +128,7 @@ func (a *App) HTTPService() httpservice.HTTPService {
 	return a.ch.httpService
 }
 func (a *App) ImageProxy() *imageproxy.ImageProxy {
-	return a.ch.srv.ImageProxy
+	return a.ch.imageProxy
 }
 func (a *App) Timezones() *timezones.Timezones {
 	return a.ch.srv.timezones
