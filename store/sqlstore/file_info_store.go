@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-type fileInfo struct {
+type fileInfoWithChannelID struct {
 	Id              string
 	CreatorId       string
 	PostId          string
@@ -42,7 +42,7 @@ type fileInfo struct {
 	RemoteId        *string
 }
 
-func (fi fileInfo) ToModel() *model.FileInfo {
+func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
 	return &model.FileInfo{
 		Id:              fi.Id,
 		CreatorId:       fi.CreatorId,
@@ -170,7 +170,7 @@ func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 		return nil, errors.Wrap(err, "file_info_tosql")
 	}
 
-	var items []fileInfo
+	items := []fileInfoWithChannelID{}
 	if err := fs.GetReplicaX().Select(&items, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find FileInfos")
 	}
@@ -326,7 +326,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 	if err != nil {
 		return nil, errors.Wrap(err, "file_info_tosql")
 	}
-	var infos []*model.FileInfo
+	infos := []*model.FileInfo{}
 	if err := fs.GetReplicaX().Select(&infos, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find FileInfos")
 	}
@@ -362,7 +362,7 @@ func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string, delete
 }
 
 func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
-	var infos []*model.FileInfo
+	infos := []*model.FileInfo{}
 
 	dbmap := fs.GetReplicaX()
 
@@ -392,7 +392,7 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDele
 }
 
 func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
-	var infos []*model.FileInfo
+	infos := []*model.FileInfo{}
 
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
@@ -416,11 +416,13 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) error 
 	query := fs.getQueryBuilder().
 		Update("FileInfo").
 		Set("PostId", postId).
-		Where(sq.Eq{"Id": fileId}).
-		Where(sq.Eq{"PostId": ""}).
-		Where(sq.Or{
-			sq.Eq{"CreatorId": creatorId},
-			sq.Eq{"CreatorId": "nouser"},
+		Where(sq.And{
+			sq.Eq{"Id": fileId},
+			sq.Eq{"PostId": ""},
+			sq.Or{
+				sq.Eq{"CreatorId": creatorId},
+				sq.Eq{"CreatorId": "nouser"},
+			},
 		})
 
 	queryString, args, err := query.ToSql()
@@ -679,7 +681,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 	list := model.NewFileInfoList()
 
-	var items []fileInfo
+	items := []fileInfoWithChannelID{}
 	err = fs.GetSearchReplicaX().Select(&items, queryString, args...)
 	if err != nil {
 		mlog.Warn("Query error searching files.", mlog.Err(err))
@@ -715,7 +717,7 @@ func (fs SqlFileInfoStore) CountAll() (int64, error) {
 }
 
 func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime, endTime int64, limit int) ([]*model.FileForIndexing, error) {
-	var files []*model.FileForIndexing
+	files := []*model.FileForIndexing{}
 	sql, args, _ := fs.getQueryBuilder().
 		Select(append(fs.queryFields, "Coalesce(p.ChannelId, '') AS ChannelId")...).
 		From("FileInfo").
