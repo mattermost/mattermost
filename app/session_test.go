@@ -317,7 +317,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.False(t, session.IsExpired())
 
 			// check cache was updated
-			cachedSession, errGet := th.App.srv.userService.GetSession(session.Token)
+			cachedSession, errGet := th.App.ch.srv.userService.GetSession(session.Token)
 			require.NoError(t, errGet)
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
