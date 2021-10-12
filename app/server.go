@@ -162,8 +162,6 @@ type Server struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	httpService httpservice.HTTPService
-
 	ImageProxy *imageproxy.ImageProxy
 
 	Audit            *audit.Audit
@@ -209,6 +207,8 @@ type Server struct {
 
 	dndTaskMut sync.Mutex
 	dndTask    *model.ScheduledTask
+
+	products map[string]Product
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -222,6 +222,7 @@ func NewServer(options ...Option) (*Server, error) {
 		licenseListeners:    map[string]func(*model.License, *model.License){},
 		hashSeed:            maphash.MakeSeed(),
 		uploadLockMap:       map[string]bool{},
+		products:            make(map[string]Product),
 	}
 
 	for _, option := range options {
@@ -264,9 +265,19 @@ func NewServer(options ...Option) (*Server, error) {
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
+	// Initialize products
+	for name, initializer := range products {
+		prod, err := initializer(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error initializing product: %s", name)
+		}
+
+		s.products[name] = prod
+	}
+
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	app := New(ServerConnector(s))
+	app := New(ServerConnector(s.Channels()))
 	app.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
@@ -301,8 +312,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.tracer = tracer
 	}
 
-	s.httpService = httpservice.MakeHTTPService(s)
-	s.pushNotificationClient = s.httpService.MakeClient(true)
+	s.pushNotificationClient = s.Channels().HTTPService().MakeClient(true)
 
 	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService(), s.Log)
 
@@ -346,6 +356,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 
+	// initEnterprise needs to be called after products initialization.
 	s.initEnterprise()
 
 	if s.newStore == nil {
@@ -691,6 +702,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.ShutDownPlugins()
 		}
 	})
+
 	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
 			runDNDStatusExpireJob(app)
@@ -774,8 +786,13 @@ func (s *Server) runJobs() {
 // Global app options that should be applied to apps created by this server
 func (s *Server) AppOptions() []AppOption {
 	return []AppOption{
-		ServerConnector(s),
+		ServerConnector(s.Channels()),
 	}
+}
+
+func (s *Server) Channels() *Channels {
+	ch, _ := s.products["channels"].(*Channels)
+	return ch
 }
 
 // Return Database type (postgres or mysql) and current version of Mattermost
@@ -984,6 +1001,15 @@ func (s *Server) Shutdown() {
 	mlog.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
+
+	// Stop products.
+	// This needs to happen before because products are dependent
+	// on parent services.
+	for name, product := range s.products {
+		if err := product.Stop(); err != nil {
+			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err))
+		}
+	}
 
 	s.HubStop()
 	s.ShutDownPlugins()
@@ -1378,6 +1404,14 @@ func (s *Server) Start() error {
 
 	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
 		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	}
+
+	// Start products.
+	// This needs to happen after the server has started.
+	for name, product := range s.products {
+		if err := product.Start(); err != nil {
+			return errors.Wrapf(err, "Unable to start %s", name)
+		}
 	}
 
 	return nil
@@ -1926,7 +1960,7 @@ func (s *Server) TelemetryId() string {
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {
-	return s.httpService
+	return s.Channels().HTTPService()
 }
 
 func (s *Server) SetLog(l *mlog.Logger) {
@@ -2227,18 +2261,18 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // }
 
 func createDNDStatusExpirationRecurringTask(a *App) {
-	a.srv.dndTaskMut.Lock()
-	a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-	a.srv.dndTaskMut.Unlock()
+	a.ch.srv.dndTaskMut.Lock()
+	a.ch.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+	a.ch.srv.dndTaskMut.Unlock()
 }
 
 func cancelDNDStatusExpirationRecurringTask(a *App) {
-	a.srv.dndTaskMut.Lock()
-	if a.srv.dndTask != nil {
-		a.srv.dndTask.Cancel()
-		a.srv.dndTask = nil
+	a.ch.srv.dndTaskMut.Lock()
+	if a.ch.srv.dndTask != nil {
+		a.ch.srv.dndTask.Cancel()
+		a.ch.srv.dndTask = nil
 	}
-	a.srv.dndTaskMut.Unlock()
+	a.ch.srv.dndTaskMut.Unlock()
 }
 
 func runDNDStatusExpireJob(a *App) {
@@ -2248,7 +2282,7 @@ func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
 		createDNDStatusExpirationRecurringTask(a)
 	}
-	a.srv.AddClusterLeaderChangedListener(func() {
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
 			createDNDStatusExpirationRecurringTask(a)
