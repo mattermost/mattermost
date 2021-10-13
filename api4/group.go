@@ -82,6 +82,10 @@ func (api *API) InitGroup() {
 	// GET /api/v4/teams/:team_id/groups_by_channels?page=0&per_page=100
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups_by_channels",
 		api.APISessionRequired(getGroupsAssociatedToChannelsByTeam)).Methods("GET")
+
+	// DELETE /api/v4/groups/:group_id
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
+		api.APISessionRequired(deleteGroup)).Methods("DELETE")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -880,4 +884,33 @@ func getGroupsBySource(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(b)
+}
+
+func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deleteGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+
+	// UNSURE IF THIS PERMISSION STAYS HERE
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// PERMISSION CHECK FOR DELETING
+
+	_, err := c.App.DeleteGroup(c.Params.GroupId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	ReturnStatusOK(w)
 }

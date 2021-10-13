@@ -112,6 +112,39 @@ func TestCreateGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
+
+func TestDeleteGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	id := model.NewId()
+	g, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, appErr)
+
+	_, response, err := th.Client.DeleteGroup(g.Id)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	_, response, err = th.Client.DeleteGroup(g.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	_, response, err = th.Client.DeleteGroup(g.Id)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, response)
+
+	_, response, err = th.Client.DeleteGroup("wertyuijhbgvfcde")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+}
 func TestPatchGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
