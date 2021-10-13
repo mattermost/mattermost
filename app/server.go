@@ -135,6 +135,7 @@ type Server struct {
 	htmlTemplateWatcher     *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
+	openGraphDataCache      cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	clusterLeaderListenerId string
@@ -343,6 +344,11 @@ func NewServer(options ...Option) (*Server, error) {
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
+	if s.openGraphDataCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size: openGraphMetadataCacheSize,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
 	}
 
 	s.createPushNotificationsHub()
@@ -704,6 +710,16 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
 			stopDNDStatusExpireJob(app)
+		}
+	})
+
+	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
+	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if (oldCfg.ImageProxySettings.Enable != newCfg.ImageProxySettings.Enable) ||
+			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) ||
+			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
+			(oldCfg.ImageProxySettings.RemoteImageProxyOptions != newCfg.ImageProxySettings.RemoteImageProxyOptions) {
+			s.openGraphDataCache.Purge()
 		}
 	})
 
