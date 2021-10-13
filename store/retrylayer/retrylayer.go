@@ -3826,6 +3826,26 @@ func (s *RetryLayerGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyn
 
 }
 
+func (s *RetryLayerGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.CreateWithUserIds(group)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerGroupStore) Delete(groupID string) (*model.Group, error) {
 
 	tries := 0

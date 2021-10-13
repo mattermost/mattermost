@@ -19,6 +19,7 @@ func (api *API) InitGroup() {
 	// GET /api/v4/groups
 	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(getGroups)).Methods("GET")
 
+	// POST /api/v4/groups
 	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(createGroup)).Methods("POST")
 
 	// GET /api/v4/groups/:group_id
@@ -115,7 +116,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	var group *model.Group
+	var group *model.GroupWithUserIds
 	if jsonErr := json.NewDecoder(r.Body).Decode(&group); jsonErr != nil {
 		c.SetInvalidParam("createGroup")
 		return
@@ -135,7 +136,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newGroup, err := c.App.CreateGroup(group)
+	newGroup, err := c.App.CreateGroupWithUserIds(group)
 	if err != nil {
 		c.Err = err
 		return

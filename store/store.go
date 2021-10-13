@@ -761,6 +761,7 @@ type UserTermsOfServiceStore interface {
 
 type GroupStore interface {
 	Create(group *model.Group) (*model.Group, error)
+	CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error)
 	Get(groupID string) (*model.Group, error)
 	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error)
 	GetByIDs(groupIDs []string) ([]*model.Group, error)

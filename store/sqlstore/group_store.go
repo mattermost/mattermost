@@ -113,6 +113,132 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	return group, nil
 }
 
+func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error) {
+	// Check if group values are formatted correctly
+	if err := group.IsValidForCreate(); err != nil {
+		return nil, err
+	}
+
+	// Check Users exist
+	if err := s.checkUsersExist(group.UserIds); err != nil {
+		return nil, err
+	}
+
+	group.Id = model.NewId()
+	group.CreateAt = model.GetMillis()
+	group.UpdateAt = group.CreateAt
+
+	groupInsertQuery, groupInsertArgs, err := s.getQueryBuilder().
+		Insert("UserGroups").
+		Columns("Id", "Name", "DisplayName", "Description", "Source", "RemoteId", "CreateAt", "UpdateAt", "DeleteAt", "AllowReference").
+		Values(group.Id, group.Name, group.DisplayName, group.Description, group.Source, group.RemoteId, group.CreateAt, group.UpdateAt, 0, group.AllowReference).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	usersInsertQuery, usersInsertArgs, err := s.buildInsertGroupUsersQuery(group.Id, group.UserIds)
+	if err != nil {
+		return nil, err
+	}
+
+	groupSelectQuery, groupSelectProps := s.buildGetGroupQuery(group.Id, 0, 1)
+
+	txn, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransaction(txn)
+	// Create a new usergroup
+	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
+		return nil, err
+	}
+	// Insert the Group Members
+	if _, err = executePossiblyEmptyQuery(txn, usersInsertQuery, usersInsertArgs...); err != nil {
+		return nil, err
+	}
+
+	// Get the new Group along with the member count
+	var newGroup model.Group
+	if err = txn.SelectOne(&newGroup, groupSelectQuery, groupSelectProps); err != nil {
+		return nil, err
+	}
+	if err = txn.Commit(); err != nil {
+		return nil, err
+	}
+	return &newGroup, nil
+}
+
+func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
+	if len(userIDs) > 0 {
+		usersSelectQuery, usersSelectArgs, err := s.getQueryBuilder().
+			Select("Id").
+			From("Users").
+			Where(sq.Eq{"Id": userIDs}).
+			ToSql()
+		if err != nil {
+			return err
+		}
+		var rows []*string
+		_, err = s.GetReplica().Select(&rows, usersSelectQuery, usersSelectArgs...)
+		if err != nil {
+			return err
+		}
+		if len(rows) == len(userIDs) {
+			return nil
+		}
+		retrievedIDs := make(map[string]bool)
+		for _, userID := range rows {
+			retrievedIDs[*userID] = true
+		}
+		for _, userID := range userIDs {
+			if _, ok := retrievedIDs[userID]; !ok {
+				return store.NewErrNotFound("User", userID)
+			}
+		}
+	}
+	return nil
+}
+
+func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []string) (query string, args []interface{}, err error) {
+	if len(userIds) > 0 {
+		builder := s.getQueryBuilder().
+			Insert("GroupMembers").
+			Columns("GroupId", "UserId", "CreateAt", "DeleteAt", "SchemeUser", "SchemeAdmin")
+		for _, userId := range userIds {
+			builder = builder.Values(groupId, userId, model.GetMillis(), 0, false, false)
+		}
+		query, args, err = builder.ToSql()
+	}
+	return
+}
+
+func (s *SqlGroupStore) buildGetGroupQuery(id string, offset, limit int) (query string, props map[string]interface{}) {
+	props = map[string]interface{}{"Offset": offset, "Limit": limit}
+	whereIdEqualsPolicyId := ""
+	if id != "" {
+		whereIdEqualsPolicyId = "WHERE UserGroups.Id = :GroupId"
+		props["GroupId"] = id
+	}
+	query = `
+	SELECT UserGroups.*,
+	       A.Count AS MemberCount
+	FROM UserGroups
+	INNER JOIN (
+		SELECT UserGroups.Id,
+		       COUNT(GroupMembers.UserId) AS Count
+		FROM UserGroups
+		LEFT JOIN GroupMembers ON UserGroups.Id = GroupMembers.GroupId
+		` + whereIdEqualsPolicyId + `
+		GROUP BY UserGroups.Id
+		ORDER BY UserGroups.DisplayName, UserGroups.Id
+		LIMIT :Limit
+		OFFSET :Offset
+	) AS A ON UserGroups.Id = A.Id
+	ORDER BY UserGroups.CreateAt DESC`
+	return
+}
+
 func (s *SqlGroupStore) Get(groupId string) (*model.Group, error) {
 	var group *model.Group
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupId}); err != nil {

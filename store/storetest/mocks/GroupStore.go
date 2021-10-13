@@ -236,6 +236,29 @@ func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*
 	return r0, r1
 }
 
+// CreateWithUserIds provides a mock function with given fields: group
+func (_m *GroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error) {
+	ret := _m.Called(group)
+
+	var r0 *model.Group
+	if rf, ok := ret.Get(0).(func(*model.GroupWithUserIds) *model.Group); ok {
+		r0 = rf(group)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.GroupWithUserIds) error); ok {
+		r1 = rf(group)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: groupID
 func (_m *GroupStore) Delete(groupID string) (*model.Group, error) {
 	ret := _m.Called(groupID)

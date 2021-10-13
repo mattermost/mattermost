@@ -103,6 +103,24 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	return group, nil
 }
 
+func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
+	newGroup, err := a.Srv().Store.Group().CreateWithUserIds(group)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.insert_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return newGroup, nil
+}
+
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	updatedGroup, err := a.Srv().Store.Group().Update(group)
 

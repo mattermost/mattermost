@@ -45,6 +45,11 @@ type Group struct {
 	AllowReference bool        `json:"allow_reference"`
 }
 
+type GroupWithUserIds struct {
+	Group
+	UserIds []string `json:"user_ids"`
+}
+
 type GroupWithSchemeAdmin struct {
 	Group
 	SchemeAdmin *bool `db:"SyncableSchemeAdmin" json:"scheme_admin,omitempty"`
