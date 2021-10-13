@@ -210,7 +210,7 @@ package-linux-amd64: package-prep
 package-linux-arm64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_ARM64) CURRENT_PACKAGE_ARCH=linux_arm64 PLUGIN_ARCH=linux-arm64 MMCTL_PLATFORM="Linux" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
-	tar -C $(DIST_PATH_LIN_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost ../mattermost
+	tar -C $(DIST_PATH_LIN_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-arm64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/linux_arm64
 
