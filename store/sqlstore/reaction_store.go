@@ -131,7 +131,7 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 }
 
 func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-	keys, params := MapStringsToQueryParams(postIds, "postId")
+	placeholder, values := constructArrayArgs(postIds)
 	var reactions []*model.Reaction
 
 	if err := s.GetReplicaX().Select(&reactions,
@@ -146,9 +146,9 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 			FROM
 				Reactions
 			WHERE
-				PostId IN `+keys+` AND COALESCE(DeleteAt, 0) = 0
+				PostId IN `+placeholder+` AND COALESCE(DeleteAt, 0) = 0
 			ORDER BY
-				CreateAt`, params); err != nil {
+				CreateAt`, values...); err != nil {
 		return nil, errors.Wrap(err, "failed to get Reactions")
 	}
 	return reactions, nil
@@ -260,7 +260,7 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper,
 			return err
 		}
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		if _, err := transaction.Exec(
+		if _, err := transaction.NamedExec(
 			`INSERT INTO
 				Reactions
 				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
