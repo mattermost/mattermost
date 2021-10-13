@@ -4218,6 +4218,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	o1.Type = model.ChannelTypeOpen
 	o1.TotalMsgCount = 25
 	o1.LastPostAt = 12345
+	o1.LastRootPostAt = 12345
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
@@ -4235,6 +4236,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	o2.Type = model.ChannelTypeOpen
 	o2.TotalMsgCount = 26
 	o2.LastPostAt = 123456
+	o2.LastRootPostAt = 123456
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
@@ -6445,24 +6447,25 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	_, execerr = s.GetMaster().ExecNoTimeout(`
 		INSERT INTO
-		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, TotalMsgCountRoot)
+		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, LastRootPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, TotalMsgCountRoot)
 		VALUES
-		    (:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, 0);
+				(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :LastRootPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, 0);
 	`, map[string]interface{}{
-		"Id":            o3.Id,
-		"CreateAt":      o3.CreateAt,
-		"UpdateAt":      o3.UpdateAt,
-		"DeleteAt":      o3.DeleteAt,
-		"TeamId":        o3.TeamId,
-		"Type":          o3.Type,
-		"DisplayName":   o3.DisplayName,
-		"Name":          o3.Name,
-		"Header":        o3.Header,
-		"Purpose":       o3.Purpose,
-		"LastPostAt":    o3.LastPostAt,
-		"TotalMsgCount": o3.TotalMsgCount,
-		"ExtraUpdateAt": o3.ExtraUpdateAt,
-		"CreatorId":     o3.CreatorId,
+		"Id":             o3.Id,
+		"CreateAt":       o3.CreateAt,
+		"UpdateAt":       o3.UpdateAt,
+		"DeleteAt":       o3.DeleteAt,
+		"TeamId":         o3.TeamId,
+		"Type":           o3.Type,
+		"DisplayName":    o3.DisplayName,
+		"Name":           o3.Name,
+		"Header":         o3.Header,
+		"Purpose":        o3.Purpose,
+		"LastPostAt":     o3.LastPostAt,
+		"LastRootPostAt": o3.LastRootPostAt,
+		"TotalMsgCount":  o3.TotalMsgCount,
+		"ExtraUpdateAt":  o3.ExtraUpdateAt,
+		"CreatorId":      o3.CreatorId,
 	})
 	require.NoError(t, execerr)
 
