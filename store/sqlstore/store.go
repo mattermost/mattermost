@@ -848,10 +848,15 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 
 	if err != nil {
 		msg := "Failed to alter column type."
+		fields := []mlog.Field{mlog.Err(err)}
 		if mySqlColType == "JSON" && postgresColType == "jsonb" {
 			msg += " It is likely you have invalid JSON values in the column. Please fix the values manually and run the migration again."
+			fields = append(fields,
+				mlog.String("tableName", tableName),
+				mlog.String("columnName", columnName),
+			)
 		}
-		mlog.Fatal(msg, mlog.Err(err))
+		mlog.Fatal(msg, fields...)
 	}
 
 	return true
