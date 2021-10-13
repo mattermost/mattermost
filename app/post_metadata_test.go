@@ -420,8 +420,8 @@ func TestPreparePostForClient(t *testing.T) {
 	And this is our icon: ` + server.URL + `/test-image1.png`,
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
-
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		post.Metadata.Embeds = nil
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 
 		// Reminder that only the first link gets an embed and dimensions
 
@@ -498,8 +498,8 @@ func TestPreparePostForClient(t *testing.T) {
 			},
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
-
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		post.Metadata.Embeds = nil
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
@@ -534,6 +534,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
+		post.Metadata.Embeds = nil
 
 		th.AddReactionToPost(post, th.BasicUser, "taco")
 
@@ -567,6 +568,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Message:   "hello world",
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
+		referencedPost.Metadata.Embeds = nil
 
 		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
@@ -576,8 +578,8 @@ func TestPreparePostForClient(t *testing.T) {
 			Message:   link,
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
-
-		clientPost := th.App.PreparePostForClient(previewPost, false, false)
+		previewPost.Metadata.Embeds = nil
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(previewPost, false, false)
 		firstEmbed := clientPost.Metadata.Embeds[0]
 		preview := firstEmbed.Data.(*model.PreviewPost)
 		require.Equal(t, referencedPost.Id, preview.PostID)
@@ -723,7 +725,8 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
-	embeds := th.App.PreparePostForClient(post, false, false).Metadata.Embeds
+	post.Metadata.Embeds = nil
+	embeds := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false).Metadata.Embeds
 	require.Len(t, embeds, 1, "should have one embed")
 
 	embed := embeds[0]

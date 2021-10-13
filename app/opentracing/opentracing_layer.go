@@ -1362,28 +1362,6 @@ func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *mod
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckValidDomains(team *model.Team) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckValidDomains")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.CheckValidDomains(team)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *app.CheckConnResult {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckWebConn")
@@ -1879,28 +1857,6 @@ func (a *OpenTracingAppLayer) CreateCommandWebhook(commandID string, args *model
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.CreateCommandWebhook(commandID, args)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) CreateDefaultChannels(c *request.Context, teamID string) ([]*model.Channel, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDefaultChannels")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateDefaultChannels(c, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12898,28 +12854,6 @@ func (a *OpenTracingAppLayer) RemoveTeamIcon(teamID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveTeamMemberFromTeam(c *request.Context, teamMember *model.TeamMember, requestorId string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveTeamMemberFromTeam")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RemoveTeamMemberFromTeam(c, teamMember, requestorId)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveTeamsFromRetentionPolicy")
@@ -14690,6 +14624,21 @@ func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotify
 
 	defer span.Finish()
 	a.app.SetAutoResponderStatus(user, oldNotifyProps)
+}
+
+func (a *OpenTracingAppLayer) SetChannels(ch *app.Channels) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetChannels")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SetChannels(ch)
 }
 
 func (a *OpenTracingAppLayer) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
