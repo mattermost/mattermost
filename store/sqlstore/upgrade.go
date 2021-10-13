@@ -17,9 +17,10 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5380
+	CurrentSchemaVersion   = Version600
 	Version610             = "6.1.0"
 	Version600             = "6.0.0"
+	Version5390            = "5.39.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -212,6 +213,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion539(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
 	upgradeDatabaseToVersion610(sqlStore)
 
@@ -1124,8 +1126,8 @@ func rootCountMigration(sqlStore *SqlStore) {
 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 	}
 	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
-	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootAt", "bigint", "bigint")
+	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootAt")
 
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
@@ -1141,28 +1143,28 @@ func rootCountMigration(sqlStore *SqlStore) {
 		WHERE Posts.RootId = ''
 		GROUP BY Channels.Id
 	`
-	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
+	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootAt from Channels"
 	updateChannels := `
 		WITH q AS (` + totalMsgCountRootCTE + `)
-		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
+		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost
 		FROM q where q.channelid=Channels.Id;
 	`
 	updateChannelMembers := `
 		WITH q as (` + channelsCTE + `)
 		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
-		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
+		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootat;
 	`
 	if sqlStore.DriverName() == model.DatabaseDriverMysql {
 		updateChannels = `
 			UPDATE Channels
 			INNER Join (` + totalMsgCountRootCTE + `) as q
 			ON q.channelid=Channels.Id
-			SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
+			SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost;
 		`
 		updateChannelMembers = `
 			UPDATE ChannelMembers CM
 			INNER JOIN (` + channelsCTE + `) as q
-			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
+			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootat
 			SET MsgCountRoot=TotalMsgCountRoot
 			`
 	}
@@ -1291,54 +1293,60 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	}
 }
 
-func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
-
-	sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
-	if sqlStore.DriverName() == model.DatabaseDriverMysql {
-		if sqlStore.DoesColumnExist("Posts", "ParentId") {
-			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId")
-		} else {
-			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON")
-		}
-	} else {
-		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-		sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
-		sqlStore.RemoveColumnIfExists("Posts", "ParentId")
+func upgradeDatabaseToVersion539(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5380, Version5390) {
+		saveSchemaVersion(sqlStore, Version5390)
 	}
+}
 
-	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5390, Version600) {
 
-	sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
-	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			if sqlStore.DoesColumnExist("Posts", "ParentId") {
+				sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId")
+			} else {
+				sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON")
+			}
+		} else {
+			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+			sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+			sqlStore.RemoveColumnIfExists("Posts", "ParentId")
+		}
 
-	sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
-	sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
 
-	sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"})
-	sqlStore.RemoveIndexIfExists("idx_posts_root_id", "Posts")
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
-	sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_display_name", "Channels", []string{"TeamId", "DisplayName"})
-	sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_type", "Channels", []string{"TeamId", "Type"})
-	sqlStore.RemoveIndexIfExists("idx_channels_team_id", "Channels")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+		sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
 
-	sqlStore.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
-	sqlStore.RemoveIndexIfExists("idx_threads_channel_id", "Threads")
+		sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"})
+		sqlStore.RemoveIndexIfExists("idx_posts_root_id", "Posts")
 
-	sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_user_id_channel_id_last_viewed_at", "ChannelMembers", []string{"UserId", "ChannelId", "LastViewedAt"})
-	sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers", []string{"ChannelId", "SchemeGuest", "UserId"})
-	sqlStore.RemoveIndexIfExists("idx_channelmembers_user_id", "ChannelMembers")
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_display_name", "Channels", []string{"TeamId", "DisplayName"})
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_type", "Channels", []string{"TeamId", "Type"})
+		sqlStore.RemoveIndexIfExists("idx_channels_team_id", "Channels")
 
-	sqlStore.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
-	sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
+		sqlStore.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
+		sqlStore.RemoveIndexIfExists("idx_threads_channel_id", "Threads")
 
-	// saveSchemaVersion(sqlStore, Version600)
-	// }
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_user_id_channel_id_last_viewed_at", "ChannelMembers", []string{"UserId", "ChannelId", "LastViewedAt"})
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers", []string{"ChannelId", "SchemeGuest", "UserId"})
+		sqlStore.RemoveIndexIfExists("idx_channelmembers_user_id", "ChannelMembers")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
+		sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
+
+		saveSchemaVersion(sqlStore, Version600)
+	}
 }
 
 func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
@@ -1348,6 +1356,43 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
 	sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
 	sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
+
+	forceIndex := ""
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
+		forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
+	}
+
+	lastRootPostAtExists := sqlStore.DoesColumnExist("Channels", "LastRootPostAt")
+	sqlStore.CreateColumnIfNotExists("Channels", "LastRootPostAt", "bigint", "bigint", "0")
+
+	lastRootPostAtCTE := `
+		SELECT Channels.Id channelid, COALESCE(MAX(Posts.CreateAt), 0) as lastrootpost
+		FROM Channels
+		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
+		WHERE Posts.RootId = ''
+		GROUP BY Channels.Id
+	`
+
+	updateChannels := `
+		WITH q AS (` + lastRootPostAtCTE + `)
+		UPDATE Channels SET LastRootPostAt=q.lastrootpost
+		FROM q where q.channelid=Channels.Id;
+	`
+
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
+		updateChannels = `
+			UPDATE Channels
+			INNER Join (` + lastRootPostAtCTE + `) as q
+			ON q.channelid=Channels.Id
+			SET LastRootPostAt=lastrootpost;
+		`
+	}
+
+	if !lastRootPostAtExists {
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
+			mlog.Error("Error updating Channels table", mlog.Err(err))
+		}
+	}
 
 	// saveSchemaVersion(sqlStore, Version610)
 	// }

@@ -20,8 +20,11 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+// App is a pure functional component that does not have any fields, except Server.
+// It is a request-scoped struct constructed every time a request hits the server,
+// and its only purpose is to provide business logic to Server via its methods.
 type App struct {
-	srv *Server
+	ch *Channels
 }
 
 func New(options ...AppOption) *App {
@@ -79,56 +82,56 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 }
 
 func (a *App) Srv() *Server {
-	return a.srv
+	return a.ch.srv
 }
 func (a *App) Log() *mlog.Logger {
-	return a.srv.Log
+	return a.ch.srv.Log
 }
 func (a *App) NotificationsLog() *mlog.Logger {
-	return a.srv.NotificationsLog
+	return a.ch.srv.NotificationsLog
 }
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
-	return a.srv.AccountMigration
+	return a.ch.srv.AccountMigration
 }
 func (a *App) Cluster() einterfaces.ClusterInterface {
-	return a.srv.Cluster
+	return a.ch.srv.Cluster
 }
 func (a *App) Compliance() einterfaces.ComplianceInterface {
-	return a.srv.Compliance
+	return a.ch.srv.Compliance
 }
 func (a *App) DataRetention() einterfaces.DataRetentionInterface {
-	return a.srv.DataRetention
+	return a.ch.srv.DataRetention
 }
 func (a *App) SearchEngine() *searchengine.Broker {
-	return a.srv.SearchEngine
+	return a.ch.srv.SearchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
-	return a.srv.Ldap
+	return a.ch.srv.Ldap
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
-	return a.srv.MessageExport
+	return a.ch.srv.MessageExport
 }
 func (a *App) Metrics() einterfaces.MetricsInterface {
-	return a.srv.Metrics
+	return a.ch.srv.Metrics
 }
 func (a *App) Notification() einterfaces.NotificationInterface {
-	return a.srv.Notification
+	return a.ch.srv.Notification
 }
 func (a *App) Saml() einterfaces.SamlInterface {
-	return a.srv.Saml
+	return a.ch.srv.Saml
 }
 func (a *App) Cloud() einterfaces.CloudInterface {
-	return a.srv.Cloud
+	return a.ch.srv.Cloud
 }
 func (a *App) HTTPService() httpservice.HTTPService {
-	return a.srv.httpService
+	return a.ch.httpService
 }
 func (a *App) ImageProxy() *imageproxy.ImageProxy {
-	return a.srv.ImageProxy
+	return a.ch.srv.ImageProxy
 }
 func (a *App) Timezones() *timezones.Timezones {
-	return a.srv.timezones
+	return a.ch.srv.timezones
 }
 
 func (a *App) DBHealthCheckWrite() error {
@@ -153,8 +156,12 @@ func (a *App) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return a.Srv().Store.CheckIntegrity()
 }
 
+func (a *App) SetChannels(ch *Channels) {
+	a.ch = ch
+}
+
 func (a *App) SetServer(srv *Server) {
-	a.srv = srv
+	a.ch.srv = srv
 }
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {

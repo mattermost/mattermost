@@ -46,6 +46,9 @@ type FeatureFlags struct {
 
 	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
 	DownloadAppsCTA string
+
+	// Enable Boards Unfurl Preview
+	BoardsUnfurl bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -62,6 +65,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "none"
 	f.DownloadAppsCTA = "none"
+	f.BoardsUnfurl = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
