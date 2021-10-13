@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -139,6 +140,14 @@ func (api *PluginAPI) GetBundlePath() (string, error) {
 
 func (api *PluginAPI) GetLicense() *model.License {
 	return api.app.Srv().License()
+}
+
+func (api *PluginAPI) IsEnterpriseReady() (bool, error) {
+	result, err := strconv.ParseBool(model.BuildEnterpriseReady)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
 }
 
 func (api *PluginAPI) GetServerVersion() string {

@@ -92,6 +92,12 @@ type API interface {
 	// Minimum server version: 5.10
 	GetLicense() *model.License
 
+	// IsEnterpriseReady returns true if the Mattermost server is configured as Enterprise Ready.
+	//
+	// @tag Server
+	// Minimum server version: 5.10
+	IsEnterpriseReady() (bool, error)
+
 	// GetServerVersion return the current Mattermost server version
 	//
 	// @tag Server

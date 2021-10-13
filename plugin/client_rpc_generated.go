@@ -980,6 +980,35 @@ func (s *apiRPCServer) GetLicense(args *Z_GetLicenseArgs, returns *Z_GetLicenseR
 	return nil
 }
 
+type Z_IsEnterpriseReadyArgs struct {
+}
+
+type Z_IsEnterpriseReadyReturns struct {
+	A bool
+	B error
+}
+
+func (g *apiRPCClient) IsEnterpriseReady() (bool, error) {
+	_args := &Z_IsEnterpriseReadyArgs{}
+	_returns := &Z_IsEnterpriseReadyReturns{}
+	if err := g.client.Call("Plugin.IsEnterpriseReady", _args, _returns); err != nil {
+		log.Printf("RPC call to IsEnterpriseReady API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) IsEnterpriseReady(args *Z_IsEnterpriseReadyArgs, returns *Z_IsEnterpriseReadyReturns) error {
+	if hook, ok := s.impl.(interface {
+		IsEnterpriseReady() (bool, error)
+	}); ok {
+		returns.A, returns.B = hook.IsEnterpriseReady()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API IsEnterpriseReady called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetServerVersionArgs struct {
 }
 
