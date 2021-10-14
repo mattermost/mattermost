@@ -1915,3 +1915,12 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.Equal(t, team1.Id, newCmd4.TeamId)
 
 }
+
+func TestPluginAPIIsEnterpriseReady(t *testing.T) {
+	model.BuildEnterpriseReady = "true"
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	assert.Equal(t, true, api.IsEnterpriseReady())
+}
