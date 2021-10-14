@@ -49,6 +49,9 @@ type FeatureFlags struct {
 
 	// Enable Boards Unfurl Preview
 	BoardsUnfurl bool
+
+	// Enable Calls plugin support in the mobile app
+	CallsMobile bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -66,6 +69,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PrewrittenMessages = "none"
 	f.DownloadAppsCTA = "none"
 	f.BoardsUnfurl = true
+	f.CallsMobile = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
