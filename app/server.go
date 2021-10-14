@@ -20,7 +20,6 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -1573,14 +1572,9 @@ func doJobsCleanup(s *Server) {
 		return
 	}
 
-	threshold := *s.Config().JobSettings.CleanupJobsThresholdHours
-	dur, err := time.ParseDuration(strconv.Itoa(threshold) + "h")
-	if err != nil {
-		mlog.Error("Error parsing CleanupJobsThresholdHours. Skipping jobs cleanup", mlog.Err(err))
-		return
-	}
+	dur := time.Duration(*s.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
 	expiry := model.GetMillisForTime(time.Now().Add(-dur))
-	err = s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
+	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
 	}

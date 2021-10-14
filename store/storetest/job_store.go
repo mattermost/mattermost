@@ -556,13 +556,16 @@ func testJobDelete(t *testing.T, ss store.Store) {
 
 func testJobCleanup(t *testing.T, ss store.Store) {
 	now := model.GetMillis()
+	ids := make([]string, 0, 10)
 	for i := 0; i < 10; i++ {
-		_, err := ss.Job().Save(&model.Job{
+		job, err := ss.Job().Save(&model.Job{
 			Id:       model.NewId(),
 			CreateAt: now - int64(i),
 			Status:   model.JobStatusPending,
 		})
 		require.NoError(t, err)
+		ids = append(ids, job.Id)
+		defer ss.Job().Delete(job.Id)
 	}
 
 	jobs, err := ss.Job().GetAllByStatus(model.JobStatusPending)
@@ -572,7 +575,21 @@ func testJobCleanup(t *testing.T, ss store.Store) {
 	err = ss.Job().Cleanup(now+1, 5)
 	require.NoError(t, err)
 
+	// Should not clean up pending jobs
 	jobs, err = ss.Job().GetAllByStatus(model.JobStatusPending)
+	require.NoError(t, err)
+	assert.Len(t, jobs, 10)
+
+	for _, id := range ids {
+		_, err = ss.Job().UpdateStatus(id, model.JobStatusSuccess)
+		require.NoError(t, err)
+	}
+
+	err = ss.Job().Cleanup(now+1, 5)
+	require.NoError(t, err)
+
+	// Should clean up now
+	jobs, err = ss.Job().GetAllByStatus(model.JobStatusSuccess)
 	require.NoError(t, err)
 	assert.Len(t, jobs, 0)
 }

@@ -2618,7 +2618,7 @@ type JobSettings struct {
 	RunJobs                   *bool `access:"write_restrictable,cloud_restrictable"`
 	RunScheduler              *bool `access:"write_restrictable,cloud_restrictable"`
 	CleanupOldJobs            *bool `access:"write_restrictable,cloud_restrictable"`
-	CleanupJobsThresholdHours *int  `access:"write_restrictable,cloud_restrictable"`
+	CleanupJobsThresholdDays *int  `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2634,8 +2634,8 @@ func (s *JobSettings) SetDefaults() {
 		s.CleanupOldJobs = NewBool(false)
 	}
 
-	if s.CleanupJobsThresholdHours == nil {
-		s.CleanupJobsThresholdHours = NewInt(-1)
+	if s.CleanupJobsThresholdDays == nil {
+		s.CleanupJobsThresholdDays = NewInt(-1)
 	}
 }
 
