@@ -51,7 +51,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
@@ -118,6 +117,7 @@ type Server struct {
 	hubs     []*Hub
 	hashSeed maphash.Seed
 
+	httpService            httpservice.HTTPService
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
 
@@ -163,8 +163,6 @@ type Server struct {
 	sharedChannelService SharedChannelServiceIFace
 
 	phase2PermissionsMigrationComplete bool
-
-	ImageProxy *imageproxy.ImageProxy
 
 	Audit            *audit.Audit
 	Log              *mlog.Logger
@@ -267,6 +265,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
+	s.httpService = httpservice.MakeHTTPService(s)
+
 	// Initialize products
 	for name, initializer := range products {
 		prod, err := initializer(s)
@@ -314,9 +314,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.tracer = tracer
 	}
 
-	s.pushNotificationClient = s.Channels().HTTPService().MakeClient(true)
-
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService(), s.Log)
+	s.pushNotificationClient = s.httpService.MakeClient(true)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
@@ -1975,7 +1973,7 @@ func (s *Server) TelemetryId() string {
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {
-	return s.Channels().HTTPService()
+	return s.httpService
 }
 
 func (s *Server) SetLog(l *mlog.Logger) {

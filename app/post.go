@@ -1408,7 +1408,7 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 
 	return func(url string) string {
-		return a.Srv().ImageProxy.GetProxiedImageURL(url)
+		return a.ImageProxy().GetProxiedImageURL(url)
 	}
 }
 
@@ -1418,7 +1418,7 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 	}
 
 	return func(url string) string {
-		return a.Srv().ImageProxy.GetUnproxiedImageURL(url)
+		return a.ImageProxy().GetUnproxiedImageURL(url)
 	}
 }
 
