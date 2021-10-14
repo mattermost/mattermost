@@ -143,10 +143,7 @@ func (api *PluginAPI) GetLicense() *model.License {
 }
 
 func (api *PluginAPI) IsEnterpriseReady() bool {
-	result, err := strconv.ParseBool(model.BuildEnterpriseReady)
-	if err != nil {
-		return false
-	}
+	result, _ := strconv.ParseBool(model.BuildEnterpriseReady)
 	return result
 }
 
