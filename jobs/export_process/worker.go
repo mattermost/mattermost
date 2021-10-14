@@ -16,7 +16,7 @@ import (
 
 func init() {
 	app.RegisterJobsExportProcessInterface(func(s *app.Server) tjobs.ExportProcessInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &ExportProcessInterfaceImpl{a}
 	})
 }

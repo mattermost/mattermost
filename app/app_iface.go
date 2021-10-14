@@ -83,9 +83,6 @@ type AppIface interface {
 	CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError)
 	// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
 	CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError)
-	// CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-	//
-	CreateDefaultChannels(c *request.Context, teamID string) ([]*model.Channel, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
 	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
@@ -435,7 +432,6 @@ type AppIface interface {
 	CheckUserMfa(user *model.User, token string) *model.AppError
 	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
-	CheckValidDomains(team *model.Team) *model.AppError
 	CheckWebConn(userID, connectionID string) *CheckConnResult
 	ClearChannelMembersCache(channelID string)
 	ClearSessionCacheForAllUsers()
@@ -757,6 +753,7 @@ type AppIface interface {
 	GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError)
 	GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
 	GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
+	GetTokenById(token string) (*model.Token, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
@@ -880,7 +877,8 @@ type AppIface interface {
 	PostUpdateChannelPurposeMessage(c *request.Context, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError
 	PostWithProxyAddedToImageURLs(post *model.Post) *model.Post
 	PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post
-	PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post
+	PreparePostForClient(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post
+	PreparePostForClientWithEmbedsAndImages(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post
 	PreparePostListForClient(originalList *model.PostList) *model.PostList
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
@@ -910,7 +908,6 @@ type AppIface interface {
 	RemoveSamlPrivateCertificate() *model.AppError
 	RemoveSamlPublicCertificate() *model.AppError
 	RemoveTeamIcon(teamID string) *model.AppError
-	RemoveTeamMemberFromTeam(c *request.Context, teamMember *model.TeamMember, requestorId string) *model.AppError
 	RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) *model.AppError
 	RemoveUserFromChannel(c *request.Context, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(c *request.Context, teamID string, userID string, requestorId string) *model.AppError
@@ -989,6 +986,7 @@ type AppIface interface {
 	SessionHasPermissionToUserOrBot(session model.Session, userID string) bool
 	SetActiveChannel(userID string, channelID string) *model.AppError
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
+	SetChannels(ch *Channels)
 	SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError
 	SetDefaultProfileImage(user *model.User) *model.AppError
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error

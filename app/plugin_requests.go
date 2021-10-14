@@ -144,7 +144,7 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
-		sc := New(ServerConnector(s))
+		sc := New(ServerConnector(s.Channels()))
 		session, appErr := sc.GetSession(token)
 		defer s.userService.ReturnSessionToPool(session)
 

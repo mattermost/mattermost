@@ -101,7 +101,7 @@ func (a *App) HubStart() {
 	}
 	// Assigning to the hubs slice without any mutex is fine because it is only assigned once
 	// during the start of the program and always read from after that.
-	a.srv.hubs = hubs
+	a.ch.srv.hubs = hubs
 }
 
 func (a *App) invalidateCacheForWebhook(webhookID string) {
@@ -259,7 +259,7 @@ func (a *App) invalidateCacheForChannelPosts(channelID string) {
 func (a *App) InvalidateCacheForUser(userID string) {
 	a.Srv().invalidateCacheForUserSkipClusterSend(userID)
 
-	a.srv.userService.InvalidateCacheForUser(userID)
+	a.ch.srv.userService.InvalidateCacheForUser(userID)
 }
 
 func (a *App) invalidateCacheForUserTeams(userID string) {

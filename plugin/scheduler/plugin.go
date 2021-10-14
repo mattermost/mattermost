@@ -14,7 +14,7 @@ type PluginsJobInterfaceImpl struct {
 
 func init() {
 	app.RegisterJobsPluginsJobInterface(func(s *app.Server) tjobs.PluginsJobInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &PluginsJobInterfaceImpl{a}
 	})
 }

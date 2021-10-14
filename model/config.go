@@ -2703,7 +2703,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["playbooks"] == nil && BuildEnterpriseReady == "true" {
+	if s.PluginStates["playbooks"] == nil {
 		// Enable the playbooks plugin by default
 		s.PluginStates["playbooks"] = &PluginState{Enable: true}
 	}
@@ -2711,6 +2711,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil && BuildEnterpriseReady == "true" {
 		// Enable the channel export plugin by default
 		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates["focalboard"] == nil {
+		// Enable the focalboard plugin by default
+		s.PluginStates["focalboard"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {

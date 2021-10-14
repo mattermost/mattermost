@@ -136,7 +136,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th := &TestHelper{
-		App:               app.New(app.ServerConnector(s)),
+		App:               app.New(app.ServerConnector(s.Channels())),
 		Server:            s,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,

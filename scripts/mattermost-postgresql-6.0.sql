@@ -73,7 +73,7 @@ ALTER TABLE public.channelmemberhistory OWNER TO mmuser;
 CREATE TABLE public.channelmembers (
     channelid character varying(26) NOT NULL,
     userid character varying(26) NOT NULL,
-    roles character varying(64),
+    roles character varying(256),
     lastviewedat bigint,
     msgcount bigint,
     mentioncount bigint,
@@ -105,6 +105,7 @@ CREATE TABLE public.channels (
     header character varying(1024),
     purpose character varying(250),
     lastpostat bigint,
+    lastrootpostat bigint,
     totalmsgcount bigint,
     extraupdateat bigint,
     creatorid character varying(26),
@@ -677,7 +678,7 @@ CREATE TABLE public.sessions (
     lastactivityat bigint,
     userid character varying(26),
     deviceid character varying(512),
-    roles character varying(64),
+    roles character varying(256),
     isoauth boolean,
     expirednotify boolean,
     props jsonb
@@ -827,7 +828,7 @@ ALTER TABLE public.systems OWNER TO mmuser;
 CREATE TABLE public.teammembers (
     teamid character varying(26) NOT NULL,
     userid character varying(26) NOT NULL,
-    roles character varying(64),
+    roles character varying(256),
     deleteat bigint,
     schemeuser boolean,
     schemeadmin boolean,
