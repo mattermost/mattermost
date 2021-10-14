@@ -8905,7 +8905,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, din 14 dagars testperiod av Mattermost Cloud Professional avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+    "translation": "{{.Name}}, din 14 dagars testperiod av Mattermost avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9225,5 +9225,33 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Fel vid bulkimport av bifogade filer."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ogiltigt UserId-fält för sessionen."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ogiltigt Id-fält för sessionen."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ogiltigt CreateAt-fält för sessionen."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ogiltig användarroll som är längre än {{.Limit}} tecken."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ogiltig team-medlemsroll som är längre än {{.Limit}} tecken."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ogiltig sessionsroll som är längre än {{.Limit}} tecken."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ogiltig kanalmedlemsroll som är längre än {{.Limit}} tecken."
   }
 ]

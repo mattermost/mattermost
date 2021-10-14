@@ -29,6 +29,50 @@ import (
 	"github.com/minio/minio-go/v7/pkg/s3utils"
 )
 
+// BucketOptions special headers to purge buckets, only
+// useful when endpoint is MinIO
+type BucketOptions struct {
+	ForceDelete bool
+}
+
+// RemoveBucketWithOptions deletes the bucket name.
+//
+// All objects (including all object versions and delete markers)
+// in the bucket will be deleted forcibly if bucket options set
+// ForceDelete to 'true'.
+func (c Client) RemoveBucketWithOptions(ctx context.Context, bucketName string, opts BucketOptions) error {
+	// Input validation.
+	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
+		return err
+	}
+
+	// Build headers.
+	headers := make(http.Header)
+	if opts.ForceDelete {
+		headers.Set(minIOForceDelete, "true")
+	}
+
+	// Execute DELETE on bucket.
+	resp, err := c.executeMethod(ctx, http.MethodDelete, requestMetadata{
+		bucketName:       bucketName,
+		contentSHA256Hex: emptySHA256Hex,
+		customHeader:     headers,
+	})
+	defer closeResponse(resp)
+	if err != nil {
+		return err
+	}
+	if resp != nil {
+		if resp.StatusCode != http.StatusNoContent {
+			return httpRespToErrorResponse(resp, bucketName, "")
+		}
+	}
+
+	// Remove the location from cache on a successful delete.
+	c.bucketLocCache.Delete(bucketName)
+	return nil
+}
+
 // RemoveBucket deletes the bucket name.
 //
 //  All objects (including all object versions and delete markers).
@@ -69,6 +113,7 @@ type AdvancedRemoveOptions struct {
 
 // RemoveObjectOptions represents options specified by user for RemoveObject call
 type RemoveObjectOptions struct {
+	ForceDelete      bool
 	GovernanceBypass bool
 	VersionID        string
 	Internal         AdvancedRemoveOptions
@@ -115,6 +160,9 @@ func (c Client) removeObject(ctx context.Context, bucketName, objectName string,
 	}
 	if opts.Internal.ReplicationRequest {
 		headers.Set(minIOBucketReplicationRequest, "")
+	}
+	if opts.ForceDelete {
+		headers.Set(minIOForceDelete, "true")
 	}
 	// Execute DELETE on objectName.
 	resp, err := c.executeMethod(ctx, http.MethodDelete, requestMetadata{

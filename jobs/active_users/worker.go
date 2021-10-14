@@ -28,7 +28,7 @@ type Worker struct {
 
 func init() {
 	app.RegisterJobsActiveUsersInterface(func(s *app.Server) tjobs.ActiveUsersJobInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &ActiveUsersJobInterfaceImpl{a}
 	})
 }

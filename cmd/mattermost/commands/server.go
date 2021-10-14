@@ -93,7 +93,7 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 		}
 	}()
 
-	a := app.New(app.ServerConnector(server))
+	a := app.New(app.ServerConnector(server.Channels()))
 	api := api4.Init(a, server.Router)
 
 	wsapi.Init(server)
