@@ -142,12 +142,12 @@ func (api *PluginAPI) GetLicense() *model.License {
 	return api.app.Srv().License()
 }
 
-func (api *PluginAPI) IsEnterpriseReady() (bool, error) {
+func (api *PluginAPI) IsEnterpriseReady() bool {
 	result, err := strconv.ParseBool(model.BuildEnterpriseReady)
 	if err != nil {
-		return result, err
+		return false
 	}
-	return result, nil
+	return result
 }
 
 func (api *PluginAPI) GetServerVersion() string {

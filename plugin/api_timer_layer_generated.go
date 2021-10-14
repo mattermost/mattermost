@@ -112,11 +112,11 @@ func (api *apiTimerLayer) GetLicense() *model.License {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) IsEnterpriseReady() (bool, error) {
+func (api *apiTimerLayer) IsEnterpriseReady() bool {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.IsEnterpriseReady()
-	api.recordTime(startTime, "IsEnterpriseReady", _returnsB == nil)
-	return _returnsA, _returnsB
+	_returnsA := api.apiImpl.IsEnterpriseReady()
+	api.recordTime(startTime, "IsEnterpriseReady", true)
+	return _returnsA
 }
 
 func (api *apiTimerLayer) GetServerVersion() string {

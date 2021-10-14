@@ -2389,7 +2389,7 @@ func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *mo
 }
 
 // IsEnterpriseReady provides a mock function with given fields:
-func (_m *API) IsEnterpriseReady() (bool, error) {
+func (_m *API) IsEnterpriseReady() bool {
 	ret := _m.Called()
 
 	var r0 bool
@@ -2399,14 +2399,7 @@ func (_m *API) IsEnterpriseReady() (bool, error) {
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // KVCompareAndDelete provides a mock function with given fields: key, oldValue

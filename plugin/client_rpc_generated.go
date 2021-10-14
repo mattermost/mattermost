@@ -985,24 +985,22 @@ type Z_IsEnterpriseReadyArgs struct {
 
 type Z_IsEnterpriseReadyReturns struct {
 	A bool
-	B error
 }
 
-func (g *apiRPCClient) IsEnterpriseReady() (bool, error) {
+func (g *apiRPCClient) IsEnterpriseReady() bool {
 	_args := &Z_IsEnterpriseReadyArgs{}
 	_returns := &Z_IsEnterpriseReadyReturns{}
 	if err := g.client.Call("Plugin.IsEnterpriseReady", _args, _returns); err != nil {
 		log.Printf("RPC call to IsEnterpriseReady API failed: %s", err.Error())
 	}
-	return _returns.A, _returns.B
+	return _returns.A
 }
 
 func (s *apiRPCServer) IsEnterpriseReady(args *Z_IsEnterpriseReadyArgs, returns *Z_IsEnterpriseReadyReturns) error {
 	if hook, ok := s.impl.(interface {
-		IsEnterpriseReady() (bool, error)
+		IsEnterpriseReady() bool
 	}); ok {
-		returns.A, returns.B = hook.IsEnterpriseReady()
-		returns.B = encodableError(returns.B)
+		returns.A = hook.IsEnterpriseReady()
 	} else {
 		return encodableError(fmt.Errorf("API IsEnterpriseReady called but not implemented."))
 	}

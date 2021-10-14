@@ -96,7 +96,7 @@ type API interface {
 	//
 	// @tag Server
 	// Minimum server version: 5.10
-	IsEnterpriseReady() (bool, error)
+	IsEnterpriseReady() bool
 
 	// GetServerVersion return the current Mattermost server version
 	//
