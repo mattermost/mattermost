@@ -1531,6 +1531,16 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
 		sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
 		sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+		info, err := sqlStore.GetColumnInfo("Users", "Timezone")
+		if err != nil {
+			mlog.Error("Error getting column info",
+				mlog.String("table", "Users"),
+				mlog.String("column", "Timezone"),
+				mlog.Err(err),
+			)
+		} else if info.DefaultValue != "" {
+			sqlStore.RemoveDefaultIfColumnExists("Users", "Timezone")
+		}
 		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
 		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
