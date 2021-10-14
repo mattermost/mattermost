@@ -49,6 +49,9 @@ type FeatureFlags struct {
 
 	// Enable Boards Unfurl Preview
 	BoardsUnfurl bool
+
+	// Start A/B tour tips automatically, possible values = ("none", "auto")
+	AutoTour string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -66,6 +69,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PrewrittenMessages = "none"
 	f.DownloadAppsCTA = "none"
 	f.BoardsUnfurl = true
+	f.AutoTour = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
