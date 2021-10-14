@@ -4,7 +4,6 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 )
 
@@ -12,8 +11,7 @@ import (
 type Channels struct {
 	srv *Server
 
-	httpService httpservice.HTTPService
-	imageProxy  *imageproxy.ImageProxy
+	imageProxy *imageproxy.ImageProxy
 }
 
 func init() {
@@ -23,11 +21,9 @@ func init() {
 }
 
 func NewChannels(s *Server) (*Channels, error) {
-	httpSvc := httpservice.MakeHTTPService(s)
 	return &Channels{
-		srv:         s,
-		httpService: httpSvc,
-		imageProxy:  imageproxy.MakeImageProxy(s, httpSvc, s.Log),
+		srv:        s,
+		imageProxy: imageproxy.MakeImageProxy(s, s.httpService, s.Log),
 	}, nil
 }
 
@@ -37,8 +33,4 @@ func (c *Channels) Start() error {
 
 func (c *Channels) Stop() error {
 	return nil
-}
-
-func (c *Channels) HTTPService() httpservice.HTTPService {
-	return c.httpService
 }

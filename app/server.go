@@ -116,6 +116,7 @@ type Server struct {
 	hubs     []*Hub
 	hashSeed maphash.Seed
 
+	httpService            httpservice.HTTPService
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
 
@@ -262,6 +263,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
+	s.httpService = httpservice.MakeHTTPService(s)
+
 	// Initialize products
 	for name, initializer := range products {
 		prod, err := initializer(s)
@@ -309,7 +312,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.tracer = tracer
 	}
 
-	s.pushNotificationClient = s.Channels().HTTPService().MakeClient(true)
+	s.pushNotificationClient = s.httpService.MakeClient(true)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
@@ -1955,7 +1958,7 @@ func (s *Server) TelemetryId() string {
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {
-	return s.Channels().HTTPService()
+	return s.httpService
 }
 
 func (s *Server) SetLog(l *mlog.Logger) {
