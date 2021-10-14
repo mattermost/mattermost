@@ -280,8 +280,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	app := New(ServerConnector(s.Channels()))
-	app.HubStart()
+	s.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
@@ -543,7 +542,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.WebSocketRouter = &WebSocketRouter{
 		handlers: make(map[string]webSocketHandler),
-		app:      app,
 	}
 
 	mailConfig := s.MailServiceConfig()
@@ -666,7 +664,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// if enabled - perform initial product notices fetch
 	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
-			if err := app.UpdateProductNotices(); err != nil {
+			appInstance := New(ServerConnector(s.Channels()))
+			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
@@ -678,8 +677,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	c := request.EmptyContext()
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		appInstance := New(ServerConnector(s.Channels()))
 		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := app.DeactivateGuests(c); appErr != nil {
+			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -687,16 +687,18 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := app.DeactivateGuests(c); appErr != nil {
+		appInstance := New(ServerConnector(s.Channels()))
+		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
 
 	if s.runEssentialJobs {
 		s.Go(func() {
+			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(app, c)
-			runDNDStatusExpireJob(app)
+			runCheckAdminSupportStatusJob(appInstance, c)
+			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
 	}
@@ -907,7 +909,7 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (s *Server) startInterClusterServices(license *model.License, app *App) error {
+func (s *Server) startInterClusterServices(license *model.License) error {
 	if license == nil {
 		mlog.Debug("No license provided; Remote Cluster services disabled")
 		return nil
@@ -956,7 +958,8 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	scs, err := sharedchannel.NewSharedChannelService(s, app)
+	appInstance := New(ServerConnector(s.Channels()))
+	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
 	if err != nil {
 		return err
 	}
@@ -1417,7 +1420,7 @@ func (s *Server) Start() error {
 		}
 	}
 
-	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+	if err := s.startInterClusterServices(s.License()); err != nil {
 		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
 	}
 
