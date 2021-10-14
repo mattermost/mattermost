@@ -34,7 +34,7 @@ type FixCRTChannelUnreadsJobInterfaceImpl struct {
 
 func init() {
 	app.RegisterFixCRTChannelUnreadsJobInterface(func(s *app.Server) tjobs.FixCRTChannelUnreadsJobInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &FixCRTChannelUnreadsJobInterfaceImpl{a}
 	})
 }
