@@ -1567,10 +1567,10 @@ func doSessionCleanup(s *Server) {
 }
 
 func doJobsCleanup(s *Server) {
-	mlog.Debug("Cleaning up jobs store.")
-	if !*s.Config().JobSettings.CleanupOldJobs {
+	if *s.Config().JobSettings.CleanupJobsThresholdDays < 0 {
 		return
 	}
+	mlog.Debug("Cleaning up jobs store.")
 
 	dur := time.Duration(*s.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
 	expiry := model.GetMillisForTime(time.Now().Add(-dur))
