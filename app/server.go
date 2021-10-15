@@ -722,15 +722,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
-	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
-		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
-			runDNDStatusExpireJob(app)
-		}
-		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
-			stopDNDStatusExpireJob(app)
-		}
-	})
-
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
 	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if (oldCfg.ImageProxySettings.Enable != newCfg.ImageProxySettings.Enable) ||
@@ -2305,9 +2296,6 @@ func cancelDNDStatusExpirationRecurringTask(a *App) {
 }
 
 func runDNDStatusExpireJob(a *App) {
-	if !a.Config().FeatureFlags.TimedDND {
-		return
-	}
 	if a.IsLeader() {
 		createDNDStatusExpirationRecurringTask(a)
 	}
@@ -2319,10 +2307,4 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
-}
-
-func stopDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
-		cancelDNDStatusExpirationRecurringTask(a)
-	}
 }
