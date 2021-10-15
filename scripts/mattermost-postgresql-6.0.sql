@@ -397,6 +397,8 @@ CREATE TABLE public.oauthapps (
     callbackurls character varying(1024),
     homepage character varying(256),
     istrusted boolean
+    scopes jsonb,
+    appsframeworkappid character varying(24),
 );
 
 
