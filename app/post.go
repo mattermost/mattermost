@@ -267,7 +267,9 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
-	post.CreateAt = model.GetMillis()
+	if post.CreateAt == 0 {
+		post.CreateAt = model.GetMillis()
+	}
 
 	post = a.getEmbedsAndImages(post, true)
 	previewPost := post.GetPreviewPost()
