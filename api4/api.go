@@ -135,18 +135,18 @@ type Routes struct {
 }
 
 type API struct {
-	app        app.AppIface
+	srv        *app.Server
 	BaseRoutes *Routes
 }
 
-func Init(a app.AppIface, root *mux.Router) *API {
+func Init(srv *app.Server) *API {
 	api := &API{
-		app:        a,
+		srv:        srv,
 		BaseRoutes: &Routes{},
 	}
 
-	api.BaseRoutes.Root = root
-	api.BaseRoutes.APIRoot = root.PathPrefix(model.APIURLSuffix).Subrouter()
+	api.BaseRoutes.Root = srv.Router
+	api.BaseRoutes.APIRoot = srv.Router.PathPrefix(model.APIURLSuffix).Subrouter()
 
 	api.BaseRoutes.Users = api.BaseRoutes.APIRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.APIRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
@@ -293,19 +293,21 @@ func Init(a app.AppIface, root *mux.Router) *API {
 	api.InitPermissions()
 	api.InitExport()
 
-	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
+	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
+
+	InitLocal(srv)
 
 	return api
 }
 
-func InitLocal(a app.AppIface, root *mux.Router) *API {
+func InitLocal(srv *app.Server) *API {
 	api := &API{
-		app:        a,
+		srv:        srv,
 		BaseRoutes: &Routes{},
 	}
 
-	api.BaseRoutes.Root = root
-	api.BaseRoutes.APIRoot = root.PathPrefix(model.APIURLSuffix).Subrouter()
+	api.BaseRoutes.Root = srv.LocalRouter
+	api.BaseRoutes.APIRoot = srv.LocalRouter.PathPrefix(model.APIURLSuffix).Subrouter()
 
 	api.BaseRoutes.Users = api.BaseRoutes.APIRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
@@ -386,13 +388,14 @@ func InitLocal(a app.AppIface, root *mux.Router) *API {
 	api.InitJobLocal()
 	api.InitSamlLocal()
 
-	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
+	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
 	return api
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
-	web.Handle404(api.app, w, r)
+	app := app.New(app.ServerConnector(api.srv.Channels()))
+	web.Handle404(app, w, r)
 }
 
 var ReturnStatusOK = web.ReturnStatusOK
