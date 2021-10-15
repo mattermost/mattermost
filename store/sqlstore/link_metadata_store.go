@@ -47,7 +47,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	query, args, err := s.getQueryBuilder().
 		Insert("LinkMetadata").
 		Columns("Hash", "URL", "Timestamp", "Type", "Data").
-		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadata.Data).
+		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, model.ToJSON(metadata.Data)).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "metadata_tosql")
