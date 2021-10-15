@@ -66,7 +66,7 @@ require (
 	github.com/ledongthuc/pdf v0.0.0-20210621053716-e28cb8259002
 	github.com/lib/pq v1.10.3
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattermost/go-i18n v1.11.0
+	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gorp v1.6.2-0.20210714143452-8b50f5209a7f
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/gziphandler v0.0.1
