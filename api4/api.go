@@ -302,7 +302,6 @@ func Init(srv *app.Server) *API {
 
 func InitLocal(srv *app.Server) *API {
 	api := &API{
-		// app:        a,
 		srv:        srv,
 		BaseRoutes: &Routes{},
 	}
