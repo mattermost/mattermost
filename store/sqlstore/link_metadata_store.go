@@ -45,8 +45,10 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 	metadata.PreSave()
 
-	err := s.GetMaster().Insert(metadata)
-	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO LinkMetadata
+		(Hash, URL, Timestamp, Type, Data)
+		VALUES
+		(:Hash, :URL, :Timestamp, :Type, :Data)`, metadata); err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
 		return nil, errors.Wrap(err, "could not save link metadata")
 	}
 
@@ -63,7 +65,7 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create query with querybuilder")
 	}
-	err = s.GetReplica().SelectOne(&metadata, query, args...)
+	err = s.GetReplicaX().Get(&metadata, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("LinkMetadata", "url="+url)
