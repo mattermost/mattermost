@@ -136,7 +136,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th := &TestHelper{
-		App:               app.New(app.ServerConnector(s)),
+		App:               app.New(app.ServerConnector(s.Channels())),
 		Server:            s,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
@@ -177,9 +177,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic(err)
 	}
 
-	Init(th.App, th.App.Srv().Router)
-	InitLocal(th.App, th.App.Srv().LocalRouter)
-	web.New(th.App, th.App.Srv().Router)
+	Init(th.App.Srv())
+	web.New(th.App.Srv())
 	wsapi.Init(th.App.Srv())
 
 	if enterprise {

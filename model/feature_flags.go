@@ -33,9 +33,6 @@ type FeatureFlags struct {
 	PluginApps       string `plugin_id:"com.mattermost.apps"`
 	PluginFocalboard string `plugin_id:"focalboard"`
 
-	// Enable timed dnd support for user status
-	TimedDND bool
-
 	PermalinkPreviews bool
 
 	// Enable the Global Header
@@ -49,6 +46,9 @@ type FeatureFlags struct {
 
 	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
 	DownloadAppsCTA string
+
+	// Enable Boards Unfurl Preview
+	BoardsUnfurl bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -60,12 +60,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.TimedDND = false
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "none"
 	f.DownloadAppsCTA = "none"
+	f.BoardsUnfurl = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

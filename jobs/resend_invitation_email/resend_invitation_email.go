@@ -13,7 +13,7 @@ type ResendInvitationEmailJobInterfaceImpl struct {
 
 func init() {
 	app.RegisterJobsResendInvitationEmailInterface(func(s *app.Server) ejobs.ResendInvitationEmailJobInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &ResendInvitationEmailJobInterfaceImpl{a}
 	})
 }

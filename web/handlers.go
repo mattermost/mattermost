@@ -41,7 +41,7 @@ func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -55,10 +55,10 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
 	// on server start and intentionally requires a restart to take effect.
-	subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
+	subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
 
 	return &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -71,7 +71,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 }
 
 type Handler struct {
-	App                       app.AppIface
+	Srv                       *app.Server
 	HandleFunc                func(*Context, http.ResponseWriter, *http.Request)
 	HandlerName               string
 	RequireSession            bool
@@ -90,6 +90,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w = newWrappedWriter(w)
 	now := time.Now()
 
+	appInstance := app.New(app.ServerConnector(h.Srv.Channels()))
+
 	requestID := model.NewId()
 	var statusCode string
 	defer func() {
@@ -107,7 +109,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	c := &Context{
 		AppContext: &request.Context{},
-		App:        h.App,
+		App:        appInstance,
 	}
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
@@ -394,7 +396,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 // granted.
 func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -403,7 +405,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -414,7 +416,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 // websocket.
 func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -423,7 +425,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -433,7 +435,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 // be granted.
 func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: true,
@@ -442,7 +444,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
