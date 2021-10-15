@@ -18,7 +18,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -6899,7 +6898,7 @@ func (a *OpenTracingAppLayer) GetOAuthStateToken(token string) (*model.Token, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
+func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOpenGraphMetadata")
 
@@ -6911,9 +6910,14 @@ func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) *opengraph
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetOpenGraphMetadata(requestURL)
+	resultVar0, resultVar1 := a.app.GetOpenGraphMetadata(requestURL)
 
-	return resultVar0
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(c *request.Context, userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {

@@ -122,7 +122,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	ctx := &request.Context{}
 	a := app.New(app.ServerConnector(s.Channels()))
 
-	web := New(a, s.Router)
+	web := New(s)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)
 
