@@ -6,6 +6,7 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -158,7 +159,6 @@ func (ss Scopes) Validate() bool {
 }
 
 func (ss Scopes) Equals(ss2 Scopes) bool {
-	// TODO OAUTH confirm this is true
 	if ss == nil {
 		return ss2 == nil
 	}
@@ -198,22 +198,29 @@ func (ss Scopes) Normalize() Scopes {
 		return nil
 	}
 
-	out := Scopes{}
-
-OUTER:
-	for _, inScope := range ss {
-		for _, outScope := range out {
-			if inScope == outScope {
-				continue OUTER
-			}
-		}
-
-		out = append(out, inScope)
+	if len(ss) == 0 {
+		return ss
 	}
 
-	return out
+	// https://github.com/golang/go/wiki/slicetricks#in-place-deduplicate-comparable
+	sort.Slice(ss, func(i, j int) bool { return ss[i] < ss[j] })
+
+	j := 0
+	for i := 1; i < len(ss); i++ {
+		if ss[j] == ss[i] {
+			continue
+		}
+		j++
+		// preserve the original data
+		// in[i], in[j] = in[j], in[i]
+		// only set what is required
+		ss[j] = ss[i]
+	}
+	ss = ss[:j+1]
+	return ss
 }
 
+// Value implements driver.Valuer interface for database conversions
 func (ss Scopes) Value() (driver.Value, error) {
 	if ss == nil {
 		return nil, nil
@@ -227,6 +234,7 @@ func (ss Scopes) Value() (driver.Value, error) {
 	return string(b), nil
 }
 
+// Scan implements sql.Scanner interface for database conversions
 func (ss *Scopes) Scan(value interface{}) error {
 	if value == nil {
 		*ss = nil

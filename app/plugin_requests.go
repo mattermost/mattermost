@@ -141,8 +141,9 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 
 	// Mattermost-Plugin-ID can only be set by inter-plugin requests
 	r.Header.Del("Mattermost-Plugin-ID")
-
 	r.Header.Del("Mattermost-User-Id")
+	r.Header.Del("Mattermost-Scopes")
+
 	if token != "" {
 		sc := New(ServerConnector(s.Channels()))
 		session, appErr := sc.GetSession(token)
@@ -205,20 +206,20 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 			if oAuthAppID := session.Props[model.SessionPropOAuthAppID]; oAuthAppID != "" {
 				oAuthApp, appError := sc.GetOAuthApp(oAuthAppID)
 				if appError != nil {
-					// TODO OAUTH write error
+					s.Log.Debug("cannot get oauthApp from session", mlog.String("appID", oAuthAppID), mlog.Err(appError))
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
 
 				if !oAuthApp.Scopes.IsPluginInScope(pluginID) {
-					// TODO OAUTH write error
+					s.Log.Debug("plugin not in scopes", mlog.Any("scopes", oAuthApp.Scopes), mlog.String("plugin", pluginID))
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
 
 				b, err := json.Marshal(oAuthApp.Scopes)
 				if err != nil {
-					// TODO OAUTH write error
+					s.Log.Debug("cannot marshal scopes", mlog.Any("scopes", oAuthApp.Scopes), mlog.Err(err))
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}

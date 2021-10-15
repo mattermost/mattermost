@@ -1394,12 +1394,10 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 		}
 	}
 
-	// saveSchemaVersion(sqlStore, Version610)
-	// }
-}
-
-func upgradeDatabaseToVersion601(sqlStore *SqlStore) {
 	// TODO OAUTH not sure if needed
 	sqlStore.CreateColumnIfNotExists("OAuthApps", "Scopes", "JSON", "jsonb", "null")
 	sqlStore.CreateColumnIfNotExists("OAuthApps", "AppsFrameworkAppID", "VARCHAR(26)", "VARCHAR(26)", "")
+
+	// saveSchemaVersion(sqlStore, Version610)
+	// }
 }

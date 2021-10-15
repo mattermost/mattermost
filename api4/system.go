@@ -47,7 +47,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequiredWithDenyScope(invalidateCaches)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequiredWithDenyScope(getLogs)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST") // TODO OAUTH Consider Oauth Scoping
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST") // Scopes handled at postLog
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequiredWithDenyScope(getAnalytics)).Methods("GET")
 
@@ -341,7 +341,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	forceToDebug := false
 
 	if !*c.App.Config().ServiceSettings.EnableDeveloper {
-		if c.AppContext.Session().UserId == "" {
+		if c.AppContext.Session().UserId == "" || c.AppContext.Scopes() != nil {
 			c.Err = model.NewAppError("postLog", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 			return
 		}

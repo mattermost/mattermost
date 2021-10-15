@@ -303,6 +303,11 @@ func TestNormalize(t *testing.T) {
 			msg: "Scope with no repetition should return the same scope",
 		},
 		{
+			in:  Scopes{ScopeFilesRead, ScopeChannelJoin},
+			out: Scopes{ScopeChannelJoin, ScopeFilesRead},
+			msg: "Scope is alphabetically ordered",
+		},
+		{
 			in:  Scopes{},
 			out: Scopes{},
 			msg: "Empty scope should remain an empty scope",
