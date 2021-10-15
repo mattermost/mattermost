@@ -20,9 +20,9 @@ var MockCWS string
 type BillingScheme string
 
 const (
-	BillingSchemePerSeat  = BillingScheme("per_seat")
-	BillingSchemeFlatFee  = BillingScheme("flat_fee")
-	BillingSchemeInternal = BillingScheme("internal")
+	BillingSchemePerSeat    = BillingScheme("per_seat")
+	BillingSchemeFlatFee    = BillingScheme("flat_fee")
+	BillingSchemeSalesServe = BillingScheme("sales_serve")
 )
 
 type RecurringInterval string
