@@ -72,7 +72,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/invite/email", api.APISessionRequiredWithDenyScope(inviteUsersToTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/invite-guests/email", api.APISessionRequiredWithDenyScope(inviteGuestsToChannels)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("/invites/email", api.APISessionRequiredWithDenyScope(invalidateAllEmailInvites)).Methods("DELETE")
-	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.APIHandler(getInviteInfo)).Methods("GET") // TODO OAUTH consider OAuth Scopes
+	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.APIHandler(getInviteInfo)).Methods("GET")
 
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/members_minus_group_members", api.APISessionRequiredWithDenyScope(teamMembersMinusGroupMembers)).Methods("GET")
 }

@@ -37,11 +37,11 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequiredWithDenyScope(enablePlugin)).Methods("POST")
 	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequiredWithDenyScope(disablePlugin)).Methods("POST")
 
-	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods("GET") // TODO OAUTH Consider OAuth scoping
+	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods("GET")
 
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequiredWithDenyScope(getMarketplacePlugins)).Methods("GET")
 
-	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST") // TODO OAUTH consider OAuth scoping and session required permission
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequiredWithDenyScope(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequiredWithDenyScope(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
 }
 

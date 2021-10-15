@@ -34,6 +34,26 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request))
 	return handler
 }
 
+// APIHandlerWithDenyScope provides a handler for API endpoints which do not require the user to be logged in order for access to be
+// granted, but deny any access from scoped sessions.
+func (api *API) APIHandlerWithDenyScope(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &web.Handler{
+		App:            api.app,
+		HandleFunc:     h,
+		HandlerName:    web.GetHandlerName(h),
+		RequireSession: false,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		IsLocal:        false,
+		AllowedScopes:  model.ScopeDeny(),
+	}
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
 func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scopes) http.Handler {
@@ -129,6 +149,7 @@ func (api *API) APISessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
+		AllowedScopes:  model.ScopeDeny(),
 	}
 	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -150,6 +171,7 @@ func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
+		AllowedScopes:  model.ScopeDeny(),
 	}
 	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)

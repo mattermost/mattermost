@@ -16,7 +16,7 @@ import (
 )
 
 func (api *API) InitSaml() {
-	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata)).Methods("GET") // TODO OAUTH Consider OAuth Scoping
+	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata)).Methods("GET")
 
 	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequiredWithDenyScope(addSamlPublicCertificate)).Methods("POST")
 	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequiredWithDenyScope(addSamlPrivateCertificate)).Methods("POST")
@@ -28,7 +28,7 @@ func (api *API) InitSaml() {
 
 	api.BaseRoutes.SAML.Handle("/certificate/status", api.APISessionRequiredWithDenyScope(getSamlCertificateStatus)).Methods("GET")
 
-	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.APIHandler(getSamlMetadataFromIdp)).Methods("POST") // TODO OAUTH Consider Oauth scoping
+	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.APISessionRequiredWithDenyScope(getSamlMetadataFromIdp)).Methods("POST")
 
 	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APISessionRequiredWithDenyScope(resetAuthDataToEmail)).Methods("POST")
 }

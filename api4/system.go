@@ -62,8 +62,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequiredWithDenyScope(upgradeToEnterpriseStatus)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequiredWithDenyScope(restart)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/warn_metrics/status", api.APISessionRequiredWithDenyScope(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(sendWarnMetricAckEmail)).Methods("POST")                            // TODO OAUTH consider OAuth Scoping
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST") // TODO OAUTH Consider OAuth scoping
+	api.BaseRoutes.APIRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APISessionRequiredWithDenyScope(sendWarnMetricAckEmail)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APISessionRequiredWithDenyScope(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequiredWithDenyScope(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequiredWithDenyScope(updateViewedProductNotices)).Methods("PUT")
 

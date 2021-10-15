@@ -22,7 +22,7 @@ import (
 )
 
 func (api *API) InitUser() {
-	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods("POST") // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("", api.APIHandlerWithDenyScope(createUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("", api.APISessionRequiredWithDenyScope(getUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/ids", api.APISessionRequiredWithDenyScope(getUsersByIds)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequiredWithDenyScope(getUsersByNames)).Methods("POST")
@@ -47,23 +47,23 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/promote", api.APISessionRequiredWithDenyScope(promoteGuestToUser)).Methods("POST")
 	api.BaseRoutes.User.Handle("/demote", api.APISessionRequiredWithDenyScope(demoteUserToGuest)).Methods("POST")
 	api.BaseRoutes.User.Handle("/convert_to_bot", api.APISessionRequiredWithDenyScope(convertUserToBot)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/password/reset", api.APIHandler(resetPassword)).Methods("POST")            // TODO OAUTH Consider OAuth Scopes
-	api.BaseRoutes.Users.Handle("/password/reset/send", api.APIHandler(sendPasswordReset)).Methods("POST")   // TODO OAUTH Consider OAuth Scopes
-	api.BaseRoutes.Users.Handle("/email/verify", api.APIHandler(verifyUserEmail)).Methods("POST")            // TODO OAUTH Consider OAuth Scopes
-	api.BaseRoutes.Users.Handle("/email/verify/send", api.APIHandler(sendVerificationEmail)).Methods("POST") // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("/password/reset", api.APIHandler(resetPassword)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/password/reset/send", api.APIHandler(sendPasswordReset)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/email/verify", api.APIHandler(verifyUserEmail)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/email/verify/send", api.APIHandler(sendVerificationEmail)).Methods("POST")
 	api.BaseRoutes.User.Handle("/email/verify/member", api.APISessionRequiredWithDenyScope(verifyUserEmailWithoutToken)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequiredWithDenyScope(saveUserTermsOfService)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequiredWithDenyScope(getUserTermsOfService)).Methods("GET")
 
 	api.BaseRoutes.User.Handle("/auth", api.APISessionRequiredTrustRequester(updateUserAuth, model.ScopeDeny())).Methods("PUT")
 
-	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods("PUT")               // TODO OAUTH Consider OAuth Scopes
-	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST") // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
-	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods("POST")                      // TODO OAUTH Consider OAuth Scopes
-	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods("POST")   // TODO OAUTH Consider OAuth Scopes
-	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST") // TODO OAUTH Consider OAuth Scopes
-	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods("POST")                    // TODO OAUTH Consider OAuth Scopes
+	api.BaseRoutes.Users.Handle("/login", api.APIHandlerWithDenyScope(login)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandlerWithDenyScope(switchAccountType)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/logout", api.APIHandlerWithDenyScope(logout)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequiredWithDenyScope(getUserByUsername)).Methods("GET")
 	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequiredWithDenyScope(getUserByEmail)).Methods("GET")
