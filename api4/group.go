@@ -809,6 +809,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
 		FilterAllowReference:      c.Params.FilterAllowReference,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
+		Source:                    c.Params.GroupSource,
 	}
 
 	if teamID != "" {

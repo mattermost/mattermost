@@ -86,6 +86,7 @@ type GroupSearchOpts struct {
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
 	Since                  int64
+	Source                 GroupSource
 
 	// FilterParentTeamPermitted filters the groups to the intersect of the
 	// set associated to the parent team and those returned by the query.

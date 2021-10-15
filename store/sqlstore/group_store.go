@@ -1416,6 +1416,10 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		`, opts.NotAssociatedToChannel, opts.NotAssociatedToChannel)
 	}
 
+	if opts.Source != "" {
+		groupsQuery = groupsQuery.Where("g.Source = ?", opts.Source)
+	}
+
 	queryString, args, err := groupsQuery.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "get_groups_tosql")
