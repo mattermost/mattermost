@@ -47,7 +47,6 @@ func Setup() *TestHelper {
 
 	a.DoAdvancedPermissionsMigration()
 	a.DoEmojisPermissionsMigration()
-	a.DoPermissionsMigrations()
 
 	a.Srv.Store.MarkSystemRanUnitTests()
 

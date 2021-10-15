@@ -77,7 +77,6 @@ func setupTestHelper(enterprise bool) *TestHelper {
 
 	th.App.DoAdvancedPermissionsMigration()
 	th.App.DoEmojisPermissionsMigration()
-	th.App.DoPermissionsMigrations()
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
