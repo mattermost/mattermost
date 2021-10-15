@@ -44,11 +44,16 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	}
 
 	metadata.PreSave()
-
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO LinkMetadata
-		(Hash, URL, Timestamp, Type, Data)
-		VALUES
-		(:Hash, :URL, :Timestamp, :Type, :Data)`, metadata); err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
+	query, args, err := s.getQueryBuilder().
+		Insert("LinkMetadata").
+		Columns("Hash", "URL", "Timestamp", "Type", "Data").
+		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadata.Data).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "metadata_tosql")
+	}
+	_, err = s.GetMasterX().Exec(query, args...)
+	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
 		return nil, errors.Wrap(err, "could not save link metadata")
 	}
 
