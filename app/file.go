@@ -98,7 +98,7 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
-	return a.srv.ReadFile(path)
+	return a.ch.srv.ReadFile(path)
 }
 
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
@@ -703,8 +703,8 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 		Input:       input,
 		maxFileSize: *a.Config().FileSettings.MaxFileSize,
 		maxImageRes: *a.Config().FileSettings.MaxImageResolution,
-		imgDecoder:  a.srv.imgDecoder,
-		imgEncoder:  a.srv.imgEncoder,
+		imgDecoder:  a.ch.srv.imgDecoder,
+		imgEncoder:  a.ch.srv.imgEncoder,
 	}
 	for _, o := range opts {
 		o(t)
@@ -1040,7 +1040,7 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, release, err := prepareImage(a.srv.imgDecoder, bytes.NewReader(fileData[i]))
+		img, release, err := prepareImage(a.ch.srv.imgDecoder, bytes.NewReader(fileData[i]))
 		if err != nil {
 			mlog.Debug("Failed to prepare image", mlog.Err(err))
 			continue
@@ -1088,7 +1088,7 @@ func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image
 
 func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
 	var buf bytes.Buffer
-	if err := a.srv.imgEncoder.EncodeJPEG(&buf, imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight), jpegEncQuality); err != nil {
+	if err := a.ch.srv.imgEncoder.EncodeJPEG(&buf, imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight), jpegEncQuality); err != nil {
 		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
@@ -1103,7 +1103,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 	var buf bytes.Buffer
 	preview := imaging.GeneratePreview(img, imagePreviewWidth)
 
-	if err := a.srv.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
+	if err := a.ch.srv.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
 		mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
 		return
 	}
@@ -1124,7 +1124,7 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			return
 		}
 		defer file.Close()
-		img, release, err := prepareImage(a.srv.imgDecoder, file)
+		img, release, err := prepareImage(a.ch.srv.imgDecoder, file)
 		if err != nil {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),

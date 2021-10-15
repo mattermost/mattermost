@@ -108,6 +108,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 	if post.DeleteAt > 0 {
 		// For deleted posts we don't fill out metadata nor do we return the post content
 		post.Message = ""
+		post.Metadata = &model.PostMetadata{}
 		return post
 	}
 
@@ -142,6 +143,11 @@ func (a *App) getEmbedsAndImages(post *model.Post, isNewPost bool) *model.Post {
 
 	// Embeds and image dimensions
 	firstLink, images := a.getFirstLinkAndImages(post.Message)
+
+	if post.Metadata.Embeds == nil {
+		post.Metadata.Embeds = []*model.PostEmbed{}
+	}
+
 	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
 		appErr, ok := err.(*model.AppError)
 		isNotFound := ok && appErr.StatusCode == http.StatusNotFound
@@ -149,12 +155,9 @@ func (a *App) getEmbedsAndImages(post *model.Post, isNewPost bool) *model.Post {
 		if !isNotFound {
 			mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
-	} else if embed == nil {
-		post.Metadata.Embeds = []*model.PostEmbed{}
-	} else {
-		post.Metadata.Embeds = []*model.PostEmbed{embed}
+	} else if embed != nil {
+		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
 	}
-
 	post.Metadata.Images = a.getImagesForPost(post, images, isNewPost)
 	return post
 }
@@ -224,6 +227,13 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 	if _, ok := post.GetProps()["attachments"]; ok {
 		return &model.PostEmbed{
 			Type: model.PostEmbedMessageAttachment,
+		}, nil
+	}
+
+	if _, ok := post.GetProps()["boards"]; ok && a.Config().FeatureFlags.BoardsUnfurl {
+		return &model.PostEmbed{
+			Type: model.PostEmbedBoards,
+			Data: post.GetProps()["boards"],
 		}, nil
 	}
 

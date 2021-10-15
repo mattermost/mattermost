@@ -5861,7 +5861,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Professional 14 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Professional előnyeit."
+    "translation": "{{.Name}}, a Mattermost 14 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Mattermost Cloud előnyeit."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8954,13 +8954,6 @@
   {
     "id": "api.server.warn_metric.support_email_not_configured.notification_title",
     "translation": "Állítsa be a támogatási email címét"
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "Önnek új üzenetei vannak",
-      "other": "{{ .SenderName }} és {{.Count}} másvalaki új üzenetet kültek Önnek"
-    }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
