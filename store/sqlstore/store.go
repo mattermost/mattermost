@@ -1615,3 +1615,14 @@ func (ss *SqlStore) jsonDataType() string {
 	}
 	return "json"
 }
+
+func (ss *SqlStore) isMariaDB() (bool, error) {
+	ver, err := ss.GetDbVersion(true)
+	if err != nil {
+		return false, err
+	} else if strings.Contains(strings.ToLower(ver), "maria") {
+		return true, nil
+	}
+
+	return false, nil
+}

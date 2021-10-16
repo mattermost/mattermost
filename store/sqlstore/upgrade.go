@@ -1574,7 +1574,14 @@ func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
 				return true
 			}
 		} else if sqlStore.DriverName() == model.DatabaseDriverMysql {
-			if info.DataType != "JSON" {
+			jsonType := "JSON"
+			// JSON is aliased as LONGTEXT for MariaDB.
+			// https://mariadb.com/kb/en/json-data-type/
+			if ok, _ := sqlStore.isMariaDB(); ok {
+				jsonType = "longtext"
+			}
+
+			if info.DataType != jsonType {
 				return true
 			}
 		}
