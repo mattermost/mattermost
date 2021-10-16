@@ -2411,14 +2411,14 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 		if count == 0 {
 			if s.DriverName() == model.DatabaseDriverPostgres {
-				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - $1", userId))
+				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
 			} else {
 				// The .Where is because JSON_REMOVE returns null if the element to remove wasn't present
 				updateQuery = updateQuery.
 					Set("Participants", sq.Expr(
 						`JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?)))`, userId,
 					)).
-					Where(sq.Expr(`JSON_CONTAINS(Participants, ?)`, userId))
+					Where(sq.Expr(`JSON_CONTAINS(Participants, ?)`, strconv.Quote(userId)))
 			}
 		}
 
