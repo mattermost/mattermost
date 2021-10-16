@@ -463,10 +463,14 @@ build-templates: ## Compile all mjml email templates
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
 run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
-	@echo Running mattermost for development
+	@echo Building mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+	$(GO) build -o bin/ $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) 
+	
+	@echo Running mattermost for development
+	
+	bin/mattermost $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
