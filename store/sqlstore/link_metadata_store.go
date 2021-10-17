@@ -61,7 +61,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 }
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
-	var metadata *model.LinkMetadata
+	var metadata model.LinkMetadata
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("LinkMetadata").
@@ -83,5 +83,5 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 		return nil, errors.Wrapf(err, "could not deserialize metadata to concrete type for url=%s", url)
 	}
 
-	return metadata, nil
+	return &metadata, nil
 }
