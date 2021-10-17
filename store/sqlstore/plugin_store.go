@@ -100,7 +100,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			return false, errors.Wrap(err, "plugin_tosql")
 		}
 
-		if _, err := ps.GetMasterX().Exec(queryString, args...); err != nil {
+		if _, err = ps.GetMasterX().Exec(queryString, args...); err != nil {
 			return false, errors.Wrap(err, "failed to delete PluginKeyValue")
 		}
 
