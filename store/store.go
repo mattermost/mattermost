@@ -686,6 +686,7 @@ type JobStore interface {
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)
 	Delete(id string) (string, error)
+	Cleanup(expiryTime int64, batchSize int) error
 }
 
 type UserAccessTokenStore interface {
