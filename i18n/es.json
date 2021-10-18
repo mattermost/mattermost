@@ -8389,7 +8389,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, su prueba de 14 días de Mattermost Cloud Professional finaliza en 3 días, en {{.TrialEnd}}. Por favor, añada su información de pago para garantizar que su equipo pueda seguir disfrutando de los beneficios de Cloud Professional."
+    "translation": "{{.Name}}, su prueba de 14 días de Mattermost finaliza en 3 días, en {{.TrialEnd}}. Por favor, añada su información de pago para garantizar que su equipo pueda seguir disfrutando de los beneficios de Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",

@@ -184,6 +184,10 @@ GET_ID:
 	s.inflight[id] = struct{}{}
 	s.streamLock.Unlock()
 
+	if s.config.StreamOpenTimeout > 0 {
+		go s.setOpenTimeout(stream)
+	}
+
 	// Send the window update to create
 	if err := stream.sendWindowUpdate(); err != nil {
 		select {
@@ -194,6 +198,27 @@ GET_ID:
 		return nil, err
 	}
 	return stream, nil
+}
+
+// setOpenTimeout implements a timeout for streams that are opened but not established.
+// If the StreamOpenTimeout is exceeded we assume the peer is unable to ACK,
+// and close the session.
+// The number of running timers is bounded by the capacity of the synCh.
+func (s *Session) setOpenTimeout(stream *Stream) {
+	timer := time.NewTimer(s.config.StreamOpenTimeout)
+	defer timer.Stop()
+
+	select {
+	case <-stream.establishCh:
+		return
+	case <-s.shutdownCh:
+		return
+	case <-timer.C:
+		// Timeout reached while waiting for ACK.
+		// Close the session to force connection re-establishment.
+		s.logger.Printf("[ERR] yamux: aborted stream open (destination=%s): %v", s.RemoteAddr().String(), ErrTimeout.err)
+		s.Close()
+	}
 }
 
 // Accept is used to block until the next available stream

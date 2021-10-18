@@ -175,6 +175,20 @@ jobs:
             make migrations-bindata
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
 
+  check-email-templates:
+    docker:
+      - image: cimg/go:1.17-node
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            sudo npm install -g mjml@4.9.0
+            make build-templates
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
+
   # Dedicate job for golangci-lint it does not need anything only the server code for that
   # and to make more clear when the job fails
   check-golangci-lint:
@@ -253,6 +267,10 @@ jobs:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-osx-amd64.tar.gz
+      - store_artifacts:
+          path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-arm64.tar.gz
+      - store_artifacts:
+          path: ~/mattermost/mattermost-server/dist/mattermost-team-osx-arm64.tar.gz
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-windows-amd64.zip
       - persist_to_workspace:
@@ -444,19 +462,23 @@ jobs:
   build-docker:
     working_directory: ~/
     docker:
-      - image: circleci/buildpack-deps:stretch
+      - image: cimg/base:stable
     steps:
       - attach_workspace:
           at: .
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.7
       - run:
           command: |
             export TAG="${CIRCLE_SHA1:0:7}"
+
             cd mattermost-server
-            export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
-            docker build --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} build
+
+            export DOCKER_CLI_EXPERIMENTAL=enabled
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-            docker push mattermost/mattermost-team-edition:${TAG}
+            export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
+            # Pushing the images to two places to not break anything, but the `mattermost/mattermost-team-edition` will be removed soon.
+            docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} -t mattermost/mm-te-test:${TAG} build
 
 workflows:
   version: 2
@@ -495,6 +517,9 @@ workflows:
       - check-migrations:
           requires:
             - setup
+      - check-email-templates:
+          requires:
+            - setup
       - check-mattermost-vet:
           requires:
             - setup
@@ -507,6 +532,7 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-email-templates
             - check-mattermost-vet
             - check-golangci-lint
             - build-api-spec
@@ -532,6 +558,7 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-email-templates
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -542,13 +569,14 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-email-templates
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
             - check-migrations
-
+            - check-email-templates
   release-build:
     jobs:
       - setup:
@@ -589,6 +617,9 @@ workflows:
       - check-migrations:
           requires:
             - setup
+      - check-email-templates:
+          requires:
+            - setup
       - check-mattermost-vet:
           requires:
             - setup
@@ -599,6 +630,7 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-email-templates
             - check-mattermost-vet
             - check-golangci-lint
             - build-api-spec
@@ -608,6 +640,7 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-email-templates
             - check-mattermost-vet
             - build-api-spec
       - test:
@@ -620,6 +653,7 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-email-templates
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -630,4 +664,5 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-email-templates
       # test-schema for master run in .gitlab-ci.yml

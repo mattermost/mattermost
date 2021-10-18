@@ -21,26 +21,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-// CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-//
-func (a *App) CreateDefaultChannels(c *request.Context, teamID string) ([]*model.Channel, *model.AppError) {
-	displayNames := map[string]string{
-		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
-		"off-topic":   i18n.T("api.channel.create_default_channels.off_topic"),
-	}
-	channels := []*model.Channel{}
-	defaultChannelNames := a.DefaultChannelNames()
-	for _, name := range defaultChannelNames {
-		displayName := i18n.TDefault(displayNames[name], name)
-		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
-		if _, err := a.CreateChannel(c, channel, false); err != nil {
-			return nil, err
-		}
-		channels = append(channels, channel)
-	}
-	return channels, nil
-}
-
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
 // By default the list will be (not necessarily in this order):
@@ -2350,7 +2330,11 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
-			if err = a.RemoveTeamMemberFromTeam(c, teamMember, removerUserId); err != nil {
+			if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
+				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+
+			if err = a.postProcessTeamMemberLeave(c, teamMember, removerUserId); err != nil {
 				return err
 			}
 		}
