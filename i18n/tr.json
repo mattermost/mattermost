@@ -9253,5 +9253,9 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Kanal üyesi rolleri geçersiz {{.Limit}} karakterden uzun."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Kod içindeki e-posta adresi kullanıcı verileri içindeki ile aynı değil."
   }
 ]
