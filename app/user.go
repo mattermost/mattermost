@@ -72,6 +72,11 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	emailFromToken := tokenData["email"]
+	if emailFromToken != user.Email {
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.bad_token_email_data.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
@@ -198,7 +203,7 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 }
 
 func (a *App) IsFirstUserAccount() bool {
-	return a.srv.userService.IsFirstUserAccount()
+	return a.ch.srv.userService.IsFirstUserAccount()
 }
 
 // CreateUser creates a user and sets several fields of the returned User struct to
@@ -214,7 +219,7 @@ func (a *App) CreateGuest(c *request.Context, user *model.User) (*model.User, *m
 }
 
 func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool) (*model.User, *model.AppError) {
-	ruser, nErr := a.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
+	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -245,7 +250,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 	if user.EmailVerified {
 		a.InvalidateCacheForUser(ruser.Id)
 
-		nUser, err := a.srv.userService.GetUser(ruser.Id)
+		nUser, err := a.ch.srv.userService.GetUser(ruser.Id)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -305,18 +310,18 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	found := true
 	count := 0
 	for found {
-		if found = a.srv.userService.IsUsernameTaken(user.Username); found {
+		if found = a.ch.srv.userService.IsUsernameTaken(user.Username); found {
 			user.Username = user.Username + strconv.Itoa(count)
 			count++
 		}
 	}
 
-	userByAuth, _ := a.srv.userService.GetUserByAuth(user.AuthData, service)
+	userByAuth, _ := a.ch.srv.userService.GetUserByAuth(user.AuthData, service)
 	if userByAuth != nil {
 		return userByAuth, nil
 	}
 
-	userByEmail, _ := a.srv.userService.GetUserByEmail(user.Email)
+	userByEmail, _ := a.ch.srv.userService.GetUserByEmail(user.Email)
 	if userByEmail != nil {
 		if userByEmail.AuthService == "" {
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
@@ -354,7 +359,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
-	user, err := a.srv.userService.GetUser(userID)
+	user, err := a.ch.srv.userService.GetUser(userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -369,7 +374,7 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 }
 
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
-	result, err := a.srv.userService.GetUserByUsername(username)
+	result, err := a.ch.srv.userService.GetUserByUsername(username)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -383,7 +388,7 @@ func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) 
 }
 
 func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
-	user, err := a.srv.userService.GetUserByEmail(email)
+	user, err := a.ch.srv.userService.GetUserByEmail(email)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -397,7 +402,7 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 }
 
 func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
-	user, err := a.srv.userService.GetUserByAuth(authData, authService)
+	user, err := a.ch.srv.userService.GetUserByAuth(authData, authService)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var nfErr *store.ErrNotFound
@@ -415,7 +420,7 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 }
 
 func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsers(options)
+	users, err := a.ch.srv.userService.GetUsers(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -424,7 +429,7 @@ func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.App
 }
 
 func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersPage(options, asAdmin)
+	users, err := a.ch.srv.userService.GetUsersPage(options, asAdmin)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -433,11 +438,11 @@ func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*mode
 }
 
 func (a *App) GetUsersEtag(restrictionsHash string) string {
-	return a.srv.userService.GetUsersEtag(restrictionsHash)
+	return a.ch.srv.userService.GetUsersEtag(restrictionsHash)
 }
 
 func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersInTeam(options)
+	users, err := a.ch.srv.userService.GetUsersInTeam(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersInTeam", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -446,7 +451,7 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 }
 
 func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
+	users, err := a.ch.srv.userService.GetUsersNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInTeam", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -455,7 +460,7 @@ func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int
 }
 
 func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersInTeamPage(options, asAdmin)
+	users, err := a.ch.srv.userService.GetUsersInTeamPage(options, asAdmin)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersInTeamPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -464,7 +469,7 @@ func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([
 }
 
 func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersNotInTeamPage(teamID, groupConstrained, page*perPage, perPage, asAdmin, viewRestrictions)
+	users, err := a.ch.srv.userService.GetUsersNotInTeamPage(teamID, groupConstrained, page*perPage, perPage, asAdmin, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInTeamPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -473,11 +478,11 @@ func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page i
 }
 
 func (a *App) GetUsersInTeamEtag(teamID string, restrictionsHash string) string {
-	return a.srv.userService.GetUsersInTeamEtag(teamID, restrictionsHash)
+	return a.ch.srv.userService.GetUsersInTeamEtag(teamID, restrictionsHash)
 }
 
 func (a *App) GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string {
-	return a.srv.userService.GetUsersNotInTeamEtag(teamID, restrictionsHash)
+	return a.ch.srv.userService.GetUsersNotInTeamEtag(teamID, restrictionsHash)
 }
 
 func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
@@ -565,7 +570,7 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 }
 
 func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
+	users, err := a.ch.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersWithoutTeamPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -574,7 +579,7 @@ func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin boo
 }
 
 func (a *App) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersWithoutTeam(options)
+	users, err := a.ch.srv.userService.GetUsersWithoutTeam(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersWithoutTeam", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -603,7 +608,7 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 }
 
 func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersByIds(userIDs, options)
+	users, err := a.ch.srv.userService.GetUsersByIds(userIDs, options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByIds", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -624,7 +629,7 @@ func (a *App) GetUsersByGroupChannelIds(c *request.Context, channelIDs []string,
 }
 
 func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.srv.userService.GetUsersByUsernames(usernames, &model.UserGetOptions{ViewRestrictions: viewRestrictions})
+	users, err := a.ch.srv.userService.GetUsersByUsernames(usernames, &model.UserGetOptions{ViewRestrictions: viewRestrictions})
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByUsernames", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -649,7 +654,7 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 		return nil, model.NewAppError("GenerateMfaSecret", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	mfaSecret, err := a.srv.userService.GenerateMfaSecret(user)
+	mfaSecret, err := a.ch.srv.userService.GenerateMfaSecret(user)
 	if err != nil {
 		return nil, model.NewAppError("GenerateMfaSecret", "mfa.generate_qr_code.create_code.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -671,7 +676,7 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 		return model.NewAppError("ActivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := a.srv.userService.ActivateMfa(user, token); err != nil {
+	if err := a.ch.srv.userService.ActivateMfa(user, token); err != nil {
 		switch {
 		case errors.Is(err, mfa.InvalidToken):
 			return model.NewAppError("ActivateMfa", "mfa.activate.bad_token.app_error", nil, "", http.StatusUnauthorized)
@@ -692,7 +697,7 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 		return appErr
 	}
 
-	if err := a.srv.userService.DeactivateMfa(user); err != nil {
+	if err := a.ch.srv.userService.DeactivateMfa(user); err != nil {
 		return model.NewAppError("DeactivateMfa", "mfa.deactivate.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -703,11 +708,11 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 }
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
-	return a.srv.GetProfileImage(user)
+	return a.ch.srv.GetProfileImage(user)
 }
 
 func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
-	return a.srv.GetDefaultProfileImage(user)
+	return a.ch.srv.GetDefaultProfileImage(user)
 }
 
 func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
@@ -762,7 +767,7 @@ func (a *App) SetProfileImageFromMultiPartFile(userID string, file multipart.Fil
 
 func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
-	img, _, err := a.srv.imgDecoder.Decode(file)
+	img, _, err := a.ch.srv.imgDecoder.Decode(file)
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -775,7 +780,7 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	img = imaging.FillCenter(img, profileWidthAndHeight, profileWidthAndHeight)
 
 	buf := new(bytes.Buffer)
-	err = a.srv.imgEncoder.EncodePNG(buf, img)
+	err = a.ch.srv.imgEncoder.EncodePNG(buf, img)
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -884,7 +889,7 @@ func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*
 		user.DeleteAt = user.UpdateAt
 	}
 
-	userUpdate, err := a.srv.userService.UpdateUser(user, true)
+	userUpdate, err := a.ch.srv.userService.UpdateUser(user, true)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -917,7 +922,7 @@ func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*
 }
 
 func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
-	userIDs, err := a.srv.userService.DeactivateAllGuests()
+	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
 	if err != nil {
 		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -938,11 +943,11 @@ func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 }
 
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
-	return a.srv.userService.GetSanitizeOptions(asAdmin)
+	return a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 }
 
 func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
-	options := a.srv.userService.GetSanitizeOptions(asAdmin)
+	options := a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 
 	user.SanitizeProfile(options)
 }
@@ -1034,7 +1039,7 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	prev, err := a.srv.userService.GetUser(user.Id)
+	prev, err := a.ch.srv.userService.GetUser(user.Id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1077,7 +1082,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		}
 	}
 
-	userUpdate, err := a.srv.userService.UpdateUser(user, false)
+	userUpdate, err := a.ch.srv.userService.UpdateUser(user, false)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -1144,7 +1149,7 @@ func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *
 }
 
 func (a *App) updateUserNotifyProps(userID string, props map[string]string) *model.AppError {
-	err := a.srv.userService.UpdateUserNotifyProps(userID, props)
+	err := a.ch.srv.userService.UpdateUserNotifyProps(userID, props)
 	if err != nil {
 		var appErr *model.AppError
 		switch {
@@ -1350,6 +1355,25 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 	if rtoken.Type != TokenTypePasswordRecovery {
 		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.broken_token.app_error", nil, "", http.StatusBadRequest)
 	}
+	return rtoken, nil
+}
+
+func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
+	rtoken, err := a.Srv().Store.Token().GetByToken(token)
+
+	if err != nil {
+		var status int
+
+		switch err.(type) {
+		case *store.ErrNotFound:
+			status = http.StatusNotFound
+		default:
+			status = http.StatusInternalServerError
+		}
+
+		return nil, model.NewAppError("GetTokenById", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), status)
+	}
+
 	return rtoken, nil
 }
 
@@ -2016,7 +2040,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 // PromoteGuestToUser Convert user's roles and all his mermbership's roles from
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError {
-	nErr := a.srv.userService.PromoteGuestToUser(user)
+	nErr := a.ch.srv.userService.PromoteGuestToUser(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
 		return model.NewAppError("PromoteGuestToUser", "app.user.promote_guest.user_update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2038,7 +2062,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		mlog.Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
 		a.sendUpdatedUserEvent(*promotedUser)
-		if uErr := a.srv.userService.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
+		if uErr := a.ch.srv.userService.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
 			mlog.Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
 	}
@@ -2076,14 +2100,14 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 // DemoteUserToGuest Convert user's roles and all his mermbership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
-	demotedUser, nErr := a.srv.userService.DemoteUserToGuest(user)
+	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
 		return model.NewAppError("DemoteUserToGuest", "app.user.demote_user_to_guest.user_update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	a.sendUpdatedUserEvent(*demotedUser)
-	if uErr := a.srv.userService.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
+	if uErr := a.ch.srv.userService.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
 		mlog.Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 

@@ -1314,10 +1314,6 @@
     "translation": "Ongeldig RootId parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Dit kanaal is alleen-lezen. Alleen leden met toestemming kunnen hier posten."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Fout bij het aanmaken van bericht."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Dit kanaal is alleen-lezen. Enkel leden met voldoende rechten kunnen berichten vast- of losmaken hier."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Je kan de reactie voor de andere gebruiker niet bewaren."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reageren op berichten is niet mogelijk in alleen-lezen kanalen."
   },
   {
     "id": "api.restricted_system_admin",
@@ -8929,7 +8917,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, je 14-daagse proefperiode van Mattermost Cloud Professional loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Cloud Professional."
+    "translation": "{{.Name}}, je 14-daagse proefperiode van Mattermost loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9237,5 +9225,13 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ongeldig CreateAt veld voor sessie."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige kanaallidrol langer dan {{.Limit}} karakters."
   }
 ]

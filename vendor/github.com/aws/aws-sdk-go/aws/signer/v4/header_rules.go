@@ -44,12 +44,12 @@ func (w allowList) IsValid(value string) bool {
 	return w.rule.IsValid(value)
 }
 
-// excludeList is a generic rule for blacklisting
+// excludeList is a generic rule for exclude listing
 type excludeList struct {
 	rule
 }
 
-// IsValid for allow list checks if the value is within the allow list
+// IsValid for exclude list checks if the value is within the exclude list
 func (b excludeList) IsValid(value string) bool {
 	return !b.rule.IsValid(value)
 }

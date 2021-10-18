@@ -19,6 +19,7 @@
 package lifecycle
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"time"
 )
@@ -116,6 +117,26 @@ type Transition struct {
 	Days         ExpirationDays `xml:"Days,omitempty" json:"Days,omitempty"`
 }
 
+// MarshalJSON customizes json encoding by omitting empty values
+func (t Transition) MarshalJSON() ([]byte, error) {
+	type transition struct {
+		Date         *ExpirationDate `json:"Date,omitempty"`
+		StorageClass string          `json:"StorageClass,omitempty"`
+		Days         *ExpirationDays `json:"Days,omitempty"`
+	}
+
+	newt := transition{
+		StorageClass: t.StorageClass,
+	}
+	if !t.IsDaysNull() {
+		newt.Days = &t.Days
+	}
+	if !t.IsDateNull() {
+		newt.Date = &t.Date
+	}
+	return json.Marshal(newt)
+}
+
 // IsDaysNull returns true if days field is null
 func (t Transition) IsDaysNull() bool {
 	return t.Days == ExpirationDays(0)
@@ -158,6 +179,31 @@ type Filter struct {
 	And     And      `xml:"And,omitempty" json:"And,omitempty"`
 	Prefix  string   `xml:"Prefix,omitempty" json:"Prefix,omitempty"`
 	Tag     Tag      `xml:"Tag,omitempty" json:"Tag,omitempty"`
+}
+
+// IsNull returns true if all Filter fields are empty.
+func (f Filter) IsNull() bool {
+	return f.Tag.IsEmpty() && f.And.IsEmpty() && f.Prefix == ""
+}
+
+// MarshalJSON customizes json encoding by removing empty values.
+func (f Filter) MarshalJSON() ([]byte, error) {
+	type filter struct {
+		And    *And   `json:"And,omitempty"`
+		Prefix string `json:"Prefix,omitempty"`
+		Tag    *Tag   `json:"Tag,omitempty"`
+	}
+
+	newf := filter{
+		Prefix: f.Prefix,
+	}
+	if !f.Tag.IsEmpty() {
+		newf.Tag = &f.Tag
+	}
+	if !f.And.IsEmpty() {
+		newf.And = &f.And
+	}
+	return json.Marshal(newf)
 }
 
 // MarshalXML - produces the xml representation of the Filter struct
@@ -238,6 +284,26 @@ type Expiration struct {
 	DeleteMarker ExpireDeleteMarker `xml:"ExpiredObjectDeleteMarker,omitempty"`
 }
 
+// MarshalJSON customizes json encoding by removing empty day/date specification.
+func (e Expiration) MarshalJSON() ([]byte, error) {
+	type expiration struct {
+		Date         *ExpirationDate `json:"Date,omitempty"`
+		Days         *ExpirationDays `json:"Days,omitempty"`
+		DeleteMarker ExpireDeleteMarker
+	}
+
+	newexp := expiration{
+		DeleteMarker: e.DeleteMarker,
+	}
+	if !e.IsDaysNull() {
+		newexp.Days = &e.Days
+	}
+	if !e.IsDateNull() {
+		newexp.Date = &e.Date
+	}
+	return json.Marshal(newexp)
+}
+
 // IsDaysNull returns true if days field is null
 func (e Expiration) IsDaysNull() bool {
 	return e.Days == ExpirationDays(0)
@@ -265,6 +331,47 @@ func (e Expiration) MarshalXML(en *xml.Encoder, startElement xml.StartElement) e
 	}
 	type expirationWrapper Expiration
 	return en.EncodeElement(expirationWrapper(e), startElement)
+}
+
+// MarshalJSON customizes json encoding by omitting empty values
+func (r Rule) MarshalJSON() ([]byte, error) {
+	type rule struct {
+		AbortIncompleteMultipartUpload *AbortIncompleteMultipartUpload `json:"AbortIncompleteMultipartUpload,omitempty"`
+		Expiration                     *Expiration                     `json:"Expiration,omitempty"`
+		ID                             string                          `json:"ID"`
+		RuleFilter                     *Filter                         `json:"Filter,omitempty"`
+		NoncurrentVersionExpiration    *NoncurrentVersionExpiration    `json:"NoncurrentVersionExpiration,omitempty"`
+		NoncurrentVersionTransition    *NoncurrentVersionTransition    `json:"NoncurrentVersionTransition,omitempty"`
+		Prefix                         string                          `json:"Prefix,omitempty"`
+		Status                         string                          `json:"Status"`
+		Transition                     *Transition                     `json:"Transition,omitempty"`
+	}
+	newr := rule{
+		Prefix: r.Prefix,
+		Status: r.Status,
+		ID:     r.ID,
+	}
+
+	if !r.RuleFilter.IsNull() {
+		newr.RuleFilter = &r.RuleFilter
+	}
+	if !r.AbortIncompleteMultipartUpload.IsDaysNull() {
+		newr.AbortIncompleteMultipartUpload = &r.AbortIncompleteMultipartUpload
+	}
+	if !r.Expiration.IsNull() {
+		newr.Expiration = &r.Expiration
+	}
+	if !r.Transition.IsNull() {
+		newr.Transition = &r.Transition
+	}
+	if !r.NoncurrentVersionExpiration.IsDaysNull() {
+		newr.NoncurrentVersionExpiration = &r.NoncurrentVersionExpiration
+	}
+	if !r.NoncurrentVersionTransition.IsDaysNull() {
+		newr.NoncurrentVersionTransition = &r.NoncurrentVersionTransition
+	}
+
+	return json.Marshal(newr)
 }
 
 // Rule represents a single rule in lifecycle configuration
