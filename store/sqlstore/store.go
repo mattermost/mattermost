@@ -893,7 +893,6 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 		_, err = ss.GetMaster().ExecNoTimeout(query)
 	}
 
-	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
 	if err != nil {
 		msg := "Failed to alter column type."
 		fields := []mlog.Field{mlog.Err(err)}
