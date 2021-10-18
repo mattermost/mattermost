@@ -82,9 +82,9 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	storeMock.On("GetDbVersion", false).Return("5.24.0", nil)
 
 	systemStore := storeMocks.SystemStore{}
-	props := model.StringMap{}
-	props[model.SystemTelemetryId] = "test"
-	systemStore.On("Get").Return(props, nil)
+	systemStore.On("Get").Return(make(model.StringMap), nil)
+	systemID := &model.System{Name: model.SystemTelemetryId, Value: "test"}
+	systemStore.On("InsertIfExists", mock.Anything).Return(systemID, nil)
 	systemStore.On("GetByName", model.AdvancedPermissionsMigrationKey).Return(nil, nil)
 	systemStore.On("GetByName", model.MigrationKeyAdvancedPermissionsPhase2).Return(nil, nil)
 
