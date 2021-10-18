@@ -260,9 +260,10 @@ func (d *Decoder) WriteTo(w io.Writer) (int64, error) {
 		if len(d.current.b) > 0 {
 			n2, err2 := w.Write(d.current.b)
 			n += int64(n2)
-			if err2 != nil && d.current.err == nil {
+			if err2 != nil && (d.current.err == nil || d.current.err == io.EOF) {
 				d.current.err = err2
-				break
+			} else if n2 != len(d.current.b) {
+				d.current.err = io.ErrShortWrite
 			}
 		}
 		if d.current.err != nil {

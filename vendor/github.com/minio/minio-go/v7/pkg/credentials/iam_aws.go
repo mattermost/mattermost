@@ -38,7 +38,10 @@ import (
 // prior to the credentials actually expiring. This is beneficial
 // so race conditions with expiring credentials do not cause
 // request to fail unexpectedly due to ExpiredTokenException exceptions.
-const DefaultExpiryWindow = time.Second * 10 // 10 secs
+// DefaultExpiryWindow can be used as parameter to (*Expiry).SetExpiration.
+// When used the tokens refresh will be triggered when 80% of the elapsed
+// time until the actual expiration time is passed.
+const DefaultExpiryWindow = -1
 
 // A IAM retrieves credentials from the EC2 service, and keeps track if
 // those credentials are expired.
@@ -181,10 +184,6 @@ type ec2RoleCredRespBody struct {
 // be sent to fetch the rolling access credentials.
 // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 func getIAMRoleURL(endpoint string) (*url.URL, error) {
-	if endpoint == "" {
-		endpoint = defaultIAMRoleEndpoint
-	}
-
 	u, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
@@ -281,6 +280,10 @@ func fetchIMDSToken(client *http.Client, endpoint string) (string, error) {
 // If the credentials cannot be found, or there is an error
 // reading the response an error will be returned.
 func getCredentials(client *http.Client, endpoint string) (ec2RoleCredRespBody, error) {
+	if endpoint == "" {
+		endpoint = defaultIAMRoleEndpoint
+	}
+
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
 	token, _ := fetchIMDSToken(client, endpoint)
 

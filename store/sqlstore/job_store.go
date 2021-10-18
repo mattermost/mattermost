@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -15,6 +16,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
+)
+
+const (
+	jobsCleanupDelay = 100 * time.Millisecond
 )
 
 type SqlJobStore struct {
@@ -37,6 +42,7 @@ func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
 
 func (jss SqlJobStore) createIndexesIfNotExists() {
 	jss.CreateIndexIfNotExists("idx_jobs_type", "Jobs", "Type")
+	jss.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
 }
 
 func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
@@ -284,4 +290,32 @@ func (jss SqlJobStore) Delete(id string) (string, error) {
 		return "", errors.Wrapf(err, "failed to delete Job with id=%s", id)
 	}
 	return id, nil
+}
+
+func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
+	var query string
+	if jss.DriverName() == model.DatabaseDriverPostgres {
+		query = "DELETE FROM Jobs WHERE Id IN (SELECT Id FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?)"
+	} else {
+		query = "DELETE FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?"
+	}
+
+	var rowsAffected int64 = 1
+
+	for rowsAffected > 0 {
+		sqlResult, err := jss.GetMasterX().Exec(query,
+			expiryTime, model.JobStatusInProgress, model.JobStatusPending, batchSize)
+		if err != nil {
+			return errors.Wrap(err, "unable to delete jobs")
+		}
+		var rowErr error
+		rowsAffected, rowErr = sqlResult.RowsAffected()
+		if rowErr != nil {
+			return errors.Wrap(err, "unable to delete jobs")
+		}
+
+		time.Sleep(jobsCleanupDelay)
+	}
+
+	return nil
 }
