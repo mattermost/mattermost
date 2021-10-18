@@ -9250,5 +9250,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": "Önnek új üzenetei vannak"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "A tokenben szereplő e-mail cím nem egyezik a felhasználói adatokban szereplővel."
   }
 ]
