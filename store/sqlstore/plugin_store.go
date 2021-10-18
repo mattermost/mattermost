@@ -271,7 +271,7 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, error
 		return nil, errors.Wrap(err, "plugin_tosql")
 	}
 
-	row := ps.GetReplicaX().DB.QueryRow(queryString, args...)
+	row := ps.GetReplicaX().DB.QueryRowx(queryString, args...)
 	var kv model.PluginKeyValue
 	if err := row.Scan(&kv.PluginId, &kv.Key, &kv.Value, &kv.ExpireAt); err != nil {
 		if err == sql.ErrNoRows {
@@ -343,8 +343,6 @@ func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string,
 		offset = 0
 	}
 
-	var keys []string
-
 	query := ps.getQueryBuilder().
 		Select("Pkey").
 		From("PluginKeyValueStore").
@@ -362,6 +360,7 @@ func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string,
 		return nil, errors.Wrap(err, "plugin_tosql")
 	}
 
+	keys := []string{}
 	err = ps.GetReplicaX().Select(&keys, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get PluginKeyValues with pluginId=%s", pluginId)
