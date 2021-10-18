@@ -9233,5 +9233,25 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Ongeldige kanaallidrol langer dan {{.Limit}} karakters."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige gebruikersrollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ongeldig teamlid rollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ongeldig veld UserId voor sessie."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige sessierollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ongeldig Id-veld voor sessie."
   }
 ]
