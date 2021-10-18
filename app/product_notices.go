@@ -29,14 +29,6 @@ const MinSecondsBetweenRepeatViewings = 60 * 60
 // http request cache
 var noticesCache = utils.RequestCache{}
 
-// cached counts that are used during notice condition validation
-var cachedPostCount int64
-var cachedUserCount int64
-
-var cachedDBMSVersion string
-
-// previously fetched notices
-var cachedNotices model.ProductNotices
 var rcStripRegexp = regexp.MustCompile(`(.*?)(-rc\d+)(.*?)`)
 
 func cleanupVersion(originalVersion string) string {
@@ -269,7 +261,7 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 
 	filteredNotices := make([]model.NoticeMessage, 0)
 
-	for noticeIndex, notice := range cachedNotices {
+	for noticeIndex, notice := range a.ch.cachedNotices {
 		// check if the notice has been viewed already
 		var view *model.ProductNoticeViewState
 		for viewIndex, v := range views {
@@ -297,17 +289,17 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 			userID,
 			client,
 			clientVersion,
-			cachedPostCount,
-			cachedUserCount,
+			a.ch.cachedPostCount,
+			a.ch.cachedUserCount,
 			isSystemAdmin,
 			isTeamAdmin,
 			isCloud,
 			sku,
 			dbName,
-			cachedDBMSVersion,
+			a.ch.cachedDBMSVersion,
 			searchEngineName,
 			searchEngineVersion,
-			&cachedNotices[noticeIndex])
+			&a.ch.cachedNotices[noticeIndex])
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
 		}
@@ -337,7 +329,7 @@ func (a *App) UpdateViewedProductNotices(userID string, noticeIds []string) *mod
 // user as viewed in order to avoid showing them imminently on first login
 func (a *App) UpdateViewedProductNoticesForNewUser(userID string) {
 	var noticeIds []string
-	for _, notice := range cachedNotices {
+	for _, notice := range a.ch.cachedNotices {
 		noticeIds = append(noticeIds, notice.ID)
 	}
 	if err := a.Srv().Store.ProductNotices().View(userID, noticeIds); err != nil {
@@ -351,33 +343,33 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
 	var err error
-	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	a.ch.cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
 		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
-	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	a.ch.cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
 		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
-	cachedDBMSVersion, err = a.Srv().Store.GetDbVersion(false)
+	a.ch.cachedDBMSVersion, err = a.Srv().Store.GetDbVersion(false)
 	if err != nil {
 		mlog.Warn("Failed to get DBMS version", mlog.String("error", err.Error()))
 	}
 
-	cachedDBMSVersion = strings.Split(cachedDBMSVersion, " ")[0] // get rid of trailing strings attached to the version
+	a.ch.cachedDBMSVersion = strings.Split(a.ch.cachedDBMSVersion, " ")[0] // get rid of trailing strings attached to the version
 
 	data, err := utils.GetURLWithCache(url, &noticesCache, skip)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
 	}
-	cachedNotices, err = model.UnmarshalProductNotices(data)
+	a.ch.cachedNotices, err = model.UnmarshalProductNotices(data)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.parse_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := a.Srv().Store.ProductNotices().ClearOldNotices(cachedNotices); err != nil {
+	if err := a.Srv().Store.ProductNotices().ClearOldNotices(a.ch.cachedNotices); err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.clear_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil
