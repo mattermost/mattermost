@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 )
 
@@ -12,6 +13,13 @@ type Channels struct {
 	srv *Server
 
 	imageProxy *imageproxy.ImageProxy
+
+	// cached counts that are used during notice condition validation
+	cachedPostCount   int64
+	cachedUserCount   int64
+	cachedDBMSVersion string
+	// previously fetched notices
+	cachedNotices model.ProductNotices
 }
 
 func init() {
