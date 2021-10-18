@@ -63,13 +63,8 @@ func (us *UserService) createUser(user *model.User) (*model.User, error) {
 		return nil, err
 	}
 
-	// This call is also made in the PreSave hook on the user model and maybe redundant depending
-	// on which layer the user is created.
-	if user.NotifyProps == nil || len(user.NotifyProps) == 0 {
-		user.SetDefaultNotifications()
-	}
-
 	if us.config().FeatureFlags.NewAccountNoisy {
+		user.SetDefaultNotifications()
 		user.NotifyProps[model.DesktopNotifyProp] = model.UserNotifyAll
 		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
 		user.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
