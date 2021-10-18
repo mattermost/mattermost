@@ -9253,5 +9253,9 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Ungültige Kanalmitgliederrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Die Email-Adresse im Token stimmt nicht mit der in den Benutzerdaten überein."
   }
 ]
