@@ -3803,6 +3803,22 @@ func (s *TimerLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 	return result, err
 }
 
+func (s *TimerLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {
+	start := timemodule.Now()
+
+	err := s.JobStore.Cleanup(expiryTime, batchSize)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.Cleanup", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerJobStore) Delete(id string) (string, error) {
 	start := timemodule.Now()
 

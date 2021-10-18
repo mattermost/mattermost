@@ -18,7 +18,7 @@ type Context = web.Context
 // granted.
 func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: false,
@@ -28,7 +28,7 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request))
 		IsLocal:        false,
 		AllowedScopes:  model.ScopeAllow(),
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -38,7 +38,7 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request))
 // granted, but deny any access from scoped sessions.
 func (api *API) APIHandlerWithDenyScope(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: false,
@@ -48,7 +48,7 @@ func (api *API) APIHandlerWithDenyScope(h func(*Context, http.ResponseWriter, *h
 		IsLocal:        false,
 		AllowedScopes:  model.ScopeDeny(),
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -58,7 +58,7 @@ func (api *API) APIHandlerWithDenyScope(h func(*Context, http.ResponseWriter, *h
 // be granted.
 func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scopes) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: true,
@@ -68,7 +68,7 @@ func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.R
 		IsLocal:        false,
 		AllowedScopes:  scope,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -79,7 +79,7 @@ func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.R
 // be granted, and deny any session coming from an scoped oauth app.
 func (api *API) APISessionRequiredWithDenyScope(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: true,
@@ -89,7 +89,7 @@ func (api *API) APISessionRequiredWithDenyScope(h func(*Context, http.ResponseWr
 		IsLocal:        false,
 		AllowedScopes:  model.ScopeDeny(),
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -99,7 +99,7 @@ func (api *API) APISessionRequiredWithDenyScope(h func(*Context, http.ResponseWr
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
 func (api *API) CloudAPIKeyRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		App:             api.app,
+		Srv:             api.srv,
 		HandleFunc:      h,
 		HandlerName:     web.GetHandlerName(h),
 		RequireSession:  false,
@@ -109,7 +109,7 @@ func (api *API) CloudAPIKeyRequired(h func(*Context, http.ResponseWriter, *http.
 		IsStatic:        false,
 		IsLocal:         false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -119,7 +119,7 @@ func (api *API) CloudAPIKeyRequired(h func(*Context, http.ResponseWriter, *http.
 // RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
 func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		App:                       api.app,
+		Srv:                       api.srv,
 		HandleFunc:                h,
 		HandlerName:               web.GetHandlerName(h),
 		RequireSession:            false,
@@ -130,7 +130,7 @@ func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter,
 		IsStatic:                  false,
 		IsLocal:                   false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -141,7 +141,7 @@ func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter,
 // authentication must be waived.
 func (api *API) APISessionRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: true,
@@ -151,7 +151,7 @@ func (api *API) APISessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 		IsLocal:        false,
 		AllowedScopes:  model.ScopeDeny(),
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -163,7 +163,7 @@ func (api *API) APISessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 // websocket.
 func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: false,
@@ -173,7 +173,7 @@ func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 		IsLocal:        false,
 		AllowedScopes:  model.ScopeDeny(),
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -184,7 +184,7 @@ func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
 func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scopes) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: true,
@@ -194,7 +194,7 @@ func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseW
 		IsLocal:        false,
 		AllowedScopes:  scope,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -205,7 +205,7 @@ func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseW
 // responding with HTTP 503 (Service Unavailable).
 func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request), scope model.Scopes) http.Handler {
 	handler := &web.Handler{
-		App:             api.app,
+		Srv:             api.srv,
 		HandleFunc:      h,
 		HandlerName:     web.GetHandlerName(h),
 		RequireSession:  true,
@@ -216,7 +216,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.Response
 		DisableWhenBusy: true,
 		AllowedScopes:   scope,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -229,7 +229,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.Response
 // restrictions
 func (api *API) APILocal(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: false,
@@ -239,7 +239,7 @@ func (api *API) APILocal(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsLocal:        true,
 	}
 
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler

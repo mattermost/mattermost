@@ -8956,13 +8956,6 @@
     "translation": "Állítsa be a támogatási email címét"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "Önnek új üzenetei vannak",
-      "other": "{{ .SenderName }} és {{.Count}} másvalaki új üzenetet kültek Önnek"
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
     "translation": "Az új üzenetek összefoglalását lásd alább."
   },

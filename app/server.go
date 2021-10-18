@@ -137,6 +137,7 @@ type Server struct {
 	htmlTemplateWatcher     *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
+	openGraphDataCache      cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	clusterLeaderListenerId string
@@ -279,8 +280,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	app := New(ServerConnector(s.Channels()))
-	app.HubStart()
+	s.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
@@ -348,6 +348,11 @@ func NewServer(options ...Option) (*Server, error) {
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
+	if s.openGraphDataCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size: openGraphMetadataCacheSize,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
 	}
 
 	s.createPushNotificationsHub()
@@ -462,14 +467,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	})
 
-	// This enterprise init should happen after the store is set
-	// but we don't want to move the s.initEnterprise() call because
-	// we had side-effects with that in the past and needs further
-	// investigation
-	if cloudInterface != nil {
-		s.Cloud = cloudInterface(s)
-	}
-
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
 	emailService, err := email.NewService(email.ServiceConfig{
@@ -545,7 +542,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.WebSocketRouter = &WebSocketRouter{
 		handlers: make(map[string]webSocketHandler),
-		app:      app,
 	}
 
 	mailConfig := s.MailServiceConfig()
@@ -668,7 +664,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// if enabled - perform initial product notices fetch
 	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
-			if err := app.UpdateProductNotices(); err != nil {
+			appInstance := New(ServerConnector(s.Channels()))
+			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
@@ -680,8 +677,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	c := request.EmptyContext()
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		appInstance := New(ServerConnector(s.Channels()))
 		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := app.DeactivateGuests(c); appErr != nil {
+			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -689,16 +687,18 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := app.DeactivateGuests(c); appErr != nil {
+		appInstance := New(ServerConnector(s.Channels()))
+		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
 
 	if s.runEssentialJobs {
 		s.Go(func() {
+			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(app, c)
-			runDNDStatusExpireJob(app)
+			runCheckAdminSupportStatusJob(appInstance, c)
+			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
 	}
@@ -716,12 +716,13 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
 	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
-		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
-			runDNDStatusExpireJob(app)
-		}
-		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
-			stopDNDStatusExpireJob(app)
+		if (oldCfg.ImageProxySettings.Enable != newCfg.ImageProxySettings.Enable) ||
+			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) ||
+			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
+			(oldCfg.ImageProxySettings.RemoteImageProxyOptions != newCfg.ImageProxySettings.RemoteImageProxyOptions) {
+			s.openGraphDataCache.Purge()
 		}
 	})
 
@@ -768,6 +769,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runSessionCleanupJob(s)
+	})
+	s.Go(func() {
+		runJobsCleanupJob(s)
 	})
 	s.Go(func() {
 		runTokenCleanupJob(s)
@@ -905,7 +909,7 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (s *Server) startInterClusterServices(license *model.License, app *App) error {
+func (s *Server) startInterClusterServices(license *model.License) error {
 	if license == nil {
 		mlog.Debug("No license provided; Remote Cluster services disabled")
 		return nil
@@ -954,7 +958,8 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	scs, err := sharedchannel.NewSharedChannelService(s, app)
+	appInstance := New(ServerConnector(s.Channels()))
+	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
 	if err != nil {
 		return err
 	}
@@ -1415,7 +1420,7 @@ func (s *Server) Start() error {
 		}
 	}
 
-	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+	if err := s.startInterClusterServices(s.License()); err != nil {
 		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
 	}
 
@@ -1513,6 +1518,13 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runJobsCleanupJob(s *Server) {
+	doJobsCleanup(s)
+	model.CreateRecurringTask("Job Cleanup", func() {
+		doJobsCleanup(s)
+	}, time.Hour*24)
+}
+
 func (s *Server) runLicenseExpirationCheckJob() {
 	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
@@ -1558,6 +1570,7 @@ func doCommandWebhookCleanup(s *Server) {
 
 const (
 	sessionsCleanupBatchSize = 1000
+	jobsCleanupBatchSize     = 1000
 )
 
 func doSessionCleanup(s *Server) {
@@ -1565,6 +1578,20 @@ func doSessionCleanup(s *Server) {
 	err := s.Store.Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
+	}
+}
+
+func doJobsCleanup(s *Server) {
+	if *s.Config().JobSettings.CleanupJobsThresholdDays < 0 {
+		return
+	}
+	mlog.Debug("Cleaning up jobs store.")
+
+	dur := time.Duration(*s.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
+	expiry := model.GetMillisForTime(time.Now().Add(-dur))
+	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
+	if err != nil {
+		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
 	}
 }
 
@@ -2289,9 +2316,6 @@ func cancelDNDStatusExpirationRecurringTask(a *App) {
 }
 
 func runDNDStatusExpireJob(a *App) {
-	if !a.Config().FeatureFlags.TimedDND {
-		return
-	}
 	if a.IsLeader() {
 		createDNDStatusExpirationRecurringTask(a)
 	}
@@ -2303,10 +2327,4 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
-}
-
-func stopDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
-		cancelDNDStatusExpirationRecurringTask(a)
-	}
 }

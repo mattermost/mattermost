@@ -21,20 +21,20 @@ import (
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
 
 func (w *Web) InitStatic() {
-	if *w.app.Config().ServiceSettings.WebserverMode != "disabled" {
-		if err := utils.UpdateAssetsSubpathFromConfig(w.app.Config()); err != nil {
+	if *w.srv.Config().ServiceSettings.WebserverMode != "disabled" {
+		if err := utils.UpdateAssetsSubpathFromConfig(w.srv.Config()); err != nil {
 			mlog.Error("Failed to update assets subpath from config", mlog.Err(err))
 		}
 
 		staticDir, _ := fileutils.FindDir(model.ClientDir)
 		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
 
-		subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
+		subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
-		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.app.Config().PluginSettings.ClientDirectory))))
+		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
 
-		if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}
