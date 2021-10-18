@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -44,10 +45,15 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	}
 
 	metadata.PreSave()
+	metadata_Data, err := json.Marshal(metadata.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not serialize metadata_Data to JSON")
+	}
+
 	query, args, err := s.getQueryBuilder().
 		Insert("LinkMetadata").
 		Columns("Hash", "URL", "Timestamp", "Type", "Data").
-		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, model.ToJSON(metadata.Data)).
+		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadata_Data).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "metadata_tosql")
