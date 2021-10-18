@@ -4353,7 +4353,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Identifiants de fichier invalide. Notez que les envois sont limités à 5 fichiers maximum. Veuillez utiliser d'autres messages pour envoyer plus de fichiers."
+    "translation": "Identifiants de fichier invalide. Notez que les envois sont limités à 10 fichiers maximum. Veuillez utiliser d'autres messages pour envoyer plus de fichiers."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4781,7 +4781,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4789,7 +4789,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4797,7 +4797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8829,5 +8829,45 @@
   {
     "id": "app.user.missing_account.const",
     "translation": "Impossible de trouver l'utilisateur."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow doit être à vrai pour activer CollapsedThreads"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Impossible de mettre à jour le statut de suivi pour le fil de discussion"
+  },
+  {
+    "id": "app.user.search.app_error",
+    "translation": "Impossible de trouver des utilisateurs qui correspondent aux paramètres de recherche spécifiés."
+  },
+  {
+    "id": "app.user.save.username_exists.app_error",
+    "translation": "Un compte avec ce nom d'utilisateur existe déjà."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Il faut appeler la mise à jour pour un utilisateur existant."
+  },
+  {
+    "id": "app.user.save.email_exists.app_error",
+    "translation": "Un compte avec cette adresse e-mail existe déjà."
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "Impossible de sauvegarder le compte."
+  },
+  {
+    "id": "app.user.permanent_delete.app_error",
+    "translation": "Impossible de supprimer le compte existant."
+  },
+  {
+    "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Impossible de récupérer le lot d'utilisateurs à indexer."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Le fil de discussion de l'utilisateur n'existe pas ou n'est pas suivi"
   }
 ]
