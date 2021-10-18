@@ -9253,5 +9253,9 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Ogiltig kanalmedlemsroll som är längre än {{.Limit}} tecken."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Mejladressen i tokenet stämmer inte med mejladressen i användardata."
   }
 ]
