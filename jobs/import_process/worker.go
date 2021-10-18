@@ -22,7 +22,7 @@ import (
 
 func init() {
 	app.RegisterJobsImportProcessInterface(func(s *app.Server) tjobs.ImportProcessInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &ImportProcessInterfaceImpl{a}
 	})
 }

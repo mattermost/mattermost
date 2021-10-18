@@ -34,7 +34,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	webappPluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.srv), pluginDir, webappPluginDir, app.Log(), nil)
+	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
 	app.SetPluginsEnvironment(env)
