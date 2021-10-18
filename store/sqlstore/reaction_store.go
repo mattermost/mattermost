@@ -239,6 +239,7 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
+	reaction.DeleteAt = 0
 	params := map[string]interface{}{
 		"UserId":    reaction.UserId,
 		"PostId":    reaction.PostId,
@@ -246,6 +247,7 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper,
 		"CreateAt":  reaction.CreateAt,
 		"UpdateAt":  reaction.UpdateAt,
 		"RemoteId":  reaction.RemoteId,
+		"DeleteAt":  reaction.DeleteAt,
 	}
 
 	if s.DriverName() == model.DatabaseDriverMysql {
@@ -254,9 +256,9 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper,
 				Reactions
 				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
 			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0, :RemoteId)
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId)
 			ON DUPLICATE KEY UPDATE
-				UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
+				UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId`, params); err != nil {
 			return err
 		}
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
@@ -265,9 +267,9 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper,
 				Reactions
 				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
 			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0, :RemoteId)
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId)
 			ON CONFLICT (UserId, PostId, EmojiName)
-				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
+				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId`, reaction); err != nil {
 			return err
 		}
 	}
