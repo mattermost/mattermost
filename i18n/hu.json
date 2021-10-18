@@ -9246,5 +9246,9 @@
   {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Érvénytelen CreateAt mező a munkamenethez."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "Önnek új üzenetei vannak"
   }
 ]
