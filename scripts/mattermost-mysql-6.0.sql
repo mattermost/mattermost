@@ -452,8 +452,8 @@ CREATE TABLE `OAuthApps` (
   `CallbackUrls` text,
   `Homepage` text,
   `IsTrusted` tinyint(1) DEFAULT NULL,
-  `Scopes` json DEFAULT NULL,
-  `AppsFrameworkAppID` varchar(24) DEFAULT NULL,
+  `Scopes` text,
+  `AppsFrameworkAppID` varchar(26) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   KEY `idx_oauthapps_creator_id` (`CreatorId`)
 );
