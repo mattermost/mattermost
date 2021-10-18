@@ -9129,7 +9129,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}，您对 Mattermost 专业云的 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受专业云的好处。"
+    "translation": "{{.Name}}，您的 Mattermost 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受 Mattermost 云的好处。"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
@@ -9218,5 +9218,33 @@
   {
     "id": "api.unmarshal_error",
     "translation": "解码失败。"
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "无效的用户角色，超过 {{.Limit}} 个字符。"
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "无效的团队成员角色，超过 {{.Limit}} 个字符。"
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "无效的会话 UserId 字段。"
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "无效的会话角色，超过 {{.Limit}} 个字符。"
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "无效的会话 Id 字段。"
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "无效的会话 CreateAt 字段。"
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "无效频道成员角色，长度超过 {{.Limit}} 个字符的。"
   }
 ]
