@@ -212,8 +212,6 @@ type AppIface interface {
 	HasRemote(channelID string, remoteID string) (bool, error)
 	// HubRegister registers a connection to a hub.
 	HubRegister(webConn *WebConn)
-	// HubStart starts all the hubs.
-	HubStart()
 	// HubUnregister unregisters a connection from a hub.
 	HubUnregister(webConn *WebConn)
 	// InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
@@ -244,8 +242,6 @@ type AppIface interface {
 	MoveChannel(c *request.Context, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NewWebConn returns a new WebConn instance.
 	NewWebConn(cfg *WebConnConfig) *WebConn
-	// NewWebHub creates a new Hub.
-	NewWebHub() *Hub
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
 	NotifySessionsExpired() *model.AppError
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
@@ -805,7 +801,6 @@ type AppIface interface {
 	HasPermissionToTeam(askingUserId string, teamID string, permission *model.Permission) bool
 	HasPermissionToUser(askingUserId string, userID string) bool
 	HasSharedChannel(channelID string) (bool, error)
-	HubStop()
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
