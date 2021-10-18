@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -209,8 +210,17 @@ func (a *App) importTeam(c *request.Context, data *TeamImportData, dryRun bool) 
 			return err
 		}
 	} else {
-		if _, err := a.updateTeamUnsanitized(team); err != nil {
-			return err
+		if _, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Imported: true}); err != nil {
+			var invErr *store.ErrInvalidInput
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return model.NewAppError("BulkImport", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			case errors.As(err, &invErr):
+				return model.NewAppError("BulkImport", "app.team.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				return model.NewAppError("BulkImport", "app.team.update.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 

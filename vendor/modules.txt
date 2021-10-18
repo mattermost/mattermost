@@ -374,7 +374,7 @@ github.com/mailru/easyjson
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/mattermost/go-i18n v1.11.0
+# github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 ## explicit
 github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle

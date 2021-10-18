@@ -266,6 +266,11 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		}
 	}
 
+	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
+	if post.CreateAt == 0 {
+		post.CreateAt = model.GetMillis()
+	}
+
 	post = a.getEmbedsAndImages(post, true)
 	previewPost := post.GetPreviewPost()
 	if previewPost != nil {
@@ -1408,7 +1413,7 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 
 	return func(url string) string {
-		return a.Srv().ImageProxy.GetProxiedImageURL(url)
+		return a.ImageProxy().GetProxiedImageURL(url)
 	}
 }
 
@@ -1418,7 +1423,7 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 	}
 
 	return func(url string) string {
-		return a.Srv().ImageProxy.GetUnproxiedImageURL(url)
+		return a.ImageProxy().GetUnproxiedImageURL(url)
 	}
 }
 

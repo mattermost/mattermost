@@ -33,9 +33,6 @@ type FeatureFlags struct {
 	PluginApps       string `plugin_id:"com.mattermost.apps"`
 	PluginFocalboard string `plugin_id:"focalboard"`
 
-	// Enable timed dnd support for user status
-	TimedDND bool
-
 	PermalinkPreviews bool
 
 	// Enable the Global Header
@@ -52,6 +49,11 @@ type FeatureFlags struct {
 
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
+	// Enable Boards Unfurl Preview
+	BoardsUnfurl bool
+
+	// Enable Calls plugin support in the mobile app
+	CallsMobile bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -63,13 +65,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.TimedDND = false
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "none"
 	f.DownloadAppsCTA = "none"
 	f.NewAccountNoisy = false
+	f.BoardsUnfurl = true
+	f.CallsMobile = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

@@ -105,6 +105,7 @@ CREATE TABLE public.channels (
     header character varying(1024),
     purpose character varying(250),
     lastpostat bigint,
+    lastrootpostat bigint,
     totalmsgcount bigint,
     extraupdateat bigint,
     creatorid character varying(26),

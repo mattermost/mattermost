@@ -419,20 +419,20 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, user4)
 
 	// Add all users to team 1
-	_, _, err = th.App.joinUserToTeam(team1, user1)
-	require.Nil(t, err)
-	_, _, err = th.App.joinUserToTeam(team1, user2)
-	require.Nil(t, err)
-	_, _, err = th.App.joinUserToTeam(team1, user3)
-	require.Nil(t, err)
-	_, _, err = th.App.joinUserToTeam(team1, user4)
-	require.Nil(t, err)
+	_, appErr := th.App.JoinUserToTeam(th.Context, team1, user1, "")
+	require.Nil(t, appErr)
+	_, appErr = th.App.JoinUserToTeam(th.Context, team1, user2, "")
+	require.Nil(t, appErr)
+	_, appErr = th.App.JoinUserToTeam(th.Context, team1, user3, "")
+	require.Nil(t, appErr)
+	_, appErr = th.App.JoinUserToTeam(th.Context, team1, user4, "")
+	require.Nil(t, appErr)
 
 	// Add only user3 and user4 to team 2
-	_, _, err = th.App.joinUserToTeam(team2, user3)
-	require.Nil(t, err)
-	_, _, err = th.App.joinUserToTeam(team2, user4)
-	require.Nil(t, err)
+	_, appErr = th.App.JoinUserToTeam(th.Context, team2, user3, "")
+	require.Nil(t, appErr)
+	_, appErr = th.App.JoinUserToTeam(th.Context, team2, user4, "")
+	require.Nil(t, appErr)
 
 	testCases := []struct {
 		Description   string
@@ -482,7 +482,14 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := api.GetUsersInTeam(testCase.TeamId, testCase.Page, testCase.PerPage)
 			assert.Nil(t, err)
-			assert.Equal(t, testCase.ExpectedUsers, users)
+			usersMap := make(map[string]bool)
+			for _, user := range testCase.ExpectedUsers {
+				usersMap[user.Id] = true
+			}
+			for _, user := range users {
+				delete(usersMap, user.Id)
+			}
+			assert.Empty(t, usersMap)
 		})
 	}
 }
