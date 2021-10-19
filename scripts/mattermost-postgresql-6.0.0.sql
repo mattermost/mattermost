@@ -112,7 +112,7 @@ CREATE TABLE public.channels (
     groupconstrained boolean,
     shared boolean,
     totalmsgcountroot bigint,
-    lastrootpostat bigint
+    lastrootpostat bigint DEFAULT '0'::bigint,
 );
 
 
