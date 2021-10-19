@@ -8157,7 +8157,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, votre essai de 14 jours de Mattermost Cloud Professional se termine dans 3 jours, le {{.TrialEnd}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Professional."
+    "translation": "{{.Name}}, votre essai de 14 jours de Mattermost se termine dans 3 jours, le {{.TrialEnd}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8821,5 +8821,13 @@
   {
     "id": "app.post.marshal.app_error",
     "translation": "Impossible de préparer le message."
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "Échec de mise à jour de l'utilisateur."
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "Impossible de trouver l'utilisateur."
   }
 ]

@@ -20,6 +20,7 @@ const (
 	CurrentSchemaVersion   = Version600
 	Version610             = "6.1.0"
 	Version600             = "6.0.0"
+	Version5390            = "5.39.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -212,6 +213,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion539(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
 	upgradeDatabaseToVersion610(sqlStore)
 
@@ -1163,8 +1165,8 @@ func rootCountMigration(sqlStore *SqlStore) {
 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 	}
 	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
-	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootAt", "bigint", "bigint")
+	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootAt")
 
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
@@ -1502,6 +1504,12 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	}
 }
 
+func upgradeDatabaseToVersion539(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5380, Version5390) {
+		saveSchemaVersion(sqlStore, Version5390)
+	}
+}
+
 func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	if hasMissingMigrationsVersion600(sqlStore) {
 		sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
@@ -1552,7 +1560,7 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		}
 	}
 
-	if shouldPerformUpgrade(sqlStore, Version5380, Version600) {
+	if shouldPerformUpgrade(sqlStore, Version5390, Version600) {
 		saveSchemaVersion(sqlStore, Version600)
 	}
 }
@@ -1693,18 +1701,6 @@ func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
 	return false
 }
 
-func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
-	if hasMissingMigrationsVersion610(sqlStore) {
-		sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
-		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
-		sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
-	}
-
-	// if shouldPerformUpgrade(sqlStore, Version600, Version610) {
-	// 	saveSchemaVersion(sqlStore, Version610)
-	// }
-}
-
 func hasMissingMigrationsVersion610(sqlStore *SqlStore) bool {
 	textFn := func(table, column string) bool {
 		info, err := sqlStore.GetColumnInfo(table, column)
@@ -1742,5 +1738,59 @@ func hasMissingMigrationsVersion610(sqlStore *SqlStore) bool {
 		return true
 	}
 
+	if !sqlStore.DoesColumnExist("Channels", "LastRootPostAt") {
+		return true
+	}
+
 	return false
+}
+
+func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
+	if hasMissingMigrationsVersion610(sqlStore) {
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
+		sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
+		sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
+
+		forceIndex := ""
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
+		}
+
+		lastRootPostAtExists := sqlStore.DoesColumnExist("Channels", "LastRootPostAt")
+		sqlStore.CreateColumnIfNotExists("Channels", "LastRootPostAt", "bigint", "bigint", "0")
+
+		lastRootPostAtCTE := `
+		SELECT Channels.Id channelid, COALESCE(MAX(Posts.CreateAt), 0) as lastrootpost
+		FROM Channels
+		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
+		WHERE Posts.RootId = ''
+		GROUP BY Channels.Id
+	`
+
+		updateChannels := `
+		WITH q AS (` + lastRootPostAtCTE + `)
+		UPDATE Channels SET LastRootPostAt=q.lastrootpost
+		FROM q where q.channelid=Channels.Id;
+	`
+
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			updateChannels = `
+			UPDATE Channels
+			INNER Join (` + lastRootPostAtCTE + `) as q
+			ON q.channelid=Channels.Id
+			SET LastRootPostAt=lastrootpost;
+		`
+		}
+
+		if !lastRootPostAtExists {
+			if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
+				mlog.Error("Error updating Channels table", mlog.Err(err))
+			}
+		}
+	}
+
+	// if shouldPerformUpgrade(sqlStore, Version600, Version610) {
+	// saveSchemaVersion(sqlStore, Version610)
+	// }
 }
