@@ -386,6 +386,7 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		table.ColMap("Purpose").SetMaxSize(250)
 		table.ColMap("CreatorId").SetMaxSize(26)
 		table.ColMap("SchemeId").SetMaxSize(26)
+		table.ColMap("LastRootPostAt").SetDefaultConstraint(model.NewString("0"))
 
 		tablem := db.AddTableWithName(channelMember{}, "ChannelMembers").SetKeys(false, "ChannelId", "UserId")
 		tablem.ColMap("ChannelId").SetMaxSize(26)
