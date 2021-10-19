@@ -9225,5 +9225,37 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ongeldig CreateAt veld voor sessie."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige kanaallidrol langer dan {{.Limit}} karakters."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige gebruikersrollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ongeldig teamlid rollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ongeldig veld UserId voor sessie."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige sessierollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ongeldig Id-veld voor sessie."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Het e-mailadres in het token komt niet overeen met dat in de gebruikersgegevens."
   }
 ]
