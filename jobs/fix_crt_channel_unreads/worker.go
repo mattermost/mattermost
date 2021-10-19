@@ -176,7 +176,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 				prevErr = true
 				continue
 			}
-			if !containsNormalPost(postTypes) {
+			if containsOnlyJoinLeaveMessages(postTypes) {
 				cmToFix[cm.UserId] = append(cmToFix[cm.UserId], cm.ChannelId)
 			}
 		}
@@ -257,11 +257,17 @@ func (w *FixCRTChannelUnreadsWorker) getProgressFromPreviousJobs(job *model.Job)
 	return olderJob.Data["ChannelID"], olderJob.Data["UserID"]
 }
 
-func containsNormalPost(postTypes []string) bool {
+func containsOnlyJoinLeaveMessages(postTypes []string) bool {
 	for _, pt := range postTypes {
-		if pt == model.PostTypeDefault {
-			return true
+		switch pt {
+		case model.PostTypeJoinLeave, model.PostTypeAddRemove,
+			model.PostTypeJoinChannel, model.PostTypeLeaveChannel,
+			model.PostTypeJoinTeam, model.PostTypeLeaveTeam,
+			model.PostTypeAddToChannel, model.PostTypeRemoveFromChannel,
+			model.PostTypeAddToTeam, model.PostTypeRemoveFromTeam:
+		default:
+			return false
 		}
 	}
-	return false
+	return true
 }
