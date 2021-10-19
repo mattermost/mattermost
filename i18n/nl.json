@@ -9253,5 +9253,9 @@
   {
     "id": "model.session.is_valid.id.app_error",
     "translation": "Ongeldig Id-veld voor sessie."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Het e-mailadres in het token komt niet overeen met dat in de gebruikersgegevens."
   }
 ]
