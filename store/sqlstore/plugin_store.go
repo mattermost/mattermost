@@ -271,7 +271,7 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, error
 		return nil, errors.Wrap(err, "plugin_tosql")
 	}
 
-	row := ps.GetReplicaX().QueryRowX(queryString, args...)
+	row := ps.GetReplicaX().QueryRowx(queryString, args...)
 	var kv model.PluginKeyValue
 	if err := row.Scan(&kv.PluginId, &kv.Key, &kv.Value, &kv.ExpireAt); err != nil {
 		if err == sql.ErrNoRows {
