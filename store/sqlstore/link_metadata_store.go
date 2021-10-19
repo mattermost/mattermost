@@ -45,15 +45,15 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	}
 
 	metadata.PreSave()
-	metadata_Data, err := json.Marshal(metadata.Data)
+	metadataBytes, err := json.Marshal(metadata.Data)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not serialize metadata_Data to JSON")
+		return nil, errors.Wrap(err, "could not serialize metadataBytes to JSON")
 	}
 
 	query, args, err := s.getQueryBuilder().
 		Insert("LinkMetadata").
 		Columns("Hash", "URL", "Timestamp", "Type", "Data").
-		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadata_Data).
+		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, string(metadataBytes)).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "metadata_tosql")
