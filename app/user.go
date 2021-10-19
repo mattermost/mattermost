@@ -72,6 +72,11 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	emailFromToken := tokenData["email"]
+	if emailFromToken != user.Email {
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.bad_token_email_data.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
