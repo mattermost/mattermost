@@ -115,6 +115,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 	}
 
 	fixedBadCM := 0
+	checkedCM := 0
 	migrationDone := false
 	prevErr := false
 	channelID, userID := w.getProgressFromPreviousJobs(job)
@@ -179,6 +180,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 				cmToFix[cm.UserId] = append(cmToFix[cm.UserId], cm.ChannelId)
 			}
 		}
+		checkedCM += len(cms)
 		for uID, cIDs := range cmToFix {
 			_, err := w.app.Srv().Store.Channel().UpdateLastViewedAt(cIDs, uID, false)
 			if err != nil {
@@ -194,7 +196,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 				prevErr = true
 				continue
 			}
-			fixedBadCM = fixedBadCM + len(cIDs)
+			fixedBadCM += len(cIDs)
 		}
 		w.updateProgress(job, channelID, userID)
 		prevErr = false
@@ -212,6 +214,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 	}
 
 	job.Data["BadChannelMembershipsFixed"] = strconv.Itoa(fixedBadCM)
+	job.Data["TotalChannelMembershipsChecked"] = strconv.Itoa(checkedCM)
 	w.updateData(job)
 
 	mlog.Info("Worker: Job is complete", mlog.String("worker", w.name), mlog.String("job_id", job.Id))
