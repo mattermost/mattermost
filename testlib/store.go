@@ -89,6 +89,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	sessionStore := mocks.SessionStore{}
 	oAuthStore := mocks.OAuthStore{}
+	groupStore := mocks.GroupStore{}
 
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
@@ -103,5 +104,6 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("MarkSystemRanUnitTests").Return(nil)
 	mockStore.On("Session").Return(&sessionStore)
 	mockStore.On("OAuth").Return(&oAuthStore)
+	mockStore.On("Group").Return(&groupStore)
 	return &mockStore
 }

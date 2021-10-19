@@ -98,7 +98,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
-		App:               New(ServerConnector(s)),
+		App:               New(ServerConnector(s.Channels())),
 		Context:           &request.Context{},
 		Server:            s,
 		LogBuffer:         buffer,

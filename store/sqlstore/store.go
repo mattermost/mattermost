@@ -133,6 +133,7 @@ type SqlStore struct {
 // ColumnInfo holds information about a column.
 type ColumnInfo struct {
 	DataType          string
+	DefaultValue      string
 	CharMaximumLength int
 }
 
@@ -651,7 +652,7 @@ func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, er
 	var columnInfo ColumnInfo
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		err := ss.GetMaster().SelectOne(&columnInfo,
-			`SELECT data_type as DataType,
+			`SELECT data_type as DataType, COALESCE(column_default, '') as DefaultValue,
 					COALESCE(character_maximum_length, 0) as CharMaximumLength
 			 FROM information_schema.columns
 			 WHERE lower(table_name) = lower($1)
@@ -663,7 +664,7 @@ func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, er
 		return &columnInfo, nil
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		err := ss.GetMaster().SelectOne(&columnInfo,
-			`SELECT data_type as DataType,
+			`SELECT data_type as DataType, COALESCE(column_default, '') as DefaultValue,
 					COALESCE(character_maximum_length, 0) as CharMaximumLength
 			 FROM information_schema.columns
 			 WHERE table_schema = DATABASE()
@@ -873,10 +874,15 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 
 	if err != nil {
 		msg := "Failed to alter column type."
+		fields := []mlog.Field{mlog.Err(err)}
 		if mySqlColType == "JSON" && postgresColType == "jsonb" {
 			msg += " It is likely you have invalid JSON values in the column. Please fix the values manually and run the migration again."
+			fields = append(fields,
+				mlog.String("tableName", tableName),
+				mlog.String("columnName", columnName),
+			)
 		}
-		mlog.Fatal(msg, mlog.Err(err))
+		mlog.Fatal(msg, fields...)
 	}
 
 	return true

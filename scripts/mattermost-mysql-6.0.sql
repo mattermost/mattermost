@@ -106,6 +106,7 @@ CREATE TABLE `Channels` (
   `Header` text,
   `Purpose` varchar(250) DEFAULT NULL,
   `LastPostAt` bigint(20) DEFAULT NULL,
+  `LastRootPostAt` bigint(20) DEFAULT NULL,
   `TotalMsgCount` bigint(20) DEFAULT NULL,
   `ExtraUpdateAt` bigint(20) DEFAULT NULL,
   `CreatorId` varchar(26) DEFAULT NULL,
