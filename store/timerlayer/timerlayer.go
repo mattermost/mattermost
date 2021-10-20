@@ -4347,6 +4347,22 @@ func (s *TimerLayerOAuthStore) RemoveAuthData(code string) error {
 	return err
 }
 
+func (s *TimerLayerOAuthStore) RemoveMultipleAccessData(tokens []string) error {
+	start := timemodule.Now()
+
+	err := s.OAuthStore.RemoveMultipleAccessData(tokens)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveMultipleAccessData", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	start := timemodule.Now()
 
@@ -6453,6 +6469,22 @@ func (s *TimerLayerSessionStore) RemoveAllSessions() error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.RemoveAllSessions", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerSessionStore) RemoveSessions(sessionIDs []string) error {
+	start := timemodule.Now()
+
+	err := s.SessionStore.RemoveSessions(sessionIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.RemoveSessions", success, elapsed)
 	}
 	return err
 }

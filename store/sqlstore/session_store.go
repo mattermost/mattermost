@@ -216,6 +216,19 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) error {
 	return nil
 }
 
+func (me SqlSessionStore) RemoveSessions(tokens []string) error {
+	query, args, err := me.getQueryBuilder().Delete("Sessions").Where(sq.Eq{"Token": tokens}).ToSql()
+	if err != nil {
+		return errors.Wrap(err, "sessions_tosql")
+	}
+
+	_, err = me.GetMaster().Exec(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove sessions")
+	}
+	return nil
+}
+
 func (me SqlSessionStore) RemoveAllSessions() error {
 	_, err := me.GetMaster().Exec("DELETE FROM Sessions")
 	if err != nil {

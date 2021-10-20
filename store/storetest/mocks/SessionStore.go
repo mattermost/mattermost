@@ -208,6 +208,20 @@ func (_m *SessionStore) RemoveAllSessions() error {
 	return r0
 }
 
+// RemoveSessions provides a mock function with given fields: sessionIDs
+func (_m *SessionStore) RemoveSessions(sessionIDs []string) error {
+	ret := _m.Called(sessionIDs)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(sessionIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: session
 func (_m *SessionStore) Save(session *model.Session) (*model.Session, error) {
 	ret := _m.Called(session)

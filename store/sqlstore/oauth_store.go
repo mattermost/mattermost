@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -251,6 +252,19 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.A
 func (as SqlOAuthStore) RemoveAccessData(token string) error {
 	if _, err := as.GetMasterX().Exec("DELETE FROM OAuthAccessData WHERE Token = ?", token); err != nil {
 		return errors.Wrapf(err, "failed to delete OAuthAccessData with token=%s", token)
+	}
+	return nil
+}
+
+func (as SqlOAuthStore) RemoveMultipleAccessData(tokens []string) error {
+	query, args, err := as.getQueryBuilder().Delete("OAuthAccessData").Where(sq.Eq{"Token": tokens}).ToSql()
+	if err != nil {
+		return errors.Wrap(err, "sessions_tosql")
+	}
+
+	_, err = as.GetMaster().Exec(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove oauth access data")
 	}
 	return nil
 }

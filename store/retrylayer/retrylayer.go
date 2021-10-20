@@ -5186,6 +5186,26 @@ func (s *RetryLayerOAuthStore) RemoveAuthData(code string) error {
 
 }
 
+func (s *RetryLayerOAuthStore) RemoveMultipleAccessData(tokens []string) error {
+
+	tries := 0
+	for {
+		err := s.OAuthStore.RemoveMultipleAccessData(tokens)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 
 	tries := 0
@@ -7755,6 +7775,26 @@ func (s *RetryLayerSessionStore) RemoveAllSessions() error {
 	tries := 0
 	for {
 		err := s.SessionStore.RemoveAllSessions()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerSessionStore) RemoveSessions(sessionIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.SessionStore.RemoveSessions(sessionIDs)
 		if err == nil {
 			return nil
 		}

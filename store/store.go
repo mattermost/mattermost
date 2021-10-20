@@ -448,6 +448,7 @@ type SessionStore interface {
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
 	Remove(sessionIDOrToken string) error
+	RemoveSessions(sessionIDs []string) error
 	RemoveAllSessions() error
 	PermanentDeleteSessionsByUser(teamID string) error
 	UpdateExpiresAt(sessionID string, time int64) error
@@ -512,6 +513,7 @@ type OAuthStore interface {
 	GetAccessDataByRefreshToken(token string) (*model.AccessData, error)
 	GetPreviousAccessData(userID, clientId string) (*model.AccessData, error)
 	RemoveAccessData(token string) error
+	RemoveMultipleAccessData(tokens []string) error
 	RemoveAllAccessData() error
 }
 
