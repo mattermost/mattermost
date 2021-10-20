@@ -69,8 +69,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
-	f.PrewrittenMessages = "none"
-	f.DownloadAppsCTA = "none"
+	f.PrewrittenMessages = "tour_point"
+	f.DownloadAppsCTA = "tips_and_next_steps"
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
 	f.AutoTour = "none"
