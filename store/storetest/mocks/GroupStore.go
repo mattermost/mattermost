@@ -328,6 +328,20 @@ func (_m *GroupStore) DeleteMember(groupID string, userID string) (*model.GroupM
 	return r0, r1
 }
 
+// DeleteMembers provides a mock function with given fields: groupID, userIDs
+func (_m *GroupStore) DeleteMembers(groupID string, userIDs []string) error {
+	ret := _m.Called(groupID, userIDs)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+		r0 = rf(groupID, userIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DistinctGroupMemberCount provides a mock function with given fields:
 func (_m *GroupStore) DistinctGroupMemberCount() (int64, error) {
 	ret := _m.Called()
@@ -1039,4 +1053,18 @@ func (_m *GroupStore) UpsertMember(groupID string, userID string) (*model.GroupM
 	}
 
 	return r0, r1
+}
+
+// UpsertMembers provides a mock function with given fields: groupID, userIDs
+func (_m *GroupStore) UpsertMembers(groupID string, userIDs []string) error {
+	ret := _m.Called(groupID, userIDs)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+		r0 = rf(groupID, userIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }

@@ -3906,6 +3906,26 @@ func (s *RetryLayerGroupStore) DeleteMember(groupID string, userID string) (*mod
 
 }
 
+func (s *RetryLayerGroupStore) DeleteMembers(groupID string, userIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.GroupStore.DeleteMembers(groupID, userIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
 
 	tries := 0
@@ -4541,6 +4561,26 @@ func (s *RetryLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerGroupStore) UpsertMembers(groupID string, userIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.GroupStore.UpsertMembers(groupID, userIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 

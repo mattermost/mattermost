@@ -86,6 +86,14 @@ func (api *API) InitGroup() {
 	// DELETE /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
 		api.APISessionRequired(deleteGroup)).Methods("DELETE")
+
+	// POST /api/v4/groups/:group_id/members
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
+		api.APISessionRequired(addGroupMembers)).Methods("POST")
+
+	// DELETE /api/v4/groups/:group_id/members
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
+		api.APISessionRequired(deleteGroupMembers)).Methods("DElETE")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -906,6 +914,64 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	// PERMISSION CHECK FOR DELETING
 
 	_, err := c.App.DeleteGroup(c.Params.GroupId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	ReturnStatusOK(w)
+}
+
+func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	var newMembers *model.GroupModifyMembers
+	if jsonErr := json.NewDecoder(r.Body).Decode(&newMembers); jsonErr != nil {
+		c.SetInvalidParam("addGroupMembers")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("addGroupMembers", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("addGroupMembers", newMembers)
+
+	// License and Permissions check here
+
+	err := c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	ReturnStatusOK(w)
+}
+
+func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	var deleteBody *model.GroupModifyMembers
+	if jsonErr := json.NewDecoder(r.Body).Decode(&deleteBody); jsonErr != nil {
+		c.SetInvalidParam("deleteGroupMembers")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deleteGroupMembers", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("deleteGroupMembers", deleteBody)
+
+	// License and Permissions check here
+
+	err := c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
 	if err != nil {
 		c.Err = err
 		return

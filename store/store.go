@@ -850,6 +850,9 @@ type GroupStore interface {
 
 	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
 	GroupCountWithAllowReference() (int64, error)
+
+	UpsertMembers(groupID string, userIDs []string) error
+	DeleteMembers(groupID string, userIDs []string) error
 }
 
 type LinkMetadataStore interface {

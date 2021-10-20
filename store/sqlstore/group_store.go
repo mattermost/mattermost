@@ -1677,3 +1677,69 @@ func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string
 
 	return count, nil
 }
+
+func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) error {
+	var retrievedGroup *model.Group
+	// Check Group exists
+	if err := s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
+		return errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
+	}
+
+	// Check Users exist
+	if err := s.checkUsersExist(userIDs); err != nil {
+		return err
+	}
+
+	query := s.getQueryBuilder().
+		Insert("GroupMembers").
+		Columns("GroupId", "UserId", "CreateAt", "DeleteAt")
+
+	var createAt = model.GetMillis()
+	var deleteAt = 0
+
+	for _, userId := range userIDs {
+		query = query.Values(groupID, userId, createAt, deleteAt)
+	}
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE CreateAt = ?, DeleteAt = ?", createAt, deleteAt))
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, deleteAt))
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to generate sqlquery")
+	}
+
+	if _, err = s.GetMaster().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "failed to save GroupMember")
+	}
+
+	return err
+}
+
+func (s *SqlGroupStore) DeleteMembers(groupID string, userIDs []string) error {
+	var retrievedGroup *model.Group
+	if err := s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
+		return errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
+	}
+
+	query := s.getQueryBuilder().
+		Update("GroupMembers").
+		Set("DeleteAt", model.GetMillis()).
+		Where(sq.And{
+			sq.Eq{"GroupId": groupID},
+			sq.Eq{"UserId": userIDs},
+		})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to generate sqlquery")
+	}
+
+	if _, err = s.GetMaster().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "failed to delete GroupMember")
+	}
+	return err
+}

@@ -105,6 +105,10 @@ type GroupStats struct {
 	TotalMemberCount int64  `json:"total_member_count"`
 }
 
+type GroupModifyMembers struct {
+	UserIds []string `json:"user_ids"`
+}
+
 func (group *Group) Patch(patch *GroupPatch) {
 	if patch.Name != nil {
 		group.Name = patch.Name

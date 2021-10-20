@@ -664,3 +664,39 @@ func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType mod
 
 	return true, nil
 }
+
+func (a *App) UpsertGroupMembers(groupID string, userIDs []string) *model.AppError {
+	err := a.Srv().Store.Group().UpsertMembers(groupID, userIDs)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return appErr
+		case errors.As(err, &invErr):
+			return model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return model.NewAppError("UpsertGroupMembers", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return nil
+}
+
+func (a *App) DeleteGroupMembers(groupID string, userIDs []string) *model.AppError {
+	err := a.Srv().Store.Group().DeleteMembers(groupID, userIDs)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return appErr
+		case errors.As(err, &invErr):
+			return model.NewAppError("DeleteGroupMember", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return model.NewAppError("DeleteGroupMember", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return nil
+}

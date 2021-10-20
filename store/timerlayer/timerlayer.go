@@ -3323,6 +3323,22 @@ func (s *TimerLayerGroupStore) DeleteMember(groupID string, userID string) (*mod
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) DeleteMembers(groupID string, userIDs []string) error {
+	start := timemodule.Now()
+
+	err := s.GroupStore.DeleteMembers(groupID, userIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.DeleteMembers", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
 	start := timemodule.Now()
 
@@ -3833,6 +3849,22 @@ func (s *TimerLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.UpsertMember", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerGroupStore) UpsertMembers(groupID string, userIDs []string) error {
+	start := timemodule.Now()
+
+	err := s.GroupStore.UpsertMembers(groupID, userIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.UpsertMembers", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerJobStore) Delete(id string) (string, error) {
