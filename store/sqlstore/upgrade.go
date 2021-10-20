@@ -1404,7 +1404,7 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 	}
 
 	// TODO OAUTH not sure if needed
-	sqlStore.CreateColumnIfNotExistsNoDefault("OAuthApps", "Scopes", "VARCHAR(1024)", "VARCHAR(1024)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("OAuthApps", "Scopes", "Text", "VARCHAR(1024)")
 	sqlStore.CreateColumnIfNotExists("OAuthApps", "AppsFrameworkAppID", "VARCHAR(26)", "VARCHAR(26)", "")
 
 	// saveSchemaVersion(sqlStore, Version610)
