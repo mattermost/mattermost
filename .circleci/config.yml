@@ -467,8 +467,7 @@ jobs:
             export DOCKER_CLI_EXPERIMENTAL=enabled
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
             export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
-            # Pushing the images to two places to not break anything, but the `mattermost/mattermost-team-edition` will be removed soon.
-            docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} -t mattermost/mm-te-test:${TAG} build
+            docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} build
 
 workflows:
   version: 2
