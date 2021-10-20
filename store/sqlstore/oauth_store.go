@@ -32,7 +32,7 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 		table.ColMap("Homepage").SetMaxSize(256)
 		table.ColMap("IconURL").SetMaxSize(512)
 		table.ColMap("Scopes").SetMaxSize(1024)
-		table.ColMap("AppsFrameworkAppID").SetMaxSize(26)
+		table.ColMap("AppsFrameworkAppID").SetMaxSize(26).SetDefaultConstraint(model.NewString(""))
 
 		tableAuth := db.AddTableWithName(model.AuthData{}, "OAuthAuthData").SetKeys(false, "Code")
 		tableAuth.ColMap("UserId").SetMaxSize(26)
