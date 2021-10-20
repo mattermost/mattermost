@@ -15,44 +15,84 @@ func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {
 	switch v := val.(type) {
 	case *Channel:
 		return newAuditChannel(v), true
+	case Channel:
+		return newAuditChannel(&v), true
 	case *Team:
 		return newAuditTeam(v), true
+	case Team:
+		return newAuditTeam(&v), true
 	case *User:
 		return newAuditUser(v), true
+	case User:
+		return newAuditUser(&v), true
 	case *Command:
 		return newAuditCommand(v), true
+	case Command:
+		return newAuditCommand(&v), true
 	case *CommandArgs:
 		return newAuditCommandArgs(v), true
+	case CommandArgs:
+		return newAuditCommandArgs(&v), true
 	case *Bot:
 		return newAuditBot(v), true
+	case Bot:
+		return newAuditBot(&v), true
 	case *ChannelModerationPatch:
 		return newAuditChannelModerationPatch(v), true
+	case ChannelModerationPatch:
+		return newAuditChannelModerationPatch(&v), true
 	case *Emoji:
 		return newAuditEmoji(v), true
+	case Emoji:
+		return newAuditEmoji(&v), true
 	case *FileInfo:
 		return newAuditFileInfo(v), true
+	case FileInfo:
+		return newAuditFileInfo(&v), true
 	case *Group:
 		return newAuditGroup(v), true
+	case Group:
+		return newAuditGroup(&v), true
 	case *Job:
 		return newAuditJob(v), true
+	case Job:
+		return newAuditJob(&v), true
 	case *OAuthApp:
 		return newAuditOAuthApp(v), true
+	case OAuthApp:
+		return newAuditOAuthApp(&v), true
 	case *Post:
 		return newAuditPost(v), true
+	case Post:
+		return newAuditPost(&v), true
 	case *Role:
 		return newAuditRole(v), true
+	case Role:
+		return newAuditRole(&v), true
 	case *Scheme:
 		return newAuditScheme(v), true
+	case Scheme:
+		return newAuditScheme(&v), true
 	case *SchemeRoles:
 		return newAuditSchemeRoles(v), true
+	case SchemeRoles:
+		return newAuditSchemeRoles(&v), true
 	case *Session:
 		return newAuditSession(v), true
+	case Session:
+		return newAuditSession(&v), true
 	case *IncomingWebhook:
 		return newAuditIncomingWebhook(v), true
+	case IncomingWebhook:
+		return newAuditIncomingWebhook(&v), true
 	case *OutgoingWebhook:
 		return newAuditOutgoingWebhook(v), true
+	case OutgoingWebhook:
+		return newAuditOutgoingWebhook(&v), true
 	case *RemoteCluster:
 		return newRemoteCluster(v), true
+	case RemoteCluster:
+		return newRemoteCluster(&v), true
 	}
 	return val, false
 }
