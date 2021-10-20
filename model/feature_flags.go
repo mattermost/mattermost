@@ -52,6 +52,9 @@ type FeatureFlags struct {
 
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
+
+	// A '-' separated list for feature flags to turn on for Boards
+	BoardsFeatureFlags string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -70,6 +73,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.DownloadAppsCTA = "none"
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
+	f.BoardsFeatureFlags = ""
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
