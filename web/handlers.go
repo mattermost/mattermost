@@ -260,7 +260,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sessionOAuthAppId, ok := c.AppContext.Session().Props[model.SessionPropOAuthAppID]
 	if ok {
 		scopes := h.checkScopes(c, sessionOAuthAppId)
-		if c.Err == nil && len(scopes) > 0 {
+		if c.Err == nil && scopes != nil {
 			c.AppContext.SetScopes(scopes)
 		}
 	}

@@ -115,7 +115,6 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster: cluster,
 		metrics: metrics,
 	}
-
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   ReactionCacheSize,

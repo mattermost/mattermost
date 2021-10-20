@@ -580,6 +580,72 @@ func TestGetOldClientConfig(t *testing.T) {
 		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
 	})
 
+	t.Run("with scoped session", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.GoogleDeveloperKey = testKey
+			*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		})
+
+		oAuthApp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+			Scopes:       model.ScopeAllow(),
+			CreatorId:    th.SystemAdminUser.Id,
+			Name:         "name",
+			CallbackUrls: []string{"http://test.com"},
+			Homepage:     "http://test.com",
+		})
+		require.Nil(t, appErr, "should create an OAuthApp")
+
+		session, appErr := th.App.CreateSession(&model.Session{
+			UserId:  th.SystemAdminUser.Id,
+			Token:   "token",
+			IsOAuth: true,
+			Props:   model.StringMap{model.SessionPropOAuthAppID: oAuthApp.Id},
+		})
+		require.Nil(t, appErr, "should create a session")
+
+		client := th.CreateClient()
+		client.SetOAuthToken(session.Token)
+
+		config, _, err := client.GetOldClientConfig("")
+		require.NoError(t, err)
+
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
+		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
+	})
+
+	t.Run("with no scoped oAuth session", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.GoogleDeveloperKey = testKey
+			*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		})
+
+		oAuthApp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+			Scopes:       nil,
+			CreatorId:    th.SystemAdminUser.Id,
+			Name:         "name",
+			CallbackUrls: []string{"http://test.com"},
+			Homepage:     "http://test.com",
+		})
+		require.Nil(t, appErr, "should create an OAuthApp")
+
+		session, appErr := th.App.CreateSession(&model.Session{
+			UserId:  th.SystemAdminUser.Id,
+			Token:   "token",
+			IsOAuth: true,
+			Props:   model.StringMap{model.SessionPropOAuthAppID: oAuthApp.Id},
+		})
+		require.Nil(t, appErr, "should create a session")
+
+		client := th.CreateClient()
+		client.SetOAuthToken(session.Token)
+
+		config, _, err := client.GetOldClientConfig("")
+		require.NoError(t, err)
+
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
+		require.Equal(t, testKey, config["GoogleDeveloperKey"])
+	})
+
 	t.Run("missing format", func(t *testing.T) {
 		client := th.Client
 

@@ -131,3 +131,57 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	err = th.service.RevokeAccessToken(accessData.Token)
 	require.NoError(t, err)
 }
+
+func TestRevokeSessionsForOAuthApp(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	session := &model.Session{}
+	session.CreateAt = model.GetMillis()
+	session.UserId = model.NewId()
+	session.Token = model.NewId()
+	session.Roles = model.SystemUserRoleId
+	session.Props = model.StringMap{model.SessionPropOAuthAppID: "appID"}
+	th.service.SetSessionExpireInDays(session, 1)
+
+	session, _ = th.service.CreateSession(session)
+	_, err := th.service.GetSession(session.Token)
+	require.NoError(t, err, "should have been created")
+
+	session2 := &model.Session{}
+	session2.CreateAt = model.GetMillis()
+	session2.UserId = model.NewId()
+	session2.Token = model.NewId()
+	session2.Roles = model.SystemUserRoleId
+	th.service.SetSessionExpireInDays(session, 1)
+
+	session2, _ = th.service.CreateSession(session2)
+	_, err = th.service.GetSession(session2.Token)
+	require.NoError(t, err, "should have been created")
+
+	sessions, err := th.service.sessionStore.GetSessionsForOAuthApp("appID")
+	require.NoError(t, err, "should be able to get the sessions")
+	require.Equal(t, 1, len(sessions), "should have the session just created")
+
+	accessData := &model.AccessData{}
+	accessData.Token = session.Token
+	accessData.UserId = session.UserId
+	accessData.RedirectUri = "http://example.com"
+	accessData.ClientId = model.NewId()
+	accessData.ExpiresAt = session.ExpiresAt
+
+	_, nErr := th.service.oAuthStore.SaveAccessData(accessData)
+	require.NoError(t, nErr)
+
+	_, err = th.service.oAuthStore.GetAccessData(session.Token)
+	require.NoError(t, err, "should have been created")
+
+	err = th.service.RevokeSessionsForOAuthApp("appID")
+	require.NoError(t, err)
+
+	_, err = th.service.GetSession(session.Token)
+	require.Error(t, err, "should have been deleted")
+
+	_, err = th.service.oAuthStore.GetAccessData(session.Token)
+	require.Error(t, err, "should have been deleted")
+}

@@ -125,18 +125,26 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 	return sessions, nil
 }
 
-func (me SqlSessionStore) GetSessionsForOAuthApp(appId string) ([]*model.Session, error) {
+func (me SqlSessionStore) GetSessionsForOAuthApp(appID string) ([]*model.Session, error) {
 	var sessions []*model.Session
 
-	if _, err := me.GetReplica().Select(&sessions, `
-		SELECT *
-		FROM Sessions
-		WHERE
-			ISJSON(props)
-			AND JSON_VALUE(props, '$.`+model.SessionPropOAuthAppID+`') = :AppId
-		ORDER BY LastActivityAt DESC`,
-		map[string]interface{}{"AppId": appId}); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Sessions with appId=%s", appId)
+	column := `Props->>'` + model.SessionPropOAuthAppID + `'`
+	if me.DriverName() == model.DatabaseDriverMysql {
+		column = `Props->'$.` + model.SessionPropOAuthAppID + `'`
+	}
+
+	query, args, err := me.getQueryBuilder().
+		Select("*").
+		From("Sessions").
+		Where(sq.Eq{column: appID}).ToSql()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create query for Session with appID=%s", appID)
+	}
+
+	fmt.Printf("query: %s", query)
+	if _, err = me.GetReplica().Select(&sessions, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Sessions with appID=%s", appID)
 	}
 
 	return sessions, nil

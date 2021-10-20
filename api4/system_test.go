@@ -405,6 +405,32 @@ func TestPostLog(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, logMessage, "should return the log message")
 
+	// Test scoped session
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	})
+
+	oAuthApp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		Scopes:       model.ScopeAllow(),
+		CreatorId:    th.SystemAdminUser.Id,
+		Name:         "name",
+		CallbackUrls: []string{"http://test.com"},
+		Homepage:     "http://test.com",
+	})
+	require.Nil(t, appErr, "should create an OAuthApp")
+
+	session, appErr := th.App.CreateSession(&model.Session{
+		UserId:  th.SystemAdminUser.Id,
+		Token:   "token",
+		IsOAuth: true,
+		Props:   model.StringMap{model.SessionPropOAuthAppID: oAuthApp.Id},
+	})
+	require.Nil(t, appErr, "should create a session")
+
+	client = th.CreateClient()
+	client.SetOAuthToken(session.Token)
+	_, _, err = client.PostLog(message)
+	require.Error(t, err, "should not be able to post a log")
 }
 
 func TestGetAnalyticsOld(t *testing.T) {

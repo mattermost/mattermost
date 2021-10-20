@@ -25,7 +25,9 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testSessionStoreSave(t, ss) })
 	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, ss) })
 	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, ss) })
+	t.Run("SessionGetSessionsForOAuthApp", func(t *testing.T) { testSessionGetSessionsForOAuthApp(t, ss) })
 	t.Run("SessionRemove", func(t *testing.T) { testSessionRemove(t, ss) })
+	t.Run("SessionsRemove", func(t *testing.T) { testSessionRemoveSessions(t, ss) })
 	t.Run("SessionRemoveAll", func(t *testing.T) { testSessionRemoveAll(t, ss) })
 	t.Run("SessionRemoveByUser", func(t *testing.T) { testSessionRemoveByUser(t, ss) })
 	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, ss) })
@@ -113,6 +115,34 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	require.Len(t, data, 1, "should match len")
 }
 
+func testSessionGetSessionsForOAuthApp(t *testing.T, ss store.Store) {
+	appID := "appID"
+	s1 := &model.Session{}
+	s1.UserId = model.NewId()
+	s1.Props = model.StringMap{model.SessionPropOAuthAppID: appID}
+
+	_, err := ss.Session().Save(s1)
+	require.NoError(t, err)
+
+	s2 := &model.Session{}
+	s2.UserId = model.NewId()
+	s2.ExpiresAt = model.GetMillis() + 10000
+
+	_, err = ss.Session().Save(s2)
+	require.NoError(t, err)
+
+	s3 := &model.Session{}
+	s3.UserId = model.NewId()
+	s3.Props = model.StringMap{model.SessionPropOAuthAppID: appID}
+
+	_, err = ss.Session().Save(s3)
+	require.NoError(t, err)
+
+	data, err := ss.Session().GetSessionsForOAuthApp(appID)
+	require.NoError(t, err)
+	require.Len(t, data, 2, "should match len")
+}
+
 func testSessionRemove(t *testing.T, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
@@ -129,6 +159,74 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 
 	_, err = ss.Session().Get(context.Background(), s1.Id)
 	require.Error(t, err, "should have been removed")
+}
+
+func testSessionRemoveSessions(t *testing.T, ss store.Store) {
+	s1 := &model.Session{}
+	s1.Token = model.NewId()
+	s1.UserId = model.NewId()
+
+	s1, err := ss.Session().Save(s1)
+	require.NoError(t, err)
+
+	s2 := &model.Session{}
+	s2.Token = model.NewId()
+	s2.UserId = model.NewId()
+
+	s2, err = ss.Session().Save(s2)
+	require.NoError(t, err)
+
+	s3 := &model.Session{}
+	s3.Token = model.NewId()
+	s3.UserId = model.NewId()
+
+	s3, err = ss.Session().Save(s3)
+	require.NoError(t, err)
+
+	session, err := ss.Session().Get(context.Background(), s1.Id)
+	require.NoError(t, err)
+	require.Equal(t, session.Id, s1.Id, "should match")
+
+	session, err = ss.Session().Get(context.Background(), s2.Id)
+	require.NoError(t, err)
+	require.Equal(t, session.Id, s2.Id, "should match")
+
+	session, err = ss.Session().Get(context.Background(), s3.Id)
+	require.NoError(t, err)
+	require.Equal(t, session.Id, s3.Id, "should match")
+
+	// Empty list should not remove anything
+	removeErr := ss.Session().RemoveSessions([]string{})
+	require.NoError(t, removeErr)
+
+	session, err = ss.Session().Get(context.Background(), s1.Id)
+	require.NoError(t, err)
+	require.Equal(t, session.Id, s1.Id, "should match")
+
+	session, err = ss.Session().Get(context.Background(), s2.Id)
+	require.NoError(t, err)
+	require.Equal(t, session.Id, s2.Id, "should match")
+
+	session, err = ss.Session().Get(context.Background(), s3.Id)
+	require.NoError(t, err)
+	require.Equal(t, session.Id, s3.Id, "should match")
+
+	removeErr = ss.Session().RemoveSessions([]string{s1.Token, s3.Token})
+	require.NoError(t, removeErr)
+
+	_, err = ss.Session().Get(context.Background(), s1.Id)
+	require.Error(t, err, "should have been removed")
+
+	session, err = ss.Session().Get(context.Background(), s2.Id)
+	require.NoError(t, err)
+	require.Equal(t, session.Id, s2.Id, "should match")
+
+	_, err = ss.Session().Get(context.Background(), s3.Id)
+	require.Error(t, err, "should have been removed")
+
+	// Empty string should not remove anything
+	removeErr = ss.Session().RemoveSessions([]string{})
+	require.NoError(t, removeErr)
 }
 
 func testSessionRemoveAll(t *testing.T, ss store.Store) {
