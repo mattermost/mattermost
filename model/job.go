@@ -58,15 +58,15 @@ var AllJobTypes = [...]string{
 }
 
 type Job struct {
-	Id             string            `json:"id"`
-	Type           string            `json:"type"`
-	Priority       int64             `json:"priority"`
-	CreateAt       int64             `json:"create_at"`
-	StartAt        int64             `json:"start_at"`
-	LastActivityAt int64             `json:"last_activity_at"`
-	Status         string            `json:"status"`
-	Progress       int64             `json:"progress"`
-	Data           map[string]string `json:"data"`
+	Id             string    `json:"id"`
+	Type           string    `json:"type"`
+	Priority       int64     `json:"priority"`
+	CreateAt       int64     `json:"create_at"`
+	StartAt        int64     `json:"start_at"`
+	LastActivityAt int64     `json:"last_activity_at"`
+	Status         string    `json:"status"`
+	Progress       int64     `json:"progress"`
+	Data           StringMap `json:"data"`
 }
 
 func (j *Job) IsValid() *AppError {
