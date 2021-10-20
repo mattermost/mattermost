@@ -122,20 +122,16 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	if ts.TelemetryID != "" {
 		return
 	}
-	props, err := ts.dbStore.System().Get()
+
+	id := model.NewId()
+	systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
+	systemID, err := ts.dbStore.System().InsertIfExists(systemID)
 	if err != nil {
 		mlog.Error("unable to get the telemetry ID", mlog.Err(err))
 		return
 	}
 
-	id := props[model.SYSTEM_TELEMETRY_ID]
-	if id == "" {
-		id = model.NewId()
-		systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
-		ts.dbStore.System().Save(systemID)
-	}
-
-	ts.TelemetryID = id
+	ts.TelemetryID = systemID.Value
 }
 
 func (ts *TelemetryService) getRudderConfig() RudderConfig {
