@@ -1924,10 +1924,13 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 }
 
 func TestPluginAPIIsEnterpriseReady(t *testing.T) {
-	model.BuildEnterpriseReady = "false"
+	oldValue := model.BuildEnterpriseReady
+	defer func() { model.BuildEnterpriseReady = oldValue }()
+
+	model.BuildEnterpriseReady = "true"
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	assert.Equal(t, false, api.IsEnterpriseReady())
+	assert.Equal(t, true, api.IsEnterpriseReady())
 }
