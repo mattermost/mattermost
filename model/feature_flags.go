@@ -52,6 +52,9 @@ type FeatureFlags struct {
 
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
+
+	// Start A/B tour tips automatically, possible values = ("none", "auto")
+	AutoTour string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -70,6 +73,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.DownloadAppsCTA = "none"
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
+	f.AutoTour = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
