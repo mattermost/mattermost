@@ -73,7 +73,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "tour_point"
 	f.DownloadAppsCTA = "tips_and_next_steps"
-  f.NewAccountNoisy = false
+	f.NewAccountNoisy = false
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
 	f.AutoTour = "none"
