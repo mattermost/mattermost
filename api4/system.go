@@ -35,7 +35,7 @@ var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
 })
 
 func (api *API) InitSystem() {
-	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing)).Methods("GET") // TODO OAUTH Consider OAuth Scoping
+	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing)).Methods("GET")
 
 	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequiredWithDenyScope(getSupportedTimezones)).Methods("GET")
 
