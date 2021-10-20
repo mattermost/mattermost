@@ -9254,5 +9254,9 @@
   {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Ogranicznik nie jest ustawiony."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Adres e-mail w tokenie nie zgadza się z adresem w danych użytkownika."
   }
 ]

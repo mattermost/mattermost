@@ -54,6 +54,9 @@ type FeatureFlags struct {
 
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
+
+	// Start A/B tour tips automatically, possible values = ("none", "auto")
+	AutoTour string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -68,11 +71,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
-	f.PrewrittenMessages = "none"
-	f.DownloadAppsCTA = "none"
-	f.NewAccountNoisy = false
+	f.PrewrittenMessages = "tour_point"
+	f.DownloadAppsCTA = "tips_and_next_steps"
+  f.NewAccountNoisy = false
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
+	f.AutoTour = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
