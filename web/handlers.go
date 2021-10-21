@@ -176,16 +176,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 
-		// Add unsafe-eval to the content security policy for faster source maps in development mode
 		devCSP := ""
-		if model.BuildNumber == "dev" {
-			devCSP += " 'unsafe-eval'"
-		}
-
-		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
-		// see https://github.com/reduxjs/redux-devtools/issues/380
-		if model.BuildNumber == "dev" {
-			devCSP += " 'unsafe-inline'"
+		// Add flags like unsafe-eval and unsafe-inline for debugging during development
+		for _, devFlagKeyValue := range c.App.Config().ServiceSettings.DeveloperFlags {
+			if strings.Contains(devFlagKeyValue, "true") {
+				devFlag := strings.Split(devFlagKeyValue, "=")[0]
+				devCSP += fmt.Sprintf(" '%s'", devFlag)
+			}
 		}
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
