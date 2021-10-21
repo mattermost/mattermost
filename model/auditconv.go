@@ -25,6 +25,10 @@ func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {
 		return newAuditUser(v), true
 	case User:
 		return newAuditUser(&v), true
+	case *UserPatch:
+		return newAuditUserPatch(v), true
+	case UserPatch:
+		return newAuditUserPatch(&v), true
 	case *Command:
 		return newAuditCommand(v), true
 	case Command:
@@ -166,6 +170,21 @@ func newAuditUser(u *User) auditUser {
 		user.Roles = u.Roles
 	}
 	return user
+}
+
+type auditUserPatch struct {
+	Name string
+}
+
+// newAuditUserPatch creates a simplified representation of UserPatch for output to audit log.
+func newAuditUserPatch(up *UserPatch) auditUserPatch {
+	var userPatch auditUserPatch
+	if up != nil {
+		if up.Username != nil {
+			userPatch.Name = *up.Username
+		}
+	}
+	return userPatch
 }
 
 func (u auditUser) MarshalJSONObject(enc *gojay.Encoder) {
