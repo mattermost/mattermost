@@ -47,6 +47,8 @@ type FeatureFlags struct {
 	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
 	DownloadAppsCTA string
 
+	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
+	NewAccountNoisy bool
 	// Enable Boards Unfurl Preview
 	BoardsUnfurl bool
 
@@ -71,6 +73,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "tour_point"
 	f.DownloadAppsCTA = "tips_and_next_steps"
+	f.NewAccountNoisy = false
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
 	f.AutoTour = "none"
