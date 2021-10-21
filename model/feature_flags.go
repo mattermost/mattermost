@@ -47,13 +47,18 @@ type FeatureFlags struct {
 	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
 	DownloadAppsCTA string
 
+	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
+	NewAccountNoisy bool
 	// Enable Boards Unfurl Preview
 	BoardsUnfurl bool
 
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
 
-	// A '-' separated list for feature flags to turn on for Boards
+	// Start A/B tour tips automatically, possible values = ("none", "auto")
+	AutoTour string
+
+  // A '-' separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 }
 
@@ -69,10 +74,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
-	f.PrewrittenMessages = "none"
-	f.DownloadAppsCTA = "none"
+	f.PrewrittenMessages = "tour_point"
+	f.DownloadAppsCTA = "tips_and_next_steps"
+	f.NewAccountNoisy = false
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
+	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
 }
 
