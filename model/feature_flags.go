@@ -53,7 +53,7 @@ type FeatureFlags struct {
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
 
-	// A '-' separated list for feature flags to turn on for Boards
+	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 }
 
