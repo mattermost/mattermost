@@ -229,20 +229,18 @@ func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID, roo
 		IsCRTEnabled:     a.isCRTEnabledForUser(userID),
 	}
 
+	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
+	if err != nil {
+		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	msg.Badge = int(unreadCount)
+
 	if msg.IsCRTEnabled {
-		unreadTeamsList, err := a.GetTeamsUnreadForUser("", userID, true)
+		data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{TotalsOnly: true})
 		if err != nil {
-			return model.NewAppError("clearPushNotificationSync", "app.user.get_teams_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("clearPushNotificationSync", "app.user.get_thread_count_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		for _, team := range unreadTeamsList {
-			msg.Badge += int(team.MentionCountRoot) + int(team.ThreadMentionCount)
-		}
-	} else {
-		unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
-		if err != nil {
-			return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		msg.Badge = int(unreadCount)
+		msg.Badge += int(data.TotalUnreadMentions)
 	}
 	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
 }
@@ -556,7 +554,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	}
 
 	if contentsConfig == model.IdLoadedNotification {
-		msg = a.buildIdLoadedPushNotificationMessage(post, user)
+		msg = a.buildIdLoadedPushNotificationMessage(channel, post, user)
 	} else {
 		msg = a.buildFullPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
@@ -570,18 +568,20 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	return msg, nil
 }
 
-func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User) *model.PushNotification {
+func (a *App) buildIdLoadedPushNotificationMessage(channel *model.Channel, post *model.Post, user *model.User) *model.PushNotification {
 	userLocale := i18n.GetUserTranslations(user.Locale)
 	msg := &model.PushNotification{
-		PostId:     post.Id,
-		ChannelId:  post.ChannelId,
-		RootId:     post.RootId,
-		Category:   model.CategoryCanReply,
-		Version:    model.PushMessageV2,
-		Type:       model.PushTypeMessage,
-		IsIdLoaded: true,
-		SenderId:   user.Id,
-		Message:    userLocale("api.push_notification.id_loaded.default_message"),
+		PostId:       post.Id,
+		ChannelId:    post.ChannelId,
+		RootId:       post.RootId,
+		IsCRTEnabled: a.isCRTEnabledForUser(user.Id),
+		Category:     model.CategoryCanReply,
+		Version:      model.PushMessageV2,
+		TeamId:       channel.TeamId,
+		Type:         model.PushTypeMessage,
+		IsIdLoaded:   true,
+		SenderId:     user.Id,
+		Message:      userLocale("api.push_notification.id_loaded.default_message"),
 	}
 
 	return msg

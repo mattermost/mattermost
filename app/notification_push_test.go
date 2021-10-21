@@ -1156,7 +1156,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	assert.Equal(t, "channel1", handler.notifications()[0].ChannelId)
 	assert.Equal(t, model.PushTypeClear, handler.notifications()[0].Type)
 
-	// When CRT is enabled, Send badge count adding both "Team's channel mentions" + "Thread mentions"
+	// When CRT is enabled, Send badge count adding both "User unreads" + "User thread mentions"
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -1167,24 +1167,12 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 
 	mockThreadStore := mocks.ThreadStore{}
-	mockThreadStore.On("GetThreadsForUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(&model.Threads{
-		TotalUnreadMentions: 1,
-	}, nil)
+	mockThreadStore.On("GetThreadsForUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(&model.Threads{TotalUnreadMentions: 3}, nil)
 	mockStore.On("Thread").Return(&mockThreadStore)
-
-	mockTeamStore := mocks.TeamStore{}
-	mockTeamStore.On("GetChannelUnreadsForAllTeams", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return([]*model.ChannelUnread{
-		{
-			TeamId:           "team1",
-			ChannelId:        "channel1",
-			MentionCountRoot: 1,
-		},
-	}, nil)
-	mockStore.On("Team").Return(&mockTeamStore)
 
 	err = th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
 	require.Nil(t, err)
-	assert.Equal(t, handler.notifications()[1].Badge, 2)
+	assert.Equal(t, handler.notifications()[1].Badge, 4)
 }
 
 func TestUpdateMobileAppBadgeSync(t *testing.T) {
