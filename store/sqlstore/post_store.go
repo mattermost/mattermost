@@ -677,6 +677,24 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 
 func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) error {
 	var err error
+
+	ids := postIds{}
+	// TODO: change this to later delete thread directly from postID
+	err = s.GetReplica().SelectOne(&ids, "SELECT RootId, UserId FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return store.NewErrNotFound("Post", postID)
+		}
+
+		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
+	}
+
+	err = s.cleanupThreads(postID, ids.RootId, false, ids.UserId)
+
+	if err != nil {
+		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", ids.RootId)
+	}
+
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		_, err = s.GetMaster().Exec(`UPDATE Posts
 			SET DeleteAt = $1,
@@ -695,18 +713,7 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	ids := postIds{}
-	// TODO: change this to later delete thread directly from postID
-	err = s.GetReplica().SelectOne(&ids, "SELECT RootId, UserId FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postID})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return store.NewErrNotFound("Post", postID)
-		}
-
-		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
-	}
-
-	return s.cleanupThreads(postID, ids.RootId, false, ids.UserId)
+	return nil
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
@@ -2409,7 +2416,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 		updateQuery := s.getQueryBuilder().Update("Threads")
 
-		if count == 0 {
+		if count == 1 {
 			if s.DriverName() == model.DatabaseDriverPostgres {
 				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
 			} else {
