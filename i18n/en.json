@@ -3221,7 +3221,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+    "translation": "To change your notification preferences, log in to your team site and go to Settings > Notifications."
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -5509,7 +5509,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " and go to Account Settings > Notifications"
+    "translation": " and go to Settings > Notifications"
   },
   {
     "id": "app.notification.footer.infoLogin",
