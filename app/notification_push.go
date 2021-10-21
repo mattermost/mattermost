@@ -174,7 +174,7 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	}
 
 	if contentsConfig == model.FullNotification {
-		if channelType == model.ChannelTypeDirect {
+		if channelType == model.ChannelTypeDirect && replyToThreadType != model.CommentsNotifyCRT {
 			return model.ClearMentionTags(postMessage)
 		}
 		return senderName + ": " + model.ClearMentionTags(postMessage)
