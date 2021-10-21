@@ -200,7 +200,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}()
 	go func() {
 		mentionsQuery, mentionsQueryArgs, _ := s.getQueryBuilder().
-			Select("SUM(ThreadMemberships.UnreadMentions)").
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions), 0)").
 			From("ThreadMemberships, Posts, Channels").
 			Where("Posts.Id = ThreadMemberships.PostId").
 			Where("Posts.ChannelId = Channels.Id").
