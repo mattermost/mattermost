@@ -498,9 +498,6 @@ func (r *OpenDialogRequest) IsValid() error {
 
 // IsValid returns an error if a field or the one of the elements is not valid
 func (d Dialog) IsValid() error {
-	const TitleMaxSize = 24
-	const MaxElements = 5
-
 	if d.CallbackId == "" {
 		return errors.New("callback id is empty")
 	}
@@ -509,8 +506,8 @@ func (d Dialog) IsValid() error {
 		return errors.New("title is empty")
 	}
 
-	if len(d.Title) > TitleMaxSize {
-		return fmt.Errorf("title is too long, max:%d", TitleMaxSize)
+	if len(d.Title) > 24 {
+		return errors.New("title is too long, max:24")
 	}
 
 	if d.IntroductionText == "" {
@@ -521,8 +518,8 @@ func (d Dialog) IsValid() error {
 		return errors.New(" icon url is invalid")
 	}
 
-	if len(d.Elements) > MaxElements {
-		return fmt.Errorf("too many elements provided, max:%d", MaxElements)
+	if len(d.Elements) > 5 {
+		return errors.New("too many elements provided, max:5")
 	}
 
 	usedNames := make(map[string]struct{}, len(d.Elements))
@@ -542,60 +539,40 @@ func (d Dialog) IsValid() error {
 
 // IsValid returns an error if a field is not valid
 func (e DialogElement) IsValid() error {
-	const MaxDisplayNameSize = 24
-	const MaxNameSize = 300
-	const MaxTextFieldValueSize = 150
-	const MaxTextareaFieldValueSize = 3000
-	const MaxHelpTextSize = 150
-
 	if e.DisplayName == "" {
 		return errors.New("display name is empty")
 	}
 
-	if len(e.DisplayName) > MaxDisplayNameSize {
-		return fmt.Errorf("display name is too long, max:%d", MaxDisplayNameSize)
+	if len(e.DisplayName) > 24 {
+		return errors.New("display name is too long, max:24")
 	}
 
 	if e.Name == "" {
 		return errors.New("name is empty")
 	}
 
-	if len(e.Name) > MaxNameSize {
-		return fmt.Errorf("name is too long, max:%d", MaxNameSize)
+	if len(e.Name) > 300 {
+		return errors.New("name is too long, max:300")
 	}
 
-	if len(e.HelpText) > MaxHelpTextSize {
-		return fmt.Errorf("help text is too long, max:%d", MaxHelpTextSize)
+	if len(e.HelpText) > 150 {
+		return errors.New("help text is too long, max:150")
 	}
 
 	switch e.Type {
-	case "text", "textarea", "select", "bool", "radio":
-		//
-	default:
-		return fmt.Errorf("'%s' is not a valid type", e.Type)
-	}
-
-	if e.Type == "text" {
-		return validateStringField(e, MaxTextFieldValueSize)
-	}
-
-	if e.Type == "textarea" {
-		return validateStringField(e, MaxTextareaFieldValueSize)
-	}
-
-	if e.Type == "select" {
+	case "text":
+		return validateStringField(e, 150)
+	case "textarea":
+		return validateStringField(e, 3000)
+	case "select":
 		return validateSelect(e)
-	}
-
-	if e.Type == "bool" {
+	case "bool":
 		return validateCheckbox(e)
-	}
-
-	if e.Type == "radio" {
+	case "radio":
 		return validateRadio(e)
 	}
 
-	return nil
+	return fmt.Errorf("'%s' is not a valid type", e.Type)
 }
 
 func validateSelect(e DialogElement) error {
@@ -612,11 +589,11 @@ func validateSelect(e DialogElement) error {
 	}
 
 	if len(e.Placeholder) > 3000 {
-		return fmt.Errorf("placeholder too long, max:%d", 3000)
+		return errors.New("placeholder too long, max:3000")
 	}
 
 	if len(e.Default) > 3000 {
-		return fmt.Errorf("default too long, max:%d", 3000)
+		return errors.New("default too long, max:3000")
 	}
 
 	return nil
@@ -628,7 +605,7 @@ func validateCheckbox(e DialogElement) error {
 	}
 
 	if len(e.Placeholder) > 150 {
-		return fmt.Errorf("placeholder too long, max:%d", 150)
+		return errors.New("placeholder too long, max:150")
 	}
 
 	return nil
@@ -646,21 +623,10 @@ func validateRadio(e DialogElement) error {
 	}
 
 	if len(e.Placeholder) > 150 {
-		return fmt.Errorf("placeholder too long, max:%d", 150)
+		return errors.New("placeholder too long, max:150")
 	}
 
 	return nil
-}
-
-func isDefaultInOptions(def string, options []*PostActionOptions) bool {
-	defaultFound := false
-	for i := range options {
-		if options[i].Value == def {
-			defaultFound = true
-			break
-		}
-	}
-	return defaultFound
 }
 
 func validateStringField(e DialogElement, maxSize int) error {
@@ -697,4 +663,15 @@ func validateStringField(e DialogElement, maxSize int) error {
 	}
 
 	return nil
+}
+
+func isDefaultInOptions(def string, options []*PostActionOptions) bool {
+	defaultFound := false
+	for i := range options {
+		if options[i].Value == def {
+			defaultFound = true
+			break
+		}
+	}
+	return defaultFound
 }
