@@ -172,7 +172,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	invalidDialog := Dialog{}
 
 	testCases := []validableTestCase{
-		{name: "trigger id empty", validable: &OpenDialogRequest{TriggerId: "trigger id", URL: "http://mattermost.com", Dialog: validDialog}, hasError: true},
+		{name: "trigger id empty", validable: &OpenDialogRequest{TriggerId: "", URL: "http://mattermost.com", Dialog: validDialog}, hasError: true},
 		{name: "url empty", validable: &OpenDialogRequest{TriggerId: "trigger id", URL: "", Dialog: validDialog}, hasError: true},
 		{name: "url malformed", validable: &OpenDialogRequest{TriggerId: "trigger id", URL: "mattermost.com", Dialog: validDialog}, hasError: true},
 		{name: "invalid dialog", validable: &OpenDialogRequest{TriggerId: "trigger id", URL: "http://mattermost.com", Dialog: invalidDialog}, hasError: true},
@@ -270,7 +270,7 @@ func validableTestcasesRun(t *testing.T, testCases []validableTestCase) {
 				require.Error(t, result)
 				return
 			}
-			require.Nil(t, result)
+			require.NoError(t, result)
 		})
 	}
 }
