@@ -1121,22 +1121,22 @@ func (_m *ChannelStore) GetMembersForUser(teamID string, userID string) (model.C
 	return r0, r1
 }
 
-// GetMembersForUserWithPagination provides a mock function with given fields: teamID, userID, page, perPage
-func (_m *ChannelStore) GetMembersForUserWithPagination(teamID string, userID string, page int, perPage int) (model.ChannelMembers, error) {
-	ret := _m.Called(teamID, userID, page, perPage)
+// GetMembersForUserWithPagination provides a mock function with given fields: userID, page, perPage
+func (_m *ChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int) (model.ChannelMembersWithTeamData, error) {
+	ret := _m.Called(userID, page, perPage)
 
-	var r0 model.ChannelMembers
-	if rf, ok := ret.Get(0).(func(string, string, int, int) model.ChannelMembers); ok {
-		r0 = rf(teamID, userID, page, perPage)
+	var r0 model.ChannelMembersWithTeamData
+	if rf, ok := ret.Get(0).(func(string, int, int) model.ChannelMembersWithTeamData); ok {
+		r0 = rf(userID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelMembers)
+			r0 = ret.Get(0).(model.ChannelMembersWithTeamData)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
-		r1 = rf(teamID, userID, page, perPage)
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(userID, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}

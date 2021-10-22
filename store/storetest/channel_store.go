@@ -4188,29 +4188,41 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Store) {
-	t1 := model.Team{}
-	t1.DisplayName = "Name"
-	t1.Name = NewTestId()
-	t1.Email = MakeEmail()
-	t1.Type = model.TeamOpen
+	t1 := model.Team{
+		DisplayName: "team1",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
-	o1 := model.Channel{}
-	o1.TeamId = t1.Id
-	o1.DisplayName = "Channel1"
-	o1.Name = NewTestId()
-	o1.Type = model.ChannelTypeOpen
-	_, nErr := ss.Channel().Save(&o1, -1)
-	require.NoError(t, nErr)
+	o1 := model.Channel{
+		TeamId:      t1.Id,
+		DisplayName: "Channel1",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	_, err = ss.Channel().Save(&o1, -1)
+	require.NoError(t, err)
 
-	o2 := model.Channel{}
-	o2.TeamId = o1.TeamId
-	o2.DisplayName = "Channel2"
-	o2.Name = NewTestId()
-	o2.Type = model.ChannelTypeOpen
-	_, nErr = ss.Channel().Save(&o2, -1)
-	require.NoError(t, nErr)
+	t2 := model.Team{
+		DisplayName: "team2",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
+	_, err = ss.Team().Save(&t2)
+	require.NoError(t, err)
+
+	o2 := model.Channel{
+		TeamId:      t2.Id,
+		DisplayName: "Channel2",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	_, err = ss.Channel().Save(&o2, -1)
+	require.NoError(t, err)
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
@@ -4226,11 +4238,16 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	_, err = ss.Channel().SaveMember(&m2)
 	require.NoError(t, err)
 
-	members, err := ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
+	members, err := ss.Channel().GetMembersForUserWithPagination(m1.UserId, 0, 2)
 	require.NoError(t, err)
-	assert.Len(t, members, 1)
+	assert.Len(t, members, 2)
+	teamNames := make([]string, 0, 2)
+	for _, member := range members {
+		teamNames = append(teamNames, member.TeamDisplayName)
+	}
+	assert.ElementsMatch(t, teamNames, []string{t1.DisplayName, t2.DisplayName})
 
-	members, err = ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
+	members, err = ss.Channel().GetMembersForUserWithPagination(m1.UserId, 1, 1)
 	require.NoError(t, err)
 	assert.Len(t, members, 1)
 }

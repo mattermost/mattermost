@@ -551,8 +551,10 @@ func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string)
 	return api.app.GetChannelMembersByIds(channelID, userIDs)
 }
 
-func (api *PluginAPI) GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMembersForUserWithPagination(teamID, userID, page, perPage)
+func (api *PluginAPI) GetChannelMembersForUser(_, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	// The team ID parameter was never used in the SQL query.
+	// But we keep this to maintain compatibility.
+	return api.app.GetChannelMembersForUserWithPagination(userID, page, perPage)
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {

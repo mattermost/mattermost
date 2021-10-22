@@ -1940,18 +1940,42 @@ func (a *App) GetChannelMembersForUser(teamID string, userID string) (model.Chan
 	return channelMembers, nil
 }
 
-func (a *App) GetChannelMembersForUserWithPagination(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	m, err := a.Srv().Store.Channel().GetMembersForUserWithPagination(teamID, userID, page, perPage)
+func (a *App) GetChannelMembersForUserWithPagination(userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	m, err := a.Srv().Store.Channel().GetMembersForUserWithPagination(userID, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	members := make([]*model.ChannelMember, 0)
 	for _, member := range m {
-		member := member
-		members = append(members, &member)
+		cm := &model.ChannelMember{
+			ChannelId:        member.ChannelId,
+			UserId:           member.UserId,
+			Roles:            member.Roles,
+			LastViewedAt:     member.LastViewedAt,
+			MsgCount:         member.MsgCount,
+			MsgCountRoot:     member.MsgCountRoot,
+			MentionCount:     member.MentionCount,
+			MentionCountRoot: member.MentionCountRoot,
+			NotifyProps:      member.NotifyProps,
+			LastUpdateAt:     member.LastUpdateAt,
+			SchemeAdmin:      member.SchemeAdmin,
+			SchemeUser:       member.SchemeUser,
+			SchemeGuest:      member.SchemeGuest,
+			ExplicitRoles:    member.ExplicitRoles,
+		}
+		members = append(members, cm)
 	}
 	return members, nil
+}
+
+func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, *model.AppError) {
+	m, err := a.Srv().Store.Channel().GetMembersForUserWithPagination(userID, page, perPage)
+	if err != nil {
+		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return m, nil
 }
 
 func (a *App) GetChannelMemberCount(channelID string) (int64, *model.AppError) {
