@@ -57,6 +57,9 @@ type FeatureFlags struct {
 
 	// Start A/B tour tips automatically, possible values = ("none", "auto")
 	AutoTour string
+
+	// A dash separated list for feature flags to turn on for Boards
+	BoardsFeatureFlags string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -77,6 +80,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
 	f.AutoTour = "none"
+	f.BoardsFeatureFlags = ""
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
