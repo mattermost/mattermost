@@ -138,15 +138,20 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("group", group)
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+	var sourceCreationAllowed = false
+
+	for _, groupSource := range model.GroupSourcesAllowCRUDEndpoints {
+		if groupSource == group.Source {
+			sourceCreationAllowed = true
+		}
+	}
+
+	if !sourceCreationAllowed {
+		c.Err = model.NewAppError("GetGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateCustomGroup) {
-		c.SetPermissionError(model.PermissionCreateCustomGroup)
-		return
-	}
+	// Permissions and license stuff here
 
 	newGroup, err := c.App.CreateGroupWithUserIds(group)
 	if err != nil {
@@ -905,15 +910,15 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("group_id", c.Params.GroupId)
 
-	// UNSURE IF THIS PERMISSION STAYS HERE
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+	// PERMISSION CHECK FOR DELETING
+
+	err := c.App.SourceHasCRUDPermissions(c.Params.GroupId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	// PERMISSION CHECK FOR DELETING
-
-	_, err := c.App.DeleteGroup(c.Params.GroupId)
+	_, err = c.App.DeleteGroup(c.Params.GroupId)
 	if err != nil {
 		c.Err = err
 		return
@@ -936,13 +941,19 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := c.App.SourceHasCRUDPermissions(c.Params.GroupId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("addGroupMembers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("addGroupMembers", newMembers)
 
 	// License and Permissions check here
 
-	err := c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
+	err = c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
 	if err != nil {
 		c.Err = err
 		return
@@ -965,13 +976,19 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := c.App.SourceHasCRUDPermissions(c.Params.GroupId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("deleteGroupMembers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("deleteGroupMembers", deleteBody)
 
 	// License and Permissions check here
 
-	err := c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
+	err = c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
 	if err != nil {
 		c.Err = err
 		return

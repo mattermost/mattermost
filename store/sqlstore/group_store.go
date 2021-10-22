@@ -466,7 +466,8 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
 			JOIN Users ON Users.Id = GroupMembers.UserId
 		WHERE
 			GroupMembers.GroupId = :GroupId
-			AND Users.DeleteAt = 0`
+			AND Users.DeleteAt = 0
+			AND GroupMembers.DeleteAt = 0`
 
 	count, err := s.GetReplica().SelectInt(query, map[string]interface{}{"GroupId": groupID})
 	if err != nil {

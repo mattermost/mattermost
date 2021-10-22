@@ -4816,6 +4816,10 @@
     "translation": "Unable to save the file info."
   },
   {
+    "id": "app.group.crud_permission",
+    "translation": "Unable to perform operation for that source type."
+  },
+  {
     "id": "app.group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },

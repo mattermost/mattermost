@@ -362,6 +362,18 @@ func ParamsFromRequest(r *http.Request) *Params {
 			params.GroupSource = model.GroupSourceCustom
 		case "ldap":
 			params.GroupSource = model.GroupSourceLdap
+		default:
+			params.GroupSource = model.GroupSourceLdap
+		}
+	}
+	if val := query.Get("group_source"); val != "" {
+		switch val {
+		case "custom":
+			params.GroupSource = model.GroupSourceCustom
+		case "ldap":
+			params.GroupSource = model.GroupSourceLdap
+		default:
+			params.GroupSource = model.GroupSourceLdap
 		}
 	}
 
