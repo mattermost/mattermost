@@ -607,7 +607,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						if err != nil {
 							return nil, err
 						}
-						if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) {
+						if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) && len(userThread.Post.Metadata.Embeds) > 0 {
 							userThread.Post.Metadata.Embeds[0].Data = nil
 						}
 					}
