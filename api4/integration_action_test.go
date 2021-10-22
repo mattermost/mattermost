@@ -158,8 +158,9 @@ func TestOpenDialog(t *testing.T) {
 		TriggerId: triggerId,
 		URL:       "http://localhost:8065",
 		Dialog: model.Dialog{
-			CallbackId: "callbackid",
-			Title:      "Some Title",
+			CallbackId:       "callbackid",
+			Title:            "Some Title",
+			IntroductionText: "Some Introduction Text",
 			Elements: []model.DialogElement{
 				{
 					DisplayName: "Element Name",
