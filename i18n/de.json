@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Kontoeinstellungen > Benachrichtigungen."
+    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Einstellungen > Benachrichtigungen."
   },
   {
     "id": "api.templates.email_info1",
@@ -8656,7 +8656,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " und gehen Sie zu Kontoeinstellungen > Benachrichtigungen"
+    "translation": " und gehen Sie zu Einstellungen > Benachrichtigungen"
   },
   {
     "id": "app.notification.body.mention.title",
