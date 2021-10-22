@@ -2615,8 +2615,9 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs      *bool `access:"write_restrictable,cloud_restrictable"`
-	RunScheduler *bool `access:"write_restrictable,cloud_restrictable"`
+	RunJobs                  *bool `access:"write_restrictable,cloud_restrictable"`
+	RunScheduler             *bool `access:"write_restrictable,cloud_restrictable"`
+	CleanupJobsThresholdDays *int  `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2626,6 +2627,10 @@ func (s *JobSettings) SetDefaults() {
 
 	if s.RunScheduler == nil {
 		s.RunScheduler = NewBool(true)
+	}
+
+	if s.CleanupJobsThresholdDays == nil {
+		s.CleanupJobsThresholdDays = NewInt(-1)
 	}
 }
 
@@ -2711,6 +2716,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil && BuildEnterpriseReady == "true" {
 		// Enable the channel export plugin by default
 		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates["focalboard"] == nil {
+		// Enable the focalboard plugin by default
+		s.PluginStates["focalboard"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {

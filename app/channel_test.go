@@ -1972,12 +1972,12 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	mockSessionStore := mocks.SessionStore{}
 	mockOAuthStore := mocks.OAuthStore{}
 	var err error
-	th.App.srv.userService, err = users.New(users.ServiceConfig{
+	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.srv.Config,
-		LicenseFn:    th.App.srv.License,
+		ConfigFn:     th.App.ch.srv.Config,
+		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)
 	mockPreferenceStore := mocks.PreferenceStore{}

@@ -686,6 +686,20 @@ func (o *Post) ToNilIfInvalid() *Post {
 	return o
 }
 
+func (o *Post) RemovePreviewPost() {
+	if o.Metadata == nil || o.Metadata.Embeds == nil {
+		return
+	}
+	n := 0
+	for _, embed := range o.Metadata.Embeds {
+		if embed.Type != PostEmbedPermalink {
+			o.Metadata.Embeds[n] = embed
+			n++
+		}
+	}
+	o.Metadata.Embeds = o.Metadata.Embeds[:n]
+}
+
 func (o *Post) GetPreviewPost() *PreviewPost {
 	for _, embed := range o.Metadata.Embeds {
 		if embed.Type == PostEmbedPermalink {

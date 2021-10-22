@@ -3097,7 +3097,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -3221,7 +3221,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+    "translation": "To change your notification preferences, log in to your team site and go to Settings > Notifications."
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -3870,6 +3870,10 @@
   {
     "id": "api.user.create_user.accepted_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "The email address in the token does not match the one in the user data."
   },
   {
     "id": "api.user.create_user.disabled.app_error",
@@ -5505,7 +5509,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " and go to Account Settings > Notifications"
+    "translation": " and go to Settings > Notifications"
   },
   {
     "id": "app.notification.footer.infoLogin",
