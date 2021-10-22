@@ -19,6 +19,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -475,4 +477,224 @@ func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {
 	}
 
 	return string(plain), nil
+}
+
+// IsValid returns an error if a field or the dialog is not valid
+func (r *OpenDialogRequest) IsValid() error {
+	if r.TriggerId == "" {
+		return errors.New("trigger_id is empty")
+	}
+
+	if r.URL == "" {
+		return errors.New("url is empty")
+	}
+
+	if !IsValidHTTPURL(r.URL) {
+		return errors.New("url is invalid")
+	}
+
+	return errors.Wrap(r.Dialog.IsValid(), "dialog is invalid")
+}
+
+// IsValid returns an error if a field or the one of the elements is not valid
+func (d Dialog) IsValid() error {
+	const TitleMaxSize = 24
+	const MaxElements = 5
+
+	if d.CallbackId == "" {
+		return errors.New("callback id is empty")
+	}
+
+	if d.Title == "" {
+		return errors.New("title is empty")
+	}
+
+	if len(d.Title) > TitleMaxSize {
+		return fmt.Errorf("title is too long, max:%d", TitleMaxSize)
+	}
+
+	if d.IntroductionText == "" {
+		return errors.New("introduction text is empty")
+	}
+
+	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
+		return errors.New(" icon url is invalid")
+	}
+
+	if len(d.Elements) > MaxElements {
+		return fmt.Errorf("too many elements provided, max:%d", MaxElements)
+	}
+
+	usedNames := make(map[string]struct{}, len(d.Elements))
+	for _, element := range d.Elements {
+		if err := element.IsValid(); err != nil {
+			return errors.Wrapf(err, "element '%s' is not valid", element.Name)
+		}
+
+		if _, exists := usedNames[element.Name]; exists {
+			return fmt.Errorf("element name '%s' is duplicate", element.Name)
+		}
+		usedNames[element.Name] = struct{}{}
+	}
+
+	return nil
+}
+
+// IsValid returns an error if a field is not valid
+func (e DialogElement) IsValid() error {
+	const MaxDisplayNameSize = 24
+	const MaxNameSize = 300
+	const MaxTextFieldValueSize = 150
+	const MaxTextareaFieldValueSize = 3000
+	const MaxHelpTextSize = 150
+
+	if e.DisplayName == "" {
+		return errors.New("display name is empty")
+	}
+
+	if len(e.DisplayName) > MaxDisplayNameSize {
+		return fmt.Errorf("display name is too long, max:%d", MaxDisplayNameSize)
+	}
+
+	if e.Name == "" {
+		return errors.New("name is empty")
+	}
+
+	if len(e.Name) > MaxNameSize {
+		return fmt.Errorf("name is too long, max:%d", MaxNameSize)
+	}
+
+	if len(e.HelpText) > MaxHelpTextSize {
+		return fmt.Errorf("help text is too long, max:%d", MaxHelpTextSize)
+	}
+
+	switch e.Type {
+	case "text", "textarea", "select", "bool", "radio":
+		//
+	default:
+		return fmt.Errorf("'%s' is not a valid type", e.Type)
+	}
+
+	if e.Type == "text" {
+		return validateStringField(e, MaxTextFieldValueSize)
+	}
+
+	if e.Type == "textarea" {
+		return validateStringField(e, MaxTextareaFieldValueSize)
+	}
+
+	if e.Type == "select" {
+		return validateSelect(e)
+	}
+
+	if e.Type == "bool" {
+		return validateCheckbox(e)
+	}
+
+	if e.Type == "radio" {
+		return validateRadio(e)
+	}
+
+	return nil
+}
+
+func validateSelect(e DialogElement) error {
+	if e.DataSource == "" && len(e.Options) == 0 {
+		return errors.New("neither data source or options has been given")
+	}
+
+	if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" {
+		return errors.New("data source must be 'users' or 'channels'")
+	}
+
+	if e.DataSource == "" && e.Default != "" && !isDefaultInOptions(e.Default, e.Options) {
+		return fmt.Errorf("default value '%s' is not in the options", e.Default)
+	}
+
+	if len(e.Placeholder) > 3000 {
+		return fmt.Errorf("placeholder too long, max:%d", 3000)
+	}
+
+	if len(e.Default) > 3000 {
+		return fmt.Errorf("default too long, max:%d", 3000)
+	}
+
+	return nil
+}
+
+func validateCheckbox(e DialogElement) error {
+	if e.Default != "" && e.Default != "true" && e.Default != "false" {
+		return errors.New("default must be 'true' or 'false'")
+	}
+
+	if len(e.Placeholder) > 150 {
+		return fmt.Errorf("placeholder too long, max:%d", 150)
+	}
+
+	return nil
+}
+
+func validateRadio(e DialogElement) error {
+	if len(e.Options) < 2 {
+		return errors.New("options must have at least 2 elements")
+	}
+
+	if e.Default != "" {
+		if !isDefaultInOptions(e.Default, e.Options) {
+			return fmt.Errorf("default value '%s' is not in the options", e.Default)
+		}
+	}
+
+	if len(e.Placeholder) > 150 {
+		return fmt.Errorf("placeholder too long, max:%d", 150)
+	}
+
+	return nil
+}
+
+func isDefaultInOptions(def string, options []*PostActionOptions) bool {
+	defaultFound := false
+	for i := range options {
+		if options[i].Value == def {
+			defaultFound = true
+			break
+		}
+	}
+	return defaultFound
+}
+
+func validateStringField(e DialogElement, maxSize int) error {
+	switch e.SubType {
+	case "", "text", "email", "number", "password", "tel", "url":
+		//
+	default:
+		return fmt.Errorf("'%s' is not a valid subtype", e.SubType)
+	}
+
+	if e.MinLength < 0 {
+		return errors.New("min length must be at least 0")
+	}
+
+	if e.MinLength >= e.MaxLength {
+		return errors.New("max length must be greater than min length")
+	}
+
+	if e.Default != "" {
+		if len(e.Default) < e.MinLength {
+			return errors.New("default can't be smaller than min length")
+		}
+		if len(e.Default) > e.MaxLength {
+			return errors.New("default can't be bigger than max length")
+		}
+	}
+
+	if len(e.Placeholder) > maxSize {
+		return fmt.Errorf("placeholder too long, max:%d", maxSize)
+	}
+
+	if len(e.Default) > maxSize {
+		return fmt.Errorf("default too long, max:%d", maxSize)
+	}
+
+	return nil
 }
