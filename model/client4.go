@@ -3374,7 +3374,7 @@ func (c *Client4) GetChannelMembersWithTeamData(userID string, page, perPage int
 	var ch ChannelMembersWithTeamData
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetChannelMembers", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return ch, BuildResponse(r), nil
 }
