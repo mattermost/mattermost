@@ -510,10 +510,6 @@ func (d Dialog) IsValid() error {
 		return errors.New("title is too long, max:24")
 	}
 
-	if d.IntroductionText == "" {
-		return errors.New("introduction text is empty")
-	}
-
 	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
 		return errors.New(" icon url is invalid")
 	}
@@ -641,7 +637,7 @@ func validateStringField(e DialogElement, maxSize int) error {
 		return errors.New("min length must be at least 0")
 	}
 
-	if e.MinLength >= e.MaxLength {
+	if e.MaxLength > 0 && e.MinLength >= e.MaxLength {
 		return errors.New("max length must be greater than min length")
 	}
 
@@ -649,7 +645,7 @@ func validateStringField(e DialogElement, maxSize int) error {
 		if len(e.Default) < e.MinLength {
 			return errors.New("default can't be smaller than min length")
 		}
-		if len(e.Default) > e.MaxLength {
+		if e.MaxLength > 0 && len(e.Default) > e.MaxLength {
 			return errors.New("default can't be bigger than max length")
 		}
 	}
