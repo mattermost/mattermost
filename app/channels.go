@@ -50,6 +50,6 @@ func (ch *Channels) Start() error {
 	return nil
 }
 
-func (c *Channels) Stop() error {
+func (*Channels) Stop() error {
 	return nil
 }
