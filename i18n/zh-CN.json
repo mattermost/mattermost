@@ -9246,5 +9246,9 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "无效频道成员角色，长度超过 {{.Limit}} 个字符的。"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "令牌中的电子邮件与用户数据中的电子邮件不一致。"
   }
 ]
