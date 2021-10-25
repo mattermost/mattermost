@@ -7329,7 +7329,7 @@
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
-    "translation": "요청 본문을 분석할 수 없습니다."
+    "translation": "요청된 본문을 분석할 수 없습니다."
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
