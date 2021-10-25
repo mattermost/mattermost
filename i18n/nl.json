@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Om je notificatie instellingen te wijzigen moet je inloggen op je team site en ga naar Account Instellingen > Notificaties."
+    "translation": "Om je notificatie instellingen te wijzigen moet je inloggen op je team site en ga naar Instellingen > Notificaties."
   },
   {
     "id": "api.templates.email_info1",
@@ -8981,7 +8981,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " en ga naar Accountinstellingen > Meldingen"
+    "translation": " en ga naar Instellingen > Meldingen"
   },
   {
     "id": "app.notification.body.mention.title",
