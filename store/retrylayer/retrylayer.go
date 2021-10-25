@@ -11550,6 +11550,26 @@ func (s *RetryLayerUserStore) SearchNotInChannel(teamID string, channelID string
 
 }
 
+func (s *RetryLayerUserStore) SearchNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.SearchNotInGroup(groupID, term, options)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerUserStore) SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 
 	tries := 0

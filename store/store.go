@@ -410,6 +410,7 @@ type UserStore interface {
 	SearchNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, error)
 	SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
+	SearchNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
 	AnalyticsGetInactiveUsersCount() (int64, error)
 	AnalyticsGetExternalUsers(hostDomain string) (bool, error)
 	AnalyticsGetSystemAdminCount() (int64, error)

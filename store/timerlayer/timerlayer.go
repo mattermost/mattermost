@@ -9586,6 +9586,22 @@ func (s *TimerLayerUserStore) SearchNotInChannel(teamID string, channelID string
 	return result, err
 }
 
+func (s *TimerLayerUserStore) SearchNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.SearchNotInGroup(groupID, term, options)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchNotInGroup", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	start := timemodule.Now()
 

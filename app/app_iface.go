@@ -968,6 +968,7 @@ type AppIface interface {
 	SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersInTeam(teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	SearchUsersNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SendAckToPushProxy(ack *model.PushNotificationAck) error

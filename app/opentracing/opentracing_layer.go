@@ -14194,6 +14194,28 @@ func (a *OpenTracingAppLayer) SearchUsersNotInChannel(teamID string, channelID s
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) SearchUsersNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersNotInGroup")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SearchUsersNotInGroup(groupID, term, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersNotInTeam")

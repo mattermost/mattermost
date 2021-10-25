@@ -10631,6 +10631,24 @@ func (s *OpenTracingLayerUserStore) SearchNotInChannel(teamID string, channelID 
 	return result, err
 }
 
+func (s *OpenTracingLayerUserStore) SearchNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.SearchNotInGroup")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.UserStore.SearchNotInGroup(groupID, term, options)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerUserStore) SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.SearchNotInTeam")

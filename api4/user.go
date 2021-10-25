@@ -951,6 +951,18 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if props.NotInGroupId != "" {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+	}
+
 	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return

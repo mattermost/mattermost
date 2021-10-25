@@ -1436,6 +1436,16 @@ func (us SqlUserStore) SearchInGroup(groupID string, term string, options *model
 	return us.performSearch(query, term, options)
 }
 
+func (us SqlUserStore) SearchNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	query := us.usersQuery.
+		LeftJoin("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? )", groupID).
+		Where("gm.UserId IS NULL").
+		OrderBy("Username ASC").
+		Limit(uint64(options.Limit))
+
+	return us.performSearch(query, term, options)
+}
+
 var spaceFulltextSearchChar = []string{
 	"<",
 	">",
