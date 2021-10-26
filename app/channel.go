@@ -1948,6 +1948,7 @@ func (a *App) GetChannelMembersForUserWithPagination(userID string, page, perPag
 
 	members := make([]*model.ChannelMember, 0, len(m))
 	for _, member := range m {
+		member := member
 		members = append(members, &member.ChannelMember)
 	}
 	return members, nil
