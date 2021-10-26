@@ -149,7 +149,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	if !opts.Deleted {
 		fetchConditions = sq.And{
 			fetchConditions,
-			sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0},
+			sq.Eq{"Posts.DeleteAt": 0},
 		}
 	}
 
@@ -169,9 +169,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	go func() {
 		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
 			Select("COUNT(DISTINCT(Posts.RootId))").
-			From("Posts").
-			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+			From("Posts, ThreadMemberships, Channels").
+			Where("Posts.RootId = ThreadMemberships.PostId").
+			Where("Posts.ChannelId = Channels.Id").
 			Where(fetchConditions).
 			Where("Posts.CreateAt > ThreadMemberships.LastViewed").ToSql()
 
