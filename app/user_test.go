@@ -488,6 +488,48 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
 	})
+
+	t.Run("Only the last token works if verification is required", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		// we update the email a first time and update. The first
+		// token is sent with the email
+		user.Email = th.MakeEmail()
+		_, appErr := th.App.UpdateUser(user, true)
+		require.Nil(t, appErr)
+
+		tokens := []*model.Token{}
+		require.Eventually(t, func() bool {
+			var err error
+			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			return err == nil && len(tokens) == 1
+		}, 100*time.Millisecond, 10*time.Millisecond)
+
+		firstToken := tokens[0]
+
+		// without using the first token, we update the email a second
+		// time and another token gets sent. The first one should not
+		// work anymore and the second should work properly
+		user.Email = th.MakeEmail()
+		_, appErr = th.App.UpdateUser(user, true)
+		require.Nil(t, appErr)
+
+		require.Eventually(t, func() bool {
+			var err error
+			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			return err == nil && len(tokens) == 1
+		}, 100*time.Millisecond, 10*time.Millisecond)
+		secondToken := tokens[0]
+
+		_, err := th.App.Srv().Store.Token().GetByToken(firstToken.Token)
+		require.Error(t, err)
+
+		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
+		require.Nil(t, th.App.VerifyEmailFromToken(secondToken.Token))
+		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
+	})
 }
 
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {
@@ -1493,5 +1535,44 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, threadMembership)
 		assert.True(t, threadMembership.Following)
+	})
+}
+
+func TestCreateUserWithInitialPreferences(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		testUser := th.CreateUser()
+		defer th.App.PermanentDeleteUser(th.Context, testUser)
+
+		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		require.Nil(t, appErr)
+
+		tutorialStepPref := preferences[1]
+		recommendedNextStepsPref := preferences[0]
+
+		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
+		assert.Equal(t, recommendedNextStepsPref.Category, model.PREFERENCE_RECOMMENDED_NEXT_STEPS)
+		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
+		assert.Equal(t, recommendedNextStepsPref.Value, "false")
+	})
+
+	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		testUser := th.CreateGuest()
+		defer th.App.PermanentDeleteUser(th.Context, testUser)
+
+		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		require.Nil(t, appErr)
+
+		assert.Equal(t, testUser.Id, preferences[0].UserId)
+		assert.Equal(t, model.PREFERENCE_RECOMMENDED_NEXT_STEPS, preferences[0].Category)
+		assert.Equal(t, "hide", preferences[0].Name)
+		assert.Equal(t, "false", preferences[0].Value)
+
+		assert.Equal(t, testUser.Id, preferences[1].UserId)
+		assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[1].Category)
+		assert.Equal(t, testUser.Id, preferences[1].Name)
+		assert.Equal(t, "0", preferences[1].Value)
 	})
 }

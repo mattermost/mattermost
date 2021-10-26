@@ -81,7 +81,7 @@ func GetCustomStatus(message string) *model.CustomStatus {
 		Text:  message,
 	}
 
-	firstEmojiLocations := model.ALL_EMOJI_PATTERN.FindIndex([]byte(message))
+	firstEmojiLocations := model.EMOJI_PATTERN.FindIndex([]byte(message))
 	if len(firstEmojiLocations) > 0 && firstEmojiLocations[0] == 0 {
 		// emoji found at starting index
 		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]

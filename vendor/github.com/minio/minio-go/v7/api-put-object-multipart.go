@@ -32,6 +32,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7/pkg/encrypt"
 	"github.com/minio/minio-go/v7/pkg/s3utils"
 )
@@ -72,7 +73,7 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 	var complMultipartUpload completeMultipartUpload
 
 	// Calculate the optimal parts info for a given size.
-	totalPartsCount, partSize, _, err := optimalPartInfo(-1, opts.PartSize)
+	totalPartsCount, partSize, _, err := OptimalPartInfo(-1, opts.PartSize)
 	if err != nil {
 		return UploadInfo{}, err
 	}
@@ -197,6 +198,13 @@ func (c Client) initiateMultipartUpload(ctx context.Context, bucketName, objectN
 	// Initialize url queries.
 	urlValues := make(url.Values)
 	urlValues.Set("uploads", "")
+
+	if opts.Internal.SourceVersionID != "" {
+		if _, err := uuid.Parse(opts.Internal.SourceVersionID); err != nil {
+			return initiateMultipartUploadResult{}, errInvalidArgument(err.Error())
+		}
+		urlValues.Set("versionId", opts.Internal.SourceVersionID)
+	}
 
 	// Set ContentType header.
 	customHeader := opts.Header()

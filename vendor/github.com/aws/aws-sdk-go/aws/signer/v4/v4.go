@@ -90,7 +90,7 @@ const (
 )
 
 var ignoredHeaders = rules{
-	blacklist{
+	excludeList{
 		mapRule{
 			authorizationHeader: struct{}{},
 			"User-Agent":        struct{}{},
@@ -99,9 +99,9 @@ var ignoredHeaders = rules{
 	},
 }
 
-// requiredSignedHeaders is a whitelist for build canonical headers.
+// requiredSignedHeaders is a allow list for build canonical headers.
 var requiredSignedHeaders = rules{
-	whitelist{
+	allowList{
 		mapRule{
 			"Cache-Control":                         struct{}{},
 			"Content-Disposition":                   struct{}{},
@@ -145,12 +145,13 @@ var requiredSignedHeaders = rules{
 		},
 	},
 	patterns{"X-Amz-Meta-"},
+	patterns{"X-Amz-Object-Lock-"},
 }
 
-// allowedHoisting is a whitelist for build query headers. The boolean value
+// allowedHoisting is a allow list for build query headers. The boolean value
 // represents whether or not it is a pattern.
 var allowedQueryHoisting = inclusiveRules{
-	blacklist{requiredSignedHeaders},
+	excludeList{requiredSignedHeaders},
 	patterns{"X-Amz-"},
 }
 

@@ -31,11 +31,13 @@ type TeamMember struct {
 
 //msgp:ignore TeamUnread
 type TeamUnread struct {
-	TeamId           string `json:"team_id"`
-	MsgCount         int64  `json:"msg_count"`
-	MentionCount     int64  `json:"mention_count"`
-	MentionCountRoot int64  `json:"mention_count_root"`
-	MsgCountRoot     int64  `json:"msg_count_root"`
+	TeamId             string `json:"team_id"`
+	MsgCount           int64  `json:"msg_count"`
+	MentionCount       int64  `json:"mention_count"`
+	MentionCountRoot   int64  `json:"mention_count_root"`
+	MsgCountRoot       int64  `json:"msg_count_root"`
+	ThreadCount        int64  `json:"thread_count"`
+	ThreadMentionCount int64  `json:"thread_mention_count"`
 }
 
 //msgp:ignore TeamMemberForExport

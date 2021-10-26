@@ -87,6 +87,14 @@ func ugly(dst, src []byte) []byte {
 	return dst
 }
 
+func isNaNOrInf(src []byte) bool {
+	return src[0] == 'i' || //Inf
+		src[0] == 'I' || // inf
+		src[0] == '+' || // +Inf
+		src[0] == 'N' || // Nan
+		(src[0] == 'n' && len(src) > 1 && src[1] != 'u') // nan
+}
+
 func appendPrettyAny(buf, json []byte, i int, pretty bool, width int, prefix, indent string, sortkeys bool, tabs, nl, max int) ([]byte, int, int, bool) {
 	for ; i < len(json); i++ {
 		if json[i] <= ' ' {
@@ -95,7 +103,8 @@ func appendPrettyAny(buf, json []byte, i int, pretty bool, width int, prefix, in
 		if json[i] == '"' {
 			return appendPrettyString(buf, json, i, nl)
 		}
-		if (json[i] >= '0' && json[i] <= '9') || json[i] == '-' {
+
+		if (json[i] >= '0' && json[i] <= '9') || json[i] == '-' || isNaNOrInf(json[i:]) {
 			return appendPrettyNumber(buf, json, i, nl)
 		}
 		if json[i] == '{' {
@@ -539,7 +548,7 @@ func Color(src []byte, style *Style) []byte {
 			dst = apnd(dst, src[i])
 		} else {
 			var kind byte
-			if (src[i] >= '0' && src[i] <= '9') || src[i] == '-' {
+			if (src[i] >= '0' && src[i] <= '9') || src[i] == '-' || isNaNOrInf(src[i:]) {
 				kind = '0'
 				dst = append(dst, style.Number[0]...)
 			} else if src[i] == 't' {

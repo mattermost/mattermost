@@ -220,6 +220,9 @@ func (c Client) copyObjectDo(ctx context.Context, srcBucket, srcObject, destBuck
 	if dstOpts.Internal.SourceETag != "" {
 		headers.Set(minIOBucketSourceETag, dstOpts.Internal.SourceETag)
 	}
+	if dstOpts.Internal.ReplicationRequest {
+		headers.Set(minIOBucketReplicationRequest, "")
+	}
 	if len(dstOpts.UserTags) != 0 {
 		headers.Set(amzTaggingHeader, s3utils.TagEncode(dstOpts.UserTags))
 	}

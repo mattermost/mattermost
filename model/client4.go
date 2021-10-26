@@ -1440,14 +1440,20 @@ func (c *Client4) AttachDeviceId(deviceId string) (bool, *Response) {
 
 // GetTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount
 // of unread messages and mentions the current user has for the teams it belongs to.
-// An optional team ID can be set to exclude that team from the results. Must be authenticated.
-func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*TeamUnread, *Response) {
-	var optional string
+// An optional team ID can be set to exclude that team from the results.
+// An optional boolean can be set to include collapsed thread unreads. Must be authenticated.
+func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string, includeCollapsedThreads bool) ([]*TeamUnread, *Response) {
+	query := url.Values{}
+
 	if teamIdToExclude != "" {
-		optional += fmt.Sprintf("?exclude_team=%s", url.QueryEscape(teamIdToExclude))
+		query.Set("exclude_team", teamIdToExclude)
 	}
 
-	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/unread"+optional, "")
+	if includeCollapsedThreads {
+		query.Set("include_collapsed_threads", "true")
+	}
+
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/unread?"+query.Encode(), "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}

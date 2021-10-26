@@ -2184,24 +2184,8 @@
     "translation": "Не удалось отправить сообщение на электронную почту об успешной деактивации аккаунта"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Не удалось отправить письмо с уведомленим о смене адреса электронной почты"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Не удалось отправить письмо с уведомленим о смене имени пользователя"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Не удалось отправить письмо с подтверждением смены адреса электронной почты"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Невозможно отправить email уведомление для смены MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Не удалось отправить письмо об обновлении пароля"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2216,16 +2200,8 @@
     "translation": "Не удалось отправить письмо об обновлении пароля"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Не удалось отправить сообщение «Личный токен доступа добавлен»"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Не удалось отправить письмо с подтверждением"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Не удалось отправить приветственное письмо"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -4820,22 +4796,6 @@
     "translation": "Отсутствует узел служб SSO Identity Provider в XML."
   },
   {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Невозможно прочитать файл изображения профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Пустой массив 'image' в запросе."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Нет файла 'image' в запросе."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Невозможно загрузить изображение профиля. Слишком большой файл."
-  },
-  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Пожалуйста, добавьте меня в команды и каналы, c которыми мне нужно взаимодействовать. Это можно сделать в браузере или в приложении Mattermost для ПК."
   },
@@ -4894,22 +4854,6 @@
   {
     "id": "api.bot.create_disabled",
     "translation": "Создание бота было отключено."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Не получилось удалить изображение профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Не удалось загрузить изображение профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Не удалось открыть файл изображения."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Не удалось разобрать составную форму."
   },
   {
     "id": "api.channel.add_guest.added",
@@ -8048,10 +7992,6 @@
     "translation": "В запросе отсутствует либо параметр AuthData, либо параметр AuthService."
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Не удалось отправить администратору email с уведомлением о достижении лимита пользователей"
-  },
-  {
     "id": "api.user.send_cloud_welcome_email.error",
     "translation": "Не удалось отправить приветственное письмо по электронной почте"
   },
@@ -9040,10 +8980,6 @@
     "translation": "Не удалось отправить автоматический ответ от пользователя."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Не удалось отправить предупреждение по электронной почте об окончании пробного периода"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Ваша бесплатная 14-дневная пробная подписка на Mattermost скоро закончится"
   },
@@ -9066,10 +9002,6 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Не удалось сбросить поле AuthData в Email."
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Не удалось отправить письмо об окончании пробной подписки"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",

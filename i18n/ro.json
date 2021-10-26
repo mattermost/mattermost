@@ -2184,24 +2184,8 @@
     "translation": "Nu a reușit să trimită cu succes e-mailul de dezactivare a contului"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Nu a reuşit să trimite e-mail de notificare e-mail schimbarea cu succes"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Nu a reuşit să trimite email de notificare de utilizator schimbare cu succes"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Nu a reuşit să trimită e-mail de verificare schimbare e-mail cu succes"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Imposibilitatea de a trimite e-mail de notificare pentru schimbare MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Nu a reuşit să trimiteţi e-mail de parola actualizare cu succes"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2216,16 +2200,8 @@
     "translation": "Nu a reuşit să trimiteţi e-mail de parola actualizare cu succes"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Nu a reuşit să trimită \"simbol acces Personal adăugat\" e-mail cu succes"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Nu a reuşit să trimită e-mail de verificare cu succes"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Nu a reuşit să trimite email de bun venit cu succes"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5908,38 +5884,6 @@
     "translation": "Adăugați-mă la echipele și canalele pe care doriți să interacționați. Pentru a face acest lucru, utilizați browserul sau aplicația Mattermost Desktop."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Imposibil de încărcat imaginea pictogramei. Fișierul este prea mare."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Nu s-a putut parsa forma multipartidă."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Nu sa putut deschide fişierul de imagine."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nici un fișier sub 'imaginea' în cerere."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Gama goală sub 'imagine' în cerere."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Nu s-a putut încărca imaginea pictogramei."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Imposibil de citit fișierul de imagine cu pictograme."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Nu s-a putut șterge imaginea pictogramei."
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Crearea boților a fost dezactivată."
   },
@@ -8376,10 +8320,6 @@
     "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
   },
   {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Trimiterea e-mailului către utilizator nu a reușit notificarea administratorului"
-  },
-  {
     "id": "api.templates.upgrade_request_title2",
     "translation": "Utilizatorii noi nu se pot alătura spațiului dvs. de lucru"
   },
@@ -9024,10 +8964,6 @@
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Nu a reușit să trimită un e-mail de avertizare privind încheierea procesului"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie în curând"
   },
@@ -9074,10 +9010,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Nu se poate trimite un răspuns automat de la utilizator."
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Nu a reușit să trimită e-mailul de încheiere a procesului"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",

@@ -149,7 +149,7 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "이 기본 채널은 전용 채널로 변환할 수 없습니다."
+    "translation": "기본 채널은 비공개 채널로 변환할 수 없습니다."
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "기본 채널은 삭제할 수 없습니다 {{.Channel}}"
+    "translation": "기본 채널인 {{.Channel}} 채널은 삭제할 수 없습니다."
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -1689,7 +1689,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "본 채널은 %v에 의해 해당 팀으로 이동되었습니다. "
+    "translation": "본 채널은 %v 팀에서 이 팀으로 이동되었습니다."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -2176,24 +2176,8 @@
     "translation": "Failed to send the deactivate account email successfully"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "전자우편 변경 알림을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "사용자명 변경 알림을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "전자우편 주소 변경 검증을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "비밀번호 변경 알림을 위한 전자우편을 발송하지 못했습니다"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2208,16 +2192,8 @@
     "translation": "비밀번호 변경 알림을 위한 전자우편을 발송하지 못했습니다"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send \"Personal access token added\" email successfully"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "전자우편 주소 검증을 위한 전자우편을 발송하지 못했습니다"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "가입 환영 전자우편을 발송하지 못했습니다"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5894,38 +5870,6 @@
   {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "나를 대화하기를 원하는 팀과 채널에 추가하여 주십시오. 이렇게 하려면 브라우저 또는 Mattermost 데스크탑 앱을 사용하십시오."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "용량이 커서 아이콘 이미지 파일을 업로드 할 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "잘못된 multipart form을 파싱할 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "이미지 파일을 열 수 없습니다."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "요청의 'image' 속성 아래에 파일이 없습니다"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "요청의 'image' 속성에 빈 배열이 전달되었습니다"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "아이콘 이미지를 업로드 할 수 없습니다."
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "아이콘 이미지 파일을 읽을 수 없습니다."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "아이콘 이미지를 삭제할 수 없습니다."
   },
   {
     "id": "api.bot.create_disabled",

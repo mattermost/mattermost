@@ -15,7 +15,7 @@
 package global // import "go.opentelemetry.io/otel/metric/global"
 
 import (
-	"go.opentelemetry.io/otel/internal/global"
+	"go.opentelemetry.io/otel/internal/metric/global"
 	"go.opentelemetry.io/otel/metric"
 )
 

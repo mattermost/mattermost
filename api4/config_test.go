@@ -133,11 +133,11 @@ func TestReloadConfig(t *testing.T) {
 		require.False(t, ok, "should not Reload the config due no permission.")
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.ReloadConfig()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		ok, resp := client.ReloadConfig()
 		CheckNoError(t, resp)
 		require.True(t, ok, "should Reload the config")
-	})
+	}, "as system admin and local mode")
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
@@ -475,6 +475,8 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	err = th.Server.Log.Flush(context.Background())
 	require.NoError(t, err)
 
+	require.NoError(t, logFile.Sync())
+
 	data, err := ioutil.ReadAll(logFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
@@ -768,11 +770,11 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStoreFromDSN("from.json", false, false, nil)
+		f, err := config.NewStoreFromDSN("from.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStoreFromDSN("to.json", false, false, nil)
+		_, err = config.NewStoreFromDSN("to.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 

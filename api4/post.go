@@ -338,28 +338,10 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := c.App.GetSinglePost(c.Params.PostId)
+	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session())
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	channel, err := c.App.GetChannel(post.ChannelId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
-		if channel.Type == model.CHANNEL_OPEN {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
-				c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
-				return
-			}
-		} else {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-			return
-		}
 	}
 
 	post = c.App.PreparePostForClient(post, false, false)
@@ -430,22 +412,9 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := c.App.GetChannel(post.ChannelId)
-	if err != nil {
+	if _, err = c.App.GetPostIfAuthorized(post.Id, c.AppContext.Session()); err != nil {
 		c.Err = err
 		return
-	}
-
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
-		if channel.Type == model.CHANNEL_OPEN {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
-				c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
-				return
-			}
-		} else {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-			return
-		}
 	}
 
 	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {

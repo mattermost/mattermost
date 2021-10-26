@@ -32,7 +32,13 @@ func (cm CompressionMethod) Decode(dest []byte, r io.Reader, sizeHint int64, rec
 	case CompressionMethodRaw:
 		return io.ReadFull(r, dest)
 	case CompressionMethodRLE:
-		return decodePackBits(dest, r, rect.Dx(), rect.Dy()*channels, large)
+		var width int
+		if depth == 1 {
+			width = (rect.Dx()+7)>>3
+		} else {
+			width = rect.Dx()
+		}
+		return decodePackBits(dest, r, width, rect.Dy()*channels, large)
 	case CompressionMethodZIPWithoutPrediction:
 		return decodeZLIB(dest, r, sizeHint)
 	case CompressionMethodZIPWithPrediction:

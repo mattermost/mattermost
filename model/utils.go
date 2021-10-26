@@ -438,6 +438,12 @@ func IsValidAlphaNumHyphenUnderscore(s string, withFormat bool) bool {
 	return validSimpleAlphaNumHyphenUnderscore.MatchString(s)
 }
 
+func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
+
+	validSimpleAlphaNumHyphenUnderscorePlus := regexp.MustCompile(`^[a-zA-Z0-9+_-]+$`)
+	return validSimpleAlphaNumHyphenUnderscorePlus.MatchString(s)
+}
+
 func Etag(parts ...interface{}) string {
 
 	etag := CurrentVersion
