@@ -60,7 +60,18 @@ type ChannelMember struct {
 	ExplicitRoles    string    `json:"explicit_roles"`
 }
 
+// ChannelMemberWithTeamData contains ChannelMember appended with extra team information
+// as well.
+type ChannelMemberWithTeamData struct {
+	ChannelMember
+	TeamDisplayName string `json:"team_display_name"`
+	TeamName        string `json:"team_name"`
+	TeamUpdateAt    int64  `json:"team_update_at"`
+}
+
 type ChannelMembers []ChannelMember
+
+type ChannelMembersWithTeamData []ChannelMemberWithTeamData
 
 type ChannelMemberForExport struct {
 	ChannelMember

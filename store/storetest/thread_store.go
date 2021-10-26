@@ -130,7 +130,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(1), thread.ReplyCount)
-		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
+		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId}, thread.Participants)
 	})
 
 	t.Run("Update reply should update the UpdateAt of the thread", func(t *testing.T) {
@@ -181,33 +181,55 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Deleting reply should update the thread", func(t *testing.T) {
-		rootPost := model.Post{}
-		rootPost.RootId = model.NewId()
-		rootPost.ChannelId = model.NewId()
-		rootPost.UserId = model.NewId()
-		rootPost.Message = NewTestId()
-
-		replyPost := model.Post{}
-		replyPost.ChannelId = rootPost.ChannelId
-		replyPost.UserId = model.NewId()
-		replyPost.Message = NewTestId()
-		replyPost.RootId = rootPost.RootId
-
-		newPosts, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = NewTestId()
+		rootPost, err := ss.Post().Save(&o1)
 		require.NoError(t, err)
 
-		thread1, err := ss.Thread().Get(newPosts[0].RootId)
+		o2 := model.Post{}
+		o2.RootId = rootPost.Id
+		o2.ChannelId = rootPost.ChannelId
+		o2.UserId = model.NewId()
+		o2.Message = NewTestId()
+		replyPost, err := ss.Post().Save(&o2)
 		require.NoError(t, err)
-		require.EqualValues(t, thread1.ReplyCount, 2)
-		require.Len(t, thread1.Participants, 2)
+
+		o3 := model.Post{}
+		o3.RootId = rootPost.Id
+		o3.ChannelId = rootPost.ChannelId
+		o3.UserId = o2.UserId
+		o3.Message = NewTestId()
+		replyPost2, err := ss.Post().Save(&o3)
+		require.NoError(t, err)
+
+		o4 := model.Post{}
+		o4.RootId = rootPost.Id
+		o4.ChannelId = rootPost.ChannelId
+		o4.UserId = model.NewId()
+		o4.Message = NewTestId()
+		replyPost3, err := ss.Post().Save(&o4)
+		require.NoError(t, err)
+
+		thread, err := ss.Thread().Get(rootPost.Id)
+		require.NoError(t, err)
+		require.EqualValues(t, thread.ReplyCount, 3)
+		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
+
+		err = ss.Post().Delete(replyPost2.Id, 123, model.NewId())
+		require.NoError(t, err)
+		thread, err = ss.Thread().Get(rootPost.Id)
+		require.NoError(t, err)
+		require.EqualValues(t, thread.ReplyCount, 2)
+		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
 		err = ss.Post().Delete(replyPost.Id, 123, model.NewId())
 		require.NoError(t, err)
-
-		thread2, err := ss.Thread().Get(rootPost.RootId)
+		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
-		require.EqualValues(t, thread2.ReplyCount, 1)
-		require.Len(t, thread2.Participants, 2)
+		require.EqualValues(t, thread.ReplyCount, 1)
+		require.EqualValues(t, thread.Participants, model.StringArray{replyPost3.UserId})
 	})
 
 	t.Run("Deleting root post should delete the thread", func(t *testing.T) {

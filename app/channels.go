@@ -3,13 +3,31 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/v6/services/httpservice"
+import (
+	"sync/atomic"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/pkg/errors"
+)
 
 // Channels contains all channels related state.
 type Channels struct {
 	srv *Server
 
-	httpService httpservice.HTTPService
+	imageProxy *imageproxy.ImageProxy
+
+	asymmetricSigningKey atomic.Value
+	clientConfig         atomic.Value
+	clientConfigHash     atomic.Value
+	limitedClientConfig  atomic.Value
+
+	// cached counts that are used during notice condition validation
+	cachedPostCount   int64
+	cachedUserCount   int64
+	cachedDBMSVersion string
+	// previously fetched notices
+	cachedNotices model.ProductNotices
 }
 
 func init() {
@@ -20,19 +38,18 @@ func init() {
 
 func NewChannels(s *Server) (*Channels, error) {
 	return &Channels{
-		srv:         s,
-		httpService: httpservice.MakeHTTPService(s),
+		srv:        s,
+		imageProxy: imageproxy.MakeImageProxy(s, s.httpService, s.Log),
 	}, nil
 }
 
-func (c *Channels) Start() error {
+func (ch *Channels) Start() error {
+	if err := ch.ensureAsymmetricSigningKey(); err != nil {
+		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
+	}
 	return nil
 }
 
-func (c *Channels) Stop() error {
+func (*Channels) Stop() error {
 	return nil
-}
-
-func (c *Channels) HTTPService() httpservice.HTTPService {
-	return c.httpService
 }

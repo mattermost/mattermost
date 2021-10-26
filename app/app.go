@@ -125,10 +125,10 @@ func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud
 }
 func (a *App) HTTPService() httpservice.HTTPService {
-	return a.ch.httpService
+	return a.ch.srv.httpService
 }
 func (a *App) ImageProxy() *imageproxy.ImageProxy {
-	return a.ch.srv.ImageProxy
+	return a.ch.imageProxy
 }
 func (a *App) Timezones() *timezones.Timezones {
 	return a.ch.srv.timezones
