@@ -60,6 +60,9 @@ type FeatureFlags struct {
 
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
+
+	// A/B test for the add members to channel button, possible values = ("top", "bottom")
+	AddMembersToChannel string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -81,6 +84,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsMobile = false
 	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
+	f.AddMembersToChannel = "top"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
