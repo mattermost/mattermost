@@ -25,7 +25,7 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	web := New(th.App, th.Server.Router)
+	web := New(th.Server)
 	handler := web.NewHandler(handlerForHTTPErrors)
 
 	var flagtests = []struct {
@@ -84,7 +84,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 		*config.ServiceSettings.TLSStrictTransportMaxAge = 6000
 	})
 
-	web := New(th.App, th.Server.Router)
+	web := New(th.Server)
 	handler := web.NewHandler(handlerForHTTPSecureTransport)
 
 	request := httptest.NewRequest("GET", "/api/v4/test", nil)
@@ -136,10 +136,10 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		t.Errorf("Expected nil, got %s", err)
 	}
 
-	web := New(th.App, th.Server.Router)
+	web := New(th.Server)
 
 	handler := Handler{
-		App:            web.app,
+		Srv:            web.srv,
 		HandleFunc:     handlerForCSRFToken,
 		RequireSession: true,
 		TrustRequester: false,
@@ -219,7 +219,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Handler with RequireSession set to false
 
 	handlerNoSession := Handler{
-		App:            th.App,
+		Srv:            th.Server,
 		HandleFunc:     handlerForCSRFToken,
 		RequireSession: false,
 		TrustRequester: false,
@@ -263,10 +263,10 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		web := New(th.App, th.Server.Router)
+		web := New(th.Server)
 
 		handler := Handler{
-			App:            web.app,
+			Srv:            web.srv,
 			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
@@ -285,10 +285,10 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		web := New(th.App, th.Server.Router)
+		web := New(th.Server)
 
 		handler := Handler{
-			App:            web.app,
+			Srv:            web.srv,
 			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
@@ -325,10 +325,10 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
 		})
 
-		web := New(th.App, th.Server.Router)
+		web := New(th.Server)
 
 		handler := Handler{
-			App:            web.app,
+			Srv:            web.srv,
 			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
@@ -380,10 +380,10 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 				*cfg.ServiceSettings.SiteURL = tc.SiteURL
 			})
 
-			web := New(th.App, th.Server.Router)
+			web := New(th.Server)
 
 			handler := Handler{
-				App:            web.app,
+				Srv:            web.srv,
 				HandleFunc:     handlerForCSRFToken,
 				RequireSession: true,
 				TrustRequester: false,
