@@ -259,7 +259,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		os.Exit(ExitGenericFailure)
 	}
 
-	store.stores.retentionPolicy.(*SqlRetentionPolicyStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()

@@ -36,3 +36,18 @@ SET @preparedStatement = (SELECT IF(
 PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'UserAccessTokens'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_user_access_tokens_token'
+    ) > 0,
+    'DROP INDEX idx_user_access_tokens_token ON UserAccessTokens;',
+    'SELECT 1'
+));
+
+PREPARE removeIndexIfExists FROM @preparedStatement;
+EXECUTE removeIndexIfExists;
+DEALLOCATE PREPARE removeIndexIfExists;

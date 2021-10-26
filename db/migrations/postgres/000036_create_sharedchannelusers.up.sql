@@ -21,3 +21,5 @@ BEGIN
         ALTER TABLE sharedchannelusers ADD CONSTRAINT sharedchannelusers_userid_channelid_remoteid_key UNIQUE (userid, channelid, remoteid);
     END IF;
 END $$;
+
+DROP INDEX IF EXISTS idx_sharedchannelusers_user_id;

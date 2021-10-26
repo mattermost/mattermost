@@ -13,3 +13,5 @@ CREATE INDEX IF NOT EXISTS idx_emoji_create_at ON emoji (createat);
 CREATE INDEX IF NOT EXISTS idx_emoji_delete_at ON emoji (deleteat);
 
 DROP INDEX IF EXISTS Name_2;
+
+DROP INDEX IF EXISTS idx_emoji_name;

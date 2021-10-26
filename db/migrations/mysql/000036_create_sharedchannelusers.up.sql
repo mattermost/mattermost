@@ -37,4 +37,17 @@ PREPARE alterIfUniqueNotExists FROM @preparedStatement;
 EXECUTE alterIfUniqueNotExists;
 DEALLOCATE PREPARE alterIfUniqueNotExists;
 
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'SharedChannelUsers'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_sharedchannelusers_user_id'
+    ) > 0,
+    'DROP INDEX idx_sharedchannelusers_user_id ON SharedChannelUsers;',
+    'SELECT 1'
+));
 
+PREPARE removeIndexIfExists FROM @preparedStatement;
+EXECUTE removeIndexIfExists;
+DEALLOCATE PREPARE removeIndexIfExists;

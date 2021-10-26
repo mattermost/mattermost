@@ -32,3 +32,5 @@ BEGIN
         ALTER TABLE oauthauthdata ALTER COLUMN state TYPE varchar(1024);
     END IF;
 END modify_column_type_if_type_is_different $$;
+
+DROP INDEX IF EXISTS idx_oauthauthdata_client_id;
