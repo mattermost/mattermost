@@ -47,7 +47,6 @@ type Channel struct {
 	Header            string                 `json:"header"`
 	Purpose           string                 `json:"purpose"`
 	LastPostAt        int64                  `json:"last_post_at"`
-	LastRootPostAt    int64                  `json:"last_root_post_at"`
 	TotalMsgCount     int64                  `json:"total_msg_count"`
 	ExtraUpdateAt     int64                  `json:"extra_update_at"`
 	CreatorId         string                 `json:"creator_id"`
@@ -57,6 +56,7 @@ type Channel struct {
 	Shared            *bool                  `json:"shared"`
 	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
 	PolicyID          *string                `json:"policy_id" db:"-"`
+	LastRootPostAt    int64                  `json:"last_root_post_at"`
 }
 
 type ChannelWithTeamData struct {

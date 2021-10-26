@@ -8888,13 +8888,6 @@
     "translation": "Грешка при опит за извличане от хранилището статуса първо администраторско посещение на пазара ."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "{{ .SenderName }} Ви изпрати ново съобщение",
-      "other": "{{ .SenderName }} и {{.Count}} други Ви изпратиха ново съобщение"
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.time",
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
