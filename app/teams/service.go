@@ -75,7 +75,7 @@ func (c *ServiceConfig) validate() error {
 	return nil
 }
 
-func (s *TeamService) sendEvent(team *model.Team, event string) {
+func (ts *TeamService) sendEvent(team *model.Team, event string) {
 	sanitizedTeam := &model.Team{}
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
@@ -91,5 +91,5 @@ func (s *TeamService) sendEvent(team *model.Team, event string) {
 		mlog.Warn("Failed to encode team to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("team", string(teamJSON))
-	s.wh.Publish(message)
+	ts.wh.Publish(message)
 }

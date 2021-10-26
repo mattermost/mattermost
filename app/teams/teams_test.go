@@ -228,6 +228,6 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 
 	t.Run("update role to guest", func(t *testing.T) {
 		_, err := th.service.UpdateTeamMemberSchemeRoles(team.Id, ruser.Id, true, false, false, false)
-		require.Nil(t, err, "Should not fail when try to make member a guest")
+		require.NoError(t, err, "Should not fail when try to make member a guest")
 	})
 }
