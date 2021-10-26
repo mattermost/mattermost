@@ -1946,25 +1946,9 @@ func (a *App) GetChannelMembersForUserWithPagination(userID string, page, perPag
 		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	members := make([]*model.ChannelMember, 0)
+	members := make([]*model.ChannelMember, 0, len(m))
 	for _, member := range m {
-		cm := &model.ChannelMember{
-			ChannelId:        member.ChannelId,
-			UserId:           member.UserId,
-			Roles:            member.Roles,
-			LastViewedAt:     member.LastViewedAt,
-			MsgCount:         member.MsgCount,
-			MsgCountRoot:     member.MsgCountRoot,
-			MentionCount:     member.MentionCount,
-			MentionCountRoot: member.MentionCountRoot,
-			NotifyProps:      member.NotifyProps,
-			LastUpdateAt:     member.LastUpdateAt,
-			SchemeAdmin:      member.SchemeAdmin,
-			SchemeUser:       member.SchemeUser,
-			SchemeGuest:      member.SchemeGuest,
-			ExplicitRoles:    member.ExplicitRoles,
-		}
-		members = append(members, cm)
+		members = append(members, &member.ChannelMember)
 	}
 	return members, nil
 }
