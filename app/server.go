@@ -437,6 +437,8 @@ func NewServer(options ...Option) (*Server, error) {
 		TeamStore:    s.Store.Team(),
 		ChannelStore: s.Store.Channel(),
 		GroupStore:   s.Store.Group(),
+		SchemeStore:  s.Store.Scheme(),
+		RoleStore:    s.Store.Role(),
 		Users:        s.userService,
 		WebHub:       s,
 		ConfigFn:     s.Config,

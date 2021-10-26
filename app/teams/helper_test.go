@@ -75,6 +75,8 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			store:        s.Team(),
 			channelStore: s.Channel(),
 			groupStore:   s.Group(),
+			schemeStore:  s.Scheme(),
+			roleStore:    s.Role(),
 			config:       configStore.Get,
 			license: func() *model.License {
 				return model.NewTestLicense()

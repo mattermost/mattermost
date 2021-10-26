@@ -4,9 +4,11 @@
 package teams
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -14,6 +16,8 @@ type TeamService struct {
 	store        store.TeamStore
 	groupStore   store.GroupStore
 	channelStore store.ChannelStore // TODO: replace this with ChannelService in the future
+	schemeStore  store.SchemeStore
+	roleStore    store.RoleStore
 	users        Users
 	wh           WebHub
 	config       func() *model.Config
@@ -26,6 +30,8 @@ type ServiceConfig struct {
 	TeamStore    store.TeamStore
 	GroupStore   store.GroupStore
 	ChannelStore store.ChannelStore
+	SchemeStore  store.SchemeStore
+	RoleStore    store.RoleStore
 	Users        Users
 	WebHub       WebHub
 	ConfigFn     func() *model.Config
@@ -52,6 +58,8 @@ func New(c ServiceConfig) (*TeamService, error) {
 		store:        c.TeamStore,
 		groupStore:   c.GroupStore,
 		channelStore: c.ChannelStore,
+		schemeStore:  c.SchemeStore,
+		roleStore:    c.RoleStore,
 		users:        c.Users,
 		config:       c.ConfigFn,
 		license:      c.LicenseFn,
@@ -60,9 +68,28 @@ func New(c ServiceConfig) (*TeamService, error) {
 }
 
 func (c *ServiceConfig) validate() error {
-	if c.ConfigFn == nil || c.TeamStore == nil || c.LicenseFn == nil || c.Users == nil || c.ChannelStore == nil || c.GroupStore == nil || c.WebHub == nil {
+	if c.ConfigFn == nil || c.TeamStore == nil || c.SchemeStore == nil || c.RoleStore == nil || c.LicenseFn == nil || c.Users == nil || c.ChannelStore == nil || c.GroupStore == nil || c.WebHub == nil {
 		return errors.New("required parameters are not provided")
 	}
 
 	return nil
+}
+
+func (s *TeamService) sendEvent(team *model.Team, event string) {
+	sanitizedTeam := &model.Team{}
+	*sanitizedTeam = *team
+	sanitizedTeam.Sanitize()
+
+	teamID := "" // no filtering by teamID by default
+	if event == model.WebsocketEventUpdateTeam {
+		// in case of update_team event - we send the message only to members of that team
+		teamID = team.Id
+	}
+	message := model.NewWebSocketEvent(event, teamID, "", "", nil)
+	teamJSON, jsonErr := json.Marshal(team)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode team to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("team", string(teamJSON))
+	s.wh.Publish(message)
 }

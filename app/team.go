@@ -250,29 +250,22 @@ func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *mo
 }
 
 func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError) {
-	team, err := a.GetTeam(teamID)
+	updatedTeam, err := a.ch.srv.teamService.RegenerateTeamInviteId(teamID)
 	if err != nil {
-		return nil, err
-	}
-
-	team.InviteId = model.NewId()
-
-	updatedTeam, nErr := a.Srv().Store.Team().Update(team)
-	if nErr != nil {
+		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
-		case errors.As(nErr, &invErr):
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		case errors.As(err, &invErr):
 			return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
-		case errors.As(nErr, &appErr):
+		case errors.Is(err, appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.updating.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-
-	a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam)
-
 	return updatedTeam, nil
 }
 
@@ -296,136 +289,87 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 }
 
 func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError) {
-	team, err := a.GetTeam(teamID)
+	if appErr := a.IsPhase2MigrationCompleted(); appErr != nil {
+		return "", "", "", appErr
+	}
+
+	guestRoleID, teamUserRoleID, teamAdminRoleID, err := a.ch.srv.teamService.GetSchemeRolesForTeam(teamID)
 	if err != nil {
-		return "", "", "", err
-	}
-
-	if team.SchemeId != nil && *team.SchemeId != "" {
-		scheme, err := a.GetScheme(*team.SchemeId)
-		if err != nil {
-			return "", "", "", err
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			resource := nfErr.Resource()
+			switch {
+			case strings.EqualFold("scheme", resource):
+				return "", "", "", model.NewAppError("GetSchemeRolesForTeam", "app.scheme.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return "", "", "", model.NewAppError("GetSchemeRolesForTeam", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			}
+		default:
+			return "", "", "", model.NewAppError("GetSchemeRolesForTeam", "app.team.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		return scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole, nil
 	}
 
-	return model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId, nil
+	return guestRoleID, teamUserRoleID, teamAdminRoleID, nil
 }
 
 func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
-	member, nErr := a.Srv().Store.Team().GetMember(context.Background(), teamID, userID)
-	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("UpdateTeamMemberRoles", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("UpdateTeamMemberRoles", "app.team.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	if member == nil {
-		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userID+" teamId="+teamID, http.StatusBadRequest)
-	}
-
-	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForTeam(teamID)
+	member, err := a.ch.srv.teamService.UpdateTeamMemberRoles(teamID, userID, newRoles)
 	if err != nil {
-		return nil, err
-	}
-
-	prevSchemeGuestValue := member.SchemeGuest
-
-	var newExplicitRoles []string
-	member.SchemeGuest = false
-	member.SchemeUser = false
-	member.SchemeAdmin = false
-
-	for _, roleName := range strings.Fields(newRoles) {
-		var role *model.Role
-		role, err = a.GetRoleByName(context.Background(), roleName)
-		if err != nil {
-			err.StatusCode = http.StatusBadRequest
-			return nil, err
-		}
-		if !role.SchemeManaged {
-			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
-			newExplicitRoles = append(newExplicitRoles, roleName)
-		} else {
-			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
-			switch roleName {
-			case schemeAdminRole:
-				member.SchemeAdmin = true
-			case schemeUserRole:
-				member.SchemeUser = true
-			case schemeGuestRole:
-				member.SchemeGuest = true
-			default:
-				// If not part of the scheme for this team, then it is not allowed to apply it as an explicit role.
-				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
-			}
-		}
-	}
-
-	if member.SchemeGuest && member.SchemeUser {
-		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if prevSchemeGuestValue != member.SchemeGuest {
-		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
-
-	member, nErr = a.Srv().Store.Team().UpdateMember(member)
-	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		var mrErr *teams.ManagedRoleApplyError
 		var appErr *model.AppError
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
+		case errors.As(err, &nfErr):
+			resource := nfErr.Resource()
+			switch {
+			case strings.EqualFold("scheme", resource):
+				return nil, model.NewAppError("UpdateTeamMemberRoles", "app.scheme.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("UpdateTeamMemberRoles", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			}
+		case errors.As(err, &mrErr):
+			return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.scheme_role.app_error", nil, mrErr.Error(), http.StatusBadRequest)
+		case errors.Is(err, teams.NotTeamMemberError):
+			return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userID+" teamId="+teamID, http.StatusBadRequest)
+		case errors.Is(err, teams.RoleNotFoundError):
+			return nil, model.NewAppError("UpdateTeamMemberRoles", "app.role.get_by_names.app_error", nil, err.Error(), http.StatusBadRequest)
+		case errors.Is(err, teams.UserGuestRoleConflictError):
+			return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, err.Error(), http.StatusBadRequest)
+		case errors.Is(err, teams.UpdateGuestRoleError):
+			return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, err.Error(), http.StatusBadRequest)
 		default:
-			return nil, model.NewAppError("UpdateTeamMemberRoles", "app.team.save_member.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateTeamMemberRoles", "app.team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
 	a.ClearSessionCacheForUser(userID)
-
 	a.sendUpdatedMemberRoleEvent(userID, member)
 
 	return member, nil
 }
 
 func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
-	member, err := a.GetTeamMember(teamID, userID)
+	phase2MigrationCompleted := a.IsPhase2MigrationCompleted() == nil
+	member, err := a.ch.srv.teamService.UpdateTeamMemberSchemeRoles(teamID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin, phase2MigrationCompleted)
 	if err != nil {
-		return nil, err
-	}
-
-	member.SchemeAdmin = isSchemeAdmin
-	member.SchemeUser = isSchemeUser
-	member.SchemeGuest = isSchemeGuest
-
-	if member.SchemeUser && member.SchemeGuest {
-		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
-	if err = a.IsPhase2MigrationCompleted(); err != nil {
-		member.ExplicitRoles = RemoveRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
-	}
-
-	member, nErr := a.Srv().Store.Team().UpdateMember(member)
-	if nErr != nil {
+		var nfErr *store.ErrNotFound
 		var appErr *model.AppError
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		case errors.Is(err, teams.UserGuestRoleConflictError):
+			return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, err.Error(), http.StatusBadRequest)
 		default:
-			return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "app.team.save_member.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "app.team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
 	a.ClearSessionCacheForUser(userID)
-
 	a.sendUpdatedMemberRoleEvent(userID, member)
 
 	return member, nil
@@ -742,7 +686,7 @@ func (a *App) GetTeam(teamID string) (*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
-	team, err := a.Srv().Store.Team().GetByName(name)
+	team, err := a.ch.srv.teamService.GetTeamByName(name)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -757,7 +701,7 @@ func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
-	team, err := a.Srv().Store.Team().GetByInviteId(inviteId)
+	team, err := a.ch.srv.teamService.GetTeamByInviteId(inviteId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -772,7 +716,7 @@ func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) 
 }
 
 func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetAll()
+	teams, err := a.ch.srv.teamService.GetAllTeams()
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -781,7 +725,7 @@ func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetAllPage(offset, limit, opts)
+	teams, err := a.ch.srv.teamService.GetAllTeamsPage(offset, limit, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeamsPage", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -790,11 +734,11 @@ func (a *App) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]
 }
 
 func (a *App) GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError) {
-	totalCount, err := a.Srv().Store.Team().AnalyticsTeamCount(opts)
+	totalCount, err := a.ch.srv.teamService.GetAllTeamsCount(opts)
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeamsPageWithCount", "app.team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	teams, err := a.Srv().Store.Team().GetAllPage(offset, limit, opts)
+	teams, err := a.ch.srv.teamService.GetAllTeamsPage(offset, limit, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeamsPageWithCount", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -802,7 +746,7 @@ func (a *App) GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSe
 }
 
 func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetAllPrivateTeamListing()
+	teams, err := a.ch.srv.teamService.GetAllPrivateTeams()
 	if err != nil {
 		return nil, model.NewAppError("GetAllPrivateTeams", "app.team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -811,7 +755,7 @@ func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetAllTeamListing()
+	teams, err := a.ch.srv.teamService.GetAllPublicTeams()
 	if err != nil {
 		return nil, model.NewAppError("GetAllPublicTeams", "app.team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

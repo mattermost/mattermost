@@ -128,3 +128,106 @@ func TestJoinUserToTeam(t *testing.T) {
 		require.Error(t, err, "Should fail")
 	})
 }
+
+func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Email:       "success+" + id + "@simulator.amazonses.com",
+		Type:        model.TeamOpen,
+	}
+
+	_, err := th.service.CreateTeam(team)
+	require.NoError(t, err, "Should create a new team")
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser := th.CreateUser(&user)
+
+	_, _, err = th.service.JoinUserToTeam(team, ruser)
+	require.NoError(t, err)
+
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test+2@example.com", Nickname: "Luke", Username: "luke" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser2 := th.CreateUser(&user2)
+
+	t.Run("not a team member", func(t *testing.T) {
+		_, err = th.service.UpdateTeamMemberRoles(team.Id, ruser2.Id, "team_admin")
+		require.Error(t, err, "Should fail when try to modify the a non member")
+	})
+
+	t.Run("no schemes for team", func(t *testing.T) {
+		team.SchemeId = model.NewString("foo")
+		_, err = th.service.UpdateTeam(team, UpdateOptions{Imported: true})
+		require.NoError(t, err)
+		defer func() {
+			team.SchemeId = nil
+			_, err = th.service.UpdateTeam(team, UpdateOptions{Imported: true})
+			require.NoError(t, err)
+		}()
+
+		_, err = th.service.UpdateTeamMemberRoles(team.Id, ruser.Id, "team_admin")
+		require.Error(t, err, "Should fail if there is no scheme")
+	})
+
+	t.Run("role not found", func(t *testing.T) {
+		_, err = th.service.UpdateTeamMemberRoles(team.Id, ruser.Id, "new_role")
+		require.Error(t, err, "Should fail if there is no such role")
+	})
+
+	t.Run("managed role", func(t *testing.T) {
+		_, err = th.service.roleStore.Save(&model.Role{
+			Name:          "foo_role",
+			SchemeManaged: true,
+			DisplayName:   "managed role",
+			Description:   "desc",
+			Permissions:   []string{"manage_system"},
+		})
+		require.NoError(t, err)
+
+		_, err = th.service.UpdateTeamMemberRoles(team.Id, ruser.Id, "foo_role")
+		require.Error(t, err, "Should fail if the role is managed")
+	})
+}
+
+func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Email:       "success+" + id + "@simulator.amazonses.com",
+		Type:        model.TeamOpen,
+	}
+
+	_, err := th.service.CreateTeam(team)
+	require.NoError(t, err, "Should create a new team")
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser := th.CreateUser(&user)
+
+	_, _, err = th.service.JoinUserToTeam(team, ruser)
+	require.NoError(t, err)
+
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test+2@example.com", Nickname: "Luke", Username: "luke" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser2 := th.CreateUser(&user2)
+
+	t.Run("not a team member", func(t *testing.T) {
+		_, err := th.service.UpdateTeamMemberSchemeRoles(team.Id, ruser2.Id, true, true, false, false)
+		require.Error(t, err, "Should fail when try to modify the a non member")
+	})
+
+	t.Run("invalid roles", func(t *testing.T) {
+		_, err := th.service.UpdateTeamMemberSchemeRoles(team.Id, ruser.Id, true, true, true, false)
+		require.Error(t, err, "Should fail when try to make member both user and guest")
+	})
+
+	t.Run("update role to guest", func(t *testing.T) {
+		_, err := th.service.UpdateTeamMemberSchemeRoles(team.Id, ruser.Id, true, false, false, false)
+		require.Nil(t, err, "Should not fail when try to make member a guest")
+	})
+}

@@ -106,6 +106,10 @@ func (e *ErrNotFound) IsErrNotFound() bool {
 	return true
 }
 
+func (e *ErrNotFound) Resource() string {
+	return e.resource
+}
+
 // ErrOutOfBounds indicates that the requested total numbers of rows
 // was greater than the allowed limit.
 type ErrOutOfBounds struct {

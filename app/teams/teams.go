@@ -5,6 +5,7 @@ package teams
 
 import (
 	"context"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -121,7 +122,7 @@ func (ts *TeamService) PatchTeam(teamID string, patch *model.TeamPatch) (*model.
 // JoinUserToTeam adds a user to the team and it returns three values:
 // 1. a pointer to the team member, if successful
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
-// 3. a pointer to an AppError if something went wrong.
+// 3. an error if something went wrong.
 func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
 	if !ts.IsTeamEmailAllowed(user, team) {
 		return nil, false, AcceptedDomainError
@@ -195,4 +196,161 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	}
 
 	return nil
+}
+
+func (ts *TeamService) RegenerateTeamInviteId(teamID string) (*model.Team, error) {
+	team, err := ts.GetTeam(teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	team.InviteId = model.NewId()
+
+	updatedTeam, err := ts.store.Update(team)
+	if err != nil {
+		return nil, err
+	}
+
+	ts.sendEvent(updatedTeam, model.WebsocketEventUpdateTeam)
+
+	return updatedTeam, nil
+}
+
+func (ts *TeamService) GetSchemeRolesForTeam(teamID string) (string, string, string, error) {
+	team, err := ts.GetTeam(teamID)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	if team.SchemeId != nil && *team.SchemeId != "" {
+		scheme, err := ts.schemeStore.Get(*team.SchemeId)
+		if err != nil {
+			return "", "", "", err
+		}
+		return scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole, nil
+	}
+
+	return model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId, nil
+}
+
+func (ts *TeamService) UpdateTeamMemberRoles(teamID string, userID string, newRoles string) (*model.TeamMember, error) {
+	member, err := ts.store.GetMember(context.Background(), teamID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if member == nil {
+		return nil, NotTeamMemberError
+
+	}
+
+	schemeGuestRole, schemeUserRole, schemeAdminRole, err := ts.GetSchemeRolesForTeam(teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	prevSchemeGuestValue := member.SchemeGuest
+
+	var newExplicitRoles []string
+	member.SchemeGuest = false
+	member.SchemeUser = false
+	member.SchemeAdmin = false
+
+	for _, roleName := range strings.Fields(newRoles) {
+		var role *model.Role
+		role, err = ts.roleStore.GetByName(context.Background(), roleName)
+		if err != nil {
+			// err.StatusCode = http.StatusBadRequest
+			return nil, RoleNotFoundError
+		}
+		if !role.SchemeManaged {
+			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
+			newExplicitRoles = append(newExplicitRoles, roleName)
+		} else {
+			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
+			switch roleName {
+			case schemeAdminRole:
+				member.SchemeAdmin = true
+			case schemeUserRole:
+				member.SchemeUser = true
+			case schemeGuestRole:
+				member.SchemeGuest = true
+			default:
+				// If not part of the scheme for this team, then it is not allowed to apply it as an explicit role.
+				return nil, &ManagedRoleApplyError{role: roleName}
+			}
+		}
+	}
+
+	if member.SchemeGuest && member.SchemeUser {
+		return nil, UserGuestRoleConflictError
+	}
+
+	if prevSchemeGuestValue != member.SchemeGuest {
+		return nil, UpdateGuestRoleError
+	}
+
+	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
+
+	member, err = ts.store.UpdateMember(member)
+	if err != nil {
+		return nil, err
+	}
+
+	return member, nil
+}
+
+func (ts *TeamService) UpdateTeamMemberSchemeRoles(teamID string, userID string, isSchemeGuest, isSchemeUser, isSchemeAdmin, phase2MigrationCompleted bool) (*model.TeamMember, error) {
+	member, err := ts.store.GetMember(context.Background(), teamID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	member.SchemeAdmin = isSchemeAdmin
+	member.SchemeUser = isSchemeUser
+	member.SchemeGuest = isSchemeGuest
+
+	if member.SchemeUser && member.SchemeGuest {
+		return nil, UserGuestRoleConflictError
+	}
+
+	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
+	if !phase2MigrationCompleted {
+		member.ExplicitRoles = removeRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
+	}
+
+	member, nErr := ts.store.UpdateMember(member)
+	if nErr != nil {
+		return nil, err
+	}
+
+	return member, nil
+}
+
+func (ts *TeamService) GetTeamByName(name string) (*model.Team, error) {
+	return ts.store.GetByName(name)
+}
+
+func (ts *TeamService) GetTeamByInviteId(inviteId string) (*model.Team, error) {
+	return ts.store.GetByInviteId(inviteId)
+}
+
+func (ts *TeamService) GetAllTeams() ([]*model.Team, error) {
+	return ts.store.GetAll()
+}
+
+func (ts *TeamService) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
+	return ts.store.GetAllPage(offset, limit, opts)
+}
+
+func (ts *TeamService) GetAllTeamsCount(opts *model.TeamSearch) (int64, error) {
+	return ts.store.AnalyticsTeamCount(opts)
+}
+
+func (ts *TeamService) GetAllPrivateTeams() ([]*model.Team, error) {
+	return ts.store.GetAllPrivateTeamListing()
+}
+
+func (ts *TeamService) GetAllPublicTeams() ([]*model.Team, error) {
+	return ts.store.GetAllTeamListing()
 }
