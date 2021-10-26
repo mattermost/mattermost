@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Bildirim ayarlarınızı değiştirmek için, takım sitenizde oturum açarak Hesap ayarları > Bildirimler bölümüne gidin."
+    "translation": "Bildirim ayarlarınızı değiştirmek için, takım sitenizde oturum açarak Ayarlar > Bildirimler bölümüne gidin."
   },
   {
     "id": "api.templates.email_info1",
@@ -8981,7 +8981,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " ve Hesap ayarları > Bildirimler bölümüne gidin"
+    "translation": " ve Ayarlar > Bildirimler bölümüne gidin"
   },
   {
     "id": "app.notification.body.mention.title",
