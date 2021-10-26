@@ -40,7 +40,7 @@ type Group struct {
 	DisplayName    string      `json:"display_name"`
 	Description    string      `json:"description"`
 	Source         GroupSource `json:"source"`
-	RemoteId       string      `json:"remote_id"`
+	RemoteId       *string     `json:"remote_id"`
 	CreateAt       int64       `json:"create_at"`
 	UpdateAt       int64       `json:"update_at"`
 	DeleteAt       int64       `json:"delete_at"`
@@ -153,7 +153,7 @@ func (group *Group) IsValidForCreate() *AppError {
 		return NewAppError("Group.IsValidForCreate", "model.group.source.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(group.RemoteId) > GroupRemoteIDMaxLength || (group.RemoteId == "" && group.requiresRemoteId()) {
+	if ((group.RemoteId == nil || *group.RemoteId == "") && group.requiresRemoteId()) && len(*group.RemoteId) > GroupRemoteIDMaxLength {
 		return NewAppError("Group.IsValidForCreate", "model.group.remote_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

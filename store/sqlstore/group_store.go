@@ -114,6 +114,10 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 }
 
 func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error) {
+	if group.Id != "" {
+		return nil, store.NewErrInvalidInput("Group", "id", group.Id)
+	}
+
 	// Check if group values are formatted correctly
 	if err := group.IsValidForCreate(); err != nil {
 		return nil, err

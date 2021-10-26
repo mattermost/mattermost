@@ -22,6 +22,8 @@ import (
 
 func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Create", func(t *testing.T) { testGroupStoreCreate(t, ss) })
+	t.Run("CreateWithUserIds", func(t *testing.T) { testGroupCreateWithUserIds(t, ss) })
+
 	t.Run("Get", func(t *testing.T) { testGroupStoreGet(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testGroupStoreGetByName(t, ss) })
 	t.Run("GetByIDs", func(t *testing.T) { testGroupStoreGetByIDs(t, ss) })
@@ -93,7 +95,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	// Happy path
@@ -113,7 +115,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "",
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	data, err := ss.Group().Create(g2)
 	require.Nil(t, data)
@@ -127,7 +129,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(g4)
 	require.NoError(t, err)
@@ -135,7 +137,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		Name:        g4.Name,
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	data, err = ss.Group().Create(g4b)
 	require.Nil(t, data)
@@ -148,7 +150,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		DisplayName: strings.Repeat("x", model.GroupDisplayNameMaxLength),
 		Description: strings.Repeat("x", model.GroupDescriptionMaxLength),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	require.Nil(t, g5.IsValidForCreate())
 
@@ -173,7 +175,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSource("fake"),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
 
@@ -183,9 +185,130 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	require.Equal(t, g7.IsValidForCreate().Id, "model.group.name.invalid_chars.app_error")
+}
+
+func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
+	// // Create user 1
+	// u1 := &model.User{
+	// 	Email:    MakeEmail(),
+	// 	Username: model.NewId(),
+	// }
+	// user1, nErr := ss.User().Save(u1)
+	// require.NoError(t, nErr)
+
+	// // Create user 2
+	// u2 := &model.User{
+	// 	Email:    MakeEmail(),
+	// 	Username: model.NewId(),
+	// }
+	// user2, nErr := ss.User().Save(u2)
+	// require.NoError(t, nErr)
+
+	// // Save a new group
+	// g1 := &model.GroupWithUserIds{
+	// 	Name:        model.NewString(model.NewId()),
+	// 	DisplayName: model.NewId(),
+	// 	Source:      model.GroupSourceCustom,
+	// 	Description: model.NewId(),
+	// 	RemoteId:    model.NewId(),
+	// 	UserIds:     []string{user1.Id, user2.Id},
+	// }
+
+	// // Happy path
+	// d1, err := ss.Group().CreateWithUserIds(g1)
+	// require.NoError(t, err)
+	// require.Len(t, d1.Id, 26)
+	// require.Equal(t, *g1.Name, *d1.Name)
+	// require.Equal(t, g1.DisplayName, d1.DisplayName)
+	// require.Equal(t, g1.Description, d1.Description)
+	// require.Equal(t, g1.RemoteId, d1.RemoteId)
+	// require.NotZero(t, d1.CreateAt)
+	// require.NotZero(t, d1.UpdateAt)
+	// require.Zero(t, d1.DeleteAt)
+	// require.Equal(t, d1.MemberCount, 2)
+
+	// // Requires display name
+	// g2 := &model.GroupWithUserIds{
+	// 	Name:        model.NewString(model.NewId()),
+	// 	DisplayName: "",
+	// 	Source:      model.GroupSourceCustom,
+	// 	RemoteId:    model.NewId(),
+	// 	UserIds:     []string{user1.Id, user2.Id},
+	// }
+	// data, err := ss.Group().CreateWithUserIds(g2)
+	// require.Nil(t, data)
+	// require.Error(t, err)
+	// var appErr *model.AppError
+	// require.True(t, errors.As(err, &appErr))
+	// require.Equal(t, appErr.Id, "model.group.display_name.app_error")
+
+	// // Won't accept a duplicate name
+	// g4 := &model.GroupWithUserIds{
+	// 	Name:        model.NewString(model.NewId()),
+	// 	DisplayName: model.NewId(),
+	// 	Source:      model.GroupSourceCustom,
+	// 	RemoteId:    model.NewId(),
+	// }
+	// _, err = ss.Group().CreateWithUserIds(g4)
+	// require.NoError(t, err)
+	// g4b := &model.Group{
+	// 	Name:        g4.Name,
+	// 	DisplayName: model.NewId(),
+	// 	Source:      model.GroupSourceCustom,
+	// 	RemoteId:    model.NewId(),
+	// }
+	// data, err = ss.Group().CreateWithUserIds(g4b)
+	// require.Nil(t, data)
+	// require.Error(t, err)
+	// require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *g4b.Name))
+
+	// // Fields cannot be greater than max values
+	// g5 := &model.GroupWithUserIds{
+	// 	Name:        model.NewString(strings.Repeat("x", model.GroupNameMaxLength)),
+	// 	DisplayName: strings.Repeat("x", model.GroupDisplayNameMaxLength),
+	// 	Description: strings.Repeat("x", model.GroupDescriptionMaxLength),
+	// 	Source:      model.GroupSourceLdap,
+	// 	RemoteId:    model.NewId(),
+	// }
+	// require.Nil(t, g5.IsValidForCreate())
+
+	// g5.Name = model.NewString(*g5.Name + "x")
+	// require.Equal(t, g5.IsValidForCreate().Id, "model.group.name.invalid_length.app_error")
+	// g5.Name = model.NewString(model.NewId())
+	// require.Nil(t, g5.IsValidForCreate())
+
+	// g5.DisplayName = g5.DisplayName + "x"
+	// require.Equal(t, g5.IsValidForCreate().Id, "model.group.display_name.app_error")
+	// g5.DisplayName = model.NewId()
+	// require.Nil(t, g5.IsValidForCreate())
+
+	// g5.Description = g5.Description + "x"
+	// require.Equal(t, g5.IsValidForCreate().Id, "model.group.description.app_error")
+	// g5.Description = model.NewId()
+	// require.Nil(t, g5.IsValidForCreate())
+
+	// // Must use a valid type
+	// g6 := &model.GroupWithUserIds{
+	// 	Name:        model.NewString(model.NewId()),
+	// 	DisplayName: model.NewId(),
+	// 	Description: model.NewId(),
+	// 	Source:      model.GroupSource("fake"),
+	// 	RemoteId:    model.NewId(),
+	// }
+	// require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
+
+	// //must use valid characters
+	// g7 := &model.GroupWithUserIds{
+	// 	Name:        model.NewString("%^#@$$"),
+	// 	DisplayName: model.NewId(),
+	// 	Description: model.NewId(),
+	// 	Source:      model.GroupSourceLdap,
+	// 	RemoteId:    model.NewId(),
+	// }
+	// require.Equal(t, g7.IsValidForCreate().Id, "model.group.name.invalid_chars.app_error")
 }
 
 func testGroupStoreGet(t *testing.T, ss store.Store) {
@@ -195,7 +318,7 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	d1, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -227,7 +350,7 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	g1Opts := model.GroupSearchOpts{
 		FilterAllowReference: false,
@@ -266,7 +389,7 @@ func testGroupStoreGetByIDs(t *testing.T, ss store.Store) {
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewId(),
+			RemoteId:    model.NewString(model.NewId()),
 		}
 		group, err := ss.Group().Create(group)
 		require.NoError(t, err)
@@ -296,14 +419,14 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	d1, err := ss.Group().Create(g1)
 	require.NoError(t, err)
 	require.Len(t, d1.Id, 26)
 
 	// Get the group
-	d2, err := ss.Group().GetByRemoteID(d1.RemoteId, model.GroupSourceLdap)
+	d2, err := ss.Group().GetByRemoteID(*d1.RemoteId, model.GroupSourceLdap)
 	require.NoError(t, err)
 	require.Equal(t, d1.Id, d2.Id)
 	require.Equal(t, *d1.Name, *d2.Name)
@@ -333,7 +456,7 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewId(),
+			RemoteId:    model.NewString(model.NewId()),
 		}
 		groups = append(groups, g)
 		_, err := ss.Group().Create(g)
@@ -368,7 +491,7 @@ func testGroupStoreGetBySource(t *testing.T, ss store.Store) {
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
 			Source:      model.GroupSourceCustom,
-			RemoteId:    model.NewId(),
+			RemoteId:    model.NewString(model.NewId()),
 		}
 		groups = append(groups, g)
 		_, err := ss.Group().Create(g)
@@ -389,7 +512,7 @@ func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	g1, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -399,7 +522,7 @@ func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	g2, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -459,7 +582,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	// Create a group
@@ -472,7 +595,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	g1Update.Name = model.NewString(model.NewId())
 	g1Update.DisplayName = model.NewId()
 	g1Update.Description = model.NewId()
-	g1Update.RemoteId = model.NewId()
+	g1Update.RemoteId = model.NewString(model.NewId())
 
 	ud1, err := ss.Group().Update(g1Update)
 	require.NoError(t, err)
@@ -494,7 +617,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "",
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.Nil(t, data)
 	require.Error(t, err)
@@ -508,7 +631,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	d2, err := ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -520,7 +643,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *g1Update.Name))
@@ -552,7 +675,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	d1, err := ss.Group().Create(g1)
@@ -601,7 +724,7 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -653,7 +776,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -740,7 +863,7 @@ func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -826,7 +949,7 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -952,7 +1075,7 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -1013,7 +1136,7 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -1062,7 +1185,7 @@ func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
 			Name:        model.NewString(model.NewId()),
 			DisplayName: model.NewId(),
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewId(),
+			RemoteId:    model.NewString(model.NewId()),
 		}
 		group, err := ss.Group().Create(g)
 		groups = append(groups, group)
@@ -1100,7 +1223,7 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -1137,7 +1260,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -1181,7 +1304,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g)
 	require.NoError(t, err)
@@ -1237,7 +1360,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -1305,7 +1428,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -1360,7 +1483,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	group, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "TeamMembersToAdd Test Group",
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	require.NoError(t, err)
@@ -1538,7 +1661,7 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 	group1, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "TeamMembersToAdd Test Group",
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	require.NoError(t, err)
@@ -1546,7 +1669,7 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 	group2, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "TeamMembersToAdd Test Group",
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	require.NoError(t, err)
@@ -1629,7 +1752,7 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	group, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "ChannelMembersToAdd Test Group",
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	require.NoError(t, err)
@@ -1805,7 +1928,7 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 	group1, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "TeamMembersToAdd Test Group",
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	require.NoError(t, err)
@@ -1813,7 +1936,7 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 	group2, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "TeamMembersToAdd Test Group",
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	require.NoError(t, err)
@@ -2193,7 +2316,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	group, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "Pending[Channel|Team]MemberRemovals Test Group",
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	require.NoError(t, err)
@@ -2356,7 +2479,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	group1, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-1",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 	})
@@ -2365,7 +2488,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	group2, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-2",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
 	})
@@ -2374,7 +2497,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	deletedGroup, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-deleted",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 		DeleteAt:       1,
@@ -2406,7 +2529,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	group3, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-3",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 	})
@@ -2604,7 +2727,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 	group1, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-1",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
 	})
@@ -2613,7 +2736,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 	group2, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-2",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 	})
@@ -2622,7 +2745,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 	deletedGroup, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-deleted",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 		DeleteAt:       1,
@@ -2654,7 +2777,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 	group3, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-3",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 	})
@@ -2837,7 +2960,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	group1, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-1",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
 	})
@@ -2846,7 +2969,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	group2, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-2",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 	})
@@ -2855,7 +2978,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	deletedGroup, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-deleted",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 		DeleteAt:       1,
@@ -2891,7 +3014,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	group3, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-3",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 	})
@@ -3096,7 +3219,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	group1, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    "group-1",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 	})
@@ -3105,7 +3228,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	group2, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId() + "-group-2"),
 		DisplayName:    "group-2",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
 	})
@@ -3114,7 +3237,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	deletedGroup, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId() + "-group-deleted"),
 		DisplayName:    "group-deleted",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
 		DeleteAt:       1,
@@ -3170,7 +3293,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	group3, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId() + "-group-3"),
 		DisplayName:    "group-3",
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
 	})
@@ -3541,7 +3664,7 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 			DisplayName: model.NewId(),
 			Source:      model.GroupSourceLdap,
 			Description: model.NewId(),
-			RemoteId:    model.NewId(),
+			RemoteId:    model.NewString(model.NewId()),
 		}
 		group, err := ss.Group().Create(group)
 		require.NoError(t, err)
@@ -3704,7 +3827,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 			DisplayName: model.NewId(),
 			Source:      model.GroupSourceLdap,
 			Description: model.NewId(),
-			RemoteId:    model.NewId(),
+			RemoteId:    model.NewString(model.NewId()),
 		}
 		group, err := ss.Group().Create(group)
 		require.NoError(t, err)
@@ -3814,7 +3937,7 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group, err := ss.Group().Create(group)
 	require.NoError(t, err)
@@ -3859,7 +3982,7 @@ func groupTestAdminRoleGroupsForSyncableMemberChannel(t *testing.T, ss store.Sto
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group1, err = ss.Group().Create(group1)
 	require.NoError(t, err)
@@ -3872,7 +3995,7 @@ func groupTestAdminRoleGroupsForSyncableMemberChannel(t *testing.T, ss store.Sto
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group2, err = ss.Group().Create(group2)
 	require.NoError(t, err)
@@ -3947,7 +4070,7 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group1, err = ss.Group().Create(group1)
 	require.NoError(t, err)
@@ -3960,7 +4083,7 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group2, err = ss.Group().Create(group2)
 	require.NoError(t, err)
@@ -4048,7 +4171,7 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group1, err = ss.Group().Create(group1)
 	require.NoError(t, err)
@@ -4063,7 +4186,7 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group2, err = ss.Group().Create(group2)
 	require.NoError(t, err)
@@ -4154,7 +4277,7 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group1, err = ss.Group().Create(group1)
 	require.NoError(t, err)
@@ -4169,7 +4292,7 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	group2, err = ss.Group().Create(group2)
 	require.NoError(t, err)
@@ -4453,7 +4576,7 @@ func groupTestGroupCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group1.Id)
@@ -4466,7 +4589,7 @@ func groupTestGroupCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group2.Id)
@@ -4493,7 +4616,7 @@ func groupTestGroupTeamCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group1.Id)
@@ -4502,7 +4625,7 @@ func groupTestGroupTeamCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group2.Id)
@@ -4538,7 +4661,7 @@ func groupTestGroupChannelCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group1.Id)
@@ -4547,7 +4670,7 @@ func groupTestGroupChannelCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group2.Id)
@@ -4574,7 +4697,7 @@ func groupTestGroupMemberCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group.Id)
@@ -4601,7 +4724,7 @@ func groupTestDistinctGroupMemberCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group1.Id)
@@ -4610,7 +4733,7 @@ func groupTestDistinctGroupMemberCount(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group2.Id)
@@ -4648,7 +4771,7 @@ func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.NoError(t, err)
 	defer ss.Group().Delete(group1.Id)
@@ -4661,7 +4784,7 @@ func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
 		Name:           model.NewString(model.NewId()),
 		DisplayName:    model.NewId(),
 		Source:         model.GroupSourceLdap,
-		RemoteId:       model.NewId(),
+		RemoteId:       model.NewString(model.NewId()),
 		AllowReference: true,
 	})
 	require.NoError(t, err)

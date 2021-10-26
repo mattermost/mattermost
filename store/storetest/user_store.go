@@ -1467,7 +1467,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 		Name:        model.NewString("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    "ri_" + model.NewId(),
+		RemoteId:    model.NewString("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -3507,7 +3507,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -3517,7 +3517,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3647,7 +3647,7 @@ func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -3657,7 +3657,7 @@ func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -4491,7 +4491,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		Name:        model.NewString("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    "ri_" + model.NewId(),
+		RemoteId:    model.NewString("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -4807,7 +4807,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 			Name:        model.NewString("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    "ri_" + id,
+			RemoteId:    model.NewString("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -4927,7 +4927,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 			Name:        model.NewString("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    "ri_" + id,
+			RemoteId:    model.NewString("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
