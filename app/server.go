@@ -452,6 +452,11 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			s.Publish(message)
 		})
+
+		if err = s.initLogging(); err != nil {
+			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
+			return
+		}
 	})
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.Channels().regenerateClientConfig()
