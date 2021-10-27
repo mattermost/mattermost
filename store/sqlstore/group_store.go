@@ -155,7 +155,10 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 	defer finalizeTransaction(txn)
 	// Create a new usergroup
 	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
-		return nil, err
+		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
+			return nil, errors.Wrapf(err, "Group with name %s already exists", *group.Name)
+		}
+		return nil, errors.Wrap(err, "failed to save Group")
 	}
 	// Insert the Group Members
 	if _, err = executePossiblyEmptyQuery(txn, usersInsertQuery, usersInsertArgs...); err != nil {
@@ -546,60 +549,26 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 }
 
 func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, error) {
-	member := &model.GroupMember{
-		GroupId:  groupID,
-		UserId:   userID,
-		CreateAt: model.GetMillis(),
-		DeleteAt: 0,
-	}
-
-	if err := member.IsValid(); err != nil {
+	members, query, args, err := s.buildUpsertMembersQuery(groupID, []string{userID})
+	if err != nil {
 		return nil, err
 	}
-
-	var retrievedGroup *model.Group
-	if err := s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
-		return nil, errors.Wrapf(err, "failed to get UserGroup with groupId=%s and userId=%s", groupID, userID)
-	}
-
-	query := s.getQueryBuilder().
-		Insert("GroupMembers").
-		Columns("GroupId", "UserId", "CreateAt", "DeleteAt").
-		Values(member.GroupId, member.UserId, member.CreateAt, member.DeleteAt)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE CreateAt = ?, DeleteAt = ?", member.CreateAt, member.DeleteAt))
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", member.CreateAt, member.DeleteAt))
-	}
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate sqlquery")
-	}
-
-	if _, err = s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to save GroupMember")
 	}
-	return member, nil
+	return members[0], nil
 }
 
 func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.GroupMember, error) {
-	var retrievedMember *model.GroupMember
-	if err := s.GetReplica().SelectOne(&retrievedMember, "SELECT * FROM GroupMembers WHERE GroupId = :GroupId AND UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"GroupId": groupID, "UserId": userID}); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("GroupMember", fmt.Sprintf("groupId=%s, userId=%s", groupID, userID))
-		}
-		return nil, errors.Wrapf(err, "failed to get GroupMember with groupId=%s and userId=%s", groupID, userID)
+	members, query, args, err := s.buildDeleteMembersQuery(groupID, []string{userID})
+	if err != nil {
+		return nil, err
 	}
-
-	retrievedMember.DeleteAt = model.GetMillis()
-
-	if _, err := s.GetMaster().Update(retrievedMember); err != nil {
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update GroupMember with groupId=%s and userId=%s", groupID, userID)
 	}
 
-	return retrievedMember, nil
+	return members[0], nil
 }
 
 func (s *SqlGroupStore) PermanentDeleteMembersByUser(userId string) error {
@@ -1683,68 +1652,118 @@ func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string
 	return count, nil
 }
 
-func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) error {
+func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
+	members, query, args, err := s.buildUpsertMembersQuery(groupID, userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to save GroupMember")
+	}
+
+	return members, err
+}
+
+func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []interface{}, err error) {
 	var retrievedGroup *model.Group
 	// Check Group exists
-	if err := s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
-		return errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
+	if err = s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
+		err = errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
+		return
 	}
 
 	// Check Users exist
-	if err := s.checkUsersExist(userIDs); err != nil {
-		return err
+	if err = s.checkUsersExist(userIDs); err != nil {
+		return
 	}
 
-	query := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Insert("GroupMembers").
-		Columns("GroupId", "UserId", "CreateAt", "DeleteAt")
+		Columns("GroupId", "UserId", "CreateAt", "DeleteAt", "SchemeUser", "SchemeAdmin")
 
-	var createAt = model.GetMillis()
-	var deleteAt = 0
-
+	members = make([]*model.GroupMember, 0, len(userIDs))
+	createAt := model.GetMillis()
 	for _, userId := range userIDs {
-		query = query.Values(groupID, userId, createAt, deleteAt)
+		member := &model.GroupMember{
+			GroupId:     groupID,
+			UserId:      userId,
+			CreateAt:    createAt,
+			DeleteAt:    0,
+			SchemeUser:  false,
+			SchemeAdmin: false,
+		}
+		builder = builder.Values(member.GroupId, member.UserId, member.CreateAt, member.DeleteAt, member.SchemeUser, member.SchemeAdmin)
+		members = append(members, member)
 	}
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE CreateAt = ?, DeleteAt = ?", createAt, deleteAt))
+		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE CreateAt = ?, DeleteAt = ?", createAt, 0))
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, deleteAt))
+		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, 0))
 	}
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "failed to generate sqlquery")
-	}
-
-	if _, err = s.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrap(err, "failed to save GroupMember")
-	}
-
-	return err
+	query, args, err = builder.ToSql()
+	return
 }
 
-func (s *SqlGroupStore) DeleteMembers(groupID string, userIDs []string) error {
-	var retrievedGroup *model.Group
-	if err := s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
-		return errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
+func (s *SqlGroupStore) DeleteMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
+	members, query, args, err := s.buildDeleteMembersQuery(groupID, userIDs)
+	if err != nil {
+		return nil, err
 	}
 
-	query := s.getQueryBuilder().
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to delete GroupMembers")
+	}
+	return members, err
+}
+
+func (s *SqlGroupStore) buildDeleteMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []interface{}, err error) {
+	membersSelectQuery, membersSelectArgs, err := s.getQueryBuilder().
+		Select("*").
+		From("GroupMembers").
+		Where(sq.And{
+			sq.Eq{"GroupId": groupID},
+			sq.Eq{"UserId": userIDs},
+			sq.Eq{"DeleteAt": 0},
+		}).
+		ToSql()
+	if err != nil {
+		return
+	}
+
+	_, err = s.GetReplica().Select(&members, membersSelectQuery, membersSelectArgs...)
+	if err != nil {
+		return
+	}
+	if len(members) != len(userIDs) {
+		retrievedRecords := make(map[string]bool)
+		for _, member := range members {
+			retrievedRecords[member.UserId] = true
+		}
+		for _, userID := range userIDs {
+			if _, ok := retrievedRecords[userID]; !ok {
+				err = store.NewErrNotFound("User", userID)
+				return
+			}
+		}
+	}
+
+	deleteAt := model.GetMillis()
+
+	for _, member := range members {
+		member.DeleteAt = deleteAt
+	}
+
+	builder := s.getQueryBuilder().
 		Update("GroupMembers").
-		Set("DeleteAt", model.GetMillis()).
+		Set("DeleteAt", deleteAt).
 		Where(sq.And{
 			sq.Eq{"GroupId": groupID},
 			sq.Eq{"UserId": userIDs},
 		})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "failed to generate sqlquery")
-	}
-
-	if _, err = s.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrap(err, "failed to delete GroupMember")
-	}
-	return err
+	query, args, err = builder.ToSql()
+	return
 }

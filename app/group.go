@@ -680,38 +680,38 @@ func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType mod
 	return true, nil
 }
 
-func (a *App) UpsertGroupMembers(groupID string, userIDs []string) *model.AppError {
-	err := a.Srv().Store.Group().UpsertMembers(groupID, userIDs)
+func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	members, err := a.Srv().Store.Group().UpsertMembers(groupID, userIDs)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
-			return appErr
+			return nil, appErr
 		case errors.As(err, &invErr):
-			return model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
 		default:
-			return model.NewAppError("UpsertGroupMembers", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpsertGroupMembers", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	return nil
+	return members, nil
 }
 
-func (a *App) DeleteGroupMembers(groupID string, userIDs []string) *model.AppError {
-	err := a.Srv().Store.Group().DeleteMembers(groupID, userIDs)
+func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	members, err := a.Srv().Store.Group().DeleteMembers(groupID, userIDs)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
-			return appErr
+			return nil, appErr
 		case errors.As(err, &invErr):
-			return model.NewAppError("DeleteGroupMember", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("DeleteGroupMember", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
 		default:
-			return model.NewAppError("DeleteGroupMember", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	return nil
+	return members, nil
 }

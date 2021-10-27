@@ -3727,7 +3727,7 @@ func (s *OpenTracingLayerGroupStore) DeleteMember(groupID string, userID string)
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) DeleteMembers(groupID string, userIDs []string) error {
+func (s *OpenTracingLayerGroupStore) DeleteMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.DeleteMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -3736,13 +3736,13 @@ func (s *OpenTracingLayerGroupStore) DeleteMembers(groupID string, userIDs []str
 	}()
 
 	defer span.Finish()
-	err := s.GroupStore.DeleteMembers(groupID, userIDs)
+	result, err := s.GroupStore.DeleteMembers(groupID, userIDs)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
@@ -4321,7 +4321,7 @@ func (s *OpenTracingLayerGroupStore) UpsertMember(groupID string, userID string)
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) UpsertMembers(groupID string, userIDs []string) error {
+func (s *OpenTracingLayerGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.UpsertMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -4330,13 +4330,13 @@ func (s *OpenTracingLayerGroupStore) UpsertMembers(groupID string, userIDs []str
 	}()
 
 	defer span.Finish()
-	err := s.GroupStore.UpsertMembers(groupID, userIDs)
+	result, err := s.GroupStore.UpsertMembers(groupID, userIDs)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {

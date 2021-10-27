@@ -3403,10 +3403,10 @@ func (s *TimerLayerGroupStore) DeleteMember(groupID string, userID string) (*mod
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) DeleteMembers(groupID string, userIDs []string) error {
+func (s *TimerLayerGroupStore) DeleteMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 	start := timemodule.Now()
 
-	err := s.GroupStore.DeleteMembers(groupID, userIDs)
+	result, err := s.GroupStore.DeleteMembers(groupID, userIDs)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -3416,7 +3416,7 @@ func (s *TimerLayerGroupStore) DeleteMembers(groupID string, userIDs []string) e
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.DeleteMembers", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
@@ -3931,10 +3931,10 @@ func (s *TimerLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) UpsertMembers(groupID string, userIDs []string) error {
+func (s *TimerLayerGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 	start := timemodule.Now()
 
-	err := s.GroupStore.UpsertMembers(groupID, userIDs)
+	result, err := s.GroupStore.UpsertMembers(groupID, userIDs)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -3944,7 +3944,7 @@ func (s *TimerLayerGroupStore) UpsertMembers(groupID string, userIDs []string) e
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.UpsertMembers", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {

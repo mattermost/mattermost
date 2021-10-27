@@ -2997,7 +2997,7 @@ func (a *OpenTracingAppLayer) DeleteGroupMember(groupID string, userID string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DeleteGroupMembers(groupID string, userIDs []string) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroupMembers")
 
@@ -3009,14 +3009,14 @@ func (a *OpenTracingAppLayer) DeleteGroupMembers(groupID string, userIDs []strin
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteGroupMembers(groupID, userIDs)
+	resultVar0, resultVar1 := a.app.DeleteGroupMembers(groupID, userIDs)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
@@ -17157,7 +17157,7 @@ func (a *OpenTracingAppLayer) UpsertGroupMember(groupID string, userID string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpsertGroupMembers(groupID string, userIDs []string) *model.AppError {
+func (a *OpenTracingAppLayer) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpsertGroupMembers")
 
@@ -17169,14 +17169,14 @@ func (a *OpenTracingAppLayer) UpsertGroupMembers(groupID string, userIDs []strin
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpsertGroupMembers(groupID, userIDs)
+	resultVar0, resultVar1 := a.app.UpsertGroupMembers(groupID, userIDs)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {

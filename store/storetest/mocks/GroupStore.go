@@ -329,17 +329,26 @@ func (_m *GroupStore) DeleteMember(groupID string, userID string) (*model.GroupM
 }
 
 // DeleteMembers provides a mock function with given fields: groupID, userIDs
-func (_m *GroupStore) DeleteMembers(groupID string, userIDs []string) error {
+func (_m *GroupStore) DeleteMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 	ret := _m.Called(groupID, userIDs)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+	var r0 []*model.GroupMember
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.GroupMember); ok {
 		r0 = rf(groupID, userIDs)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.GroupMember)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(groupID, userIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // DistinctGroupMemberCount provides a mock function with given fields:
@@ -1056,15 +1065,24 @@ func (_m *GroupStore) UpsertMember(groupID string, userID string) (*model.GroupM
 }
 
 // UpsertMembers provides a mock function with given fields: groupID, userIDs
-func (_m *GroupStore) UpsertMembers(groupID string, userIDs []string) error {
+func (_m *GroupStore) UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 	ret := _m.Called(groupID, userIDs)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+	var r0 []*model.GroupMember
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.GroupMember); ok {
 		r0 = rf(groupID, userIDs)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.GroupMember)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(groupID, userIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

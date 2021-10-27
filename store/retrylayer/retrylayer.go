@@ -4006,21 +4006,21 @@ func (s *RetryLayerGroupStore) DeleteMember(groupID string, userID string) (*mod
 
 }
 
-func (s *RetryLayerGroupStore) DeleteMembers(groupID string, userIDs []string) error {
+func (s *RetryLayerGroupStore) DeleteMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 
 	tries := 0
 	for {
-		err := s.GroupStore.DeleteMembers(groupID, userIDs)
+		result, err := s.GroupStore.DeleteMembers(groupID, userIDs)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 	}
 
@@ -4666,21 +4666,21 @@ func (s *RetryLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 
 }
 
-func (s *RetryLayerGroupStore) UpsertMembers(groupID string, userIDs []string) error {
+func (s *RetryLayerGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 
 	tries := 0
 	for {
-		err := s.GroupStore.UpsertMembers(groupID, userIDs)
+		result, err := s.GroupStore.UpsertMembers(groupID, userIDs)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 	}
 

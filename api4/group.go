@@ -953,15 +953,19 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// License and Permissions check here
 
-	err = c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
+	members, err := c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	b, marshalErr := json.Marshal(members)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.addGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
 	auditRec.Success()
-
-	ReturnStatusOK(w)
+	w.Write(b)
 }
 
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -988,13 +992,17 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// License and Permissions check here
 
-	err = c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
+	members, err := c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	b, marshalErr := json.Marshal(members)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.addGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
 	auditRec.Success()
-
-	ReturnStatusOK(w)
+	w.Write(b)
 }

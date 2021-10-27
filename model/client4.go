@@ -7020,7 +7020,7 @@ func (c *Client4) DeleteGroup(groupID string) (*Group, *Response, error) {
 	defer closeBody(r)
 	var p Group
 	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
-		return nil, nil, NewAppError("CreateGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return &p, BuildResponse(r), nil
 }
@@ -7035,6 +7035,34 @@ func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Respon
 	var g Group
 	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
 		return nil, nil, NewAppError("PatchGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
+}
+
+func (c *Client4) UpsertGroupMembers(groupID string, userIds *[]string) (*[]GroupMember, *Response, error) {
+	payload, _ := json.Marshal(userIds)
+	r, err := c.DoAPIPost(c.groupRoute(groupID)+"/members", string(payload))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var g []GroupMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("UpsertGroupMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &g, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteGroupMembers(groupID string, userIds *[]string) (*[]GroupMember, *Response, error) {
+	payload, _ := json.Marshal(userIds)
+	r, err := c.DoAPIDeleteBytes(c.groupRoute(groupID)+"/members", payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var g []GroupMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("DeleteGroupMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return &g, BuildResponse(r), nil
 }

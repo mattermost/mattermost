@@ -41,7 +41,9 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetMemberUsersNotInChannel", func(t *testing.T) { testGroupGetMemberUsersNotInChannel(t, ss) })
 
 	t.Run("UpsertMember", func(t *testing.T) { testUpsertMember(t, ss) })
+	t.Run("UpsertMembers", func(t *testing.T) { testUpsertMembers(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
+	t.Run("DeleteMembers", func(t *testing.T) { testGroupDeleteMembers(t, ss) })
 	t.Run("PermanentDeleteMembersByUser", func(t *testing.T) { testGroupPermanentDeleteMembersByUser(t, ss) })
 
 	t.Run("CreateGroupSyncable", func(t *testing.T) { testCreateGroupSyncable(t, ss) })
@@ -191,124 +193,171 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 }
 
 func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
-	// // Create user 1
-	// u1 := &model.User{
-	// 	Email:    MakeEmail(),
-	// 	Username: model.NewId(),
-	// }
-	// user1, nErr := ss.User().Save(u1)
-	// require.NoError(t, nErr)
+	// Create user 1
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, nErr := ss.User().Save(u1)
+	require.NoError(t, nErr)
 
-	// // Create user 2
-	// u2 := &model.User{
-	// 	Email:    MakeEmail(),
-	// 	Username: model.NewId(),
-	// }
-	// user2, nErr := ss.User().Save(u2)
-	// require.NoError(t, nErr)
+	// Create user 2
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, nErr := ss.User().Save(u2)
+	require.NoError(t, nErr)
 
-	// // Save a new group
-	// g1 := &model.GroupWithUserIds{
-	// 	Name:        model.NewString(model.NewId()),
-	// 	DisplayName: model.NewId(),
-	// 	Source:      model.GroupSourceCustom,
-	// 	Description: model.NewId(),
-	// 	RemoteId:    model.NewId(),
-	// 	UserIds:     []string{user1.Id, user2.Id},
-	// }
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		Description: model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
+	}
 
-	// // Happy path
-	// d1, err := ss.Group().CreateWithUserIds(g1)
-	// require.NoError(t, err)
-	// require.Len(t, d1.Id, 26)
-	// require.Equal(t, *g1.Name, *d1.Name)
-	// require.Equal(t, g1.DisplayName, d1.DisplayName)
-	// require.Equal(t, g1.Description, d1.Description)
-	// require.Equal(t, g1.RemoteId, d1.RemoteId)
-	// require.NotZero(t, d1.CreateAt)
-	// require.NotZero(t, d1.UpdateAt)
-	// require.Zero(t, d1.DeleteAt)
-	// require.Equal(t, d1.MemberCount, 2)
+	// Save a new group
+	guids1 := &model.GroupWithUserIds{
+		Group:   *g1,
+		UserIds: []string{user1.Id, user2.Id},
+	}
 
-	// // Requires display name
-	// g2 := &model.GroupWithUserIds{
-	// 	Name:        model.NewString(model.NewId()),
-	// 	DisplayName: "",
-	// 	Source:      model.GroupSourceCustom,
-	// 	RemoteId:    model.NewId(),
-	// 	UserIds:     []string{user1.Id, user2.Id},
-	// }
-	// data, err := ss.Group().CreateWithUserIds(g2)
-	// require.Nil(t, data)
-	// require.Error(t, err)
-	// var appErr *model.AppError
-	// require.True(t, errors.As(err, &appErr))
-	// require.Equal(t, appErr.Id, "model.group.display_name.app_error")
+	// Happy path
+	d1, err := ss.Group().CreateWithUserIds(guids1)
+	require.NoError(t, err)
+	require.Len(t, d1.Id, 26)
+	require.Equal(t, *guids1.Name, *d1.Name)
+	require.Equal(t, guids1.DisplayName, d1.DisplayName)
+	require.Equal(t, guids1.Description, d1.Description)
+	require.Equal(t, guids1.RemoteId, d1.RemoteId)
+	require.NotZero(t, d1.CreateAt)
+	require.NotZero(t, d1.UpdateAt)
+	require.Zero(t, d1.DeleteAt)
+	require.Equal(t, *model.NewInt64(2), int64(*d1.MemberCount))
 
-	// // Won't accept a duplicate name
-	// g4 := &model.GroupWithUserIds{
-	// 	Name:        model.NewString(model.NewId()),
-	// 	DisplayName: model.NewId(),
-	// 	Source:      model.GroupSourceCustom,
-	// 	RemoteId:    model.NewId(),
-	// }
-	// _, err = ss.Group().CreateWithUserIds(g4)
-	// require.NoError(t, err)
-	// g4b := &model.Group{
-	// 	Name:        g4.Name,
-	// 	DisplayName: model.NewId(),
-	// 	Source:      model.GroupSourceCustom,
-	// 	RemoteId:    model.NewId(),
-	// }
-	// data, err = ss.Group().CreateWithUserIds(g4b)
-	// require.Nil(t, data)
-	// require.Error(t, err)
-	// require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *g4b.Name))
+	// Requires display name
 
-	// // Fields cannot be greater than max values
-	// g5 := &model.GroupWithUserIds{
-	// 	Name:        model.NewString(strings.Repeat("x", model.GroupNameMaxLength)),
-	// 	DisplayName: strings.Repeat("x", model.GroupDisplayNameMaxLength),
-	// 	Description: strings.Repeat("x", model.GroupDescriptionMaxLength),
-	// 	Source:      model.GroupSourceLdap,
-	// 	RemoteId:    model.NewId(),
-	// }
-	// require.Nil(t, g5.IsValidForCreate())
+	g2 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: "",
+		Source:      model.GroupSourceCustom,
+		Description: model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
+	}
 
-	// g5.Name = model.NewString(*g5.Name + "x")
-	// require.Equal(t, g5.IsValidForCreate().Id, "model.group.name.invalid_length.app_error")
-	// g5.Name = model.NewString(model.NewId())
-	// require.Nil(t, g5.IsValidForCreate())
+	guids2 := &model.GroupWithUserIds{
+		Group:   *g2,
+		UserIds: []string{user1.Id, user2.Id},
+	}
+	data, err := ss.Group().CreateWithUserIds(guids2)
+	require.Nil(t, data)
+	require.Error(t, err)
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
 
-	// g5.DisplayName = g5.DisplayName + "x"
-	// require.Equal(t, g5.IsValidForCreate().Id, "model.group.display_name.app_error")
-	// g5.DisplayName = model.NewId()
-	// require.Nil(t, g5.IsValidForCreate())
+	// Won't accept a duplicate name
+	g4 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	guids4 := &model.GroupWithUserIds{
+		Group:   *g4,
+		UserIds: []string{user1.Id, user2.Id},
+	}
+	_, err = ss.Group().CreateWithUserIds(guids4)
+	require.NoError(t, err)
+	g4b := &model.Group{
+		Name:        g4.Name,
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	guids4b := &model.GroupWithUserIds{
+		Group:   *g4b,
+		UserIds: []string{user1.Id},
+	}
+	data, err = ss.Group().CreateWithUserIds(guids4b)
+	require.Nil(t, data)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *guids4b.Name))
 
-	// g5.Description = g5.Description + "x"
-	// require.Equal(t, g5.IsValidForCreate().Id, "model.group.description.app_error")
-	// g5.Description = model.NewId()
-	// require.Nil(t, g5.IsValidForCreate())
+	// Fields cannot be greater than max values
+	g5 := &model.Group{
+		Name:        model.NewString(strings.Repeat("x", model.GroupNameMaxLength)),
+		DisplayName: strings.Repeat("x", model.GroupDisplayNameMaxLength),
+		Description: strings.Repeat("x", model.GroupDescriptionMaxLength),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	guids5 := &model.GroupWithUserIds{
+		Group:   *g5,
+		UserIds: []string{user1.Id},
+	}
+	require.Nil(t, guids5.IsValidForCreate())
 
-	// // Must use a valid type
-	// g6 := &model.GroupWithUserIds{
-	// 	Name:        model.NewString(model.NewId()),
-	// 	DisplayName: model.NewId(),
-	// 	Description: model.NewId(),
-	// 	Source:      model.GroupSource("fake"),
-	// 	RemoteId:    model.NewId(),
-	// }
-	// require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
+	guids5.Name = model.NewString(*guids5.Name + "x")
+	require.Equal(t, guids5.IsValidForCreate().Id, "model.group.name.invalid_length.app_error")
+	guids5.Name = model.NewString(model.NewId())
+	require.Nil(t, guids5.IsValidForCreate())
 
-	// //must use valid characters
-	// g7 := &model.GroupWithUserIds{
-	// 	Name:        model.NewString("%^#@$$"),
-	// 	DisplayName: model.NewId(),
-	// 	Description: model.NewId(),
-	// 	Source:      model.GroupSourceLdap,
-	// 	RemoteId:    model.NewId(),
-	// }
-	// require.Equal(t, g7.IsValidForCreate().Id, "model.group.name.invalid_chars.app_error")
+	guids5.DisplayName = guids5.DisplayName + "x"
+	require.Equal(t, guids5.IsValidForCreate().Id, "model.group.display_name.app_error")
+	guids5.DisplayName = model.NewId()
+	require.Nil(t, guids5.IsValidForCreate())
+
+	guids5.Description = guids5.Description + "x"
+	require.Equal(t, guids5.IsValidForCreate().Id, "model.group.description.app_error")
+	guids5.Description = model.NewId()
+	require.Nil(t, guids5.IsValidForCreate())
+
+	// Must use a valid type
+	g6 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSource("fake"),
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	guids6 := &model.GroupWithUserIds{
+		Group:   *g6,
+		UserIds: []string{user1.Id},
+	}
+	require.Equal(t, guids6.IsValidForCreate().Id, "model.group.source.app_error")
+
+	//must use valid characters
+	g7 := &model.Group{
+		Name:        model.NewString("%^#@$$"),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	guids7 := &model.GroupWithUserIds{
+		Group:   *g7,
+		UserIds: []string{user1.Id},
+	}
+	require.Equal(t, guids7.IsValidForCreate().Id, "model.group.name.invalid_chars.app_error")
+
+	// Invalid user ids
+	g8 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	guids8 := &model.GroupWithUserIds{
+		Group:   *g8,
+		UserIds: []string{"1234uid"},
+	}
+	data, err = ss.Group().CreateWithUserIds(guids8)
+	require.Nil(t, data)
+	require.Error(t, err)
+	require.Equal(t, store.NewErrNotFound("User", "1234uid"), err)
 }
 
 func testGroupStoreGet(t *testing.T, ss store.Store) {
@@ -1130,6 +1179,72 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.Equal(t, beforeRestoreCount+1, afterRestoreCount)
 }
 
+func testUpsertMembers(t *testing.T, ss store.Store) {
+	// Create group
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	group, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	// Create user
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user, nErr := ss.User().Save(u1)
+	require.NoError(t, nErr)
+
+	// Create user
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, nErr := ss.User().Save(u2)
+	require.NoError(t, nErr)
+
+	// Happy path
+	m, err := ss.Group().UpsertMembers(group.Id, []string{user.Id, user2.Id})
+	require.NoError(t, err)
+	require.Equal(t, 2, len(m))
+
+	// Duplicate composite key (GroupId, UserId)
+	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
+	// time.Sleep(1 * time.Millisecond)
+	_, err = ss.Group().UpsertMembers(group.Id, []string{user.Id})
+	require.NoError(t, err)
+
+	// Invalid GroupId
+	_, err = ss.Group().UpsertMembers(model.NewId(), []string{user.Id})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get UserGroup with")
+
+	// Restores a deleted member
+	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
+	time.Sleep(1 * time.Millisecond)
+	_, err = ss.Group().UpsertMembers(group.Id, []string{user.Id, user2.Id})
+	require.NoError(t, err)
+
+	_, err = ss.Group().DeleteMembers(group.Id, []string{user.Id})
+	require.NoError(t, err)
+
+	groupMembers, err := ss.Group().GetMemberUsers(group.Id)
+	require.NoError(t, err)
+	beforeRestoreCount := len(groupMembers)
+
+	_, err = ss.Group().UpsertMembers(group.Id, []string{user.Id, user2.Id})
+	require.NoError(t, err)
+
+	groupMembers, err = ss.Group().GetMemberUsers(group.Id)
+	require.NoError(t, err)
+	afterRestoreCount := len(groupMembers)
+
+	require.Equal(t, beforeRestoreCount+1, afterRestoreCount)
+}
+
 func testGroupDeleteMember(t *testing.T, ss store.Store) {
 	// Create group
 	g1 := &model.Group{
@@ -1172,6 +1287,49 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 
 	// Delete non-existent Group
 	_, err = ss.Group().DeleteMember(model.NewId(), group.Id)
+	require.True(t, errors.As(err, &nfErr))
+}
+
+func testGroupDeleteMembers(t *testing.T, ss store.Store) {
+	// Create user
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user, nErr := ss.User().Save(u1)
+	require.NoError(t, nErr)
+	// Create group
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	guids := &model.GroupWithUserIds{
+		Group:   *g1,
+		UserIds: []string{user.Id},
+	}
+	group, err := ss.Group().CreateWithUserIds(guids)
+	require.NoError(t, err)
+
+	// Happy path
+	d2, err := ss.Group().DeleteMembers(group.Id, []string{user.Id})
+	require.NoError(t, err)
+	require.Equal(t, d2[0].GroupId, group.Id)
+	require.Equal(t, d2[0].UserId, user.Id)
+	require.NotZero(t, d2[0].DeleteAt)
+
+	// Delete an already deleted member
+	_, err = ss.Group().DeleteMembers(group.Id, []string{user.Id})
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
+
+	// Delete with non-existent User
+	_, err = ss.Group().DeleteMembers(group.Id, []string{model.NewId()})
+	require.True(t, errors.As(err, &nfErr))
+
+	// Delete non-existent Group
+	_, err = ss.Group().DeleteMembers(model.NewId(), []string{user.Id})
 	require.True(t, errors.As(err, &nfErr))
 }
 
