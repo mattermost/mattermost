@@ -212,6 +212,8 @@ type ManifestExecutables struct {
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
 	// DarwinAmd64 is the path to your executable binary for the corresponding platform
 	DarwinAmd64 string `json:"darwin-amd64,omitempty" yaml:"darwin-amd64,omitempty"`
+	// DarwinArm64 is the path to your executable binary for the corresponding platform
+	DarwinArm64 string `json:"darwin-arm64,omitempty" yaml:"darwin-arm64,omitempty"`
 	// WindowsAmd64 is the path to your executable binary for the corresponding platform
 	// This file must have a ".exe" extension
 	WindowsAmd64 string `json:"windows-amd64,omitempty" yaml:"windows-amd64,omitempty"`
