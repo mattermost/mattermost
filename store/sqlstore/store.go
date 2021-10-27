@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
 	dbsql "database/sql"
 	"fmt"
 	"os"
@@ -341,7 +342,7 @@ func (ss *SqlStore) initConnection() {
 		var err error
 		dataSource, err = resetReadTimeout(dataSource)
 		if err != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err))
+			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
 	}
 
@@ -438,6 +439,15 @@ func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
 	return ss.masterX
 }
 
+func (ss *SqlStore) SetMasterX(db *sql.DB) {
+	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(db, ss.DriverName()),
+		time.Duration(*ss.settings.QueryTimeout)*time.Second,
+		*ss.settings.Trace)
+	if ss.DriverName() == model.DatabaseDriverMysql {
+		ss.masterX.MapperFunc(noOpMapper)
+	}
+}
+
 func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
 	ss.licenseMutex.RLock()
 	license := ss.license
@@ -452,6 +462,22 @@ func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
 
 	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
 	return ss.searchReplicas[rrNum]
+}
+
+func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if license == nil {
+		return ss.GetMasterX()
+	}
+
+	if len(ss.settings.DataSourceSearchReplicas) == 0 {
+		return ss.GetReplicaX()
+	}
+
+	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
+	return ss.searchReplicaXs[rrNum]
 }
 
 func (ss *SqlStore) GetReplica() *gorp.DbMap {

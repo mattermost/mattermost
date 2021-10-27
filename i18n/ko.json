@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "현재 채널의 업데이트에 실패하였습니다."
+    "translation": "채널 헤더를 업데이트하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "현재 채널의 업데이트에 실패하였습니다."
+    "translation": "채널 용도를 업데이트하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -6281,7 +6281,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mattermost Enterprise 버전으로 업그레이드"
+    "translation": "Mattermost를 스케일링"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
@@ -6289,7 +6289,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "현재 당신의 Mattermost 시스템에는 200명의 사용자가 있습니다. 사용자층이 증가함에 따라 새로운 계정을 프로비저닝하는 데 시간이 많이 걸릴 수 있습니다. 계정을 가진 모든 사람이 Mattermost에 액세스 할 수 있도록, Mattermost Enterprise E10으로 업그레이드하고 조직의 Active Directory/LDAP를 통합하는 것을 추천합니다. 사용자는 새로운 사용자 이름과 비밀번호를 만들 필요없이 로그인 할 수 있으며 관리자는 계정 프로비저닝 및 관리 시간을 절약 할 수 있습니다.\n[AD/LDAP와의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    "translation": "현재 당신의 Mattermost 시스템에는 200명의 사용자가 있습니다. 사용자층이 증가함에 따라 새로운 계정을 프로비저닝하는 데 시간이 많이 걸릴 수 있습니다. 계정을 가진 모든 사람이 Mattermost에 액세스 할 수 있도록, Mattermost Enterprise E10으로 업그레이드하고 조직의 Active Directory/LDAP를 통합하는 것을 추천합니다. 사용자는 새로운 사용자 이름과 비밀번호를 만들 필요없이 로그인 할 수 있으며 관리자는 계정 프로비저닝 및 관리 시간을 절약 할 수 있습니다.\n\n[AD/LDAP와의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -7222,5 +7222,125 @@
   {
     "id": "api.templates.welcome_body.app_download_button",
     "translation": "다운로드"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "초대를 암호화하는 데 사용할 비밀번호"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "초대 비밀번호"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "보안 연결 초대"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "초대가 생성되었습니다."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "보안 연결에서 암호화된 초대"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "보안 연결에서 초대"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "초대를 해독 할 수 없습니다. 잘못된 암호 또는 손상 초대: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "보안 연결을 가져올 수 없음: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "초대를 암호화할 수 없음: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "보안 연결의 표시 이름"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "보안 연결 표시 이름"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Mattermost 인스턴스 간의 통신을 위해 보안 연결을 초대합니다."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "초대를 디코딩할 수 없음: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "보안 연결 {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "보안 연결을 추가할 수 없음: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "초대를 수락할 수 없음: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "초대가 수락 및 확인되었습니다.\n사이트URL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "외부 Mattermost 인스턴스의 초대 수락"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "입력한 텍스트가 글자수 제한을 초과했습니다. 채널 용도는 {{.MaxLength}}자로 제한됩니다."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "입력한 텍스트가 글자수 제한을 초과했습니다. 채널 헤더는 {{.MaxLength}}자로 제한됩니다."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook 이벤트가 처리되지 않았습니다. 누락되었거나 유효하지 않습니다."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "캐시 무효화 오류"
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "잘못된 ID입니다."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "잘못된 주제입니다."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "다이렉트 메세지로 답장"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "{{.channelName}}로 답장"
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "요청된 본문을 분석할 수 없습니다."
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "요청 본문을 분석할 수 없습니다."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " 팔로우 중인 스레드에 답글을 남겼습니다."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " 스레드에 응답했습니다."
   }
 ]

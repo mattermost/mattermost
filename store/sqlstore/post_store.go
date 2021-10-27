@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -529,7 +528,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
-		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+		"ThreadMemberships.Following as IsFollowing",
 	)
 	var post postWithExtra
 
@@ -878,7 +877,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
-		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+		"ThreadMemberships.Following as IsFollowing",
 	)
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
@@ -964,7 +963,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
-		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+		"ThreadMemberships.Following as IsFollowing",
 	)
 	var posts []*postWithExtra
 
@@ -1180,7 +1179,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 			"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 			"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 			"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
-			"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+			"ThreadMemberships.Following as IsFollowing",
 		)
 	}
 	query := s.getQueryBuilder().Select(columns...)
@@ -2409,27 +2408,15 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 		updateQuery := s.getQueryBuilder().Update("Threads")
 
 		if count == 0 {
-			var participants model.StringArray
-			err = s.getQueryBuilder().
-				Select("Participants").
-				From("Threads").
-				Where(sq.Eq{"PostId": rootId}).
-				RunWith(s.GetReplica()).
-				QueryRow().
-				Scan(&participants)
-
-			if err != nil {
-				return errors.Wrap(err, "failed getting thread participants")
-			}
-
-			if participants.Contains(userId) {
-				participants = participants.Remove(userId)
-				var participantsJSON []byte
-				participantsJSON, err = json.Marshal(participants)
-				if err != nil {
-					return errors.Wrap(err, "failed marshalling thread participants")
-				}
-				updateQuery = updateQuery.Set("Participants", string(participantsJSON))
+			if s.DriverName() == model.DatabaseDriverPostgres {
+				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
+			} else {
+				// The .Where is because JSON_REMOVE returns null if the element to remove wasn't present
+				updateQuery = updateQuery.
+					Set("Participants", sq.Expr(
+						`JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?)))`, userId,
+					)).
+					Where(sq.Expr(`JSON_CONTAINS(Participants, ?)`, strconv.Quote(userId)))
 			}
 		}
 
