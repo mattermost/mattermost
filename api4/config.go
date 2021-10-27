@@ -165,7 +165,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs)
+	auditRec.AddMeta("diff", diffs.Sanitize())
 
 	newCfg.Sanitize()
 
@@ -292,7 +292,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs)
+	auditRec.AddMeta("diff", diffs.Sanitize())
 
 	newCfg.Sanitize()
 
