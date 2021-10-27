@@ -131,27 +131,38 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		model.Post
 	}
 
-	fetchConditions := sq.And{
-		sq.Eq{"ThreadMemberships.UserId": userId},
-		sq.Eq{"ThreadMemberships.Following": true},
-	}
-	if opts.TeamOnly {
-		fetchConditions = sq.And{
-			sq.Eq{"Channels.TeamId": teamId},
-			fetchConditions,
+	getFetchConditions := func(useCoalesce bool) sq.Sqlizer {
+		conds := sq.And{
+			sq.Eq{"ThreadMemberships.UserId": userId},
+			sq.Eq{"ThreadMemberships.Following": true},
 		}
-	} else {
-		fetchConditions = sq.And{
-			sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
-			fetchConditions,
+		if opts.TeamOnly {
+			conds = sq.And{
+				sq.Eq{"Channels.TeamId": teamId},
+				conds,
+			}
+		} else {
+			conds = sq.And{
+				sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+				conds,
+			}
 		}
-	}
-	if !opts.Deleted {
-		fetchConditions = sq.And{
-			fetchConditions,
-			sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0},
+		if !opts.Deleted {
+			var deleteAt string
+			if useCoalesce {
+				deleteAt = "COALESCE(Posts.DeleteAt, 0)"
+			} else {
+				deleteAt = "Posts.DeleteAt"
+			}
+			conds = sq.And{
+				conds,
+				sq.Eq{deleteAt: 0},
+			}
 		}
+		return conds
 	}
+
+	fetchConditions := getFetchConditions(true)
 
 	pageSize := uint64(30)
 	if opts.PageSize != 0 {
@@ -167,12 +178,18 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 
 	go func() {
+		var indexHintPosts, indexHintThreadMemberships string
+		if s.DriverName() == model.DatabaseDriverMysql {
+			indexHintPosts = "USE INDEX (idx_posts_channel_id_delete_at_create_at)"
+			indexHintThreadMemberships = "USE INDEX (PRIMARY)"
+		}
+		unreadThreadConditions := getFetchConditions(false)
 		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
 			Select("COUNT(DISTINCT(Posts.RootId))").
-			From("Posts").
-			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-			Where(fetchConditions).
+			From("Posts " + indexHintPosts + ", ThreadMemberships " + indexHintThreadMemberships + ", Channels").
+			Where("Posts.RootId = ThreadMemberships.PostId").
+			Where("Posts.ChannelId = Channels.Id").
+			Where(unreadThreadConditions).
 			Where("Posts.CreateAt > ThreadMemberships.LastViewed").ToSql()
 
 		totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
