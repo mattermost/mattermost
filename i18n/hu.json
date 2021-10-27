@@ -5781,7 +5781,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Fiók beállítások > Értesítésekbe."
+    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Beállítások > Értesítések menübe."
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -8905,7 +8905,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " és lépjen a Fiókbeállítások> Értesítések menüpontba"
+    "translation": " és lépjen a Beállítások > Értesítések menübe"
   },
   {
     "id": "app.notification.body.mention.title",
