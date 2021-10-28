@@ -1429,22 +1429,21 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver database.Driver
 	var err error
 
-	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
-	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
-	dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
-	if err != nil {
-		return err
-	}
-	db := setupConnection("migrations", dataSource, ss.settings)
-	defer db.Close()
-
 	if ss.DriverName() == model.DatabaseDriverMysql {
+		dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+		if err != nil {
+			return err
+		}
+
+		db := setupConnection("migrations", dataSource, ss.settings)
+		defer db.Close()
+
 		driver, err = mysqlmigrate.WithInstance(db, &mysqlmigrate.Config{})
 		if err != nil {
 			return err
 		}
 	} else {
-		driver, err = postgres.WithInstance(db, &postgres.Config{})
+		driver, err = postgres.WithInstance(ss.masterX.DB.DB, &postgres.Config{})
 		if err != nil {
 			return err
 		}
@@ -1465,16 +1464,15 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	if err != nil {
 		return err
 	}
+	defer sourceDriver.Close()
 
 	migrations, err := migrate.NewWithInstance("go-bindata",
 		sourceDriver,
 		ss.DriverName(),
 		driver)
-
 	if err != nil {
 		return err
 	}
-	defer migrations.Close()
 
 	switch direction {
 	case migrationsDirectionUp:
