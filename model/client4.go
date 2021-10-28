@@ -7039,32 +7039,35 @@ func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Respon
 	return &g, BuildResponse(r), nil
 }
 
-func (c *Client4) UpsertGroupMembers(groupID string, userIds *[]string) (*[]GroupMember, *Response, error) {
-	payload, _ := json.Marshal(userIds)
-	r, err := c.DoAPIPost(c.groupRoute(groupID)+"/members", string(payload))
+func (c *Client4) UpsertGroupMembers(groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
+	payload, jsonErr := json.Marshal(userIds)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("UpsertGroupMembers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes(c.groupRoute(groupID)+"/members", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var g []GroupMember
+	var g []*GroupMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
 		return nil, nil, NewAppError("UpsertGroupMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	return &g, BuildResponse(r), nil
+	return g, BuildResponse(r), nil
 }
 
-func (c *Client4) DeleteGroupMembers(groupID string, userIds *[]string) (*[]GroupMember, *Response, error) {
+func (c *Client4) DeleteGroupMembers(groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
 	payload, _ := json.Marshal(userIds)
 	r, err := c.DoAPIDeleteBytes(c.groupRoute(groupID)+"/members", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var g []GroupMember
+	var g []*GroupMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
 		return nil, nil, NewAppError("DeleteGroupMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	return &g, BuildResponse(r), nil
+	return g, BuildResponse(r), nil
 }
 
 func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {

@@ -4245,7 +4245,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	_, appErr = th.App.CreateGroup(group)

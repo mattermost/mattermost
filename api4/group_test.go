@@ -26,7 +26,7 @@ func TestGetGroup(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -123,7 +123,7 @@ func TestDeleteGroup(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -155,7 +155,7 @@ func TestPatchGroup(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -226,7 +226,7 @@ func TestLinkGroupTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -266,7 +266,7 @@ func TestLinkGroupChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -308,7 +308,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -359,7 +359,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -411,7 +411,7 @@ func TestGetGroupTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -473,7 +473,7 @@ func TestGetGroupChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -535,7 +535,7 @@ func TestGetGroupTeams(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -588,7 +588,7 @@ func TestGetGroupChannels(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -640,7 +640,7 @@ func TestPatchGroupTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -712,7 +712,7 @@ func TestPatchGroupChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -795,7 +795,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -874,7 +874,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -950,7 +950,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, err)
 
@@ -1024,7 +1024,7 @@ func TestGetGroups(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 	start := group.UpdateAt - 1
@@ -1122,7 +1122,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1138,7 +1138,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1188,7 +1188,7 @@ func TestGetGroupStats(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1239,7 +1239,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 			Name:        model.NewString("name" + id),
 			Source:      model.GroupSourceLdap,
 			Description: "description_" + id,
-			RemoteId:    model.NewId(),
+			RemoteId:    model.NewString(model.NewId()),
 		})
 		require.Nil(t, err)
 		groups = append(groups, group)
@@ -1306,4 +1306,146 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.NotContains(t, apiGroups, groups[0])
 	require.Contains(t, apiGroups, groups[2])
+}
+
+func TestAddMembersToGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// 1. Test with custom source
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+	})
+	assert.Nil(t, err)
+
+	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	members := &model.GroupModifyMembers{
+		UserIds: []string{user1.Id, user2.Id},
+	}
+
+	groupMembers, response, upsertErr := th.Client.UpsertGroupMembers(group.Id, members)
+	require.NoError(t, upsertErr)
+	CheckOKStatus(t, response)
+
+	assert.Len(t, groupMembers, 2)
+
+	count, countErr := th.App.GetGroupMemberCount(group.Id)
+	assert.Nil(t, countErr)
+
+	assert.Equal(t, count, int64(2))
+
+	// 2. Test invalid group ID
+	_, response, upsertErr = th.Client.UpsertGroupMembers("abc123", members)
+	require.Error(t, upsertErr)
+	CheckBadRequestStatus(t, response)
+
+	// 3. Test invalid user ID
+	invalidMembers := &model.GroupModifyMembers{
+		UserIds: []string{"abc123"},
+	}
+
+	_, response, upsertErr = th.Client.UpsertGroupMembers(group.Id, invalidMembers)
+	require.Error(t, upsertErr)
+	CheckInternalErrorStatus(t, response)
+
+	// 4. Test with ldap source
+	ldapId := model.NewId()
+	ldapGroup, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + ldapId,
+		Name:        model.NewString("name" + ldapId),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + ldapId,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, err)
+
+	_, response, upsertErr = th.Client.UpsertGroupMembers(ldapGroup.Id, members)
+
+	require.Error(t, upsertErr)
+	CheckNotImplementedStatus(t, response)
+}
+
+func TestDeleteMembersFromGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// 1. Test with custom source
+	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	id := model.NewId()
+	g := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+	}
+	group, err := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
+		Group:   *g,
+		UserIds: []string{user1.Id, user2.Id},
+	})
+	assert.Nil(t, err)
+
+	members := &model.GroupModifyMembers{
+		UserIds: []string{user1.Id},
+	}
+
+	groupMembers, response, deleteErr := th.Client.DeleteGroupMembers(group.Id, members)
+	require.NoError(t, deleteErr)
+	CheckOKStatus(t, response)
+
+	assert.Len(t, groupMembers, 1)
+	assert.Equal(t, groupMembers[0].UserId, user1.Id)
+
+	users, usersErr := th.App.GetGroupMemberUsers(group.Id)
+	assert.Nil(t, usersErr)
+
+	assert.Len(t, users, 1)
+	assert.Equal(t, users[0].Id, user2.Id)
+
+	// 2. Test invalid group ID
+	_, response, deleteErr = th.Client.DeleteGroupMembers("abc123", members)
+	require.Error(t, deleteErr)
+	CheckBadRequestStatus(t, response)
+
+	// 3. Test invalid user ID
+	invalidMembers := &model.GroupModifyMembers{
+		UserIds: []string{"abc123"},
+	}
+
+	_, response, deleteErr = th.Client.DeleteGroupMembers(group.Id, invalidMembers)
+	require.Error(t, deleteErr)
+	CheckInternalErrorStatus(t, response)
+
+	// 4. Test with ldap source
+	ldapId := model.NewId()
+	g1 := &model.Group{
+		DisplayName: "dn_" + ldapId,
+		Name:        model.NewString("name" + ldapId),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + ldapId,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	ldapGroup, err := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
+		Group:   *g1,
+		UserIds: []string{user1.Id, user2.Id},
+	})
+	assert.Nil(t, err)
+
+	_, response, deleteErr = th.Client.DeleteGroupMembers(ldapGroup.Id, members)
+
+	require.Error(t, deleteErr)
+	CheckNotImplementedStatus(t, response)
 }
