@@ -44,7 +44,7 @@ type groupChannelJoin struct {
 	TeamDisplayName    string
 	TeamType           string
 	ChannelType        string
-	TeamID             string
+	TeamId             string
 }
 
 type SqlGroupStore struct {
