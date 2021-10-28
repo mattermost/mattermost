@@ -570,7 +570,25 @@ func (s *OpenTracingLayerChannelStore) AnalyticsTypeCount(teamID string, channel
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) AutocompleteInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error) {
+func (s *OpenTracingLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Autocomplete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.AutocompleteInTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -579,7 +597,7 @@ func (s *OpenTracingLayerChannelStore) AutocompleteInTeam(teamID string, term st
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.AutocompleteInTeam(teamID, term, includeDeleted)
+	result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -809,6 +827,24 @@ func (s *OpenTracingLayerChannelStore) GetAll(teamID string) ([]*model.Channel, 
 
 	defer span.Finish()
 	result, err := s.ChannelStore.GetAll(teamID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetAllChannelMembersById")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetAllChannelMembersById(id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -1123,6 +1159,42 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByScheme(schemeID string, offs
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int, pageSize int, fromChannelID string) (model.ChannelList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsByUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsWithTeamDataByIds")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetChannelsWithTeamDataByIds(channelIds, includeDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeleted")
@@ -1370,7 +1442,7 @@ func (s *OpenTracingLayerChannelStore) GetMembersForUser(teamID string, userID s
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetMembersForUserWithPagination(teamID string, userID string, page int, perPage int) (model.ChannelMembers, error) {
+func (s *OpenTracingLayerChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int) (model.ChannelMembersWithTeamData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMembersForUserWithPagination")
 	s.Root.Store.SetContext(newCtx)
@@ -1379,7 +1451,7 @@ func (s *OpenTracingLayerChannelStore) GetMembersForUserWithPagination(teamID st
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetMembersForUserWithPagination(teamID, userID, page, perPage)
+	result, err := s.ChannelStore.GetMembersForUserWithPagination(userID, page, perPage)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -1578,6 +1650,24 @@ func (s *OpenTracingLayerChannelStore) GetTeamForChannel(channelID string) (*mod
 
 	defer span.Finish()
 	result, err := s.ChannelStore.GetTeamForChannel(channelID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetTeamMembersForChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetTeamMembersForChannel(channelID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

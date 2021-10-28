@@ -132,3 +132,18 @@ func makeStringArgs(params []string) []interface{} {
 	}
 	return args
 }
+
+func constructArrayArgs(ids []string) (string, []interface{}) {
+	var placeholder strings.Builder
+	values := make([]interface{}, 0, len(ids))
+	for _, entry := range ids {
+		if placeholder.Len() > 0 {
+			placeholder.WriteString(",")
+		}
+
+		placeholder.WriteString("?")
+		values = append(values, entry)
+	}
+
+	return "(" + placeholder.String() + ")", values
+}
