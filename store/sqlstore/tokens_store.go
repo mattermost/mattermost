@@ -63,7 +63,7 @@ func (s SqlTokenStore) Delete(token string) error {
 func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	var token model.Token
 
-	if err := s.GetReplicaX().Get(&token, "SELECT * FROM Tokens WHERE Token = ", tokenString); err != nil {
+	if err := s.GetReplicaX().Get(&token, "SELECT * FROM Tokens WHERE Token = ?", tokenString); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
 		}
