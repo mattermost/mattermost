@@ -40,11 +40,11 @@ type groupTeamJoin struct {
 
 type groupChannelJoin struct {
 	groupChannel
-	ChannelDisplayName string `db:"ChannelDisplayName"`
-	TeamDisplayName    string `db:"TeamDisplayName"`
-	TeamType           string `db:"TeamType"`
-	ChannelType        string `db:"ChannelType"`
-	TeamID             string `db:"TeamId"`
+	ChannelDisplayName string
+	TeamDisplayName    string
+	TeamType           string
+	ChannelType        string
+	TeamID             string
 }
 
 type SqlGroupStore struct {
@@ -986,7 +986,7 @@ func (groups groupsWithSchemeAdmin) ToModel() []*model.GroupWithSchemeAdmin {
 
 type groupAssociatedToChannelWithSchemeAdmin struct {
 	groupWithSchemeAdmin
-	ChannelId string `json:"channel_id"`
+	ChannelId string
 }
 
 func (g groupAssociatedToChannelWithSchemeAdmin) ToModel() *model.GroupsAssociatedToChannelWithSchemeAdmin {
