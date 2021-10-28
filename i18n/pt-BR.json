@@ -1314,10 +1314,6 @@
     "translation": "Parâmetro RootId inválido."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Este canal é somente leitura. Somente membros com permissão podem publicar aqui."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Erro ao criar a publicação."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Não é possível atualizar uma publicação em um canal excluído."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Este canal é somente leitura. Somente membros com permissão podem fixar ou desafixar publicações aqui."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Você não pode salvar a reação de outro usuário."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Não é possível reagir a publicações em canais somente leitura."
   },
   {
     "id": "api.restricted_system_admin",

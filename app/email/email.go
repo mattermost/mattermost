@@ -555,15 +555,24 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
 			}
 
+			senderPhoto := ""
 			embeddedFiles := make(map[string]io.Reader)
 			if message != "" {
 				if senderProfileImage != nil {
-					data.Props["SenderPhoto"] = "user-avatar.png"
+					senderPhoto = "user-avatar.png"
 					embeddedFiles = map[string]io.Reader{
-						"user-avatar.png": bytes.NewReader(senderProfileImage),
+						senderPhoto: bytes.NewReader(senderProfileImage),
 					}
 				}
 			}
+
+			pData := postData{
+				SenderName:  senderName,
+				Message:     template.HTML(message),
+				SenderPhoto: senderPhoto,
+			}
+
+			data.Props["Posts"] = []postData{pData}
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {

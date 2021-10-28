@@ -196,7 +196,7 @@ func (s *Server) initPlugins(c *request.Context, pluginDir, webappPluginDir stri
 	}
 
 	newAPIFunc := func(manifest *model.Manifest) plugin.API {
-		return New(ServerConnector(s)).NewPluginAPI(c, manifest)
+		return New(ServerConnector(s.Channels())).NewPluginAPI(c, manifest)
 	}
 
 	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(s), pluginDir, webappPluginDir, s.Log, s.Metrics)
