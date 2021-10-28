@@ -283,11 +283,6 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
-		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
-		return
-	}
-
 	filter, err := parseMarketplacePluginFilter(r.URL)
 	if err != nil {
 		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -298,6 +293,16 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
+		unfilteredPlugins := plugins
+		plugins = []*model.MarketplacePlugin{}
+		for _, p := range unfilteredPlugins {
+			if p.Manifest.HasWebapp() {
+				plugins = append(plugins, p)
+			}
+		}
 	}
 
 	json, err := json.Marshal(plugins)

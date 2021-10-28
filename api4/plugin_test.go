@@ -511,18 +511,6 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		require.Nil(t, plugins)
 	}, "no server")
 
-	t.Run("no permission", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.EnableMarketplace = true
-			*cfg.PluginSettings.MarketplaceURL = "invalid.com"
-		})
-
-		plugins, resp, err := th.Client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-		require.Nil(t, plugins)
-	})
-
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
@@ -836,6 +824,73 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		require.NoError(t, err)
 		newPlugin.InstalledVersion = ""
+		require.Equal(t, expectedPlugins, plugins)
+	})
+
+	t.Run("non-admin marketplace client excludes plugins that only have a server-side portion", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.EnableMarketplace = true
+		})
+
+		serverOnlyPlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: &model.Manifest{
+					Id:     "server-only",
+					Name:   "server-only",
+					Server: &model.ManifestServer{},
+					Webapp: nil,
+				},
+			},
+		}
+
+		webappOnlyPlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: &model.Manifest{
+					Id:     "webapp-only",
+					Name:   "webapp-only",
+					Server: nil,
+					Webapp: &model.ManifestWebapp{},
+				},
+			},
+		}
+
+		serverAndWebappPlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: &model.Manifest{
+					Id:     "server-and-webapp",
+					Name:   "server-and-webapp",
+					Server: &model.ManifestServer{},
+					Webapp: &model.ManifestWebapp{},
+				},
+			},
+		}
+
+		expectedPlugins := []*model.MarketplacePlugin{serverAndWebappPlugin, webappOnlyPlugin}
+		allPlugins := []*model.MarketplacePlugin{serverAndWebappPlugin, serverOnlyPlugin, webappOnlyPlugin}
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			var out []byte
+			out, err = json.Marshal(allPlugins)
+			require.NoError(t, err)
+			res.Write(out)
+		}))
+		defer func() { testServer.Close() }()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.MarketplaceURL = testServer.URL
+		})
+
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+		require.Equal(t, allPlugins, plugins)
+
+		plugins, _, err = th.Client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		require.NoError(t, err)
 		require.Equal(t, expectedPlugins, plugins)
 	})
 }
