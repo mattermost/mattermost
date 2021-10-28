@@ -119,6 +119,10 @@ func (a *App) DeleteOAuthApp(appID string) *model.AppError {
 		return model.NewAppError("DeleteOAuthApp", "app.oauth.delete_app.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if err := a.RevokeSessionsForOAuthAppId(appID); err != nil {
+		mlog.Warn("error in revoking app sessions after update", mlog.Err(err))
+	}
+
 	if err := a.Srv().InvalidateAllCaches(); err != nil {
 		mlog.Warn("error in invalidating cache", mlog.Err(err))
 	}

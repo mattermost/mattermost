@@ -68,7 +68,7 @@ func getPredefinedScopes() Scopes {
 }
 
 func (s Scope) IsPredefinedScope() bool {
-	return getPredefinedScopes().isInScope(s)
+	return s.isInScope(getPredefinedScopes())
 }
 
 func (s Scope) IsScopeForPlugin(pluginID string) bool {
@@ -77,13 +77,13 @@ func (s Scope) IsScopeForPlugin(pluginID string) bool {
 }
 
 // isInScope checks if a scope is in the scope list
-func (ss Scopes) isInScope(scope Scope) bool {
-	if ss == nil {
+func (s Scope) isInScope(scopes Scopes) bool {
+	if scopes == nil {
 		return false
 	}
 
-	for _, allowed := range ss {
-		if scope == allowed {
+	for _, allowed := range scopes {
+		if s == allowed {
 			return true
 		}
 	}
@@ -134,7 +134,7 @@ func (ss Scopes) intersection(scope Scopes) Scopes {
 
 	out := Scopes{}
 	for _, x := range ss {
-		if scope.isInScope(x) {
+		if x.isInScope(scope) {
 			out = append(out, x)
 		}
 	}
@@ -184,7 +184,7 @@ func (ss Scopes) IsSuperset(ss2 Scopes) bool {
 	}
 
 	for _, s2 := range ss2 {
-		if !ss.isInScope(s2) {
+		if !s2.isInScope(ss) {
 			return false
 		}
 	}

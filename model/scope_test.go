@@ -57,12 +57,12 @@ func TestIsInScope(t *testing.T) {
 	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("pluginID", "scope"))
 	others := Scopes{}
 	for _, s := range allScopes {
-		assert.False(t, ScopeDeny().isInScope(s), "Scope %v should not be in Deny scope", s)
-		assert.True(t, ScopeAny(s).isInScope(s), "Scope %v should be in scope created with ScopeAny(%v)", s, s)
-		assert.True(t, allScopes.isInScope(s), "Scope %v should be among all the scopes", s)
-		assert.False(t, others.isInScope(s), "Scope %v should not be in previous scopes", s)
+		assert.False(t, s.isInScope(ScopeDeny()), "Scope %v should not be in Deny scope", s)
+		assert.True(t, s.isInScope(ScopeAny(s)), "Scope %v should be in scope created with ScopeAny(%v)", s, s)
+		assert.True(t, s.isInScope(allScopes), "Scope %v should be among all the scopes", s)
+		assert.False(t, s.isInScope(others), "Scope %v should not be in previous scopes", s)
 		others = append(others, s)
-		assert.True(t, others.isInScope(s), "Scope %v should be in a scope where it has been added", s)
+		assert.True(t, s.isInScope(others), "Scope %v should be in a scope where it has been added", s)
 	}
 }
 
