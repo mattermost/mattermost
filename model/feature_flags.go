@@ -63,6 +63,9 @@ type FeatureFlags struct {
 
 	// A/B test for the add members to channel button, possible values = ("top", "bottom")
 	AddMembersToChannel string
+
+	// Enable Create First Channel
+	GuidedChannelCreation bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -85,6 +88,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
+	f.GuidedChannelCreation = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
