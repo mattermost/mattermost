@@ -1280,7 +1280,7 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 }
 
 func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
-	groups := groups{}
+	groupsVar := groups{}
 
 	groupsQuery := s.getQueryBuilder().Select("g.*")
 
@@ -1390,11 +1390,11 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		return nil, errors.Wrap(err, "get_groups_tosql")
 	}
 
-	if err = s.GetReplicaX().Select(&groups, queryString, args...); err != nil {
+	if err = s.GetReplicaX().Select(&groupsVar, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Groups")
 	}
 
-	return groups.ToModel(), nil
+	return groupsVar.ToModel(), nil
 }
 
 func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupIDs []string, isCount bool) sq.SelectBuilder {
