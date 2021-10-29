@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 
-	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 )
 
@@ -38,11 +37,11 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 		return nil, err
 	}
 
-	transaction, err := s.GetMaster().Begin()
+	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransaction(transaction)
+	defer finalizeTransactionX(transaction)
 	err = s.saveReactionAndUpdatePost(transaction, reaction)
 	if err != nil {
 		// We don't consider duplicated save calls as an error
@@ -61,11 +60,11 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	reaction.PreUpdate()
 
-	transaction, err := s.GetMaster().Begin()
+	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransaction(transaction)
+	defer finalizeTransactionX(transaction)
 
 	if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
 		return nil, errors.Wrap(err, "deleteReactionAndUpdatePost")
@@ -94,7 +93,7 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 	}
 
 	var reactions []*model.Reaction
-	if _, err := s.GetReplica().Select(&reactions, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&reactions, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
 	}
 	return reactions, nil
@@ -125,17 +124,17 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 	}
 
 	var reactions []*model.Reaction
-	if _, err := s.GetReplica().Select(&reactions, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&reactions, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find reactions")
 	}
 	return reactions, nil
 }
 
 func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-	keys, params := MapStringsToQueryParams(postIds, "postId")
+	placeholder, values := constructArrayArgs(postIds)
 	var reactions []*model.Reaction
 
-	if _, err := s.GetReplica().Select(&reactions,
+	if err := s.GetReplicaX().Select(&reactions,
 		`SELECT
 				UserId,
 				PostId,
@@ -147,9 +146,9 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 			FROM
 				Reactions
 			WHERE
-				PostId IN `+keys+` AND COALESCE(DeleteAt, 0) = 0
+				PostId IN `+placeholder+` AND COALESCE(DeleteAt, 0) = 0
 			ORDER BY
-				CreateAt`, params); err != nil {
+				CreateAt`, values...); err != nil {
 		return nil, errors.Wrap(err, "failed to get Reactions")
 	}
 	return reactions, nil
@@ -159,13 +158,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	var reactions []*model.Reaction
 	now := model.GetMillis()
 
-	params := map[string]interface{}{
-		"EmojiName": emojiName,
-		"UpdateAt":  now,
-		"DeleteAt":  now,
-	}
-
-	if _, err := s.GetReplica().Select(&reactions,
+	if err := s.GetReplicaX().Select(&reactions,
 		`SELECT
 			UserId,
 			PostId,
@@ -177,28 +170,24 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 		FROM
 			Reactions
 		WHERE
-			EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params); err != nil {
+			EmojiName = ? AND COALESCE(DeleteAt, 0) = 0`, emojiName); err != nil {
 		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
-	_, err := s.GetMaster().Exec(
+	_, err := s.GetMasterX().Exec(
 		`UPDATE
 			Reactions
 		SET
-			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt
+			UpdateAt = ?, DeleteAt = ?
 		WHERE
-			EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params)
+			EmojiName = ? AND COALESCE(DeleteAt, 0) = 0`, now, now, emojiName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Reactions with emojiName=%s", emojiName)
 	}
 
 	for _, reaction := range reactions {
 		reaction := reaction
-		_, err := s.GetMaster().Exec(UpdatePostHasReactionsOnDeleteQuery,
-			map[string]interface{}{
-				"PostId":   reaction.PostId,
-				"UpdateAt": model.GetMillis(),
-			})
+		_, err := s.GetMasterX().Exec(UpdatePostHasReactionsOnDeleteQuery, model.GetMillis(), reaction.PostId, reaction.PostId)
 		if err != nil {
 			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
 				mlog.String("post_id", reaction.PostId),
@@ -218,11 +207,10 @@ func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err err
 			SELECT PostId FROM Reactions
 			LEFT JOIN Posts ON Reactions.PostId = Posts.Id
 			WHERE Posts.Id IS NULL
-			LIMIT :Limit
+			LIMIT ?
 		) AS A
 	)`
-	props := map[string]interface{}{"Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
+	result, err := s.GetMasterX().Exec(query, limit)
 	if err != nil {
 		return
 	}
@@ -233,12 +221,12 @@ func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err err
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {
-		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
+		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < ? LIMIT ?))"
 	} else {
-		query = "DELETE from Reactions WHERE CreateAt < :EndTime LIMIT :Limit"
+		query = "DELETE from Reactions WHERE CreateAt < ? LIMIT ?"
 	}
 
-	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	sqlResult, err := s.GetMasterX().Exec(query, endTime, limit)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete Reactions")
 	}
@@ -250,62 +238,45 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	return rowsAffected, nil
 }
 
-func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
-	params := map[string]interface{}{
-		"UserId":    reaction.UserId,
-		"PostId":    reaction.PostId,
-		"EmojiName": reaction.EmojiName,
-		"CreateAt":  reaction.CreateAt,
-		"UpdateAt":  reaction.UpdateAt,
-		"RemoteId":  reaction.RemoteId,
-	}
+func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
+	reaction.DeleteAt = 0
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		if _, err := transaction.Exec(
+		if _, err := transaction.NamedExec(
 			`INSERT INTO
 				Reactions
 				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
 			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0, :RemoteId)
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId)
 			ON DUPLICATE KEY UPDATE
-				UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
+				UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId`, reaction); err != nil {
 			return err
 		}
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		if _, err := transaction.Exec(
+		if _, err := transaction.NamedExec(
 			`INSERT INTO
 				Reactions
 				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
 			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0, :RemoteId)
-			ON CONFLICT (UserId, PostId, EmojiName) 
-				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId)
+			ON CONFLICT (UserId, PostId, EmojiName)
+				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId`, reaction); err != nil {
 			return err
 		}
 	}
 	return updatePostForReactionsOnInsert(transaction, reaction.PostId)
 }
 
-func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
-	params := map[string]interface{}{
-		"UserId":    reaction.UserId,
-		"PostId":    reaction.PostId,
-		"EmojiName": reaction.EmojiName,
-		"CreateAt":  reaction.CreateAt,
-		"UpdateAt":  reaction.UpdateAt,
-		"DeleteAt":  reaction.UpdateAt, // DeleteAt = UpdateAt
-		"RemoteId":  reaction.RemoteId,
-	}
-
+func deleteReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
 	if _, err := transaction.Exec(
 		`UPDATE
 			Reactions
-		SET 
-			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId
+		SET
+			UpdateAt = ?, DeleteAt = ?, RemoteId = ?
 		WHERE
-			PostId = :PostId AND
-			UserId = :UserId AND
-			EmojiName = :EmojiName`, params); err != nil {
+			PostId = ? AND
+			UserId = ? AND
+			EmojiName = ?`, reaction.UpdateAt, reaction.UpdateAt, reaction.RemoteId, reaction.PostId, reaction.UserId, reaction.EmojiName); err != nil {
 		return err
 	}
 
@@ -316,28 +287,30 @@ const (
 	UpdatePostHasReactionsOnDeleteQuery = `UPDATE
 			Posts
 		SET
-			UpdateAt = :UpdateAt,
-			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId AND COALESCE(DeleteAt, 0) = 0)
+			UpdateAt = ?,
+			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = ? AND COALESCE(DeleteAt, 0) = 0)
 		WHERE
-			Id = :PostId`
+			Id = ?`
 )
 
-func updatePostForReactionsOnDelete(transaction *gorp.Transaction, postId string) error {
+func updatePostForReactionsOnDelete(transaction *sqlxTxWrapper, postId string) error {
 	updateAt := model.GetMillis()
-	_, err := transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, map[string]interface{}{"PostId": postId, "UpdateAt": updateAt})
+	_, err := transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, updateAt, postId, postId)
 	return err
 }
 
-func updatePostForReactionsOnInsert(transaction *gorp.Transaction, postId string) error {
+func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) error {
 	_, err := transaction.Exec(
 		`UPDATE
 			Posts
 		SET
 			HasReactions = True,
-			UpdateAt = :UpdateAt
+			UpdateAt = ?
 		WHERE
-			Id = :PostId`,
-		map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
+			Id = ?`,
+		model.GetMillis(),
+		postId,
+	)
 
 	return err
 }

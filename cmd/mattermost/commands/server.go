@@ -93,17 +93,14 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 		}
 	}()
 
-	a := app.New(app.ServerConnector(server))
-	api := api4.Init(a, server.Router)
-
+	api := api4.Init(server)
 	wsapi.Init(server)
-	web.New(a, server.Router)
-	api4.InitLocal(a, server.LocalRouter)
+	web.New(server)
 
-	serverErr := server.Start()
-	if serverErr != nil {
-		mlog.Critical(serverErr.Error())
-		return serverErr
+	err = server.Start()
+	if err != nil {
+		mlog.Critical(err.Error())
+		return err
 	}
 
 	// If we allow testing then listen for manual testing URL hits
