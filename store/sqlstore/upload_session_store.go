@@ -81,7 +81,7 @@ func (us SqlUploadSessionStore) Update(session *model.UploadSession) error {
 		Set("FileSize", session.FileSize).
 		Set("FileOffset", session.FileOffset).
 		Set("RemoteId", session.RemoteId).
-		Set("ReqFieldId", session.ReqFileId).
+		Set("ReqFileId", session.ReqFileId).
 		Where(sq.Eq{"Id": session.Id}).
 		ToSql()
 	if err != nil {
