@@ -52,7 +52,7 @@ func (us SqlUploadSessionStore) Save(session *model.UploadSession) (*model.Uploa
 	query, args, err := us.getQueryBuilder().
 		Insert("UploadSessions").
 		Columns("Id", "Type", "CreateAt", "UserId", "ChannelId", "Filename", "Path", "FileSize", "FileOffset", "RemoteId", "ReqFileId").
-		Values(session.Id, session.Type, session.CreateAt, session.UserId, session.ChannelId, session.Filename, session.Path, session.FileSize, session.FileOffset, session.RemoteId, session.ReqFileId).
+		Values(session.Id, string(session.Type), session.CreateAt, session.UserId, session.ChannelId, session.Filename, session.Path, session.FileSize, session.FileOffset, session.RemoteId, session.ReqFileId).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "SqlUploadSessionStore.Save: failed to build query")
