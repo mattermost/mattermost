@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
 	dbsql "database/sql"
 	"fmt"
 	"os"
@@ -341,7 +342,7 @@ func (ss *SqlStore) initConnection() {
 		var err error
 		dataSource, err = resetReadTimeout(dataSource)
 		if err != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err))
+			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
 	}
 
@@ -436,6 +437,15 @@ func (ss *SqlStore) GetMaster() *gorp.DbMap {
 
 func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
 	return ss.masterX
+}
+
+func (ss *SqlStore) SetMasterX(db *sql.DB) {
+	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(db, ss.DriverName()),
+		time.Duration(*ss.settings.QueryTimeout)*time.Second,
+		*ss.settings.Trace)
+	if ss.DriverName() == model.DatabaseDriverMysql {
+		ss.masterX.MapperFunc(noOpMapper)
+	}
 }
 
 func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {

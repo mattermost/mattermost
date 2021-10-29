@@ -528,7 +528,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
-		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+		"ThreadMemberships.Following as IsFollowing",
 	)
 	var post postWithExtra
 
@@ -819,33 +819,31 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 			}
 		}
 	}
-	var users []*model.User
+	// usersMap is the global profile map of all participants from all threads.
+	usersMap := make(map[string]*model.User, len(userIds))
 	if extended {
-		var err error
-		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+		users, err := s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, err
 		}
+		for _, user := range users {
+			usersMap[user.Id] = user
+		}
 	} else {
 		for _, userId := range userIds {
-			users = append(users, &model.User{Id: userId})
+			usersMap[userId] = &model.User{Id: userId}
 		}
 	}
+
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
 		if p.IsFollowing != nil {
 			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
 		}
-		for _, th := range p.ThreadParticipants {
-			var participant *model.User
-			for _, u := range users {
-				if u.Id == th {
-					participant = u
-					break
-				}
-			}
-			if participant == nil {
-				return errors.New("cannot find thread participant with id=" + th)
+		for _, userID := range p.ThreadParticipants {
+			participant, ok := usersMap[userID]
+			if !ok {
+				return errors.New("cannot find thread participant with id=" + userID)
 			}
 			p.Post.Participants = append(p.Post.Participants, participant)
 		}
@@ -879,7 +877,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
-		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+		"ThreadMemberships.Following as IsFollowing",
 	)
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
@@ -965,7 +963,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
-		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+		"ThreadMemberships.Following as IsFollowing",
 	)
 	var posts []*postWithExtra
 
@@ -1181,7 +1179,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 			"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 			"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 			"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
-			"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+			"ThreadMemberships.Following as IsFollowing",
 		)
 	}
 	query := s.getQueryBuilder().Select(columns...)
