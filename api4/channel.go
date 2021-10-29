@@ -67,7 +67,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequiredWithDenyScope(getChannelMembers)).Methods("GET")
 	api.BaseRoutes.ChannelMembers.Handle("/ids", api.APISessionRequiredWithDenyScope(getChannelMembersByIds)).Methods("POST")
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequiredWithDenyScope(addChannelMember)).Methods("POST")
-	api.BaseRoutes.ChannelMembersForUser.Handle("", api.APISessionRequiredWithDenyScope(getChannelMembersForUser)).Methods("GET")
+	api.BaseRoutes.ChannelMembersForUser.Handle("", api.APISessionRequiredWithDenyScope(getChannelMembersForTeamForUser)).Methods("GET")
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequiredWithDenyScope(getChannelMember)).Methods("GET")
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequiredWithDenyScope(removeChannelMember)).Methods("DELETE")
 	api.BaseRoutes.ChannelMember.Handle("/roles", api.APISessionRequiredWithDenyScope(updateChannelMemberRoles)).Methods("PUT")

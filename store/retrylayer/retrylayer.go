@@ -5543,6 +5543,7 @@ func (s *RetryLayerOAuthStore) RemoveMultipleAccessData(tokens []string) error {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
@@ -8170,6 +8171,7 @@ func (s *RetryLayerSessionStore) GetSessionsForOAuthApp(appId string) ([]*model.
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
@@ -8274,6 +8276,7 @@ func (s *RetryLayerSessionStore) RemoveSessions(sessionIDs []string) error {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
