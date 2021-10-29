@@ -60,13 +60,13 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 
 	query, args, err := me.getQueryBuilder().
 		Insert("Sessions").
-		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props", "TeamMembers", "Local").
-		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, session.Props, session.TeamMembers, session.Local).
+		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
+		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, model.MapToJSON(session.Props)).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sessions_tosql")
 	}
-	if _, err := me.GetMasterX().Exec(query, args...); err != nil {
+	if _, err = me.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
