@@ -138,13 +138,13 @@ endif
 	gpg --import build/plugin-production-public-key.gpg
 
 	@# Download prepackaged plugins
-#	mkdir -p tmpprepackaged
-#	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
-#		for ARCH in "osx-amd64" "windows-amd64" "linux-amd64" ; do \
-#			curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$$ARCH.tar.gz; \
-#			curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$$ARCH.tar.gz.sig; \
-#		done; \
-#	done
+	mkdir -p tmpprepackaged
+	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		for ARCH in "osx-amd64" "windows-amd64" "linux-amd64" ; do \
+			curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$$ARCH.tar.gz; \
+			curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$$ARCH.tar.gz.sig; \
+		done; \
+	done
 
 package-general:
 	@# Create needed directories
@@ -228,22 +228,22 @@ else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH_WIN)/bin # from cross-compiled bin dir
 endif
 	unzip -o ../mmctl/build/windows_amd64.zip -d $(DIST_PATH_WIN)/bin
-#	@# Prepackage plugins
-#	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-#		ARCH="windows-amd64"; \
-#		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_WIN)/prepackaged_plugins; \
-#		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_WIN)/prepackaged_plugins; \
-#		HAS_ARCH=`tar -tf $(DIST_PATH_WIN)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
-#		if [ "$$HAS_ARCH" != "dist/plugin-windows-amd64.exe" ]; then \
-#			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-windows-amd64.exe"; \
-#			exit 1; \
-#		fi; \
-#		gpg --verify $(DIST_PATH_WIN)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_WIN)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
-#		if [ $$? -ne 0 ]; then \
-#			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
-#			exit 1; \
-#		fi; \
-#	done
+	@# Prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		ARCH="windows-amd64"; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_WIN)/prepackaged_plugins; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_WIN)/prepackaged_plugins; \
+		HAS_ARCH=`tar -tf $(DIST_PATH_WIN)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+		if [ "$$HAS_ARCH" != "dist/plugin-windows-amd64.exe" ]; then \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-windows-amd64.exe"; \
+			exit 1; \
+		fi; \
+		gpg --verify $(DIST_PATH_WIN)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_WIN)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
+			exit 1; \
+		fi; \
+	done
 	@# Package
 	cd $(DIST_PATH_WIN)/.. && zip -9 -r -q -l ../mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost ../mattermost && cd ../..
 	@# Cleanup
