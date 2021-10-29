@@ -1,6 +1,6 @@
 SOURCE ?= file go_bindata github github_ee bitbucket aws_s3 google_cloud_storage godoc_vfs gitlab
-DATABASE ?= postgres mysql redshift cassandra spanner cockroachdb clickhouse mongodb sqlserver firebird neo4j
-DATABASE_TEST ?= $(DATABASE) sqlite sqlcipher
+DATABASE ?= postgres mysql redshift cassandra spanner cockroachdb clickhouse mongodb sqlserver firebird neo4j pgx
+DATABASE_TEST ?= $(DATABASE) sqlite sqlite3 sqlcipher
 VERSION ?= $(shell git describe --tags 2>/dev/null | cut -c 2-)
 TEST_FLAGS ?=
 REPO_OWNER ?= $(shell cd .. && basename "$$(pwd)")
@@ -98,6 +98,12 @@ release:
 	git tag v$(V)
 	@read -p "Press enter to confirm and push to origin ..." && git push origin v$(V)
 
+echo-source:
+	@echo "$(SOURCE)"
+
+echo-database:
+	@echo "$(DATABASE)"
+
 
 define external_deps
 	@echo '-- $(1)';  go list -f '{{join .Deps "\n"}}' $(1) | grep -v github.com/$(REPO_OWNER)/migrate | xargs go list -f '{{if not .Standard}}{{.ImportPath}}{{end}}'
@@ -107,7 +113,7 @@ endef
 
 .PHONY: build build-docker build-cli clean test-short test test-with-flags html-coverage \
         restore-import-paths rewrite-import-paths list-external-deps release \
-        docs kill-docs open-docs kill-orphaned-docker-containers
+		docs kill-docs open-docs kill-orphaned-docker-containers echo-source echo-database
 
 SHELL = /bin/sh
 RAND = $(shell echo $$RANDOM)

@@ -18,16 +18,16 @@ import (
 )
 
 type Web struct {
-	app        app.AppIface
+	srv        *app.Server
 	MainRouter *mux.Router
 }
 
-func New(a app.AppIface, root *mux.Router) *Web {
+func New(srv *app.Server) *Web {
 	mlog.Debug("Initializing web routes")
 
 	web := &Web{
-		app:        a,
-		MainRouter: root,
+		srv:        srv,
+		MainRouter: srv.Router,
 	}
 
 	web.InitOAuth()
