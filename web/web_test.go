@@ -83,7 +83,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}
 	// lock logger config so server init cannot override it during testing.
@@ -120,9 +120,9 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	})
 
 	ctx := &request.Context{}
-	a := app.New(app.ServerConnector(s))
+	a := app.New(app.ServerConnector(s.Channels()))
 
-	web := New(a, s.Router)
+	web := New(s)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)
 

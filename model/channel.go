@@ -6,7 +6,6 @@ package model
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"encoding/json"
 	"io"
 	"net/http"
 	"sort"
@@ -57,6 +56,7 @@ type Channel struct {
 	Shared            *bool                  `json:"shared"`
 	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
 	PolicyID          *string                `json:"policy_id" db:"-"`
+	LastRootPostAt    int64                  `json:"last_root_post_at"`
 }
 
 type ChannelWithTeamData struct {
@@ -163,11 +163,6 @@ func (o *Channel) DeepCopy() *Channel {
 		copy.SchemeId = NewString(*o.SchemeId)
 	}
 	return &copy
-}
-
-func (o *Channel) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 func (o *Channel) Etag() string {

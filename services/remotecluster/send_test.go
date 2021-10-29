@@ -55,9 +55,10 @@ func TestBroadcastMsg(t *testing.T) {
 
 			atomic.AddInt32(&countWebReq, 1)
 
-			frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
-			if appErr != nil {
-				merr.Append(appErr)
+			var frame model.RemoteClusterFrame
+			jsonErr := json.NewDecoder(r.Body).Decode(&frame)
+			if jsonErr != nil {
+				merr.Append(jsonErr)
 				return
 			}
 			if len(frame.Msg.Payload) == 0 {

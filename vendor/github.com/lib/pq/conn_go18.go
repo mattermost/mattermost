@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const (
+	watchCancelDialContextTimeout = time.Second * 10
+)
+
 // Implement the "QueryerContext" interface
 func (cn *conn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
 	list := make([]driver.Value, len(args))
@@ -41,6 +45,14 @@ func (cn *conn) ExecContext(ctx context.Context, query string, args []driver.Nam
 	}
 
 	return cn.Exec(query, list)
+}
+
+// Implement the "ConnPrepareContext" interface
+func (cn *conn) PrepareContext(ctx context.Context, query string) (driver.Stmt, error) {
+	if finish := cn.watchCancel(ctx); finish != nil {
+		defer finish()
+	}
+	return cn.Prepare(query)
 }
 
 // Implement the "ConnBeginTx" interface
@@ -109,7 +121,7 @@ func (cn *conn) watchCancel(ctx context.Context) func() {
 				// so it must not be used for the additional network
 				// request to cancel the query.
 				// Create a new context to pass into the dial.
-				ctxCancel, cancel := context.WithTimeout(context.Background(), time.Second*10)
+				ctxCancel, cancel := context.WithTimeout(context.Background(), watchCancelDialContextTimeout)
 				defer cancel()
 
 				_ = cn.cancel(ctxCancel)
@@ -171,4 +183,69 @@ func (cn *conn) cancel(ctx context.Context) error {
 		_, err := io.Copy(ioutil.Discard, c)
 		return err
 	}
+}
+
+// Implement the "StmtQueryContext" interface
+func (st *stmt) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
+	list := make([]driver.Value, len(args))
+	for i, nv := range args {
+		list[i] = nv.Value
+	}
+	finish := st.watchCancel(ctx)
+	r, err := st.query(list)
+	if err != nil {
+		if finish != nil {
+			finish()
+		}
+		return nil, err
+	}
+	r.finish = finish
+	return r, nil
+}
+
+// Implement the "StmtExecContext" interface
+func (st *stmt) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
+	list := make([]driver.Value, len(args))
+	for i, nv := range args {
+		list[i] = nv.Value
+	}
+
+	if finish := st.watchCancel(ctx); finish != nil {
+		defer finish()
+	}
+
+	return st.Exec(list)
+}
+
+// watchCancel is implemented on stmt in order to not mark the parent conn as bad
+func (st *stmt) watchCancel(ctx context.Context) func() {
+	if done := ctx.Done(); done != nil {
+		finished := make(chan struct{})
+		go func() {
+			select {
+			case <-done:
+				// At this point the function level context is canceled,
+				// so it must not be used for the additional network
+				// request to cancel the query.
+				// Create a new context to pass into the dial.
+				ctxCancel, cancel := context.WithTimeout(context.Background(), watchCancelDialContextTimeout)
+				defer cancel()
+
+				_ = st.cancel(ctxCancel)
+				finished <- struct{}{}
+			case <-finished:
+			}
+		}()
+		return func() {
+			select {
+			case <-finished:
+			case finished <- struct{}{}:
+			}
+		}
+	}
+	return nil
+}
+
+func (st *stmt) cancel(ctx context.Context) error {
+	return st.cn.cancel(ctx)
 }

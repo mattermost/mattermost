@@ -4,12 +4,10 @@
 package model
 
 import (
-	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +15,6 @@ import (
 )
 
 func TestTriggerIdDecodeAndVerification(t *testing.T) {
-
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
 
@@ -85,84 +82,6 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 	})
 }
 
-func TestPostActionIntegrationRequestToJson(t *testing.T) {
-	o := PostActionIntegrationRequest{UserId: NewId(), Context: StringInterface{"a": "abc"}}
-	j := o.ToJson()
-	ro := PostActionIntegrationRequestFromJson(bytes.NewReader(j))
-
-	assert.NotNil(t, ro)
-	assert.Equal(t, o, *ro)
-}
-
-func TestPostActionIntegrationRequestFromJsonError(t *testing.T) {
-	ro := PostActionIntegrationRequestFromJson(strings.NewReader(""))
-	assert.Nil(t, ro)
-}
-
-func TestPostActionIntegrationResponseToJson(t *testing.T) {
-	o := PostActionIntegrationResponse{Update: &Post{Id: NewId(), Message: NewId()}, EphemeralText: NewId()}
-	j := o.ToJson()
-	ro := PostActionIntegrationResponseFromJson(bytes.NewReader(j))
-
-	assert.NotNil(t, ro)
-	assert.Equal(t, o, *ro)
-}
-
-func TestPostActionIntegrationResponseFromJsonError(t *testing.T) {
-	ro := PostActionIntegrationResponseFromJson(strings.NewReader(""))
-	assert.Nil(t, ro)
-}
-
-func TestSubmitDialogRequestToJson(t *testing.T) {
-	t.Run("all fine", func(t *testing.T) {
-		request := SubmitDialogRequest{
-			URL:        "http://example.org",
-			CallbackId: NewId(),
-			State:      "some state",
-			UserId:     NewId(),
-			ChannelId:  NewId(),
-			TeamId:     NewId(),
-			Submission: map[string]interface{}{
-				"text":  "some text",
-				"float": 1.2,
-				"bool":  true,
-			},
-			Cancelled: true,
-		}
-		jsonRequest := request.ToJson()
-		r := SubmitDialogRequestFromJson(bytes.NewReader(jsonRequest))
-
-		require.NotNil(t, r)
-		assert.Equal(t, request, *r)
-	})
-	t.Run("error", func(t *testing.T) {
-		r := SubmitDialogRequestFromJson(strings.NewReader(""))
-		assert.Nil(t, r)
-	})
-}
-
-func TestSubmitDialogResponseToJson(t *testing.T) {
-	t.Run("all fine", func(t *testing.T) {
-		request := SubmitDialogResponse{
-			Error: "some generic error",
-			Errors: map[string]string{
-				"text":  "some text",
-				"float": "1.2",
-				"bool":  "true",
-			},
-		}
-		jsonRequest := request.ToJson()
-		r := SubmitDialogResponseFromJson(bytes.NewReader(jsonRequest))
-
-		require.NotNil(t, r)
-		assert.Equal(t, request, *r)
-	})
-	t.Run("error", func(t *testing.T) {
-		r := SubmitDialogResponseFromJson(strings.NewReader(""))
-		assert.Nil(t, r)
-	})
-}
-
 func TestPostActionIntegrationEquals(t *testing.T) {
 	t.Run("equal uncomparable types", func(t *testing.T) {
 		pa1 := &PostAction{
@@ -221,6 +140,18 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 				},
 			},
 		}
+		require.False(t, pa1.Equals(pa2))
+	})
+
+	t.Run("nil check", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: &PostActionIntegration{},
+		}
+
+		pa2 := &PostAction{
+			Integration: nil,
+		}
+
 		require.False(t, pa1.Equals(pa2))
 	})
 }

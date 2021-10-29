@@ -78,6 +78,21 @@ func (w *sqlxDBWrapper) NamedExec(query string, arg interface{}) (sql.Result, er
 	return w.DB.NamedExecContext(ctx, query, arg)
 }
 
+func (w *sqlxDBWrapper) Exec(query string, args ...interface{}) (sql.Result, error) {
+	query = w.DB.Rebind(query)
+
+	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
+	defer cancel()
+
+	if w.trace {
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	return w.DB.ExecContext(ctx, query, args...)
+}
+
 func (w *sqlxDBWrapper) NamedQuery(query string, arg interface{}) (*sqlx.Rows, error) {
 	if w.DB.DriverName() == model.DatabaseDriverPostgres {
 		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
@@ -162,6 +177,21 @@ func (w *sqlxTxWrapper) Get(dest interface{}, query string, args ...interface{})
 	}
 
 	return w.Tx.GetContext(ctx, dest, query, args...)
+}
+
+func (w *sqlxTxWrapper) Exec(query string, args ...interface{}) (sql.Result, error) {
+	query = w.Tx.Rebind(query)
+
+	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
+	defer cancel()
+
+	if w.trace {
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	return w.Tx.ExecContext(ctx, query, args...)
 }
 
 func (w *sqlxTxWrapper) NamedExec(query string, arg interface{}) (sql.Result, error) {

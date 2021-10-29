@@ -30,8 +30,8 @@ func (api *API) InitCommand() {
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	cmd := model.CommandFromJson(r.Body)
-	if cmd == nil {
+	var cmd model.Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
 		c.SetInvalidParam("command")
 		return
 	}
@@ -47,7 +47,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd.CreatorId = c.AppContext.Session().UserId
 
-	rcmd, err := c.App.CreateCommand(cmd)
+	rcmd, err := c.App.CreateCommand(&cmd)
 	if err != nil {
 		c.Err = err
 		return
@@ -69,8 +69,8 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := model.CommandFromJson(r.Body)
-	if cmd == nil || cmd.Id != c.Params.CommandId {
+	var cmd model.Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil || cmd.Id != c.Params.CommandId {
 		c.SetInvalidParam("command")
 		return
 	}
@@ -106,7 +106,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rcmd, err := c.App.UpdateCommand(oldCmd, cmd)
+	rcmd, err := c.App.UpdateCommand(oldCmd, &cmd)
 	if err != nil {
 		c.Err = err
 		return
@@ -126,8 +126,8 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmr, err := model.CommandMoveRequestFromJson(r.Body)
-	if err != nil {
+	var cmr model.CommandMoveRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&cmr); jsonErr != nil {
 		c.SetInvalidParam("team_id")
 		return
 	}
@@ -298,8 +298,8 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	commandArgs := model.CommandArgsFromJson(r.Body)
-	if commandArgs == nil {
+	var commandArgs model.CommandArgs
+	if jsonErr := json.NewDecoder(r.Body).Decode(&commandArgs); jsonErr != nil {
 		c.SetInvalidParam("command_args")
 		return
 	}
@@ -347,7 +347,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddMeta("commandargs", commandArgs) // overwrite in case teamid changed
 
-	response, err := c.App.ExecuteCommand(c.AppContext, commandArgs)
+	response, err := c.App.ExecuteCommand(c.AppContext, &commandArgs)
 	if err != nil {
 		c.Err = err
 		return
@@ -423,7 +423,12 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 
 	suggestions := c.App.GetSuggestions(c.AppContext, commandArgs, commands, roleId)
 
-	w.Write(model.AutocompleteSuggestionsToJSON(suggestions))
+	js, jsonErr := json.Marshal(suggestions)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("listCommandAutocompleteSuggestions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -470,5 +475,5 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]string)
 	resp["token"] = rcmd.Token
 
-	w.Write([]byte(model.MapToJson(resp)))
+	w.Write([]byte(model.MapToJSON(resp)))
 }

@@ -35,6 +35,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods("GET")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForTeamForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/channels", api.APISessionRequired(getChannelsForUser)).Methods("GET")
 
 	api.BaseRoutes.ChannelCategories.Handle("", api.APISessionRequired(getCategoriesForTeamForUser)).Methods("GET")
 	api.BaseRoutes.ChannelCategories.Handle("", api.APISessionRequired(createCategoryForTeamForUser)).Methods("POST")
@@ -66,7 +67,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(getChannelMembers)).Methods("GET")
 	api.BaseRoutes.ChannelMembers.Handle("/ids", api.APISessionRequired(getChannelMembersByIds)).Methods("POST")
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(addChannelMember)).Methods("POST")
-	api.BaseRoutes.ChannelMembersForUser.Handle("", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
+	api.BaseRoutes.ChannelMembersForUser.Handle("", api.APISessionRequired(getChannelMembersForTeamForUser)).Methods("GET")
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(getChannelMember)).Methods("GET")
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(removeChannelMember)).Methods("DELETE")
 	api.BaseRoutes.ChannelMember.Handle("/roles", api.APISessionRequired(updateChannelMemberRoles)).Methods("PUT")
@@ -233,7 +234,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	privacy, ok := props["privacy"].(string)
 	if !ok || (model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate) {
 		c.SetInvalidParam("privacy")
@@ -395,7 +396,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 	allowed := false
 
 	if len(userIds) != 2 {
@@ -479,7 +480,7 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -816,7 +817,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	channelIds := model.ArrayFromJson(r.Body)
+	channelIds := model.ArrayFromJSON(r.Body)
 	if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
@@ -877,7 +878,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
+	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
 	if err != nil {
 		c.Err = err
 		return
@@ -899,6 +900,79 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	query := r.URL.Query()
+	lastDeleteAt, nErr := strconv.Atoi(query.Get("last_delete_at"))
+	if nErr != nil {
+		lastDeleteAt = 0
+	}
+	if lastDeleteAt < 0 {
+		c.SetInvalidURLParam("last_delete_at")
+		return
+	}
+
+	pageSize := 100
+	fromChannelID := ""
+	// We have to write `[` and `]` separately because we want to stream the response.
+	// The internal API is paginated, but the client always needs to get the full data.
+	// Therefore, to avoid forcing the client to go through all the pages,
+	// we stream the full data from server side itself.
+	//
+	// Note that this means if an error occurs in mid-stream, the response won't be
+	// fully JSON.
+	w.Write([]byte(`[`))
+	enc := json.NewEncoder(w)
+	for {
+		channels, err := c.App.GetChannelsForUser(c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt, pageSize, fromChannelID)
+		if err != nil {
+			// If the page size was a perfect multiple of the total number of results,
+			// then the last query will always return zero results.
+			if fromChannelID != "" && err.Id == "app.channel.get_channels.not_found.app_error" {
+				break
+			}
+			c.Err = err
+			return
+		}
+
+		err = c.App.FillInChannelsProps(channels)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		// intermediary comma between sets
+		if fromChannelID != "" {
+			w.Write([]byte(`,`))
+		}
+
+		for i, ch := range channels {
+			if err := enc.Encode(ch); err != nil {
+				mlog.Warn("Error while writing response", mlog.Err(err))
+			}
+			if i < len(channels)-1 {
+				w.Write([]byte(`,`))
+			}
+		}
+
+		if len(channels) < pageSize {
+			break
+		}
+
+		fromChannelID = channels[len(channels)-1].Id
+	}
+	w.Write([]byte(`]`))
+}
+
 func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -912,7 +986,7 @@ func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Requ
 
 	name := r.URL.Query().Get("name")
 
-	channels, err := c.App.AutocompleteChannels(c.Params.TeamId, name)
+	channels, err := c.App.AutocompleteChannelsForTeam(c.Params.TeamId, c.AppContext.Session().UserId, name)
 	if err != nil {
 		c.Err = err
 		return
@@ -1029,6 +1103,31 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_search")
 		return
 	}
+
+	fromSysConsole := true
+	if val := r.URL.Query().Get("system_console"); val != "" {
+		fromSysConsole, err = strconv.ParseBool(val)
+		if err != nil {
+			c.SetInvalidParam("system_console")
+			return
+		}
+	}
+
+	if !fromSysConsole {
+		// If the request is not coming from system_console, only show the user level channels
+		// from all teams.
+		channels, err := c.App.AutocompleteChannels(c.AppContext.Session().UserId, props.Term)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(channels); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
 	// Only system managers may use the ExcludePolicyConstrained field
 	if props.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)
@@ -1039,6 +1138,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
+
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	includeDeleted = includeDeleted || props.IncludeDeleted
 
@@ -1244,7 +1344,7 @@ func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write([]byte(model.ArrayToJson(membersTimezones)))
+	w.Write([]byte(model.ArrayToJSON(membersTimezones)))
 }
 
 func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1253,7 +1353,7 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
@@ -1297,7 +1397,7 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {
 		return
@@ -1335,8 +1435,8 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	view := model.ChannelViewFromJson(r.Body)
-	if view == nil {
+	var view model.ChannelView
+	if jsonErr := json.NewDecoder(r.Body).Decode(&view); jsonErr != nil {
 		c.SetInvalidParam("channel_view")
 		return
 	}
@@ -1352,7 +1452,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	times, err := c.App.ViewChannel(view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
+	times, err := c.App.ViewChannel(&view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
 	if err != nil {
 		c.Err = err
 		return
@@ -1378,7 +1478,7 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
 	if !(model.IsValidUserRoles(newRoles)) {
@@ -1412,8 +1512,8 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	schemeRoles := model.SchemeRolesFromJson(r.Body)
-	if schemeRoles == nil {
+	var schemeRoles model.SchemeRoles
+	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParam("scheme_roles")
 		return
 	}
@@ -1444,7 +1544,7 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	if props == nil {
 		c.SetInvalidParam("notify_props")
 		return
@@ -1477,7 +1577,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	userId, ok := props["user_id"].(string)
 	if !ok || !model.IsValidId(userId) {
 		c.SetInvalidParam("user_id")
@@ -1663,15 +1763,16 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || !model.IsValidId(*schemeID) {
+	var p model.SchemeIDPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil || p.SchemeID == nil || !model.IsValidId(*p.SchemeID) {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
+	schemeID := p.SchemeID
 
 	auditRec := c.MakeAuditRecord("updateChannelScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("new_scheme_id", schemeID)
+	auditRec.AddMeta("new_scheme_id", *schemeID)
 
 	if c.App.Srv().License() == nil {
 		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)
@@ -1898,7 +1999,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	teamId, ok := props["team_id"].(string)
 	if !ok {
 		c.SetInvalidParam("team_id")

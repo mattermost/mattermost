@@ -27,7 +27,7 @@ func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		s.Log.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJson()))
+		w.Write([]byte(err.ToJSON()))
 		return
 	}
 
@@ -52,7 +52,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		a.Log().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJson()))
+		w.Write([]byte(err.ToJSON()))
 		return
 	}
 
@@ -141,7 +141,7 @@ func (s *Server) servePluginRequest(w http.ResponseWriter, r *http.Request, hand
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
-		session, err := New(ServerConnector(s)).GetSession(token)
+		session, err := New(ServerConnector(s.Channels())).GetSession(token)
 		defer s.userService.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false

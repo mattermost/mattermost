@@ -216,6 +216,11 @@ func (s SqlSharedChannelStore) getSharedChannelsQuery(opts model.SharedChannelFi
 		Select(selectStr).
 		From("SharedChannels AS sc")
 
+	if opts.MemberId != "" {
+		query = query.Join("ChannelMembers AS cm ON cm.ChannelId = sc.ChannelId").
+			Where(sq.Eq{"cm.UserId": opts.MemberId})
+	}
+
 	if opts.TeamId != "" {
 		query = query.Where(sq.Eq{"sc.TeamId": opts.TeamId})
 	}

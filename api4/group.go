@@ -114,8 +114,8 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupPatch := model.GroupPatchFromJson(r.Body)
-	if groupPatch == nil {
+	var groupPatch model.GroupPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&groupPatch); jsonErr != nil {
 		c.SetInvalidParam("group")
 		return
 	}
@@ -167,7 +167,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	group.Patch(groupPatch)
+	group.Patch(&groupPatch)
 
 	group, err = c.App.UpdateGroup(group)
 	if err != nil {

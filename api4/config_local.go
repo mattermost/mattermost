@@ -35,7 +35,7 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -73,7 +73,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs)
+	auditRec.AddMeta("diff", diffs.Sanitize())
 
 	newCfg.Sanitize()
 
@@ -87,7 +87,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -131,7 +131,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs)
+	auditRec.AddMeta("diff", diffs.Sanitize())
 
 	auditRec.Success()
 

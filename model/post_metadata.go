@@ -3,10 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-)
-
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -39,7 +35,30 @@ type PostImage struct {
 	FrameCount int `json:"frame_count"`
 }
 
-func (o *PostImage) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
+// Copy does a deep copy
+func (p *PostMetadata) Copy() *PostMetadata {
+	embedsCopy := make([]*PostEmbed, len(p.Embeds))
+	copy(embedsCopy, p.Embeds)
+
+	emojisCopy := make([]*Emoji, len(p.Emojis))
+	copy(emojisCopy, p.Emojis)
+
+	filesCopy := make([]*FileInfo, len(p.Files))
+	copy(filesCopy, p.Files)
+
+	imagesCopy := map[string]*PostImage{}
+	for k, v := range p.Images {
+		imagesCopy[k] = v
+	}
+
+	reactionsCopy := make([]*Reaction, len(p.Reactions))
+	copy(reactionsCopy, p.Reactions)
+
+	return &PostMetadata{
+		Embeds:    embedsCopy,
+		Emojis:    emojisCopy,
+		Files:     filesCopy,
+		Images:    imagesCopy,
+		Reactions: reactionsCopy,
+	}
 }

@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Anordnungsfehler"
+    "translation": "Fehler beim Marshalling."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1314,10 +1314,6 @@
     "translation": "Ungültiger RootId Parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier schreiben."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Fehler beim Erstellen des Eintrages."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier Nachrichten an- oder abheften."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Sie können keine Reaktion für den anderen Benutzer sichern."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reaktionen auf Nachrichte sind in Nur-Lesen-Kanälen nicht möglich."
   },
   {
     "id": "api.restricted_system_admin",
@@ -1801,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Kontoeinstellungen > Benachrichtigungen."
+    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Einstellungen > Benachrichtigungen."
   },
   {
     "id": "api.templates.email_info1",
@@ -4837,7 +4825,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4845,7 +4833,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4853,7 +4841,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6145,7 +6133,7 @@
   },
   {
     "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP-Server wird benötigt"
+    "translation": "SMTP-Server benötigt"
   },
   {
     "id": "api.emoji.create.internal_error",
@@ -7345,7 +7333,7 @@
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
-    "translation": "Der Job-Typ, den Sie versuchen runterzuladen, wird momentan nicht unterstützt"
+    "translation": "Der Job-Typ, den Sie versuchen herunterzuladen, wird momentan nicht unterstützt"
   },
   {
     "id": "api.job.unable_to_download_job",
@@ -7357,7 +7345,7 @@
   },
   {
     "id": "api.job.retrieve.nopermissions",
-    "translation": "Die Job Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
+    "translation": "Die Job-Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
   },
   {
     "id": "api.invalid_custom_url_scheme",
@@ -7381,7 +7369,7 @@
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht holen."
+    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht ermitteln."
   },
   {
     "id": "api.file.file_exists.app_error",
@@ -7406,8 +7394,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} sendete Ihnen neue Nachrichten",
-      "other": "{{ .SenderName }} und {{.Count}} andere sendeten Ihnen neue Nachrichten"
+      "one": "Sie haben eine neue Nachricht",
+      "other": "Sie haben neue Nachrichten"
     }
   },
   {
@@ -8044,7 +8032,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Professional endet in 3 Tagen, am {{.TrialEnd}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
+    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8668,7 +8656,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " und gehen Sie zu Kontoeinstellungen > Benachrichtigungen"
+    "translation": " und gehen Sie zu Einstellungen > Benachrichtigungen"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9187,16 +9175,12 @@
     "translation": "{{.SenderName}} hat auf eine Unterhaltung geantwortet"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Während Sie weg waren, hat {{.SenderName}} auf eine Unterhaltung geantwortet, die Sie beobachten."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Auf die Unterhaltung antworten"
+    "translation": "Antwort in {{.channelName}}"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " einen Kommentar zu einer Unterhaltung abgegeben, das Sie verfolgen."
+    "translation": " antwortete auf eine Unterhaltung, der Sie folgen."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9205,5 +9189,73 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Die Konfiguration konnte nicht neu geladen werden."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Fehler die Nachricht zu marshallen."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Fehler beim Unmarshalling."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Während Sie weg waren, antwortete {{.SenderName}} auf eine Unterhaltung in Ihren Gruppennachrichten."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Während Sie weg waren, antwortete {{.SenderName}} auf eine Unterhaltung in Ihren Direktnachrichten."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Während Sie weg waren, antwortete {{.SenderName}} auf eine Unterhaltung im Kanal {{.ChannelName}}, der Sie folgen."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Während Sie weg waren, antwortete {{.SenderName}} auf eine Unterhaltung, der Sie folgen."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Antwort in Direktnachricht"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " antwortete auf eine Unterhaltung."
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Fehler bei der Verarbeitung von Anhängen beim Massenimport."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Benutzerrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Rollen von Teammitgliedern mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ungültiges Feld UserId für Sitzung."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Sitzungsrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ungültiges ID-Feld für Sitzung."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ungültiges CreateAt-Feld für Sitzung."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Kanalmitgliederrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Die Email-Adresse im Token stimmt nicht mit der in den Benutzerdaten überein."
   }
 ]

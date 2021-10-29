@@ -68,7 +68,7 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Nickname").SetMaxSize(64)
 		table.ColMap("FirstName").SetMaxSize(64)
 		table.ColMap("LastName").SetMaxSize(64)
-		table.ColMap("Roles").SetMaxSize(256)
+		table.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
 		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("Locale").SetMaxSize(5)
@@ -230,7 +230,7 @@ func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string)
 	if _, err := us.GetMaster().Exec(`UPDATE Users
 		SET NotifyProps = :NotifyProps
 		WHERE Id = :UserId`, map[string]interface{}{
-		"NotifyProps": model.MapToJson(props),
+		"NotifyProps": model.MapToJSON(props),
 		"UserId":      userID}); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
 	}

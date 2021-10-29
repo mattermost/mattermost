@@ -115,6 +115,14 @@ func (p *PostAction) Equals(input *PostAction) bool {
 	}
 
 	// Compare PostActionIntegration
+
+	// If input is nil, then return true if original is also nil.
+	// Else return false.
+	if input.Integration == nil {
+		return p.Integration == nil
+	}
+
+	// Both are unequal and not nil.
 	if p.Integration.URL != input.Integration.URL {
 		return false
 	}
@@ -323,62 +331,6 @@ func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey) (strin
 	return DecodeAndVerifyTriggerId(r.TriggerId, s)
 }
 
-func (r *PostActionIntegrationRequest) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
-func PostActionIntegrationRequestFromJson(data io.Reader) *PostActionIntegrationRequest {
-	var o *PostActionIntegrationRequest
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func (r *PostActionIntegrationResponse) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
-func PostActionIntegrationResponseFromJson(data io.Reader) *PostActionIntegrationResponse {
-	var o *PostActionIntegrationResponse
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func SubmitDialogRequestFromJson(data io.Reader) *SubmitDialogRequest {
-	var o *SubmitDialogRequest
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func (r *SubmitDialogRequest) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
-func SubmitDialogResponseFromJson(data io.Reader) *SubmitDialogResponse {
-	var o *SubmitDialogResponse
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func (r *SubmitDialogResponse) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
 func (o *Post) StripActionIntegrations() {
 	attachments := o.Attachments()
 	if o.GetProp("attachments") != nil {
@@ -523,10 +475,4 @@ func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {
 	}
 
 	return string(plain), nil
-}
-
-func DoPostActionRequestFromJson(data io.Reader) *DoPostActionRequest {
-	var o *DoPostActionRequest
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

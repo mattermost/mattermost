@@ -76,7 +76,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	emailList := model.ArrayFromJson(r.Body)
+	emailList := model.ArrayFromJSON(r.Body)
 	if len(emailList) == 0 {
 		c.SetInvalidParam("user_email")
 		return
@@ -142,7 +142,12 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			}
 		}
 		// in graceful mode we return both the successful ones and the failed ones
-		w.Write([]byte(model.EmailInviteWithErrorToJson(invitesWithErrors)))
+		js, jsonErr := json.Marshal(invitesWithErrors)
+		if jsonErr != nil {
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(js)
 	} else {
 		var invalidEmailList []string
 
@@ -200,18 +205,19 @@ func normalizeDomains(domains string) []string {
 }
 
 func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	team := model.TeamFromJson(r.Body)
-	if team == nil {
+	var team model.Team
+	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
 		c.SetInvalidParam("team")
 		return
 	}
+
 	team.Email = strings.ToLower(team.Email)
 
 	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("team", team)
 
-	rteam, err := c.App.CreateTeam(c.AppContext, team)
+	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {
 		c.Err = err
 		return

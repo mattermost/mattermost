@@ -73,15 +73,15 @@ func TestPadDateStringZeros(t *testing.T) {
 
 func TestAppError(t *testing.T) {
 	err := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
-	json := err.ToJson()
-	rerr := AppErrorFromJson(strings.NewReader(json))
+	json := err.ToJSON()
+	rerr := AppErrorFromJSON(strings.NewReader(json))
 	require.Equal(t, err.Message, rerr.Message)
 
 	t.Log(err.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {
-	rerr := AppErrorFromJson(strings.NewReader("<html><body>This is a broken test</body></html>"))
+	rerr := AppErrorFromJSON(strings.NewReader("<html><body>This is a broken test</body></html>"))
 	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
 }
 
@@ -100,13 +100,13 @@ func TestMapJson(t *testing.T) {
 
 	m := make(map[string]string)
 	m["id"] = "test_id"
-	json := MapToJson(m)
+	json := MapToJSON(m)
 
-	rm := MapFromJson(strings.NewReader(json))
+	rm := MapFromJSON(strings.NewReader(json))
 
 	require.Equal(t, rm["id"], "test_id", "map should be valid")
 
-	rm2 := MapFromJson(strings.NewReader(""))
+	rm2 := MapFromJSON(strings.NewReader(""))
 	require.LessOrEqual(t, len(rm2), 0, "make should be ivalid")
 }
 

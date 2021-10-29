@@ -4,9 +4,9 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -21,10 +21,14 @@ func (a *App) AddStatusCache(status *model.Status) {
 	a.AddStatusCacheSkipClusterSend(status)
 
 	if a.Cluster() != nil {
+		statusJSON, jsonErr := json.Marshal(status)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode status to JSON")
+		}
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventUpdateStatus,
 			SendType: model.ClusterSendBestEffort,
-			Data:     []byte(status.ToClusterJson()),
+			Data:     statusJSON,
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}
@@ -443,15 +447,22 @@ func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *
 	if err != nil || pref.Value == "" {
 		newRCS = model.RecentCustomStatuses{*status}
 	} else {
-		existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
+		var existingRCS model.RecentCustomStatuses
+		if jsonErr := json.Unmarshal([]byte(pref.Value), &existingRCS); jsonErr != nil {
+			return model.NewAppError("addRecentCustomStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		}
 		newRCS = existingRCS.Add(status)
 	}
 
+	newRCSJSON, jsonErr := json.Marshal(newRCS)
+	if jsonErr != nil {
+		return model.NewAppError("addRecentCustomStatus", "api.marshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+	}
 	pref = &model.Preference{
 		UserId:   userID,
 		Category: model.PreferenceCategoryCustomStatus,
 		Name:     model.PreferenceNameRecentCustomStatuses,
-		Value:    newRCS.ToJson(),
+		Value:    string(newRCSJSON),
 	}
 	if err := a.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
 		return err
@@ -470,14 +481,25 @@ func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus
 		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
-	if !existingRCS.Contains(status) {
+	var existingRCS model.RecentCustomStatuses
+	if jsonErr := json.Unmarshal([]byte(pref.Value), &existingRCS); jsonErr != nil {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+	}
+
+	if ok, err := existingRCS.Contains(status); !ok || err != nil {
 		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	newRCS := existingRCS.Remove(status)
-	pref.Value = newRCS.ToJson()
+	newRCS, removeErr := existingRCS.Remove(status)
+	if removeErr != nil {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, removeErr.Error(), http.StatusBadRequest)
+	}
 
+	newRCSJSON, jsonErr := json.Marshal(newRCS)
+	if jsonErr != nil {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.marshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+	}
+	pref.Value = string(newRCSJSON)
 	if err := a.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
 		return err
 	}

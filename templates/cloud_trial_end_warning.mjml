@@ -40,7 +40,7 @@
           <mj-text font-size="14px" line-height="20px" color="#3D3C40" padding="0px 0px " align="left" font-family="Arial">
             {{.Props.QuestionInfo}}
             <a href='mailto:{{.Props.SupportEmail}}'>
-              {{.Props.SupportEmail}}
+              feedback-cloud@mattermost.com
             </a>
           </mj-text>
         </mj-column>

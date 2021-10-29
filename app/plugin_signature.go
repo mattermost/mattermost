@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
+	"golang.org/x/crypto/openpgp/armor" //nolint:staticcheck
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"

@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -83,7 +81,6 @@ func (c *Compliance) JobName() string {
 }
 
 func (c *Compliance) IsValid() *AppError {
-
 	if !IsValidId(c.Id) {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -109,16 +106,4 @@ func (c *Compliance) IsValid() *AppError {
 	}
 
 	return nil
-}
-
-func ComplianceFromJson(data io.Reader) *Compliance {
-	var c *Compliance
-	json.NewDecoder(data).Decode(&c)
-	return c
-}
-
-func CompliancesFromJson(data io.Reader) Compliances {
-	var o Compliances
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

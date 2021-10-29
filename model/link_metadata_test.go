@@ -160,14 +160,16 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 			Width:  500,
 		}
 
+		js, err := json.Marshal(image)
+		assert.NoError(t, err)
 		metadata := &LinkMetadata{
 			Type: LinkMetadataTypeImage,
-			Data: []byte(image.ToJson()),
+			Data: js,
 		}
 
 		require.IsType(t, []byte{}, metadata.Data)
 
-		err := metadata.DeserializeDataToConcreteType()
+		err = metadata.DeserializeDataToConcreteType()
 
 		assert.NoError(t, err)
 		assert.IsType(t, &PostImage{}, metadata.Data)

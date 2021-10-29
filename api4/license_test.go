@@ -224,11 +224,12 @@ func TestRequestTrialLicense(t *testing.T) {
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewInt(nUsers)
-		licenseStr := license.ToJson()
+		licenseJSON, jsonErr := json.Marshal(license)
+		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
 			response := map[string]string{
-				"license": licenseStr,
+				"license": string(licenseJSON),
 			}
 			err := json.NewEncoder(res).Encode(response)
 			require.NoError(t, err)
@@ -238,7 +239,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr)
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()

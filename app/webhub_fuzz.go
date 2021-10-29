@@ -153,7 +153,7 @@ func Fuzz(data []byte) int {
 
 		s := httptest.NewServer(dummyWebsocketHandler())
 
-		th.App.HubStart()
+		th.Server.HubStart()
 
 		u1 := th.CreateUser()
 		u2 := th.CreateUser()

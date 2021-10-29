@@ -138,7 +138,10 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	products, err := c.App.Cloud().GetCloudProducts(c.AppContext.Session().UserId)
+	includeLegacyProducts := r.URL.Query().Get("include_legacy") == "true"
+
+	products, err := c.App.Cloud().GetCloudProducts(c.AppContext.Session().UserId, includeLegacyProducts)
+
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return

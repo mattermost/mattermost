@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,13 +24,15 @@ const (
 )
 
 type postData struct {
-	SenderName  string
-	ChannelName string
-	Message     template.HTML
-	MessageURL  string
-	SenderPhoto string
-	PostPhoto   string
-	Time        string
+	SenderName               string
+	ChannelName              string
+	Message                  template.HTML
+	MessageURL               string
+	SenderPhoto              string
+	PostPhoto                string
+	Time                     string
+	ShowChannelIcon          bool
+	OtherChannelMembersCount int
 }
 
 func (es *Service) InitEmailBatching() {
@@ -206,6 +209,18 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 	}
 }
 
+/**
+* If the name is longer than i characters, replace remaining characters with ...
+ */
+func truncateUserNames(name string, i int) string {
+	runes := []rune(name)
+	if len(runes) > i {
+		newString := string(runes[:i])
+		return newString + "..."
+	}
+	return name
+}
+
 func (es *Service) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
 	user, err := es.userService.GetUser(userID)
 	if err != nil {
@@ -223,6 +238,16 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 	emailNotificationContentsType := model.EmailNotificationContentsFull
 	if license := es.license(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *es.config().EmailSettings.EmailNotificationContentsType
+	}
+
+	// check if user has CRT set to ON
+	threadsEnabled := false
+	if *es.config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled {
+		threadsEnabled = *es.config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
+		// check if a participant has overridden collapsed threads settings
+		if preference, errCrt := es.store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); errCrt == nil {
+			threadsEnabled = preference.Value == "on"
+		}
 	}
 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
@@ -256,18 +281,38 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				"Month":    translateFunc(tm.Month().String()),
 				"Day":      tm.Day(),
 				"Year":     tm.Year(),
-				"Timezone": timezone,
+				"TimeZone": timezone,
 			})
 
 			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
 
+			channelDisplayName := channel.DisplayName
+			showChannelIcon := true
+			otherChannelMembersCount := 0
+
+			if threadsEnabled && notification.post.RootId != "" {
+				props := map[string]interface{}{"channelName": channelDisplayName}
+				channelDisplayName = translateFunc("api.push_notification.title.collapsed_threads", props)
+				if channel.Type == model.ChannelTypeDirect {
+					channelDisplayName = translateFunc("api.push_notification.title.collapsed_threads_dm")
+				}
+			}
+
+			if channel.Type == model.ChannelTypeGroup {
+				otherChannelMembersCount = len(strings.Split(channelDisplayName, ",")) - 1
+				showChannelIcon = false
+				channelDisplayName = truncateUserNames(channel.DisplayName, 11)
+			}
+
 			postsData = append(postsData, &postData{
-				SenderPhoto: senderPhoto,
-				SenderName:  sender.GetDisplayName(displayNameFormat),
-				Time:        t,
-				ChannelName: channel.DisplayName,
-				Message:     template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
-				MessageURL:  MessageURL,
+				SenderPhoto:              senderPhoto,
+				SenderName:               truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
+				Time:                     t,
+				ChannelName:              channelDisplayName,
+				Message:                  template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
+				MessageURL:               MessageURL,
+				ShowChannelIcon:          showChannelIcon,
+				OtherChannelMembersCount: otherChannelMembersCount,
 			})
 		}
 	}
@@ -281,16 +326,9 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		"Day":      tm.Day(),
 	})
 
-	firstSender, err := es.userService.GetUser(notifications[0].post.UserId)
-	if err != nil {
-		mlog.Warn("Unable to find sender of post for batched email notification")
-	}
-
 	data := es.NewEmailTemplateData(user.Locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications)-1, map[string]interface{}{
-		"SenderName": firstSender.GetDisplayName(displayNameFormat),
-	})
+	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications)-1)
 	data.Props["SubTitle"] = translateFunc("api.email_batching.send_batched_email_notification.subTitle")
 	data.Props["Button"] = translateFunc("api.email_batching.send_batched_email_notification.button")
 	data.Props["ButtonURL"] = siteURL
@@ -305,7 +343,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		mlog.Error("Unable to render email", mlog.Err(renderErr))
 	}
 
-	if nErr := es.SendNotificationMail(user.Email, subject, renderedPage); nErr != nil {
+	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }

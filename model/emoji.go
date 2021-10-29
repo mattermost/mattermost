@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -94,21 +92,4 @@ func (emoji *Emoji) PreSave() {
 
 	emoji.CreateAt = GetMillis()
 	emoji.UpdateAt = emoji.CreateAt
-}
-
-func (emoji *Emoji) ToJson() string {
-	b, _ := json.Marshal(emoji)
-	return string(b)
-}
-
-func EmojiFromJson(data io.Reader) *Emoji {
-	var emoji *Emoji
-	json.NewDecoder(data).Decode(&emoji)
-	return emoji
-}
-
-func EmojiListFromJson(data io.Reader) []*Emoji {
-	var emojiList []*Emoji
-	json.NewDecoder(data).Decode(&emojiList)
-	return emojiList
 }

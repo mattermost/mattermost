@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -43,20 +41,7 @@ type Command struct {
 	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 }
 
-func CommandFromJson(data io.Reader) *Command {
-	var o *Command
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func CommandListFromJson(data io.Reader) []*Command {
-	var o []*Command
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *Command) IsValid() *AppError {
-
 	if !IsValidId(o.Id) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}

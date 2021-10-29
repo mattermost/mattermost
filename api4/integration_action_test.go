@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -25,7 +24,9 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	bb, err := ioutil.ReadAll(r.Body)
 	assert.NoError(th.t, err)
 	assert.NotEmpty(th.t, string(bb))
-	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
+	var poir model.PostActionIntegrationRequest
+	jsonErr := json.Unmarshal(bb, &poir)
+	assert.NoError(th.t, jsonErr)
 	assert.NotEmpty(th.t, poir.UserId)
 	assert.NotEmpty(th.t, poir.UserName)
 	assert.NotEmpty(th.t, poir.ChannelId)

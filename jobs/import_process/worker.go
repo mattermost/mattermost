@@ -22,7 +22,7 @@ import (
 
 func init() {
 	app.RegisterJobsImportProcessInterface(func(s *app.Server) tjobs.ImportProcessInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &ImportProcessInterfaceImpl{a}
 	})
 }
@@ -162,7 +162,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImport(w.appContext, jsonFile, importZipReader, false, runtime.NumCPU())
+	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, importZipReader, false, runtime.NumCPU(), app.ExportDataDir)
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)
