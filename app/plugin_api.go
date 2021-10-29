@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -139,6 +140,11 @@ func (api *PluginAPI) GetBundlePath() (string, error) {
 
 func (api *PluginAPI) GetLicense() *model.License {
 	return api.app.Srv().License()
+}
+
+func (api *PluginAPI) IsEnterpriseReady() bool {
+	result, _ := strconv.ParseBool(model.BuildEnterpriseReady)
+	return result
 }
 
 func (api *PluginAPI) GetServerVersion() string {
@@ -413,7 +419,7 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 }
 
 func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
-	channels, err := api.app.GetChannelsForUser(teamID, userID, includeDeleted, 0)
+	channels, err := api.app.GetChannelsForTeamForUser(teamID, userID, includeDeleted, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -512,7 +518,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	return api.app.SearchPostsInTeamForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
@@ -551,8 +557,10 @@ func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string)
 	return api.app.GetChannelMembersByIds(channelID, userIDs)
 }
 
-func (api *PluginAPI) GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMembersForUserWithPagination(teamID, userID, page, perPage)
+func (api *PluginAPI) GetChannelMembersForUser(_, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	// The team ID parameter was never used in the SQL query.
+	// But we keep this to maintain compatibility.
+	return api.app.GetChannelMembersForUserWithPagination(userID, page, perPage)
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -889,16 +897,16 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
-	api.logger.Debug(msg, keyValuePairs...)
+	api.logger.Debugw(msg, keyValuePairs...)
 }
 func (api *PluginAPI) LogInfo(msg string, keyValuePairs ...interface{}) {
-	api.logger.Info(msg, keyValuePairs...)
+	api.logger.Infow(msg, keyValuePairs...)
 }
 func (api *PluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
-	api.logger.Error(msg, keyValuePairs...)
+	api.logger.Errorw(msg, keyValuePairs...)
 }
 func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...interface{}) {
-	api.logger.Warn(msg, keyValuePairs...)
+	api.logger.Warnw(msg, keyValuePairs...)
 }
 
 func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {

@@ -32,7 +32,7 @@ func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 }
 
 func (a *App) SetSearchEngine(se *searchengine.Broker) {
-	a.searchEngine = se
+	a.ch.srv.SearchEngine = se
 }
 
 func (a *App) PurgeElasticsearchIndexes() *model.AppError {

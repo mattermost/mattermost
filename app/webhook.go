@@ -770,16 +770,9 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel_locked.app_error", nil, "", http.StatusForbidden)
 	}
 
-	var user *model.User
 	result = <-uchan
 	if result.NErr != nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, result.NErr.Error(), http.StatusForbidden)
-	}
-	user = result.Data.(*model.User)
-
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		channel.Name == model.DefaultChannelName && !a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
-		return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
 	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(hook.UserId, channel.Id, model.PermissionReadChannel) {

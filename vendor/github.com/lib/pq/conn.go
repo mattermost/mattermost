@@ -1360,6 +1360,10 @@ func (st *stmt) Close() (err error) {
 }
 
 func (st *stmt) Query(v []driver.Value) (r driver.Rows, err error) {
+	return st.query(v)
+}
+
+func (st *stmt) query(v []driver.Value) (r *rows, err error) {
 	if st.cn.getBad() {
 		return nil, driver.ErrBadConn
 	}

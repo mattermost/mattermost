@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
@@ -31,7 +30,6 @@ func (s *Server) doAdvancedPermissionsMigration() {
 
 	mlog.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
-	roles = utils.SetRolePermissionsFromConfig(roles, s.Config(), s.License() != nil)
 
 	allSucceeded := true
 
@@ -68,11 +66,9 @@ func (s *Server) doAdvancedPermissionsMigration() {
 	}
 
 	config := s.Config()
-	if *config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost == model.AllowEditPostAlways {
-		*config.ServiceSettings.PostEditTimeLimit = -1
-		if _, _, err := s.SaveConfig(config, true); err != nil {
-			mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.Err(err))
-		}
+	*config.ServiceSettings.PostEditTimeLimit = -1
+	if _, _, err := s.SaveConfig(config, true); err != nil {
+		mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.Err(err))
 	}
 
 	system := model.System{
@@ -110,23 +106,11 @@ func (s *Server) doEmojisPermissionsMigration() {
 	var err *model.AppError
 
 	mlog.Info("Migrating emojis config to database.")
-	switch *s.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation {
-	case model.RestrictEmojiCreationAll:
-		role, err = s.GetRoleByName(context.Background(), model.SystemUserRoleId)
-		if err != nil {
-			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-			return
-		}
-	case model.RestrictEmojiCreationAdmin:
-		role, err = s.GetRoleByName(context.Background(), model.TeamAdminRoleId)
-		if err != nil {
-			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-			return
-		}
-	case model.RestrictEmojiCreationSystemAdmin:
-		role = nil
-	default:
-		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config. Invalid restrict emoji creation setting")
+
+	// Emoji creation is set to all by default
+	role, err = s.GetRoleByName(context.Background(), model.SystemUserRoleId)
+	if err != nil {
+		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return
 	}
 

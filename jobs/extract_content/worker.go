@@ -24,7 +24,7 @@ var ignoredFiles = map[string]bool{
 
 func init() {
 	app.RegisterJobsExtractContentInterface(func(s *app.Server) tjobs.ExtractContentInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &ExtractContentInterfaceImpl{a}
 	})
 }

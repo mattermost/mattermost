@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -76,6 +77,27 @@ func (s *Session) DeepCopy() *Session {
 	}
 
 	return &copySession
+}
+
+func (s *Session) IsValid() *AppError {
+	if !IsValidId(s.Id) {
+		return NewAppError("Session.IsValid", "model.session.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(s.UserId) {
+		return NewAppError("Session.IsValid", "model.session.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if s.CreateAt == 0 {
+		return NewAppError("Session.IsValid", "model.session.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(s.Roles) > UserRolesMaxLength {
+		return NewAppError("Session.IsValid", "model.session.is_valid.roles_limit.app_error",
+			map[string]interface{}{"Limit": UserRolesMaxLength}, "session_id="+s.Id, http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 func (s *Session) PreSave() {

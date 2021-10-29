@@ -511,8 +511,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 			post: makePost(maxPostSize*3/2, []int{5150, 2000, model.PostPropsMaxUserRunes - 1000}),
 			expected: []*model.Post{
 				makePost(maxPostSize, nil),
-				makePost(maxPostSize/2, []int{5150}),
-				makePost(0, []int{2000}),
+				makePost(maxPostSize/2, []int{5150, 2000}),
 				makePost(0, []int{model.PostPropsMaxUserRunes - 1000}),
 			},
 		},

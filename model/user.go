@@ -38,6 +38,7 @@ const (
 	CommentsNotifyNever            = "never"
 	CommentsNotifyRoot             = "root"
 	CommentsNotifyAny              = "any"
+	CommentsNotifyCRT              = "crt"
 	FirstNameNotifyProp            = "first_name"
 	AutoResponderActiveNotifyProp  = "auto_responder_active"
 	AutoResponderMessageNotifyProp = "auto_responder_message"
@@ -59,6 +60,7 @@ const (
 	UserPasswordMaxLength = 72
 	UserLocaleMaxLength   = 5
 	UserTimezoneMaxRunes  = 256
+	UserRolesMaxLength    = 256
 )
 
 //msgp:tuple User
@@ -260,7 +262,6 @@ func (u *User) DeepCopy() *User {
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
-
 	if !IsValidId(u.Id) {
 		return InvalidUserError("id", "")
 	}
@@ -329,6 +330,11 @@ func (u *User) IsValid() *AppError {
 		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
 			return InvalidUserError("timezone_limit", u.Id)
 		}
+	}
+
+	if len(u.Roles) > UserRolesMaxLength {
+		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
+			map[string]interface{}{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil

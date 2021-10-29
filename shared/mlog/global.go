@@ -112,6 +112,7 @@ func Error(msg string, fields ...Field) {
 }
 
 // Convenience method equivalent to calling `Log` with the `Critical` level.
+// DEPRECATED: Either use Error or Fatal.
 func Critical(msg string, fields ...Field) {
 	logger := getGlobalLogger()
 	if logger == nil {
@@ -119,4 +120,13 @@ func Critical(msg string, fields ...Field) {
 		return
 	}
 	logger.Critical(msg, fields...)
+}
+
+func Fatal(msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlFatal, msg, fields...)
+		return
+	}
+	logger.Fatal(msg, fields...)
 }

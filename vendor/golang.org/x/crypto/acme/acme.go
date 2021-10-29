@@ -4,7 +4,7 @@
 
 // Package acme provides an implementation of the
 // Automatic Certificate Management Environment (ACME) spec.
-// The intial implementation was based on ACME draft-02 and
+// The initial implementation was based on ACME draft-02 and
 // is now being extended to comply with RFC 8555.
 // See https://tools.ietf.org/html/draft-ietf-acme-acme-02
 // and https://tools.ietf.org/html/rfc8555 for details.

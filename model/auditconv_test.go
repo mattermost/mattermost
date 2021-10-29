@@ -20,6 +20,7 @@ func TestAuditModelTypeConv(t *testing.T) {
 	sampleArr := []*Sample{sample, sample2}
 
 	user := &User{}
+	userPatch := &UserPatch{}
 
 	type args struct {
 		val interface{}
@@ -37,7 +38,10 @@ func TestAuditModelTypeConv(t *testing.T) {
 		{name: "int array", args: args{val: []int{77, 68}}, wantConverted: false, wantNewVal: []int{77, 68}},
 		{name: "struct pointer value", args: args{val: sample}, wantConverted: false, wantNewVal: sample},
 		{name: "struct pointer array", args: args{val: sampleArr}, wantConverted: false, wantNewVal: sampleArr},
-		{name: "model user", args: args{val: user}, wantConverted: true, wantNewVal: "XXX"},
+		{name: "model user pointer", args: args{val: user}, wantConverted: true, wantNewVal: "XXX"},
+		{name: "model user pointer", args: args{val: user}, wantConverted: true, wantNewVal: "XXX"},
+		{name: "user patch pointer", args: args{val: userPatch}, wantConverted: true, wantNewVal: "XXX"},
+		{name: "user patch value", args: args{val: *userPatch}, wantConverted: true, wantNewVal: "XXX"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

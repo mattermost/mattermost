@@ -79,10 +79,6 @@ const (
 	PermissionsDeletePostTeamAdmin   = "team_admin"
 	PermissionsDeletePostSystemAdmin = "system_admin"
 
-	AllowEditPostAlways    = "always"
-	AllowEditPostNever     = "never"
-	AllowEditPostTimeLimit = "time_limit"
-
 	GroupUnreadChannelsDisabled   = "disabled"
 	GroupUnreadChannelsDefaultOn  = "default_on"
 	GroupUnreadChannelsDefaultOff = "default_off"
@@ -301,7 +297,6 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride                        *bool    `access:"integrations_integration_management"`
 	EnablePostIconOverride                            *bool    `access:"integrations_integration_management"`
 	GoogleDeveloperKey                                *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
-	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // Deprecated: do not use
 	EnableLinkPreviews                                *bool    `access:"site_posts"`
 	EnablePermalinkPreviews                           *bool    `access:"site_posts"`
 	RestrictLinkPreviews                              *string  `access:"site_posts"`
@@ -333,9 +328,6 @@ type ServiceSettings struct {
 	GfycatAPISecret                                   *string  `access:"integrations_gif"`
 	EnableCustomEmoji                                 *bool    `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool    `access:"site_emoji"`
-	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string  `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // Deprecated: do not use
 	PostEditTimeLimit                                 *int     `access:"user_management_permissions"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -346,20 +338,14 @@ type ServiceSettings struct {
 	EnableUserStatuses                                *bool    `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool    `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	ClusterLogTimeoutMilliseconds                     *int     `access:"write_restrictable,cloud_restrictable"`
-	CloseUnusedDirectMessages                         *bool    `access:"experimental_features"`
 	EnablePreviewFeatures                             *bool    `access:"experimental_features"`
 	EnableTutorial                                    *bool    `access:"experimental_features"`
 	EnableOnboardingFlow                              *bool    `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental_features"`
-	ExperimentalChannelOrganization                   *bool    `access:"experimental_features"`
-	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // Deprecated: do not use
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	DisableLegacyMFA                                  *bool `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts,write_restrictable,cloud_restrictable"`
@@ -377,7 +363,6 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableLegacySidebar                               *bool   `access:"experimental_features"`
 	EnableReliableWebSockets                          *bool   `access:"experimental_features"` // telemetry: none
 }
 
@@ -577,10 +562,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ClusterLogTimeoutMilliseconds = NewInt(2000)
 	}
 
-	if s.CloseUnusedDirectMessages == nil {
-		s.CloseUnusedDirectMessages = NewBool(false)
-	}
-
 	if s.EnableTutorial == nil {
 		s.EnableTutorial = NewBool(true)
 	}
@@ -624,10 +605,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableCommands == nil {
 		s.EnableCommands = NewBool(true)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations == nil {
-		s.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations = NewBool(true)
 	}
 
 	if s.EnablePostUsernameOverride == nil {
@@ -692,18 +669,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
 	}
 
-	if s.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation == nil {
-		s.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = NewString(RestrictEmojiCreationAll)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_RestrictPostDelete == nil {
-		s.DEPRECATED_DO_NOT_USE_RestrictPostDelete = NewString(PermissionsDeletePostAll)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_AllowEditPost == nil {
-		s.DEPRECATED_DO_NOT_USE_AllowEditPost = NewString(AllowEditPostAlways)
-	}
-
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
 		s.ExperimentalEnableAuthenticationTransfer = NewBool(true)
 	}
@@ -728,23 +693,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalGroupUnreadChannels = NewString(GroupUnreadChannelsDefaultOn)
 	}
 
-	if s.ExperimentalChannelOrganization == nil {
-		experimentalUnreadEnabled := *s.ExperimentalGroupUnreadChannels != GroupUnreadChannelsDisabled
-		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
-		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_ImageProxyURL == nil {
-		s.DEPRECATED_DO_NOT_USE_ImageProxyURL = NewString("")
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_ImageProxyOptions == nil {
-		s.DEPRECATED_DO_NOT_USE_ImageProxyOptions = NewString("")
-	}
-
 	if s.EnableAPITeamDeletion == nil {
 		s.EnableAPITeamDeletion = NewBool(false)
 	}
@@ -759,10 +707,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExperimentalEnableHardenedMode == nil {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
-	}
-
-	if s.DisableLegacyMFA == nil {
-		s.DisableLegacyMFA = NewBool(!isUpdate)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
@@ -833,32 +777,27 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ManagedResourcePaths = NewString("")
 	}
 
-	if s.EnableLegacySidebar == nil {
-		s.EnableLegacySidebar = NewBool(false)
-	}
-
 	if s.EnableReliableWebSockets == nil {
 		s.EnableReliableWebSockets = NewBool(true)
 	}
 }
 
 type ClusterSettings struct {
-	Enable                                      *bool   `access:"environment_high_availability,write_restrictable"`
-	ClusterName                                 *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	OverrideHostname                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	NetworkInterface                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	BindAddress                                 *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	AdvertiseAddress                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	UseIPAddress                                *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	DEPRECATED_DO_NOT_USE_UseExperimentalGossip *bool   `json:"UseExperimentalGossip" access:"environment_high_availability,write_restrictable,cloud_restrictable"` // Deprecated: do not use
-	EnableGossipCompression                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableExperimentalGossipEncryption          *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	ReadOnlyConfig                              *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	GossipPort                                  *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	StreamingPort                               *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConns                                *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConnsPerHost                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	IdleConnTimeoutMilliseconds                 *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	Enable                             *bool   `access:"environment_high_availability,write_restrictable"`
+	ClusterName                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	OverrideHostname                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	NetworkInterface                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	BindAddress                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	AdvertiseAddress                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	UseIPAddress                       *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression            *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	EnableExperimentalGossipEncryption *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	ReadOnlyConfig                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	GossipPort                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	StreamingPort                      *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	MaxIdleConns                       *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	MaxIdleConnsPerHost                *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	IdleConnTimeoutMilliseconds        *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -888,10 +827,6 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.UseIPAddress == nil {
 		s.UseIPAddress = NewBool(true)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_UseExperimentalGossip == nil {
-		s.DEPRECATED_DO_NOT_USE_UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
@@ -1930,39 +1865,27 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                                                  *string  `access:"site_customization"`
-	MaxUsersPerTeam                                           *int     `access:"site_users_and_teams"`
-	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool    `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // Deprecated: do not use
-	EnableUserCreation                                        *bool    `access:"authentication_signup"`
-	EnableOpenServer                                          *bool    `access:"authentication_signup"`
-	EnableUserDeactivation                                    *bool    `access:"experimental_features"`
-	RestrictCreationToDomains                                 *string  `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses                                  *bool    `access:"site_users_and_teams"`
-	EnableCustomBrand                                         *bool    `access:"site_customization"`
-	CustomBrandText                                           *string  `access:"site_customization"`
-	CustomDescriptionText                                     *string  `access:"site_customization"`
-	RestrictDirectMessage                                     *string  `access:"site_users_and_teams"`
-	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string  `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string  `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string  `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string  `json:"RestrictPublicChannelCreation" mapstructure:"RestrictPublicChannelCreation"`             // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string  `json:"RestrictPrivateChannelCreation" mapstructure:"RestrictPrivateChannelCreation"`           // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string  `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string  `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // Deprecated: do not use
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string  `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // Deprecated: do not use
-	EnableXToLeaveChannelsFromLHS                             *bool    `access:"experimental_features"`
-	UserStatusAwayTimeout                                     *int64   `access:"experimental_features"`
-	MaxChannelsPerTeam                                        *int64   `access:"site_users_and_teams"`
-	MaxNotificationsPerChannel                                *int64   `access:"environment_push_notification_server"`
-	EnableConfirmNotificationsToChannel                       *bool    `access:"site_notifications"`
-	TeammateNameDisplay                                       *string  `access:"site_users_and_teams"`
-	ExperimentalViewArchivedChannels                          *bool    `access:"experimental_features,site_users_and_teams"`
-	ExperimentalEnableAutomaticReplies                        *bool    `access:"experimental_features"`
-	ExperimentalHideTownSquareinLHS                           *bool    `access:"experimental_features"`
-	ExperimentalTownSquareIsReadOnly                          *bool    `access:"experimental_features"`
-	LockTeammateNameDisplay                                   *bool    `access:"site_users_and_teams"`
-	ExperimentalPrimaryTeam                                   *string  `access:"experimental_features"`
-	ExperimentalDefaultChannels                               []string `access:"experimental_features"`
+	SiteName                            *string  `access:"site_customization"`
+	MaxUsersPerTeam                     *int     `access:"site_users_and_teams"`
+	EnableUserCreation                  *bool    `access:"authentication_signup"`
+	EnableOpenServer                    *bool    `access:"authentication_signup"`
+	EnableUserDeactivation              *bool    `access:"experimental_features"`
+	RestrictCreationToDomains           *string  `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses            *bool    `access:"site_users_and_teams"`
+	EnableCustomBrand                   *bool    `access:"site_customization"`
+	CustomBrandText                     *string  `access:"site_customization"`
+	CustomDescriptionText               *string  `access:"site_customization"`
+	RestrictDirectMessage               *string  `access:"site_users_and_teams"`
+	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
+	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
+	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
+	EnableConfirmNotificationsToChannel *bool    `access:"site_notifications"`
+	TeammateNameDisplay                 *string  `access:"site_users_and_teams"`
+	ExperimentalViewArchivedChannels    *bool    `access:"experimental_features,site_users_and_teams"`
+	ExperimentalEnableAutomaticReplies  *bool    `access:"experimental_features"`
+	LockTeammateNameDisplay             *bool    `access:"site_users_and_teams"`
+	ExperimentalPrimaryTeam             *string  `access:"experimental_features"`
+	ExperimentalDefaultChannels         []string `access:"experimental_features"`
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -1973,10 +1896,6 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.MaxUsersPerTeam == nil {
 		s.MaxUsersPerTeam = NewInt(TeamSettingsDefaultMaxUsersPerTeam)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_EnableTeamCreation == nil {
-		s.DEPRECATED_DO_NOT_USE_EnableTeamCreation = NewBool(true)
 	}
 
 	if s.EnableUserCreation == nil {
@@ -2015,55 +1934,6 @@ func (s *TeamSettings) SetDefaults() {
 		s.RestrictDirectMessage = NewString(DirectMessageAny)
 	}
 
-	if s.DEPRECATED_DO_NOT_USE_RestrictTeamInvite == nil {
-		s.DEPRECATED_DO_NOT_USE_RestrictTeamInvite = NewString(PermissionsAll)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement == nil {
-		s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement = NewString(PermissionsAll)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement == nil {
-		s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = NewString(PermissionsAll)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation == nil {
-		s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation = new(string)
-		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		if *s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement == PermissionsChannelAdmin {
-			*s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation = PermissionsTeamAdmin
-		} else {
-			*s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation = *s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement
-		}
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation == nil {
-		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		if *s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement == PermissionsChannelAdmin {
-			s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation = NewString(PermissionsTeamAdmin)
-		} else {
-			s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation = NewString(*s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement)
-		}
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion == nil {
-		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion = NewString(*s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion == nil {
-		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion = NewString(*s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement)
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers == nil {
-		s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers = NewString(PermissionsAll)
-	}
-
-	if s.EnableXToLeaveChannelsFromLHS == nil {
-		s.EnableXToLeaveChannelsFromLHS = NewBool(false)
-	}
-
 	if s.UserStatusAwayTimeout == nil {
 		s.UserStatusAwayTimeout = NewInt64(TeamSettingsDefaultUserStatusAwayTimeout)
 	}
@@ -2084,24 +1954,12 @@ func (s *TeamSettings) SetDefaults() {
 		s.ExperimentalEnableAutomaticReplies = NewBool(false)
 	}
 
-	if s.ExperimentalHideTownSquareinLHS == nil {
-		s.ExperimentalHideTownSquareinLHS = NewBool(false)
-	}
-
-	if s.ExperimentalTownSquareIsReadOnly == nil {
-		s.ExperimentalTownSquareIsReadOnly = NewBool(false)
-	}
-
 	if s.ExperimentalPrimaryTeam == nil {
 		s.ExperimentalPrimaryTeam = NewString("")
 	}
 
 	if s.ExperimentalDefaultChannels == nil {
 		s.ExperimentalDefaultChannels = []string{}
-	}
-
-	if s.DEPRECATED_DO_NOT_USE_EnableTeamCreation == nil {
-		s.DEPRECATED_DO_NOT_USE_EnableTeamCreation = NewBool(true)
 	}
 
 	if s.EnableUserCreation == nil {
@@ -2757,8 +2615,9 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs      *bool `access:"write_restrictable,cloud_restrictable"`
-	RunScheduler *bool `access:"write_restrictable,cloud_restrictable"`
+	RunJobs                  *bool `access:"write_restrictable,cloud_restrictable"`
+	RunScheduler             *bool `access:"write_restrictable,cloud_restrictable"`
+	CleanupJobsThresholdDays *int  `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2768,6 +2627,10 @@ func (s *JobSettings) SetDefaults() {
 
 	if s.RunScheduler == nil {
 		s.RunScheduler = NewBool(true)
+	}
+
+	if s.CleanupJobsThresholdDays == nil {
+		s.CleanupJobsThresholdDays = NewInt(-1)
 	}
 }
 
@@ -2845,14 +2708,19 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["com.mattermost.plugin-incident-management"] == nil && BuildEnterpriseReady == "true" {
-		// Enable the incident management plugin by default
-		s.PluginStates["com.mattermost.plugin-incident-management"] = &PluginState{Enable: true}
+	if s.PluginStates["playbooks"] == nil {
+		// Enable the playbooks plugin by default
+		s.PluginStates["playbooks"] = &PluginState{Enable: true}
 	}
 
 	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil && BuildEnterpriseReady == "true" {
 		// Enable the channel export plugin by default
 		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates["focalboard"] == nil {
+		// Enable the focalboard plugin by default
+		s.PluginStates["focalboard"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -3001,37 +2869,21 @@ type ImageProxySettings struct {
 	RemoteImageProxyOptions *string `access:"environment_image_proxy"`
 }
 
-func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
+func (s *ImageProxySettings) SetDefaults() {
 	if s.Enable == nil {
-		if ss.DEPRECATED_DO_NOT_USE_ImageProxyType == nil || *ss.DEPRECATED_DO_NOT_USE_ImageProxyType == "" {
-			s.Enable = NewBool(false)
-		} else {
-			s.Enable = NewBool(true)
-		}
+		s.Enable = NewBool(false)
 	}
 
 	if s.ImageProxyType == nil {
-		if ss.DEPRECATED_DO_NOT_USE_ImageProxyType == nil || *ss.DEPRECATED_DO_NOT_USE_ImageProxyType == "" {
-			s.ImageProxyType = NewString(ImageProxyTypeLocal)
-		} else {
-			s.ImageProxyType = ss.DEPRECATED_DO_NOT_USE_ImageProxyType
-		}
+		s.ImageProxyType = NewString(ImageProxyTypeLocal)
 	}
 
 	if s.RemoteImageProxyURL == nil {
-		if ss.DEPRECATED_DO_NOT_USE_ImageProxyURL == nil {
-			s.RemoteImageProxyURL = NewString("")
-		} else {
-			s.RemoteImageProxyURL = ss.DEPRECATED_DO_NOT_USE_ImageProxyURL
-		}
+		s.RemoteImageProxyURL = NewString("")
 	}
 
 	if s.RemoteImageProxyOptions == nil {
-		if ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions == nil {
-			s.RemoteImageProxyOptions = NewString("")
-		} else {
-			s.RemoteImageProxyOptions = ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions
-		}
+		s.RemoteImageProxyOptions = NewString("")
 	}
 }
 
@@ -3282,7 +3134,7 @@ func (o *Config) SetDefaults() {
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.GuestAccountsSettings.SetDefaults()
-	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
+	o.ImageProxySettings.SetDefaults()
 	o.CloudSettings.SetDefaults()
 	if o.FeatureFlags == nil {
 		o.FeatureFlags = &FeatureFlags{}
@@ -3894,9 +3746,11 @@ func (o *Config) Sanitize() {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
 
-	*o.FileSettings.PublicLinkSalt = FakeSetting
+	if o.FileSettings.PublicLinkSalt != nil {
+		*o.FileSettings.PublicLinkSalt = FakeSetting
+	}
 
-	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
+	if o.FileSettings.AmazonS3SecretAccessKey != nil && *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FakeSetting
 	}
 
@@ -3904,7 +3758,7 @@ func (o *Config) Sanitize() {
 		*o.EmailSettings.SMTPPassword = FakeSetting
 	}
 
-	if *o.GitLabSettings.Secret != "" {
+	if o.GitLabSettings.Secret != nil && *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FakeSetting
 	}
 
@@ -3920,10 +3774,17 @@ func (o *Config) Sanitize() {
 		*o.OpenIdSettings.Secret = FakeSetting
 	}
 
-	*o.SqlSettings.DataSource = FakeSetting
-	*o.SqlSettings.AtRestEncryptKey = FakeSetting
+	if o.SqlSettings.DataSource != nil {
+		*o.SqlSettings.DataSource = FakeSetting
+	}
 
-	*o.ElasticsearchSettings.Password = FakeSetting
+	if o.SqlSettings.AtRestEncryptKey != nil {
+		*o.SqlSettings.AtRestEncryptKey = FakeSetting
+	}
+
+	if o.ElasticsearchSettings.Password != nil {
+		*o.ElasticsearchSettings.Password = FakeSetting
+	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FakeSetting
@@ -3933,7 +3794,9 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
+	if o.MessageExportSettings.GlobalRelaySettings != nil &&
+		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
+		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
 	}
 
@@ -3941,7 +3804,9 @@ func (o *Config) Sanitize() {
 		*o.ServiceSettings.GfycatAPISecret = FakeSetting
 	}
 
-	*o.ServiceSettings.SplitKey = FakeSetting
+	if o.ServiceSettings.SplitKey != nil {
+		*o.ServiceSettings.SplitKey = FakeSetting
+	}
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

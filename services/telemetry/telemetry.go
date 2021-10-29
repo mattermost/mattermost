@@ -122,20 +122,16 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	if ts.TelemetryID != "" {
 		return
 	}
-	props, err := ts.dbStore.System().Get()
+
+	id := model.NewId()
+	systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
+	systemID, err := ts.dbStore.System().InsertIfExists(systemID)
 	if err != nil {
 		mlog.Error("unable to get the telemetry ID", mlog.Err(err))
 		return
 	}
 
-	id := props[model.SystemTelemetryId]
-	if id == "" {
-		id = model.NewId()
-		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
-		ts.dbStore.System().Save(systemID)
-	}
-
-	ts.TelemetryID = id
+	ts.TelemetryID = systemID.Value
 }
 
 func (ts *TelemetryService) getRudderConfig() RudderConfig {
@@ -366,7 +362,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_incoming_webhooks":                                cfg.ServiceSettings.EnableIncomingWebhooks,
 		"enable_outgoing_webhooks":                                cfg.ServiceSettings.EnableOutgoingWebhooks,
 		"enable_commands":                                         *cfg.ServiceSettings.EnableCommands,
-		"enable_only_admin_integrations":                          *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                               cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_user_access_tokens":                               *cfg.ServiceSettings.EnableUserAccessTokens,
@@ -376,7 +371,6 @@ func (ts *TelemetryService) trackConfig() {
 		"gfycat_api_key":                                          isDefault(*cfg.ServiceSettings.GfycatAPIKey, model.ServiceSettingsDefaultGfycatAPIKey),
 		"gfycat_api_secret":                                       isDefault(*cfg.ServiceSettings.GfycatAPISecret, model.ServiceSettingsDefaultGfycatAPISecret),
 		"experimental_enable_authentication_transfer":             *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer,
-		"restrict_custom_emoji_creation":                          *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation,
 		"enable_testing":                                          cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                                        *cfg.ServiceSettings.EnableDeveloper,
 		"enable_multifactor_authentication":                       *cfg.ServiceSettings.EnableMultifactorAuthentication,
@@ -405,8 +399,6 @@ func (ts *TelemetryService) trackConfig() {
 		"cors_allow_credentials":                                  *cfg.ServiceSettings.CorsAllowCredentials,
 		"cors_debug":                                              *cfg.ServiceSettings.CorsDebug,
 		"isdefault_allowed_untrusted_internal_connections":        isDefault(*cfg.ServiceSettings.AllowedUntrustedInternalConnections, ""),
-		"restrict_post_delete":                                    *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictPostDelete,
-		"allow_edit_post":                                         *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost,
 		"post_edit_time_limit":                                    *cfg.ServiceSettings.PostEditTimeLimit,
 		"enable_user_typing_messages":                             *cfg.ServiceSettings.EnableUserTypingMessages,
 		"enable_channel_viewed_messages":                          *cfg.ServiceSettings.EnableChannelViewedMessages,
@@ -415,7 +407,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
-		"close_unused_direct_messages":                            *cfg.ServiceSettings.CloseUnusedDirectMessages,
 		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"enable_onboarding_flow":                                  *cfg.ServiceSettings.EnableOnboardingFlow,
@@ -428,10 +419,8 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_api_user_deletion":                                *cfg.ServiceSettings.EnableAPIUserDeletion,
 		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
-		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DisableLegacyMFA,
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
-		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
@@ -440,7 +429,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
-		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
 		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
 		"enable_permalink_previews":                               *cfg.ServiceSettings.EnablePermalinkPreviews,
@@ -449,38 +437,26 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
-		"enable_user_creation":                      cfg.TeamSettings.EnableUserCreation,
-		"enable_team_creation":                      *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_EnableTeamCreation,
-		"restrict_team_invite":                      *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite,
-		"restrict_public_channel_creation":          *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation,
-		"restrict_private_channel_creation":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation,
-		"restrict_public_channel_management":        *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement,
-		"restrict_private_channel_management":       *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement,
-		"restrict_public_channel_deletion":          *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion,
-		"restrict_private_channel_deletion":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion,
-		"enable_open_server":                        *cfg.TeamSettings.EnableOpenServer,
-		"enable_user_deactivation":                  *cfg.TeamSettings.EnableUserDeactivation,
-		"enable_custom_user_statuses":               *cfg.TeamSettings.EnableCustomUserStatuses,
-		"enable_custom_brand":                       *cfg.TeamSettings.EnableCustomBrand,
-		"restrict_direct_message":                   *cfg.TeamSettings.RestrictDirectMessage,
-		"max_notifications_per_channel":             *cfg.TeamSettings.MaxNotificationsPerChannel,
-		"enable_confirm_notifications_to_channel":   *cfg.TeamSettings.EnableConfirmNotificationsToChannel,
-		"max_users_per_team":                        *cfg.TeamSettings.MaxUsersPerTeam,
-		"max_channels_per_team":                     *cfg.TeamSettings.MaxChannelsPerTeam,
-		"teammate_name_display":                     *cfg.TeamSettings.TeammateNameDisplay,
-		"experimental_view_archived_channels":       *cfg.TeamSettings.ExperimentalViewArchivedChannels,
-		"lock_teammate_name_display":                *cfg.TeamSettings.LockTeammateNameDisplay,
-		"isdefault_site_name":                       isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
-		"isdefault_custom_brand_text":               isDefault(*cfg.TeamSettings.CustomBrandText, model.TeamSettingsDefaultCustomBrandText),
-		"isdefault_custom_description_text":         isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TeamSettingsDefaultCustomDescriptionText),
-		"isdefault_user_status_away_timeout":        isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TeamSettingsDefaultUserStatusAwayTimeout),
-		"restrict_private_channel_manage_members":   *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers,
-		"enable_X_to_leave_channels_from_LHS":       *cfg.TeamSettings.EnableXToLeaveChannelsFromLHS,
-		"experimental_enable_automatic_replies":     *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
-		"experimental_town_square_is_hidden_in_lhs": *cfg.TeamSettings.ExperimentalHideTownSquareinLHS,
-		"experimental_town_square_is_read_only":     *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
-		"experimental_primary_team":                 isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
-		"experimental_default_channels":             len(cfg.TeamSettings.ExperimentalDefaultChannels),
+		"enable_user_creation":                    cfg.TeamSettings.EnableUserCreation,
+		"enable_open_server":                      *cfg.TeamSettings.EnableOpenServer,
+		"enable_user_deactivation":                *cfg.TeamSettings.EnableUserDeactivation,
+		"enable_custom_user_statuses":             *cfg.TeamSettings.EnableCustomUserStatuses,
+		"enable_custom_brand":                     *cfg.TeamSettings.EnableCustomBrand,
+		"restrict_direct_message":                 *cfg.TeamSettings.RestrictDirectMessage,
+		"max_notifications_per_channel":           *cfg.TeamSettings.MaxNotificationsPerChannel,
+		"enable_confirm_notifications_to_channel": *cfg.TeamSettings.EnableConfirmNotificationsToChannel,
+		"max_users_per_team":                      *cfg.TeamSettings.MaxUsersPerTeam,
+		"max_channels_per_team":                   *cfg.TeamSettings.MaxChannelsPerTeam,
+		"teammate_name_display":                   *cfg.TeamSettings.TeammateNameDisplay,
+		"experimental_view_archived_channels":     *cfg.TeamSettings.ExperimentalViewArchivedChannels,
+		"lock_teammate_name_display":              *cfg.TeamSettings.LockTeammateNameDisplay,
+		"isdefault_site_name":                     isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
+		"isdefault_custom_brand_text":             isDefault(*cfg.TeamSettings.CustomBrandText, model.TeamSettingsDefaultCustomBrandText),
+		"isdefault_custom_description_text":       isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TeamSettingsDefaultCustomDescriptionText),
+		"isdefault_user_status_away_timeout":      isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TeamSettingsDefaultUserStatusAwayTimeout),
+		"experimental_enable_automatic_replies":   *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
+		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
+		"experimental_default_channels":           len(cfg.TeamSettings.ExperimentalDefaultChannels),
 	})
 
 	ts.sendTelemetry(TrackConfigClientReq, map[string]interface{}{
@@ -1331,6 +1307,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"com.mattermost.nps",
 		"com.mattermost.plugin-channel-export",
 		"com.mattermost.plugin-incident-management",
+		"playbooks",
 		"com.mattermost.plugin-todo",
 		"com.mattermost.webex",
 		"com.mattermost.welcomebot",

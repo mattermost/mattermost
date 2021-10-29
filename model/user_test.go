@@ -132,6 +132,15 @@ func TestUserIsValid(t *testing.T) {
 	user.Position = strings.Repeat("a", 129)
 	err = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(err, "position", user.Id), "expected user is valid error: %s", err.Error())
+	user.Position = ""
+
+	user.Roles = strings.Repeat("a", UserRolesMaxLength)
+	err = user.IsValid()
+	require.Nil(t, err)
+
+	user.Roles = strings.Repeat("a", UserRolesMaxLength+1)
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "roles_limit", user.Id), "expected user is valid error: %s", err.Error())
 }
 
 func HasExpectedUserIsValidError(err *AppError, fieldName string, userId string) bool {

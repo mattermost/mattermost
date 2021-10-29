@@ -748,7 +748,7 @@ func TestServerBusy503(t *testing.T) {
 
 func TestPushNotificationAck(t *testing.T) {
 	th := Setup(t).InitBasic()
-	api := Init(th.App, th.Server.Router)
+	api := Init(th.Server)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()
 
@@ -775,7 +775,6 @@ func TestPushNotificationAck(t *testing.T) {
 
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusForbidden, resp.Code)
-		fmt.Printf("DEBUG/resp.Body: %+v\n", resp.Body)
 		assert.NotNil(t, resp.Body)
 	})
 }
