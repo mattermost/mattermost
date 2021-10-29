@@ -57,7 +57,7 @@ func (us SqlUploadSessionStore) Save(session *model.UploadSession) (*model.Uploa
 	if err != nil {
 		return nil, errors.Wrap(err, "SqlUploadSessionStore.Save: failed to build query")
 	}
-	if _, err := us.GetMasterX().NamedExec(query, args); err != nil {
+	if _, err := us.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrap(err, "SqlUploadSessionStore.Save: failed to insert")
 	}
 	return session, nil
