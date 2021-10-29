@@ -57,6 +57,9 @@ type FeatureFlags struct {
 
 	// Start A/B tour tips automatically, possible values = ("none", "auto")
 	AutoTour string
+
+	// Enable interactive dialog request validation
+	InteractiveDialogValidation bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -77,6 +80,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
 	f.AutoTour = "none"
+	f.InteractiveDialogValidation = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
