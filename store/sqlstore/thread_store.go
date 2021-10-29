@@ -200,12 +200,12 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}()
 	go func() {
 		mentionsQuery, mentionsQueryArgs, _ := s.getQueryBuilder().
-			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions), 0)").
-			From("ThreadMemberships, Posts, Channels").
-			Where("Posts.Id = ThreadMemberships.PostId").
-			Where("Posts.ChannelId = Channels.Id").
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
+			From("ThreadMemberships").
+			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			Where(fetchConditions).ToSql()
-
 		totalUnreadMentions, err := s.GetMaster().SelectInt(mentionsQuery, mentionsQueryArgs...)
 		totalUnreadMentionsChan <- store.StoreResult{Data: totalUnreadMentions, NErr: err}
 		close(totalUnreadMentionsChan)
