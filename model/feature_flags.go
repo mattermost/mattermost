@@ -49,6 +49,7 @@ type FeatureFlags struct {
 
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
+
 	// Enable Boards Unfurl Preview
 	BoardsUnfurl bool
 
@@ -63,6 +64,9 @@ type FeatureFlags struct {
 
 	// A/B test for the add members to channel button, possible values = ("top", "bottom")
 	AddMembersToChannel string
+
+	// Determine after which duration in hours to send a second invitation to someone that didn't join after the initial invite, possible values = ("48", "72")
+	ResendInviteEmailInterval string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -85,6 +89,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
+	f.ResendInviteEmailInterval = ""
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

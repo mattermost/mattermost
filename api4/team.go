@@ -1328,6 +1328,12 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		sysVar := &model.System{Name: model.NumberOfInviteEmailsSent, Value: "0"}
+		if sysValErr := c.App.Srv().Store.System().SaveOrUpdate(sysVar); sysValErr != nil {
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", "", nil, "Unable to save system value NUMBER_OF_INVITE_EMAIL_SENT", http.StatusInternalServerError)
+			return
+		}
+
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
