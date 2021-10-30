@@ -86,26 +86,40 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.In
 		return nil, err
 	}
 
-	if err := s.GetMaster().Insert(webhook); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO IncomingWebhooks
+		(Id, UserId, ChannelId, TeamId, DisplayName, Description, Username, IconURL)
+		VALUES
+		(:Id, :UserId, :ChannelId, :TeamId, :DisplayName, :Description, :Username, :IconURL)`, &webhook); err != nil {
 		return nil, errors.Wrapf(err, "failed to save IncomingWebhook with id=%s", webhook.Id)
 	}
 
 	return webhook, nil
-
 }
 
 func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
 	hook.UpdateAt = model.GetMillis()
 
-	if _, err := s.GetMaster().Update(hook); err != nil {
+	res, err := s.GetMasterX().NamedExec(`UPDATE IncomingWebhook SET
+			SET UpdatedAt=:UpdatedAt, ChannelId=:ChannelId, TeamId=:TeamId, DisplayName=:DisplayName,
+				Description=:Description, Username=:Username, IconURL=:IconURL, ChannelLocked=:ChannelLocked
+			WHERE Id=:Id
+	`, &hook)
+	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update IncomingWebhook with id=%s", hook.Id)
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "error while getting rows_affected")
+	}
+	if count > 1 {
+		return nil, store.NewErrInvalidInput("IncomingWebhook", "Id", hook.Id)
 	}
 	return hook, nil
 }
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
 	var webhook model.IncomingWebhook
-	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
+	if err := s.GetReplicaX().Get(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = ? AND DeleteAt = 0", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("IncomingWebhook", id)
 		}
@@ -116,7 +130,7 @@ func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.Inc
 }
 
 func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) error {
-	_, err := s.GetMaster().Exec("Update IncomingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
+	_, err := s.GetMasterX().Exec("UPDATE IncomingWebhooks SET DeleteAt = ?, UpdateAt = ? WHERE Id = ?", time, time, webhookId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update IncomingWebhook with id=%s", webhookId)
 	}
@@ -125,7 +139,7 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) error {
 }
 
 func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) error {
-	_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+	_, err := s.GetMasterX().Exec("DELETE FROM IncomingWebhooks WHERE UserId = ?", userId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete IncomingWebhook with userId=%s", userId)
 	}
@@ -134,7 +148,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) error {
 }
 
 func (s SqlWebhookStore) PermanentDeleteIncomingByChannel(channelId string) error {
-	_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+	_, err := s.GetMasterX().Exec("DELETE FROM IncomingWebhooks WHERE ChannelId = ?", channelId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete IncomingWebhook with channelId=%s", channelId)
 	}
