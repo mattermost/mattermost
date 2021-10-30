@@ -177,7 +177,7 @@ func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int)
 		return nil, errors.Wrap(err, "incoming_webhook_tosql")
 	}
 
-	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&webhooks, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find IncomingWebhooks")
 	}
 
@@ -205,7 +205,7 @@ func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, o
 		return nil, errors.Wrap(err, "incoming_webhook_tosql")
 	}
 
-	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&webhooks, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find IncomingWebhoook with teamId=%s", teamId)
 	}
 
@@ -219,7 +219,7 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) ([]
 func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, error) {
 	var webhooks []*model.IncomingWebhook
 
-	if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
+	if err := s.GetReplicaX().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
 		return nil, errors.Wrapf(err, "failed to find IncomingWebhooks with channelId=%s", channelId)
 	}
 
