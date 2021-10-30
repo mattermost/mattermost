@@ -219,7 +219,7 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) ([]
 func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, error) {
 	var webhooks []*model.IncomingWebhook
 
-	if err := s.GetReplicaX().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
+	if err := s.GetReplicaX().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = ? AND DeleteAt = 0", channelId); err != nil {
 		return nil, errors.Wrapf(err, "failed to find IncomingWebhooks with channelId=%s", channelId)
 	}
 
@@ -236,7 +236,12 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.Ou
 		return nil, err
 	}
 
-	if err := s.GetMaster().Insert(webhook); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO OutgoingWebhook
+			(Id, Token, CreateAt, UpdateAt, DeleteAt, CreatorId, ChannelId, TeamId, TriggerWords, TriggerWhen,
+			CallbackURLs, DisplayName, Description, ContentType, Username, IconURL)
+			VALUES
+			(:Id, :Token, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :ChannelId, :TeamId, :TriggerWords, :TriggerWhen,
+			:CallbackURLs, :DisplayName, :Description, :ContentType, :Username, :IconURL)`, webhook); err != nil {
 		return nil, errors.Wrapf(err, "failed to save OutgoingWebhook with id=%s", webhook.Id)
 	}
 
@@ -247,7 +252,7 @@ func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) 
 
 	var webhook model.OutgoingWebhook
 
-	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
+	if err := s.GetReplicaX().Select(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = ? AND DeleteAt = 0", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("OutgoingWebhook", id)
 		}
