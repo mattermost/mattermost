@@ -142,9 +142,9 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) 
 	dbRole.UpdateAt = dbRole.CreateAt
 
 	if _, err := transaction.NamedExec(`INSERT INTO Roles
-		(Id, Name, DisplayName, Description, Permissions)
+		(Id, Name, DisplayName, Description, Permissions, CreateAt, UpdateAt, DeleteAt, SchemeManaged, BuiltIn)
 		VALUES
-		(:Id, :Name, :DisplayName, :Description, :Permissions)`, dbRole); err != nil {
+		(:Id, :Name, :DisplayName, :Description, :Permissions, :CreateAt, :UpdateAt, :DeleteAt, :SchemeManaged, :BuiltIn)`, dbRole); err != nil {
 		return nil, errors.Wrap(err, "failed to save Role")
 	}
 

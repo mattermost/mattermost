@@ -70,7 +70,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	scheme.UpdateAt = model.GetMillis()
 
 	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
-		SET Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
+		SET UpdateAt=:UpdateAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole 
 		 WHERE Id=:Id`, scheme)
@@ -234,9 +234,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 	}
 
 	if _, err := transaction.NamedExec(`INSERT INTO Schemes
-		(Id, Name, DisplayName, Description, Scope, DefaultTeamAdminRole, DefaultTeamUserRole, DefaultTeamGuestRole, DefaultChannelAdminRole, DefaultChannelUserRole, DefaultChannelGuestRole)
+		(Id, Name, DisplayName, Description, Scope, DefaultTeamAdminRole, DefaultTeamUserRole, DefaultTeamGuestRole, DefaultChannelAdminRole, DefaultChannelUserRole, DefaultChannelGuestRole, CreateAt, UpdateAt, DeleteAt)
 		VALUES
-		(:Id, :Name, :DisplayName, :Description, :Scope, :DefaultTeamAdminRole, :DefaultTeamUserRole, :DefaultTeamGuestRole, :DefaultChannelAdminRole, :DefaultChannelUserRole, :DefaultChannelGuestRole)`, scheme); err != nil {
+		(:Id, :Name, :DisplayName, :Description, :Scope, :DefaultTeamAdminRole, :DefaultTeamUserRole, :DefaultTeamGuestRole, :DefaultChannelAdminRole, :DefaultChannelUserRole, :DefaultChannelGuestRole, :CreateAt, :UpdateAt, :DeleteAt)`, scheme); err != nil {
 		return nil, errors.Wrap(err, "failed to save Scheme")
 	}
 
@@ -306,19 +306,6 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 
 	// Delete the roles belonging to the scheme.
 
-	// ###########################################################################/////
-	// ###########################################################################/////
-	// ###########################################################################/////
-	// ###########################################################################/////
-	// ###########################################################################/////
-
-	// ---------------------------- GET THIS WORKING VERIFIED --------------------/////
-
-	// ###########################################################################/////
-	// ###########################################################################/////
-	// ###########################################################################/////
-	// ###########################################################################/////
-
 	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
 	if scheme.Scope == model.SchemeScopeTeam {
 		roleNames = append(roleNames, scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
@@ -345,7 +332,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	scheme.DeleteAt = time
 
 	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
-		SET Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
+		SET UpdateAt=:UpdateAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole 
 		 WHERE Id=:Id`, &scheme)
