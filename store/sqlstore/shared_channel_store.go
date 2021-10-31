@@ -352,7 +352,7 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 	res, err := s.GetMasterX().NamedExec(`UPDATE SharedChannelRemotes SET
 	Id=:Id, ChannelId=:ChannelId, CreatorId=:CreatorId, UpdateAt=:UpdateAt, IsInviteAccepted=:IsInviteAccepted,
 	IsInviteConfirmed=:IsInviteConfirmed, LastPostUpdateAt=:LastPostUpdateAt, LastPostId=:LastPostId
-	WHERE RemoteId=:RemoteId,`, remote)
+	WHERE RemoteId=:RemoteId`, remote)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update shared channel remote with remoteId=%s", remote.Id)
 	}
@@ -583,7 +583,7 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO SharedChannelUsers
 	(Id, UserId, ChannelId, RemoteId, CreateAt, LastSyncAt)
 	VALUES
-	(Id, :UserId, :ChannelId, :RemoteId, :CreateAt, :LastSyncAt)`, scUser); err != nil {
+	(:Id, :UserId, :ChannelId, :RemoteId, :CreateAt, :LastSyncAt)`, scUser); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_user: user_id=%s, remote_id=%s", scUser.UserId, scUser.RemoteId)
 	}
 	return scUser, nil
@@ -732,7 +732,7 @@ func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAtt
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO SharedChannelAttachments
 	(Id, FileId, RemoteId, CreateAt, LastSyncAt)
 	VALUES
-	(Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)`, attachment); err != nil {
+	(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)`, attachment); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_attachment: file_id=%s, remote_id=%s", attachment.FileId, attachment.RemoteId)
 	}
 	return attachment, nil
