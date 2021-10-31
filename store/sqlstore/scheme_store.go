@@ -356,13 +356,15 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 	var schemes []*model.Scheme
 
 	if scope != "" {
-		if err := s.GetReplicaX().Select(&schemes, "SELECT * from Schemes WHERE DeleteAt = 0 AND Scope=? ORDER BY CreateAt DESC LIMIT ? OFFSET ?", scope, limit, offset); err != nil {
+		if err := s.GetReplicaX().Select(&schemes, "SELECT * from Schemes WHERE DeleteAt = 0 AND Scope = ? ORDER BY CreateAt DESC LIMIT ? OFFSET ?", scope, limit, offset); err != nil {
 			return nil, errors.Wrapf(err, "failed to get Schemes")
 		}
-	} else {
-		if err := s.GetReplicaX().Select(&schemes, "SELECT * from Schemes WHERE DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?", limit, offset); err != nil {
-			return nil, errors.Wrapf(err, "failed to get Schemes")
-		}
+
+		return schemes, nil
+	}
+
+	if err := s.GetReplicaX().Select(&schemes, "SELECT * from Schemes WHERE DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?", limit, offset); err != nil {
+		return nil, errors.Wrapf(err, "failed to get Schemes")
 	}
 
 	return schemes, nil
