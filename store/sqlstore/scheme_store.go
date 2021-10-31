@@ -378,7 +378,7 @@ func (s *SqlSchemeStore) PermanentDeleteAll() error {
 
 func (s *SqlSchemeStore) CountByScope(scope string) (int64, error) {
 	var count int64
-	err := s.GetReplicaX().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = :Scope AND DeleteAt = 0`, scope)
+	err := s.GetReplicaX().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
 
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count Schemes by scope")
