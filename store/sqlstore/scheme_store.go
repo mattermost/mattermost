@@ -280,7 +280,7 @@ func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 
 func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	// Get the scheme
-	var scheme model.Scheme
+	scheme := model.Scheme{}
 	if err := s.GetMasterX().Get(&scheme, `SELECT * from Schemes WHERE Id = ?`, schemeId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
@@ -323,7 +323,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	queryArgs["UpdateAt"] = time
 	queryArgs["DeleteAt"] = time
 
-	if _, err := s.GetMasterX().Exec("UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Name IN ("+inQuery+")", queryArgs); err != nil {
+	if _, err := s.GetMasterX().NamedExec("UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Name IN ("+inQuery+")", queryArgs); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", inQuery)
 	}
 
