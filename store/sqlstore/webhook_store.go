@@ -281,7 +281,7 @@ func (s SqlWebhookStore) GetOutgoingListByUser(userId string, offset, limit int)
 		return nil, errors.Wrap(err, "outgoing_webhook_tosql")
 	}
 
-	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&webhooks, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find OutgoingWebhooks")
 	}
 
@@ -393,10 +393,21 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) erro
 func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 	hook.UpdateAt = model.GetMillis()
 
-	if _, err := s.GetMaster().Update(hook); err != nil {
+	res, err := s.GetMasterX().NamedExec(`UPDATE OutgoingWebhooks SET
+			UpdateAt = :UpdateAt, Token = :Token, CreatorId = :CreatorId, ChannelId = :ChannelId,
+			TeamId = :TeamId, TriggerWords = :TriggerWords, TriggerWhen = :TriggerWhen, CallbackURLs = :CallbackURLs,
+			DisplayName = :DisplayName, Description = :Description, ContentType = :ContentType, Username = :Username,
+			IconURL = :IconURL WHERE Id = :Id`, hook)
+	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update OutgoingWebhook with id=%s", hook.Id)
 	}
-
+	count, err := res.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "error while getting rows_affected")
+	}
+	if count > 1 {
+		return nil, store.NewErrInvalidInput("OutgoingWebhook", "Id", hook.Id)
+	}
 	return hook, nil
 }
 
