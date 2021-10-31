@@ -235,7 +235,7 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.Ou
 		return nil, err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO OutgoingWebhook
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO OutgoingWebhooks
 			(Id, Token, CreateAt, UpdateAt, DeleteAt, CreatorId, ChannelId, TeamId, TriggerWords, TriggerWhen,
 			CallbackURLs, DisplayName, Description, ContentType, Username, IconURL)
 			VALUES
@@ -251,7 +251,7 @@ func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) 
 
 	var webhook model.OutgoingWebhook
 
-	if err := s.GetReplicaX().Select(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = ? AND DeleteAt = 0", id); err != nil {
+	if err := s.GetReplicaX().Get(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = ? AND DeleteAt = 0", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("OutgoingWebhook", id)
 		}
@@ -316,7 +316,7 @@ func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId str
 		return nil, errors.Wrap(err, "outgoing_webhook_tosql")
 	}
 
-	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&webhooks, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find OutgoingWebhooks")
 	}
 
@@ -350,7 +350,7 @@ func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, o
 		return nil, errors.Wrap(err, "outgoing_webhook_tosql")
 	}
 
-	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&webhooks, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find OutgoingWebhooks")
 	}
 
@@ -362,7 +362,7 @@ func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) ([]
 }
 
 func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) error {
-	_, err := s.GetMaster().Exec("Update OutgoingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
+	_, err := s.GetMasterX().Exec("Update OutgoingWebhooks SET DeleteAt = ?, UpdateAt = ? WHERE Id = ?", time, time, webhookId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update OutgoingWebhook with id=%s", webhookId)
 	}
@@ -371,7 +371,7 @@ func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) error {
 }
 
 func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) error {
-	_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
+	_, err := s.GetMasterX().Exec("DELETE FROM OutgoingWebhooks WHERE CreatorId = ?", userId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete OutgoingWebhook with creatorId=%s", userId)
 	}
@@ -380,7 +380,7 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) error {
 }
 
 func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) error {
-	_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+	_, err := s.GetMasterX().Exec("DELETE FROM OutgoingWebhooks WHERE ChannelId = ?", channelId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete OutgoingWebhook with channelId=%s", channelId)
 	}
