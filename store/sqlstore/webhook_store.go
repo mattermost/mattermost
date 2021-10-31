@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
@@ -401,24 +400,26 @@ func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.Out
 }
 
 func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, error) {
-	query :=
-		`SELECT
-			COUNT(*)
-		FROM
-			IncomingWebhooks
-		WHERE
-			DeleteAt = 0`
+	queryBuilder :=
+		s.getQueryBuilder().
+			Select("COUNT(*)").
+			From("IncomingWebhooks").
+			Where("DeleteAt = 0")
 
 	if teamId != "" {
-		query += " AND TeamId = :TeamId"
+		queryBuilder = queryBuilder.Where("TeamId", teamId)
 	}
 
-	v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+	queryString, args, err := queryBuilder.ToSql()
 	if err != nil {
+		return 0, errors.Wrap(err, "incoming_webhook_tosql")
+	}
+
+	var count int64
+	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
 		return 0, errors.Wrap(err, "failed to count IncomingWebhooks")
 	}
-
-	return v, nil
+	return count, nil
 }
 
 func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
