@@ -84,7 +84,7 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
-	rows, err := s.GetReplicaX().Query(queryString, args...)
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Statuses")
 	}
