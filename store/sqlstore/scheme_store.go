@@ -323,7 +323,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	queryArgs["UpdateAt"] = time
 	queryArgs["DeleteAt"] = time
 
-	if _, err := s.GetMasterX().NamedExec("UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Name IN ("+inQuery+")", queryArgs); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Name IN (`+inQuery+`)"`, queryArgs); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", inQuery)
 	}
 
