@@ -314,16 +314,16 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	var inQueryList []string
 	queryArgs := make(map[string]interface{})
 	for i, roleId := range roleNames {
-		inQueryList = append(inQueryList, fmt.Sprintf(":RoleName%v", i))
-		queryArgs[fmt.Sprintf("RoleName%v", i)] = roleId
+		inQueryList = append(inQueryList, fmt.Sprintf(":rolename%v", i))
+		queryArgs[fmt.Sprintf("rolename%v", i)] = roleId
 	}
 	inQuery := strings.Join(inQueryList, ", ")
 
 	time := model.GetMillis()
-	queryArgs["UpdateAt"] = time
-	queryArgs["DeleteAt"] = time
+	queryArgs["updateat"] = time
+	queryArgs["deleteat"] = time
 
-	if _, err := s.GetMasterX().NamedExec(`UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Name IN (`+inQuery+`)"`, queryArgs); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`UPDATE Roles SET UpdateAt = :updateat, DeleteAt = :deleteat WHERE Name IN (`+inQuery+`)"`, queryArgs); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", inQuery)
 	}
 
