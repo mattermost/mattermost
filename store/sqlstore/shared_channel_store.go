@@ -745,37 +745,23 @@ func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelA
 	if err := attachment.IsValid(); err != nil {
 		return "", err
 	}
-
-	params := map[string]interface{}{
-		"Id":         attachment.Id,
-		"FileId":     attachment.FileId,
-		"RemoteId":   attachment.RemoteId,
-		"CreateAt":   attachment.CreateAt,
-		"LastSyncAt": attachment.LastSyncAt,
-	}
+	query := s.getQueryBuilder().
+		Insert("SharedChannelAttachments").
+		Columns("Id", "FileId", "RemoteId", "CreateAt", "LastSyncAt").
+		Values(attachment.Id, attachment.FileId, attachment.RemoteId, attachment.CreateAt, attachment.LastSyncAt)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		if _, err := s.GetMasterX().NamedExec(
-			`INSERT INTO
-				SharedChannelAttachments
-				(Id, FileId, RemoteId, CreateAt, LastSyncAt)
-			VALUES
-				(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)
-			ON DUPLICATE KEY UPDATE
-				LastSyncAt = :LastSyncAt`, params); err != nil {
-			return "", err
-		}
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE LastSyncAt = ?", attachment.LastSyncAt))
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		if _, err := s.GetMasterX().NamedExec(
-			`INSERT INTO
-				SharedChannelAttachments
-				(Id, FileId, RemoteId, CreateAt, LastSyncAt)
-			VALUES
-				(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)
-			ON CONFLICT (Id)
-				DO UPDATE SET LastSyncAt = :LastSyncAt`, params); err != nil {
-			return "", err
-		}
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (id) DO UPDATE SET LastSyncAt = ?", attachment.LastSyncAt))
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "upsertsharedchannelattachment_tosql")
+	}
+	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
+		return "", errors.Wrap(err, "failed to upsert SharedChannelAttachments")
 	}
 	return attachment.Id, nil
 }
