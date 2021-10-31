@@ -423,22 +423,24 @@ func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, error) {
 }
 
 func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
-	query :=
-		`SELECT
-			COUNT(*)
-		FROM
-			OutgoingWebhooks
-		WHERE
-			DeleteAt = 0`
+	queryBuilder :=
+		s.getQueryBuilder().
+			Select("COUNT(*)").
+			From("OutgoingWebhooks").
+			Where("DeleteAt = 0")
 
 	if teamId != "" {
-		query += " AND TeamId = :TeamId"
+		queryBuilder = queryBuilder.Where("TeamId", teamId)
 	}
 
-	v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+	queryString, args, err := queryBuilder.ToSql()
 	if err != nil {
+		return 0, errors.Wrap(err, "outgoing_webhook_tosql")
+	}
+
+	var count int64
+	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
 		return 0, errors.Wrap(err, "failed to count OutgoingWebhooks")
 	}
-
-	return v, nil
+	return count, nil
 }
