@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
