@@ -98,7 +98,7 @@ func (s SqlSystemStore) Update(system *model.System) error {
 }
 
 func (s SqlSystemStore) Get() (model.StringMap, error) {
-	var systems []model.System
+	systems := []model.System{}
 	props := make(model.StringMap)
 
 	if err := s.GetReplicaX().Select(&systems, "SELECT * FROM Systems"); err != nil {
@@ -136,7 +136,9 @@ func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, error
 // InsertIfExists inserts a given system value if it does not already exist. If a value
 // already exists, it returns the old one, else returns the new one.
 func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
-	tx, err := s.GetMasterX().Beginx()
+	tx, err := s.GetMasterX().BeginXWithIsolation(&sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
