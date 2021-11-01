@@ -87,10 +87,14 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChann
 	}
 	defer finalizeTransactionX(transaction)
 
-	if _, err := transaction.NamedExec(`INSERT INTO SharedChannels
-	(ChannelId, TeamId, Home, ReadOnly, ShareName, ShareDisplayName, SharePurpose, ShareHeader, CreatorId, CreateAt, UpdateAt, RemoteId)
-	VALUES
-	(:ChannelId, :TeamId, :Home, :ReadOnly, :ShareName, :ShareDisplayName, :SharePurpose, :ShareHeader, :CreatorId, :CreateAt, :UpdateAt, :RemoteId)`, sc); err != nil {
+	query, args, err := s.getQueryBuilder().Insert("SharedChannels").
+		Columns("ChannelId", "TeamId", "Home", "ReadOnly", "ShareName", "ShareDisplayName", "SharePurpose", "ShareHeader", "CreatorId", "CreateAt", "UpdateAt", "RemoteId").
+		Values(sc.ChannelId, sc.TeamId, sc.Home, sc.ReadOnly, sc.ShareName, sc.ShareDisplayName, sc.SharePurpose, sc.ShareHeader, sc.CreatorId, sc.CreateAt, sc.UpdateAt, sc.RemoteId).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "savesharedchannel_tosql")
+	}
+	if _, err := transaction.Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel: ChannelId=%s", sc.ChannelId)
 	}
 
@@ -250,10 +254,23 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 		return nil, err
 	}
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE SharedChannels SET
-	TeamId=:TeamId, Home=:Home, ReadOnly=:ReadOnly, ShareName=:ShareName, ShareDisplayName=:ShareDisplayName,
-	SharePurpose=:SharePurpose, ShareHeader=:ShareHeader, CreatorId=:CreatorId, UpdateAt=:UpdateAt, RemoteId=:RemoteId
-	WHERE ChannelId=:ChannelId`, sc)
+	query, args, err := s.getQueryBuilder().Update("SharedChannels").Set("ChannelId", sc.ChannelId).
+		Set("TeamId", sc.TeamId).
+		Set("Home", sc.Home).
+		Set("ReadOnly", sc.ReadOnly).
+		Set("ShareName", sc.ShareName).
+		Set("ShareDisplayName", sc.ShareDisplayName).
+		Set("SharePurpose", sc.SharePurpose).
+		Set("ShareHeader", sc.ShareHeader).
+		Set("CreatorId", sc.CreatorId).
+		Set("CreateAt", sc.CreateAt).
+		Set("UpdateAt", sc.UpdateAt).
+		Set("RemoteId", sc.RemoteId).
+		Where(sq.Eq{"ChannelId": sc.ChannelId}).ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "updatesharedchannel_tosql")
+	}
+	res, err := s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update shared channel with channelId=%s", sc.ChannelId)
 	}
@@ -334,10 +351,15 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO SharedChannelRemotes
-	(Id, ChannelId, CreatorId, CreateAt, UpdateAt, IsInviteAccepted, IsInviteConfirmed, RemoteId, LastPostUpdateAt, LastPostId)
-	VALUES
-	(:Id, :ChannelId, :CreatorId, :CreateAt, :UpdateAt, :IsInviteAccepted, :IsInviteConfirmed, :RemoteId, :LastPostUpdateAt, :LastPostId)`, remote); err != nil {
+	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
+		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId", "LastPostUpdateAt", "LastPostId").
+		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId, remote.LastPostUpdateAt, remote.LastPostId).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
+	}
+
+	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_remote: channel_id=%s, id=%s", remote.ChannelId, remote.Id)
 	}
 	return remote, nil
@@ -349,10 +371,23 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		return nil, err
 	}
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE SharedChannelRemotes SET
-	Id=:Id, ChannelId=:ChannelId, CreatorId=:CreatorId, UpdateAt=:UpdateAt, IsInviteAccepted=:IsInviteAccepted,
-	IsInviteConfirmed=:IsInviteConfirmed, LastPostUpdateAt=:LastPostUpdateAt, LastPostId=:LastPostId
-	WHERE RemoteId=:RemoteId`, remote)
+	query, args, err := s.getQueryBuilder().Update("SharedChannelRemotes").
+		Set("Id", remote.Id).
+		Set("ChannelId", remote.ChannelId).
+		Set("CreatorId", remote.CreatorId).
+		Set("CreateAt", remote.CreateAt).
+		Set("UpdateAt", remote.UpdateAt).
+		Set("IsInviteAccepted", remote.IsInviteAccepted).
+		Set("IsInviteConfirmed", remote.IsInviteConfirmed).
+		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
+		Set("LastPostId", remote.LastPostId).
+		Where(sq.Eq{"RemoteId": remote.RemoteId}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "updatesharedchannelremote_tosql")
+	}
+
+	res, err := s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update shared channel remote with remoteId=%s", remote.Id)
 	}
@@ -580,10 +615,14 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 		return nil, err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO SharedChannelUsers
-	(Id, UserId, ChannelId, RemoteId, CreateAt, LastSyncAt)
-	VALUES
-	(:Id, :UserId, :ChannelId, :RemoteId, :CreateAt, :LastSyncAt)`, scUser); err != nil {
+	query, args, err := s.getQueryBuilder().Insert("SharedChannelUsers").
+		Columns("Id", "UserId", "ChannelId", "RemoteId", "CreateAt", "LastSyncAt").
+		Values(scUser.Id, scUser.UserId, scUser.ChannelId, scUser.RemoteId, scUser.CreateAt, scUser.LastSyncAt).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "savesharedchanneluser_tosql")
+	}
+	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_user: user_id=%s, remote_id=%s", scUser.UserId, scUser.RemoteId)
 	}
 	return scUser, nil
@@ -729,10 +768,15 @@ func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAtt
 		return nil, err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO SharedChannelAttachments
-	(Id, FileId, RemoteId, CreateAt, LastSyncAt)
-	VALUES
-	(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)`, attachment); err != nil {
+	query, args, err := s.getQueryBuilder().Insert("SharedChannelAttachments").
+		Columns("Id", "FileId", "RemoteId", "CreateAt", "LastSyncAt").
+		Values(attachment.Id, attachment.FileId, attachment.RemoteId, attachment.CreateAt, attachment.LastSyncAt).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "savesahredchannelattachment_tosql")
+	}
+
+	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_attachment: file_id=%s, remote_id=%s", attachment.FileId, attachment.RemoteId)
 	}
 	return attachment, nil
