@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const TwentyFourHoursInMillis int64 = 86400000
@@ -89,7 +90,13 @@ func (rseworker *ResendInvitationEmailWorker) DoJob_24(job *model.Job) {
 
 func (rseworker *ResendInvitationEmailWorker) DoJob_24_48(job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_48, _ := rseworker.GetDurations(job)
-	systemValue, _ := rseworker.App.Srv().Store.System().GetByName(model.OverUserLimitForgivenCount)
+	systemValue, sysValErr := rseworker.App.Srv().Store.System().GetByName(model.NumberOfInviteEmailsSent)
+	if sysValErr != nil {
+		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
+			mlog.Error("An error occurred while getting NUMBER_OF_INVITE_EMAILS_SENT from system store", mlog.String("worker", rseworker.name), mlog.Err(sysValErr))
+			return
+		}
+	}
 	if (elapsedTimeSinceSchedule > DurationInMillis_24) && (elapsedTimeSinceSchedule < DurationInMillis_48) && (systemValue.Value == "0") {
 		rseworker.ResendEmails(job)
 		rseworker.setNumResendEmailSent("1")
@@ -101,7 +108,13 @@ func (rseworker *ResendInvitationEmailWorker) DoJob_24_48(job *model.Job) {
 
 func (rseworker *ResendInvitationEmailWorker) DoJob_24_72(job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis_24, _, DurationInMillis_72 := rseworker.GetDurations(job)
-	systemValue, _ := rseworker.App.Srv().Store.System().GetByName(model.OverUserLimitForgivenCount)
+	systemValue, sysValErr := rseworker.App.Srv().Store.System().GetByName(model.NumberOfInviteEmailsSent)
+	if sysValErr != nil {
+		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
+			mlog.Error("An error occurred while getting NUMBER_OF_INVITE_EMAILS_SENT from system store", mlog.String("worker", rseworker.name), mlog.Err(sysValErr))
+			return
+		}
+	}
 	if (elapsedTimeSinceSchedule > DurationInMillis_24) && (elapsedTimeSinceSchedule < DurationInMillis_72) && (systemValue.Value == "0") {
 		rseworker.ResendEmails(job)
 		rseworker.setNumResendEmailSent("1")
