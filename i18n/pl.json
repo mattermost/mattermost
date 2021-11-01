@@ -1793,7 +1793,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Aby zmienić ustawienia powiadomień, zaloguj się na stronę zespołu i przejdź w Ustawienia konta > powiadomienia."
+    "translation": "Aby zmienić ustawienia powiadomień, zaloguj się na stronę zespołu i przejdź w Ustawienia > Powiadomienia."
   },
   {
     "id": "api.templates.email_info1",
@@ -9085,7 +9085,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " i przejdź do Ustawienia Konta > Powiadomienia"
+    "translation": " i przejdź do Ustawienia > Powiadomienia"
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
