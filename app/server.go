@@ -227,6 +227,11 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
+	// Following outlines the specific set of steps
+	// performed during server bootup. They are sensitive to order
+	// and has dependency requirements with the previous step.
+	//
+	// Step 1: Config.
 	if s.configStore == nil {
 		innerStore, err := config.NewFileStore("config.json")
 		if err != nil {
@@ -240,22 +245,9 @@ func NewServer(options ...Option) (*Server, error) {
 		s.configStore = configStore
 	}
 
+	// Step 2: Logging
 	if err := s.initLogging(); err != nil {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
-	}
-
-	var imgErr error
-	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
-	})
-	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image decoder")
-	}
-	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
-	})
-	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
 
 	// This is called after initLogging() to avoid a race condition.
@@ -263,7 +255,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.httpService = httpservice.MakeHTTPService(s)
 
-	// Initialize products
+	// Step 3: Initialize products.
+	// Depends on s.httpService.
 	for name, initializer := range products {
 		prod, err := initializer(s)
 		if err != nil {
@@ -273,9 +266,82 @@ func NewServer(options ...Option) (*Server, error) {
 		s.products[name] = prod
 	}
 
+	// Step 4: Search Engine
+	// Depends on Step 1 (config).
+	searchEngine := searchengine.NewBroker(s.Config())
+	bleveEngine := bleveengine.NewBleveEngine(s.Config())
+	if err := bleveEngine.Start(); err != nil {
+		return nil, err
+	}
+	searchEngine.RegisterBleveEngine(bleveEngine)
+	s.SearchEngine = searchEngine
+
+	// Step 5: Init Enterprise
+	// Depends on step 3 (s.Channels() must be non-nil)
+	// and step 4 (s.SearchEngine must be non-nil)
+	s.initEnterprise()
+
+	// Step 6: Cache provider.
+	// At the moment we only have this implementation
+	// in the future the cache provider will be built based on the loaded config
+	s.CacheProvider = cache.NewProvider()
+	if err := s.CacheProvider.Connect(); err != nil {
+		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
+	}
+
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	s.HubStart()
+
+	// Step 7: Store.
+	// Depends on Step 1 (config), 5 (metrics, cluster) and 6 (cacheProvider).
+	if s.newStore == nil {
+		s.newStore = func() (store.Store, error) {
+			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(
+				retrylayer.New(s.sqlStore),
+				s.Metrics,
+				s.Cluster,
+				s.CacheProvider,
+			)
+			if err2 != nil {
+				return nil, errors.Wrap(err2, "cannot create local cache layer")
+			}
+
+			searchStore := searchlayer.NewSearchLayer(
+				lcl,
+				s.SearchEngine,
+				s.Config(),
+			)
+
+			s.AddConfigListener(func(prevCfg, cfg *model.Config) {
+				searchStore.UpdateConfig(cfg)
+			})
+
+			s.sqlStore.UpdateLicense(s.License())
+			s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+				s.sqlStore.UpdateLicense(newLicense)
+			})
+
+			return timerlayer.New(
+				searchStore,
+				s.Metrics,
+			), nil
+		}
+	}
+
+	var err error
+	s.Store, err = s.newStore()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot create store")
+	}
+
+	// -------------------------------------------------------------------------
+	// Everything below this is not order sensitive and safe to be moved around.
+	// If you are adding a new field that needs to be initialized, please add below
+	// this.
+	// -------------------------------------------------------------------------
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
@@ -316,22 +382,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	model.AppErrorInit(i18n.T)
 
-	searchEngine := searchengine.NewBroker(s.Config())
-	bleveEngine := bleveengine.NewBleveEngine(s.Config())
-	if err := bleveEngine.Start(); err != nil {
-		return nil, err
-	}
-	searchEngine.RegisterBleveEngine(bleveEngine)
-	s.SearchEngine = searchEngine
-
-	// at the moment we only have this implementation
-	// in the future the cache provider will be built based on the loaded config
-	s.CacheProvider = cache.NewProvider()
-	if err := s.CacheProvider.Connect(); err != nil {
-		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
-	}
-
-	var err error
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
@@ -356,45 +406,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 
-	// initEnterprise needs to be called after products initialization.
-	s.initEnterprise()
-
-	if s.newStore == nil {
-		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
-
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(
-				retrylayer.New(s.sqlStore),
-				s.Metrics,
-				s.Cluster,
-				s.CacheProvider,
-			)
-			if err2 != nil {
-				return nil, errors.Wrap(err2, "cannot create local cache layer")
-			}
-
-			searchStore := searchlayer.NewSearchLayer(
-				lcl,
-				s.SearchEngine,
-				s.Config(),
-			)
-
-			s.AddConfigListener(func(prevCfg, cfg *model.Config) {
-				searchStore.UpdateConfig(cfg)
-			})
-
-			s.sqlStore.UpdateLicense(s.License())
-			s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-				s.sqlStore.UpdateLicense(newLicense)
-			})
-
-			return timerlayer.New(
-				searchStore,
-				s.Metrics,
-			), nil
-		}
-	}
-
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
 		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
@@ -409,11 +420,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
-
-	s.Store, err = s.newStore()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot create store")
-	}
 
 	s.userService, err = users.New(users.ServiceConfig{
 		UserStore:    s.Store.User(),
@@ -707,6 +713,20 @@ func NewServer(options ...Option) (*Server, error) {
 			s.openGraphDataCache.Purge()
 		}
 	})
+
+	var imgErr error
+	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image decoder")
+	}
+	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image encoder")
+	}
 
 	return s, nil
 }
@@ -2264,19 +2284,6 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 	return result, nil
 }
-
-// func (s *Server) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
-// 	backend, err := s.FileBackend()
-// 	if err != nil {
-// 		return 0, err
-// 	}
-
-// 	result, nErr := backend.WriteFile(fr, path)
-// 	if nErr != nil {
-// 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-// 	}
-// 	return result, nil
-// }
 
 func createDNDStatusExpirationRecurringTask(a *App) {
 	a.ch.srv.dndTaskMut.Lock()
