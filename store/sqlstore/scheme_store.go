@@ -333,7 +333,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
 
-	if _, err := s.GetMasterX().QueryX(updateQuery, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(updateQuery, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", inQuery)
 	}
 
