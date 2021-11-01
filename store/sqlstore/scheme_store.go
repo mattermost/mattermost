@@ -70,7 +70,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	scheme.UpdateAt = model.GetMillis()
 
 	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
-		SET UpdateAt=:UpdateAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
+		SET UpdateAt=:UpdateAt, CreateAt=:CreateAt, DeleteAt=:DeleteAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole 
 		 WHERE Id=:Id`, scheme)
@@ -305,26 +305,16 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	s.Channel().ClearCaches()
 
 	// Delete the roles belonging to the scheme.
-
-	inQuery := sq.Or{}
 	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
-
-	for _, ele := range roleNames {
-		inQuery = append(inQuery, sq.Eq{"Name": ele})
-	}
 	if scheme.Scope == model.SchemeScopeTeam {
-		additionalRoleNames := []string{scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole}
-
-		for _, ele := range additionalRoleNames {
-			inQuery = append(inQuery, sq.Eq{"Name": ele})
-		}
+		roleNames = append(roleNames, scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
 	}
 
 	time := model.GetMillis()
 
 	updateQuery, args, err := s.getQueryBuilder().
 		Update("Roles").
-		Where(inQuery).
+		Where(sq.Eq{"Name": roleNames}).
 		Set("UpdateAt", time).
 		Set("DeleteAt", time).
 		ToSql()
@@ -334,7 +324,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	}
 
 	if _, err = s.GetMasterX().Exec(updateQuery, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", inQuery)
+		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", roleNames)
 	}
 
 	// Delete the scheme itself.
@@ -365,27 +355,24 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 	schemes := []*model.Scheme{}
 
-	scopeQuery := sq.And{}
-	scopeQuery = append(scopeQuery, sq.Eq{"DeleteAt": 0})
-
-	if scope != "" {
-		scopeQuery = append(scopeQuery, sq.Eq{"Scope": scope})
-	}
-
-	selectQuery, args, err := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select("*").
 		From("Schemes").
-		Where(scopeQuery).
+		Where(sq.Eq{"DeleteAt": 0}).
 		OrderBy("CreateAt DESC").
 		Limit(uint64(limit)).
-		Offset(uint64(offset)).
-		ToSql()
+		Offset(uint64(offset))
 
+	if scope != "" {
+		query = query.Where(sq.Eq{"Scope": scope})
+	}
+
+	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
 
-	if err := s.GetReplicaX().Select(&schemes, selectQuery, args...); err != nil {
+	if err := s.GetReplicaX().Select(&schemes, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Schemes")
 	}
 
