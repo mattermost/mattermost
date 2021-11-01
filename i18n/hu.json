@@ -9254,5 +9254,13 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "A tokenben szereplő e-mail cím nem egyezik a felhasználói adatokban szereplővel."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nem sikerült lekérni a csapat összes tagját"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nem sikerült lekérni a csatorna összes tagját"
   }
 ]
