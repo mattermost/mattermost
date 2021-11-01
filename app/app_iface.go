@@ -177,8 +177,6 @@ type AppIface interface {
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 	// and plugins that are installed locally.
 	GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError)
-	// GetPluginPublicKeyFiles returns all public keys listed in the config.
-	GetPluginPublicKeyFiles() ([]string, *model.AppError)
 	// GetPluginStatus returns the status for a plugin installed on this server.
 	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
 	// GetPluginStatuses returns the status for plugins installed on this server.
