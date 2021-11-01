@@ -6,8 +6,8 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -306,24 +306,34 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 
 	// Delete the roles belonging to the scheme.
 
+	inQuery := sq.Or{}
 	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
-	if scheme.Scope == model.SchemeScopeTeam {
-		roleNames = append(roleNames, scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
-	}
 
-	var inQueryList []string
-	queryArgs := make(map[string]interface{})
-	for i, roleId := range roleNames {
-		inQueryList = append(inQueryList, fmt.Sprintf(":rolename%v", i))
-		queryArgs[fmt.Sprintf("rolename%v", i)] = roleId
+	for _, ele := range roleNames {
+		inQuery = append(inQuery, sq.Eq{"Name": ele})
 	}
-	inQuery := strings.Join(inQueryList, ", ")
+	if scheme.Scope == model.SchemeScopeTeam {
+		additionalRoleNames := []string{scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole}
+
+		for _, ele := range additionalRoleNames {
+			inQuery = append(inQuery, sq.Eq{"Name": ele})
+		}
+	}
 
 	time := model.GetMillis()
-	queryArgs["updateat"] = time
-	queryArgs["deleteat"] = time
 
-	if _, err := s.GetMasterX().NamedExec(`UPDATE Roles SET UpdateAt = :updateat, DeleteAt = :deleteat WHERE Name IN (`+inQuery+`)`, queryArgs); err != nil {
+	updateQuery, args, err := s.getQueryBuilder().
+		Update("Roles").
+		Where(inQuery).
+		Set("UpdateAt", time).
+		Set("DeleteAt", time).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
+
+	if _, err := s.GetMasterX().QueryX(updateQuery, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", inQuery)
 	}
 
@@ -332,19 +342,19 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	scheme.DeleteAt = time
 
 	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
-		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
+		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole 
 		 WHERE Id=:Id`, &scheme)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to update Scheme")
+		return nil, errors.Wrapf(err, "failed to update Scheme with schemeId=%s", schemeId)
 	}
 
 	rowsChanged, err := res.RowsAffected()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update Scheme with schemeId=%s", schemeId)
+		return nil, errors.Wrapf(err, "failed to get RowsAffected while updating scheme with schemeId=%s", schemeId)
 	}
 	if rowsChanged != 1 {
 		return nil, errors.New("no record to update")
@@ -353,17 +363,29 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 }
 
 func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
-	var schemes []*model.Scheme
+	schemes := []*model.Scheme{}
+
+	scopeQuery := sq.And{}
+	scopeQuery = append(scopeQuery, sq.Eq{"DeleteAt": 0})
 
 	if scope != "" {
-		if err := s.GetReplicaX().Select(&schemes, "SELECT * from Schemes WHERE DeleteAt = 0 AND Scope = ? ORDER BY CreateAt DESC LIMIT ? OFFSET ?", scope, limit, offset); err != nil {
-			return nil, errors.Wrapf(err, "failed to get Schemes")
-		}
-
-		return schemes, nil
+		scopeQuery = append(scopeQuery, sq.Eq{"Scope": scope})
 	}
 
-	if err := s.GetReplicaX().Select(&schemes, "SELECT * from Schemes WHERE DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?", limit, offset); err != nil {
+	selectQuery, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Schemes").
+		Where(scopeQuery).
+		OrderBy("CreateAt DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
+
+	if err := s.GetReplicaX().Select(&schemes, selectQuery, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Schemes")
 	}
 
