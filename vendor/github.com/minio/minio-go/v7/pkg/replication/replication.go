@@ -47,13 +47,13 @@ const (
 // Options represents options to set a replication configuration rule
 type Options struct {
 	Op                      OptionType
+	RoleArn                 string
 	ID                      string
 	Prefix                  string
 	RuleStatus              string
 	Priority                string
 	TagString               string
 	StorageClass            string
-	RoleArn                 string
 	DestBucket              string
 	IsTagSet                bool
 	IsSCSet                 bool
@@ -103,9 +103,17 @@ func (c *Config) AddRule(opts Options) error {
 	if err != nil {
 		return err
 	}
-	if opts.RoleArn != c.Role && c.Role != "" {
-		return fmt.Errorf("role ARN does not match existing configuration")
+	if opts.RoleArn != "" {
+		tokens := strings.Split(opts.RoleArn, ":")
+		if len(tokens) != 6 {
+			return fmt.Errorf("invalid format for replication Role Arn: %v", opts.RoleArn)
+		}
+		if !strings.HasPrefix(opts.RoleArn, "arn:aws:iam") {
+			return fmt.Errorf("RoleArn invalid for AWS replication configuration: %v", opts.RoleArn)
+		}
+		c.Role = opts.RoleArn
 	}
+
 	var status Status
 	// toggle rule status for edit option
 	switch opts.RuleStatus {
@@ -139,28 +147,11 @@ func (c *Config) AddRule(opts Options) error {
 	if opts.ID == "" {
 		opts.ID = xid.New().String()
 	}
-	arnStr := opts.RoleArn
-	if opts.RoleArn == "" {
-		arnStr = c.Role
-	}
-	if arnStr == "" {
-		return fmt.Errorf("role ARN required")
-	}
-	tokens := strings.Split(arnStr, ":")
-	if len(tokens) != 6 {
-		return fmt.Errorf("invalid format for replication Arn")
-	}
-	if c.Role == "" {
-		c.Role = arnStr
-	}
+
 	destBucket := opts.DestBucket
 	// ref https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html
 	if btokens := strings.Split(destBucket, ":"); len(btokens) != 6 {
-		if len(btokens) == 1 {
-			destBucket = fmt.Sprintf("arn:aws:s3:::%s", destBucket)
-		} else {
-			return fmt.Errorf("destination bucket needs to be in Arn format")
-		}
+		return fmt.Errorf("destination bucket needs to be in Arn format")
 	}
 	dmStatus := Disabled
 	if opts.ReplicateDeleteMarkers != "" {
@@ -236,12 +227,17 @@ func (c *Config) AddRule(opts Options) error {
 	if err := newRule.Validate(); err != nil {
 		return err
 	}
+	// if replication config uses RoleArn, migrate this to the destination element as target ARN for remote bucket for MinIO configuration
+	if c.Role != "" && !strings.HasPrefix(c.Role, "arn:aws:iam") {
+		for i := range c.Rules {
+			c.Rules[i].Destination.Bucket = c.Role
+		}
+		c.Role = ""
+	}
+
 	for _, rule := range c.Rules {
 		if rule.Priority == newRule.Priority {
 			return fmt.Errorf("priority must be unique. Replication configuration already has a rule with this priority")
-		}
-		if rule.Destination.Bucket != newRule.Destination.Bucket {
-			return fmt.Errorf("the destination bucket must be same for all rules")
 		}
 		if rule.ID == newRule.ID {
 			return fmt.Errorf("a rule exists with this ID")
@@ -257,6 +253,14 @@ func (c *Config) EditRule(opts Options) error {
 	if opts.ID == "" {
 		return fmt.Errorf("rule ID missing")
 	}
+	// if replication config uses RoleArn, migrate this to the destination element as target ARN for remote bucket for non AWS.
+	if c.Role != "" && !strings.HasPrefix(c.Role, "arn:aws:iam") {
+		for i := range c.Rules {
+			c.Rules[i].Destination.Bucket = c.Role
+		}
+		c.Role = ""
+	}
+
 	rIdx := -1
 	var newRule Rule
 	for i, rule := range c.Rules {
@@ -351,7 +355,7 @@ func (c *Config) EditRule(opts Options) error {
 			return fmt.Errorf("replica metadata sync should be either [enable|disable]")
 		}
 	}
-	fmt.Println("opts.ExistingObjectReplicate>", opts.ExistingObjectReplicate)
+
 	if opts.ExistingObjectReplicate != "" {
 		switch opts.ExistingObjectReplicate {
 		case "enable":
@@ -376,11 +380,7 @@ func (c *Config) EditRule(opts Options) error {
 		destBucket := opts.DestBucket
 		// ref https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html
 		if btokens := strings.Split(opts.DestBucket, ":"); len(btokens) != 6 {
-			if len(btokens) == 1 {
-				destBucket = fmt.Sprintf("arn:aws:s3:::%s", destBucket)
-			} else {
-				return fmt.Errorf("destination bucket needs to be in Arn format")
-			}
+			return fmt.Errorf("destination bucket needs to be in Arn format")
 		}
 		newRule.Destination.Bucket = destBucket
 	}
@@ -393,8 +393,8 @@ func (c *Config) EditRule(opts Options) error {
 		if rule.Priority == newRule.Priority && rIdx != idx {
 			return fmt.Errorf("priority must be unique. Replication configuration already has a rule with this priority")
 		}
-		if rule.Destination.Bucket != newRule.Destination.Bucket {
-			return fmt.Errorf("the destination bucket must be same for all rules")
+		if rule.Destination.Bucket != newRule.Destination.Bucket && rule.ID == newRule.ID {
+			return fmt.Errorf("invalid destination bucket for this rule")
 		}
 	}
 
@@ -678,9 +678,9 @@ func (e ExistingObjectReplication) Validate() error {
 	return nil
 }
 
-// Metrics represents inline replication metrics
-// such as pending, failed and completed bytes in total for a bucket
-type Metrics struct {
+// TargetMetrics represents inline replication metrics
+// such as pending, failed and completed bytes in total for a bucket remote target
+type TargetMetrics struct {
 	// Pending size in bytes
 	PendingSize uint64 `json:"pendingReplicationSize"`
 	// Completed size in bytes
@@ -693,4 +693,29 @@ type Metrics struct {
 	PendingCount uint64 `json:"pendingReplicationCount"`
 	// Total number of failed operations including metadata updates
 	FailedCount uint64 `json:"failedReplicationCount"`
+}
+
+// Metrics represents inline replication metrics for a bucket.
+type Metrics struct {
+	Stats map[string]TargetMetrics
+	// Total Pending size in bytes across targets
+	PendingSize uint64 `json:"pendingReplicationSize"`
+	// Completed size in bytes  across targets
+	ReplicatedSize uint64 `json:"completedReplicationSize"`
+	// Total Replica size in bytes  across targets
+	ReplicaSize uint64 `json:"replicaSize"`
+	// Failed size in bytes  across targets
+	FailedSize uint64 `json:"failedReplicationSize"`
+	// Total number of pending operations including metadata updates across targets
+	PendingCount uint64 `json:"pendingReplicationCount"`
+	// Total number of failed operations including metadata updates across targets
+	FailedCount uint64 `json:"failedReplicationCount"`
+}
+
+type ResyncTargetsInfo struct {
+	Targets []ResyncTarget `json:"target,omitempty"`
+}
+type ResyncTarget struct {
+	Arn     string `json:"arn"`
+	ResetID string `json:"resetid"`
 }

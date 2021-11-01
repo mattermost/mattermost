@@ -2961,7 +2961,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -2969,7 +2969,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verzió 60+"
+    "translation": "Verzió 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -2977,7 +2977,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 61+"
+    "translation": "Verzió 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5781,7 +5781,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Fiók beállítások > Értesítésekbe."
+    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Beállítások > Értesítések menübe."
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -5861,7 +5861,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Professional 14 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Professional előnyeit."
+    "translation": "{{.Name}}, a Mattermost 14 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Mattermost Cloud előnyeit."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -6576,10 +6576,6 @@
     "translation": "Hiba történt a biztonságos kapcsolat törlésekor."
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "A bejegyzésekre való reakció nem lehetséges írásvédett csatornákban."
-  },
-  {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Nem lehet elmenteni a reakciót egy másik felhasználóhoz."
   },
@@ -7036,7 +7032,7 @@
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Visszavonja a biztonságos kapcsolat meghívását erről a megosztott csatornáról"
+    "translation": "Visszavonja a biztonságos kapcsolat meghívását erről a megosztott beszélgetésről"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -7072,7 +7068,7 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Meg kell adnia egy érvényes biztonságos kapcsolatot a meghívás visszavonásához"
+    "translation": "Meg kell adnia egy érvényes biztonságos kapcsolat azonosítót a meghívás visszavonásához"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
@@ -7096,7 +7092,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Erre a csatornára nem hívtak meg biztonságos kapcsolatokat."
+    "translation": "Erre a beszélgetésre nem hívtak meg biztonságos kapcsolatokat."
   },
   {
     "id": "api.command_share.name",
@@ -7192,7 +7188,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "A `{{.ChannelId}}` csatorna azonosító állapota"
+    "translation": "A `{{.ChannelId}}` beszélgetés állapota"
   },
   {
     "id": "api.command_share.channel_status.help",
@@ -7208,7 +7204,7 @@
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Nem lehet meghívni a biztonságos kapcsolatot máshonnan származó megosztott csatornára."
+    "translation": "Nem lehet meghívni biztonságos kapcsolatot egy máshonnan eredő megosztott beszélgetésre."
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -7264,7 +7260,7 @@
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "Az üzenetet el kell látni /eltávolítás, vagy /kick paranccsal."
+    "translation": "A /remove vagy /kick parancsokhoz üzenetet kell megadni."
   },
   {
     "id": "api.command_remove.hint",
@@ -7352,7 +7348,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Mattermost rendszergazdának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n```\n{{.Invitation}}\n```\n\n**Győződjön meg róla, hogy a biztonságos kapcsolat a** {{.SiteURL}} **cím segítségével érheti el az Ön Mattermost példányát.**"
+    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Mattermost rendszer rendszergazdának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n```\n{{.Invitation}}\n```\n\n**Győződjön meg róla, hogy a biztonságos kapcsolat a** {{.SiteURL}} **cím segítségével érheti el az Ön Mattermost példányát.**"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -7983,10 +7979,6 @@
     "translation": "Nem lehet értelmezni a kérés törzsét."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Itt csak a jogosultággal rendelkező tagok tűzhetnek ki/szedhetnek le bejegyzéseket."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nem lehet bejegyzést frissíteni egy törölt csatornában."
   },
@@ -8047,10 +8039,6 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Hiba a bejegyzés létrehozásakor."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Ez a csatorna írásvédett. Csak a jogosultsággal rendelkező tagok írhatnak ide."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -8230,7 +8218,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "értelmezési hiba"
+    "translation": "Adatkonverzió nem sikerült."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -8250,7 +8238,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "A licenc igényléséhez el kell fogadnia a Mattermost szoftverértékelési megállapodását és az adatvédelmi irányelveit."
+    "translation": "A licenc igényléséhez el kell fogadnia a Mattermost szoftver használati megállapodását és az adatvédelmi irányelveit."
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -8917,7 +8905,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " és lépjen a Fiókbeállítások> Értesítések menüpontba"
+    "translation": " és lépjen a Beállítások > Értesítések menübe"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -8966,13 +8954,6 @@
   {
     "id": "api.server.warn_metric.support_email_not_configured.notification_title",
     "translation": "Állítsa be a támogatási email címét"
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "{{ .SenderName }} új üzenetet küldött neked",
-      "other": "{{ .SenderName }} és {{.Count}} mások új üzeneteket kültek neked"
-    }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
@@ -9112,7 +9093,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Ez a próba időszak kulcs a Mattermost Enterprise kiadáshoz lejárt és már nem érvényes. Ha szeretné meghosszabbítani a próbaidőszakot, kérjük [vegye fel a kapcsolatot értékesítési csapatunkkal](https://mattermost.com/contact-us/)."
+    "translation": "Ez a teszt kulcs a Mattermost Enterprise kiadáshoz lejárt és már nem érvényes. Ha szeretné meghosszabbítani a próba időszakot, kérjük [vegye fel a kapcsolatot értékesítési csapatunkkal](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9187,16 +9168,12 @@
     "translation": "{{.SenderName}} válaszolt egy üzenetszálra"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "Amíg távol volt, {{.SenderName}} válaszolt egy üzenetszálra amit követ."
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Válasz az üzenetszálra"
+    "translation": "Válasz a {{.channelName}} beszélgetésben"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " megjegyzést írt egy üzenetszálhoz amit követ."
+    "translation": " válaszolt egy üzenetszálra amit követ."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9205,5 +9182,85 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Nem sikerült a beállítások újratöltése."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "A bejegyzés adatkonverziója nem sikerült."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Adatkonverzió nem sikerült."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " válaszolt egy üzenetszálra."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a {{.ChannelName}} beszélgetésben amit követ."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a közvetlen üzenetében."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra a csoportjában."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Amíg távol volt {{.SenderName}} válaszolt egy üzenetszálra amit követ."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Válasz a közvetlen üzenetben"
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Hiba a mellékletek tömeges importálása közben."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen beszélgetés tagság jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen munkamenet jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen csapat tagság jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Érvénytelen felhasználói jogosultság hosszabb mint {{.Limit}} karakter."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Érvénytelen UserId mező a munkamenethez."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Érvénytelen Id mező a munkamenethez."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Érvénytelen CreateAt mező a munkamenethez."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "Önnek új üzenetei vannak"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "A tokenben szereplő e-mail cím nem egyezik a felhasználói adatokban szereplővel."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nem sikerült lekérni a csapat összes tagját"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nem sikerült lekérni a csatorna összes tagját"
   }
 ]

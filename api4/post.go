@@ -27,7 +27,8 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPostsInTeam)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchPostsInAllTeams)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
@@ -41,6 +42,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("post")
 		return
 	}
+
+	// Strip away delete_at if passed
+	post.DeleteAt = 0
 
 	post.UserId = c.AppContext.Session().UserId
 
@@ -127,7 +131,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClient(rp, true, false)
+	rp = c.App.PreparePostForClientWithEmbedsAndImages(rp, true, false)
 	rp, err := c.App.SanitizePostMetadataForUser(rp, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -375,7 +379,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post = c.App.PreparePostForClient(post, false, false)
+	post = c.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 	post, err = c.App.SanitizePostMetadataForUser(post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -473,7 +477,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+func searchPostsInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -484,6 +488,14 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	searchPosts(c, w, r, c.Params.TeamId)
+}
+
+func searchPostsInAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	searchPosts(c, w, r, "")
+}
+
+func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId string) {
 	var params model.SearchParameter
 	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
 		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
@@ -523,7 +535,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()
@@ -704,33 +716,12 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	// Restrict pinning if the experimental read-only-town-square setting is on.
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
 	post, err := c.App.GetSinglePost(c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 	auditRec.AddMeta("post", post)
-
-	channel, err := c.App.GetChannel(post.ChannelId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if c.App.Srv().License() != nil &&
-		*c.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		channel.Name == model.DefaultChannelName &&
-		!c.App.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
-		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.save_is_pinned_post.town_square_read_only", nil, "", http.StatusForbidden)
-		return
-	}
 
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewBool(isPinned)

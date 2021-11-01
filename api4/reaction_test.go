@@ -165,34 +165,6 @@ func TestSaveReaction(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionAddReaction.Id, model.ChannelUserRoleId)
 	})
 
-	t.Run("unable-to-react-in-read-only-town-square", func(t *testing.T) {
-		th.LoginBasic()
-
-		channel, appErr := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
-		assert.Nil(t, appErr)
-		post := th.CreatePostWithClient(th.Client, channel)
-
-		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-
-		reaction := &model.Reaction{
-			UserId:    userId,
-			PostId:    post.Id,
-			EmojiName: "smile",
-		}
-
-		_, resp, err := client.SaveReaction(reaction)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-
-		reactions, appErr := th.App.GetReactionsForPost(post.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, 0, len(reactions), "should have not created a reaction")
-
-		th.App.Srv().RemoveLicense()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
-	})
-
 	t.Run("unable-to-react-in-an-archived-channel", func(t *testing.T) {
 		th.LoginBasic()
 
@@ -499,42 +471,6 @@ func TestDeleteReaction(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
 		th.AddPermissionToRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
-	})
-
-	t.Run("unable-to-delete-reactions-in-read-only-town-square", func(t *testing.T) {
-		th.LoginBasic()
-
-		channel, appErr := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
-		assert.Nil(t, appErr)
-		post := th.CreatePostWithClient(th.Client, channel)
-
-		th.App.Srv().SetLicense(model.NewTestLicense())
-
-		reaction := &model.Reaction{
-			UserId:    userId,
-			PostId:    post.Id,
-			EmojiName: "smile",
-		}
-
-		r1, _, err := client.SaveReaction(reaction)
-		require.NoError(t, err)
-
-		reactions, appErr := th.App.GetReactionsForPost(postId)
-		require.Nil(t, appErr)
-		require.Equal(t, 1, len(reactions), "should have created a reaction")
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-
-		resp, err := th.SystemAdminClient.DeleteReaction(r1)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-
-		reactions, appErr = th.App.GetReactionsForPost(postId)
-		require.Nil(t, appErr)
-		require.Equal(t, 1, len(reactions), "should have not deleted a reaction")
-
-		th.App.Srv().RemoveLicense()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
 
 	t.Run("unable-to-delete-reactions-in-an-archived-channel", func(t *testing.T) {

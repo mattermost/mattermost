@@ -54,13 +54,15 @@ func (k *Key) addShadow(val string) error {
 		return errors.New("cannot add shadow to auto-increment or boolean key")
 	}
 
-	// Deduplicate shadows based on their values.
-	if k.value == val {
-		return nil
-	}
-	for i := range k.shadows {
-		if k.shadows[i].value == val {
+	if !k.s.f.options.AllowDuplicateShadowValues {
+		// Deduplicate shadows based on their values.
+		if k.value == val {
 			return nil
+		}
+		for i := range k.shadows {
+			if k.shadows[i].value == val {
+				return nil
+			}
 		}
 	}
 
@@ -781,9 +783,7 @@ func (k *Key) parseUint64s(strs []string, addInvalid, returnOnInvalid bool) ([]u
 	return vals, err
 }
 
-
 type Parser func(str string) (interface{}, error)
-
 
 // parseTimesFormat transforms strings to times in given format.
 func (k *Key) parseTimesFormat(format string, strs []string, addInvalid, returnOnInvalid bool) ([]time.Time, error) {
@@ -800,7 +800,6 @@ func (k *Key) parseTimesFormat(format string, strs []string, addInvalid, returnO
 	}
 	return vals, err
 }
-
 
 // doParse transforms strings to different types
 func (k *Key) doParse(strs []string, addInvalid, returnOnInvalid bool, parser Parser) ([]interface{}, error) {

@@ -50,7 +50,7 @@ type Hub struct {
 	// connectionCount should be kept first.
 	// See https://github.com/mattermost/mattermost-server/pull/7281
 	connectionCount int64
-	app             *App
+	srv             *Server
 	connectionIndex int
 	register        chan *WebConn
 	unregister      chan *WebConn
@@ -65,10 +65,10 @@ type Hub struct {
 	checkConn       chan *webConnCheckMessage
 }
 
-// NewWebHub creates a new Hub.
-func (a *App) NewWebHub() *Hub {
+// newWebHub creates a new Hub.
+func newWebHub(s *Server) *Hub {
 	return &Hub{
-		app:             a,
+		srv:             s,
 		register:        make(chan *WebConn),
 		unregister:      make(chan *WebConn),
 		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
@@ -87,21 +87,21 @@ func (a *App) TotalWebsocketConnections() int {
 }
 
 // HubStart starts all the hubs.
-func (a *App) HubStart() {
+func (s *Server) HubStart() {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
-	mlog.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
+	s.Log.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	hubs := make([]*Hub, numberOfHubs)
 
 	for i := 0; i < numberOfHubs; i++ {
-		hubs[i] = a.NewWebHub()
+		hubs[i] = newWebHub(s)
 		hubs[i].connectionIndex = i
 		hubs[i].Start()
 	}
 	// Assigning to the hubs slice without any mutex is fine because it is only assigned once
 	// during the start of the program and always read from after that.
-	a.srv.hubs = hubs
+	s.hubs = hubs
 }
 
 func (a *App) invalidateCacheForWebhook(webhookID string) {
@@ -115,10 +115,6 @@ func (s *Server) HubStop() {
 	for _, hub := range s.hubs {
 		hub.Stop()
 	}
-}
-
-func (a *App) HubStop() {
-	a.Srv().HubStop()
 }
 
 // GetHubForUserId returns the hub for a given user id.
@@ -259,7 +255,7 @@ func (a *App) invalidateCacheForChannelPosts(channelID string) {
 func (a *App) InvalidateCacheForUser(userID string) {
 	a.Srv().invalidateCacheForUserSkipClusterSend(userID)
 
-	a.srv.userService.InvalidateCacheForUser(userID)
+	a.ch.srv.userService.InvalidateCacheForUser(userID)
 }
 
 func (a *App) invalidateCacheForUserTeams(userID string) {
@@ -356,7 +352,7 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	// And possibly, we can look into doing the hub initialization inside
 	// NewServer itself.
 	if h != nil && message != nil {
-		if metrics := h.app.Metrics(); metrics != nil {
+		if metrics := h.srv.Metrics; metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 		}
 		select {
@@ -416,6 +412,8 @@ func (h *Hub) Start() {
 		ticker := time.NewTicker(inactiveConnReaperInterval)
 		defer ticker.Stop()
 
+		appInstance := New(ServerConnector(h.srv.Channels()))
+
 		connIndex := newHubConnectionIndex(inactiveConnReaperInterval)
 
 		for {
@@ -449,7 +447,7 @@ func (h *Hub) Start() {
 				connIndex.RemoveInactiveConnections()
 			case webConn := <-h.register:
 				var oldConn *WebConn
-				if *h.app.Config().ServiceSettings.EnableReliableWebSockets {
+				if *h.srv.Config().ServiceSettings.EnableReliableWebSockets {
 					// Delete the old conn from connIndex if it exists.
 					oldConn = connIndex.RemoveInactiveByConnectionID(
 						webConn.GetSession().UserId,
@@ -474,7 +472,7 @@ func (h *Hub) Start() {
 			case webConn := <-h.unregister:
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
-				if *h.app.Config().ServiceSettings.EnableReliableWebSockets {
+				if *h.srv.Config().ServiceSettings.EnableReliableWebSockets {
 					webConn.active = false
 				} else {
 					connIndex.Remove(webConn)
@@ -488,8 +486,8 @@ func (h *Hub) Start() {
 
 				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 || areAllInactive(conns) {
-					h.app.Srv().Go(func() {
-						h.app.SetStatusOffline(webConn.UserId, false)
+					h.srv.Go(func() {
+						appInstance.SetStatusOffline(webConn.UserId, false)
 					})
 					continue
 				}
@@ -503,9 +501,9 @@ func (h *Hub) Start() {
 					}
 				}
 
-				if h.app.IsUserAway(latestActivity) {
-					h.app.Srv().Go(func() {
-						h.app.SetStatusLastActivityAt(webConn.UserId, latestActivity)
+				if appInstance.IsUserAway(latestActivity) {
+					h.srv.Go(func() {
+						appInstance.SetStatusLastActivityAt(webConn.UserId, latestActivity)
 					})
 				}
 			case userID := <-h.invalidateUser:
@@ -533,7 +531,7 @@ func (h *Hub) Start() {
 					connIndex.Remove(directMsg.conn)
 				}
 			case msg := <-h.broadcast:
-				if metrics := h.app.Metrics(); metrics != nil {
+				if metrics := h.srv.Metrics; metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
 				msg = msg.PrecomputeJSON()
@@ -565,7 +563,7 @@ func (h *Hub) Start() {
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()
-					h.app.SetStatusOffline(webConn.UserId, false)
+					appInstance.SetStatusOffline(webConn.UserId, false)
 				}
 
 				h.explicitStop = true

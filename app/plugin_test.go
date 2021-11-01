@@ -342,7 +342,7 @@ func TestServePluginRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.srv.ServePluginRequest(w, r)
+	th.App.ch.srv.ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
 }
 
@@ -386,7 +386,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 
 			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
 
-			th.App.srv.servePluginRequest(recorder, request, handler)
+			th.App.ch.srv.servePluginRequest(recorder, request, handler)
 		})
 	}
 
@@ -409,7 +409,7 @@ func TestHandlePluginRequest(t *testing.T) {
 	var assertions func(*http.Request)
 	router := mux.NewRouter()
 	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.srv.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
+		th.App.ch.srv.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
 			assertions(r)
 		})
 	})

@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -81,9 +82,9 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	storeMock.On("GetDbVersion", false).Return("5.24.0", nil)
 
 	systemStore := storeMocks.SystemStore{}
-	props := model.StringMap{}
-	props[model.SystemTelemetryId] = "test"
-	systemStore.On("Get").Return(props, nil)
+	systemStore.On("Get").Return(make(model.StringMap), nil)
+	systemID := &model.System{Name: model.SystemTelemetryId, Value: "test"}
+	systemStore.On("InsertIfExists", mock.Anything).Return(systemID, nil)
 	systemStore.On("GetByName", model.AdvancedPermissionsMigrationKey).Return(nil, nil)
 	systemStore.On("GetByName", model.MigrationKeyAdvancedPermissionsPhase2).Return(nil, nil)
 
@@ -157,6 +158,83 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 		systemStore.AssertExpectations(t)
 		pluginsAPIMock.AssertExpectations(t)
 	}, cleanUp
+}
+
+func TestEnsureTelemetryID(t *testing.T) {
+	t.Run("test ID in database and does not run twice", func(t *testing.T) {
+		storeMock := &storeMocks.Store{}
+
+		systemStore := storeMocks.SystemStore{}
+		returnValue := &model.System{
+			Name:  model.SystemTelemetryId,
+			Value: "test",
+		}
+		systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(returnValue, nil).Once()
+
+		storeMock.On("System").Return(&systemStore)
+
+		serverIfaceMock := &mocks.ServerIface{}
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		testLogger, _ := mlog.NewLogger()
+
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
+		assert.Equal(t, "test", telemetryService.TelemetryID)
+
+		telemetryService.ensureTelemetryID()
+		assert.Equal(t, "test", telemetryService.TelemetryID)
+
+		// No more calls to the store if we try to ensure it again
+		telemetryService.ensureTelemetryID()
+		assert.Equal(t, "test", telemetryService.TelemetryID)
+	})
+
+	t.Run("new test ID created", func(t *testing.T) {
+		storeMock := &storeMocks.Store{}
+
+		systemStore := storeMocks.SystemStore{}
+		returnValue := &model.System{
+			Name: model.SystemTelemetryId,
+		}
+
+		var generatedID string
+		systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(returnValue, nil).Once().Run(func(args mock.Arguments) {
+			s := args.Get(0).(*model.System)
+			returnValue.Value = s.Value
+			generatedID = s.Value
+		})
+		storeMock.On("System").Return(&systemStore)
+
+		serverIfaceMock := &mocks.ServerIface{}
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		testLogger, _ := mlog.NewLogger()
+
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
+		assert.Equal(t, generatedID, telemetryService.TelemetryID)
+	})
+
+	t.Run("fail to save test ID", func(t *testing.T) {
+		storeMock := &storeMocks.Store{}
+
+		systemStore := storeMocks.SystemStore{}
+
+		insertError := errors.New("insert error")
+		systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(nil, insertError).Once()
+
+		storeMock.On("System").Return(&systemStore)
+
+		serverIfaceMock := &mocks.ServerIface{}
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		testLogger, _ := mlog.NewLogger()
+
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
+		assert.Equal(t, "", telemetryService.TelemetryID)
+	})
 }
 
 func TestPluginSetting(t *testing.T) {
@@ -274,7 +352,7 @@ func TestRudderTelemetry(t *testing.T) {
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&cfg.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg); errCfg != nil {
+	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
 	}
 	defer testLogger.Shutdown()

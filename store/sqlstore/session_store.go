@@ -32,7 +32,7 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 		table.ColMap("Token").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("DeviceId").SetMaxSize(512)
-		table.ColMap("Roles").SetMaxSize(64)
+		table.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
 		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
 	}
 
@@ -51,7 +51,12 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
+
 	session.PreSave()
+
+	if err := session.IsValid(); err != nil {
+		return nil, err
+	}
 
 	if err := me.GetMaster().Insert(session); err != nil {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
@@ -228,6 +233,10 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) err
 }
 
 func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, error) {
+	if len(roles) > model.UserRolesMaxLength {
+		return "", fmt.Errorf("Given session roles length (%d) exceeds max storage limit (%d)", len(roles), model.UserRolesMaxLength)
+	}
+
 	query := "UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId"
 
 	_, err := me.GetMaster().Exec(query, map[string]interface{}{"Roles": roles, "UserId": userId})
