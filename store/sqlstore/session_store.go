@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -57,11 +58,15 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	if err := session.IsValid(); err != nil {
 		return nil, err
 	}
+	jsonProps, err := json.Marshal(session.Props)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed marshalling session props")
+	}
 
 	query, args, err := me.getQueryBuilder().
 		Insert("Sessions").
 		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
-		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, model.MapToJSON(session.Props)).
+		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, string(jsonProps)).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sessions_tosql")
@@ -263,9 +268,13 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
+	jsonProps, err := json.Marshal(session.Props)
+	if err != nil {
+		return errors.Wrap(err, "failed marshalling session props")
+	}
 	query, args, err := me.getQueryBuilder().
 		Update("Sessions").
-		Set("Props", model.MapToJSON(session.Props)).
+		Set("Props", string(jsonProps)).
 		Where(sq.Eq{"Id": session.Id}).
 		ToSql()
 	if err != nil {
